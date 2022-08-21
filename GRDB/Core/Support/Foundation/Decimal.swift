@@ -28,7 +28,7 @@ extension Decimal: DatabaseValueConvertible {
 extension Decimal: StatementColumnConvertible {
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER:
             self.init(sqlite3_column_int64(sqliteStatement, index))

@@ -36,11 +36,11 @@ public struct CommonTableExpression<RowDecoder> {
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
-    private init<Request: SQLSubqueryable>(
+    private init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        request: Request,
+        request: some SQLSubqueryable,
         type: RowDecoder.Type)
     {
         self.tableName = tableName
@@ -72,11 +72,11 @@ extension CommonTableExpression {
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
-    public init<Request: SQLSubqueryable>(
+    public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        request: Request)
+        request: some SQLSubqueryable)
     {
         self.init(
             recursive: recursive,
@@ -151,7 +151,7 @@ extension CommonTableExpression {
     }
 }
 
-extension CommonTableExpression where RowDecoder == Row {
+extension CommonTableExpression<Row> {
     /// Creates a common table expression from a request.
     ///
     /// For example:
@@ -172,11 +172,11 @@ extension CommonTableExpression where RowDecoder == Row {
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
-    public init<Request: SQLSubqueryable>(
+    public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        request: Request)
+        request: some SQLSubqueryable)
     {
         self.init(
             recursive: recursive,
@@ -296,7 +296,7 @@ extension CommonTableExpression {
     ///
     ///     // name IN playerName
     ///     playerNameCTE.contains(Column("name"))
-    public func contains(_ element: SQLExpressible) -> SQLExpression {
+    public func contains(_ element: some SQLExpressible) -> SQLExpression {
         SQLCollection.table(tableName).contains(element.sqlExpression)
     }
 }
@@ -352,7 +352,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
@@ -388,7 +388,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Destination.Type,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
@@ -425,7 +425,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Table<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(

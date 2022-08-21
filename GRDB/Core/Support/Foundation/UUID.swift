@@ -51,7 +51,7 @@ extension UUID: DatabaseValueConvertible {
 extension UUID: StatementColumnConvertible {
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_TEXT:
             let string = String(cString: sqlite3_column_text(sqliteStatement, index)!)

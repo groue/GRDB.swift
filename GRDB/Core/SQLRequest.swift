@@ -13,14 +13,14 @@ public struct SQLRequest<RowDecoder> {
     }
     
     /// The request adapter
-    public var adapter: RowAdapter?
+    public var adapter: (any RowAdapter)?
     
     private(set) var sqlLiteral: SQL
     let cache: Cache?
     
     private init(
         literal sqlLiteral: SQL,
-        adapter: RowAdapter?,
+        adapter: (any RowAdapter)?,
         fromCache cache: Cache?,
         type: RowDecoder.Type)
     {
@@ -51,7 +51,7 @@ extension SQLRequest {
     public init(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil,
+        adapter: (any RowAdapter)? = nil,
         cached: Bool = false)
     {
         self.init(
@@ -77,7 +77,7 @@ extension SQLRequest {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(literal sqlLiteral: SQL, adapter: (any RowAdapter)? = nil, cached: Bool = false) {
         self.init(
             literal: sqlLiteral,
             adapter: adapter,
@@ -86,7 +86,7 @@ extension SQLRequest {
     }
 }
 
-extension SQLRequest where RowDecoder == Row {
+extension SQLRequest<Row> {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
@@ -104,7 +104,7 @@ extension SQLRequest where RowDecoder == Row {
     public init(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil,
+        adapter: (any RowAdapter)? = nil,
         cached: Bool = false)
     {
         self.init(
@@ -130,7 +130,7 @@ extension SQLRequest where RowDecoder == Row {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(literal sqlLiteral: SQL, adapter: (any RowAdapter)? = nil, cached: Bool = false) {
         self.init(
             literal: sqlLiteral,
             adapter: adapter,

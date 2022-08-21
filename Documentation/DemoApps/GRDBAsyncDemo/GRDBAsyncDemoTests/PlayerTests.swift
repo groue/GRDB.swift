@@ -8,7 +8,7 @@ class PlayerTests: XCTestCase {
     
     func testInsert() throws {
         // Given an empty players database
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         
         // When we insert a player
@@ -23,7 +23,7 @@ class PlayerTests: XCTestCase {
     
     func testRoundtrip() throws {
         // Given an empty players database
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         
         // When we insert a player and fetch the player with the same id
@@ -42,7 +42,7 @@ class PlayerTests: XCTestCase {
     
     func testOrderedByScore() throws {
         // Given a players database that contains players with distinct scores
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
         var player2 = Player(id: 2, name: "Barbara", score: 200)
@@ -64,7 +64,7 @@ class PlayerTests: XCTestCase {
     
     func testOrderedByScoreSortsIdenticalScoresByName() throws {
         // Given a players database that contains players with common scores
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
         var player2 = Player(id: 2, name: "Barbara", score: 200)
@@ -86,7 +86,7 @@ class PlayerTests: XCTestCase {
     
     func testOrderedByName() throws {
         // Given a players database that contains players with distinct names
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
         var player2 = Player(id: 2, name: "Barbara", score: 200)

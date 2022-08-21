@@ -31,32 +31,31 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["name"] = name
         container["age"] = age
         container["creationDate"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
@@ -65,9 +64,9 @@ private class MinimalPersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         extra = row["extra"]
-        super.init(row: row)
+        try super.init(row: row)
     }
 }
 
@@ -86,25 +85,25 @@ private class PersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         extra = row["extra"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func insert(_ db: Database) throws {
+    override func willInsert(_ db: Database) throws {
         lastSavingMethod = .insert
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func update(_ db: Database, columns: Set<String>) throws {
+    override func willUpdate(_ db: Database, columns: Set<String>) throws {
         lastSavingMethod = .update
-        try super.update(db, columns: columns)
+        try super.willUpdate(db, columns: columns)
     }
 }
 
 class RecordSubClassTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setup)
         try migrator.migrate(dbWriter)

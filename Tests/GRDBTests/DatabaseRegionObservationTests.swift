@@ -8,33 +8,64 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             try $0.execute(sql: "CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
             try $0.execute(sql: "CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         }
-
+        
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        var observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-        observation.extent = .databaseLifetime
-
+        let observation = DatabaseRegionObservation(tracking: .fullDatabase)
+        
         var count = 0
-        _ = try observation.start(in: dbQueue) { db in
-            count += 1
-            notificationExpectation.fulfill()
+        let cancellable = observation.start(
+            in: dbQueue,
+            onError: { XCTFail("Unexpected error: \($0)") },
+            onChange: { db in
+                count += 1
+                notificationExpectation.fulfill()
+            })
+        
+        try withExtendedLifetime(cancellable) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(count, 3)
+        }
+    }
+
+    func testDatabaseRegionObservation_ImmediateCancellation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write {
+            try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         }
         
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
-        }
-        waitForExpectations(timeout: 1, handler: nil)
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.isInverted = true
         
-        XCTAssertEqual(count, 3)
+        let observation = DatabaseRegionObservation(tracking: .fullDatabase)
+        
+        let cancellable = observation.start(
+            in: dbQueue,
+            onError: { XCTFail("Unexpected error: \($0)") },
+            onChange: { db in
+                notificationExpectation.fulfill()
+            })
+        cancellable.cancel()
+        
+        try withExtendedLifetime(cancellable) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+            }
+            waitForExpectations(timeout: 0.1, handler: nil)
+        }
     }
     
     func testDatabaseRegionObservationVariadic() throws {
@@ -43,7 +74,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             try $0.execute(sql: "CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
             try $0.execute(sql: "CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         }
-
+        
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
@@ -51,28 +82,32 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         let request1 = SQLRequest<Row>(sql: "SELECT * FROM t1 ORDER BY id")
         let request2 = SQLRequest<Row>(sql: "SELECT * FROM t2 ORDER BY id")
         
-        var observation = DatabaseRegionObservation(tracking: request1, request2)
-        observation.extent = .databaseLifetime
-
+        let observation = DatabaseRegionObservation(tracking: request1, request2)
+        
         var count = 0
-        _ = try observation.start(in: dbQueue) { db in
-            count += 1
-            notificationExpectation.fulfill()
-        }
+        let cancellable = observation.start(
+            in: dbQueue,
+            onError: { XCTFail("Unexpected error: \($0)") },
+            onChange: { db in
+                count += 1
+                notificationExpectation.fulfill()
+            })
         
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+        try withExtendedLifetime(cancellable) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(count, 3)
         }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
-        }
-        waitForExpectations(timeout: 1, handler: nil)
-        
-        XCTAssertEqual(count, 3)
     }
     
     func testDatabaseRegionObservationArray() throws {
@@ -89,31 +124,35 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         let request1 = SQLRequest<Row>(sql: "SELECT * FROM t1 ORDER BY id")
         let request2 = SQLRequest<Row>(sql: "SELECT * FROM t2 ORDER BY id")
         
-        var observation = DatabaseRegionObservation(tracking: [request1, request2])
-        observation.extent = .databaseLifetime
+        let observation = DatabaseRegionObservation(tracking: [request1, request2])
         
         var count = 0
-        _ = try observation.start(in: dbQueue) { db in
-            count += 1
-            notificationExpectation.fulfill()
-        }
+        let cancellable = observation.start(
+            in: dbQueue,
+            onError: { XCTFail("Unexpected error: \($0)") },
+            onChange: { db in
+                count += 1
+                notificationExpectation.fulfill()
+            })
         
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+        try withExtendedLifetime(cancellable) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+            }
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+                try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(count, 3)
         }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
-            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
-        }
-        waitForExpectations(timeout: 1, handler: nil)
-        
-        XCTAssertEqual(count, 3)
     }
     
-    func testDatabaseRegionDefaultExtent() throws {
+    func testDatabaseRegionDefaultCancellation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
@@ -125,12 +164,15 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         var count = 0
         do {
-            let observer = try observation.start(in: dbQueue) { db in
-                count += 1
-                notificationExpectation.fulfill()
-            }
+            let cancellable = observation.start(
+                in: dbQueue,
+                onError: { XCTFail("Unexpected error: \($0)") },
+                onChange: { db in
+                    count += 1
+                    notificationExpectation.fulfill()
+                })
             
-            try withExtendedLifetime(observer) {
+            try withExtendedLifetime(cancellable) {
                 try dbQueue.write { db in
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
                 }
@@ -156,29 +198,38 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 1
         
-        var observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
-        observation.extent = .nextTransaction
+        let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         
         var count = 0
-        _ = try observation.start(in: dbQueue) { db in
-            count += 1
-            notificationExpectation.fulfill()
-        }
+        var cancellable: AnyDatabaseCancellable?
+        cancellable = observation.start(
+            in: dbQueue,
+            onError: { XCTFail("Unexpected error: \($0)") },
+            onChange: { db in
+                cancellable?.cancel()
+                count += 1
+                notificationExpectation.fulfill()
+            })
         
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+        try withExtendedLifetime(cancellable) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+            }
+            // not notified
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            
+            XCTAssertEqual(count, 1)
         }
-        // not notified
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
-        }
-        waitForExpectations(timeout: 1, handler: nil)
-        
-        XCTAssertEqual(count, 1)
     }
     
     // Regression test for https://github.com/groue/GRDB.swift/issues/514
     // TODO: uncomment and make this test pass.
+    // Well, actually, selecting only the rowid has SQLite authorizer advertise
+    // that we select the whole table. This creates undesired database
+    // observation notifications.
 //    func testIssue514() throws {
 //        let dbQueue = try makeDatabaseQueue()
 //        try dbQueue.write { db in
@@ -192,11 +243,14 @@ class DatabaseRegionObservationTests: GRDBTestCase {
 //        let observation = DatabaseRegionObservation(tracking: Gallery.select(Column("id")))
 //
 //        var notificationCount = 0
-//        let observer = try observation.start(in: dbQueue) { _ in
-//            notificationCount += 1
-//        }
+//        let cancellable = observation.start(
+//            in: dbQueue,
+//            onError: { XCTFail("Unexpected error: \($0)") },
+//            onChange: { _ in
+//                notificationCount += 1
+//            })
 //
-//        try withExtendedLifetime(observer) {
+//        try withExtendedLifetime(cancellable) {
 //            try dbQueue.write { db in
 //                try db.execute(sql: "INSERT INTO gallery (id, status) VALUES (NULL, 0)")
 //            }

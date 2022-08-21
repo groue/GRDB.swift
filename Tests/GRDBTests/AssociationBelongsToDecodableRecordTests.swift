@@ -32,7 +32,7 @@ private struct PlayerWithTeamName: Decodable, FetchableRecord {
     var teamName: String?
 }
 
-extension QueryInterfaceRequest where RowDecoder == Player {
+private extension QueryInterfaceRequest<Player> {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
         joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }
@@ -47,7 +47,7 @@ extension QueryInterfaceRequest where RowDecoder == Player {
 /// Test support for Decodable records
 class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "teams") { t in
                 t.column("id", .integer).primaryKey()

@@ -4,7 +4,7 @@
 ///
 ///     // ABS(amount)
 ///     abs(Column("amount"))
-public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("ABS", [value.sqlExpression])
 }
 
@@ -15,7 +15,7 @@ public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // AVG(length)
 ///     average(Column("length"))
-public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func average(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("AVG", [value.sqlExpression])
 }
 
@@ -26,18 +26,7 @@ public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // COUNT(email)
 ///     count(Column("email"))
-///
-/// :nodoc:
-@available(*, deprecated)
-public func count(_ counted: SQLSelectable) -> SQLExpression {
-    counted.sqlSelection.countExpression
-}
-
-/// Returns an expression that evaluates the `COUNT` SQL function.
-///
-///     // COUNT(email)
-///     count(Column("email"))
-public func count(_ counted: SQLSpecificExpressible) -> SQLExpression {
+public func count(_ counted: some SQLSpecificExpressible) -> SQLExpression {
     .count(counted.sqlExpression)
 }
 
@@ -48,7 +37,7 @@ public func count(_ counted: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // COUNT(DISTINCT email)
 ///     count(distinct: Column("email"))
-public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
+public func count(distinct value: some SQLSpecificExpressible) -> SQLExpression {
     .countDistinct(value.sqlExpression)
 }
 
@@ -59,7 +48,7 @@ public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // IFNULL(name, 'Anonymous')
 ///     Column("name") ?? "Anonymous"
-public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
+public func ?? (lhs: some SQLSpecificExpressible, rhs: some SQLExpressible) -> SQLExpression {
     .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
 }
 
@@ -70,7 +59,7 @@ public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///
 ///     // LENGTH(name)
 ///     length(Column("name"))
-public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("LENGTH", [value.sqlExpression])
 }
 
@@ -81,7 +70,7 @@ public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // MAX(score)
 ///     max(Column("score"))
-public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("MAX", [value.sqlExpression])
 }
 
@@ -92,7 +81,7 @@ public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // MIN(score)
 ///     min(Column("score"))
-public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("MIN", [value.sqlExpression])
 }
 
@@ -107,7 +96,7 @@ public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // SUM(amount)
 ///     sum(Column("amount"))
-public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("SUM", [value.sqlExpression])
 }
 
@@ -122,7 +111,7 @@ public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///
 ///     // TOTAL(amount)
 ///     total(Column("amount"))
-public func total(_ value: SQLSpecificExpressible) -> SQLExpression {
+public func total(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("TOTAL", [value.sqlExpression])
 }
 
@@ -170,7 +159,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
         DatabaseFunction.localizedCapitalize(sqlExpression)
     }
@@ -181,7 +169,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
         DatabaseFunction.localizedLowercase(sqlExpression)
     }
@@ -192,7 +179,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
         DatabaseFunction.localizedUppercase(sqlExpression)
     }
@@ -291,7 +277,7 @@ public enum SQLDateModifier: SQLSpecificExpressible {
 ///     julianDay(Column("date"), .day(1))
 ///
 /// For more information, see <https://www.sqlite.org/lang_datefunc.html>
-public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+public func julianDay(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("JULIANDAY", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }
 
@@ -306,6 +292,6 @@ public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModif
 ///     dateTime(Column("date"), .day(1))
 ///
 /// For more information, see <https://www.sqlite.org/lang_datefunc.html>
-public func dateTime(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }

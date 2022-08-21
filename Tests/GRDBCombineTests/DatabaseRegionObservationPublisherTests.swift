@@ -29,7 +29,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = DatabaseRegionObservation(tracking: Player.all())
                 .publisher(in: writer)
                 .tryMap(Player.fetchCount)
@@ -49,10 +49,9 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
             XCTAssertEqual(elements, [1, 3])
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // This is an usage test. Do the available APIs allow to prepend a
@@ -71,7 +70,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let testSubject = PassthroughSubject<Database, Error>()
             let testCancellable = testSubject
@@ -108,10 +107,9 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
             observationCancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
 }
 #endif

@@ -60,8 +60,8 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
     }
     
     /// Updates a player id after it has been inserted in the database.
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -71,7 +71,7 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 ///
 /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#requests>
 /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md>
-extension DerivableRequest where RowDecoder == Player {
+extension DerivableRequest<Player> {
     /// A request of players ordered by name.
     ///
     /// For example:

@@ -28,19 +28,20 @@ private class Item : Record, Hashable {
         "items"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         name = row["name"]
         email = row["email"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["name"] = name
         container["email"] = email
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        insertedRowIDColumn = column
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        insertedRowIDColumn = inserted.rowIDColumn
     }
     
     static func == (lhs: Item, rhs: Item) -> Bool {
@@ -55,7 +56,7 @@ private class Item : Record, Hashable {
 
 class RecordPrimaryKeyNoneTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createItem", migrate: Item.setup)
         try migrator.migrate(dbWriter)

@@ -1,5 +1,8 @@
 /// The type that can be selected, as described at
 /// <https://www.sqlite.org/syntax/result-column.html>
+///
+/// It is legal for `SQLSelection` to represent several columns. The most basic
+/// example of such a multi-column selection is the SQL `*`.
 public struct SQLSelection {
     private var impl: Impl
     
@@ -71,25 +74,6 @@ extension SQLSelection {
             // We do not embed any SQL parser: we can't count the number of
             // columns in a literal selection.
             return nil
-        }
-    }
-    
-    /// TODO: remove when `count(_ counted: SQLSelectable)` is removed.
-    var countExpression: SQLExpression {
-        switch impl {
-        case .allColumns:
-            return .countAll
-            
-        case .qualifiedAllColumns:
-            // COUNT(player.*) is not valid SQL
-            fatalError("Uncountable selection")
-            
-        case let .expression(expression),
-             let .aliasedExpression(expression, _):
-            return .count(expression)
-            
-        case let .literal(sqlLiteral):
-            return .count(sqlLiteral.sqlExpression)
         }
     }
     
@@ -250,7 +234,7 @@ extension SQLSelection {
     }
 }
 
-extension Array where Element == SQLSelection {
+extension [SQLSelection] {
     /// Returns the number of columns in the selection.
     ///
     /// This method raises a fatal error if the selection contains a literal,
@@ -307,7 +291,7 @@ extension SQLSelection: SQLSelectable {
 ///
 ///     struct Player : TableRecord {
 ///         static var databaseTableName = "player"
-///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+///         static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 ///     }
 ///
 ///     // SELECT *, rowid FROM player

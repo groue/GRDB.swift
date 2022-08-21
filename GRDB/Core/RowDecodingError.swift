@@ -1,6 +1,6 @@
 /// A key that is used to decode a value in a row
 @usableFromInline
-enum RowKey: Hashable, GRDBSendable {
+enum RowKey: Hashable, Sendable {
     /// A column name
     case columnName(String)
     
@@ -18,7 +18,7 @@ enum RowKey: Hashable, GRDBSendable {
 @usableFromInline
 enum RowDecodingError: Error {
     @usableFromInline
-    struct Context: CustomDebugStringConvertible, GRDBSendable {
+    struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
         @usableFromInline
         let debugDescription: String
@@ -78,7 +78,7 @@ enum RowDecodingError: Error {
     static func valueMismatch(
         _ type: Any.Type,
         sqliteStatement: SQLiteStatement,
-        index: Int32,
+        index: CInt,
         context: RowDecodingContext)
     -> Self
     {
@@ -99,7 +99,7 @@ enum RowDecodingError: Error {
         valueMismatch(
             type,
             context: RowDecodingContext(statement: statement, index: index),
-            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: Int32(index)))
+            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: CInt(index)))
     }
     
     /// Convenience method that builds the `column not found: <column>`
@@ -137,7 +137,7 @@ struct RowDecodingContext {
         } else if let sqliteStatement = row.sqliteStatement {
             self.key = key
             self.row = row.copy()
-            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
+            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
             self.statementArguments = nil // Can't rebuild them
         } else {
             self.key = key

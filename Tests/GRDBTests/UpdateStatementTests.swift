@@ -3,7 +3,7 @@ import GRDB
 
 class UpdateStatementTests : GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: """
@@ -24,11 +24,13 @@ class UpdateStatementTests : GRDBTestCase {
             try db.makeStatement(sql: "INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
             try db.makeStatement(sql: "INSERT INTO persons (name) VALUES ('Craig'); ; ;").execute()
             try db.makeStatement(sql: "INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
+            try db.makeStatement(sql: "INSERT INTO persons (name) VALUES ('Eugene')\r\n").execute()
+            try db.makeStatement(sql: "INSERT INTO persons (name) VALUES ('Fiona')\u{000C}" /* \f */).execute()
             return .commit
         }
         try dbQueue.inDatabase { db in
             let names = try String.fetchAll(db, sql: "SELECT name FROM persons ORDER BY name")
-            XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
+            XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel", "Eugene", "Fiona"])
         }
     }
     
@@ -37,9 +39,13 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             try XCTAssertEqual(db.makeStatement(sql: "INSERT INTO persons (name, age) VALUES ('Arthur', ?)").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
             try XCTAssertEqual(db.makeStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?) ; ").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?)\r\n").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?)\t").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?)\n").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?)\u{000C}" /* \f */).sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
         }
     }
-
+    
     func testArrayStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -184,6 +190,8 @@ class UpdateStatementTests : GRDBTestCase {
             try db.execute(sql: ";")
             try db.execute(sql: ";;")
             try db.execute(sql: " \n;\t; ")
+            try db.execute(sql: "\r\n")
+            try db.execute(sql: "\u{000C}") // \f
             try db.execute(sql: "-- comment")
             try db.execute(sql: "-- comment\\n; -----ignored")
         }
@@ -210,7 +218,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithTrailingSemicolonAndWhiteSpace() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
+            try db.execute(sql: "CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\r\n \t")
             XCTAssertTrue(try db.tableExists("wines"))
             XCTAssertTrue(try db.tableExists("books"))
         }

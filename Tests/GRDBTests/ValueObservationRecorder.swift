@@ -174,12 +174,12 @@ public class ValueObservationRecorder<Value> {
         }
     }
     
-    fileprivate func receive(_ cancellable: DatabaseCancellable) {
+    fileprivate func receive(_ cancellable: AnyDatabaseCancellable) {
         synchronized {
             if state.cancellable != nil {
                 XCTFail("ValueObservationRecorder is already observing")
             }
-            state.cancellable = AnyDatabaseCancellable(cancellable)
+            state.cancellable = cancellable
         }
     }
 }
@@ -218,7 +218,7 @@ extension ValueObservationRecorder {
 
 extension ValueObservation {
     public func record(
-        in reader: DatabaseReader,
+        in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: ((Error) -> Void)? = nil,
         onChange: ((Reducer.Value) -> Void)? = nil)
@@ -283,8 +283,6 @@ extension XCTestCase {
         return try valueObservationExpectation.get()
     }
     
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
     /// This test checks the fundamental promise of ValueObservation by
     /// comparing recorded values with expected values.
     ///
@@ -310,71 +308,13 @@ extension XCTestCase {
     /// - `[]` (missing last value)
     /// - `[0, 1, 2]` (unexpected value)
     /// - `[1, 0, 1]` (unexpected value)
-    public func assertValueObservationRecordingMatch<Value>(
-        recorded recordedValues: [Value],
-        expected expectedValues: [Value],
-        _ message: @autoclosure () -> String = "",
-        file: StaticString = #filePath,
-        line: UInt = #line)
-        where Value: Equatable
-    {
-        _assertValueObservationRecordingMatch(
-            recorded: recordedValues,
-            expected: expectedValues,
-            // Last value can't be missed
-            allowMissingLastValue: false,
-            message(), file: file, line: line)
-    }
-    #else
-    /// This test checks the fundamental promise of ValueObservation by
-    /// comparing recorded values with expected values.
-    ///
-    /// Recorded values match the expected values if and only if:
-    ///
-    /// - The last recorded value is the last expected value
-    /// - Recorded values are in the same order as expected values
-    ///
-    /// However, both missing and repeated values are allowed - with the only
-    /// exception of the last expected value which can not be missed.
-    ///
-    /// For example, if the expected values are [0, 1], then the following
-    /// recorded values match:
-    ///
-    /// - `[0, 1]` (identical values)
-    /// - `[1]` (missing value but the last one)
-    /// - `[0, 0, 1, 1]` (repeated value)
-    ///
-    /// However the following recorded values don't match, and fail the test:
-    ///
-    /// - `[1, 0]` (wrong order)
-    /// - `[0]` (missing last value)
-    /// - `[]` (missing last value)
-    /// - `[0, 1, 2]` (unexpected value)
-    /// - `[1, 0, 1]` (unexpected value)
-    public func assertValueObservationRecordingMatch<Value>(
-        recorded recordedValues: [Value],
-        expected expectedValues: [Value],
+    func assertValueObservationRecordingMatch<R, E>(
+        recorded recordedValues: R,
+        expected expectedValues: E,
+        allowMissingLastValue: Bool = false,
         _ message: @autoclosure () -> String = "",
         file: StaticString = #file,
         line: UInt = #line)
-        where Value: Equatable
-    {
-        _assertValueObservationRecordingMatch(
-            recorded: recordedValues,
-            expected: expectedValues,
-            // Last value can't be missed
-            allowMissingLastValue: false,
-            message(), file: file, line: line)
-    }
-    #endif
-    
-    private func _assertValueObservationRecordingMatch<R, E>(
-        recorded recordedValues: R,
-        expected expectedValues: E,
-        allowMissingLastValue: Bool,
-        _ message: @autoclosure () -> String = "",
-        file: StaticString,
-        line: UInt)
         where
         R: BidirectionalCollection,
         E: BidirectionalCollection,
@@ -400,7 +340,7 @@ extension XCTestCase {
         
         let remainingRecordedValues = recordedValues.prefix(recordedValues.count - recordedSuffix.count)
         let remainingExpectedValues = expectedValues.prefix(expectedValues.count - expectedSuffix.count)
-        _assertValueObservationRecordingMatch(
+        assertValueObservationRecordingMatch(
             recorded: remainingRecordedValues,
             expected: remainingExpectedValues,
             // Other values can be missed
@@ -412,13 +352,13 @@ extension XCTestCase {
 // MARK: - GRDBTestCase + ValueObservationExpectation
 
 extension GRDBTestCase {
-    func _assertValueObservation<Reducer: ValueReducer>(
+    func assertValueObservation<Reducer: ValueReducer>(
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
         recordedUpdates: @escaping (Database) throws -> Void,
-        file: StaticString,
-        line: UInt)
+        file: StaticString = #file,
+        line: UInt = #line)
         throws
         where Reducer.Value: Equatable
     {
@@ -427,7 +367,7 @@ extension GRDBTestCase {
             scheduling scheduler: ValueObservationScheduler,
             testValueDispatching: @escaping () -> Void) throws
         {
-            func testRecordingEqualWhenWriteAfterStart(writer: DatabaseWriter) throws {
+            func testRecordingEqualWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
                 var value: Reducer.Value?
@@ -454,7 +394,7 @@ extension GRDBTestCase {
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
-            func testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+            func testRecordingEqualWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
                 var valueCount = 0
@@ -484,7 +424,7 @@ extension GRDBTestCase {
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
-            func testRecordingMatchWhenWriteAfterStart(writer: DatabaseWriter) throws {
+            func testRecordingMatchWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
                 var value: Reducer.Value?
@@ -529,7 +469,7 @@ extension GRDBTestCase {
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
-            func testRecordingMatchWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+            func testRecordingMatchWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
                 var valueCount = 0
@@ -624,12 +564,12 @@ extension GRDBTestCase {
         }
     }
     
-    func _assertValueObservation<Reducer: ValueReducer, Failure: Error>(
+    func assertValueObservation<Reducer: ValueReducer, Failure: Error>(
         _ observation: ValueObservation<Reducer>,
         fails testFailure: (Failure, DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,
-        file: StaticString,
-        line: UInt)
+        file: StaticString = #file,
+        line: UInt = #line)
         throws
     {
         func test(
@@ -637,7 +577,7 @@ extension GRDBTestCase {
             scheduling scheduler: ValueObservationScheduler,
             testErrorDispatching: @escaping () -> Void) throws
         {
-            func test(writer: DatabaseWriter) throws {
+            func test(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
                 let recorder = observation.record(
@@ -689,67 +629,6 @@ extension GRDBTestCase {
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
-    
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
-    func assertValueObservation<Reducer: _ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
-        records expectedValues: [Reducer.Value],
-        setup: (Database) throws -> Void,
-        recordedUpdates: @escaping (Database) throws -> Void,
-        file: StaticString = #filePath,
-        line: UInt = #line)
-        throws
-        where Reducer.Value: Equatable
-    {
-        try _assertValueObservation(
-            observation,
-            records: expectedValues,
-            setup: setup,
-            recordedUpdates: recordedUpdates,
-            file: file, line: line)
-    }
-    
-    func assertValueObservation<Reducer: _ValueReducer, Failure: Error>(
-        _ observation: ValueObservation<Reducer>,
-        fails testFailure: (Failure, DatabaseWriter) throws -> Void,
-        setup: (Database) throws -> Void,
-        file: StaticString = #filePath,
-        line: UInt = #line)
-        throws
-    {
-        try _assertValueObservation(observation, fails: testFailure, setup: setup, file: file, line: line)
-    }
-    #else
-    func assertValueObservation<Reducer: ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
-        records expectedValues: [Reducer.Value],
-        setup: (Database) throws -> Void,
-        recordedUpdates: @escaping (Database) throws -> Void,
-        file: StaticString = #file,
-        line: UInt = #line)
-        throws
-        where Reducer.Value: Equatable
-    {
-        try _assertValueObservation(
-            observation,
-            records: expectedValues,
-            setup: setup,
-            recordedUpdates: recordedUpdates,
-            file: file, line: line)
-    }
-    
-    func assertValueObservation<Reducer: ValueReducer, Failure: Error>(
-        _ observation: ValueObservation<Reducer>,
-        fails testFailure: (Failure, DatabaseWriter) throws -> Void,
-        setup: (Database) throws -> Void,
-        file: StaticString = #file,
-        line: UInt = #line)
-        throws
-    {
-        try _assertValueObservation(observation, fails: testFailure, setup: setup, file: file, line: line)
-    }
-    #endif
 }
 
 // MARK: - ValueObservationExpectations

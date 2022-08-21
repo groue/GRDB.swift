@@ -4,7 +4,7 @@ import Foundation
 public final class DatabaseCollation {
     /// The name of the collation
     public let name: String
-    let function: (Int32, UnsafeRawPointer?, Int32, UnsafeRawPointer?) -> ComparisonResult
+    let function: (CInt, UnsafeRawPointer?, CInt, UnsafeRawPointer?) -> ComparisonResult
     
     /// Creates a collation.
     ///

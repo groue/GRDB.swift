@@ -151,12 +151,11 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
 
 extension ValueWriteOnlyObserver {
     // Starts the observation
-    func start() -> DatabaseCancellable {
-        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
-        let (notificationCallbacksOpt, databaseAccessOpt) = lock.synchronized {
-            (self.notificationCallbacks, self.databaseAccess)
+    func start() -> AnyDatabaseCancellable {
+        let (notificationCallbacks, writer) = lock.synchronized {
+            (self.notificationCallbacks, self.databaseAccess?.writer)
         }
-        guard let notificationCallbacks = notificationCallbacksOpt, let writer = databaseAccessOpt?.writer else {
+        guard let notificationCallbacks, let writer else {
             // Likely a GRDB bug: during a synchronous start, user is not
             // able to cancel observation.
             fatalError("can't start a cancelled or failed observation")
@@ -208,8 +207,8 @@ extension ValueWriteOnlyObserver {
             }
             
             // Reduce
-            return reduceQueue.sync {
-                guard let initialValue = reducer._value(fetchedValue) else {
+            return try reduceQueue.sync {
+                guard let initialValue = try reducer._value(fetchedValue) else {
                     fatalError("Broken contract: reducer has no initial value")
                 }
                 
@@ -242,16 +241,23 @@ extension ValueWriteOnlyObserver {
                     let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                     guard isNotifying else { return /* Cancelled */ }
                     
-                    guard let initialValue = self.reducer._value(fetchedValue) else {
-                        fatalError("Broken contract: reducer has no initial value")
-                    }
-                    
-                    // Notify
-                    self.scheduler.schedule {
-                        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
-                        let onChangeOpt = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                        guard let onChange = onChangeOpt else { return /* Cancelled */ }
-                        onChange(initialValue)
+                    do {
+                        guard let initialValue = try self.reducer._value(fetchedValue) else {
+                            fatalError("Broken contract: reducer has no initial value")
+                        }
+                        
+                        // Notify
+                        self.scheduler.schedule {
+                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                            guard let onChange else { return /* Cancelled */ }
+                            onChange(initialValue)
+                        }
+                    } catch {
+                        let writer = self.lock.synchronized { self.databaseAccess?.writer }
+                        writer?.asyncWriteWithoutTransaction { db in
+                            self.stopDatabaseObservation(db)
+                        }
+                        self.notifyError(error)
                     }
                 }
             } catch {
@@ -270,11 +276,10 @@ extension ValueWriteOnlyObserver {
     /// single database access, we are sure that no concurrent write can happen
     /// during the initial fetch, and that we won't miss any future change.
     private func fetchAndStartObservation(_ db: Database) throws -> Reducer.Fetched? {
-        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
-        let (eventsOpt, fetchOpt) = lock.synchronized {
+        let (events, fetch) = lock.synchronized {
             (notificationCallbacks?.events, databaseAccess?.fetch)
         }
-        guard let events = eventsOpt, let fetch = fetchOpt else {
+        guard let events, let fetch else {
             return nil /* Cancelled */
         }
         
@@ -338,13 +343,12 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         // Reset the isModified flag until next transaction
         observationState.isModified = false
         
-        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
         // Ignore transaction unless we are still notifying database events, and
         // we can still fetch fresh values.
-        let (eventsOpt, fetchOpt) = lock.synchronized {
+        let (events, fetch) = lock.synchronized {
             (notificationCallbacks?.events, databaseAccess?.fetch)
         }
-        guard let events = eventsOpt, let fetch = fetchOpt else { return /* Cancelled */ }
+        guard let events, let fetch else { return /* Cancelled */ }
         
         // Notify
         events.databaseDidChange?()
@@ -389,16 +393,23 @@ extension ValueWriteOnlyObserver: TransactionObserver {
                 let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                 guard isNotifying else { return /* Cancelled */ }
                 
-                let value = self.reducer._value(fetchedValue)
-                
-                // Notify value
-                if let value = value {
-                    self.scheduler.schedule {
-                        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
-                        let onChangeOpt = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                        guard let onChange = onChangeOpt else { return /* Cancelled */ }
-                        onChange(value)
+                do {
+                    let value = try self.reducer._value(fetchedValue)
+                    
+                    // Notify value
+                    if let value = value {
+                        self.scheduler.schedule {
+                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                            guard let onChange else { return /* Cancelled */ }
+                            onChange(value)
+                        }
                     }
+                } catch {
+                    let writer = self.lock.synchronized { self.databaseAccess?.writer }
+                    writer?.asyncWriteWithoutTransaction { db in
+                        self.stopDatabaseObservation(db)
+                    }
+                    self.notifyError(error)
                 }
             }
         } catch {
@@ -417,21 +428,20 @@ extension ValueWriteOnlyObserver: TransactionObserver {
 
 extension ValueWriteOnlyObserver: DatabaseCancellable {
     func cancel() {
-        // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
         // Notify cancellation
-        let (eventsOpt, writerOpt): (ValueObservationEvents?, Writer?) = lock.synchronized {
+        let (events, writer) = lock.synchronized {
             let events = notificationCallbacks?.events
             notificationCallbacks = nil
             return (events, databaseAccess?.writer)
         }
         
-        guard let events = eventsOpt else { return /* Cancelled or failed */ }
+        guard let events else { return /* Cancelled or failed */ }
         events.didCancel?()
         
         // Stop observing the database
         // Do it asynchronously, so that we do not block the current thread:
         // cancellation may be triggered while a long write access is executing.
-        guard let writer = writerOpt else { return /* Failed */ }
+        guard let writer else { return /* Failed */ }
         writer.asyncWriteWithoutTransaction { db in
             self.stopDatabaseObservation(db)
         }
@@ -439,13 +449,12 @@ extension ValueWriteOnlyObserver: DatabaseCancellable {
     
     func notifyError(_ error: Error) {
         scheduler.schedule {
-            // TODO: [SR-214] remove -Opt suffix when we only support Xcode 12.5.1+
-            let eventsOpt: ValueObservationEvents? = self.lock.synchronized {
+            let events = self.lock.synchronized {
                 let events = self.notificationCallbacks?.events
                 self.notificationCallbacks = nil
                 return events
             }
-            guard let events = eventsOpt else { return /* Cancelled */ }
+            guard let events else { return /* Cancelled */ }
             events.didFail?(error)
         }
     }

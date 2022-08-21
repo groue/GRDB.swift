@@ -25,14 +25,6 @@ public struct FTS4: VirtualTableModule {
     /// The virtual table module name
     public let moduleName = "fts4"
     
-    // TODO: remove when `makeTableDefinition()` is no longer a requirement
-    /// Reserved; part of the VirtualTableModule protocol.
-    ///
-    /// See Database.create(virtualTable:using:)
-    public func makeTableDefinition() -> FTS4TableDefinition {
-        preconditionFailure()
-    }
-    
     /// Reserved; part of the VirtualTableModule protocol.
     ///
     /// See Database.create(virtualTable:using:)
@@ -296,7 +288,7 @@ public final class FTS4ColumnDefinition {
         return self
     }
     
-    /// Uses the column as the Int32 language id hidden column.
+    /// Uses the column as the language id hidden column.
     ///
     ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("a")

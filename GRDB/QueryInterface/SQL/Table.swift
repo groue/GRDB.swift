@@ -35,7 +35,7 @@ extension Table where RowDecoder == Row {
 
 extension Table: DatabaseRegionConvertible {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        DatabaseRegion.fullTable(tableName)
+        DatabaseRegion(table: tableName)
     }
 }
 
@@ -71,7 +71,7 @@ extension Table {
     ///     // SELECT id, email FROM player
     ///     let table = Table("player")
     ///     let request = table.select(Column("id"), Column("email"))
-    public func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
+    public func select(_ selection: any SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
         all().select(selection)
     }
     
@@ -80,7 +80,7 @@ extension Table {
     ///     // SELECT id, email FROM player
     ///     let table = Table("player")
     ///     let request = table.select([Column("id"), Column("email")])
-    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
+    public func select(_ selection: [any SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
         all().select(selection)
     }
     
@@ -122,7 +122,7 @@ extension Table {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(
-        _ selection: [SQLSelectable],
+        _ selection: [any SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -139,7 +139,7 @@ extension Table {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(
-        _ selection: SQLSelectable...,
+        _ selection: any SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -192,7 +192,7 @@ extension Table {
     ///     let request = table
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
+    public func annotated(with selection: [any SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: selection)
     }
     
@@ -203,7 +203,7 @@ extension Table {
     ///     let request = table
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
-    public func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
+    public func annotated(with selection: any SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: selection)
     }
     
@@ -212,7 +212,7 @@ extension Table {
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let table = Table<Player>("player")
     ///     let request = table.filter(Column("email") == "arthur@example.com")
-    public func filter(_ predicate: SQLSpecificExpressible) -> QueryInterfaceRequest<RowDecoder> {
+    public func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(predicate)
     }
     
@@ -221,10 +221,7 @@ extension Table {
     ///     // SELECT * FROM player WHERE id = 1
     ///     let table = Table<Player>("player")
     ///     let request = table.filter(key: 1)
-    public func filter<PrimaryKeyType>(key: PrimaryKeyType?)
-    -> QueryInterfaceRequest<RowDecoder>
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public func filter(key: some DatabaseValueConvertible) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(key: key)
     }
     
@@ -233,9 +230,8 @@ extension Table {
     ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let table = Table<Player>("player")
     ///     let request = table.filter(keys: [1, 2, 3])
-    public func filter<Sequence>(keys: Sequence)
+    public func filter(keys: some Sequence<some DatabaseValueConvertible>)
     -> QueryInterfaceRequest<RowDecoder>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -248,7 +244,7 @@ extension Table {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<RowDecoder> {
+    public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(key: key)
     }
     
@@ -260,7 +256,7 @@ extension Table {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<RowDecoder> {
+    public func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(keys: keys)
     }
     
@@ -297,7 +293,7 @@ extension Table {
     ///     // SELECT * FROM player ORDER BY name
     ///     let table = Table<Player>("player")
     ///     let request = table.order(Column("name"))
-    public func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<RowDecoder> {
+    public func order(_ orderings: any SQLOrderingTerm...) -> QueryInterfaceRequest<RowDecoder> {
         all().order(orderings)
     }
     
@@ -307,7 +303,7 @@ extension Table {
     ///     // SELECT * FROM player ORDER BY name
     ///     let table = Table<Player>("player")
     ///     let request = table.order([Column("name")])
-    public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<RowDecoder> {
+    public func order(_ orderings: [any SQLOrderingTerm]) -> QueryInterfaceRequest<RowDecoder> {
         all().order(orderings)
     }
     
@@ -394,61 +390,31 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     ///     let request = table.filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<RowDecoder>
-    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID
-    {
+    public func filter(ids: some Collection<RowDecoder.ID>) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(ids: ids)
-    }
-    
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player
-    ///     let table = Table("player")
-    ///     let request = try table.selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
-        all().selectID()
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension Table
-where RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id = 1
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(id: 1)
-    ///
-    /// - parameter id: A primary key
-    public func filter(id: RowDecoder.ID.Wrapped) -> QueryInterfaceRequest<RowDecoder> {
-        all().filter(id: id)
-    }
-    
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(ids: [1, 2, 3])
-    ///
-    /// - parameter ids: A collection of primary keys
-    public func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<RowDecoder>
-    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID.Wrapped
-    {
-        all().filter(ids: ids)
-    }
-    
+extension Table {
     /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
     ///
     ///     // SELECT id FROM player
     ///     let table = Table("player")
-    ///     let request = try table.selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
-        all().selectID()
+    ///     let request = try table.selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country
+    ///     let table = Table("country")
+    ///     let request = try table.selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship
+    ///     let table = Table("citizenship")
+    ///     let request = try table.selectPrimaryKey(as: Row.self)
+    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        all().selectPrimaryKey(as: type)
     }
 }
 
@@ -657,72 +623,6 @@ extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
     }
 }
 
-extension Table where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible {
-    /// A cursor over all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchCursor(db) // Cursor of String?
-    ///     while let name = try names.next() {   // String?
-    ///         ...
-    ///     }
-    ///
-    /// Values are iterated in the natural ordering of the table.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder.Wrapped> {
-        try all().fetchCursor(db)
-    }
-    
-    /// An array of all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchAll(db) // [String?]
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
-        try all().fetchAll(db)
-    }
-    
-    /// The value from the leftmost column of the first row.
-    ///
-    ///     // SELECT * FROM name LIMIT 1
-    ///     let table = Table<String?>("name")
-    ///     let name = try table.fetchOne(db) // String?
-    ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
-        try all().fetchOne(db)
-    }
-}
-
-extension Table where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible & Hashable {
-    /// A set of all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchSet(db) // Set<String?>
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder.Wrapped?> {
-        try all().fetchSet(db)
-    }
-}
-
 // MARK: - Fetching Fast Values from Table
 
 extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
@@ -784,78 +684,6 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
-        try all().fetchSet(db)
-    }
-}
-
-extension Table
-where RowDecoder: _OptionalProtocol,
-      RowDecoder.Wrapped: DatabaseValueConvertible & StatementColumnConvertible
-{
-    /// A cursor over all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchCursor(db) // Cursor of String?
-    ///     while let name = try names.next() {   // String?
-    ///         ...
-    ///     }
-    ///
-    /// Values are iterated in the natural ordering of the table.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> FastNullableDatabaseValueCursor<RowDecoder.Wrapped> {
-        try all().fetchCursor(db)
-    }
-    
-    /// An array of all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchAll(db) // [String?]
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
-        try all().fetchAll(db)
-    }
-    
-    /// The value from the leftmost column of the first row.
-    ///
-    ///     // SELECT * FROM name LIMIT 1
-    ///     let table = Table<String?>("name")
-    ///     let name = try table.fetchOne(db) // String?
-    ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
-        try all().fetchOne(db)
-    }
-}
-
-extension Table
-where RowDecoder: _OptionalProtocol,
-      RowDecoder.Wrapped: DatabaseValueConvertible & StatementColumnConvertible & Hashable
-{
-    /// A set of all values fetched from the leftmost column.
-    ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String?>("name")
-    ///     let names = try table.fetchSet(db) // Set<String?>
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder.Wrapped?> {
         try all().fetchSet(db)
     }
 }
@@ -1042,7 +870,7 @@ extension Table {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
@@ -1092,8 +920,7 @@ extension Table {
           Pivot.OriginRowDecoder == RowDecoder,
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
-        let association = HasManyThroughAssociation<RowDecoder, Target.RowDecoder>(
-            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+        let association = HasManyThroughAssociation(through: pivot, using: target)
         
         if let key = key {
             return association.forKey(key)
@@ -1125,8 +952,7 @@ extension Table {
           Pivot.OriginRowDecoder == RowDecoder,
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
-        let association = HasOneThroughAssociation<RowDecoder, Target.RowDecoder>(
-            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+        let association = HasOneThroughAssociation(through: pivot, using: target)
         
         if let key = key {
             return association.forKey(key)
@@ -1313,7 +1139,7 @@ extension Table {
 // MARK: - Batch Delete
 
 extension Table {
-    /// Deletes all rows; returns the number of deleted rows.
+    /// Deletes all rows, and returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
@@ -1341,10 +1167,7 @@ extension Table {
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: Whether a row exists for this primary key.
-    public func exists<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public func exists(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
@@ -1369,32 +1192,11 @@ where RowDecoder: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public func exists(_ db: Database, id: RowDecoder.ID) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension Table
-where RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Returns whether a row exists for this primary key.
-    ///
-    ///     try Table<Player>("player").exists(db, id: 123)
-    ///     try Table<Country>("country").exists(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     try Table<Document>("document").exists(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a row exists for this primary key.
-    public func exists(_ db: Database, id: RowDecoder.ID.Wrapped) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -1410,7 +1212,7 @@ extension Table {
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: Whether a row exists for this key.
-    public func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    public func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
@@ -1418,7 +1220,7 @@ extension Table {
 // MARK: - Deleting by Single-Column Primary Key
 
 extension Table {
-    /// Delete rows identified by their primary keys; returns the number of
+    /// Delete rows identified by their primary keys, and returns the number of
     /// deleted rows.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
@@ -1438,9 +1240,8 @@ extension Table {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public func deleteAll<Sequence>(_ db: Database, keys: Sequence)
+    public func deleteAll(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> Int
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -1450,7 +1251,7 @@ extension Table {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Delete a row, identified by its primary key; returns whether a
+    /// Delete a row, identified by its primary key, and returns whether a
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
@@ -1470,12 +1271,9 @@ extension Table {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
-        guard let key = key else {
-            // Avoid hitting the database
+    public func deleteOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return false
         }
         return try deleteAll(db, keys: [key]) > 0
@@ -1487,7 +1285,7 @@ extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
 {
-    /// Delete rows identified by their primary keys; returns the number of
+    /// Delete rows identified by their primary keys, and returns the number of
     /// deleted rows.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
@@ -1507,10 +1305,7 @@ where RowDecoder: Identifiable,
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID
-    {
+    public func deleteAll(_ db: Database, ids: some Collection<RowDecoder.ID>) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -1518,7 +1313,7 @@ where RowDecoder: Identifiable,
         return try filter(ids: ids).deleteAll(db)
     }
     
-    /// Delete a row, identified by its primary key; returns whether a
+    /// Delete a row, identified by its primary key, and returns whether a
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
@@ -1539,69 +1334,11 @@ where RowDecoder: Identifiable,
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, id: RowDecoder.ID) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension Table
-where RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Delete rows identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Table<Player>("player").deleteAll(db, ids: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Table<Country>("country").deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Table<Document>("document").deleteAll(db, ids: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID.Wrapped
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return 0
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
         }
-        return try filter(ids: ids).deleteAll(db)
-    }
-    
-    /// Delete a row, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Table<Player>("player").deleteOne(db, id: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Table<Country>("country").deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Table<Document>("document").deleteOne(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public func deleteOne(_ db: Database, id: RowDecoder.ID.Wrapped) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
+        return try deleteAll(db, ids: [id]) > 0
     }
 }
 
@@ -1609,7 +1346,8 @@ where RowDecoder: Identifiable,
 
 extension Table {
     /// Delete rows identified by the provided unique keys (primary key or
-    /// any key with a unique index on it); returns the number of deleted rows.
+    /// any key with a unique index on it), and returns the number of
+    /// deleted rows.
     ///
     ///     try Table("player").deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
@@ -1618,7 +1356,7 @@ extension Table {
     ///     - keys: An array of key dictionaries.
     /// - returns: The number of deleted rows
     @discardableResult
-    public func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+    public func deleteAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -1627,7 +1365,8 @@ extension Table {
     }
     
     /// Delete a row, identified by a unique key (the primary key or any key
-    /// with a unique index on it); returns whether a database row was deleted.
+    /// with a unique index on it), and returns whether a database row
+    /// was deleted.
     ///
     ///     Table("player").deleteOne(db, key: ["name": Arthur"])
     ///
@@ -1636,7 +1375,7 @@ extension Table {
     ///     - key: A dictionary of values.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    public func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try deleteAll(db, keys: [key]) > 0
     }
 }
@@ -1644,7 +1383,7 @@ extension Table {
 // MARK: - Batch Update
 
 extension Table {
-    /// Updates all rows; returns the number of updated rows.
+    /// Updates all rows, and returns the number of updated rows..
     ///
     /// For example:
     ///
@@ -1668,7 +1407,7 @@ extension Table {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
-    /// Updates all rows; returns the number of updated rows.
+    /// Updates all rows, and returns the number of updated rows..
     ///
     /// For example:
     ///
@@ -1679,18 +1418,16 @@ extension Table {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - parameter assignments: Column assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
+        _ assignments: ColumnAssignment...)
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, assignments)
     }
 }

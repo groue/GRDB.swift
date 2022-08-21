@@ -21,12 +21,12 @@ class MinimalSingle: Record, Hashable {
         "minimalSingles"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         UUID = row["UUID"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["UUID"] = UUID
     }
     
@@ -47,7 +47,7 @@ extension MinimalSingle: Identifiable {
 
 class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setup)
         try migrator.migrate(dbWriter)
@@ -78,7 +78,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -107,7 +107,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -139,7 +139,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.update(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -186,7 +186,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -199,7 +199,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -213,7 +213,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -819,35 +819,31 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
-    // MARK: Select ID
-    
-    func test_static_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    // MARK: Select PrimaryKey
+
+    func test_static_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalSingle()
             record.UUID = "theUUID"
             try record.insert(db)
-            let ids = try MinimalSingle.selectID().fetchAll(db)
+            let ids: [String] = try MinimalSingle.selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, ["theUUID"])
+            let rows = try MinimalSingle.selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["UUID": "theUUID"]])
         }
     }
     
-    func test_request_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalSingle()
             record.UUID = "theUUID"
             try record.insert(db)
-            let ids = try MinimalSingle.all().selectID().fetchAll(db)
+            let ids: [String] = try MinimalSingle.all().selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, ["theUUID"])
+            let rows = try MinimalSingle.all().selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["UUID": "theUUID"]])
         }
     }
 }

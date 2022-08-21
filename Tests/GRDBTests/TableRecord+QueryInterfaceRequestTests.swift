@@ -14,7 +14,7 @@ private struct Reader : TableRecord {
 
 class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(sql: """
@@ -385,6 +385,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             try XCTAssertFalse(Player.exists(db, id: 1))
             XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 1)")
+            
+            sqlQueries.removeAll()
+            try XCTAssertFalse(Player.exists(db, id: nil))
+            XCTAssertNil(lastSQLQuery) // Database not hit
             
             return .rollback
         }

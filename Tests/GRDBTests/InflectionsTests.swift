@@ -14,14 +14,11 @@ class InflectionsTests: GRDBTestCase {
         Inflections.default = originalInflections!
     }
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     private var inflectionTestCases: InflectionTestCases {
-        let url = Bundle(for: type(of: self)).url(forResource: "InflectionsTests", withExtension: "json")!
+        let url = testBundle.url(forResource: "InflectionsTests", withExtension: "json")!
         let data = try! Data(contentsOf: url)
         return try! JSONDecoder().decode(InflectionTestCases.self, from: data)
     }
-    #endif
     
     func testStartIndexOfLastWord() {
         func lastWord(_ string: String) -> String {
@@ -158,8 +155,6 @@ class InflectionsTests: GRDBTestCase {
         XCTAssertEqual(countableWord.pluralized.singularized, "sponsor")
     }
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testPluralizeSingularWord() {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.pluralized, plural)
@@ -174,10 +169,7 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedSingular.pluralized, suffixedPlural)
         }
     }
-    #endif
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testSingularizePluralWord() {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.singularized, singular)
@@ -192,10 +184,7 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.singularized, suffixedSingular)
         }
     }
-    #endif
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testPluralizePluralWord() {
         for (_, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.pluralized, plural)
@@ -208,10 +197,7 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
-    #endif
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testSingularizeSingularWord() {
         for (singular, _) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.singularized, singular)
@@ -224,10 +210,7 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedSingular.singularized, suffixedSingular)
         }
     }
-    #endif
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testIrregularityBetweenSingularAndPlural() {
         for (singular, plural) in inflectionTestCases.testCases["Irregularities"]! {
             Inflections.default.irregularSuffix(singular, plural)
@@ -251,11 +234,8 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
-    #endif
 }
 
-// Until SPM tests can load resources, disable this test for SPM.
-#if !SWIFT_PACKAGE
 struct InflectionTestCases: Decodable {
     var testCases: [String: [(String, String)]]
     
@@ -285,4 +265,3 @@ struct InflectionTestCases: Decodable {
         self.testCases = testCases
     }
 }
-#endif

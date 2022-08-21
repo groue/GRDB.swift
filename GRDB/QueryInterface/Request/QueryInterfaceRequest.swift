@@ -76,7 +76,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
-    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
+    public func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.select { db in
                 try selection(db).map(\.sqlSelection)
@@ -92,7 +92,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
+    public func select<RowDecoder>(_ selection: [any SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
         select(selection).asRequest(of: RowDecoder.self)
@@ -106,7 +106,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
+    public func select<RowDecoder>(_ selection: any SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
         select(selection, as: type)
@@ -149,6 +149,30 @@ extension QueryInterfaceRequest: SelectionRequest {
         select(sqlLiteral, as: type)
     }
     
+    /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
+    ///
+    ///     // SELECT id FROM player WHERE ...
+    ///     let request = try Player.filter(...).selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country WHERE ...
+    ///     let request = try Country.filter(...).selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship WHERE ...
+    ///     let request = try Citizenship.filter(...).selectPrimaryKey(as: Row.self)
+    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        with { request in
+            let tableName = request.relation.source.tableName
+            request.relation = request.relation.select { db in
+                try db.primaryKey(tableName).columns.map { Column($0).sqlSelection }
+            }
+        }
+        .asRequest(of: PrimaryKey.self)
+    }
+    
     /// Creates a request which appends *selection promise*.
     ///
     ///     // SELECT id, email, name FROM player
@@ -156,53 +180,12 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
-    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
+    public func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.annotated { db in
                 try selection(db).map(\.sqlSelection)
             }
         }
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension QueryInterfaceRequest
-where RowDecoder: Identifiable,
-      RowDecoder.ID: DatabaseValueConvertible
-{
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player WHERE ...
-    ///     let request = try Player.filter(...).selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
-        select { db in
-            let primaryKey = try db.primaryKey(self.databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
-            return [Column(primaryKey.columns[0])]
-        }.asRequest(of: RowDecoder.ID.self)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension QueryInterfaceRequest
-where RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player WHERE ...
-    ///     let request = try Player.filter(...).selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
-        select { db in
-            let primaryKey = try db.primaryKey(self.databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
-            return [Column(primaryKey.columns[0])]
-        }.asRequest(of: RowDecoder.ID.Wrapped.self)
     }
 }
 
@@ -213,7 +196,7 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
-    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
+    public func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.filter { db in
                 try predicate(db).sqlExpression
@@ -236,7 +219,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .order{ _ in [Column("email")] }
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
-    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
+    public func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.order { db in
                 try orderings(db).map(\.sqlOrdering)
@@ -275,7 +258,7 @@ extension QueryInterfaceRequest: OrderedRequest {
 
 extension QueryInterfaceRequest: AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
+    public func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.group { db in
                 try expressions(db).map(\.sqlExpression)
@@ -285,7 +268,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
+    public func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.having { db in
                 try predicate(db).sqlExpression
@@ -378,7 +361,7 @@ extension QueryInterfaceRequest: DerivableRequest {
     ///     request = request.limit(10, offset: 20)
     ///
     /// Any previous limit is replaced.
-    public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
+    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
         with {
             $0.relation.limit = SQLLimit(limit: limit, offset: offset)
         }
@@ -427,16 +410,229 @@ extension QueryInterfaceRequest {
 // MARK: - Batch Delete
 
 extension QueryInterfaceRequest {
-    /// Deletes matching rows; returns the number of deleted rows.
+    /// Deletes matching rows, and returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
-        try SQLQueryGenerator(relation: relation).makeDeleteStatement(db).execute()
+        let statement = try SQLQueryGenerator(relation: relation).makeDeleteStatement(db)
+        try statement.execute()
         return db.changesCount
     }
+}
+
+// MARK: - Batch Delete and Fetch
+
+extension QueryInterfaceRequest {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Returns a `DELETE ... RETURNING ...` prepared statement.
+    ///
+    /// For example:
+    ///
+    ///     // Delete all players and return their names
+    ///     // DELETE FROM player RETURNING name
+    ///     let request = Player.all()
+    ///     let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+    ///     let deletedNames = try String.fetchSet(statement)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `selection` is not empty.
+    public func deleteAndFetchStatement(
+        _ db: Database,
+        selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
+        return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
+    }
+    
+    /// Returns a cursor over a `DELETE ... RETURNING ...` statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let cursor = try request.deleteAndFetchCursor(db)
+    ///     let deletedPlayers = try Array(cursor) // [Player]
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over the deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func deleteAndFetchCursor(_ db: Database)
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        let statement = try deleteAndFetchStatement(db, selection: RowDecoder.databaseSelection)
+        return try RowDecoder.fetchCursor(statement)
+    }
+    
+    /// Executes a `DELETE ... RETURNING ...` statement and returns the
+    /// deleted records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let deletedPlayers = try request.deleteAndFetchAll(db)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func deleteAndFetchAll(_ db: Database)
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try Array(deleteAndFetchCursor(db))
+    }
+    
+    /// Executes a `DELETE ... RETURNING ...` statement and returns the
+    /// deleted records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let deletedPlayers = try request.deleteAndFetchSet(db)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func deleteAndFetchSet(_ db: Database)
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try Set(deleteAndFetchCursor(db))
+    }
+#else
+    /// Returns a `DELETE ... RETURNING ...` prepared statement.
+    ///
+    /// For example:
+    ///
+    ///     // Delete all players and return their names
+    ///     // DELETE FROM player RETURNING name
+    ///     let request = Player.all()
+    ///     let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+    ///     let deletedNames = try String.fetchSet(statement)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `selection` is not empty.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func deleteAndFetchStatement(
+        _ db: Database,
+        selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
+        return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
+    }
+    
+    /// Returns a cursor over a `DELETE ... RETURNING ...` statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let cursor = try request.deleteAndFetchCursor(db)
+    ///     let deletedPlayers = try Array(cursor) // [Player]
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over the deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func deleteAndFetchCursor(_ db: Database)
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        let statement = try deleteAndFetchStatement(db, selection: RowDecoder.databaseSelection)
+        return try RowDecoder.fetchCursor(statement)
+    }
+    
+    /// Executes a `DELETE ... RETURNING ...` statement and returns the
+    /// deleted records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let deletedPlayers = try request.deleteAndFetchAll(db)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func deleteAndFetchAll(_ db: Database)
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try Array(deleteAndFetchCursor(db))
+    }
+    
+    /// Executes a `DELETE ... RETURNING ...` statement and returns the
+    /// deleted records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all deleted players
+    ///     // DELETE FROM player RETURNING *
+    ///     let request = Player.all()
+    ///     let deletedPlayers = try request.deleteAndFetchSet(db)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of deleted records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func deleteAndFetchSet(_ db: Database)
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try Set(deleteAndFetchCursor(db))
+    }
+#endif
 }
 
 // MARK: - Batch Update
@@ -448,20 +644,21 @@ extension QueryInterfaceRequest {
         // runtime check for MutablePersistableRecord, and look for a
         // user-defined default. Such dynamic dispatch is unusual in GRDB, but
         // static dispatch is likely to create bad surprises in generic contexts.
-        if let recordType = RowDecoder.self as? MutablePersistableRecord.Type {
+        if let recordType = RowDecoder.self as? any MutablePersistableRecord.Type {
             return recordType.persistenceConflictPolicy.conflictResolutionForUpdate
         } else {
             return .abort
         }
     }
     
-    /// Updates matching rows; returns the number of updated rows.
+    /// Updates matching rows, and returns the number of updated rows.
     ///
     /// For example:
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.all().updateAll(db, [Column("score").set(to: 0)])
+    ///         let request = Player.all()
+    ///         try request.updateAll(db, [Column("score").set(to: 0)])
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -477,9 +674,9 @@ extension QueryInterfaceRequest {
     {
         let conflictResolution = conflictResolution ?? defaultConflictResolutionForUpdate
         guard let updateStatement = try SQLQueryGenerator(relation: relation).makeUpdateStatement(
-                db,
-                conflictResolution: conflictResolution,
-                assignments: assignments) else
+            db,
+            conflictResolution: conflictResolution,
+            assignments: assignments) else
         {
             // database not hit
             return 0
@@ -488,31 +685,322 @@ extension QueryInterfaceRequest {
         return db.changesCount
     }
     
-    /// Updates matching rows; returns the number of updated rows.
+    /// Updates matching rows, and returns the number of updated rows.
     ///
     /// For example:
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.all().updateAll(db, Column("score").set(to: 0))
+    ///         let request = Player.all()
+    ///         try request.updateAll(db, Column("score").set(to: 0))
     ///     }
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - parameter assignments: Column assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
+        _ assignments: ColumnAssignment...)
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, assignments)
     }
+}
+
+// MARK: - Batch Update and Fetch
+
+extension QueryInterfaceRequest {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Returns an `UPDATE ... RETURNING ...` prepared statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated scores
+    ///     // UPDATE player SET score = score + 10 RETURNING score
+    ///     let request = Player.all()
+    ///     let statement = try request.updateAndFetchStatement(
+    ///         db, [Column("score") += 10],
+    ///         select: [Column("score")])
+    ///     let updatedScores = try Int.fetchAll(statement)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments
+    ///   (must not be empty).
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `selection` and `assignments` are not empty.
+    public func updateAndFetchStatement(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment],
+        selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
+        
+        let conflictResolution = conflictResolution ?? defaultConflictResolutionForUpdate
+        guard let updateStatement = try SQLQueryGenerator(relation: relation).makeUpdateStatement(
+            db,
+            conflictResolution: conflictResolution,
+            assignments: assignments,
+            selection: selection)
+        else {
+            fatalError("Invalid empty assignments")
+        }
+        
+        return updateStatement
+    }
+    
+    /// Returns a cursor over an `UPDATE ... RETURNING ...` statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let cursor = try request.updateAndFetchCursor(db, [Column("score") += 10])
+    ///     let updatedPlayers = try Array(cursor) // [Player]
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: A cursor over the updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    public func updateAndFetchCursor(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        let statement = try updateAndFetchStatement(
+            db,
+            onConflict: conflictResolution,
+            assignments,
+            selection: RowDecoder.databaseSelection)
+        return try RowDecoder.fetchCursor(statement)
+    }
+    
+    /// Execute an `UPDATE ... RETURNING ...` statement and returns the
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let updatedPlayers = try request.updateAndFetchAll(db, [Column("score") += 10])
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: An array of updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    public func updateAndFetchAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+    
+    /// Execute an `UPDATE ... RETURNING ...` statement and returns the
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let updatedPlayers = try request.updateAndFetchSet(db, [Column("score") += 10])
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: A set of updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    public func updateAndFetchSet(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try Set(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+#else
+    /// Returns an `UPDATE ... RETURNING ...` prepared statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated scores
+    ///     // UPDATE player SET score = score + 10 RETURNING score
+    ///     let request = Player.all()
+    ///     let statement = try request.updateAndFetchStatement(
+    ///         db, [Column("score") += 10],
+    ///         select: [Column("score")])
+    ///     let updatedScores = try Int.fetchAll(statement)
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments
+    ///   (must not be empty).
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `selection` and `assignments` are not empty.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func updateAndFetchStatement(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment],
+        selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
+        
+        let conflictResolution = conflictResolution ?? defaultConflictResolutionForUpdate
+        guard let updateStatement = try SQLQueryGenerator(relation: relation).makeUpdateStatement(
+            db,
+            conflictResolution: conflictResolution,
+            assignments: assignments,
+            selection: selection)
+        else {
+            fatalError("Invalid empty assignments")
+        }
+        
+        return updateStatement
+    }
+    
+    /// Returns a cursor over an `UPDATE ... RETURNING ...` statement.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let cursor = try request.updateAndFetchCursor(db, [Column("score") += 10])
+    ///     let updatedPlayers = try Array(cursor) // [Player]
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: A cursor over the updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func updateAndFetchCursor(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        let statement = try updateAndFetchStatement(
+            db,
+            onConflict: conflictResolution,
+            assignments,
+            selection: RowDecoder.databaseSelection)
+        return try RowDecoder.fetchCursor(statement)
+    }
+    
+    /// Execute an `UPDATE ... RETURNING ...` statement and returns the
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let updatedPlayers = try request.updateAndFetchAll(db, [Column("score") += 10])
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: An array of updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func updateAndFetchAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+    
+    /// Execute an `UPDATE ... RETURNING ...` statement and returns the
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    ///     // Fetch all updated players
+    ///     // UPDATE player SET score = score + 10 RETURNING *
+    ///     let request = Player.all()
+    ///     let updatedPlayers = try request.updateAndFetchSet(db, [Column("score") += 10])
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: A set of updated records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - precondition: `assignments` is not empty.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    public func updateAndFetchSet(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try Set(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+#endif
 }
 
 // MARK: - ColumnAssignment
@@ -528,11 +1016,11 @@ extension QueryInterfaceRequest {
 ///         try Player.updateAll(db, assignment)
 ///     }
 public struct ColumnAssignment {
-    var column: ColumnExpression
+    var columnName: String
     var value: SQLExpression
     
     func sql(_ context: SQLGenerationContext) throws -> String {
-        try column.sqlExpression.sql(context) + " = " + value.sql(context)
+        try Column(columnName).sqlExpression.sql(context) + " = " + value.sql(context)
     }
 }
 
@@ -548,8 +1036,8 @@ extension ColumnExpression {
     ///         // UPDATE player SET score = 0
     ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
-    public func set(to value: SQLExpressible?) -> ColumnAssignment {
-        ColumnAssignment(column: self, value: value?.sqlExpression ?? .null)
+    public func set(to value: (any SQLExpressible)?) -> ColumnAssignment {
+        ColumnAssignment(columnName: name, value: value?.sqlExpression ?? .null)
     }
 }
 
@@ -562,7 +1050,7 @@ extension ColumnExpression {
 ///         // UPDATE player SET score = score + 1
 ///         try Player.updateAll(db, Column("score") += 1)
 ///     }
-public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func += (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column + value)
 }
 
@@ -575,7 +1063,7 @@ public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score - 1
 ///         try Player.updateAll(db, Column("score") -= 1)
 ///     }
-public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func -= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column - value)
 }
 
@@ -588,7 +1076,7 @@ public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score * 2
 ///         try Player.updateAll(db, Column("score") *= 2)
 ///     }
-public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func *= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column * value)
 }
 
@@ -601,7 +1089,7 @@ public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score / 2
 ///         try Player.updateAll(db, Column("score") /= 2)
 ///     }
-public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func /= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column / value)
 }
 
@@ -656,15 +1144,7 @@ private func prefetch(
             //      WITH grdb_base AS (SELECT a, b FROM parent)
             //      SELECT * FROM child
             //      WHERE (a, b) IN grdb_base
-            //
-            // This technique works well, but there is one precondition: row
-            // values must be available (https://www.sqlite.org/rowvalue.html).
-            // This is the case of almost all our target platforms.
-            //
-            // Otherwise, we fallback to the `(a = ? AND b = ?) OR ...`
-            // condition (the one that may fail if there are too many
-            // base rows).
-            let usesCommonTableExpression = pivotMapping.count > 1 && SQLExpression.rowValuesAreAvailable
+            let usesCommonTableExpression = pivotMapping.count > 1
             
             let prefetchRequest: QueryInterfaceRequest<Row>
             if usesCommonTableExpression {
@@ -830,7 +1310,7 @@ throws -> DatabaseRegion
         .databaseRegion // contains region of nested associations
 }
 
-extension Array where Element == Row {
+extension [Row] {
     /// - precondition: Columns all exist in all rows. All rows have the same
     ///   columnns, in the same order.
     fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
@@ -847,7 +1327,7 @@ extension Array where Element == Row {
 extension Row {
     /// - precondition: Columns all exist in the row.
     fileprivate func indexes(forColumns columns: [String]) -> [Int] {
-        columns.map { column -> Int in
+        columns.map { column in
             guard let index = index(forColumn: column) else {
                 fatalError("Column \(column) is not selected")
             }

@@ -7,7 +7,7 @@ private struct C: TableRecord { }
 private struct D: TableRecord { }
 
 class AssociationPrefetchingSQLTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         // A.hasMany(B)
         // A.hasMany(C)
         // B.belongsTo(A)
@@ -1893,43 +1893,6 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT DISTINCT *, "parentId" AS "grdb_parentId" \
                     FROM "player" \
                     WHERE "parentId" = 1
-                    """])
-            }
-        }
-    }
-    
-    func testLimit() throws {
-        struct Player: TableRecord { }
-        struct Team: TableRecord {
-            static let players = hasMany(Player.self)
-        }
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.create(table: "team") { t in
-                t.autoIncrementedPrimaryKey("teamId")
-            }
-            try db.create(table: "player") { t in
-                t.autoIncrementedPrimaryKey("playerId")
-                t.column("parentId", .integer).references("team")
-            }
-            try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
-            
-            do {
-                sqlQueries.removeAll()
-                let association = Team.players.limit(10, offset: 5)
-                let request = Team.including(all: association)
-                _ = try Row.fetchAll(db, request)
-                let selectQueries = sqlQueries.filter(isSelectQuery)
-                XCTAssertEqual(selectQueries, [
-                    """
-                    SELECT * FROM "team"
-                    """,
-                    """
-                    SELECT *, "parentId" AS "grdb_parentId" \
-                    FROM "player" \
-                    WHERE "parentId" = 1 \
-                    LIMIT 10 OFFSET 5
                     """])
             }
         }

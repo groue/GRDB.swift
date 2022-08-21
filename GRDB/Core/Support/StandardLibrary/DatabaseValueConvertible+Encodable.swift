@@ -3,7 +3,7 @@ import Foundation
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
     
-    var codingPath: [CodingKey] { [] }
+    var codingPath: [any CodingKey] { [] }
     
     /// Encodes a null value.
     ///
@@ -37,7 +37,7 @@ private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     /// - throws: `EncodingError.invalidValue` if the given value is invalid in the current context for this format.
     /// - precondition: May not be called after a previous `self.encode(_:)` call.
     mutating func encode<T>(_ value: T) throws where T: Encodable {
-        if let dbValueConvertible = value as? DatabaseValueConvertible {
+        if let dbValueConvertible = value as? any DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
             // This allows us to encode Date as String, for example.
             encode(dbValueConvertible.databaseValue)
@@ -57,7 +57,7 @@ private class DatabaseValueEncoder: Encoder {
     
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey] { [] }
+    var codingPath: [any CodingKey] { [] }
     
     /// Any contextual information set by the user for encoding.
     var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -119,10 +119,8 @@ private class DatabaseValueEncoder: Encoder {
             encoder.dataEncodingStrategy = .base64
             encoder.dateEncodingStrategy = .millisecondsSince1970
             encoder.nonConformingFloatEncodingStrategy = .throw
-            if #available(watchOS 4.0, OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-                // guarantee some stability in order to ease value comparison
-                encoder.outputFormatting = .sortedKeys
-            }
+            // guarantee some stability in order to ease value comparison
+            encoder.outputFormatting = .sortedKeys
             let jsonData = try encoder.encode(value)
             
             // Store JSON String in the database for easier debugging and

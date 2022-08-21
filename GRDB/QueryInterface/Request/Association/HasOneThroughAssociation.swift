@@ -30,4 +30,16 @@ public struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne {
     
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
+    
+    init<Pivot, Target>(
+        through pivot: Pivot,
+        using target: Target)
+    where Pivot: AssociationToOne,
+          Target: AssociationToOne,
+          Pivot.OriginRowDecoder == Origin,
+          Pivot.RowDecoder == Target.OriginRowDecoder,
+          Target.RowDecoder == Destination
+    {
+        _sqlAssociation = target._sqlAssociation.through(pivot._sqlAssociation)
+    }
 }

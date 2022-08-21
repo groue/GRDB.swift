@@ -120,7 +120,7 @@ extension Date: StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER, SQLITE_FLOAT:
             self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))

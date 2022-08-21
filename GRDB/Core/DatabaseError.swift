@@ -197,7 +197,7 @@ extension ResultCode {
     }
 }
 
-extension ResultCode: GRDBSendable { }
+extension ResultCode: Sendable { }
 
 /// DatabaseError wraps an SQLite error.
 public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {

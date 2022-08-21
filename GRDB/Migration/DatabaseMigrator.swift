@@ -197,7 +197,7 @@ public struct DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(_ writer: DatabaseWriter) throws {
+    public func migrate(_ writer: some DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
         }
@@ -212,7 +212,7 @@ public struct DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
+    public func migrate(_ writer: some DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
@@ -224,21 +224,22 @@ public struct DatabaseMigrator {
     ///
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
-    /// - parameter completion: A closure that is called in a protected dispatch
-    ///   queue that can write in the database, with the eventual
-    ///   migration error.
+    /// - parameter completion: A function that can access the database. Its
+    ///   argument is a `Result` that provides a connection to the migrated
+    ///   database, or the failure that would prevent the migration to complete.
     public func asyncMigrate(
-        _ writer: DatabaseWriter,
-        completion: @escaping (Database, Error?) -> Void)
+        _ writer: some DatabaseWriter,
+        completion: @escaping (Result<Database, Error>) -> Void)
     {
-        writer.asyncBarrierWriteWithoutTransaction { db in
+        writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {
+                let db = try dbResult.get()
                 if let lastMigration = self._migrations.last {
                     try self.migrate(db, upTo: lastMigration.identifier)
                 }
-                completion(db, nil)
+                completion(.success(db))
             } catch {
-                completion(db, error)
+                completion(.failure(error))
             }
         }
     }
@@ -388,7 +389,7 @@ public struct DatabaseMigrator {
                     // Let's migrate a temporary database up to the same
                     // level, and compare the database schemas. If they
                     // differ, we'll erase the database.
-                    let tmpSchema: SchemaInfo = try {
+                    let tmpSchema = try {
                         // Make sure the temporary database is configured
                         // just as the migrated database
                         var tmpConfig = db.configuration
@@ -455,7 +456,7 @@ extension DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher(_ writer: DatabaseWriter) -> DatabasePublishers.Migrate {
+    public func migratePublisher(_ writer: some DatabaseWriter) -> DatabasePublishers.Migrate {
         migratePublisher(writer, receiveOn: DispatchQueue.main)
     }
     
@@ -471,23 +472,16 @@ extension DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher<S>(_ writer: DatabaseWriter, receiveOn scheduler: S)
+    public func migratePublisher(_ writer: some DatabaseWriter, receiveOn scheduler: some Scheduler)
     -> DatabasePublishers.Migrate
-    where S: Scheduler
     {
         DatabasePublishers.Migrate(
             upstream: OnDemandFuture { promise in
-                self.asyncMigrate(writer) { _, error in
-                    if let error = error {
-                        promise(.failure(error))
-                    } else {
-                        promise(.success(()))
-                    }
+                self.asyncMigrate(writer) { dbResult in
+                    promise(dbResult.map { _ in })
                 }
             }
-            .eraseToAnyPublisher()
             .receiveValues(on: scheduler)
-            .eraseToAnyPublisher()
         )
     }
 }
@@ -502,7 +496,7 @@ extension DatabasePublishers {
         public typealias Output = Void
         public typealias Failure = Error
         
-        fileprivate let upstream: AnyPublisher<Void, Error>
+        fileprivate let upstream: any Publisher<Void, Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)

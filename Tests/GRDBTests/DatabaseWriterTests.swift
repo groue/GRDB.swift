@@ -40,7 +40,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     func testAsyncWriteWithoutTransactionSuccess() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             dbWriter.asyncWriteWithoutTransaction { db in
@@ -65,7 +65,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     func testAsyncWriteWithoutTransactionError() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             dbWriter.asyncWriteWithoutTransaction { db in
@@ -90,7 +90,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     func testAsyncWriteSuccess() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             dbWriter.asyncWrite({ db in
@@ -119,7 +119,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     func testAsyncWriteError() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             dbWriter.asyncWrite({ db in
@@ -148,10 +148,10 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testAnyDatabaseWriter() {
+    func testAnyDatabaseWriter() throws {
         // This test passes if this code compiles.
-        let writer: DatabaseWriter = DatabaseQueue()
-        let _: DatabaseWriter = AnyDatabaseWriter(writer)
+        let dbQueue = try DatabaseQueue()
+        let _: any DatabaseWriter = AnyDatabaseWriter(dbQueue)
     }
     
     func testEraseAndVacuum() throws {
@@ -159,7 +159,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try testEraseAndVacuum(writer: makeDatabasePool())
     }
 
-    private func testEraseAndVacuum(writer: DatabaseWriter) throws {
+    private func testEraseAndVacuum(writer: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("init") { db in
             // Create a database with recursive constraints, so that we test
@@ -203,7 +203,7 @@ class DatabaseWriterTests : GRDBTestCase {
             throw XCTSkip("VACUUM INTO is not available")
         }
         
-        func testVacuumInto(writer: DatabaseWriter) throws {
+        func testVacuumInto(writer: some DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("init") { db in
                 try db.execute(sql: """
@@ -266,7 +266,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -286,9 +285,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -311,9 +308,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -336,9 +331,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -356,9 +349,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -374,9 +365,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
         // Prevent SQLCipher failures
@@ -406,5 +395,4 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
-#endif
 }

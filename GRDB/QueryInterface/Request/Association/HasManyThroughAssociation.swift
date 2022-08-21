@@ -50,4 +50,16 @@ public struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany 
     
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
+    
+    init<Pivot, Target>(
+        through pivot: Pivot,
+        using target: Target)
+    where Pivot: Association,
+          Target: Association,
+          Pivot.OriginRowDecoder == Origin,
+          Pivot.RowDecoder == Target.OriginRowDecoder,
+          Target.RowDecoder == Destination
+    {
+        _sqlAssociation = target._sqlAssociation.through(pivot._sqlAssociation)
+    }
 }

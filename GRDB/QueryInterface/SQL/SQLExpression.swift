@@ -370,17 +370,9 @@ public struct SQLExpression {
     }
 }
 
-@available(*, deprecated, renamed: "SQLExpression.AssociativeBinaryOperator")
-public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryOperator
-
 // MARK: - Creating Expressions
 
-extension SQLExpression {
-    
-    /// SQLite row values were shipped in SQLite 3.15:
-    /// <https://www.sqlite.org/releaselog/3_15_0.html>
-    static let rowValuesAreAvailable = (sqlite3_libversion_number() >= 3015000)
-    
+extension SQLExpression {    
     // MARK: Basic Expressions
     
     /// A column.
@@ -1667,12 +1659,10 @@ public protocol SQLExpressible {
     var sqlExpression: SQLExpression { get }
 }
 
-#if compiler(>=5.5)
 extension SQLExpressible where Self == Column {
     /// The hidden rowID column
     public static var rowID: Self { Column.rowID }
 }
-#endif
 
 /// `SQLSpecificExpressible` is a protocol for all database-specific types that
 /// can be turned into an SQL expression. Types whose existence is not purely
@@ -1699,9 +1689,9 @@ public protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderi
     // spill out. The three declarations below have no chance overloading a
     // Swift-defined operator, or a user-defined operator:
     //
-    // - ==(SQLExpressible, SQLSpecificExpressible)
-    // - ==(SQLSpecificExpressible, SQLExpressible)
-    // - ==(SQLSpecificExpressible, SQLSpecificExpressible)
+    // - ==(some SQLExpressible, some SQLSpecificExpressible)
+    // - ==(some SQLSpecificExpressible, some SQLExpressible)
+    // - ==(some SQLSpecificExpressible, some SQLSpecificExpressible)
 }
 
 extension SQLSpecificExpressible {
@@ -1744,7 +1734,7 @@ extension Sequence where Element: SQLSpecificExpressible {
     }
 }
 
-extension Sequence where Element == SQLSpecificExpressible {
+extension Sequence<any SQLSpecificExpressible> {
     /// Returns an expression by joining all elements with an associative SQL
     /// binary operator.
     ///
@@ -1858,7 +1848,7 @@ extension SQLSpecificExpressible {
     ///         let height: Int
     ///         let area: Int
     ///
-    ///         static let databaseSelection: [SQLSelectable] = [
+    ///         static let databaseSelection: [any SQLSelectable] = [
     ///             Column(CodingKeys.width),
     ///             Column(CodingKeys.height),
     ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).forKey(CodingKeys.area),
@@ -1869,7 +1859,7 @@ extension SQLSpecificExpressible {
     ///     let shapes: [Shape] = try Shape.fetchAll(db)
     ///
     /// See `forKey(_ key: String)` for more information.
-    public func forKey(_ key: CodingKey) -> SQLSelection {
+    public func forKey(_ key: some CodingKey) -> SQLSelection {
         forKey(key.stringValue)
     }
 }

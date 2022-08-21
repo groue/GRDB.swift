@@ -107,15 +107,23 @@ struct SQLRelation {
         var condition: SQLAssociationCondition
         var relation: SQLRelation
         
-        /// Returns true iff this child can change the parent count.
+        /// Returns whether this child can change the parent count.
         ///
         /// Record.including(required: association) // true
         /// Record.including(all: association)      // false
         var impactsParentCount: Bool {
             switch kind {
-            case .oneOptional, .oneRequired:
+            case .oneRequired:
+                // INNER JOIN can clearly reduce the number of rows
+                return true
+            case .oneOptional:
+                // LEFT JOIN does not itself reduce the number of rows, but
+                // maybe the joined table is used somewhere in the relation, in
+                // a way that can reduce the number of rows.
                 return true
             case .all, .bridge:
+                // HasMany associations are prefetched in another SQL request:
+                // they have no impact on this relation.
                 return false
             }
         }
@@ -893,7 +901,7 @@ extension JoinMapping {
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
-        let mappings: [(leftIndex: Rows.Element.ColumnIndex, rightColumn: Column)] = map { mapping in
+        let mappings = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }

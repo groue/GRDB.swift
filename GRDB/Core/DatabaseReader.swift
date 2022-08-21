@@ -19,7 +19,7 @@ import Dispatch
 /// connection to the database. Should you have to cope with external
 /// connections, protect yourself with transactions, and be ready to setup a
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
-public protocol DatabaseReader: AnyObject, GRDBSendable {
+public protocol DatabaseReader: AnyObject, Sendable {
     
     /// The database configuration
     var configuration: Configuration { get }
@@ -281,14 +281,14 @@ public protocol DatabaseReader: AnyObject, GRDBSendable {
     /// method instead.
     ///
     /// - parameter observation: the stared observation
-    /// - returns: a TransactionObserver
+    /// - returns: a cancellable
     ///
     /// :nodoc:
     func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -341,8 +341,8 @@ extension DatabaseReader {
     /// - throws: The error thrown by `progress` if the backup is abandoned, or
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
-        to writer: DatabaseWriter,
-        pagesPerStep: Int32 = -1,
+        to writer: some DatabaseWriter,
+        pagesPerStep: CInt = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
@@ -356,7 +356,7 @@ extension DatabaseReader {
     
     func backup(
         to destDb: Database,
-        pagesPerStep: Int32 = -1,
+        pagesPerStep: CInt = -1,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
@@ -371,11 +371,9 @@ extension DatabaseReader {
     }
 }
 
-#if compiler(>=5.6) && canImport(_Concurrency)
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
@@ -422,7 +420,6 @@ extension DatabaseReader {
         }
     }
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a function that accepts a database connection.
     ///
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -465,7 +462,6 @@ extension DatabaseReader {
         }
     }
 }
-#endif
 
 #if canImport(Combine)
 extension DatabaseReader {
@@ -557,7 +553,7 @@ extension DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         if scheduler.immediateInitialValue() {
             do {
@@ -601,10 +597,10 @@ extension DatabaseReader {
 /// Instances of AnyDatabaseReader forward their methods to an arbitrary
 /// underlying database reader.
 public final class AnyDatabaseReader: DatabaseReader {
-    private let base: DatabaseReader
+    private let base: any DatabaseReader
     
     /// Creates a database reader that wraps a base database reader.
-    public init(_ base: DatabaseReader) {
+    public init(_ base: some DatabaseReader) {
         self.base = base
     }
     
@@ -653,7 +649,7 @@ public final class AnyDatabaseReader: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         base._add(
             observation: observation,

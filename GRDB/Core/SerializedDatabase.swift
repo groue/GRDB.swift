@@ -249,9 +249,7 @@ final class SerializedDatabase {
     }
 }
 
-#if swift(>=5.6) && canImport(_Concurrency)
 // @unchecked because the wrapped `Database` itself is not Sendable.
 // It happens the job of SerializedDatabase is precisely to provide thread-safe
 // access to `Database`.
 extension SerializedDatabase: @unchecked Sendable { }
-#endif

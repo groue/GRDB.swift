@@ -144,7 +144,7 @@ extension Database {
         columns: [String],
         unique: Bool = false,
         ifNotExists: Bool = false,
-        condition: SQLExpressible? = nil)
+        condition: (any SQLExpressible)? = nil)
     throws
     {
         var options: IndexOptions = []
@@ -177,7 +177,7 @@ extension Database {
         on table: String,
         columns: [String],
         options: IndexOptions = [],
-        condition: SQLExpressible? = nil)
+        condition: (any SQLExpressible)? = nil)
     throws
     {
         let definition = IndexDefinition(
@@ -477,7 +477,7 @@ public final class TableDefinition {
     /// See <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: The checked condition
-    public func check(_ condition: SQLExpressible) {
+    public func check(_ condition: some SQLExpressible) {
         checkConstraints.append(condition.sqlExpression)
     }
     
@@ -789,7 +789,7 @@ public final class TableAlteration {
     /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - Parameter name: the column name to drop.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func drop(column name: String) {
         _drop(column: name)
     }
@@ -1003,7 +1003,7 @@ public final class ColumnDefinition {
     ///   represents the defined column, and returns the expression to check.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func check(_ condition: (Column) -> SQLExpressible) -> Self {
+    public func check(_ condition: (Column) -> any SQLExpressible) -> Self {
         checkConstraints.append(condition(Column(name)).sqlExpression)
         return self
     }
@@ -1035,7 +1035,7 @@ public final class ColumnDefinition {
     /// - parameter value: A DatabaseValueConvertible value.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func defaults(to value: DatabaseValueConvertible) -> Self {
+    public func defaults(to value: some DatabaseValueConvertible) -> Self {
         defaultExpression = value.sqlExpression
         return self
     }
@@ -1138,7 +1138,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func generatedAs(
-        _ expression: SQLExpressible,
+        _ expression: some SQLExpressible,
         _ qualification: GeneratedColumnQualification = .virtual)
     -> Self
     {

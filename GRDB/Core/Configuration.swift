@@ -196,7 +196,7 @@ public struct Configuration {
     ///
     /// For example:
     ///
-    ///     let dbQueue = DatabaseQueue()
+    ///     let dbQueue = try DatabaseQueue()
     ///
     ///     // fatal error: A transaction has been left opened at the end of a database access
     ///     try dbQueue.inDatabase { db in
@@ -208,7 +208,7 @@ public struct Configuration {
     ///
     ///     var config = Configuration()
     ///     config.allowsUnsafeTransactions = true
-    ///     let dbQueue = DatabaseQueue(configuration: config)
+    ///     let dbQueue = try DatabaseQueue(configuration: config)
     ///
     ///     try dbQueue.inDatabase { db in
     ///         try db.beginTransaction()
@@ -295,7 +295,7 @@ public struct Configuration {
     var SQLiteConnectionDidOpen: (() -> Void)?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
     var SQLiteConnectionDidClose: (() -> Void)?
-    var SQLiteOpenFlags: Int32 {
+    var SQLiteOpenFlags: CInt {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags
     }

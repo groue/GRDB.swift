@@ -4,14 +4,14 @@ class DatabasePoolBackupTests: BackupTestCase {
     
     func testDatabaseWriterBackup() throws {
         // SQLCipher can't backup encrypted databases: use a pristine Configuration
-        let source: DatabaseWriter = try makeDatabasePool(filename: "source.sqlite", configuration: Configuration())
-        let destination: DatabaseWriter = try makeDatabasePool(filename: "destination.sqlite", configuration: Configuration())
+        let source = try makeDatabasePool(filename: "source.sqlite", configuration: Configuration())
+        let destination = try makeDatabasePool(filename: "destination.sqlite", configuration: Configuration())
         try testDatabaseWriterBackup(from: source, to: destination)
     }
     
     func testDatabaseBackup() throws {
-        let source: DatabaseWriter = try makeDatabasePool(filename: "source.sqlite", configuration: Configuration())
-        let destination: DatabaseWriter = try makeDatabasePool(filename: "destination.sqlite", configuration: Configuration())
+        let source = try makeDatabasePool(filename: "source.sqlite", configuration: Configuration())
+        let destination = try makeDatabasePool(filename: "destination.sqlite", configuration: Configuration())
         try testDatabaseBackup(from: source, to: destination)
     }
     

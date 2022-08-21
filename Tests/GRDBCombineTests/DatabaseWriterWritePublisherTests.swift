@@ -31,7 +31,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             try XCTAssertEqual(writer.read(Player.fetchCount), 0)
             let publisher = writer.writePublisher(updates: { db in
                 try Player(id: 1, name: "Arthur", score: 1000).insert(db)
@@ -41,10 +41,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             try XCTAssertEqual(writer.read(Player.fetchCount), 1)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -59,7 +58,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(updates: { db -> Int in
                 try Player(id: 1, name: "Arthur", score: 1000).insert(db)
                 return try Player.fetchCount(db)
@@ -69,10 +68,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             XCTAssertEqual(count, 1)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -82,7 +80,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(updates: { db in
                 try db.execute(sql: "THIS IS NOT SQL")
             })
@@ -95,10 +93,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     func testWritePublisherErrorRollbacksTransaction() throws {
@@ -111,7 +108,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(updates: { db in
                 try Player(id: 1, name: "Arthur", score: 1000).insert(db)
                 try db.execute(sql: "THIS IS NOT SQL")
@@ -127,10 +124,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             XCTAssertEqual(count, 0)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -145,7 +141,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
             let cancellable = writer
@@ -164,10 +160,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -182,7 +177,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) {
+        func test<Writer: DatabaseWriter>(writer: Writer) {
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2 // value + completion
             let cancellable = writer
@@ -203,10 +198,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -221,7 +215,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) {
+        func test<Writer: DatabaseWriter>(writer: Writer) {
             let queue = DispatchQueue(label: "test")
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2 // value + completion
@@ -243,10 +237,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -263,7 +256,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer
                 .writePublisher(
                     updates: { db in try Player(id: 1, name: "Arthur", score: 1000).insert(db) },
@@ -273,10 +266,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             XCTAssertEqual(count, 1)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -286,7 +278,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer
                 .writePublisher(
                     updates: { _ in },
@@ -299,10 +291,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     // MARK: -
@@ -312,7 +303,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(
                 updates: { db in try db.execute(sql: "THIS IS NOT SQL") },
                 thenRead: { _, _ in XCTFail("Should not read") })
@@ -325,10 +316,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     func testWriteThenReadPublisherWriteErrorRollbacksTransaction() throws {
@@ -341,7 +331,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(
                 updates: { db in
                     try Player(id: 1, name: "Arthur", score: 1000).insert(db)
@@ -359,10 +349,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             XCTAssertEqual(count, 0)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: -
@@ -374,7 +363,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(
                 updates: { _ in },
                 thenRead: { db, _ in try Row.fetchAll(db, sql: "THIS IS NOT SQL") })
@@ -387,10 +376,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     // MARK: - Regression tests
@@ -425,10 +413,9 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             XCTAssertEqual(count, 1)
         }
         
-        try Test(repeatCount: 100, test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(repeatCount: 100, test).run { try setUp(DatabaseQueue()) }
+        try Test(repeatCount: 100, test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(repeatCount: 100, test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
 }
 #endif

@@ -16,7 +16,7 @@
 		56606D25235593AB00185962 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56606D182355931F00185962 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		568E5FC31E926430002582E0 /* Interface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC11E926430002582E0 /* Interface.storyboard */; };
 		568E5FC51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FC41E926430002582E0 /* Assets.xcassets */; };
-		568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 568E5FCB1E926430002582E0 /* GRDBDemoWatchOS Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		568E5FD11E926430002582E0 /* InterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD01E926430002582E0 /* InterfaceController.swift */; };
 		568E5FD31E926430002582E0 /* ExtensionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E5FD21E926430002582E0 /* ExtensionDelegate.swift */; };
 		568E5FD51E926430002582E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568E5FD41E926430002582E0 /* Assets.xcassets */; };
@@ -127,15 +127,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		568E5FDD1E926430002582E0 /* Embed App Extensions */ = {
+		568E5FDD1E926430002582E0 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed App Extensions */,
+				568E5FCC1E926430002582E0 /* GRDBDemoWatchOS Extension.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		568E5FE11E926430002582E0 /* Embed Watch Content */ = {
@@ -366,7 +366,7 @@
 			buildConfigurationList = 568E5FDE1E926430002582E0 /* Build configuration list for PBXNativeTarget "GRDBDemoWatchOS" */;
 			buildPhases = (
 				568E5FBD1E926430002582E0 /* Resources */,
-				568E5FDD1E926430002582E0 /* Embed App Extensions */,
+				568E5FDD1E926430002582E0 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -425,7 +425,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1230;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					56185BEF25B80B8900B9C30F = {

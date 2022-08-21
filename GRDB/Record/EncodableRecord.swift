@@ -22,7 +22,10 @@ public protocol EncodableRecord {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    func encode(to container: inout PersistenceContainer)
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
+    func encode(to container: inout PersistenceContainer) throws
     
     // MARK: - Customizing the Format of Database Columns
     
@@ -67,7 +70,7 @@ public protocol EncodableRecord {
     /// - dataEncodingStrategy: .base64
     /// - dateEncodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatEncodingStrategy: .throw
-    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, tvOS 11.0+, watchOS 4.0+)
+    /// - outputFormatting: .sortedKeys
     ///
     /// You can override those defaults:
     ///
@@ -144,10 +147,8 @@ extension EncodableRecord {
         encoder.dataEncodingStrategy = .base64
         encoder.dateEncodingStrategy = .millisecondsSince1970
         encoder.nonConformingFloatEncodingStrategy = .throw
-        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-            // guarantee some stability in order to ease record comparison
-            encoder.outputFormatting = .sortedKeys
-        }
+        // guarantee some stability in order to ease record comparison
+        encoder.outputFormatting = .sortedKeys
         encoder.userInfo = databaseEncodingUserInfo
         return encoder
     }
@@ -167,8 +168,13 @@ extension EncodableRecord {
 
 extension EncodableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
     public var databaseDictionary: [String: DatabaseValue] {
-        Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        get throws {
+            try Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        }
     }
 }
 
@@ -179,7 +185,12 @@ extension EncodableRecord {
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
     public func databaseEquals(_ record: Self) -> Bool {
-        PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        do {
+            return try PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        } catch {
+            // one record can't be encoded: they can't be identical in the database
+            return false
+        }
     }
     
     /// A dictionary of values changed from the other record.
@@ -190,8 +201,13 @@ extension EncodableRecord {
     /// but also in terms of columns. When the two records don't define the
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
-    public func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue] {
-        let changes = PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
+    ///
+    /// - throws: An error is thrown if one record can't be encoded to its
+    ///   database representation.
+    public func databaseChanges<Record: EncodableRecord>(from record: Record)
+    throws -> [String: DatabaseValue]
+    {
+        let changes = try PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
         return Dictionary(uniqueKeysWithValues: changes)
     }
 }
@@ -214,15 +230,15 @@ public struct PersistenceContainer {
     // fileprivate for Row(_:PersistenceContainer)
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    fileprivate var storage: OrderedDictionary<String, DatabaseValueConvertible?>
+    fileprivate var storage: OrderedDictionary<String, (any DatabaseValueConvertible)?>
     
     /// Accesses the value associated with the given column.
     ///
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript(_ column: String) -> DatabaseValueConvertible? {
-        get { storage[column] ?? nil }
+    public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
+        get { self[caseInsensitive: column] }
         set { storage.updateValue(newValue, forKey: column) }
     }
     
@@ -231,7 +247,7 @@ public struct PersistenceContainer {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
+    public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         get { self[column.name] }
         set { self[column.name] = newValue }
     }
@@ -245,22 +261,31 @@ public struct PersistenceContainer {
     }
     
     /// Convenience initializer from a record
-    init<Record: EncodableRecord>(_ record: Record) {
+    init<Record: EncodableRecord>(_ record: Record) throws {
         self.init()
-        record.encode(to: &self)
+        try record.encode(to: &self)
+    }
+    
+    /// Convenience initializer from a database connection and a record
+    @usableFromInline
+    init(_ db: Database, _ record: some EncodableRecord & TableRecord) throws {
+        let databaseTableName = type(of: record).databaseTableName
+        let columnCount = try db.columns(in: databaseTableName).count
+        self.init(minimumCapacity: columnCount) // Optimization
+        try record.encode(to: &self)
     }
     
     /// Columns stored in the container, ordered like values.
     var columns: [String] { Array(storage.keys) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [DatabaseValueConvertible?] { Array(storage.values) }
+    var values: [(any DatabaseValueConvertible)?] { Array(storage.values) }
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
     ///
     /// :nodoc:
-    subscript(caseInsensitive column: String) -> DatabaseValueConvertible? {
+    subscript(caseInsensitive column: String) -> (any DatabaseValueConvertible)? {
         get {
             if let value = storage[column] {
                 return value
@@ -298,10 +323,11 @@ public struct PersistenceContainer {
     var isEmpty: Bool { storage.isEmpty }
     
     /// An iterator over the (column, value) pairs
-    func makeIterator() -> IndexingIterator<OrderedDictionary<String, DatabaseValueConvertible?>> {
+    func makeIterator() -> IndexingIterator<OrderedDictionary<String, (any DatabaseValueConvertible)?>> {
         storage.makeIterator()
     }
     
+    @usableFromInline
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
         var newValueIterator = makeIterator()
         return AnyIterator {
@@ -320,8 +346,8 @@ public struct PersistenceContainer {
 }
 
 extension Row {
-    convenience init<Record: EncodableRecord>(_ record: Record) {
-        self.init(PersistenceContainer(record))
+    convenience init<Record: EncodableRecord>(_ record: Record) throws {
+        try self.init(PersistenceContainer(record))
     }
     
     convenience init(_ container: PersistenceContainer) {
@@ -366,44 +392,38 @@ public enum DatabaseDateEncodingStrategy {
     case millisecondsSince1970
     
     /// Encodes dates according to the ISO 8601 and RFC 3339 standards
-    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Encodes a String, according to the provided formatter
     case formatted(DateFormatter)
     
     /// Encodes the result of the user-provided function
-    case custom((Date) -> DatabaseValueConvertible?)
+    case custom((Date) -> (any DatabaseValueConvertible)?)
     
-    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
         return formatter
     }()
     
-    func encode(_ date: Date) -> DatabaseValueConvertible? {
+    func encode(_ date: Date) -> DatabaseValue {
         switch self {
         case .deferredToDate:
             return date.databaseValue
         case .timeIntervalSinceReferenceDate:
-            return date.timeIntervalSinceReferenceDate
+            return date.timeIntervalSinceReferenceDate.databaseValue
         case .timeIntervalSince1970:
-            return date.timeIntervalSince1970
+            return date.timeIntervalSince1970.databaseValue
         case .millisecondsSince1970:
-            return Int64(floor(1000.0 * date.timeIntervalSince1970))
+            return Int64(floor(1000.0 * date.timeIntervalSince1970)).databaseValue
         case .secondsSince1970:
-            return Int64(floor(date.timeIntervalSince1970))
+            return Int64(floor(date.timeIntervalSince1970)).databaseValue
         case .iso8601:
-            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-                return Self.iso8601Formatter.string(from: date)
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
-            }
+            return Self.iso8601Formatter.string(from: date).databaseValue
         case .formatted(let formatter):
-            return formatter.string(from: date)
+            return formatter.string(from: date).databaseValue
         case .custom(let format):
-            return format(date)
+            return format(date)?.databaseValue ?? .null
         }
     }
 }
@@ -433,18 +453,14 @@ public enum DatabaseUUIDEncodingStrategy {
     /// Encodes UUIDs as lowercased strings such as "e621e1f8-c36c-495a-93fc-0c247a3e6e5f"
     case lowercaseString
     
-    /// Encodes UUIDs as uppercased strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
-    @available(*, deprecated, renamed: "uppercaseString")
-    public static var string: Self { .uppercaseString }
-    
-    func encode(_ uuid: UUID) -> DatabaseValueConvertible {
+    func encode(_ uuid: UUID) -> DatabaseValue {
         switch self {
         case .deferredToUUID:
             return uuid.databaseValue
         case .uppercaseString:
-            return uuid.uuidString
+            return uuid.uuidString.databaseValue
         case .lowercaseString:
-            return uuid.uuidString.lowercased()
+            return uuid.uuidString.lowercased().databaseValue
         }
     }
 }
@@ -471,9 +487,9 @@ public enum DatabaseColumnEncodingStrategy {
     case convertToSnakeCase
     
     /// A key encoding strategy defined by the closure you supply.
-    case custom((CodingKey) -> String)
+    case custom((any CodingKey) -> String)
     
-    func column(forKey key: CodingKey) -> String {
+    func column(forKey key: some CodingKey) -> String {
         switch self {
         case .useDefaultKeys:
             return key.stringValue

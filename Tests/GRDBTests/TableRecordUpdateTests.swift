@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Player: Codable, TableRecord, FetchableRecord {
+private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     var id: Int64
     var name: String
     var score: Int
@@ -24,7 +24,7 @@ private enum Columns: String, ColumnExpression {
     case id, name, score, bonus
 }
 
-private extension QueryInterfaceRequest where RowDecoder == Player {
+private extension QueryInterfaceRequest<Player> {
     func incrementScore(_ db: Database) throws {
         try updateAll(db, Columns.score += 1)
     }
@@ -117,6 +117,110 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    func testRequestUpdateAndFetchStatement() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            let assignment = Columns.score.set(to: 0)
+            
+            let request = Player.all()
+            let statement = try request.updateAndFetchStatement(db, [assignment], selection: [AllColumns()])
+            XCTAssertEqual(statement.sql, "UPDATE \"player\" SET \"score\" = ? RETURNING *")
+            XCTAssertEqual(statement.arguments, [0])
+            XCTAssertEqual(statement.columnNames, ["id", "name", "score", "bonus"])
+        }
+    }
+    
+    func testRequestUpdateAndFetchCursor() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try Player(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try Player(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try Player(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = Player.filter(Columns.id != 2)
+            let cursor = try request.updateAndFetchCursor(db, [Columns.score += 100])
+            let updatedPlayers = try Array(cursor).sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                Player(id: 1, name: "Arthur", score: 110, bonus: 0),
+                Player(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+    
+    func testRequestUpdateAndFetchAll() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try Player(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try Player(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try Player(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = Player.filter(Columns.id != 2)
+            let updatedPlayers = try request
+                .updateAndFetchAll(db, [Columns.score += 100])
+                .sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                Player(id: 1, name: "Arthur", score: 110, bonus: 0),
+                Player(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+    
+    func testRequestUpdateAndFetchSet() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try Player(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try Player(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try Player(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = Player.filter(Columns.id != 2)
+            let updatedPlayers = try request.updateAndFetchSet(db, [Columns.score += 100])
+            XCTAssertEqual(updatedPlayers, [
+                Player(id: 1, name: "Arthur", score: 110, bonus: 0),
+                Player(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+
     func testNilAssignment() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)

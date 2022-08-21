@@ -59,7 +59,7 @@ extension AppDatabase {
     static func empty() -> AppDatabase {
         // Connect to an in-memory database
         // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
-        let dbQueue = DatabaseQueue()
+        let dbQueue = try! DatabaseQueue()
         return try! AppDatabase(dbQueue)
     }
     

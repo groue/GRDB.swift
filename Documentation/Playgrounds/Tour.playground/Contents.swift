@@ -22,7 +22,7 @@ var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { print("SQL> \($0)") }
 }
-let dbQueue = DatabaseQueue(configuration: configuration)
+let dbQueue = try DatabaseQueue(configuration: configuration)
 
 
 //: Execute SQL queries
@@ -92,7 +92,7 @@ extension Place : TableRecord {
 
 // Adopt MutablePersistableRecord
 extension Place : MutablePersistableRecord {
-    func encode(to container: inout PersistenceContainer) {
+    func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["title"] = title
         container["favorite"] = favorite
@@ -100,8 +100,8 @@ extension Place : MutablePersistableRecord {
         container["longitude"] = coordinate.longitude
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

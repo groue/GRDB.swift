@@ -59,7 +59,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         
         // Simulate memory warning.
         NotificationCenter.default.post(
-            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            name: UIApplication.didReceiveMemoryWarningNotification,
             object: nil)
         
         // Postcondition: reader connection was closed
@@ -87,7 +87,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         
         // Simulate memory warning.
         NotificationCenter.default.post(
-            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            name: UIApplication.didReceiveMemoryWarningNotification,
             object: nil)
         
         // Postcondition: no reader connection was closed
@@ -108,7 +108,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         
         // Simulate memory warning.
         NotificationCenter.default.post(
-            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            name: UIApplication.didReceiveMemoryWarningNotification,
             object: nil)
         
         // Make sure we can read

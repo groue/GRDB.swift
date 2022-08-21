@@ -52,7 +52,7 @@ private class UserDatabaseValueConvertible2 : DatabaseValueConvertible {
 
 #if SQLITE_ENABLE_FTS5
 private class UserFTS5Tokenizer : FTS5Tokenizer {
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
 }
 #endif
 
@@ -62,7 +62,7 @@ private class UserFTS5Tokenizer : FTS5Tokenizer {
 private class UserFTS5CustomTokenizer : FTS5CustomTokenizer {
     static let name: String = "UserFTS5CustomTokenizer"
     required init(db: Database, arguments: [String]) throws { preconditionFailure() }
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
 }
 #endif
 
@@ -111,22 +111,26 @@ private class UserFetchableRecord2 : FetchableRecord {
     required init(row: Row) { }
 }
 
+private struct UserFetchableRecord3 : FetchableRecord {
+    init(row: Row) throws { }
+}
+
 // MARK: - StatementColumnConvertible
 
 private struct UserStatementColumnConvertible1 : StatementColumnConvertible {
-    init?(sqliteStatement: SQLiteStatement, index: Int32) { }
+    init?(sqliteStatement: SQLiteStatement, index: CInt) { }
 }
 
 private struct UserStatementColumnConvertible2 : StatementColumnConvertible {
-    init(sqliteStatement: SQLiteStatement, index: Int32) { }
+    init(sqliteStatement: SQLiteStatement, index: CInt) { }
 }
 
 private class UserStatementColumnConvertible3 : StatementColumnConvertible {
-    required init?(sqliteStatement: SQLiteStatement, index: Int32) { }
+    required init?(sqliteStatement: SQLiteStatement, index: CInt) { }
 }
 
 private class UserStatementColumnConvertible4 : StatementColumnConvertible {
-    required init(sqliteStatement: SQLiteStatement, index: Int32) { }
+    required init(sqliteStatement: SQLiteStatement, index: CInt) { }
 }
 
 // MARK: - TableRecord
@@ -153,7 +157,7 @@ private class UserTransactionObserver : TransactionObserver {
 private struct UserVirtualTableModule1 : VirtualTableModule {
     struct CustomTableDefinition { }
     let moduleName = "UserVirtualTableModule1"
-    func makeTableDefinition() -> CustomTableDefinition { preconditionFailure() }
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> CustomTableDefinition { preconditionFailure() }
     func moduleArguments(for definition: CustomTableDefinition, in db: Database) throws -> [String] { preconditionFailure() }
     func database(_ db: Database, didCreate tableName: String, using definition: CustomTableDefinition) throws { }
 }
@@ -161,7 +165,7 @@ private struct UserVirtualTableModule1 : VirtualTableModule {
 private class UserVirtualTableModule2 : VirtualTableModule {
     struct CustomTableDefinition { }
     let moduleName = "UserVirtualTableModule2"
-    func makeTableDefinition() -> CustomTableDefinition { preconditionFailure() }
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> CustomTableDefinition { preconditionFailure() }
     func moduleArguments(for definition: CustomTableDefinition, in db: Database) throws -> [String] { preconditionFailure() }
     func database(_ db: Database, didCreate tableName: String, using definition: CustomTableDefinition) throws { }
 }

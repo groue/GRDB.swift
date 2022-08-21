@@ -26,18 +26,10 @@
 		567C3E7A2520BB650011F6E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E772520BB650011F6E9 /* LaunchScreen.storyboard */; };
 		56B6D1092619EC1B003CC455 /* PlayerRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D1082619EC1B003CC455 /* PlayerRequest.swift */; };
 		56F8A1202735989D0011ACBE /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 56F8A11F2735989D0011ACBE /* GRDB */; };
-		78E2F9E6261EEC22005D1F7F /* GRDBCombineDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E2F9E5261EEC22005D1F7F /* GRDBCombineDemoUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		56026C9D25B8A7D000D1DF3F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 567C3E0E2520B6DE0011F6E9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 567C3E152520B6DE0011F6E9;
-			remoteInfo = GRDBCombineDemo;
-		};
-		78E2F9E8261EEC22005D1F7F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 567C3E0E2520B6DE0011F6E9 /* Project object */;
 			proxyType = 1;
@@ -82,9 +74,6 @@
 		567C3E782520BB650011F6E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		56B6D1082619EC1B003CC455 /* PlayerRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRequest.swift; sourceTree = "<group>"; };
 		56F8A11C2735988F0011ACBE /* GRDB.swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GRDB.swift; path = ../../..; sourceTree = "<group>"; };
-		78E2F9E3261EEC22005D1F7F /* GRDBCombineDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCombineDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		78E2F9E5261EEC22005D1F7F /* GRDBCombineDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBCombineDemoUITests.swift; sourceTree = "<group>"; };
-		78E2F9E7261EEC22005D1F7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,13 +90,6 @@
 			files = (
 				56519DC7274FC85600ED16D8 /* GRDBQuery in Frameworks */,
 				56F8A1202735989D0011ACBE /* GRDB in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		78E2F9E0261EEC22005D1F7F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,7 +122,6 @@
 			children = (
 				567C3E182520B6DE0011F6E9 /* GRDBCombineDemo */,
 				56026C9925B8A7D000D1DF3F /* GRDBCombineDemoTests */,
-				78E2F9E4261EEC22005D1F7F /* GRDBCombineDemoUITests */,
 				567C3E172520B6DE0011F6E9 /* Products */,
 				567C3E4D2520B70E0011F6E9 /* Frameworks */,
 				56F8A11C2735988F0011ACBE /* GRDB.swift */,
@@ -152,7 +133,6 @@
 			children = (
 				567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */,
 				56026C9825B8A7D000D1DF3F /* GRDBCombineDemoTests.xctest */,
-				78E2F9E3261EEC22005D1F7F /* GRDBCombineDemoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -200,15 +180,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		78E2F9E4261EEC22005D1F7F /* GRDBCombineDemoUITests */ = {
-			isa = PBXGroup;
-			children = (
-				78E2F9E5261EEC22005D1F7F /* GRDBCombineDemoUITests.swift */,
-				78E2F9E7261EEC22005D1F7F /* Info.plist */,
-			);
-			path = GRDBCombineDemoUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -253,24 +224,6 @@
 			productReference = 567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */;
 			productType = "com.apple.product-type.application";
 		};
-		78E2F9E2261EEC22005D1F7F /* GRDBCombineDemoUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 78E2F9F3261EEC22005D1F7F /* Build configuration list for PBXNativeTarget "GRDBCombineDemoUITests" */;
-			buildPhases = (
-				78E2F9DF261EEC22005D1F7F /* Sources */,
-				78E2F9E0261EEC22005D1F7F /* Frameworks */,
-				78E2F9E1261EEC22005D1F7F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				78E2F9E9261EEC22005D1F7F /* PBXTargetDependency */,
-			);
-			name = GRDBCombineDemoUITests;
-			productName = GRDBCombineDemoUITests;
-			productReference = 78E2F9E3261EEC22005D1F7F /* GRDBCombineDemoUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -286,10 +239,6 @@
 					};
 					567C3E152520B6DE0011F6E9 = {
 						CreatedOnToolsVersion = 12.0;
-					};
-					78E2F9E2261EEC22005D1F7F = {
-						CreatedOnToolsVersion = 12.5;
-						TestTargetID = 567C3E152520B6DE0011F6E9;
 					};
 				};
 			};
@@ -311,7 +260,6 @@
 			targets = (
 				567C3E152520B6DE0011F6E9 /* GRDBCombineDemo */,
 				56026C9725B8A7D000D1DF3F /* GRDBCombineDemoTests */,
-				78E2F9E2261EEC22005D1F7F /* GRDBCombineDemoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -332,13 +280,6 @@
 				567C3E7A2520BB650011F6E9 /* LaunchScreen.storyboard in Resources */,
 				567C3E1E2520B6DF0011F6E9 /* Assets.xcassets in Resources */,
 				567C3E792520BB650011F6E9 /* Localizable.stringsdict in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		78E2F9E1261EEC22005D1F7F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -372,14 +313,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		78E2F9DF261EEC22005D1F7F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				78E2F9E6261EEC22005D1F7F /* GRDBCombineDemoUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -391,11 +324,6 @@
 		56F8A11E273598960011ACBE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = 56F8A11D273598960011ACBE /* GRDB */;
-		};
-		78E2F9E9261EEC22005D1F7F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 567C3E152520B6DE0011F6E9 /* GRDBCombineDemo */;
-			targetProxy = 78E2F9E8261EEC22005D1F7F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -615,44 +543,6 @@
 			};
 			name = Release;
 		};
-		78E2F9EA261EEC22005D1F7F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = GRDBCombineDemoUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.groue.GRDBCombineDemoUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = GRDBCombineDemo;
-			};
-			name = Debug;
-		};
-		78E2F9EB261EEC22005D1F7F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = GRDBCombineDemoUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.groue.GRDBCombineDemoUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = GRDBCombineDemo;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -679,15 +569,6 @@
 			buildConfigurations = (
 				567C3E262520B6DF0011F6E9 /* Debug */,
 				567C3E272520B6DF0011F6E9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		78E2F9F3261EEC22005D1F7F /* Build configuration list for PBXNativeTarget "GRDBCombineDemoUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				78E2F9EA261EEC22005D1F7F /* Debug */,
-				78E2F9EB261EEC22005D1F7F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

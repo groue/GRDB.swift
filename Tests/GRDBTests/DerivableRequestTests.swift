@@ -25,17 +25,9 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     
     static let databaseTableName = "book"
     static let author = belongsTo(Author.self)
-    #if compiler(>=5.5)
     static let bookFts4 = hasOne(BookFts4.self, using: ForeignKey([.rowID]))
-    #else
-    static let bookFts4 = hasOne(BookFts4.self, using: ForeignKey([Column.rowID]))
-    #endif
     #if SQLITE_ENABLE_FTS5
-    #if compiler(>=5.5)
     static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([.rowID]))
-    #else
-    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
-    #endif
     #endif
     
     var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
@@ -82,7 +74,7 @@ private var libraryMigrator: DatabaseMigrator = {
 }()
 
 // Define DerivableRequest extensions
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     // SelectionRequest
     func selectCountry() -> Self {
         select(Column("country"))
@@ -101,7 +93,7 @@ extension DerivableRequest where RowDecoder == Author {
     }
 }
 
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     // OrderedRequest
     func orderByTitle() -> Self {
         order(Column("title").collating(.localizedCaseInsensitiveCompare))

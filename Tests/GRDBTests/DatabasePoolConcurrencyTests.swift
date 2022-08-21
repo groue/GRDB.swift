@@ -967,10 +967,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testTargetQueue() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
             let dbPool = try makeDatabasePool()
@@ -995,10 +991,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testWriteTargetQueue() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
             dbConfiguration.writeTargetQueue = writeTargetQueue
@@ -1024,10 +1016,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testWriteTargetQueueReadOnly() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         // Create a database before we perform read-only accesses
         _ = try makeDatabasePool(filename: "test")
         
@@ -1049,10 +1037,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
 
     func testQoS() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(qos: DispatchQoS) throws {
             // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
             //
@@ -1320,7 +1304,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // Wait for read to start
             s1.wait()
             
-            dbPool.barrierWriteWithoutTransaction { _ in }
+            try! dbPool.barrierWriteWithoutTransaction { _ in }
             expectation.fulfill()
             s4.signal()
         }

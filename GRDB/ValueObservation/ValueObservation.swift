@@ -16,7 +16,7 @@ import Foundation
 ///     let cancellable = try observation.start(
 ///         in: dbQueue,
 ///         onError: { error in ... },
-///         onChange: { players: [Player] in
+///         onChange: { (players: [Player]) in
 ///             print("Players have changed.")
 ///         })
 public struct ValueObservation<Reducer: ValueReducer> {
@@ -55,7 +55,7 @@ enum ValueObservationTrackingMode {
     ///
     ///     // Tracked Region is always the full player table
     ///     ValueObservation.trackingConstantRegion(Player.all()) { db in ... }
-    case constantRegion([DatabaseRegionConvertible])
+    case constantRegion([any DatabaseRegionConvertible])
     
     /// The tracked region is constant and inferred from the fetched values.
     ///
@@ -88,7 +88,7 @@ struct ValueObservationEvents: Refinable {
 typealias ValueObservationStart<T> = (
     _ onError: @escaping (Error) -> Void,
     _ onChange: @escaping (T) -> Void)
--> DatabaseCancellable
+-> AnyDatabaseCancellable
 
 extension ValueObservation: Refinable {
     
@@ -109,7 +109,7 @@ extension ValueObservation: Refinable {
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///
@@ -123,7 +123,7 @@ extension ValueObservation: Refinable {
     ///         in: dbQueue,
     ///         scheduling: .immediate, // <-
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///     // <- here "fresh players" is already printed.
@@ -137,12 +137,13 @@ extension ValueObservation: Refinable {
     /// - parameter onError: A closure that is provided eventual errors that
     ///   happen during observation
     /// - parameter onChange: A closure that is provided fresh values
-    /// - returns: a DatabaseCancellable
+    /// - returns: a cancellable.
     public func start(
-        in reader: DatabaseReader,
+        in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
     {
         let observation = self.with {
             $0.events.didFail = concat($0.events.didFail, onError)
@@ -252,7 +253,6 @@ extension ValueObservation: Refinable {
     }
 }
 
-#if compiler(>=5.6) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of
@@ -265,7 +265,7 @@ extension ValueObservation {
     ///   dispatched asynchronously on the main queue.
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func values(
-        in reader: DatabaseReader,
+        in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
@@ -310,7 +310,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         // the iterator.
         var cancellable: AnyDatabaseCancellable?
         let stream = AsyncThrowingStream(Element.self, bufferingPolicy: bufferingPolicy) { continuation in
-            cancellable = AnyDatabaseCancellable(start(
+            cancellable = start(
                 // onError
                 { error in
                     continuation.finish(throwing: error)
@@ -321,7 +321,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
                         // TODO: I could never see this code running. Is it needed?
                         cancellable?.cancel()
                     }
-                }))
+                })
             continuation.onTermination = { @Sendable [weak cancellable] _ in
                 cancellable?.cancel()
             }
@@ -350,7 +350,6 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         }
     }
 }
-#endif
 
 #if canImport(Combine)
 extension ValueObservation {
@@ -367,7 +366,7 @@ extension ValueObservation {
     ///         .publisher(in: dbQueue)
     ///         .sink(
     ///             receiveCompletion: { completion in ... },
-    ///             receiveValue: { players: [Player] in
+    ///             receiveValue: { (players: [Player]) in
     ///                 print("fresh players: \(players)")
     ///             })
     ///
@@ -384,7 +383,7 @@ extension ValueObservation {
     ///             scheduling: .immediate) // <-
     ///         .sink(
     ///             receiveCompletion: { completion in ... },
-    ///             receiveValue: { players: [Player] in
+    ///             receiveValue: { (players: [Player]) in
     ///                 print("fresh players: \(players)")
     ///             })
     ///     // <- here "fresh players" is already printed.
@@ -398,7 +397,7 @@ extension ValueObservation {
     /// - returns: A Combine publisher
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func publisher(
-        in reader: DatabaseReader,
+        in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     {
@@ -460,7 +459,7 @@ extension DatabasePublishers {
         // Cancellable is not stored in self.state because we must enter the
         // .observing state *before* the observation starts, so that the user
         // can change the state even before the cancellable is known.
-        private var cancellable: DatabaseCancellable?
+        private var cancellable: AnyDatabaseCancellable?
         private var state: State
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
@@ -669,7 +668,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     /// - parameter fetch: A function that fetches the observed value from
     ///   the database.
     public static func tracking<Value>(
-        region: DatabaseRegionConvertible...,
+        region: any DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
@@ -714,7 +713,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     /// - parameter fetch: A function that fetches the observed value from
     ///   the database.
     public static func tracking<Value>(
-        regions: [DatabaseRegionConvertible],
+        regions: [any DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
@@ -735,7 +734,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("Players have changed")
     ///         })
     ///
@@ -748,31 +747,5 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         .init(
             trackingMode: .nonConstantRegionRecordedFromSelection,
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
-    }
-    
-    /// Creates a `ValueObservation` that notifies the values returned by the
-    /// `fetch` function whenever a database transaction changes them.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking { db in
-    ///         try Player.fetchAll(db)
-    ///     }
-    ///
-    ///     let cancellable = try observation.start(
-    ///         in: dbQueue,
-    ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
-    ///             print("Players have changed")
-    ///         })
-    ///
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
-    @available(*, deprecated, renamed: "tracking(_:)")
-    public static func trackingVaryingRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
-    {
-        tracking(fetch)
     }
 }

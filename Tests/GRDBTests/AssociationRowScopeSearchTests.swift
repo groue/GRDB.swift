@@ -30,7 +30,7 @@ private struct D: TableRecord, FetchableRecord, Decodable {
 }
 
 class AssociationRowScopeSearchTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             // 1. Prepare data
             try db.create(table: "a") { t in
@@ -97,8 +97,8 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var b: B
             var c: C
             var d: D
-            init(row: Row) {
-                a = A(row: row)
+            init(row: Row) throws {
+                a = try A(row: row)
                 b = row["b"]
                 c = row["c"]
                 d = row["d"]

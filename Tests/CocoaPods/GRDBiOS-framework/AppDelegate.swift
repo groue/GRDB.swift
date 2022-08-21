@@ -5,7 +5,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         // Test GRDB
-        _ = DatabaseQueue()
+        _ = try! DatabaseQueue()
         
         // test SQLITE_ENABLE_FTS5
         _ = FTS5.self

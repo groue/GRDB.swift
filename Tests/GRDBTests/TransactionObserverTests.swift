@@ -96,8 +96,8 @@ private final class Artist: Codable {
 
 extension Artist : FetchableRecord, PersistableRecord {
     static let databaseTableName = "artists"
-    func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -115,8 +115,8 @@ private final class Artwork : Codable {
 
 extension Artwork : FetchableRecord, PersistableRecord {
     static let databaseTableName = "artworks"
-    func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

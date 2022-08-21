@@ -128,8 +128,8 @@ class DatabaseCursorTests: GRDBTestCase {
                 self.isFlagged = isFlagged
             }
             
-            mutating func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            mutating func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
             }
         }
         
@@ -260,7 +260,7 @@ class DatabaseCursorTests: GRDBTestCase {
     func testNullableDatabaseValueCursorStep() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let cursor: NullableDatabaseValueCursor<Int> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
+            let cursor: DatabaseValueCursor<Int?> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
             while let _ = try cursor.next() { }
         }
     }
@@ -269,7 +269,7 @@ class DatabaseCursorTests: GRDBTestCase {
     func testNullableDatabaseValueCursorForEach() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let cursor: NullableDatabaseValueCursor<Int> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
+            let cursor: DatabaseValueCursor<Int?> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
             try cursor.forEach { _ in }
         }
     }
@@ -296,7 +296,7 @@ class DatabaseCursorTests: GRDBTestCase {
     func testFastNullableDatabaseValueCursorStep() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let cursor: FastNullableDatabaseValueCursor<Int> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
+            let cursor: FastDatabaseValueCursor<Int?> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
             while let _ = try cursor.next() { }
         }
     }
@@ -305,7 +305,7 @@ class DatabaseCursorTests: GRDBTestCase {
     func testFastNullableDatabaseValueCursorForEach() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let cursor: FastNullableDatabaseValueCursor<Int> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
+            let cursor: FastDatabaseValueCursor<Int?> = try Optional<Int>.fetchCursor(db, sql: profilingSQL)
             try cursor.forEach { _ in }
         }
     }

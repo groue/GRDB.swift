@@ -19,8 +19,8 @@ public class AnyDatabaseCancellable: DatabaseCancellable {
     
     /// Creates a cancellable object that forwards cancellation to the
     /// provided cancellable.
-    public convenience init(_ cancellable: DatabaseCancellable) {
-        var cancellable: DatabaseCancellable? = cancellable
+    public convenience init(_ cancellable: some DatabaseCancellable) {
+        var cancellable = Optional.some(cancellable)
         self.init {
             cancellable?.cancel()
             cancellable = nil // Release memory

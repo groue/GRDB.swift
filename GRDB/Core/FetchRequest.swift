@@ -4,13 +4,14 @@
 /// rows should be interpreted.
 ///
 ///     struct Player: FetchableRecord { ... }
-///     let request: ... // Some FetchRequest that fetches Player
+///     let request: some FetchRequest<Player> = ...
+///
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]
 ///     try request.fetchSet(db)    // Set<Player>
 ///     try request.fetchOne(db)    // Player?
 ///     try request.fetchCount(db)  // Int
-public protocol FetchRequest: SQLSubqueryable, DatabaseRegionConvertible {
+public protocol FetchRequest<RowDecoder>: SQLSubqueryable, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
@@ -52,14 +53,14 @@ public struct PreparedRequest {
     public var statement: Statement
     
     /// An eventual adapter for rows fetched by the select statement
-    public var adapter: RowAdapter?
+    public var adapter: (any RowAdapter)?
     
     /// Support for eager loading of hasMany associations.
     var supplementaryFetch: ((Database, [Row]) throws -> Void)?
     
     init(
         statement: Statement,
-        adapter: RowAdapter?,
+        adapter: (any RowAdapter)?,
         supplementaryFetch: ((Database, [Row]) throws -> Void)? = nil)
     {
         self.statement = statement
@@ -74,7 +75,7 @@ extension PreparedRequest: Refinable { }
 
 extension FetchRequest {
     /// Returns an adapted request.
-    public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
+    public func adapted(_ adapter: @escaping (Database) throws -> any RowAdapter) -> AdaptedFetchRequest<Self> {
         AdaptedFetchRequest(self, adapter)
     }
 }
@@ -84,11 +85,11 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
     public typealias RowDecoder = Base.RowDecoder
     
     let base: Base
-    let adapter: (Database) throws -> RowAdapter
+    let adapter: (Database) throws -> any RowAdapter
     
     /// Creates an adapted request from a base request and a closure that builds
     /// a row adapter from a database connection.
-    init(_ base: Base, _ adapter: @escaping (Database) throws -> RowAdapter) {
+    init(_ base: Base, _ adapter: @escaping (Database) throws -> any RowAdapter) {
         self.base = base
         self.adapter = adapter
     }
@@ -154,9 +155,7 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
 
 extension AnyFetchRequest {
     /// Creates a request that wraps and forwards operations to `request`.
-    public init<Request: FetchRequest>(_ request: Request)
-    where Request.RowDecoder == RowDecoder
-    {
+    public init(_ request: some FetchRequest<RowDecoder>) {
         self.init(request: ConcreteFetchRequestEraser(request: request))
     }
 }

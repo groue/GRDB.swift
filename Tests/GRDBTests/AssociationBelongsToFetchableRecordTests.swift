@@ -20,8 +20,8 @@ private struct PlayerWithRequiredTeam: FetchableRecord {
     var player: Player
     var team: Team
     
-    init(row: Row) {
-        player = Player(row: row)
+    init(row: Row) throws {
+        player = try Player(row: row)
         team = row[Player.teamScope]
     }
 }
@@ -30,8 +30,8 @@ private struct PlayerWithOptionalTeam: FetchableRecord {
     var player: Player
     var team: Team?
     
-    init(row: Row) {
-        player = Player(row: row)
+    init(row: Row) throws {
+        player = try Player(row: row)
         team = row[Player.teamScope]
     }
 }
@@ -40,8 +40,8 @@ private struct PlayerWithTeamName: FetchableRecord {
     var player: Player
     var teamName: String?
     
-    init(row: Row) {
-        player = Player(row: row)
+    init(row: Row) throws {
+        player = try Player(row: row)
         teamName = row["teamName"]
     }
 }
@@ -49,7 +49,7 @@ private struct PlayerWithTeamName: FetchableRecord {
 /// Test support for FetchableRecord records
 class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "teams") { t in
                 t.column("id", .integer).primaryKey()

@@ -41,12 +41,12 @@ public protocol TableRecord {
     ///
     ///     struct ExtendedPlayer : TableRecord {
     ///         static var databaseTableName = "player"
-    ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    ///         static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
     ///     }
     ///
     ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
-    static var databaseSelection: [SQLSelectable] { get }
+    static var databaseSelection: [any SQLSelectable] { get }
 }
 
 extension TableRecord {
@@ -91,7 +91,7 @@ extension TableRecord {
     }
     
     /// Default value: `[AllColumns()]`.
-    public static var databaseSelection: [SQLSelectable] {
+    public static var databaseSelection: [any SQLSelectable] {
         [AllColumns()]
     }
 }
@@ -144,10 +144,10 @@ extension TableRecord {
 
 extension TableRecord {
 
-    /// Deletes all records; returns the number of deleted rows.
+    /// Deletes all records, and returns the number of deleted records.
     ///
     /// - parameter db: A database connection.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted records
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
@@ -158,7 +158,7 @@ extension TableRecord {
 // MARK: - Check Existence by Single-Column Primary Key
 
 extension TableRecord {
-    /// Returns whether a row exists for this primary key.
+    /// Returns whether a record exists for this primary key.
     ///
     ///     try Player.exists(db, key: 123)
     ///     try Country.exists(db, key: "FR")
@@ -171,18 +171,15 @@ extension TableRecord {
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A primary key value.
-    /// - returns: Whether a row exists for this primary key.
-    public static func exists<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    /// - returns: Whether a record exists for this primary key.
+    public static func exists(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
-    /// Returns whether a row exists for this primary key.
+    /// Returns whether a record exists for this primary key.
     ///
     ///     try Player.deleteOne(db, id: 123)
     ///     try Country.deleteOne(db, id: "FR")
@@ -195,50 +192,29 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - parameters:
     ///     - db: A database connection.
     ///     - id: A primary key value.
-    /// - returns: Whether a row exists for this primary key.
+    /// - returns: Whether a record exists for this primary key.
     public static func exists(_ db: Database, id: ID) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord
-where Self: Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    /// Returns whether a row exists for this primary key.
-    ///
-    ///     try Player.deleteOne(db, id: 123)
-    ///     try Country.deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     try Document.deleteOne(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a row exists for this primary key.
-    public static func exists(_ db: Database, id: ID.Wrapped) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try !filter(id: id).isEmpty(db)
     }
 }
 
 // MARK: - Check Existence by Key
 
 extension TableRecord {
-    /// Returns whether a row exists for this unique key (primary key or any key
-    /// with a unique index on it).
+    /// Returns whether a record exists for this unique key (primary key or any
+    /// key with a unique index on it).
     ///
     ///     try Player.exists(db, key: ["name": Arthur"])
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
-    /// - returns: Whether a row exists for this key.
-    public static func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    /// - returns: Whether a record exists for this key.
+    public static func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
@@ -247,8 +223,8 @@ extension TableRecord {
 
 extension TableRecord {
     
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
+    /// Delete records identified by their primary keys, and returns the number
+    /// of deleted records.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
     ///     try Player.deleteAll(db, keys: [1, 2, 3])
@@ -265,11 +241,10 @@ extension TableRecord {
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted records
     @discardableResult
-    public static func deleteAll<Sequence>(_ db: Database, keys: Sequence)
+    public static func deleteAll(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> Int
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -279,8 +254,8 @@ extension TableRecord {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
+    /// Delete a record, identified by its primary key, and returns whether a
+    /// record was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
     ///     try Player.deleteOne(db, key: 123)
@@ -297,14 +272,11 @@ extension TableRecord {
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A primary key value.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a record was deleted.
     @discardableResult
-    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
-        guard let key = key else {
-            // Avoid hitting the database
+    public static func deleteOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return false
         }
         return try deleteAll(db, keys: [key]) > 0
@@ -313,8 +285,8 @@ extension TableRecord {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
+    /// Delete records identified by their primary keys, and returns the number
+    /// of deleted records.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
     ///     try Player.deleteAll(db, ids: [1, 2, 3])
@@ -331,12 +303,9 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted records
     @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func deleteAll(_ db: Database, ids: some Collection<ID>) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -344,8 +313,8 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
         return try filter(ids: ids).deleteAll(db)
     }
     
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
+    /// Delete a record, identified by its primary key, and returns whether a
+    /// record was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
     ///     try Player.deleteOne(db, id: 123)
@@ -362,71 +331,9 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - parameters:
     ///     - db: A database connection.
     ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a record was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, id: ID) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord
-where Self: Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Player.deleteAll(db, ids: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, ids: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(ids: ids).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, id: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne(_ db: Database, id: ID.Wrapped) throws -> Bool {
         try deleteAll(db, ids: [id]) > 0
     }
 }
@@ -435,16 +342,17 @@ where Self: Identifiable,
 
 extension TableRecord {
     /// Delete records identified by the provided unique keys (primary key or
-    /// any key with a unique index on it); returns the number of deleted rows.
+    /// any key with a unique index on it), and returns the number of
+    /// deleted records.
     ///
     ///     try Player.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted records
     @discardableResult
-    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+    public static func deleteAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -453,16 +361,17 @@ extension TableRecord {
     }
     
     /// Delete a record, identified by a unique key (the primary key or any key
-    /// with a unique index on it); returns whether a database row was deleted.
+    /// with a unique index on it), and returns whether a database record
+    /// was deleted.
     ///
     ///     Player.deleteOne(db, key: ["name": Arthur"])
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a record was deleted.
     @discardableResult
-    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    public static func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try deleteAll(db, keys: [key]) > 0
     }
 }
@@ -471,7 +380,7 @@ extension TableRecord {
 
 extension TableRecord {
     
-    /// Updates all records; returns the number of updated records.
+    /// Updates all records, and returns the number of updated records.
     ///
     /// For example:
     ///
@@ -484,7 +393,7 @@ extension TableRecord {
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
     /// - parameter assignments: An array of column assignments.
-    /// - returns: The number of updated rows.
+    /// - returns: The number of updated records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
@@ -496,7 +405,7 @@ extension TableRecord {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
-    /// Updates all records; returns the number of updated records.
+    /// Updates all records, and returns the number of updated records.
     ///
     /// For example:
     ///
@@ -508,19 +417,17 @@ extension TableRecord {
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
-    /// - returns: The number of updated rows.
+    /// - parameter assignments: Column assignments.
+    /// - returns: The number of updated records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
+        _ assignments: ColumnAssignment...)
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, assignments)
     }
 }
 

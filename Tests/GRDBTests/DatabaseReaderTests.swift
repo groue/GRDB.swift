@@ -3,10 +3,10 @@ import GRDB
 
 class DatabaseReaderTests : GRDBTestCase {
     
-    func testAnyDatabaseReader() {
+    func testAnyDatabaseReader() throws {
         // This test passes if this code compiles.
-        let reader: DatabaseReader = DatabaseQueue()
-        let _: DatabaseReader = AnyDatabaseReader(reader)
+        let dbQueue = try DatabaseQueue()
+        let _: any DatabaseReader = AnyDatabaseReader(dbQueue)
     }
     
     // MARK: - Read
@@ -30,7 +30,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_ReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -50,7 +49,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
     }
-#endif
     
     func testReadPreventsDatabaseModification() throws {
         func test(_ dbReader: DatabaseReader) throws {
@@ -68,7 +66,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool().makeSnapshot())
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_ReadPreventsDatabaseModification() async throws {
         func test(_ dbReader: DatabaseReader) async throws {
@@ -85,7 +82,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(makeDatabasePool())
         try await test(makeDatabasePool().makeSnapshot())
     }
-#endif
+    
     // MARK: - UnsafeRead
     
     func testUnsafeReadCanRead() throws {
@@ -107,7 +104,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_UnsafeReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -127,7 +123,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
     }
-#endif
     
     // MARK: - UnsafeReentrantRead
     

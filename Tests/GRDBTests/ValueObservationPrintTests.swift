@@ -28,7 +28,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
         }
         
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
                 .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
@@ -62,7 +62,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
         }
         
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
                 .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
@@ -91,10 +91,10 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_readonly_failure_asynchronousScheduling() throws {
+        struct TestError: Error { }
         _ = try makeDatabasePool(filename: "test")
         
-        func test(_ dbReader: DatabaseReader) throws {
-            struct TestError: Error { }
+        func test(_ dbReader: some DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
                 .trackingConstantRegion { _ in throw TestError() }
@@ -123,10 +123,10 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_readonly_failure_immediateScheduling() throws {
+        struct TestError: Error { }
         _ = try makeDatabasePool(filename: "test")
         
-        func test(_ dbReader: DatabaseReader) throws {
-            struct TestError: Error { }
+        func test(_ dbReader: some DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
                 .trackingConstantRegion { _ in throw TestError() }
@@ -157,7 +157,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     // MARK: - Writeonly
     
     func test_writeonly_success_asynchronousScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
             }
@@ -199,7 +199,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_writeonly_success_immediateScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
             }
@@ -241,7 +241,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_writeonly_immediateFailure_asynchronousScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
                 .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
@@ -268,7 +268,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_writeonly_immediateFailure_immediateScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
                 .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
@@ -295,7 +295,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_writeonly_lateFailure_asynchronousScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
             }
@@ -338,7 +338,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_writeonly_lateFailure_immediateScheduling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
             }

@@ -10,11 +10,7 @@ private struct Book {
 
 extension Book : FetchableRecord {
     init(row: Row) {
-        #if compiler(>=5.5)
         id = row[.rowID]
-        #else
-        id = row[Column.rowID]
-        #endif
         title = row["title"]
         author = row["author"]
         body = row["body"]
@@ -26,23 +22,19 @@ extension Book : MutablePersistableRecord {
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
     
     func encode(to container: inout PersistenceContainer) {
-        #if compiler(>=5.5)
         container[.rowID] = id
-        #else
-        container[Column.rowID] = id
-        #endif
         container["title"] = title
         container["author"] = author
         container["body"] =  body
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
 class FTS3RecordTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS3()) { t in
                 t.column("title")
