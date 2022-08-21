@@ -428,7 +428,7 @@ As in the sample code above, requests which feed from several associated records
 
 Unlike the primitive persistable record types `Author` and `Book`, those records can not write in the database. They are simple data types, passive views on the database content. Remember, only [Persistable Record Types are Responsible for Their Tables].
 
-> :question: **Note**: The example `AuthorInfo` and `Authorship` types above may look superfluous to you. After all, other ORMs out there are able to navigate in complex graphs of records without much fuss, aren't they?
+> **Note**: The example `AuthorInfo` and `Authorship` types above may look superfluous to you. After all, other ORMs out there are able to navigate in complex graphs of records without much fuss, aren't they?
 >
 > That is because other ORMs perform lazy loading:
 >
@@ -751,7 +751,7 @@ When a new screen is added to your application, and you want to make sure it dis
 
 In other words: since GRDB is an unmanaged ORM, some amount of management must be imported into your application in order to make it fully thread-safe.
 
-> :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
+> **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 
 > ```ruby
 > # Ruby's Active Record
