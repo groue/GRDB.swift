@@ -32,7 +32,7 @@ extension PersistableRecord {
 // MARK: - Save and Fetch
 
 extension PersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
     /// statement, and returns a new record built from the saved row.
     ///

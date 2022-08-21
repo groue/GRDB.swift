@@ -77,7 +77,7 @@ extension MutablePersistableRecord {
 // MARK: - Save and Fetch
 
 extension MutablePersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
     /// statement, and returns the saved row.
     ///

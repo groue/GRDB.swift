@@ -1327,7 +1327,11 @@ extension PersistableRecordTests {
 
 extension PersistableRecordTests {
     func test_insertAndFetch_as() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1372,7 +1376,11 @@ extension PersistableRecordTests {
     }
     
     func test_insertAndFetch_selection_fetch() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1421,7 +1429,11 @@ extension PersistableRecordTests {
 
 extension PersistableRecordTests {
     func test_saveAndFetch_as() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1540,7 +1552,11 @@ extension PersistableRecordTests {
     }
     
     func test_saveAndFetch_selection_fetch() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1663,7 +1679,11 @@ extension PersistableRecordTests {
 
 extension PersistableRecordTests {
     func test_upsert() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("UPSERT is not available")
         }
@@ -1796,7 +1816,11 @@ extension PersistableRecordTests {
     }
     
     func test_upsertAndFetch_as() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("UPSERT is not available")
         }

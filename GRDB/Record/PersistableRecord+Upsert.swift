@@ -1,7 +1,7 @@
 // MARK: - Upsert
 
 extension PersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Executes an `INSERT ... ON CONFLICT DO UPDATE` statement.
     ///
     /// - parameter db: A database connection.

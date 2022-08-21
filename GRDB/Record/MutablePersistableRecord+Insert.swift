@@ -72,7 +72,7 @@ extension MutablePersistableRecord {
 // MARK: - Insert and Fetch
 
 extension MutablePersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Executes an `INSERT ... RETURNING ...` statement, and returns the
     /// inserted record.
     ///

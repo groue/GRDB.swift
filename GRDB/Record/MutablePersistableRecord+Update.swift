@@ -150,7 +150,7 @@ extension MutablePersistableRecord {
 // MARK: - Update and Fetch
 
 extension MutablePersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Executes an `UPDATE ... RETURNING ...` statement, and returns the
     /// updated record.
     ///
@@ -700,7 +700,7 @@ extension MutablePersistableRecord {
 // MARK: - Internals
 
 extension MutablePersistableRecord {
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     @inlinable // allow specialization so that empty callbacks are removed
     func updateChangesAndFetch<T>(
         _ db: Database,

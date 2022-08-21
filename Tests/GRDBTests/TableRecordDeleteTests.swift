@@ -230,7 +230,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchStatement() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -246,7 +250,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchCursor() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -295,7 +303,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchArray() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -319,7 +331,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchSet() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -401,7 +417,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testJoinedRequestDeleteAndFetch() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -564,7 +584,11 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testGroupedRequestDeleteAndFetchCursor() throws {
-#if !GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }

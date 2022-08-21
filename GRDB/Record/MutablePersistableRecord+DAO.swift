@@ -190,7 +190,6 @@ final class DAO<Record: MutablePersistableRecord> {
             statement.setUncheckedArguments(arguments)
             return statement
         } else {
-            assert(sqlite3_libversion_number() >= 3035000)
             let context = SQLGenerationContext(db)
             var sql = sql
             var arguments = arguments
