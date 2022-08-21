@@ -11,7 +11,7 @@
 
 ---
 
-**Latest release**: July 9, 2022 • [version 5.26.0](https://github.com/groue/GRDB.swift/tree/v5.26.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+**Latest release**: July 9, 2022 • [version 5.26.0](https://github.com/groue/GRDB.swift/tree/v5.26.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.3+ / Xcode 12+
 
@@ -360,7 +360,7 @@ Documentation
 #### General Guides & Good Practices
 
 - :bulb: [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
-- :bulb: [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+- :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 - :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
 - :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
 - :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
