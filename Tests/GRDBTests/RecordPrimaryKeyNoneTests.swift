@@ -34,7 +34,7 @@ private class Item : Record, Hashable {
         try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["name"] = name
         container["email"] = email
     }

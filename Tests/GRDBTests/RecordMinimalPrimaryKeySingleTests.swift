@@ -26,7 +26,7 @@ class MinimalSingle: Record, Hashable {
         try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["UUID"] = UUID
     }
     
@@ -78,7 +78,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -107,7 +107,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -139,7 +139,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.update(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -186,7 +186,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -199,7 +199,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     
@@ -213,7 +213,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-            assert(record, isEncodedIn: row)
+            try assert(record, isEncodedIn: row)
         }
     }
     

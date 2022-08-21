@@ -110,6 +110,33 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     
     </details>
 
+- **The `EncodableRecord.encode(to:)` method can now throw errors.**
+    
+    Encodable records that derive their `EncodableRecord` implementation from the standard `Encodable` protocol now throw errors when they can't be encoded into database values (they used to crash in GRDB 5).
+    
+    If you subclass the `Record` type, you have to update your override of `encode(to:)`:
+    
+    ```diff
+     class Player: Record {
+    -    override func encode(to container: inout PersistenceContainer) {
+    +    override func encode(to container: inout PersistenceContainer) throws {
+             container["id"] = id
+             container["name"] = name
+         }
+     }
+    ```
+    
+    This change has an impact on a few other apis, that can now throw errors as well:
+    
+    ```diff
+    -let dictionary = player.databaseDictionary
+    -let changes = newPlayer.databaseChanges(from: oldPlayer)
+    -let changes = player.databaseChanges // Record class only
+    +let dictionary = try player.databaseDictionary
+    +let changes = try newPlayer.databaseChanges(from: oldPlayer)
+    +let changes = try player.databaseChanges // Record class only
+    ```
+
 - **The signature of the `didInsert` method has changed**.
     
     You have to update all the `didInsert` methods in your application:

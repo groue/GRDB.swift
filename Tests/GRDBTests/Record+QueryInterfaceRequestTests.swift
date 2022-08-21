@@ -24,7 +24,7 @@ private class Reader : Record {
         "readers"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["name"] = name
         container["age"] = age

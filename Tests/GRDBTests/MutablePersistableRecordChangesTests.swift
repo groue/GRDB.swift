@@ -47,7 +47,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
         let record = DegenerateRecord()
         XCTAssertTrue(record.databaseEquals(record))
-        XCTAssertTrue(record.databaseChanges(from: record).isEmpty)
+        try XCTAssertTrue(record.databaseChanges(from: record).isEmpty)
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -65,7 +65,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         do {
             let player = Player(id: nil, name: nil, score: nil, creationDate: nil)
             XCTAssertTrue(player.databaseEquals(player))
-            XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
+            try XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -77,7 +77,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         do {
             let player = Player(id: 1, name: "foo", score: 42, creationDate: Date())
             XCTAssertTrue(player.databaseEquals(player))
-            XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
+            try XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -101,7 +101,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.name = "Bobby"
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             
@@ -118,7 +118,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.name = nil
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             
@@ -135,7 +135,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.score = 41
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["score"]!, .null)
             
@@ -153,7 +153,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.score = 41
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 2)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             XCTAssertEqual(changes["score"]!, .null)
@@ -183,7 +183,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             let newPlayer = Player(id: 1, name: "Arthur", score: 41, creationDate: nil)
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["score"]!, .null)
             
@@ -201,7 +201,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = NarrowPlayer(ID: 1, NAME: "Bobby")
             let newPlayer = Player(id: 1, name: "Arthur", score: 42, creationDate: nil)
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 2)
             XCTAssertEqual(changes["name"]!, "Bobby".databaseValue)
             XCTAssertEqual(changes["score"]!, .null)
@@ -222,7 +222,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             let oldPlayer = Player(id: 1, name: "Arthur", score: 42, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertTrue(changes.isEmpty)
             
             try dbQueue.inTransaction { db in
@@ -237,7 +237,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             let oldPlayer = Player(id: 1, name: "Arthur", score: nil, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertTrue(changes.isEmpty)
             
             try dbQueue.inTransaction { db in
@@ -252,7 +252,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = Player(id: 1, name: "Arthur", score: nil, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Bobby")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["NAME"]!, "Arthur".databaseValue)
             
@@ -295,7 +295,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 try super.init(row: row)
             }
             
-            override func encode(to container: inout PersistenceContainer) {
+            override func encode(to container: inout PersistenceContainer) throws {
                 container[Columns.id] = id
                 container[Columns.firstName] = firstName
                 container[Columns.lastName] = lastName

@@ -1,9 +1,9 @@
 import Foundation
 
 extension EncodableRecord where Self: Encodable {
-    public func encode(to container: inout PersistenceContainer) {
+    public func encode(to container: inout PersistenceContainer) throws {
         let encoder = RecordEncoder<Self>(persistenceContainer: container)
-        try! encode(to: encoder)
+        try encode(to: encoder)
         container = encoder.persistenceContainer
     }
 }

@@ -45,7 +45,7 @@ class InsertRecordClassTests: XCTestCase {
                 fatalError("init(row:) has not been implemented")
             }
             
-            override func encode(to container: inout PersistenceContainer) {
+            override func encode(to container: inout PersistenceContainer) throws {
                 container["i0"] = i0
                 container["i1"] = i1
                 container["i2"] = i2

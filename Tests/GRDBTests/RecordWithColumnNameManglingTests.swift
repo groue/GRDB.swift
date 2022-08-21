@@ -31,7 +31,7 @@ class BadlyMangledStuff : Record {
         try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
         container["id"] = id

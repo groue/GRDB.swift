@@ -533,9 +533,9 @@ class MutablePersistableRecordTests: GRDBTestCase {
         }
     }
     
-    func testMutablePersistableRecordPersonDatabaseDictionary() {
+    func testMutablePersistableRecordPersonDatabaseDictionary() throws {
         let person = MutablePersistableRecordPerson(id: nil, name: "Arthur", age: 24)
-        let dict = person.databaseDictionary
+        let dict = try person.databaseDictionary
         XCTAssertEqual(dict, ["iD": DatabaseValue.null, "NAme": "Arthur".databaseValue, "aGe": 24.databaseValue])
     }
     

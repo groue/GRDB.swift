@@ -2801,7 +2801,7 @@ Those abilities are granted by three protocols:
 // Defines how a record encodes itself into the database
 protocol EncodableRecord {
     /// Defines the values persisted in the database
-    func encode(to container: inout PersistenceContainer)
+    func encode(to container: inout PersistenceContainer) throws
 }
 
 // Adds persistence methods
@@ -3514,7 +3514,7 @@ class Place: Record {
     }
     
     /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.id] = id
         container[Columns.title] = title
         container[Columns.favorite] = isFavorite
@@ -3618,7 +3618,7 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 ```swift
 let oldPlayer = Player(id: 1, name: "Arthur", score: 100)
 let newPlayer = Player(id: 1, name: "Arthur", score: 1000)
-for (column, oldValue) in newPlayer.databaseChanges(from: oldPlayer) {
+for (column, oldValue) in try newPlayer.databaseChanges(from: oldPlayer) {
     print("\(column) was \(oldValue)")
 }
 // prints "score was 100"
@@ -3631,7 +3631,7 @@ The [Record](#record-class) class is able to compare against itself:
 let player = Player(id: 1, name: "Arthur", score: 100)
 try player.insert(db)
 player.score = 1000
-for (column, oldValue) in player.databaseChanges {
+for (column, oldValue) in try player.databaseChanges {
     print("\(column) was \(oldValue)")
 }
 // prints "score was 100"
@@ -3651,17 +3651,17 @@ if player.hasDatabaseChanges {
 
 ```swift
 let player = Player(name: "Barbara", score: 750)
-player.hasDatabaseChanges // true
+player.hasDatabaseChanges  // true
 
 try player.insert(db)
-player.hasDatabaseChanges // false
+player.hasDatabaseChanges  // false
 
 player.name = "Barbara"
-player.hasDatabaseChanges // false
+player.hasDatabaseChanges  // false
 
 player.score = 1000
-player.hasDatabaseChanges // true
-player.databaseChanges    // ["score": 750]
+player.hasDatabaseChanges  // true
+try player.databaseChanges // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [groue/SortedDifference](https://github.com/groue/SortedDifference).
@@ -4137,7 +4137,7 @@ class Place: Record {
     }
     
     /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.id] = id
         container[Columns.title] = title
         container[Columns.isFavorite] = isFavorite

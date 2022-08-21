@@ -375,7 +375,7 @@ class ItemRecord : Record {
         try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["i0"] = i0
         container["i1"] = i1
         container["i2"] = i2

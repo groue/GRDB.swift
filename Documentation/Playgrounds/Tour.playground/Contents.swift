@@ -92,7 +92,7 @@ extension Place : TableRecord {
 
 // Adopt MutablePersistableRecord
 extension Place : MutablePersistableRecord {
-    func encode(to container: inout PersistenceContainer) {
+    func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["title"] = title
         container["favorite"] = favorite

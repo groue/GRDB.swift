@@ -11,7 +11,7 @@ private class UserRecord : Record {
     override class var databaseTableName: String { super.databaseTableName }
     override class  var persistenceConflictPolicy: PersistenceConflictPolicy { super.persistenceConflictPolicy }
     override class var databaseSelection: [any SQLSelectable] { super.databaseSelection }
-    override func encode(to container: inout PersistenceContainer) { super.encode(to: &container) }
+    override func encode(to container: inout PersistenceContainer) throws { try super.encode(to: &container) }
     
     override func willInsert(_ db: Database) throws {
         try super.willInsert(db)

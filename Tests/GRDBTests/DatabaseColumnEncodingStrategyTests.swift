@@ -13,20 +13,20 @@ private struct ConvertToSnakeCaseRecord: PersistableRecord, Encodable {
 }
 
 class DatabaseColumnEncodingStrategyTests: GRDBTestCase {
-    func testUseDefaultKeys() {
+    func testUseDefaultKeys() throws {
         let record = UseDefaultKeysRecord(recordID: "test")
 
         var container = PersistenceContainer()
-        record.encode(to: &container)
+        try record.encode(to: &container)
         XCTAssertNil(container["record_id"]?.databaseValue.storage)
         XCTAssertEqual(container["recordID"]?.databaseValue.storage, "test".databaseValue.storage)
     }
 
-    func testConvertToSnakeCase() {
+    func testConvertToSnakeCase() throws {
         let record = ConvertToSnakeCaseRecord(recordID: "test")
 
         var container = PersistenceContainer()
-        record.encode(to: &container)
+        try record.encode(to: &container)
         XCTAssertNil(container["recordID"]?.databaseValue.storage)
         XCTAssertEqual(container["record_id"]?.databaseValue.storage, "test".databaseValue.storage)
     }

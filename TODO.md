@@ -39,7 +39,7 @@
 - [ ] GRDB 6: INSERT or UPDATE columns to their default value 
 - [X] GRDB 6: afterNextTransactionCommit -> afterNextTransaction(onCommit:onRollback:)  
 - [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
-    - [ ] throwing EncodableRecord.encode FIRST
+    - [X] throwing EncodableRecord.encode FIRST
 - [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 
 - [ ] GRDB 6: encoding & statement binding errors for database values (conversion to DatabaseValue, statement binding, etc)
     - [ ] Prevent Date > 9999 from being encoded

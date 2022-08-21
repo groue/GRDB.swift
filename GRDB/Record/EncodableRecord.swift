@@ -22,7 +22,10 @@ public protocol EncodableRecord {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    func encode(to container: inout PersistenceContainer)
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
+    func encode(to container: inout PersistenceContainer) throws
     
     // MARK: - Customizing the Format of Database Columns
     
@@ -165,8 +168,13 @@ extension EncodableRecord {
 
 extension EncodableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
     public var databaseDictionary: [String: DatabaseValue] {
-        Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        get throws {
+            try Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        }
     }
 }
 
@@ -177,7 +185,12 @@ extension EncodableRecord {
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
     public func databaseEquals(_ record: Self) -> Bool {
-        PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        do {
+            return try PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        } catch {
+            // one record can't be encoded: they can't be identical in the database
+            return false
+        }
     }
     
     /// A dictionary of values changed from the other record.
@@ -188,8 +201,13 @@ extension EncodableRecord {
     /// but also in terms of columns. When the two records don't define the
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
-    public func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue] {
-        let changes = PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
+    ///
+    /// - throws: An error is thrown if one record can't be encoded to its
+    ///   database representation.
+    public func databaseChanges<Record: EncodableRecord>(from record: Record)
+    throws -> [String: DatabaseValue]
+    {
+        let changes = try PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
         return Dictionary(uniqueKeysWithValues: changes)
     }
 }
@@ -243,9 +261,9 @@ public struct PersistenceContainer {
     }
     
     /// Convenience initializer from a record
-    init<Record: EncodableRecord>(_ record: Record) {
+    init<Record: EncodableRecord>(_ record: Record) throws {
         self.init()
-        record.encode(to: &self)
+        try record.encode(to: &self)
     }
     
     /// Convenience initializer from a database connection and a record
@@ -254,7 +272,7 @@ public struct PersistenceContainer {
         let databaseTableName = type(of: record).databaseTableName
         let columnCount = try db.columns(in: databaseTableName).count
         self.init(minimumCapacity: columnCount) // Optimization
-        record.encode(to: &self)
+        try record.encode(to: &self)
     }
     
     /// Columns stored in the container, ordered like values.
@@ -328,8 +346,8 @@ public struct PersistenceContainer {
 }
 
 extension Row {
-    convenience init<Record: EncodableRecord>(_ record: Record) {
-        self.init(PersistenceContainer(record))
+    convenience init<Record: EncodableRecord>(_ record: Record) throws {
+        try self.init(PersistenceContainer(record))
     }
     
     convenience init(_ container: PersistenceContainer) {

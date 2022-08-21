@@ -42,9 +42,10 @@ class DatabaseUUIDEncodingStrategyTests: GRDBTestCase {
     private func test<T: EncodableRecord>(
         record: T,
         expectedStorage: DatabaseValue.Storage)
+    throws
     {
         var container = PersistenceContainer()
-        record.encode(to: &container)
+        try record.encode(to: &container)
         if let dbValue = container["uuid"]?.databaseValue {
             XCTAssertEqual(dbValue.storage, expectedStorage)
         } else {
@@ -52,23 +53,23 @@ class DatabaseUUIDEncodingStrategyTests: GRDBTestCase {
         }
     }
     
-    private func test<Strategy: StrategyProvider>(strategy: Strategy.Type, encodesUUID uuid: UUID, as value: DatabaseValueConvertible) {
-        test(record: RecordWithUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
-        test(record: RecordWithOptionalUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
+    private func test<Strategy: StrategyProvider>(strategy: Strategy.Type, encodesUUID uuid: UUID, as value: DatabaseValueConvertible) throws {
+        try test(record: RecordWithUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
+        try test(record: RecordWithOptionalUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
     }
     
-    private func testNullEncoding<Strategy: StrategyProvider>(strategy: Strategy.Type) {
-        test(record: RecordWithOptionalUUID<Strategy>(uuid: nil), expectedStorage: .null)
+    private func testNullEncoding<Strategy: StrategyProvider>(strategy: Strategy.Type) throws {
+        try test(record: RecordWithOptionalUUID<Strategy>(uuid: nil), expectedStorage: .null)
     }
 }
 
 // MARK: - deferredToUUID
 
 extension DatabaseUUIDEncodingStrategyTests {
-    func testDeferredToUUID() {
-        testNullEncoding(strategy: StrategyDeferredToUUID.self)
+    func testDeferredToUUID() throws {
+        try testNullEncoding(strategy: StrategyDeferredToUUID.self)
         
-        test(
+        try test(
             strategy: StrategyDeferredToUUID.self,
             encodesUUID: UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
             as: "abcdefghijklmnop".data(using: .utf8)!)
@@ -78,21 +79,21 @@ extension DatabaseUUIDEncodingStrategyTests {
 // MARK: - UppercaseString
 
 extension DatabaseUUIDEncodingStrategyTests {
-    func testUppercaseString() {
-        testNullEncoding(strategy: StrategyUppercaseString.self)
+    func testUppercaseString() throws {
+        try testNullEncoding(strategy: StrategyUppercaseString.self)
         
-        test(
+        try test(
             strategy: StrategyUppercaseString.self,
             encodesUUID: UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
             as: "61626364-6566-6768-696A-6B6C6D6E6F70")
         
-        test(
+        try test(
             strategy: StrategyUppercaseString.self,
             encodesUUID: UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
             as: "56E7D8D3-E9E4-48B6-968E-8D102833AF00")
         
         let uuid = UUID()
-        test(
+        try test(
             strategy: StrategyUppercaseString.self,
             encodesUUID: uuid,
             as: uuid.uuidString.uppercased()) // Assert stable casing
@@ -102,21 +103,21 @@ extension DatabaseUUIDEncodingStrategyTests {
 // MARK: - LowercaseString
 
 extension DatabaseUUIDEncodingStrategyTests {
-    func testLowercaseString() {
-        testNullEncoding(strategy: StrategyLowercaseString.self)
+    func testLowercaseString() throws {
+        try testNullEncoding(strategy: StrategyLowercaseString.self)
         
-        test(
+        try test(
             strategy: StrategyLowercaseString.self,
             encodesUUID: UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
             as: "61626364-6566-6768-696a-6b6c6d6e6f70")
         
-        test(
+        try test(
             strategy: StrategyLowercaseString.self,
             encodesUUID: UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
             as: "56e7d8d3-e9e4-48b6-968e-8d102833af00")
         
         let uuid = UUID()
-        test(
+        try test(
             strategy: StrategyLowercaseString.self,
             encodesUUID: uuid,
             as: uuid.uuidString.lowercased()) // Assert stable casing

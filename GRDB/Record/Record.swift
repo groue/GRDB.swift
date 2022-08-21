@@ -100,7 +100,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         override func encode(to container: inout PersistenceContainer) {
+    ///         override func encode(to container: inout PersistenceContainer) throws {
     ///             container["id"] = id
     ///             container["name"] = name
     ///         }
@@ -108,7 +108,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// The implementation of the base class Record does not store any value in
     /// the container.
-    open func encode(to container: inout PersistenceContainer) { }
+    open func encode(to container: inout PersistenceContainer) throws { }
     
     // MARK: - Compare with Previous Versions
     
@@ -129,8 +129,12 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
     public var hasDatabaseChanges: Bool {
-        get { databaseChangesIterator().next() != nil }
-        set { referenceRow = newValue ? nil : Row(self) }
+        do {
+            return try databaseChangesIterator().next() != nil
+        } catch {
+            // Can't encode the record: surely it can't be saved.
+            return true
+        }
     }
     
     /// A dictionary of changes that have not been saved.
@@ -142,15 +146,35 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// are nil.
     ///
     /// See `hasDatabaseChanges` for more information.
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
     public var databaseChanges: [String: DatabaseValue?] {
-        Dictionary(uniqueKeysWithValues: databaseChangesIterator())
+        get throws {
+            try Dictionary(uniqueKeysWithValues: databaseChangesIterator())
+        }
+    }
+    
+    /// Sets hasDatabaseChanges to true
+    private func setHasDatabaseChanges() {
+        referenceRow = nil
+    }
+    
+    /// Sets hasDatabaseChanges to false
+    private func resetDatabaseChanges() throws {
+        referenceRow = try Row(self)
+    }
+    
+    /// Sets hasDatabaseChanges to false
+    private func resetDatabaseChanges(with persistenceContainer: PersistenceContainer) {
+        referenceRow = Row(persistenceContainer)
     }
     
     // A change iterator that is used by both hasDatabaseChanges and
     // persistentChangedValues properties.
-    private func databaseChangesIterator() -> AnyIterator<(String, DatabaseValue?)> {
+    private func databaseChangesIterator() throws -> AnyIterator<(String, DatabaseValue?)> {
         let oldRow = referenceRow
-        var newValueIterator = PersistenceContainer(self).makeIterator()
+        var newValueIterator = try PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
@@ -200,9 +224,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///   information about the inserted row.
     open func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
         let inserted = try insert()
-        
-        // Set hasDatabaseChanges to false
-        referenceRow = Row(inserted.persistenceContainer)
+        resetDatabaseChanges(with: inserted.persistenceContainer)
     }
     
     /// Called upon successful insertion.
@@ -255,9 +277,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///   reserved for GRDB usage.
     open func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
         let updated = try update()
-        
-        // Set hasDatabaseChanges to false
-        referenceRow = Row(updated.persistenceContainer)
+        resetDatabaseChanges(with: updated.persistenceContainer)
     }
     // swiftlint:enable line_length
     
@@ -335,7 +355,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///   whether a row was deleted in the database.
     open func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
         _ = try delete()
-        hasDatabaseChanges = true
+        setHasDatabaseChanges()
     }
     
     /// Called upon successful deletion.
@@ -364,7 +384,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///   match any row in the database and record could not be updated.
     @discardableResult
     public final func updateChanges(_ db: Database) throws -> Bool {
-        let changedColumns = Set(databaseChanges.keys)
+        let changedColumns = try Set(databaseChanges.keys)
         if changedColumns.isEmpty {
             return false
         } else {
