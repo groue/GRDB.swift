@@ -49,7 +49,7 @@
 - [X] GRDB 6: remove existential/generic duplicated methods
 - [ ] GRDB 6: remove useless AnyXXX Type erasers
 - [X] GRDB 6: conflict resolution in persistence methods
-- [ ] GRDB 6: UPSERT
+- [X] GRDB 6: UPSERT
 - [X] GRDB 6: support for RETURNING
     - [X] Support for default values: `Player.insert(db, as: FullPlayer.self)`
 - [?] GRDB 6: allow mutating `update` (for timestamps)

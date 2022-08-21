@@ -966,6 +966,14 @@
 		56F61DD5283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
 		56F61DD6283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
 		56F61DD7283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
+		56FA0C3028B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */; };
+		56FA0C3128B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */; };
+		56FA0C3228B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */; };
+		56FA0C3328B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */; };
+		56FA0C3928B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */; };
+		56FA0C3A28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */; };
+		56FA0C3B28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */; };
+		56FA0C3C28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */; };
 		56FBFED92210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
 		56FBFEDA2210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
 		56FBFEDB2210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
@@ -1698,6 +1706,8 @@
 		56F61DD0283D344D00AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDBTests-Bridging-Header.h"; path = "GRDBTests/GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DD3283D344E00AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
 		56F61DD4283D344E00AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
+		56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MutablePersistableRecord+Upsert.swift"; sourceTree = "<group>"; };
+		56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PersistableRecord+Upsert.swift"; sourceTree = "<group>"; };
 		56FBFED82210731A00945324 /* SQLRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLRequest.swift; sourceTree = "<group>"; };
 		56FDECE11BB32DFD009AD709 /* RowFromStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFromStatementTests.swift; sourceTree = "<group>"; };
 		56FEB8F6248402E10081AF83 /* DatabaseTraceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseTraceTests.swift; sourceTree = "<group>"; };
@@ -2451,9 +2461,11 @@
 				56D110BE28AFC51000E64463 /* MutablePersistableRecord+Insert.swift */,
 				56D110C828AFC68B00E64463 /* MutablePersistableRecord+Save.swift */,
 				56D110C328AFC5A800E64463 /* MutablePersistableRecord+Update.swift */,
+				56FA0C2F28B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift */,
 				56D110D228AFC81400E64463 /* PersistableRecord.swift */,
 				56D110D728AFC84000E64463 /* PersistableRecord+Insert.swift */,
 				56D110DC28AFC8B400E64463 /* PersistableRecord+Save.swift */,
+				56FA0C3828B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift */,
 				56A238A11B9C753B0082EB20 /* Record.swift */,
 				560D92461C672C4B00F4F92B /* TableRecord.swift */,
 			);
@@ -3020,6 +3032,7 @@
 				56AE64142229A53700AD1B0B /* HasOneThroughAssociation.swift in Sources */,
 				5613ED3721A95A5C00DC7A68 /* Map.swift in Sources */,
 				5659F48E1EA8D94E004A4992 /* Utils.swift in Sources */,
+				56FA0C3228B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */,
 				564CE43321AA901800652B19 /* ValueConcurrentObserver.swift in Sources */,
 				563B8FC724A1D3B9007A48C9 /* OnDemandFuture.swift in Sources */,
 				566B9C2225C6CC24004542CF /* RowDecodingError.swift in Sources */,
@@ -3098,6 +3111,7 @@
 				569BBA50229170FA00478429 /* Inflections+English.swift in Sources */,
 				563B8FB724A1D029007A48C9 /* ReceiveValuesOn.swift in Sources */,
 				566B91391FA4D3810012D5B0 /* TransactionObserver.swift in Sources */,
+				56FA0C3B28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */,
 				565490C81D5AE252005622CB /* CGFloat.swift in Sources */,
 				56F5ABDC1D814330001F60CB /* URL.swift in Sources */,
 				569EF0E4200D2D8400A9FA45 /* DatabaseRegion.swift in Sources */,
@@ -3191,6 +3205,7 @@
 				568D13202207213E00674B58 /* SQLQueryGenerator.swift in Sources */,
 				5674048A1CEF84C8003ED5CC /* RowAdapter.swift in Sources */,
 				563EF416215F87EB007DAACD /* OrderedDictionary.swift in Sources */,
+				56FA0C3A28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */,
 				563363C51C942C37000BE133 /* DatabaseWriter.swift in Sources */,
 				5698AD1B1DAAD17D0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				5653EB0420944C7C00F46237 /* BelongsToAssociation.swift in Sources */,
@@ -3215,6 +3230,7 @@
 				4E13D2F42769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				5656A81F2295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				5617294F223533F40006E219 /* EncodableRecord.swift in Sources */,
+				56FA0C3128B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */,
 				563B8FAD24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
 				5653EC132098738B00F46237 /* SQLGenerationContext.swift in Sources */,
 				5657AB121D10899D006283EF /* URL.swift in Sources */,
@@ -3807,6 +3823,7 @@
 				AAA4DC94230F1E0600C74B15 /* SQLQueryGenerator.swift in Sources */,
 				AAA4DC95230F1E0600C74B15 /* RowAdapter.swift in Sources */,
 				AAA4DC96230F1E0600C74B15 /* OrderedDictionary.swift in Sources */,
+				56FA0C3C28B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */,
 				AAA4DC97230F1E0600C74B15 /* DatabaseWriter.swift in Sources */,
 				AAA4DC98230F1E0600C74B15 /* FTS5Tokenizer.swift in Sources */,
 				AAA4DC99230F1E0600C74B15 /* BelongsToAssociation.swift in Sources */,
@@ -3831,6 +3848,7 @@
 				4E13D2F62769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				AAA4DCA9230F1E0600C74B15 /* SQLAssociation.swift in Sources */,
 				AAA4DCAA230F1E0600C74B15 /* EncodableRecord.swift in Sources */,
+				56FA0C3328B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */,
 				563B8FAF24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
 				AAA4DCAC230F1E0600C74B15 /* SQLGenerationContext.swift in Sources */,
 				AAA4DCAD230F1E0600C74B15 /* URL.swift in Sources */,
@@ -4188,6 +4206,7 @@
 				5605F1631C672E4000235C62 /* Date.swift in Sources */,
 				5605F1711C672E4000235C62 /* DatabaseValueConvertible+RawRepresentable.swift in Sources */,
 				56A2387B1B9C75030082EB20 /* Configuration.swift in Sources */,
+				56FA0C3928B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */,
 				566475CC1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
 				5698AC371D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
 				563EF415215F87EB007DAACD /* OrderedDictionary.swift in Sources */,
@@ -4212,6 +4231,7 @@
 				4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				560A37A71C8FF6E500949E71 /* SerializedDatabase.swift in Sources */,
 				563B8FAC24A1CE43007A48C9 /* DatabasePublishers.swift in Sources */,
+				56FA0C3028B1F2DC00B2DFF7 /* MutablePersistableRecord+Upsert.swift in Sources */,
 				5605F1691C672E4000235C62 /* NSString.swift in Sources */,
 				560D92401C672C3E00F4F92B /* DatabaseValueConvertible.swift in Sources */,
 				56A8C2301D1914540096E9D4 /* UUID.swift in Sources */,

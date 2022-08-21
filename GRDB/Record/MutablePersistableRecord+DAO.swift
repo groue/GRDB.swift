@@ -39,6 +39,40 @@ final class DAO<Record: MutablePersistableRecord> {
             returning: selection)
     }
     
+    func upsertStatement(
+        _ db: Database,
+        conflictTarget conflictTargetColumns: [String],
+        returning selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        // Don't update columns not present in the persistenceContainer
+        // Don't update columns not present in conflictTargetColumns
+        // Don't update primary key columns
+        let lowercaseUpdatedColumns = Set(persistenceContainer.columns.map { $0.lowercased() })
+            .subtracting(primaryKey.columns.map { $0.lowercased() })
+            .subtracting(conflictTargetColumns.map { $0.lowercased() })
+        
+        var updatedColumns: [String] = []
+        var arguments = StatementArguments(persistenceContainer.values)
+        for column in persistenceContainer.columns {
+            if lowercaseUpdatedColumns.contains(column.lowercased()) {
+                updatedColumns.append(column)
+                arguments += [persistenceContainer.databaseValue(at: column)]
+            }
+        }
+        
+        let query = UpsertQuery(
+            tableName: databaseTableName,
+            insertedColumns: persistenceContainer.columns,
+            conflictTargetColumns: conflictTargetColumns,
+            updatedColumns: updatedColumns)
+        
+        return try makeStatement(
+            sql: query.sql,
+            checkedArguments: arguments,
+            returning: selection)
+    }
+    
     /// Returns nil if and only if primary key is nil
     func updateStatement(
         columns: Set<String>,
@@ -202,6 +236,47 @@ extension InsertQuery {
             VALUES (\(valuesSQL))
             """
         }
+        Self.sqlCache[self] = sql
+        return sql
+    }
+}
+
+// MARK: - UpsertQuery
+
+private struct UpsertQuery: Hashable {
+    let tableName: String
+    let insertedColumns: [String]
+    let conflictTargetColumns: [String]
+    let updatedColumns: [String]
+}
+
+extension UpsertQuery {
+    @ReadWriteBox private static var sqlCache: [UpsertQuery: String] = [:]
+    var sql: String {
+        if let sql = Self.sqlCache[self] {
+            return sql
+        }
+        
+        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+        
+        let onConflictSQL: String
+        if conflictTargetColumns.isEmpty {
+            onConflictSQL = "ON CONFLICT"
+        } else {
+            let targetSQL = conflictTargetColumns
+                .map { $0.quotedDatabaseIdentifier }
+                .joined(separator: ", ")
+            onConflictSQL = "ON CONFLICT(\(targetSQL))"
+        }
+        
+        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
+        
+        let sql = """
+            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL)) \
+            \(onConflictSQL) DO UPDATE SET \(updateSQL)
+            """
         Self.sqlCache[self] = sql
         return sql
     }

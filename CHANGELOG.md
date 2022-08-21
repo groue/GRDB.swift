@@ -115,6 +115,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Persistence callbacks allow record types to customize persistence methods.
 - **New**: All persistence methods now accept an explicit conflict policy: `player.insert(db, onConflict: .replace)`, etc.
 - **New**: Support for the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html) (available from iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a custom SQLite build): `player.insertAndFetch(db)`, `Player.deleteAndFetchAll(db)`, etc.
+- **New**: Support for [`UPSERT`](https://www.sqlite.org/lang_UPSERT.html) (available from iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a custom SQLite build): `player.upsert(db)`, etc.
 
 ## 5.26.0
 

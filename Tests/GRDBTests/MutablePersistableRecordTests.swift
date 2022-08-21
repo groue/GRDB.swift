@@ -315,7 +315,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
                     name TEXT NOT NULL);
                 CREATE TABLE player(
                     id INTEGER PRIMARY KEY,
-                    name NOT NULL,
+                    name NOT NULL UNIQUE, -- UNIQUE for upsert tests
                     score INTEGER NOT NULL DEFAULT 1000);
                 """)
         }
@@ -1901,6 +1901,204 @@ extension MutablePersistableRecordTests {
             XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
             XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
             XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+        }
+    }
+}
+
+// MARK: - Upsert
+
+extension MutablePersistableRecordTests {
+    func test_upsert() throws {
+#if !GRDBCUSTOMSQLITE
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            do {
+                var player = FullPlayer(name: "Arthur", score: 1000)
+                try player.upsert(db)
+                
+                // Test SQL
+                XCTAssertEqual(lastSQLQuery, """
+                    INSERT INTO "player" ("id", "name", "score") \
+                    VALUES (NULL,'Arthur',1000) \
+                    ON CONFLICT DO UPDATE SET "name"='Arthur', "score"=1000 \
+                    RETURNING "rowid"
+                    """)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Arthur", "score":1000],
+                ])
+                
+                // Test didSave callback
+                XCTAssertEqual(player.id, 1)
+                
+                // Test other callbacks
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(player.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(player.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
+            
+            // Test conflict on name
+            do {
+                // Set the last inserted row id to some arbitrary value
+                _ = try FullPlayer(id: 42, name: "Barbara", score: 0).inserted(db)
+                XCTAssertNotEqual(db.lastInsertedRowID, 1)
+                
+                var player = FullPlayer(name: "Arthur", score: 100)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Arthur", "score":100],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+                
+                // Test didSave callback
+                XCTAssertEqual(player.id, 1)
+            }
+            
+            // Test conflict on id
+            do {
+                var player = FullPlayer(id: 1, name: "Craig", score: 500)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Craig", "score":500],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+                
+                // Test didSave callback
+                XCTAssertEqual(player.id, 1)
+            }
+            
+            // Test conflict on both id and name (same row)
+            do {
+                var player = FullPlayer(id: 1, name: "Craig", score: 200)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Craig", "score":200],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+                
+                // Test didSave callback
+                XCTAssertEqual(player.id, 1)
+            }
+            
+            // Test conflict on both id and name (different rows)
+            do {
+                var player = FullPlayer(id: 1, name: "Barbara", score: 300)
+                
+                do {
+                    try player.upsert(db)
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                    XCTAssertEqual(error.message, "UNIQUE constraint failed: player.name")
+                    XCTAssertEqual(error.sql!, """
+                    INSERT INTO "player" ("id", "name", "score") \
+                    VALUES (?,?,?) \
+                    ON CONFLICT DO UPDATE SET "name"=?, "score"=? \
+                    RETURNING "rowid"
+                    """)
+                }
+                
+                // Test callbacks
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(player.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 0)
+                XCTAssertEqual(player.callbacks.didSaveCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_upsertAndFetch_as() throws {
+#if !GRDBCUSTOMSQLITE
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                var partialPlayer = PartialPlayer(name: "Arthur")
+                let fullPlayer = try partialPlayer.upsertAndFetch(db, as: FullPlayer.self)
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") \
+                    VALUES (NULL,'Arthur') \
+                    ON CONFLICT DO UPDATE SET "name"='Arthur' \
+                    RETURNING *, "rowid"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(partialPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
         }
     }
 }

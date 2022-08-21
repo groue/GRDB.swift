@@ -2913,6 +2913,10 @@ try place.updateChanges(db) // Record class only
 try place.save(db)
 let savedPlace = place.saved(db) // non-mutating
 
+// UPSERT
+try place.upsert(db)
+let insertedPlace = place.upsertAndFetch(db)
+
 // DELETE
 try place.delete(db)
 
@@ -2934,11 +2938,15 @@ try Place.deleteOne(db, id:...)
 try Place.deleteOne(db, key:...)
 ```
 
-- All those methods can throw a [DatabaseError](#error-handling).
+For more information about batch updates, see [Update Requests](#update-requests).
+
+- All persistence methods can throw a [DatabaseError](#error-handling).
 
 - `update` and `updateChanges` throw [PersistenceError](#persistenceerror) if the database does not contain any row for the primary key of the record.
 
 - `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
+
+- `upsert` requires SQLite 3.35.0+ (iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or [custom SQLite build]).
 
 - `delete` and `deleteOne` returns whether a database row was deleted or not. `deleteAll` returns the number of deleted rows. `updateAll` returns the number of updated rows. `updateChanges` returns whether a database row was updated or not.
 
@@ -3111,7 +3119,7 @@ try link.upsert(db) // Calls the willSave callback
 
 Here is a list with all the available callbacks, listed in the same order in which they will get called during the respective operations:
 
-- Inserting a record (all `record.insert` methods)
+- Inserting a record (all `record.insert` and `record.upsert` methods)
     - `willSave`
     - `aroundSave`
     - `willInsert`
@@ -4169,6 +4177,9 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.updateChangesAndFetch(_:columns:as:modify:)` | [PersistableRecord] | |
 | `record.updateChangesAndFetch(_:columns:selection:fetch:modify:)` | [PersistableRecord] | |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
+| `record.upsert(db)` | [PersistableRecord] | |
+| `record.upsertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.upsertAndFetch(_:as:)` | [PersistableRecord] | |
 | `Type.updateAll(db, ...)` | [TableRecord] | |
 | `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Delete Records** | | |
