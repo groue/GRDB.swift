@@ -4,7 +4,7 @@ import GRDB
 private struct FTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
-    func makeTableDefinition() -> FTS3TokenizeTableDefinition {
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS3TokenizeTableDefinition {
         FTS3TokenizeTableDefinition()
     }
     
@@ -22,7 +22,7 @@ private struct FTS3TokenizeModule : VirtualTableModule {
 private struct ThrowingFTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
-    func makeTableDefinition() -> FTS3TokenizeTableDefinition {
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS3TokenizeTableDefinition {
         FTS3TokenizeTableDefinition()
     }
     

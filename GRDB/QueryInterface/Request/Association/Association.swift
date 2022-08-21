@@ -145,7 +145,7 @@ extension Association {
     ///
     ///     let playerInfos = PlayerInfo.all().fetchAll(db)
     ///     print(playerInfos.first?.team)
-    public func forKey(_ codingKey: CodingKey) -> Self {
+    public func forKey(_ codingKey: some CodingKey) -> Self {
         forKey(codingKey.stringValue)
     }
     
@@ -208,7 +208,7 @@ extension Association {
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("color") }
     ///     var request = Player.including(required: association)
-    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+    public func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
         withDestinationRelation { relation in
             relation = relation.select { db in
                 try selection(db).map(\.sqlSelection)
@@ -229,7 +229,7 @@ extension Association {
     ///         .select([Column("color")])
     ///         .annotated(with: { db in [Column("name")] })
     ///     var request = Player.including(required: association)
-    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+    public func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
         withDestinationRelation { relation in
             relation = relation.annotated { db in
                 try selection(db).map(\.sqlSelection)
@@ -252,7 +252,7 @@ extension Association {
     ///     // JOIN team ON team.id = player.teamId AND 1
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
-    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+    public func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
         withDestinationRelation { relation in
             relation = relation.filter { db in
                 try predicate(db).sqlExpression
@@ -287,7 +287,7 @@ extension Association {
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
-    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
+    public func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self {
         withDestinationRelation { relation in
             relation = relation.order { db in
                 try orderings(db).map(\.sqlOrdering)
@@ -349,7 +349,7 @@ extension Association {
 // AggregatingRequest conformance
 extension Association {
     /// Creates an association grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self {
+    public func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self {
         withDestinationRelation { relation in
             relation = relation.group { db in
                 try expressions(db).map(\.sqlExpression)
@@ -359,7 +359,7 @@ extension Association {
     
     /// Creates an association with the provided *predicate promise* added to
     /// the eventual set of already applied predicates.
-    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+    public func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
         withDestinationRelation { relation in
             relation = relation.having { db in
                 try predicate(db).sqlExpression
@@ -374,20 +374,6 @@ extension Association {
     public func distinct() -> Self {
         withDestinationRelation { relation in
             relation.isDistinct = true
-        }
-    }
-    
-    /// Creates an association that fetches *limit* rows, starting at *offset*.
-    ///
-    /// Any previous limit is replaced.
-    ///
-    /// - warning: Avoid this method: it is unlikely it does what you expect it
-    ///   to do. It will be removed in a future GRDB version.
-    ///
-    /// :nodoc:
-    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
-        withDestinationRelation { relation in
-            relation.limit = SQLLimit(limit: limit, offset: offset)
         }
     }
     

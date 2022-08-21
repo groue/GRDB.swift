@@ -87,7 +87,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
-> :point_up: **Note**: In case you were still wondering, it is recommended to read the SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
+> **Note**: In case you were still wondering, it is recommended to read the SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
 
 
 ## Create FTS3 and FTS4 Virtual Tables
@@ -304,7 +304,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.26/Structs/StatementArguments.html):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/6.0.0-beta/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -344,9 +344,9 @@ The version of SQLite that ships with iOS, macOS, tvOS and watchOS does not alwa
     end
     ```
     
-    > :warning: **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
+    > **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
     
-    > :point_up: **Note**: there used to be a GRDBPlus CocoaPod with pre-enabled FTS5 support. This CocoaPod is deprecated: please switch to the above technique.
+    > **Note**: there used to be a GRDBPlus CocoaPod with pre-enabled FTS5 support. This CocoaPod is deprecated: please switch to the above technique.
 
 2. Use the GRDB.swift/SQLCipher CocoaPod subspec (see [encryption](../README.md#encryption)):
     
@@ -587,7 +587,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.26/Structs/StatementArguments.html):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/6.0.0-beta/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -683,7 +683,7 @@ try db.drop(table: "book_ft")
 try db.dropFTS4SynchronizationTriggers(forTable: "book_ft")
 ```
 
-> :warning: **Warning**: there was a bug in GRDB up to version 2.3.1 included, which created triggers with a wrong name. If it is possible that the full-text table was created by an old version of GRDB, then delete the synchronization triggers **twice**: once with the name of the deleted full-text table, and once with the name of the content table:
+> **Warning**: there was a bug in GRDB up to version 2.3.1 included, which created triggers with a wrong name. If it is possible that the full-text table was created by an old version of GRDB, then delete the synchronization triggers **twice**: once with the name of the deleted full-text table, and once with the name of the content table:
 >
 > ```swift
 > // Drop full-text table

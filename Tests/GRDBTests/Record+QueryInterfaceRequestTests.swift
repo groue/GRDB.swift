@@ -13,32 +13,33 @@ private class Reader : Record {
         super.init()
     }
     
-    required init(row: Row){
+    required init(row: Row) throws {
         self.id = row["id"]
         self.name = row["name"]
         self.age = row["age"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override class var databaseTableName: String {
         "readers"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["name"] = name
         container["age"] = age
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
 
 class RecordQueryInterfaceRequestTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(sql: """

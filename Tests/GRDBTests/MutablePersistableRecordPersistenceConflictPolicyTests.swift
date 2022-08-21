@@ -10,8 +10,8 @@ private struct DefaultPolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -25,8 +25,8 @@ private struct MixedPolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -42,8 +42,8 @@ private struct ReplacePolicy: MutablePersistableRecord {
         container["email"] = email
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -57,8 +57,8 @@ private struct IgnorePolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -72,8 +72,8 @@ private struct FailPolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -87,8 +87,8 @@ private struct AbortPolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -102,8 +102,8 @@ private struct RollbackPolicy: MutablePersistableRecord {
         container["id"] = id
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -132,6 +132,25 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             record = DefaultPolicy(id: 1)
             try record.update(db)
             XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE \"records\""))
+        }
+    }
+    
+    func testPolicyOverride() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "records") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            
+            // Insert
+            var record = DefaultPolicy(id: nil)
+            try record.insert(db, onConflict: .ignore)
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR IGNORE INTO \"records\""))
+            
+            // Update
+            record = DefaultPolicy(id: 1)
+            try record.update(db, onConflict: .ignore)
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR IGNORE \"records\""))
         }
     }
 
@@ -242,7 +261,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             var record = IgnorePolicy(id: nil)
             try record.insert(db)
             XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR IGNORE INTO \"records\""))
-            XCTAssertTrue(record.id == nil)
+            XCTAssertEqual(record.id, 1)
             
             // Update
             record = IgnorePolicy(id: 1)

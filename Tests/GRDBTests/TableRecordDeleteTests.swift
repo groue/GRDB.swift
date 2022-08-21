@@ -9,9 +9,11 @@ private struct Hacker : TableRecord {
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Hacker: Identifiable { }
 
-private struct Person : TableRecord {
+private struct Person : Codable, PersistableRecord, FetchableRecord, Hashable {
     static let databaseTableName = "persons"
     var id: Int64 // Non-optional
+    var name: String
+    var email: String
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
@@ -24,7 +26,7 @@ private struct Citizenship : TableRecord {
 
 class TableRecordDeleteTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.execute(sql: "CREATE TABLE hackers (name TEXT)")
             try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
@@ -46,6 +48,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+                try XCTAssertFalse(Hacker.deleteOne(db, id: nil))
                 deleted = try Hacker.deleteOne(db, id: 1)
                 XCTAssertTrue(deleted)
                 XCTAssertEqual(try Hacker.fetchCount(db), 0)
@@ -171,7 +174,7 @@ class TableRecordDeleteTests: GRDBTestCase {
         }
     }
     
-    func testRequestDelete() throws {
+    func testRequestDeleteAll() throws {
         let dbQueue = try makeDatabaseQueue()
         
         try dbQueue.inDatabase { db in
@@ -226,7 +229,134 @@ class TableRecordDeleteTests: GRDBTestCase {
         }
     }
     
-    func testJoinedRequestDelete() throws {
+    func testRequestDeleteAndFetchStatement() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Person.all()
+            let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
+            XCTAssertEqual(statement.sql, "DELETE FROM \"persons\" RETURNING *")
+            XCTAssertEqual(statement.columnNames, ["id", "name", "email"])
+        }
+    }
+    
+    func testRequestDeleteAndFetchCursor() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            _ = try Person.all().deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
+            
+            _ = try Person.all().deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
+            
+            _ = try Person.filter(Column("name") == "Arthur").deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"name\" = 'Arthur' RETURNING *")
+            
+            _ = try Person.filter(key: 1).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1 RETURNING *")
+            
+            _ = try Person.filter(keys: [1, 2]).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
+
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                _ = try Person.filter(id: 1).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1 RETURNING *")
+                
+                _ = try Person.filter(ids: [1, 2]).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
+            }
+
+            _ = try Person.filter(sql: "id = 1").deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1 RETURNING *")
+            
+            _ = try Person.filter(sql: "id = 1").filter(Column("name") == "Arthur").deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (id = 1) AND (\"name\" = 'Arthur') RETURNING *")
+
+            _ = try Person.select(Column("name")).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
+            
+            _ = try Person.order(Column("name")).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
+            
+            // No test for LIMIT ... RETURNING ... since this is not supported by SQLite
+        }
+    }
+    
+    func testRequestDeleteAndFetchArray() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(id: 1, name: "Arthur", email: "arthur@example.com").insert(db)
+            try Person(id: 2, name: "Barbara", email: "barbara@example.com").insert(db)
+            try Person(id: 3, name: "Craig", email: "craig@example.com").insert(db)
+
+            let request = Person.filter(Column("id") != 2)
+            let deletePersons = try request
+                .deleteAndFetchAll(db)
+                .sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(deletePersons, [
+                Person(id: 1, name: "Arthur", email: "arthur@example.com"),
+                Person(id: 3, name: "Craig", email: "craig@example.com"),
+            ])
+        }
+    }
+    
+    func testRequestDeleteAndFetchSet() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try Person(id: 1, name: "Arthur", email: "arthur@example.com").insert(db)
+            try Person(id: 2, name: "Barbara", email: "barbara@example.com").insert(db)
+            try Person(id: 3, name: "Craig", email: "craig@example.com").insert(db)
+
+            let request = Person.filter(Column("id") != 2)
+            let deletePersons = try request.deleteAndFetchSet(db)
+            XCTAssertEqual(deletePersons, [
+                Person(id: 1, name: "Arthur", email: "arthur@example.com"),
+                Person(id: 3, name: "Craig", email: "craig@example.com"),
+            ])
+        }
+    }
+    
+    func testJoinedRequestDeleteAll() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
                 static let team = belongsTo(Team.self)
@@ -286,7 +416,109 @@ class TableRecordDeleteTests: GRDBTestCase {
         }
     }
     
-    func testGroupedRequestDelete() throws {
+    func testJoinedRequestDeleteAndFetch() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            struct Player: MutablePersistableRecord, FetchableRecord {
+                static let team = belongsTo(Team.self)
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+                init(row: Row) { preconditionFailure("should not be called") }
+            }
+            
+            struct Team: MutablePersistableRecord, FetchableRecord {
+                // Test RETURNING
+                static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+                static let players = hasMany(Player.self)
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+                init(row: Row) { preconditionFailure("should not be called") }
+            }
+            
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+            
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamId", .integer).references("team")
+            }
+            
+            do {
+                let request = Player.including(required: Player.team)
+                let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
+                XCTAssertEqual(statement.sql, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "player"."id" \
+                    FROM "player" \
+                    JOIN "team" ON "team"."id" = "player"."teamId") \
+                    RETURNING *
+                    """)
+                XCTAssertEqual(statement.columnNames, ["id", "teamId"])
+                
+                _ = try request.deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "player"."id" \
+                    FROM "player" \
+                    JOIN "team" ON "team"."id" = "player"."teamId") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                let alias = TableAlias(name: "p")
+                _ = try Player.aliased(alias).including(required: Player.team).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "p"."id" \
+                    FROM "player" "p" \
+                    JOIN "team" ON "team"."id" = "p"."teamId") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.isEmpty)
+                let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
+                XCTAssertEqual(statement.sql, """
+                    DELETE FROM "team" WHERE "id" IN (\
+                    SELECT "team"."id" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id" \
+                    HAVING COUNT(DISTINCT "player"."id") = 0) \
+                    RETURNING *
+                    """)
+                XCTAssertEqual(statement.columnNames, ["id", "name"])
+                
+                _ = try request.deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "team" WHERE "id" IN (\
+                    SELECT "team"."id" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id" \
+                    HAVING COUNT(DISTINCT "player"."id") = 0) \
+                    RETURNING "id", "name"
+                    """)
+            }
+            do {
+                _ = try Team.including(all: Team.players).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "team" RETURNING "id", "name"
+                    """)
+            }
+        }
+    }
+    
+    func testGroupedRequestDeleteAll() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
@@ -346,6 +578,88 @@ class TableRecordDeleteTests: GRDBTestCase {
                     SELECT "rowid" \
                     FROM "passport" \
                     GROUP BY "rowid")
+                    """)
+            }
+        }
+    }
+    
+    func testGroupedRequestDeleteAndFetchCursor() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            struct Player: MutablePersistableRecord, FetchableRecord {
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+                init(row: Row) { preconditionFailure("should not be called") }
+            }
+            struct Passport: MutablePersistableRecord, FetchableRecord {
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+                init(row: Row) { preconditionFailure("should not be called") }
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            try db.create(table: "passport") { t in
+                t.column("countryCode", .text).notNull()
+                t.column("citizenId", .integer).notNull()
+                t.primaryKey(["countryCode", "citizenId"])
+            }
+            do {
+                _ = try Player.all().groupByPrimaryKey().deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "id" \
+                    FROM "player" \
+                    GROUP BY "id") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                _ = try Player.all().group(-Column("id")).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "id" \
+                    FROM "player" \
+                    GROUP BY -"id") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                _ = try Player.all().group(Column.rowID).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "id" \
+                    FROM "player" \
+                    GROUP BY "rowid") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                _ = try Passport.all().groupByPrimaryKey().deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "passport" WHERE "rowid" IN (\
+                    SELECT "rowid" \
+                    FROM "passport" \
+                    GROUP BY "rowid") \
+                    RETURNING *
+                    """)
+            }
+            do {
+                _ = try Passport.all().group(Column.rowID).deleteAndFetchCursor(db).next()
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "passport" WHERE "rowid" IN (\
+                    SELECT "rowid" \
+                    FROM "passport" \
+                    GROUP BY "rowid") \
+                    RETURNING *
                     """)
             }
         }

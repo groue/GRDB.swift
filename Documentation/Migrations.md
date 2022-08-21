@@ -77,7 +77,7 @@ try dbQueue.read { db in
 }
 ```
 
-See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/5.26/Structs/DatabaseMigrator.html) for more migrator methods.
+See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/6.0.0-beta/Structs/DatabaseMigrator.html) for more migrator methods.
 
 
 ## The `eraseDatabaseOnSchemaChange` Option
@@ -89,7 +89,7 @@ var migrator = DatabaseMigrator()
 migrator.eraseDatabaseOnSchemaChange = true
 ```
 
-> :warning: **Warning**: This option can destroy your precious users' data!
+> **Warning**: This option can destroy your precious users' data!
 
 Setting `eraseDatabaseOnSchemaChange` is useful during application development, as you are still designing migrations, and the schema changes often.
 
@@ -153,9 +153,9 @@ The detailed sequence of operations is described below, some of them are perform
 
 12. GRDB: If foreign keys constraints were originally enabled, reenable them now.
 
-> :point_up: **Note**: Take care to follow the procedure above precisely, in the same order, or you might corrupt triggers, views, and foreign key constraints. Have a second look at [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) if necessary.
+> **Note**: Take care to follow the procedure above precisely, in the same order, or you might corrupt triggers, views, and foreign key constraints. Have a second look at [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) if necessary.
 >
-> :point_up: **Note**: By default, all migrations perform, at step 10, a full check of all foreign keys in your database. When your database is big, those checks may have a noticeable impact on migration performances. See [Foreign Key Checks] for a discussion of your ways to avoid this toll.
+> **Note**: By default, all migrations perform, at step 10, a full check of all foreign keys in your database. When your database is big, those checks may have a noticeable impact on migration performances. See [Foreign Key Checks] for a discussion of your ways to avoid this toll.
 
 
 ## Foreign Key Checks
@@ -274,9 +274,12 @@ The `asyncMigrate(_:completion:)` method:
 
 ```swift
 // Completes in a protected dispatch queue that can write in the database
-migrator.asyncMigrate(dbQueue, completion: { db, error in
-    if let error = error {
+migrator.asyncMigrate(dbQueue, completion: { result in
+    switch result {
+    case .failure:
         // Some error occurred during migrations
+    case let .success(db):
+        // Migrations succeeded
     }
 })
 ```

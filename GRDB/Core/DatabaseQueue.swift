@@ -51,14 +51,13 @@ public final class DatabaseQueue: DatabaseWriter {
     
     /// Opens an in-memory SQLite database.
     ///
-    ///     let dbQueue = DatabaseQueue()
+    ///     let dbQueue = try DatabaseQueue()
     ///
     /// Database memory is released when the database queue gets deallocated.
     ///
     /// - parameter configuration: A configuration.
-    public init(configuration: Configuration = Configuration()) {
-        // Assume SQLite always succeeds creating an in-memory database
-        writer = try! SerializedDatabase(
+    public init(configuration: Configuration = Configuration()) throws {
+        writer = try SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
             defaultLabel: "GRDB.DatabaseQueue")
@@ -94,20 +93,15 @@ extension DatabaseQueue {
     /// as much memory as possible.
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
-        
-        // Use raw notification names because of
-        // FB9801372 (UIApplication.didReceiveMemoryWarningNotification should not be declared @MainActor)
-        // TODO: Reuse UIApplication.didReceiveMemoryWarningNotification when possible.
-        // TODO: Reuse UIApplication.didEnterBackgroundNotification when possible.
         center.addObserver(
             self,
             selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)),
-            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            name: UIApplication.didReceiveMemoryWarningNotification,
             object: nil)
         center.addObserver(
             self,
             selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)),
-            name: NSNotification.Name(rawValue: "UIApplicationDidEnterBackgroundNotification"),
+            name: UIApplication.didEnterBackgroundNotification,
             object: nil)
     }
     
@@ -309,12 +303,12 @@ extension DatabaseQueue {
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try writer.sync(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
-        writer.async(updates)
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+        writer.async { updates(.success($0)) }
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
@@ -349,7 +343,7 @@ extension DatabaseQueue {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         if configuration.readonly {
             // The easy case: the database does not change

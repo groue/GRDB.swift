@@ -41,8 +41,9 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAnyTokenIn string: String) {
-        let tokens = FTS3.tokenize(string, withTokenizer: .simple)
-        guard !tokens.isEmpty else { return nil }
+        guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
+              !tokens.isEmpty
+        else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
     
@@ -54,8 +55,9 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAllTokensIn string: String) {
-        let tokens = FTS3.tokenize(string, withTokenizer: .simple)
-        guard !tokens.isEmpty else { return nil }
+        guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
+              !tokens.isEmpty
+        else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " "))
     }
     
@@ -67,8 +69,9 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAllPrefixesIn string: String) {
-        let tokens = FTS3.tokenize(string, withTokenizer: .simple)
-        guard !tokens.isEmpty else { return nil }
+        guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
+              !tokens.isEmpty
+        else { return nil }
         try? self.init(rawPattern: tokens.map { "\($0)*" }.joined(separator: " "))
     }
     
@@ -80,8 +83,9 @@ public struct FTS3Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingPhrase string: String) {
-        let tokens = FTS3.tokenize(string, withTokenizer: .simple)
-        guard !tokens.isEmpty else { return nil }
+        guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
+              !tokens.isEmpty
+        else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
 }

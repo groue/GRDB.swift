@@ -3,7 +3,7 @@ import XCTest
 
 class SelectStatementTests : GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: """
@@ -28,8 +28,12 @@ class SelectStatementTests : GRDBTestCase {
             let statement = try db.makeStatement(sql: sql)
             let cursor = try statement.makeCursor()
             
-            // Check that StatementCursor gives access to the raw SQLite API
-            XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
+            // Test that cursor provides statement information
+            XCTAssertEqual(cursor.sql, sql)
+            XCTAssertEqual(cursor.arguments, [])
+            XCTAssertEqual(cursor.columnCount, 2)
+            XCTAssertEqual(cursor.columnNames, ["firstName", "lastName"])
+            XCTAssertEqual(cursor.databaseRegion.description, "empty")
             
             XCTAssertFalse(try cursor.next() == nil)
             XCTAssertFalse(try cursor.next() == nil)
@@ -44,7 +48,7 @@ class SelectStatementTests : GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ cursor: StatementCursor) throws {
-                let sql = cursor.statement.sql
+                let sql = cursor.sql
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -334,23 +338,11 @@ class SelectStatementTests : GRDBTestCase {
                 db.makeStatement(sql: "SELECT * FROM table1"),
                 db.makeStatement(sql: "SELECT id, id3, a FROM table1"),
                 db.makeStatement(sql: "SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
-                
-                // This last request triggers its observer or not, depending on the SQLite version.
-                // Before SQLite 3.19.0, its region is doubtful, and every database change is deemed impactful.
-                // Starting SQLite 3.19.0, it knows that only table1 is involved.
-                //
-                // See doubtfulCountFunction below
                 db.makeStatement(sql: "SELECT COUNT(*) FROM table1"),
             ]
             
-            let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
-            
             let observers = statements.map { Observer(region: $0.databaseRegion) }
-            if doubtfulCountFunction {
-                XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
-            } else {
-                XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
-            }
+            XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "table1(*)"])
             
             for observer in observers {
                 db.add(transactionObserver: observer)
@@ -362,7 +354,7 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
             
             try db.execute(sql: "INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
-            XCTAssertEqual(observers.map(\.triggered), [false, false, true, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, true, false])
             
             try db.execute(sql: "UPDATE table1 SET a = 1")
             XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
@@ -371,10 +363,10 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(observers.map(\.triggered), [true, false, false, true])
             
             try db.execute(sql: "UPDATE table2 SET a = 1")
-            XCTAssertEqual(observers.map(\.triggered), [false, false, true, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, true, false])
             
             try db.execute(sql: "UPDATE table2 SET b = 1")
-            XCTAssertEqual(observers.map(\.triggered), [false, false, false, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, false, false])
             
             try db.execute(sql: "UPDATE table3 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map(\.triggered), [true, true, false, true])
@@ -387,7 +379,7 @@ class SelectStatementTests : GRDBTestCase {
             
             try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
             try db.execute(sql: "DELETE FROM table4")
-            XCTAssertEqual(observers.map(\.triggered), [false, false, false, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, false, false])
             
             try db.execute(sql: "DELETE FROM table3")
             XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])

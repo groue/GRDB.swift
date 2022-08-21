@@ -20,7 +20,7 @@ private class RecordWithNilPrimaryKey : Record {
         "records"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["id"] = nil
     }
 }
@@ -30,7 +30,7 @@ private class RecordForTableWithoutPrimaryKey : Record {
         "records"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["name"] = "foo"
     }
 }
@@ -40,7 +40,7 @@ private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
         "records"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["name"] = "foo"
     }
 }
@@ -50,7 +50,7 @@ private class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record
         "records"
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["name"] = "foo"
     }
 }

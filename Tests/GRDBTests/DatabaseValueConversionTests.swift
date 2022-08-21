@@ -27,24 +27,21 @@ private let emojiString = "'fooéı👨👨🏿🇫🇷🇨🇮'"
 private let emojiData = emojiString.data(using: .utf8)
 private let nonUTF8Data = Data([0x80])
 private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
-// Until SPM tests can load resources, disable this test for SPM.
-#if !SWIFT_PACKAGE
-private let jpegData = try! Data(contentsOf: Bundle(for: DatabaseValueConversionTests.self).url(forResource: "Betty", withExtension: "jpeg")!)
-#endif
+private let jpegData = try! Data(contentsOf: testBundle.url(forResource: "Betty", withExtension: "jpeg")!)
 
 class DatabaseValueConversionTests : GRDBTestCase {
     
-    private func _assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
+    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
         _ db: Database,
         _ sql: String,
         _ type: T.Type,
         expectedSQLiteConversion: T?,
         expectedDatabaseValueConversion: T?,
-        file: StaticString,
-        line: UInt) throws
+        file: StaticString = #file,
+        line: UInt = #line) throws
     {
         func stringRepresentation(_ value: T?) -> String {
-            guard let value = value else { return "nil" }
+            guard let value else { return "nil" }
             return String(reflecting: value)
         }
         
@@ -86,12 +83,12 @@ class DatabaseValueConversionTests : GRDBTestCase {
         }
     }
     
-    private func _assertFailedDecoding<T: DatabaseValueConvertible>(
+    private func assertFailedDecoding<T: DatabaseValueConvertible>(
         _ db: Database,
         _ sql: String,
         _ type: T.Type,
-        file: StaticString,
-        line: UInt) throws
+        file: StaticString = #file,
+        line: UInt = #line) throws
     {
         // We can only test failed decoding from database value, since
         // StatementColumnConvertible only supports optimistic decoding which
@@ -100,64 +97,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
         XCTAssertNil(T.fromDatabaseValue(dbValue), file: file, line: line)
     }
     
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
-    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        expectedSQLiteConversion: T?,
-        expectedDatabaseValueConversion: T?,
-        file: StaticString = #filePath,
-        line: UInt = #line) throws
-    {
-        try _assertDecoding(
-            db, sql, type,
-            expectedSQLiteConversion: expectedSQLiteConversion,
-            expectedDatabaseValueConversion: expectedDatabaseValueConversion,
-            file: file, line: line)
-    }
-    
-    private func assertFailedDecoding<T: DatabaseValueConvertible>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        file: StaticString = #filePath,
-        line: UInt = #line) throws
-    {
-        try _assertFailedDecoding(db, sql, type, file: file, line: line)
-    }
-    #else
-    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        expectedSQLiteConversion: T?,
-        expectedDatabaseValueConversion: T?,
-        file: StaticString = #file,
-        line: UInt = #line) throws
-    {
-        try _assertDecoding(
-            db, sql, type,
-            expectedSQLiteConversion: expectedSQLiteConversion,
-            expectedDatabaseValueConversion: expectedDatabaseValueConversion,
-            file: file, line: line)
-    }
-    
-    private func assertFailedDecoding<T: DatabaseValueConvertible>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        file: StaticString = #file,
-        line: UInt = #line) throws
-    {
-        try _assertFailedDecoding(db, sql, type, file: file, line: line)
-    }
-    #endif
-    
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: """
@@ -343,7 +285,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -360,7 +301,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
 
     func testNumericAffinity() throws {
@@ -604,7 +544,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -621,7 +560,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
     
     func testNoneAffinity() throws {
@@ -793,7 +731,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -810,7 +747,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
     
     func testNumericAffinity(_ columnName: String) throws {
@@ -1028,7 +964,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -1045,6 +980,5 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
 }

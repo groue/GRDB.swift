@@ -35,7 +35,7 @@ private struct D: Codable, FetchableRecord, PersistableRecord {
 /// Test row scopes
 class AssociationChainRowScopesTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "b") { t in
                 t.column("id", .integer).primaryKey()

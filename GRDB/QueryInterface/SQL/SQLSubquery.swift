@@ -110,7 +110,7 @@ extension SQLSubqueryable {
     ///     // 1000 IN (SELECT score FROM player)
     ///     let request = Player.select(Column("score"), as: Int.self)
     ///     let condition = request.contains(1000)
-    public func contains(_ element: SQLExpressible) -> SQLExpression {
+    public func contains(_ element: some SQLExpressible) -> SQLExpression {
         SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
     }
     

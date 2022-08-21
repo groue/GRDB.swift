@@ -33,8 +33,8 @@ private class PersistableRecordPersonClass : PersistableRecord {
         container["Age"] = age
     }
     
-    func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -50,14 +50,32 @@ private struct PersistableRecordCountry : PersistableRecord {
     }
 }
 
+private class Callbacks {
+    var willInsertCount = 0
+    var aroundInsertEnterCount = 0
+    var aroundInsertExitCount = 0
+    var didInsertCount = 0
+    
+    var willUpdateCount = 0
+    var aroundUpdateEnterCount = 0
+    var aroundUpdateExitCount = 0
+    var didUpdateCount = 0
+    
+    var willSaveCount = 0
+    var aroundSaveEnterCount = 0
+    var aroundSaveExitCount = 0
+    var didSaveCount = 0
+    
+    var willDeleteCount = 0
+    var aroundDeleteEnterCount = 0
+    var aroundDeleteExitCount = 0
+    var didDeleteCount = 0
+}
+
 private struct PersistableRecordCustomizedCountry : PersistableRecord {
     var isoCode: String
     var name: String
-    let willInsert: () -> Void
-    let willUpdate: () -> Void
-    let willSave: () -> Void
-    let willDelete: () -> Void
-    let willExists: () -> Void
+    let callbacks = Callbacks()
     
     static let databaseTableName = "countries"
     
@@ -66,29 +84,80 @@ private struct PersistableRecordCustomizedCountry : PersistableRecord {
         container["name"] = name
     }
     
-    func insert(_ db: Database) throws {
-        willInsert()
-        try performInsert(db)
+    func willInsert(_ db: Database) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        callbacks.willInsertCount += 1
     }
     
-    func update(_ db: Database, columns: Set<String>) throws {
-        willUpdate()
-        try performUpdate(db, columns: columns)
+    func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        
+        callbacks.aroundInsertEnterCount += 1
+        _ = try insert()
+        callbacks.aroundInsertExitCount += 1
     }
     
-    func save(_ db: Database) throws {
-        willSave()
-        try performSave(db)
+    func didInsert(_ inserted: InsertionSuccess) {
+        callbacks.didInsertCount += 1
     }
     
-    func delete(_ db: Database) throws -> Bool {
-        willDelete()
-        return try performDelete(db)
+    func willUpdate(_ db: Database, columns: Set<String>) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        callbacks.willUpdateCount += 1
     }
     
-    func exists(_ db: Database) throws -> Bool {
-        willExists()
-        return try performExists(db)
+    func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        
+        callbacks.aroundUpdateEnterCount += 1
+        _ = try update()
+        callbacks.aroundUpdateExitCount += 1
+    }
+    
+    func didUpdate(_ updated: PersistenceSuccess) {
+        callbacks.didUpdateCount += 1
+    }
+    
+    func willSave(_ db: Database) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        callbacks.willSaveCount += 1
+    }
+    
+    func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        
+        callbacks.aroundSaveEnterCount += 1
+        _ = try save()
+        callbacks.aroundSaveExitCount += 1
+    }
+    
+    func didSave(_ saved: PersistenceSuccess) {
+        callbacks.didSaveCount += 1
+    }
+    
+    func willDelete(_ db: Database) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        callbacks.willDeleteCount += 1
+    }
+    
+    func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+        // Make sure database can be used
+        try db.execute(sql: "SELECT 1")
+        
+        callbacks.aroundDeleteEnterCount += 1
+        _ = try delete()
+        callbacks.aroundDeleteExitCount += 1
+    }
+    
+    func didDelete(deleted: Bool) {
+        callbacks.didDeleteCount += 1
     }
 }
 
@@ -104,9 +173,145 @@ private struct Citizenship : PersistableRecord {
     }
 }
 
+private struct PartialPlayer: Codable, PersistableRecord, FetchableRecord {
+    static let databaseTableName = "player"
+    let callbacks = Callbacks()
+    var id: Int64?
+    var name: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name
+    }
+    
+    func willInsert(_ db: Database) throws {
+        callbacks.willInsertCount += 1
+    }
+    
+    func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+        callbacks.aroundInsertEnterCount += 1
+        _ = try insert()
+        callbacks.aroundInsertExitCount += 1
+    }
+    
+    func didInsert(_ inserted: InsertionSuccess) {
+        callbacks.didInsertCount += 1
+    }
+    
+    func willUpdate(_ db: Database, columns: Set<String>) throws {
+        callbacks.willUpdateCount += 1
+    }
+    
+    func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+        callbacks.aroundUpdateEnterCount += 1
+        _ = try update()
+        callbacks.aroundUpdateExitCount += 1
+    }
+    
+    func didUpdate(_ updated: PersistenceSuccess) {
+        callbacks.didUpdateCount += 1
+    }
+    
+    func willSave(_ db: Database) throws {
+        callbacks.willSaveCount += 1
+    }
+    
+    func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+        callbacks.aroundSaveEnterCount += 1
+        _ = try save()
+        callbacks.aroundSaveExitCount += 1
+    }
+    
+    func didSave(_ saved: PersistenceSuccess) {
+        callbacks.didSaveCount += 1
+    }
+    
+    func willDelete(_ db: Database) throws {
+        callbacks.willDeleteCount += 1
+    }
+    
+    func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+        callbacks.aroundDeleteEnterCount += 1
+        _ = try delete()
+        callbacks.aroundDeleteExitCount += 1
+    }
+    
+    func didDelete(deleted: Bool) {
+        callbacks.didDeleteCount += 1
+    }
+}
+
+private struct FullPlayer: Codable, PersistableRecord, FetchableRecord {
+    static let databaseTableName = "player"
+    var id: Int64?
+    var name: String
+    var score: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, score
+    }
+    
+    let callbacks = Callbacks()
+    
+    func willInsert(_ db: Database) throws {
+        callbacks.willInsertCount += 1
+    }
+    
+    func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+        callbacks.aroundInsertEnterCount += 1
+        _ = try insert()
+        callbacks.aroundInsertExitCount += 1
+    }
+    
+    func didInsert(_ inserted: InsertionSuccess) {
+        callbacks.didInsertCount += 1
+    }
+    
+    func willUpdate(_ db: Database, columns: Set<String>) throws {
+        callbacks.willUpdateCount += 1
+    }
+    
+    func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+        callbacks.aroundUpdateEnterCount += 1
+        _ = try update()
+        callbacks.aroundUpdateExitCount += 1
+    }
+    
+    func didUpdate(_ updated: PersistenceSuccess) {
+        callbacks.didUpdateCount += 1
+    }
+    
+    func willSave(_ db: Database) throws {
+        callbacks.willSaveCount += 1
+    }
+    
+    func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+        callbacks.aroundSaveEnterCount += 1
+        _ = try save()
+        callbacks.aroundSaveExitCount += 1
+    }
+    
+    func didSave(_ saved: PersistenceSuccess) {
+        callbacks.didSaveCount += 1
+    }
+    
+    func willDelete(_ db: Database) throws {
+        callbacks.willDeleteCount += 1
+    }
+    
+    func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+        callbacks.aroundDeleteEnterCount += 1
+        _ = try delete()
+        callbacks.aroundDeleteExitCount += 1
+    }
+    
+    func didDelete(deleted: Bool) {
+        callbacks.didDeleteCount += 1
+    }
+}
+
 class PersistableRecordTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(sql: """
@@ -120,11 +325,14 @@ class PersistableRecordTests: GRDBTestCase {
                 CREATE TABLE citizenships (
                     countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode),
                     personID INTEGER NOT NULL REFERENCES persons(id));
+                CREATE TABLE player(
+                    id INTEGER PRIMARY KEY,
+                    name NOT NULL UNIQUE, -- UNIQUE for upsert tests
+                    score INTEGER NOT NULL DEFAULT 1000);
                 """)
         }
         try migrator.migrate(dbWriter)
     }
-    
     
     // MARK: - PersistableRecordPerson
     
@@ -139,7 +347,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
         }
     }
-
+    
     func testSavePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -151,8 +359,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
         }
     }
-
-
+    
     // MARK: - PersistableRecordPersonClass
     
     func testInsertPersistableRecordPersonClass() throws {
@@ -167,7 +374,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
         }
     }
-
+    
     func testUpdatePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -181,7 +388,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertTrue([
                 "UPDATE \"persons\" SET \"age\"=42, \"name\"='Craig' WHERE \"id\"=1",
                 "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=42 WHERE \"id\"=1"
-                ].contains(self.lastSQLQuery))
+            ].contains(self.lastSQLQuery))
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
             XCTAssertEqual(rows.count, 2)
@@ -191,7 +398,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "Barbara")
         }
     }
-
+    
     func testPartialUpdatePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -247,7 +454,7 @@ class PersistableRecordTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testSavePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -283,7 +490,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "Barbara")
         }
     }
-
+    
     func testDeletePersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -303,7 +510,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "Barbara")
         }
     }
-
+    
     func testExistsPersistableRecordPersonClass() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -315,8 +522,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertFalse(try person.exists(db))
         }
     }
-
-
+    
     // MARK: - PersistableRecordCountry
     
     func testInsertPersistableRecordCountry() throws {
@@ -331,7 +537,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "France")
         }
     }
-
+    
     func testUpdatePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -352,7 +558,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
-
+    
     func testPartialUpdatePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -388,7 +594,7 @@ class PersistableRecordTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testSavePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -424,7 +630,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
-
+    
     func testDeletePersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -444,7 +650,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "United States")
         }
     }
-
+    
     func testExistsPersistableRecordCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -456,33 +662,36 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertFalse(try country.exists(db))
         }
     }
-
-
+    
     // MARK: - PersistableRecordCustomizedCountry
     
     func testInsertPersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             let country = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country.insert(db)
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 0)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willUpdateCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateEnterCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateExitCount, 0)
+            XCTAssertEqual(country.callbacks.didUpdateCount, 0)
+            
+            XCTAssertEqual(country.callbacks.willSaveCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveExitCount, 1)
+            XCTAssertEqual(country.callbacks.didSaveCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country.callbacks.didDeleteCount, 0)
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
@@ -490,43 +699,42 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "France")
         }
     }
-
+    
     func testUpdatePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country1.insert(db)
             let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
+                name: "United States")
             try country2.insert(db)
             
             country1.name = "France Métropolitaine"
             try country1.update(db)
             XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 1)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 2)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 2)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 0)
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
@@ -536,43 +744,76 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
-
+    
+    func testPersistenceErrorPersistableRecordCustomizedCountry() throws {
+        let country = PersistableRecordCustomizedCountry(
+            isoCode: "FR",
+            name: "France")
+        
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try dbQueue.inDatabase { db in
+                try country.update(db)
+            }
+            XCTFail("Expected PersistenceError")
+        } catch PersistenceError.recordNotFound(databaseTableName: "countries", key: ["isoCode": "FR".databaseValue]) { }
+        
+        XCTAssertEqual(country.callbacks.willInsertCount, 0)
+        XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 0)
+        XCTAssertEqual(country.callbacks.aroundInsertExitCount, 0)
+        XCTAssertEqual(country.callbacks.didInsertCount, 0)
+        
+        XCTAssertEqual(country.callbacks.willUpdateCount, 1)
+        XCTAssertEqual(country.callbacks.aroundUpdateEnterCount, 1)
+        XCTAssertEqual(country.callbacks.aroundUpdateExitCount, 0) // last update has failed
+        XCTAssertEqual(country.callbacks.didUpdateCount, 0)        // last update has failed
+        
+        XCTAssertEqual(country.callbacks.willSaveCount, 1)
+        XCTAssertEqual(country.callbacks.aroundSaveEnterCount, 1)
+        XCTAssertEqual(country.callbacks.aroundSaveExitCount, 0) // last update has failed
+        XCTAssertEqual(country.callbacks.didSaveCount, 0)        // last update has failed
+        
+        XCTAssertEqual(country.callbacks.willDeleteCount, 0)
+        XCTAssertEqual(country.callbacks.aroundDeleteEnterCount, 0)
+        XCTAssertEqual(country.callbacks.aroundDeleteExitCount, 0)
+        XCTAssertEqual(country.callbacks.didDeleteCount, 0)
+    }
+    
     func testPartialUpdatePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country1.insert(db)
             let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
+                name: "United States")
             try country2.insert(db)
             
             country1.name = "France Métropolitaine"
             try country1.update(db, columns: ["name"])
             XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 1)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 2)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 2)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 0)
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
@@ -582,30 +823,34 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
-
+    
     func testSavePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             var country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country1.save(db)
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 1)
-            XCTAssertEqual(saveCount, 1)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 0) // last update has failed
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 0)        // last update has failed
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 0)
             
             var rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
@@ -614,22 +859,31 @@ class PersistableRecordTests: GRDBTestCase {
             
             let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
+                name: "United States")
             try country2.save(db)
             
             country1.name = "France Métropolitaine"
             try country1.save(db)
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 2)
-            XCTAssertEqual(saveCount, 2)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 2)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 2)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 0)
             
             rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
@@ -641,11 +895,25 @@ class PersistableRecordTests: GRDBTestCase {
             _ = try country1.delete(db)
             try country1.save(db)
             
-            XCTAssertEqual(insertCount, 2)
-            XCTAssertEqual(updateCount, 3)
-            XCTAssertEqual(saveCount, 3)
-            XCTAssertEqual(deleteCount, 1)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 2)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 2)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 3)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 3)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 1) // last update has failed
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 1)       // last update has failed
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 3)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 3)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 3)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 3)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 1)
             
             rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
@@ -655,32 +923,17 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[1]["name"] as String, "United States")
         }
     }
-
+    
     func testDeletePersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             let country1 = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country1.insert(db)
             let country2 = PersistableRecordCustomizedCountry(
                 isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
+                name: "United States")
             try country2.insert(db)
             
             var deleted = try country1.delete(db)
@@ -688,11 +941,25 @@ class PersistableRecordTests: GRDBTestCase {
             deleted = try country1.delete(db)
             XCTAssertFalse(deleted)
             
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 0)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 2)
-            XCTAssertEqual(existsCount, 0)
+            XCTAssertEqual(country1.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willUpdateCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundUpdateEnterCount, 0)
+            XCTAssertEqual(country1.callbacks.aroundUpdateExitCount, 0)
+            XCTAssertEqual(country1.callbacks.didUpdateCount, 0)
+            
+            XCTAssertEqual(country1.callbacks.willSaveCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundSaveEnterCount, 1)
+            XCTAssertEqual(country1.callbacks.aroundSaveExitCount, 1)
+            XCTAssertEqual(country1.callbacks.didSaveCount, 1)
+            
+            XCTAssertEqual(country1.callbacks.willDeleteCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundDeleteEnterCount, 2)
+            XCTAssertEqual(country1.callbacks.aroundDeleteExitCount, 2)
+            XCTAssertEqual(country1.callbacks.didDeleteCount, 2)
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 1)
@@ -700,46 +967,65 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "United States")
         }
     }
-
+    
     func testExistsPersistableRecordCustomizedCountry() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
             let country = PersistableRecordCustomizedCountry(
                 isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
+                name: "France")
             try country.insert(db)
             
             XCTAssertTrue(try country.exists(db))
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 0)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willUpdateCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateEnterCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateExitCount, 0)
+            XCTAssertEqual(country.callbacks.didUpdateCount, 0)
+            
+            XCTAssertEqual(country.callbacks.willSaveCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveExitCount, 1)
+            XCTAssertEqual(country.callbacks.didSaveCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willDeleteCount, 0)
+            XCTAssertEqual(country.callbacks.aroundDeleteEnterCount, 0)
+            XCTAssertEqual(country.callbacks.aroundDeleteExitCount, 0)
+            XCTAssertEqual(country.callbacks.didDeleteCount, 0)
             
             _ = try country.delete(db)
             
             XCTAssertFalse(try country.exists(db))
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 0)
-            XCTAssertEqual(saveCount, 0)
-            XCTAssertEqual(deleteCount, 1)
-            XCTAssertEqual(existsCount, 2)
+            
+            XCTAssertEqual(country.callbacks.willInsertCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundInsertExitCount, 1)
+            XCTAssertEqual(country.callbacks.didInsertCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willUpdateCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateEnterCount, 0)
+            XCTAssertEqual(country.callbacks.aroundUpdateExitCount, 0)
+            XCTAssertEqual(country.callbacks.didUpdateCount, 0)
+            
+            XCTAssertEqual(country.callbacks.willSaveCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundSaveExitCount, 1)
+            XCTAssertEqual(country.callbacks.didSaveCount, 1)
+            
+            XCTAssertEqual(country.callbacks.willDeleteCount, 1)
+            XCTAssertEqual(country.callbacks.aroundDeleteEnterCount, 1)
+            XCTAssertEqual(country.callbacks.aroundDeleteExitCount, 1)
+            XCTAssertEqual(country.callbacks.didDeleteCount, 1)
         }
     }
-
-
+    
     // MARK: - Errors
-
+    
     func testInsertErrorDoesNotPreventSubsequentInserts() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -776,7 +1062,7 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-
+            
             let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
             let value = StructWithNestedType(nested: nested)
             try value.insert(db)
@@ -844,7 +1130,7 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-
+            
             let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
             let value = StructWithNestedType(nested: [nested, nested])
             try value.insert(db)
@@ -915,13 +1201,13 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-
+            
             let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
             let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
             let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
-
+            
             // Encodable has a default implementation which encodes a model to JSON as String.
             // We expect here JSON in the form of a String
             XCTAssert(dbValue.storage.value is String)
@@ -935,7 +1221,7 @@ extension PersistableRecordTests {
                     XCTFail(error.localizedDescription)
                 }
             } else {
-                    XCTFail("Failed to convert " + string)
+                XCTFail("Failed to convert " + string)
             }
         }
     }
@@ -1035,4 +1321,549 @@ extension PersistableRecordTests {
         }
     }
     
+}
+
+// MARK: - Insert and Fetch
+
+extension PersistableRecordTests {
+    func test_insertAndFetch_as() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let fullPlayer = try XCTUnwrap(partialPlayer.insertAndFetch(db, as: FullPlayer.self))
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_insertAndFetch_selection_fetch() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
+                    try Int.fetchOne(statement)!
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+}
+
+// MARK: - Save and Fetch
+
+extension PersistableRecordTests {
+    func test_saveAndFetch_as() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+            
+            do {
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                try partialPlayer.delete(db)
+                sqlQueries.removeAll()
+                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (1,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 1)
+            }
+            
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_saveAndFetch_selection_fetch() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
+                    try Int.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+            
+            do {
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                try partialPlayer.delete(db)
+                sqlQueries.removeAll()
+                let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
+                    try Int.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (1,'Arthur') RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 1)
+            }
+            
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
+                    try Int.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+}
+
+// MARK: - Upsert
+
+extension PersistableRecordTests {
+    func test_upsert() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            do {
+                let player = FullPlayer(name: "Arthur", score: 1000)
+                try player.upsert(db)
+                
+                // Test SQL
+                XCTAssertEqual(lastSQLQuery, """
+                    INSERT INTO "player" ("id", "name", "score") \
+                    VALUES (NULL,'Arthur',1000) \
+                    ON CONFLICT DO UPDATE SET "name"='Arthur', "score"=1000 \
+                    RETURNING "rowid"
+                    """)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Arthur", "score":1000],
+                ])
+                
+                // Test callbacks
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(player.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(player.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
+            
+            // Test conflict on name
+            do {
+                // Set the last inserted row id to some arbitrary value
+                _ = try FullPlayer(id: 42, name: "Barbara", score: 0).inserted(db)
+                XCTAssertNotEqual(db.lastInsertedRowID, 1)
+                
+                let player = FullPlayer(name: "Arthur", score: 100)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Arthur", "score":100],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+            }
+            
+            // Test conflict on id
+            do {
+                let player = FullPlayer(id: 1, name: "Craig", score: 500)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Craig", "score":500],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+            }
+            
+            // Test conflict on both id and name (same row)
+            do {
+                let player = FullPlayer(id: 1, name: "Craig", score: 200)
+                try player.upsert(db)
+                
+                // Test database state
+                let rows = try Row.fetchAll(db, FullPlayer.orderByPrimaryKey())
+                XCTAssertEqual(rows, [
+                    ["id": 1, "name": "Craig", "score":200],
+                    ["id": 42, "name": "Barbara", "score":0],
+                ])
+            }
+            
+            // Test conflict on both id and name (different rows)
+            do {
+                let player = FullPlayer(id: 1, name: "Barbara", score: 300)
+                
+                do {
+                    try player.upsert(db)
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                    XCTAssertEqual(error.message, "UNIQUE constraint failed: player.name")
+                    XCTAssertEqual(error.sql!, """
+                    INSERT INTO "player" ("id", "name", "score") \
+                    VALUES (?,?,?) \
+                    ON CONFLICT DO UPDATE SET "name"=?, "score"=? \
+                    RETURNING "rowid"
+                    """)
+                }
+                
+                // Test callbacks
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(player.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 0)
+                XCTAssertEqual(player.callbacks.didSaveCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_upsertAndFetch_as() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let fullPlayer = try partialPlayer.upsertAndFetch(db, as: FullPlayer.self)
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") \
+                    VALUES (NULL,'Arthur') \
+                    ON CONFLICT DO UPDATE SET "name"='Arthur' \
+                    RETURNING *, "rowid"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(fullPlayer.id, 1)
+                XCTAssertEqual(fullPlayer.name, "Arthur")
+                XCTAssertEqual(fullPlayer.score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
 }

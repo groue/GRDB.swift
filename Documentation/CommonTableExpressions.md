@@ -16,7 +16,7 @@ In this guide, you will learn how to:
 - [Fetch Values From Common Table Expressions]
 - Join CTEs with [Associations to Common Table Expressions]
 
-> :point_up: **Note**: most code examples will be trivial, and not very "useful". This is because the goal of this guide is to stay focused on the GRDB support for CTEs. Rich setup would just be distracting. So bring your own good ideas with you!
+> **Note**: most code examples will be trivial, and not very "useful". This is because the goal of this guide is to stay focused on the GRDB support for CTEs. Rich setup would just be distracting. So bring your own good ideas with you!
 
 
 ## Define Common Table Expressions
@@ -82,7 +82,7 @@ let counterCTE = CommonTableExpression(
         """)
 ```
 
-> :point_up: **Note**: many recursive CTEs use the `UNION ALL` SQL operator. The query interface does not provide any Swift support for it, so you'll generally have to write SQL in your definitions of recursive CTEs.
+> **Note**: many recursive CTEs use the `UNION ALL` SQL operator. The query interface does not provide any Swift support for it, so you'll generally have to write SQL in your definitions of recursive CTEs.
 
 
 ## Embed Common Table Expressions in Requests
@@ -126,13 +126,13 @@ let request = Player
     .filter(Column("name") == playerNameCTE.all())
 ```
 
-> :point_up: **Note**: the `with(_:)` method can be called as many times as a there are common table expressions in your request.
+> **Note**: the `with(_:)` method can be called as many times as a there are common table expressions in your request.
 >
-> :point_up: **Note**: the `with(_:)` method can be called at any time, as all request methods: `Player.with(...).filter(...).with(...)`.
+> **Note**: the `with(_:)` method can be called at any time, as all request methods: `Player.with(...).filter(...).with(...)`.
 >
-> :point_up: **Note**: the `with(_:)` method replaces any previously embedded CTE that has the same table name. This allows you to embed the same CTE several times if you feel like it.
+> **Note**: the `with(_:)` method replaces any previously embedded CTE that has the same table name. This allows you to embed the same CTE several times if you feel like it.
 >
-> :point_up: **Note**: the `CommonTableExpression.all()` method builds a regular [query interface request] for the content of the CTE (like `SELECT * FROM <cte name>`, not to be mismatched with the request that was used to define the CTE). You can filter this request, sort it, etc, like all query interface requests:
+> **Note**: the `CommonTableExpression.all()` method builds a regular [query interface request] for the content of the CTE (like `SELECT * FROM <cte name>`, not to be mismatched with the request that was used to define the CTE). You can filter this request, sort it, etc, like all query interface requests:
 >
 > ```swift
 > cte.all().select(...).filter(...).group(...).order(...)
@@ -234,7 +234,7 @@ Parent.including(optional: childAssociation)
 Parent.including(required: childAssociation)
 ```
 
-> :point_up: **Note**: common table expressions currently only define "to-one" associations, so the `including(all:)` joining method is unavailable.
+> **Note**: common table expressions currently only define "to-one" associations, so the `including(all:)` joining method is unavailable.
 
 CTE associations are generally built with the `association(to:on:)` method, which needs:
 

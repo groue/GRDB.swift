@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+#### 6.x Releases
+
+- `6.0.0` Betas - [6.0.0-beta](#600-beta)
+
 #### 5.x Releases
 
 - `5.26.x` Releases - [5.26.0](#5260)
@@ -92,6 +96,61 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.0.0-beta
+
+Released August 21, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.26.0...v6.0.0-beta)
+
+### New
+
+Upgrading your app can bring improvements: check [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md) for some suggestions.
+
+- :star: Support for [`UPSERT`](https://www.sqlite.org/lang_UPSERT.html): `player.upsert(db)`, etc. See [Persistence Methods](README.md#persistence-methods).
+
+- :star: Support for the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html): `player.insertAndFetch(db)`, `Player.deleteAndFetchAll(db)`, etc. See [Persistence Methods and the `RETURNING` clause](README.md#persistence-methods-and-the-returning-clause).
+
+- :star: [Persistence Callbacks](README.md#persistence-callbacks) allow record types to customize persistence methods: `didInsert`, `willSave`, etc.
+
+- :star: Better support for unexpected database values. Where GRDB 5 would crash during encoding and decoding database values, GRDB 6 has learned to throw errors instead. Record protocols throw decoding and encoding errors, and value requests throw errors on invalid inputs.
+
+- Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
+
+- All persistence methods now accept an explicit conflict policy: `player.insert(db, onConflict: .replace)`, etc.
+
+- You can append the contents of a cursor to a collection with `RangeReplaceableCollection.append(contentsOf:)`.
+
+- `ValueObservation.map` now accepts a throwing closure argument.
+
+### Documentation Updates
+
+- :star: **[Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)**: suggestions for improving your applications, and guidance for handling the breaking changes.
+- The [Persistence Methods](README.md#persistence-methods) chapter introduces the `upsert` method.
+- The [Persistence Methods and the `RETURNING` clause](README.md#persistence-methods-and-the-returning-clause) chapter introduces persistence methods that fetch inserted, updated and deleted values.
+- The [Persistence Callbacks](README.md#persistence-callbacks) chapter introduces the callback invoked from persistence methods, such as `didInsert`, `willSave`, etc.
+- The [DatabaseRegionObservation](README.md#databaseregionobservation) chapter was updated for the new `DatabaseRegionObservation.start` method.
+- The [Transaction Hook](README.md#transaction-hook) chapter describes the new `Database.afterNextTransaction(onCommit:onRollback:)` method.
+- The [Value Queries](README.md#value-queries) chapter explains how to distinguish a request that returns no value from a request that fetches a NULL value.
+
+### Breaking Changes
+
+- Removed deprecated methods
+- :star: Bumped requirements:
+    - Swift 5.7+ and Xcode 14+ are required.
+    - iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ / SQLite 3.19.3+ are required.
+- :star: Record protocols were refactored:
+    - The `FetchableRecord.init(row:)` initializer can now throw errors.
+    - The `EncodableRecord.encode(to:)` method can now throw errors.
+    - Record types can no longer override persistence methods. You use [Persistence Callbacks](README.md#persistence-callbacks) instead.
+- Various breaking changes:
+    - The in-memory `DatabaseQueue()` initializer can now throw errors.
+    - The `selectID()` method is replaced with `selectPrimaryKey(as:)`.
+    - `Cursor.isEmpty` is now a throwing property, instead of a method.
+    - The `Record.copy()` method was removed, without replacement.
+    - The `DerivableRequest.limit(_:offset_:)` method was removed, without replacement.
+    - `DatabaseRegionObservation.start(in:onError:onChange:)` now returns a cancellable.
+    - The `DatabaseRegionObservation.extent` property was removed.
+    - The `statement` property of database cursors was replaced with read-only properties such as `sql` or `columnNames`.
+    - The `Database.afterNextTransactionCommit(_:)` method was renamed `Database.afterNextTransaction(onCommit:onRollback:)`, and is now able to report rollbacks as well as commits.
 
 ## 5.26.0
 

@@ -31,7 +31,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer)
@@ -58,10 +58,9 @@ class ValueObservationPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testDefaultSchedulerFirstValueIsEmittedAsynchronously() throws {
@@ -74,7 +73,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
             let cancellable = ValueObservation
@@ -92,10 +91,9 @@ class ValueObservationPublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testDefaultSchedulerError() throws {
@@ -103,7 +101,7 @@ class ValueObservationPublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
                 .publisher(in: writer)
@@ -117,10 +115,9 @@ class ValueObservationPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     // MARK: - Immediate Scheduler
@@ -135,7 +132,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate)
@@ -162,10 +159,9 @@ class ValueObservationPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testImmediateSchedulerEmitsFirstValueSynchronously() throws {
@@ -178,7 +174,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let semaphore = DispatchSemaphore(value: 0)
             let testSubject = PassthroughSubject<Int, Error>()
             let testCancellable = testSubject
@@ -199,10 +195,9 @@ class ValueObservationPublisherTests : XCTestCase {
             observationCancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testImmediateSchedulerError() throws {
@@ -210,7 +205,7 @@ class ValueObservationPublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
                 .publisher(in: writer, scheduling: .immediate)
@@ -224,10 +219,9 @@ class ValueObservationPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     // MARK: - Demand
@@ -272,7 +266,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let subscriber = DemandSubscriber<Int, Error>()
             
             let expectation = self.expectation(description: "")
@@ -292,10 +286,9 @@ class ValueObservationPublisherTests : XCTestCase {
             subscriber.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testDemandOneReceivesOneElement() throws {
@@ -308,7 +301,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let subscriber = DemandSubscriber<Int, Error>()
             let expectation = self.expectation(description: "")
             
@@ -331,10 +324,9 @@ class ValueObservationPublisherTests : XCTestCase {
             subscriber.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testDemandOneDoesNotReceiveTwoElements() throws {
@@ -347,7 +339,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let subscriber = DemandSubscriber<Int, Error>()
             let expectation = self.expectation(description: "")
             expectation.isInverted = true
@@ -374,10 +366,9 @@ class ValueObservationPublisherTests : XCTestCase {
             subscriber.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     func testDemandTwoReceivesTwoElements() throws {
@@ -390,7 +381,7 @@ class ValueObservationPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter) throws {
+        func test(writer: some DatabaseWriter) throws {
             let subscriber = DemandSubscriber<Int, Error>()
             let expectation = self.expectation(description: "")
             
@@ -418,10 +409,9 @@ class ValueObservationPublisherTests : XCTestCase {
             subscriber.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
     // MARK: - Regression Tests
@@ -439,7 +429,7 @@ class ValueObservationPublisherTests : XCTestCase {
         var configuration = Configuration()
         configuration.targetQueue = DispatchQueue(label: "crash.test", qos: .userInitiated)
         
-        let database = DatabaseQueue(configuration: configuration)
+        let database = try DatabaseQueue(configuration: configuration)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1") { (db) in

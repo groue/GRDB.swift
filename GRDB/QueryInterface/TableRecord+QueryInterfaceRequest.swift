@@ -23,7 +23,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(Column("id"), Column("email"))
-    public static func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: any SQLSelectable...) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
     
@@ -31,7 +31,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select([Column("id"), Column("email")])
-    public static func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: [any SQLSelectable]) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
     
@@ -70,7 +70,7 @@ extension TableRecord {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(
-        _ selection: [SQLSelectable],
+        _ selection: [any SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -86,7 +86,7 @@ extension TableRecord {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(
-        _ selection: SQLSelectable...,
+        _ selection: any SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -130,13 +130,31 @@ extension TableRecord {
         all().select(sqlLiteral, as: type)
     }
     
+    /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
+    ///
+    ///     // SELECT id FROM player
+    ///     let request = try Player.selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country
+    ///     let request = try Country.selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship
+    ///     let request = try Citizenship.selectPrimaryKey(as: Row.self)
+    public static func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        all().selectPrimaryKey(as: type)
+    }
+    
     /// Creates a request which appends *selection*.
     ///
     ///     // SELECT id, email, name FROM player
     ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: [any SQLSelectable]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
     }
     
@@ -146,17 +164,8 @@ extension TableRecord {
     ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
-    public static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: any SQLSelectable...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
-    }
-    
-    /// Creates a request with the provided *predicate*.
-    ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
-    ///     let request = Player.filter(Column("email") == "arthur@example.com")
-    @available(*, deprecated, message: "Did you mean filter(id:) or filter(key:)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
-    public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
-        all().filter(predicate.sqlExpression)
     }
     
     // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
@@ -166,7 +175,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
-    public static func filter(_ predicate: SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
+    public static func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
     }
     
@@ -174,10 +183,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id = 1
     ///     let request = Player.filter(key: 1)
-    public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
-    -> QueryInterfaceRequest<Self>
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public static func filter(key: some DatabaseValueConvertible) -> QueryInterfaceRequest<Self> {
         all().filter(key: key)
     }
     
@@ -185,9 +191,8 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let request = Player.filter(keys: [1, 2, 3])
-    public static func filter<Sequence>(keys: Sequence)
+    public static func filter(keys: some Sequence<some DatabaseValueConvertible>)
     -> QueryInterfaceRequest<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -199,7 +204,7 @@ extension TableRecord {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
+    public static func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<Self> {
         all().filter(key: key)
     }
     
@@ -210,7 +215,7 @@ extension TableRecord {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self> {
+    public static func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<Self> {
         all().filter(keys: keys)
     }
     
@@ -245,7 +250,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(Column("name"))
-    public static func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: any SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
     
@@ -254,7 +259,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order([Column("name")])
-    public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: [any SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
     
@@ -374,52 +379,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     let request = Player.filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public static func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func filter(ids: some Collection<ID>) -> QueryInterfaceRequest<Self> {
         all().filter(ids: ids)
-    }
-    
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player
-    ///     let request = try Player.selectID()
-    public static func selectID() -> QueryInterfaceRequest<ID> {
-        all().selectID()
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord where Self: Identifiable, ID: _OptionalProtocol, ID.Wrapped: DatabaseValueConvertible {
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id = 1
-    ///     let request = Player.filter(id: 1)
-    ///
-    /// - parameter id: A primary key
-    public static func filter(id: ID.Wrapped) -> QueryInterfaceRequest<Self> {
-        all().filter(id: id)
-    }
-    
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    ///     let request = Player.filter(ids: [1, 2, 3])
-    ///
-    /// - parameter ids: A collection of primary keys
-    public static func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<Self>
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        all().filter(ids: ids)
-    }
-    
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player
-    ///     let request = try Player.selectID()
-    public static func selectID() -> QueryInterfaceRequest<ID.Wrapped> {
-        all().selectID()
     }
 }

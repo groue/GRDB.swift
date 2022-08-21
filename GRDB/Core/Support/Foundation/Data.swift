@@ -2,7 +2,7 @@ import Foundation
 
 /// Data is convertible to and from DatabaseValue.
 extension Data: DatabaseValueConvertible, StatementColumnConvertible {
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         if let bytes = sqlite3_column_blob(sqliteStatement, index) {
             let count = Int(sqlite3_column_bytes(sqliteStatement, index))
             self.init(bytes: bytes, count: count) // copy bytes
@@ -33,7 +33,7 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
     
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
         withUnsafeBytes {
-            sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
+            sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
         }
     }
 }
@@ -43,21 +43,21 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
 extension Data {
     static func fastDecodeNoCopy(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Data
     {
-        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
             throw RowDecodingError.valueMismatch(
                 Data.self,
                 sqliteStatement: sqliteStatement,
                 index: index,
                 context: context())
         }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+        guard let bytes = sqlite3_column_blob(sqliteStatement, index) else {
             return Data()
         }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        let count = Int(sqlite3_column_bytes(sqliteStatement, index))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
     
@@ -69,7 +69,7 @@ extension Data {
         if let sqliteStatement = row.sqliteStatement {
             return try fastDecodeNoCopy(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         }
         // Support for fast decoding from adapted rows
@@ -78,17 +78,17 @@ extension Data {
 
     static func fastDecodeNoCopyIfPresent(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     -> Data?
     {
-        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
             return nil
         }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+        guard let bytes = sqlite3_column_blob(sqliteStatement, index) else {
             return Data()
         }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        let count = Int(sqlite3_column_bytes(sqliteStatement, index))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
 
@@ -100,7 +100,7 @@ extension Data {
         if let sqliteStatement = row.sqliteStatement {
             return fastDecodeNoCopyIfPresent(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         }
         // Support for fast decoding from adapted rows

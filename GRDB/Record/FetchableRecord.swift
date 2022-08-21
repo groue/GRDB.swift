@@ -25,7 +25,7 @@ public protocol FetchableRecord {
     /// For performance reasons, the row argument may be reused during the
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
-    init(row: Row)
+    init(row: Row) throws
     
     // MARK: - Customizing the Format of Database Columns
     
@@ -173,7 +173,7 @@ extension FetchableRecord {
     public static func fetchCursor(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RecordCursor<Self>
     {
         try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
@@ -193,7 +193,7 @@ extension FetchableRecord {
     public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -213,7 +213,7 @@ extension FetchableRecord {
     public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
@@ -235,7 +235,7 @@ extension FetchableRecord where Self: Hashable {
     public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -269,7 +269,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RecordCursor<Self>
     {
         try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -290,7 +290,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -311,7 +311,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -334,7 +334,7 @@ extension FetchableRecord where Self: Hashable {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -384,7 +384,7 @@ extension FetchableRecord {
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
             try supplementaryFetch(db, rows)
-            return rows.map(Self.init(row:))
+            return try rows.map(Self.init(row:))
         } else {
             return try fetchAll(request.statement, adapter: request.adapter)
         }
@@ -407,7 +407,7 @@ extension FetchableRecord {
                 return nil
             }
             try supplementaryFetch(db, [row])
-            return .init(row: row)
+            return try .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)
         }
@@ -430,7 +430,7 @@ extension FetchableRecord where Self: Hashable {
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
             try supplementaryFetch(db, rows)
-            return Set(rows.lazy.map(Self.init(row:)))
+            return try Set(rows.lazy.map(Self.init(row:)))
         } else {
             return try fetchSet(request.statement, adapter: request.adapter)
         }
@@ -446,7 +446,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// A cursor over fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchCursor(db) // Cursor of Player
     ///     while let player = try players.next() {   // Player
     ///         ...
@@ -466,7 +467,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// An array of fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchAll(db) // [Player]
     ///
     /// - parameter db: A database connection.
@@ -478,7 +480,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// The first fetched record.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let player = try request.fetchOne(db) // Player?
     ///
     /// - parameter db: A database connection.
@@ -492,7 +495,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
 extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     /// A set of fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord, Hashable { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchSet(db) // Set<Player>
     ///
     /// - parameter db: A database connection.
@@ -513,13 +517,14 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
 ///     }
 public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public typealias Element = Record
-    public let statement: Statement
+    /// :nodoc:
+    public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
-    private let row: Row // Instanciated once, reused for performance
+    private let row: Row // Instantiated once, reused for performance
     
-    init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        self.statement = statement
+    init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
+        self._statement = statement
         row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         try statement.reset(withArguments: arguments)
     }
@@ -527,12 +532,12 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
-    public func _element(sqliteStatement: SQLiteStatement) -> Record {
-        Record(row: row)
+    public func _element(sqliteStatement: SQLiteStatement) throws -> Record {
+        try Record(row: row)
     }
 }
 
@@ -581,7 +586,6 @@ public enum DatabaseDateDecodingStrategy {
     case millisecondsSince1970
     
     /// Decodes dates according to the ISO 8601 standards
-    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Decodes a String, according to the provided formatter

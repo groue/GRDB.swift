@@ -88,7 +88,27 @@ final class SQLGenerationContext {
     /// Returns whether arguments could be appended.
     ///
     /// A false result means that the generation context does not support
-    /// SQL arguments.
+    /// SQL arguments, and `?` placeholders are not supported.
+    /// This happens, for example, when we are creating tables:
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   name TEXT DEFAULT 'Anonymous' -- String literal instead of ?
+    ///     // )
+    ///     let defaultName = "Anonymous"
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///     }
+    ///
+    /// A false result is turned into a fatal error when the user uses
+    /// SQL arguments at unsupported locations:
+    ///
+    ///     // Fatal error:
+    ///     // Not implemented: turning an SQL parameter into an SQL literal value
+    ///     let defaultName = "Anonymous"
+    ///     let literal = SQL(sql: "name TEXT DEFAULT ?", arguments: [defaultName])
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: literal)
+    ///     }
     func append(arguments: StatementArguments) -> Bool {
         argumentsSink.append(arguments: arguments)
     }
@@ -399,23 +419,23 @@ public class TableAlias: Hashable {
     
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ selectable: SQLSelectable) -> SQLSelection {
+    public subscript(_ selectable: some SQLSelectable) -> SQLSelection {
         selectable.sqlSelection.qualified(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ expression: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
+    public subscript(_ expression: some SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
         expression.sqlExpression.qualified(with: self)
     }
     
     /// Returns a qualified ordering that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrdering {
+    public subscript(_ ordering: some SQLOrderingTerm) -> SQLOrdering {
         ordering.sqlOrdering.qualified(with: self)
     }
     
-    /// Returns a qualified columnn that is able to resolve ambiguities in
+    /// Returns a qualified column that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ column: String) -> SQLExpression {
         .qualifiedColumn(column, self)
@@ -451,7 +471,7 @@ public class TableAlias: Hashable {
     }
 }
 
-extension Array where Element == TableAlias {
+extension [TableAlias] {
     /// Resolve ambiguities in aliases' names.
     fileprivate var resolvedNames: [TableAlias: String] {
         // It is a programmer error to reuse the same TableAlias for

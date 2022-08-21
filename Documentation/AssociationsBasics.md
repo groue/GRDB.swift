@@ -712,9 +712,9 @@ struct Author: TableRecord {
 }
 ```
 
-> :point_up: **Note**: Generally speaking, all foreign keys are supported, including composite keys that span several columns.
+> **Note**: Generally speaking, all foreign keys are supported, including composite keys that span several columns.
 >
-> :warning: **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB does not match foreign keys that involve a NULL value either.
+> **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB does not match foreign keys that involve a NULL value either.
 
 Sometimes the database schema does not define any foreign key. And sometimes, there are *several* foreign keys from a table to another.
 
@@ -1210,7 +1210,7 @@ In the description of the [joining methods] above, we have seen that you need to
 
 In this chapter, we take the reversed perspective. We list various shapes of decoded record types. When you find the type you want, you'll know the joining method you need.
 
-> :point_up: **Note**: If you don't find the type you want, chances are that you are fighting the framework, and should reconsider your position. Your escape hatch is the low-level apis described in [Decoding a Joined Request with FetchableRecord].
+> **Note**: If you don't find the type you want, chances are that you are fighting the framework, and should reconsider your position. Your escape hatch is the low-level apis described in [Decoding a Joined Request with FetchableRecord].
 
 - [`including(required:)`]
 
@@ -1435,7 +1435,7 @@ struct BookInfo: FetchableRecord, Decodable {
 let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
-> :warning: **Warning**: you can not currently chain a required association behind an optional association:
+> **Warning**: you can not currently chain a required association behind an optional association:
 >
 > ```swift
 > // Not implemented
@@ -1751,7 +1751,7 @@ Associations support more refinements:
         .fetchAll(db)
     ```
 
-> :warning: **Warning**: associations refined with `limit`, `distinct`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
+> **Warning**: associations refined with `limit`, `distinct`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
 
 
 ## Table Aliases
@@ -1823,7 +1823,7 @@ let request = Book.aliased(bookAlias)
     .filter(sql: "b.publishDate >= a.deathDate")
 ```
 
-> :point_up: **Note**: avoid reusing table aliases between several tables or requests, because you will get a fatal error:
+> **Note**: avoid reusing table aliases between several tables or requests, because you will get a fatal error:
 >
 > ```swift
 > // Fatal error: A TableAlias most not be used to refer to multiple tables
@@ -1832,7 +1832,7 @@ let request = Book.aliased(bookAlias)
 > let people = Person.aliased(alias)...
 > ```
 >
-> :point_up: **Note**: you can't use the `including(all:)` method and use table aliases to filter the associated records on other records:
+> **Note**: you can't use the `including(all:)` method and use table aliases to filter the associated records on other records:
 > 
 > ```swift
 > // NOT IMPLEMENTED: loading all authors along with their posthumous books
@@ -1899,7 +1899,7 @@ For example, we can start by defining base requests as extensions to the [Deriva
 
 ```swift
 // Author requests
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     /// Filters authors by country
     func filter(country: String) -> Self {
         filter(Column("country") == country)
@@ -1907,7 +1907,7 @@ extension DerivableRequest where RowDecoder == Author {
 }
 
 // Book requests
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     /// Filters books by author country
     func filter(authorCountry: String) -> Self {
         joining(required: Book.author.filter(country: country))
@@ -2165,8 +2165,8 @@ struct BookInfo: FetchableRecord {
     var country: Country?
     var coverImage: CoverImage?
     
-    init(row: Row) {
-        book = Book(row: row)
+    init(row: Row) throws {
+        book = try Book(row: row)
         author = row["author"]
         country = row["country"]
         coverImage = row["coverImage"]
@@ -2200,8 +2200,8 @@ struct AuthorInfo: FetchableRecord {
     var author: Author
     var books: [Book]
     
-    init(row: Row) {
-        author = Author(row: row)
+    init(row: Row) throws {
+        author = try Author(row: row)
         books = row["books"]
     }
 }
@@ -2843,7 +2843,7 @@ let request = Book.all().filter(country: "ES")
 Those methods are defined on extensions to the `DerivableRequest` protocol:
 
 ```swift
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     func filter(country: String) -> Self {
         filter(Column("country") == country)
     }
@@ -2853,7 +2853,7 @@ extension DerivableRequest where RowDecoder == Author {
     }
 }
 
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     func filter(country: String) -> Self {
         joining(required: Book.author.filter(country: country))
     }

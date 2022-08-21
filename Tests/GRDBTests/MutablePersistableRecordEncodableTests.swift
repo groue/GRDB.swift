@@ -21,7 +21,7 @@ extension MutablePersistableRecordEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            assert(value, isEncodedIn: ["value": "foo"])
+            try assert(value, isEncodedIn: ["value": "foo"])
             
             try value.insert(db)
             let string = try String.fetchOne(db, sql: "SELECT value FROM t1")!
@@ -51,7 +51,7 @@ extension MutablePersistableRecordEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            assert(value, isEncodedIn: ["someColumn": "foo (Encodable)"])
+            try assert(value, isEncodedIn: ["someColumn": "foo (Encodable)"])
             
             try value.insert(db)
             let string = try String.fetchOne(db, sql: "SELECT someColumn FROM t1")!
@@ -76,7 +76,7 @@ extension MutablePersistableRecordEncodableTests {
             }
             
             var value = Struct(value: "foo")
-            assert(value, isEncodedIn: ["value": "foo (MutablePersistableRecord)"])
+            try assert(value, isEncodedIn: ["value": "foo (MutablePersistableRecord)"])
             
             try value.insert(db)
             let string = try String.fetchOne(db, sql: "SELECT value FROM t1")!
@@ -106,7 +106,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(int64: 123, optionalInt64: 456)
-            assert(value, isEncodedIn: ["int64": 123, "optionalInt64": 456])
+            try assert(value, isEncodedIn: ["int64": 123, "optionalInt64": 456])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -116,7 +116,7 @@ extension MutablePersistableRecordEncodableTests {
     
         try dbQueue.inTransaction { db in
             var value = Struct(int64: 123, optionalInt64: nil)
-            assert(value, isEncodedIn: ["int64": 123, "optionalInt64": nil])
+            try assert(value, isEncodedIn: ["int64": 123, "optionalInt64": nil])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -151,7 +151,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: Value(string: "bar"))
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -161,7 +161,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: nil)
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -205,7 +205,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(nestedValue: NestedValue(string: "foo")), optionalValue: Value(nestedValue: NestedValue(string: "bar")))
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -215,7 +215,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(nestedValue: NestedValue(string: "foo")), optionalValue: nil)
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -250,7 +250,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: .foo, optionalValue: .bar)
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -260,7 +260,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: .foo, optionalValue: nil)
-            assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
+            try assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -313,7 +313,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: Value(string: "bar"))
-            assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
+            try assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -323,7 +323,7 @@ extension MutablePersistableRecordEncodableTests {
         
         try dbQueue.inTransaction { db in
             var value = Struct(value: Value(string: "foo"), optionalValue: nil)
-            assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
+            try assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
             
             try value.insert(db)
             let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
@@ -377,7 +377,7 @@ extension MutablePersistableRecordEncodableTests {
             }
             
             let value = StructWithURL(url: URL(string: "https://github.com")!)
-            assert(value, isEncodedIn: ["url": value.url])
+            try assert(value, isEncodedIn: ["url": value.url])
             
             try value.insert(db)
             let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT url FROM t1")!
@@ -400,7 +400,7 @@ extension MutablePersistableRecordEncodableTests {
             }
             
             let value = StructWithUUID(uuid: UUID())
-            assert(value, isEncodedIn: ["uuid": value.uuid])
+            try assert(value, isEncodedIn: ["uuid": value.uuid])
             
             try value.insert(db)
             let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT uuid FROM t1")!
@@ -640,7 +640,6 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
-    @available(OSX 10.13, iOS 11.0, tvOS 11.0, *)
     struct CustomizedRecord: Encodable, MutablePersistableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
@@ -681,10 +680,6 @@ extension MutablePersistableRecordEncodableTests {
     
     // Used as a reference
     func testFoundationBehavior() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         do {
             let record = Record(
                 nestedKeyed: NestedKeyed(name: "foo"),
@@ -740,10 +735,6 @@ extension MutablePersistableRecordEncodableTests {
     }
     
     func testRecord() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "record") { t in
@@ -771,10 +762,6 @@ extension MutablePersistableRecordEncodableTests {
     }
     
     func testCustomizedRecord() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "customizedRecord") { t in

@@ -31,7 +31,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         case blob(Data)
         
         /// Returns Int64, Double, String, Data or nil.
-        public var value: DatabaseValueConvertible? {
+        public var value: (any DatabaseValueConvertible)? {
             switch self {
             case .null:
                 return nil
@@ -67,7 +67,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     ///
     /// The result is nil unless object adopts DatabaseValueConvertible.
     public init?(value: Any) {
-        guard let convertible = value as? DatabaseValueConvertible else {
+        guard let convertible = value as? any DatabaseValueConvertible else {
             return nil
         }
         self = convertible.databaseValue
@@ -116,7 +116,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
-    init(sqliteStatement: SQLiteStatement, index: Int32) {
+    init(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null
@@ -157,13 +157,11 @@ extension DatabaseValue: StatementBinding {
     }
 }
 
-extension DatabaseValue: GRDBSendable { }
+extension DatabaseValue: Sendable { }
 
-#if swift(>=5.6) && canImport(_Concurrency)
 // @unchecked due to Foundation.Data not conforming to Sendable
 // TODO: Remove @unchecked when Foundation has been upgraded
 extension DatabaseValue.Storage: @unchecked Sendable { }
-#endif
 
 // MARK: - Hashable & Equatable
 

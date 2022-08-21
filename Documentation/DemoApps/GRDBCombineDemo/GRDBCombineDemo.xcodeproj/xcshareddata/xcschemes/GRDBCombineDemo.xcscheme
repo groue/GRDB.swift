@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1230"
+   LastUpgradeVersion = "1400"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -35,16 +35,6 @@
                BlueprintIdentifier = "56026C9725B8A7D000D1DF3F"
                BuildableName = "GRDBCombineDemoTests.xctest"
                BlueprintName = "GRDBCombineDemoTests"
-               ReferencedContainer = "container:GRDBCombineDemo.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "78E2F9E2261EEC22005D1F7F"
-               BuildableName = "GRDBCombineDemoUITests.xctest"
-               BlueprintName = "GRDBCombineDemoUITests"
                ReferencedContainer = "container:GRDBCombineDemo.xcodeproj">
             </BuildableReference>
          </TestableReference>

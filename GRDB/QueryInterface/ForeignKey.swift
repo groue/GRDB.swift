@@ -102,7 +102,7 @@ public struct ForeignKey: Equatable {
     /// - parameter destinationColumns: The columns at the destination of the
     /// foreign key. When nil (the default), GRDB automatically uses the
     /// primary key.
-    public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
+    public init(_ originColumns: [any ColumnExpression], to destinationColumns: [any ColumnExpression]? = nil) {
         self.init(originColumns.map(\.name), to: destinationColumns?.map(\.name))
     }
 }

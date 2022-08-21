@@ -31,32 +31,31 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["id"] = id
         container["name"] = name
         container["age"] = age
         container["creationDate"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
@@ -70,12 +69,12 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
     
     // Record
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         value = row["value"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["value"] = value
     }
 }
@@ -100,38 +99,37 @@ private class PersonWithModifiedCaseColumns: Record {
         "persons"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row["ID"]
         age = row["AGE"]
         name = row["NAME"]
         creationDate = row["CREATIONDATE"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["ID"] = id
         container["NAME"] = name
         container["AGE"] = age
         container["CREATIONDATE"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
 class RecordEditedTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setup)
         try migrator.migrate(dbWriter)
@@ -144,11 +142,11 @@ class RecordEditedTests: GRDBTestCase {
         XCTAssertTrue(person.hasDatabaseChanges)
     }
     
-    func testRecordIsEditedAfterInitFromRow() {
+    func testRecordIsEditedAfterInitFromRow() throws {
         // Create a Record from a row. The row may not come from the database.
         // So it is edited.
         let row = Row(["name": "Arthur", "age": 41])
-        let person = Person(row: row)
+        let person = try Person(row: row)
         XCTAssertTrue(person.hasDatabaseChanges)
     }
     
@@ -377,52 +375,10 @@ class RecordEditedTests: GRDBTestCase {
             XCTAssertTrue(person.hasDatabaseChanges)
         }
     }
-
-    func testCopyTransfersEditedFlag() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = Person(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-        }
-        try dbQueue.inDatabase { db in
-            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-        }
-    }
-
-    func testChangesAfterInit() {
+    
+    func testChangesAfterInit() throws {
         let person = Person(name: "Arthur", age: 41)
-        let changes = person.databaseChanges
+        let changes = try person.databaseChanges
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {
             switch column {
@@ -440,9 +396,9 @@ class RecordEditedTests: GRDBTestCase {
         }
     }
     
-    func testChangesAfterInitFromRow() {
-        let person = Person(row: Row(["name": "Arthur", "age": 41]))
-        let changes = person.databaseChanges
+    func testChangesAfterInitFromRow() throws {
+        let person = try Person(row: Row(["name": "Arthur", "age": 41]))
+        let changes = try person.databaseChanges
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {
             switch column {
@@ -470,12 +426,12 @@ class RecordEditedTests: GRDBTestCase {
             try Person(name: "Arthur", age: 41).insert(db)
             do {
                 let person = try Person.fetchOne(db, sql: "SELECT * FROM persons")!
-                let changes = person.databaseChanges
+                let changes = try person.databaseChanges
                 XCTAssertEqual(changes.count, 0)
             }
             do {
                 let persons = try Person.fetchAll(db, sql: "SELECT * FROM persons")
-                let changes = persons[0].databaseChanges
+                let changes = try persons[0].databaseChanges
                 XCTAssertEqual(changes.count, 0)
             }
             do {
@@ -485,14 +441,14 @@ class RecordEditedTests: GRDBTestCase {
             }
             do {
                 let person = try Person.fetchOne(db, sql: "SELECT * FROM persons", adapter: SuffixRowAdapter(fromIndex: 0))!
-                let changes = person.databaseChanges
+                let changes = try person.databaseChanges
                 XCTAssertEqual(changes.count, 0)
             }
         }
         try dbQueue.inDatabase { db in
             try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
             let person = try PersonWithModifiedCaseColumns.fetchOne(db, sql: "SELECT * FROM persons")!
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 0)
         }
     }
@@ -506,7 +462,7 @@ class RecordEditedTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try Person(name: "Arthur", age: 41).insert(db)
             let person = try Person.fetchOne(db, sql: "SELECT name FROM persons")!
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 3)
             for (column, old) in changes {
                 switch column {
@@ -524,7 +480,7 @@ class RecordEditedTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
             let person = try PersonWithModifiedCaseColumns.fetchOne(db, sql: "SELECT name FROM persons")!
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 3)
             for (column, old) in changes {
                 switch column {
@@ -547,13 +503,13 @@ class RecordEditedTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let person = Person(name: "Arthur", age: 41)
             try person.insert(db)
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 0)
         }
         try dbQueue.inDatabase { db in
             let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
             try person.insert(db)
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 0)
         }
     }
@@ -569,7 +525,7 @@ class RecordEditedTests: GRDBTestCase {
             person.name = "Bobby"           // non-nil -> non-nil
             person.age = 41                 // nil -> non-nil
             person.creationDate = nil       // non-nil -> nil
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 3)
             for (column, old) in changes {
                 switch column {
@@ -591,7 +547,7 @@ class RecordEditedTests: GRDBTestCase {
             person.name = "Bobby"           // non-nil -> non-nil
             person.age = 41                 // nil -> non-nil
             person.creationDate = nil       // non-nil -> nil
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 3)
             for (column, old) in changes {
                 switch column {
@@ -616,14 +572,16 @@ class RecordEditedTests: GRDBTestCase {
             try person.insert(db)
             person.name = "Bobby"
             try person.update(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
         }
         try dbQueue.inDatabase { db in
             let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
             try person.insert(db)
             person.name = "Bobby"
             try person.update(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
         }
     }
 
@@ -633,10 +591,11 @@ class RecordEditedTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let person = Person(name: "Arthur", age: 41)
             try person.save(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
+
             person.name = "Bobby"
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 1)
             for (column, old) in changes {
                 switch column {
@@ -647,15 +606,17 @@ class RecordEditedTests: GRDBTestCase {
                 }
             }
             try person.save(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
         }
         try dbQueue.inDatabase { db in
             let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
             try person.save(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
+
             person.name = "Bobby"
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 1)
             for (column, old) in changes {
                 switch column {
@@ -666,7 +627,8 @@ class RecordEditedTests: GRDBTestCase {
                 }
             }
             try person.save(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
+            XCTAssertFalse(person.hasDatabaseChanges)
+            try XCTAssert(person.databaseChanges.isEmpty)
         }
     }
 
@@ -677,7 +639,7 @@ class RecordEditedTests: GRDBTestCase {
             let person = Person(name: "Arthur", age: 41)
             try person.insert(db)
             person.id = person.id + 1
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 1)
             for (column, old) in changes {
                 switch column {
@@ -692,7 +654,7 @@ class RecordEditedTests: GRDBTestCase {
             let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
             try person.insert(db)
             person.id = person.id + 1
-            let changes = person.databaseChanges
+            let changes = try person.databaseChanges
             XCTAssertEqual(changes.count, 1)
             for (column, old) in changes {
                 switch column {
@@ -702,48 +664,6 @@ class RecordEditedTests: GRDBTestCase {
                     XCTFail("Unexpected column: \(column)")
                 }
             }
-        }
-    }
-
-    func testCopyTransfersChanges() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = Person(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-        }
-        try dbQueue.inDatabase { db in
-            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
         }
     }
     
@@ -756,7 +676,7 @@ class RecordEditedTests: GRDBTestCase {
                 XCTAssertTrue(person.hasDatabaseChanges)
                 try person.updateChanges(db)
                 XCTFail("Expected PersistenceError")
-            } catch is PersistenceError { }
+            } catch PersistenceError.recordNotFound(databaseTableName: "persons", key: ["id": .null]) { }
             
             try person.insert(db)
 
@@ -774,7 +694,7 @@ class RecordEditedTests: GRDBTestCase {
             
             // Update single column
             person.age = 42
-            XCTAssertEqual(Set(person.databaseChanges.keys), ["age"])
+            try XCTAssertEqual(Set(person.databaseChanges.keys), ["age"])
             try XCTAssertTrue(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 1)
             XCTAssertEqual(lastSQLQuery, "UPDATE \"persons\" SET \"age\"=42 WHERE \"id\"=1")
@@ -782,7 +702,7 @@ class RecordEditedTests: GRDBTestCase {
             // Update two columns
             person.name = "Barbara"
             person.age = 43
-            XCTAssertEqual(Set(person.databaseChanges.keys), ["age", "name"])
+            try XCTAssertEqual(Set(person.databaseChanges.keys), ["age", "name"])
             try XCTAssertTrue(person.updateChanges(db))
             XCTAssertEqual(db.totalChangesCount, initialChangesCount + 2)
             let fetchedPerson = try Person.fetchOne(db, key: person.id)

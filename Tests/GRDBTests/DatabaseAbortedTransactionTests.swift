@@ -91,7 +91,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
@@ -138,7 +138,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
@@ -216,7 +216,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
@@ -267,7 +267,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             do {
                 try dbWriter.write { db in
                     do {

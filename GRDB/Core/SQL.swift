@@ -10,16 +10,42 @@
 ///         try db.execute(literal: query)
 ///     }
 public struct SQL {
-    /// `SQL` is an array of elements which can be qualified with table
-    /// aliases. This is how `SQL` can blend well in the query interface.
+    /// `SQL.Element` is a component of an `SQL` literal.
+    ///
+    /// Elements can be qualified with table aliases, and this is how `SQL`
+    /// blends well in the query interface. See below how the `createdAt` column
+    /// is qualified with the `player` table in the generated SQL, in order to
+    /// avoid any conflict with the `team.createdAt` column:
+    ///
+    ///     func date(_ value: SQLSpecificExpressible) -> SQLExpression {
+    ///         // An SQL literal made of three elements:
+    ///         // - "DATE(" raw sql string
+    ///         // - expression
+    ///         // - ")" raw sql string
+    ///         SQL("DATE(\(value))").sqlExpression
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // WHERE DATE(player.createdAt) = '2022-08-17'
+    ///     let request = Player
+    ///         .filter(date(Column("createdAt")) == "2022-08-17")
+    ///         .including(required: Player.team)
     enum Element {
-        // Can't be qualified with a table alias
+        /// A raw SQL literal with eventual arguments.
         case sql(String, StatementArguments = StatementArguments())
-        // Does not need to be qualified with a table alias
+        
+        /// A subquery.
         case subquery(SQLSubquery)
-        // Cases below can be qualified with a table alias
+        
+        /// An expression.
         case expression(SQLExpression)
+        
+        /// A selection.
         case selection(SQLSelection)
+        
+        /// An ordering.
         case ordering(SQLOrdering)
         
         var isEmpty: Bool {
@@ -27,6 +53,17 @@ public struct SQL {
             case let .sql(sql, _):
                 return sql.isEmpty
             default:
+                // Subqueries, expressions, selections and orderings are
+                // assumed to be non-empty.
+                //
+                // Nothing prevents the user from creating an ill-formed empty
+                // expression, but we don't care about such misuse:
+                //
+                //      // An ill-formed empty expression
+                //      let expression = SQL("").sqlExpression
+                //
+                //      let sql: SQL = "\(expression)"
+                //      sql.isEmpty // false, deal with it ¯\_(ツ)_/¯
                 return false
             }
         }
@@ -54,7 +91,8 @@ public struct SQL {
         fileprivate func qualified(with alias: TableAlias) -> Element {
             switch self {
             case .sql:
-                // Can't qualify raw SQL string
+                /// A raw SQL string can't be qualified with a table alias,
+                /// because we can't parse it.
                 return self
             case .subquery:
                 // Subqueries don't need table alias
@@ -96,7 +134,7 @@ public struct SQL {
     ///     let emailLiteral = [columnLiteral, suffixLiteral].joined(separator: " || ")
     ///     let request = User.select(emailLiteral.sqlExpression)
     ///     let emails = try String.fetchAll(db, request)
-    public init(_ expression: SQLSpecificExpressible) {
+    public init(_ expression: some SQLSpecificExpressible) {
         self.init(elements: [.expression(expression.sqlExpression)])
     }
     
@@ -172,7 +210,7 @@ extension SQL: SQLSpecificExpressible {
     /// Use this property when you need an explicit `SQLExpression`.
     /// For example:
     ///
-    ///     func date(_ value: SQLExpressible) -> SQLExpression {
+    ///     func date(_ value: some SQLExpressible) -> SQLExpression {
     ///         SQL("DATE(\(value))").sqlExpression
     ///     }
     ///
@@ -185,20 +223,36 @@ extension SQL: SQLSpecificExpressible {
 }
 
 extension SQL: SQLSelectable {
+    /// Creates a literal SQL expression.
+    ///
+    /// Use this property when you need an explicit `SQLSelection`. For example:
+    ///
+    ///     // SELECT firstName AS givenName, lastName AS familyName FROM player
+    ///     let selection = SQL("firstName AS givenName, lastName AS familyName").sqlSelection
+    ///     let request = Player.select(selection)
     public var sqlSelection: SQLSelection {
         .literal(self)
     }
 }
 
 extension SQL: SQLOrderingTerm {
+    /// Creates a literal SQL ordering.
+    ///
+    /// Use this property when you need an explicit `SQLOrdering`. For example:
+    ///
+    ///     // SELECT * FROM player ORDER BY name DESC
+    ///     let ordering = SQL("name DESC").sqlOrdering
+    ///     let request = Player.order(ordering)
     public var sqlOrdering: SQLOrdering {
         .literal(self)
     }
 }
 
-extension Sequence where Element == SQL {
+extension Sequence<SQL> {
     /// Returns the concatenated `SQL` literal of this sequence of literals,
-    /// inserting the given separator between each element.
+    /// inserting the given raw SQL separator between each element.
+    ///
+    /// For example:
     ///
     ///     let components: [SQL] = [
     ///         "UPDATE player",
@@ -206,6 +260,9 @@ extension Sequence where Element == SQL {
     ///         "WHERE id = \(id)"
     ///     ]
     ///     let query = components.joined(separator: " ")
+    ///
+    /// - Note: The separator is a raw SQL string, not an SQL literal that
+    ///   supports [SQL Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
     public func joined(separator: String = "") -> SQL {
         if separator.isEmpty {
             return SQL(elements: flatMap(\.elements))
@@ -215,9 +272,11 @@ extension Sequence where Element == SQL {
     }
 }
 
-extension Collection where Element == SQL {
+extension Collection<SQL> {
     /// Returns the concatenated `SQL` literal of this collection of literals,
-    /// inserting the given SQL separator between each element.
+    /// inserting the given raw SQL separator between each element.
+    ///
+    /// For example:
     ///
     ///     let components: [SQL] = [
     ///         "UPDATE player",
@@ -225,6 +284,9 @@ extension Collection where Element == SQL {
     ///         "WHERE id = \(id)"
     ///     ]
     ///     let query = components.joined(separator: " ")
+    ///
+    /// - Note: The separator is a raw SQL string, not an SQL literal that
+    ///   supports [SQL Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
     public func joined(separator: String = "") -> SQL {
         if separator.isEmpty {
             return SQL(elements: flatMap(\.elements))

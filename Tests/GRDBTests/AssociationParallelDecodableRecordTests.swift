@@ -45,7 +45,7 @@ private struct AWithOptionalBD: Decodable, FetchableRecord {
 
 /// Test support for Decodable records
 class AssociationParallelDecodableRecordTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "b") { t in
                 t.column("id", .integer).primaryKey()

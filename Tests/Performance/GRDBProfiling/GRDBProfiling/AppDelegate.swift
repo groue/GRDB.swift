@@ -361,7 +361,7 @@ class ItemRecord : Record {
         "items"
     }
     
-    required init(row: GRDB.Row) {
+    required init(row: GRDB.Row) throws {
         i0 = row["i0"]
         i1 = row["i1"]
         i2 = row["i2"]
@@ -372,10 +372,10 @@ class ItemRecord : Record {
         i7 = row["i7"]
         i8 = row["i8"]
         i9 = row["i9"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container["i0"] = i0
         container["i1"] = i1
         container["i2"] = i2

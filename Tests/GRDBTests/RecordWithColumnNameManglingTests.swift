@@ -23,29 +23,30 @@ class BadlyMangledStuff : Record {
         "stuffs"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
         id = row["mangled_id"]
         name = row["mangled_name"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
         container["id"] = id
         container["name"] = name
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
 class RecordWithColumnNameManglingTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setup)
         try migrator.migrate(dbWriter)

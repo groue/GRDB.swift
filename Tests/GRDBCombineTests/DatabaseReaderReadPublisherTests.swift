@@ -31,7 +31,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(reader: DatabaseReader) throws {
+        func test(reader: some DatabaseReader) throws {
             let publisher = reader.readPublisher(value: { db in
                 try Player.fetchCount(db)
             })
@@ -40,11 +40,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             XCTAssertEqual(value, 0)
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
     }
     
     // MARK: -
@@ -130,7 +129,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(reader: DatabaseReader) throws {
+        func test(reader: some DatabaseReader) throws {
             let publisher = reader.readPublisher(value: { db in
                 try Row.fetchAll(db, sql: "THIS IS NOT SQL")
             })
@@ -143,11 +142,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
     }
     
     // MARK: -
@@ -162,7 +160,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(reader: DatabaseReader) throws {
+        func test(reader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
             let cancellable = reader
@@ -181,11 +179,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
     }
     
     // MARK: -
@@ -200,7 +197,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(reader: DatabaseReader) {
+        func test(reader: some DatabaseReader) {
             let expectation = self.expectation(description: "")
             let cancellable = reader
                 .readPublisher(value: { db in
@@ -219,11 +216,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
     }
     
     // MARK: -
@@ -238,7 +234,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             return writer
         }
         
-        func test(reader: DatabaseReader) {
+        func test(reader: some DatabaseReader) {
             let queue = DispatchQueue(label: "test")
             let expectation = self.expectation(description: "")
             let cancellable = reader
@@ -258,11 +254,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             cancellable.cancel()
         }
         
-        try Test(test)
-            .run { try setUp(DatabaseQueue()) }
-            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
-            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+        try Test(test).run { try setUp(DatabaseQueue()) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
     }
     
     // MARK: -
@@ -272,7 +267,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             throw XCTSkip("Combine is not available")
         }
         
-        func test(reader: DatabaseReader) throws {
+        func test(reader: some DatabaseReader) throws {
             let publisher = reader.readPublisher(value: { db in
                 try Player.createTable(db)
             })
@@ -284,11 +279,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
             }
         }
         
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
+        try Test(test).run { try DatabaseQueue() }
+        try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
     }
 }
 #endif

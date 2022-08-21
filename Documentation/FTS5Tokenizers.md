@@ -186,7 +186,7 @@ A FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the 
 
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
-    var wrappedTokenizer: FTS5Tokenizer { get }
+    var wrappedTokenizer: any FTS5Tokenizer { get }
     func accept(
         token: String,
         flags: FTS5TokenFlags,
@@ -207,7 +207,7 @@ The `wrappedTokenizer` property is the mandatory wrapped tokenizer. You instanti
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         // Wrap the unicode61 tokenizer
@@ -255,7 +255,7 @@ For example, your custom tokenizer can wrap [unicode61](https://www.sqlite.org/f
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
     static let name = "custom"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
@@ -309,7 +309,7 @@ We'll also take care of the SQLite advice:
 ```swift
 final class SynonymsTokenizer : FTS5WrapperTokenizer {
     static let name = "synonyms"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     let synonyms: [Set<String>] = [["first", "1st"]]
     
     init(db: Database, arguments: [String]) throws {
@@ -361,7 +361,7 @@ The tokenizer wrapping is provided by the [FTS5WrapperTokenizer](#fts5wrappertok
 ```swift
 final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     static let name = "latinascii"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         wrappedTokenizer = try db.makeTokenizer(.unicode61())
@@ -374,8 +374,6 @@ final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     }
 }
 ```
-
-> :point_up: **Note**: String.applyingTransform is not available before macOS 10.11. Use the Core Foundation function [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead.
 
 Remember to register LatinAsciiTokenizer before using it:
 

@@ -5,75 +5,93 @@ extension Database {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
+    /// This method has no effect on read-only database connections.
+    ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
     ///   the observer lifetime (observation lasts until observer
     ///   is deallocated).
     public func add(
-        transactionObserver: TransactionObserver,
+        transactionObserver: some TransactionObserver,
         extent: TransactionObservationExtent = .observerLifetime)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
+        guard let observationBroker else { return }
         
         // Drop cached statements that delete, because the addition of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
-        internalStatementCache.removeAll{ $0.databaseEventKinds.contains(where: \.isDelete) }
+        publicStatementCache.removeAll { $0.isDeleteStatement }
+        internalStatementCache.removeAll{ $0.isDeleteStatement }
         
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
     /// Remove a transaction observer.
-    public func remove(transactionObserver: TransactionObserver) {
+    public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
+        guard let observationBroker else { return }
         
         // Drop cached statements that delete, because the removal of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
-        internalStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        publicStatementCache.removeAll { $0.isDeleteStatement }
+        internalStatementCache.removeAll { $0.isDeleteStatement }
         
         observationBroker.remove(transactionObserver: transactionObserver)
     }
     
-    /// Registers a closure to be executed after the next or current
+    /// Registers closures to be executed after the next or current
     /// transaction completion.
     ///
     ///     try dbQueue.write { db in
-    ///         db.afterNextTransactionCommit { _ in
+    ///         db.afterNextTransaction { _ in
     ///             print("success")
     ///         }
     ///         ...
-    ///     } // prints "success"
+    ///     } // prints "commit"
     ///
-    /// If the transaction is rollbacked, the closure is not executed.
+    /// Closure are executed in a protected dispatch queue, serialized will all
+    /// database updates.
     ///
-    /// If the transaction is committed, the closure is executed in a protected
-    /// dispatch queue, serialized will all database updates.
-    public func afterNextTransactionCommit(_ closure: @escaping (Database) -> Void) {
-        class CommitHandler: TransactionObserver {
-            let closure: (Database) -> Void
-            
-            init(_ closure: @escaping (Database) -> Void) {
-                self.closure = closure
+    /// - precondition: Database is not read-only.
+    /// - parameter onCommit: A closure execute on transaction commit.
+    /// - parameter onRollback: A closure execute on transaction rollback.
+    public func afterNextTransaction(
+        onCommit: @escaping (Database) -> Void,
+        onRollback: @escaping (Database) -> Void = { _ in })
+    {
+        class TransactionHandler: TransactionObserver {
+            let onCommit: (Database) -> Void
+            let onRollback: (Database) -> Void
+
+            init(onCommit: @escaping (Database) -> Void, onRollback: @escaping (Database) -> Void) {
+                self.onCommit = onCommit
+                self.onRollback = onRollback
             }
             
-            // Ignore individual changes and transaction rollbacks
+            // Ignore changes
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
             func databaseDidChange(with event: DatabaseEvent) { }
-            func databaseDidRollback(_ db: Database) { }
             
-            // On commit, run closure
             func databaseDidCommit(_ db: Database) {
-                closure(db)
+                onCommit(db)
+            }
+            
+            func databaseDidRollback(_ db: Database) {
+                onRollback(db)
             }
         }
         
-        add(transactionObserver: CommitHandler(closure), extent: .nextTransaction)
+        // We don't notify read-only transactions to transaction observers
+        GRDBPrecondition(!isReadOnly, "Read-only transactions are not notified")
+        
+        add(
+            transactionObserver: TransactionHandler(onCommit: onCommit, onRollback: onRollback),
+            extent: .nextTransaction)
     }
     
-    /// The extent of a transaction observation
+    /// The extent of a transaction observation.
     ///
-    /// See Database.add(transactionObserver:extent:)
+    /// See ``Database/add(transactionObserver:extent:)``.
     public enum TransactionObservationExtent {
         /// Observation lasts until observer is deallocated
         case observerLifetime
@@ -160,7 +178,7 @@ extension Database {
 ///
 ///         try db.execute(sql: "COMMIT")
 ///
-/// During the statement *execution*, SQlite tells the broker that the
+/// During the statement *execution*, SQLite tells the broker that the
 /// transaction is about to be committed through sqlite3_commit_hook. The broker
 /// invokes observer.databaseWillCommit(). If the observer throws an error, the
 /// broker asks SQLite to rollback the transaction. Otherwise, the broker lets
@@ -169,20 +187,32 @@ extension Database {
 /// After the statement *has been executed*, the broker calls
 /// observer.databaseDidCommit().
 class DatabaseObservationBroker {
-    private unowned var database: Database
-    private var savepointStack = SavepointStack()
-    private var transactionState: TransactionState = .none
+    private unowned let database: Database
+    
+    /// The savepoint stack allows us to hold database event notifications until
+    /// all savepoints are released. The goal is to only tell transaction
+    /// observers about database changes that have a chance to be committed
+    /// on disk.
+    private let savepointStack = SavepointStack()
+    
+    /// Tracks the transaction completion, as reported by the
+    /// `sqlite3_commit_hook` and `sqlite3_rollback_hook` callbacks.
+    private var transactionCompletion = TransactionCompletion.none
+    
+    /// The registered transaction observers.
     private var transactionObservations: [TransactionObservation] = []
+    
+    /// The observers for an individual statement execution.
     private var statementObservations: [StatementObservation] = [] {
-        didSet { observesDatabaseChanges = !statementObservations.isEmpty }
-    }
-    private var observesDatabaseChanges = false {
         didSet {
-            if observesDatabaseChanges == oldValue { return }
-            if observesDatabaseChanges {
-                installUpdateHook()
-            } else {
-                uninstallUpdateHook()
+            let isEmpty = statementObservations.isEmpty
+            if isEmpty != oldValue.isEmpty {
+                if isEmpty {
+                    // Avoid processing database changes if nobody is interested
+                    uninstallUpdateHook()
+                } else {
+                    installUpdateHook()
+                }
             }
         }
     }
@@ -193,25 +223,26 @@ class DatabaseObservationBroker {
     
     // MARK: - Transaction observers
     
-    func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent) {
+    func add(transactionObserver: some TransactionObserver, extent: Database.TransactionObservationExtent) {
         transactionObservations.append(TransactionObservation(observer: transactionObserver, extent: extent))
     }
     
-    func remove(transactionObserver: TransactionObserver) {
+    func remove(transactionObserver: some TransactionObserver) {
         transactionObservations.removeFirst { $0.isWrapping(transactionObserver) }
     }
     
-    func disableUntilNextTransaction(transactionObserver: TransactionObserver) {
+    /// Called from ``TransactionObserver/stopObservingDatabaseChangesUntilNextTransaction()``.
+    func disableUntilNextTransaction(transactionObserver: some TransactionObserver) {
         if let observation = transactionObservations.first(where: { $0.isWrapping(transactionObserver) }) {
-            observation.isDisabled = true
-            statementObservations.removeFirst { $0.0 === observation }
+            observation.isEnabled = false
+            statementObservations.removeFirst { $0.transactionObservation === observation }
         }
     }
     
     // MARK: - Statement execution
     
-    /// Returns true if there exists some transaction observers interested in
-    /// deletions in the given table.
+    /// Returns true if there exists some transaction observer interested in
+    /// the deletions in the given table.
     func observesDeletions(on table: String) -> Bool {
         transactionObservations.contains { observation in
             observation.observes(eventsOfKind: .delete(tableName: table))
@@ -230,14 +261,15 @@ class DatabaseObservationBroker {
             // SchedulingWatchdog.current:
             SchedulingWatchdog.current!.databaseObservationBroker = self
             
-            // Fill statementObservations with observations that are interested in
-            // the kind of events performed by the statement.
+            // Fill statementObservations with observations that are interested
+            // in the kind of database events performed by the statement, as
+            // reported by `sqlite3_set_authorizer`.
             //
             // Those statementObservations will be notified of individual changes
             // in databaseWillChange() and databaseDidChange().
-            let eventKinds = statement.databaseEventKinds
+            let authorizerEventKinds = statement.authorizerEventKinds
             
-            switch eventKinds.count {
+            switch authorizerEventKinds.count {
             case 0:
                 // Statement has no effect on any database table.
                 //
@@ -250,15 +282,17 @@ class DatabaseObservationBroker {
                 //
                 // For example, if one observes all deletions in the table T, then
                 // all individual deletions of DELETE FROM T are notified:
-                let eventKind = eventKinds[0]
+                let eventKind = authorizerEventKinds[0]
                 statementObservations = transactionObservations.compactMap { observation in
                     guard observation.observes(eventsOfKind: eventKind) else {
                         // observation is not interested
                         return nil
                     }
                     
-                    // observation will be notified of all individual events
-                    return (observation, DatabaseEventPredicate.true)
+                    // Observation will be notified of all individual events
+                    return StatementObservation(
+                        transactionObservation: observation,
+                        trackingEvents: .all)
                 }
             default:
                 // We'll execute a complex statement with side effects performed by
@@ -270,39 +304,39 @@ class DatabaseObservationBroker {
                 // by the mean of a foreign key action, then when one only observes
                 // deletions in T1, one must not be notified of deletions in T2:
                 statementObservations = transactionObservations.compactMap { observation in
-                    let observedKinds = eventKinds.filter(observation.observes)
-                    if observedKinds.isEmpty {
+                    let observedEventKinds = authorizerEventKinds.filter(observation.observes)
+                    if observedEventKinds.isEmpty {
                         // observation is not interested
                         return nil
                     }
                     
-                    // observation will only be notified of individual events that
-                    // match one of the observed kinds.
-                    return (
-                        observation,
-                        DatabaseEventPredicate.matching(
-                            observedKinds: observedKinds,
-                            advertisedKinds: eventKinds))
+                    // Observation will only be notified of individual events
+                    // it is interested into.
+                    return StatementObservation(
+                        transactionObservation: observation,
+                        trackingEvents: .matching(
+                            observedEventKinds: observedEventKinds,
+                            authorizerEventKinds: authorizerEventKinds))
                 }
             }
         }
         
-        transactionState = .none
+        transactionCompletion = .none
     }
     
-    /// May throw a cancelled commit error, if a transaction observer cancels
-    /// a transaction.
+    /// May throw the user-provided cancelled commit error, if a transaction
+    /// observer has cancelled a transaction.
     func statementDidFail(_ statement: Statement) throws {
         // Undo statementWillExecute
         statementObservations = []
         SchedulingWatchdog.current!.databaseObservationBroker = nil
         
-        // Reset transactionState before databaseDidRollback eventually
+        // Reset transactionCompletion before databaseDidRollback eventually
         // executes other statements.
-        let transactionState = self.transactionState
-        self.transactionState = .none
+        let transactionCompletion = self.transactionCompletion
+        self.transactionCompletion = .none
         
-        switch transactionState {
+        switch transactionCompletion {
         case .rollback:
             // Don't notify observers because we're in a failed implicit
             // transaction here (like an INSERT which fails with
@@ -316,8 +350,9 @@ class DatabaseObservationBroker {
         }
     }
     
-    /// May throw a cancelled commit error, if a transaction observer cancels
-    /// an empty transaction.
+    /// May throw the user-provided cancelled commit error, if the statement
+    /// commits an empty transaction, and a transaction observer cancels this
+    /// empty transaction.
     func statementDidExecute(_ statement: Statement) throws {
         // Undo statementWillExecute
         if transactionObservations.isEmpty == false {
@@ -332,7 +367,7 @@ class DatabaseObservationBroker {
                 break
                 
             case .commitTransaction:                    // 1. A COMMIT statement has been executed
-                if case .none = self.transactionState { // 2. sqlite3_commit_hook was not triggered
+                if case .none = transactionCompletion { // 2. sqlite3_commit_hook was not called
                     // 1+2 mean that an empty deferred transaction has been completed:
                     //
                     //   BEGIN DEFERRED TRANSACTION; COMMIT
@@ -351,7 +386,7 @@ class DatabaseObservationBroker {
             case .releaseSavepoint(let name):          // 1. A RELEASE SAVEPOINT statement has been executed
                 savepointStack.savepointDidRelease(name)
                 
-                if case .none = self.transactionState, // 2. sqlite3_commit_hook was not triggered
+                if case .none = transactionCompletion, // 2. sqlite3_commit_hook was not called
                    !database.isInsideTransaction       // 3. database is no longer inside a transaction
                 {
                     // 1+2+3 mean that an empty deferred transaction has been completed:
@@ -372,12 +407,12 @@ class DatabaseObservationBroker {
             }
         }
         
-        // Reset transactionState before databaseDidCommit or
+        // Reset transactionCompletion before databaseDidCommit or
         // databaseDidRollback eventually execute other statements.
-        let transactionState = self.transactionState
-        self.transactionState = .none
+        let transactionCompletion = self.transactionCompletion
+        self.transactionCompletion = .none
         
-        switch transactionState {
+        switch transactionCompletion {
         case .commit:
             databaseDidCommit()
         case .rollback:
@@ -394,8 +429,8 @@ class DatabaseObservationBroker {
         
         if savepointStack.isEmpty {
             // Notify now
-            for (observation, predicate) in statementObservations where predicate.evaluate(event) {
-                observation.databaseWillChange(with: event)
+            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+                statementObservation.transactionObservation.databaseWillChange(with: event)
             }
         } else {
             // Buffer
@@ -419,8 +454,8 @@ class DatabaseObservationBroker {
         
         if savepointStack.isEmpty {
             // Notify now
-            for (observation, predicate) in statementObservations where predicate.evaluate(event) {
-                observation.databaseDidChange(with: event)
+            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+                statementObservation.transactionObservation.databaseDidChange(with: event)
             }
         } else {
             // Buffer
@@ -476,7 +511,7 @@ class DatabaseObservationBroker {
         //
         // For example, is the code below expected to print "did commit"?
         //
-        //   db.afterNextTransactionCommit { _ in print("did commit") }
+        //   db.afterNextTransaction { _ in print("did commit") }
         //   try db.inTransaction {
         //       performSomeTask(db)
         //       return .commit
@@ -511,15 +546,19 @@ class DatabaseObservationBroker {
         databaseDidEndTransaction()
     }
     
-    /// Remove transaction observers that have stopped observing transaction,
-    /// and uninstall SQLite update hooks if there is no remaining observers.
+    // Called from both databaseDidCommit() and databaseDidRollback()
     private func databaseDidEndTransaction() {
         assert(!database.isInsideTransaction)
+        
+        // Remove transaction observations that are no longer observing, because
+        // a transaction observer registered with the `.observerLifetime` extent
+        // was deallocated, or because a transaction observer was registered
+        // with the `.nextTransaction` extent.
         transactionObservations = transactionObservations.filter(\.isObserving)
         
         // Undo disableUntilNextTransaction(transactionObserver:)
         for observation in transactionObservations {
-            observation.isDisabled = false
+            observation.isEnabled = true
         }
     }
     
@@ -570,14 +609,13 @@ class DatabaseObservationBroker {
         }
         
         // Now we can safely notify:
-        
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
         
         for (event, statementObservations) in eventsBuffer {
             assert(statementObservations.isEmpty || !database.isReadOnly, "Read-only transactions are not notified")
-            for (observation, predicate) in statementObservations where predicate.evaluate(event) {
-                event.send(to: observation)
+            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+                event.send(to: statementObservation.transactionObservation)
             }
         }
     }
@@ -591,11 +629,11 @@ class DatabaseObservationBroker {
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
             do {
                 try broker.databaseWillCommit()
-                broker.transactionState = .commit
-                // Next step: statementDidExecute()
+                broker.transactionCompletion = .commit
+                // Next step: statementDidExecute(_:)
                 return 0
             } catch {
-                broker.transactionState = .cancelledCommit(error)
+                broker.transactionCompletion = .cancelledCommit(error)
                 // Next step: sqlite3_rollback_hook callback
                 return 1
             }
@@ -603,13 +641,13 @@ class DatabaseObservationBroker {
         
         sqlite3_rollback_hook(database.sqliteConnection, { brokerPointer in
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-            switch broker.transactionState {
+            switch broker.transactionCompletion {
             case .cancelledCommit:
-                // Next step: statementDidFail()
+                // Next step: statementDidFail(_:)
                 break
             default:
-                broker.transactionState = .rollback
-            // Next step: statementDidExecute()
+                broker.transactionCompletion = .rollback
+                // Next step: statementDidExecute(_:)
             }
         }, brokerPointer)
     }
@@ -656,11 +694,20 @@ class DatabaseObservationBroker {
         #endif
     }
     
-    /// The various states of SQLite transactions
-    enum TransactionState {
+    /// The various SQLite transactions completions, as reported by the
+    /// `sqlite3_commit_hook` and `sqlite3_rollback_hook` callbacks.
+    fileprivate enum TransactionCompletion {
+        /// Transaction state is unchanged.
         case none
+        
+        /// Transaction turns committed.
         case commit
+        
+        /// Transaction turns rollbacked.
         case rollback
+        
+        /// Transaction turns rollbacked because a transaction observer has
+        /// cancelled a commit by throwing an error.
         case cancelledCommit(Error)
     }
 }
@@ -737,8 +784,7 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// **Availability Info**
     ///
-    /// Requires SQLite 3.13.0 +
-    /// Compiled with option SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Requires SQLite compiled with option SQLITE_ENABLE_PREUPDATE_HOOK.
     ///
     /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
@@ -800,19 +846,19 @@ extension TransactionObserver {
 final class TransactionObservation {
     let extent: Database.TransactionObservationExtent
     
-    // A disabled observation is not interested in individual database changes.
-    // It is still interested in transactions commits & rollbacks.
-    var isDisabled = false
+    /// A disabled observation is not interested in individual database changes.
+    /// It is still interested in transactions commits & rollbacks.
+    var isEnabled = true
     
-    private weak var weakObserver: TransactionObserver?
-    private var strongObserver: TransactionObserver?
-    private var observer: TransactionObserver? { strongObserver ?? weakObserver }
+    private weak var weakObserver: (any TransactionObserver)?
+    private var strongObserver: (any TransactionObserver)?
+    private var observer: (any TransactionObserver)? { strongObserver ?? weakObserver }
     
     fileprivate var isObserving: Bool {
         observer != nil
     }
     
-    init(observer: TransactionObserver, extent: Database.TransactionObservationExtent) {
+    init(observer: some TransactionObserver, extent: Database.TransactionObservationExtent) {
         self.extent = extent
         switch extent {
         case .observerLifetime:
@@ -825,24 +871,23 @@ final class TransactionObservation {
         }
     }
     
-    func isWrapping(_ observer: TransactionObserver) -> Bool {
+    func isWrapping(_ observer: some TransactionObserver) -> Bool {
         self.observer === observer
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        if isDisabled { return false }
-        return observer?.observes(eventsOfKind: eventKind) ?? false
+        observer?.observes(eventsOfKind: eventKind) ?? false
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     func databaseWillChange(with event: DatabasePreUpdateEvent) {
-        if isDisabled { return }
+        guard isEnabled else { return }
         observer?.databaseWillChange(with: event)
     }
     #endif
     
     func databaseDidChange(with event: DatabaseEvent) {
-        if isDisabled { return }
+        guard isEnabled else { return }
         observer?.databaseDidChange(with: event)
     }
     
@@ -859,6 +904,7 @@ final class TransactionObservation {
                 // Observer must not get any further notification.
                 // So we "forget" the observer before its `databaseDidCommit`
                 // implementation eventually triggers another database change.
+                assert(weakObserver == nil, "expected observer to be stored in strongObserver")
                 strongObserver = nil
                 observer.databaseDidCommit(db)
             }
@@ -874,6 +920,7 @@ final class TransactionObservation {
                 // Observer must not get any further notification.
                 // So we "forget" the observer before its `databaseDidRollback`
                 // implementation eventually triggers another database change.
+                assert(weakObserver == nil, "expected observer to be stored in strongObserver")
                 strongObserver = nil
                 observer.databaseDidRollback(db)
             }
@@ -881,7 +928,19 @@ final class TransactionObservation {
     }
 }
 
-typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate)
+/// The observation of one particular statement, by a particular
+/// transaction observer.
+struct StatementObservation {
+    var transactionObservation: TransactionObservation
+    
+    /// Filters database events that should be notified.
+    var predicate: DatabaseEventPredicate
+    
+    init(transactionObservation: TransactionObservation, trackingEvents predicate: DatabaseEventPredicate) {
+        self.transactionObservation = transactionObservation
+        self.predicate = predicate
+    }
+}
 
 // MARK: - Database events
 
@@ -901,15 +960,15 @@ public enum DatabaseEventKind {
     var modifiedRegion: DatabaseRegion {
         switch self {
         case let .delete(tableName):
-            return DatabaseRegion.fullTable(tableName)
+            return DatabaseRegion(table: tableName)
         case let .insert(tableName):
-            return DatabaseRegion.fullTable(tableName)
+            return DatabaseRegion(table: tableName)
         case let .update(tableName, updatedColumnNames):
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
         }
     }
     
-    /// Returns true iff this is a delete event.
+    /// Returns whether this is a delete event.
     var isDelete: Bool {
         if case .delete = self {
             return true
@@ -939,7 +998,7 @@ protocol DatabaseEventProtocol {
 public struct DatabaseEvent {
     
     /// An event kind
-    public enum Kind: Int32 {
+    public enum Kind: CInt {
         /// SQLITE_INSERT
         case insert = 18
         
@@ -950,7 +1009,7 @@ public struct DatabaseEvent {
         case update = 23
     }
     
-    private let impl: DatabaseEventImpl
+    private let impl: any DatabaseEventImpl
     
     /// The event kind
     public let kind: Kind
@@ -976,7 +1035,7 @@ public struct DatabaseEvent {
         impl.copy(self)
     }
     
-    fileprivate init(kind: Kind, rowID: Int64, impl: DatabaseEventImpl) {
+    fileprivate init(kind: Kind, rowID: Int64, impl: any DatabaseEventImpl) {
         self.kind = kind
         self.rowID = rowID
         self.impl = impl
@@ -1046,7 +1105,7 @@ private struct CopiedDatabaseEventImpl: DatabaseEventImpl {
 public struct DatabasePreUpdateEvent {
     
     /// An event kind
-    public enum Kind: Int32 {
+    public enum Kind: CInt {
         /// SQLITE_INSERT
         case insert = 18
         
@@ -1142,7 +1201,7 @@ public struct DatabasePreUpdateEvent {
         impl.copy(self)
     }
     
-    fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
+    fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: any DatabasePreUpdateEventImpl) {
         self.kind = kind
         self.initialRowID = (kind == .update || kind == .delete ) ? initialRowID : nil
         self.finalRowID = (kind == .update || kind == .insert ) ? finalRowID : nil
@@ -1168,7 +1227,7 @@ public struct DatabasePreUpdateEvent {
                 tableNameCString: tableNameCString))
     }
     
-    private let impl: DatabasePreUpdateEventImpl
+    private let impl: any DatabasePreUpdateEventImpl
 }
 
 extension DatabasePreUpdateEvent: DatabaseEventProtocol {
@@ -1234,7 +1293,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         return getValue(
             connection,
             column: CInt(index),
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_old(connection, column, &value)
             })
     }
@@ -1244,7 +1303,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         return getValue(
             connection,
             column: CInt(index),
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_new(connection, column, &value)
             })
     }
@@ -1298,7 +1357,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]? {
         preupdate_getValues(
             connection,
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_old(connection, column, &value)
             })
     }
@@ -1306,7 +1365,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]? {
         preupdate_getValues(
             connection,
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_new(connection, column, &value)
             })
     }
@@ -1329,28 +1388,47 @@ private struct CopiedDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
 
 #endif
 
-// A predicate that filters database events
+/// A predicate that filters database events reported by `sqlite3_update_hook`.
 enum DatabaseEventPredicate {
-    // Yes filter
-    case `true`
-    // Only events that match observedKinds
-    case matching(observedKinds: [DatabaseEventKind], advertisedKinds: [DatabaseEventKind])
+    /// All events.
+    case all
     
-    func evaluate(_ event: DatabaseEventProtocol) -> Bool {
+    /// Filters events that match `observedEventKinds`, or are not
+    ///
+    /// - parameter observedEventKinds: Event kinds observed by
+    ///   the TransactionObserver.
+    /// - parameter authorizerEventKinds: Event kinds reported by the
+    ///   statement authorizer.
+    case matching(observedEventKinds: [DatabaseEventKind], authorizerEventKinds: [DatabaseEventKind])
+    
+    func evaluate(_ event: some DatabaseEventProtocol) -> Bool {
         switch self {
-        case .true:
+        case .all:
             return true
-        case let .matching(observedKinds: observedKinds, advertisedKinds: advertisedKinds):
-            if observedKinds.contains(where: { event.matchesKind($0) }) {
+            
+        case let .matching(observedEventKinds: observedEventKinds, authorizerEventKinds: authorizerEventKinds):
+            if observedEventKinds.contains(where: { event.matchesKind($0) }) {
                 return true
             }
-            if !advertisedKinds.contains(where: { event.matchesKind($0) }) {
-                // FTS4 (and maybe other virtual tables) perform unadvertised
-                // changes. For example, an "INSERT INTO document ..." statement
-                // advertises an insertion in the `document` table, but the
-                // actual change events happen in the `document_content` shadow
-                // table. When such a non-advertised event happens, assume that
-                // the event has to be notified.
+            if !authorizerEventKinds.contains(where: { event.matchesKind($0) }) {
+                // Here, `sqlite3_update_hook` emits an unexpected event, that
+                // was not advertised by `sqlite3_set_authorizer` when the
+                // statement was compiled:
+                //
+                // 1. Compile "INSERT INTO document ...": the authorizer
+                //    reports an insertion in the `document` table.
+                // 2. Execute "INSERT INTO document ...": the update hook
+                //    reports an insertion in another table!
+                //
+                // Well, FTS4 (and maybe other virtual tables) perform such
+                // unadvertised changes. Executing the "INSERT INTO document ..."
+                // statement reports changes in the `document_content` shadow
+                // table, not the `document` table reported when the
+                // statement was compiled.
+                //
+                // When such a non-advertised event happens, we notify the
+                // event to the transaction observer.
+                //
                 // See https://github.com/groue/GRDB.swift/issues/620
                 return true
             }
@@ -1372,7 +1450,7 @@ enum DatabaseEventPredicate {
 ///   rollbacked.
 class SavepointStack {
     /// The buffered events (see DatabaseObservationBroker.databaseDidChange(with:))
-    var eventsBuffer: [(event: DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
+    var eventsBuffer: [(event: any DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.

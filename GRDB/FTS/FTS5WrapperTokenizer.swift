@@ -5,9 +5,9 @@ import Foundation
 ///
 /// See the `FTS5_TOKEN_*` flags in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
 public struct FTS5TokenFlags: OptionSet {
-    public let rawValue: Int32
+    public let rawValue: CInt
     
-    public init(rawValue: Int32) {
+    public init(rawValue: CInt) {
         self.rawValue = rawValue
     }
     
@@ -50,7 +50,7 @@ public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5Token
 ///     }
 public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// The wrapped tokenizer
-    var wrappedTokenizer: FTS5Tokenizer { get }
+    var wrappedTokenizer: any FTS5Tokenizer { get }
     
     /// Given a token produced by the wrapped tokenizer, notifies customized
     /// tokens to the `tokenCallback` function.
@@ -92,7 +92,7 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
 }
 
 private struct FTS5WrapperContext {
-    let tokenizer: FTS5WrapperTokenizer
+    let tokenizer: any FTS5WrapperTokenizer
     let context: UnsafeMutableRawPointer?
     let tokenization: FTS5Tokenization
     let tokenCallback: FTS5TokenCallback
@@ -104,9 +104,9 @@ extension FTS5WrapperTokenizer {
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
         pText: UnsafePointer<Int8>?,
-        nText: Int32,
+        nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
-    -> Int32
+    -> CInt
     {
         // `tokenCallback` is @convention(c). This requires a little setup
         // in order to transfer context.
@@ -155,7 +155,7 @@ extension FTS5WrapperTokenizer {
                                 }
                                 let pToken = UnsafeMutableRawPointer(mutating: addr)
                                     .assumingMemoryBound(to: Int8.self)
-                                let nToken = Int32(buffer.count)
+                                let nToken = CInt(buffer.count)
                                 
                                 // Inject token bytes into SQLite
                                 let code = tokenCallback(context, flags.rawValue, pToken, nToken, iStart, iEnd)

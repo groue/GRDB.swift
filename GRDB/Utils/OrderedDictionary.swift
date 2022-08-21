@@ -114,11 +114,10 @@ struct OrderedDictionary<Key: Hashable, Value> {
         return OrderedDictionary(keys: keys, dictionary: dictionary)
     }
     
-    mutating func merge<S>(
-        _ other: S,
+    mutating func merge(
+        _ other: some Sequence<(Key, Value)>,
         uniquingKeysWith combine: (Value, Value) throws -> Value)
     rethrows
-    where S: Sequence, S.Element == (Key, Value)
     {
         for (key, value) in other {
             if let current = self[key] {
@@ -129,11 +128,10 @@ struct OrderedDictionary<Key: Hashable, Value> {
         }
     }
     
-    mutating func merge<S>(
-        _ other: S,
+    mutating func merge(
+        _ other: some Sequence<(key: Key, value: Value)>,
         uniquingKeysWith combine: (Value, Value) throws -> Value)
     rethrows
-    where S: Sequence, S.Element == (key: Key, value: Value)
     {
         for (key, value) in other {
             if let current = self[key] {
@@ -144,22 +142,20 @@ struct OrderedDictionary<Key: Hashable, Value> {
         }
     }
     
-    func merging<S>(
-        _ other: S,
+    func merging(
+        _ other: some Sequence<(Key, Value)>,
         uniquingKeysWith combine: (Value, Value) throws -> Value)
     rethrows -> OrderedDictionary<Key, Value>
-    where S: Sequence, S.Element == (Key, Value)
     {
         var result = self
         try result.merge(other, uniquingKeysWith: combine)
         return result
     }
     
-    func merging<S>(
-        _ other: S,
+    func merging(
+        _ other: some Sequence<(key: Key, value: Value)>,
         uniquingKeysWith combine: (Value, Value) throws -> Value)
     rethrows -> OrderedDictionary<Key, Value>
-    where S: Sequence, S.Element == (key: Key, value: Value)
     {
         var result = self
         try result.merge(other, uniquingKeysWith: combine)

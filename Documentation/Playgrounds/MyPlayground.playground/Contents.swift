@@ -6,15 +6,15 @@ var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { print("SQL> \($0)") }
 }
-let dbQueue = DatabaseQueue(configuration: configuration)
+let dbQueue = try DatabaseQueue(configuration: configuration)
 
 struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var name: String
     var score: Int
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

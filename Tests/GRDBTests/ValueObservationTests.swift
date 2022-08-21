@@ -4,9 +4,10 @@ import Dispatch
 
 class ValueObservationTests: GRDBTestCase {
     func testImmediateError() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        struct TestError: Error { }
+        
+        func test(_ dbWriter: some DatabaseWriter) throws {
             // Create an observation
-            struct TestError: Error { }
             let observation = ValueObservation.trackingConstantRegion { _ in throw TestError() }
             
             // Start observation
@@ -24,7 +25,9 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     func testErrorCompletesTheObservation() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        struct TestError: Error { }
+        
+        func test(_ dbWriter: some DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -34,7 +37,6 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            struct TestError: Error { }
             var nextError: Error? = nil // If not null, observation throws an error
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
@@ -419,20 +421,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
         // Optimization not available
         expectedCounts = [0, 0, 1]
-        #elseif GRDBCUSTOMSQLITE
+        #else
         // Optimization available
         expectedCounts = [0, 1]
-        #else
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            // Optimization available
-            expectedCounts = [0, 1]
-        } else {
-            // Optimization not available
-            expectedCounts = [0, 0, 1]
-        }
         #endif
         
         let expectation = self.expectation(description: "")
@@ -477,20 +471,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
         // Optimization not available
         expectedCounts = [0, 0, 1]
-        #elseif GRDBCUSTOMSQLITE
+        #else
         // Optimization available
         expectedCounts = [0, 1]
-        #else
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            // Optimization available
-            expectedCounts = [0, 1]
-        } else {
-            // Optimization not available
-            expectedCounts = [0, 0, 1]
-        }
         #endif
         
         let expectation = self.expectation(description: "")
@@ -605,7 +591,7 @@ class ValueObservationTests: GRDBTestCase {
     
     func testCancellableInvalidation1() throws {
         // Test that observation stops when cancellable is deallocated
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
 
             let notificationExpectation = expectation(description: "notification")
@@ -649,7 +635,7 @@ class ValueObservationTests: GRDBTestCase {
     
     func testCancellableInvalidation2() throws {
         // Test that observation stops when cancellable is deallocated
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let notificationExpectation = expectation(description: "notification")
@@ -693,7 +679,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     func testIssue1209() throws {
-        func test<Writer: DatabaseWriter>(_ dbWriter: Writer) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write {
                 try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
             }
@@ -741,12 +727,11 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     // MARK: - Async Await
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_prefix() async throws {
-        func test(writer: DatabaseWriter) async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -773,15 +758,14 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
-        try await AsyncTest(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try await AsyncTest(test).run { try DatabaseQueue() }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_prefix_immediate_scheduling() async throws {
-        func test(writer: DatabaseWriter) async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -808,15 +792,14 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
-        try await AsyncTest(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try await AsyncTest(test).run { try DatabaseQueue() }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_break() async throws {
-        func test(writer: DatabaseWriter) async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -847,15 +830,14 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
-        try await AsyncTest(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try await AsyncTest(test).run { try DatabaseQueue() }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_immediate_break() async throws {
-        func test(writer: DatabaseWriter) async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -883,15 +865,14 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
-        try await AsyncTest(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try await AsyncTest(test).run { try DatabaseQueue() }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_cancelled() async throws {
-        func test(writer: DatabaseWriter) async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
@@ -931,10 +912,8 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
-        try await AsyncTest(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        try await AsyncTest(test).run { try DatabaseQueue() }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
-#endif
 }

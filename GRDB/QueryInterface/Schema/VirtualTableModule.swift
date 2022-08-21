@@ -21,18 +21,6 @@ public protocol VirtualTableModule {
     /// The name of the module.
     var moduleName: String { get }
     
-    // TODO: remove this requirement
-    /// Returns a table definition that is passed as the closure argument in the
-    /// `Database.create(virtualTable:using:)` method:
-    ///
-    ///     try db.create(virtualTable: "item", using: module) { t in
-    ///         // t is the result of makeTableDefinition()
-    ///     }
-    ///
-    /// - warning: This method is DEPRECATED. Define
-    ///   `makeTableDefinition(configuration:)` instead.
-    func makeTableDefinition() -> TableDefinition
-    
     /// Returns a table definition that is passed as the closure argument in the
     /// `Database.create(virtualTable:using:)` method:
     ///
@@ -47,14 +35,6 @@ public protocol VirtualTableModule {
     /// Execute any relevant database statement after the virtual table has
     /// been created.
     func database(_ db: Database, didCreate tableName: String, using definition: TableDefinition) throws
-}
-
-extension VirtualTableModule {
-    // Support for VirtualTableModule types defined by users
-    // TODO: remove when `makeTableDefinition()` is no longer a requirement
-    public func makeTableDefinition(configuration: VirtualTableConfiguration) -> TableDefinition {
-        makeTableDefinition()
-    }
 }
 
 public struct VirtualTableConfiguration {

@@ -16,20 +16,19 @@ private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
         self.creationDate = creationDate
     }
     
-    mutating func insert(_ db: Database) throws {
+    mutating func willInsert(_ db: Database) throws {
         if creationDate == nil {
            creationDate = Date()
         }
-        try performInsert(db)
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
 class MutablePersistableRecordChangesTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "players") { t in
                 t.column("id", .integer).primaryKey()
@@ -48,7 +47,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
         let record = DegenerateRecord()
         XCTAssertTrue(record.databaseEquals(record))
-        XCTAssertTrue(record.databaseChanges(from: record).isEmpty)
+        try XCTAssertTrue(record.databaseChanges(from: record).isEmpty)
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -66,7 +65,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         do {
             let player = Player(id: nil, name: nil, score: nil, creationDate: nil)
             XCTAssertTrue(player.databaseEquals(player))
-            XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
+            try XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -78,7 +77,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         do {
             let player = Player(id: 1, name: "foo", score: 42, creationDate: Date())
             XCTAssertTrue(player.databaseEquals(player))
-            XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
+            try XCTAssertTrue(player.databaseChanges(from: player).isEmpty)
             
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -102,7 +101,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.name = "Bobby"
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             
@@ -119,7 +118,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.name = nil
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             
@@ -136,7 +135,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.score = 41
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["score"]!, .null)
             
@@ -154,7 +153,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             newPlayer.score = 41
             
             XCTAssertFalse(newPlayer.databaseEquals(player))
-            let changes = newPlayer.databaseChanges(from: player)
+            let changes = try newPlayer.databaseChanges(from: player)
             XCTAssertEqual(changes.count, 2)
             XCTAssertEqual(changes["name"]!, "Arthur".databaseValue)
             XCTAssertEqual(changes["score"]!, .null)
@@ -184,7 +183,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             let newPlayer = Player(id: 1, name: "Arthur", score: 41, creationDate: nil)
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["score"]!, .null)
             
@@ -202,7 +201,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = NarrowPlayer(ID: 1, NAME: "Bobby")
             let newPlayer = Player(id: 1, name: "Arthur", score: 42, creationDate: nil)
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 2)
             XCTAssertEqual(changes["name"]!, "Bobby".databaseValue)
             XCTAssertEqual(changes["score"]!, .null)
@@ -223,7 +222,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             let oldPlayer = Player(id: 1, name: "Arthur", score: 42, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertTrue(changes.isEmpty)
             
             try dbQueue.inTransaction { db in
@@ -238,7 +237,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             let oldPlayer = Player(id: 1, name: "Arthur", score: nil, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Arthur")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertTrue(changes.isEmpty)
             
             try dbQueue.inTransaction { db in
@@ -253,7 +252,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var oldPlayer = Player(id: 1, name: "Arthur", score: nil, creationDate: nil)
             let newPlayer = NarrowPlayer(ID: 1, NAME: "Bobby")
             
-            let changes = newPlayer.databaseChanges(from: oldPlayer)
+            let changes = try newPlayer.databaseChanges(from: oldPlayer)
             XCTAssertEqual(changes.count, 1)
             XCTAssertEqual(changes["NAME"]!, "Arthur".databaseValue)
             
@@ -289,21 +288,22 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 case id, firstName, lastName
             }
             
-            required init(row: Row) {
+            required init(row: Row) throws {
                 id = row[Columns.id]
                 firstName = row[Columns.firstName]
                 lastName = row[Columns.lastName]
-                super.init(row: row)
+                try super.init(row: row)
             }
             
-            override func encode(to container: inout PersistenceContainer) {
+            override func encode(to container: inout PersistenceContainer) throws {
                 container[Columns.id] = id
                 container[Columns.firstName] = firstName
                 container[Columns.lastName] = lastName
             }
             
-            override func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            override func didInsert(_ inserted: InsertionSuccess) {
+                super.didInsert(inserted)
+                id = inserted.rowID
             }
         }
         
@@ -315,8 +315,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            // This `let` is part of the test
-            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
@@ -375,8 +374,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 self.lastName = lastName
             }
             
-            func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
             }
         }
         
@@ -388,8 +387,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            // This `let` is part of the test
-            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
@@ -442,8 +440,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var firstName: String?
             var lastName: String?
             
-            mutating func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            mutating func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
             }
         }
         

@@ -35,8 +35,8 @@ extension ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func _value(_ fetched: Base.Fetched) -> Base.Value? {
-            guard let value = base._value(fetched) else {
+        public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {
+            guard let value = try base._value(fetched) else {
                 return nil
             }
             if let previousValue = previousValue, predicate(previousValue, value) {
