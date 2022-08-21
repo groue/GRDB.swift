@@ -31,8 +31,9 @@ class MinimalRowID : Record, Hashable {
         container["id"] = id
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
     
     static func == (lhs: MinimalRowID, rhs: MinimalRowID) -> Bool {

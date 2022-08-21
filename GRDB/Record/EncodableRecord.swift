@@ -220,7 +220,7 @@ public struct PersistenceContainer {
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
     public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
-        get { storage[column] ?? nil }
+        get { self[caseInsensitive: column] }
         set { storage.updateValue(newValue, forKey: column) }
     }
     
@@ -245,6 +245,15 @@ public struct PersistenceContainer {
     /// Convenience initializer from a record
     init<Record: EncodableRecord>(_ record: Record) {
         self.init()
+        record.encode(to: &self)
+    }
+    
+    /// Convenience initializer from a database connection and a record
+    @usableFromInline
+    init(_ db: Database, _ record: some EncodableRecord & TableRecord) throws {
+        let databaseTableName = type(of: record).databaseTableName
+        let columnCount = try db.columns(in: databaseTableName).count
+        self.init(minimumCapacity: columnCount) // Optimization
         record.encode(to: &self)
     }
     
@@ -300,6 +309,7 @@ public struct PersistenceContainer {
         storage.makeIterator()
     }
     
+    @usableFromInline
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
         var newValueIterator = makeIterator()
         return AnyIterator {

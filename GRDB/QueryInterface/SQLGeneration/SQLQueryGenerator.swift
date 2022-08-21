@@ -205,11 +205,13 @@ struct SQLQueryGenerator: Refinable {
         return false
     }
     
-    func makeDeleteStatement(_ db: Database) throws -> Statement {
+    /// Returns a `DELETE` statement, with `RETURNING` clause if `selection`
+    /// is not empty.
+    func makeDeleteStatement(_ db: Database, selection: [any SQLSelectable] = []) throws -> Statement {
         switch try grouping(db) {
         case .none:
             guard relation.joins.isEmpty else {
-                return try makeTrivialDeleteStatement(db)
+                return try makeTrivialDeleteStatement(db, selection: selection)
             }
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases, ctes: relation.ctes)
@@ -233,12 +235,10 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeStatement(sql: sql)
-            statement.arguments = context.arguments
-            return statement
+            return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
             
         case .unique:
-            return try makeTrivialDeleteStatement(db)
+            return try makeTrivialDeleteStatement(db, selection: selection)
             
         case .nonUnique:
             // Programmer error
@@ -247,7 +247,8 @@ struct SQLQueryGenerator: Refinable {
     }
     
     /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
-    private func makeTrivialDeleteStatement(_ db: Database) throws -> Statement {
+    /// DELETE FROM table WHERE id IN (SELECT id FROM table ...) RETURNING ...
+    private func makeTrivialDeleteStatement(_ db: Database, selection: [any SQLSelectable]) throws -> Statement {
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
@@ -263,16 +264,18 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeStatement(sql: sql)
-        statement.arguments = context.arguments
-        return statement
+        return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
     }
     
-    /// Returns nil if assignments is empty
+    /// Returns an `UPDATE` statement, with `RETURNING` clause if `selection`
+    /// is not empty.
+    ///
+    /// Returns nil if assignments is empty.
     func makeUpdateStatement(
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
-        assignments: [ColumnAssignment])
+        assignments: [ColumnAssignment],
+        selection: [any SQLSelectable] = [])
     throws -> Statement?
     {
         switch try grouping(db) {
@@ -281,7 +284,8 @@ struct SQLQueryGenerator: Refinable {
                 return try makeTrivialUpdateStatement(
                     db,
                     conflictResolution: conflictResolution,
-                    assignments: assignments)
+                    assignments: assignments,
+                    selection: selection)
             }
             
             // Check for empty assignments after all programmer errors have
@@ -322,12 +326,14 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeStatement(sql: sql)
-            statement.arguments = context.arguments
-            return statement
+            return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
             
         case .unique:
-            return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
+            return try makeTrivialUpdateStatement(
+                db,
+                conflictResolution: conflictResolution,
+                assignments: assignments,
+                selection: selection)
             
         case .nonUnique:
             // Programmer error
@@ -336,11 +342,13 @@ struct SQLQueryGenerator: Refinable {
     }
     
     /// UPDATE table SET ... WHERE id IN (SELECT id FROM table ...)
+    /// UPDATE table SET ... WHERE id IN (SELECT id FROM table ...) RETURNING ...
     /// Returns nil if assignments is empty
     private func makeTrivialUpdateStatement(
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
-        assignments: [ColumnAssignment])
+        assignments: [ColumnAssignment],
+        selection: [any SQLSelectable])
     throws -> Statement?
     {
         // Check for empty assignments after all programmer errors have
@@ -378,9 +386,35 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeStatement(sql: sql)
-        statement.arguments = context.arguments
-        return statement
+        return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
+    }
+    
+    // Support for the RETURNING clause
+    private func makeStatement(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments,
+        returning selection: [any SQLSelectable])
+    throws -> Statement
+    {
+        if selection.isEmpty {
+            let statement = try db.makeStatement(sql: sql)
+            statement.arguments = arguments
+            return statement
+        } else {
+            assert(sqlite3_libversion_number() >= 3035000)
+            let context = SQLGenerationContext(db)
+            var sql = sql
+            var arguments = arguments
+            sql += " RETURNING "
+            sql += try selection
+                .map { try $0.sqlSelection.sql(context) }
+                .joined(separator: ", ")
+            arguments += context.arguments
+            let statement = try db.makeStatement(sql: sql)
+            statement.arguments = arguments
+            return statement
+        }
     }
     
     private func commonTableExpressionsPrefix(_ context: SQLGenerationContext) throws -> String {

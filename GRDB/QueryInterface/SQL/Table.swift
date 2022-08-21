@@ -1139,7 +1139,7 @@ extension Table {
 // MARK: - Batch Delete
 
 extension Table {
-    /// Deletes all rows; returns the number of deleted rows.
+    /// Deletes all rows, and returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
@@ -1220,7 +1220,7 @@ extension Table {
 // MARK: - Deleting by Single-Column Primary Key
 
 extension Table {
-    /// Delete rows identified by their primary keys; returns the number of
+    /// Delete rows identified by their primary keys, and returns the number of
     /// deleted rows.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
@@ -1251,7 +1251,7 @@ extension Table {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Delete a row, identified by its primary key; returns whether a
+    /// Delete a row, identified by its primary key, and returns whether a
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
@@ -1285,7 +1285,7 @@ extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
 {
-    /// Delete rows identified by their primary keys; returns the number of
+    /// Delete rows identified by their primary keys, and returns the number of
     /// deleted rows.
     ///
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
@@ -1313,7 +1313,7 @@ where RowDecoder: Identifiable,
         return try filter(ids: ids).deleteAll(db)
     }
     
-    /// Delete a row, identified by its primary key; returns whether a
+    /// Delete a row, identified by its primary key, and returns whether a
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
@@ -1346,7 +1346,8 @@ where RowDecoder: Identifiable,
 
 extension Table {
     /// Delete rows identified by the provided unique keys (primary key or
-    /// any key with a unique index on it); returns the number of deleted rows.
+    /// any key with a unique index on it), and returns the number of
+    /// deleted rows.
     ///
     ///     try Table("player").deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
     ///
@@ -1364,7 +1365,8 @@ extension Table {
     }
     
     /// Delete a row, identified by a unique key (the primary key or any key
-    /// with a unique index on it); returns whether a database row was deleted.
+    /// with a unique index on it), and returns whether a database row
+    /// was deleted.
     ///
     ///     Table("player").deleteOne(db, key: ["name": Arthur"])
     ///
@@ -1381,7 +1383,7 @@ extension Table {
 // MARK: - Batch Update
 
 extension Table {
-    /// Updates all rows; returns the number of updated rows.
+    /// Updates all rows, and returns the number of updated rows..
     ///
     /// For example:
     ///
@@ -1405,7 +1407,7 @@ extension Table {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
-    /// Updates all rows; returns the number of updated rows.
+    /// Updates all rows, and returns the number of updated rows..
     ///
     /// For example:
     ///
@@ -1416,18 +1418,16 @@ extension Table {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - parameter assignments: Column assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
+        _ assignments: ColumnAssignment...)
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, assignments)
     }
 }

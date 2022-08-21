@@ -30,8 +30,9 @@ private class Reader : Record {
         container["age"] = age
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 

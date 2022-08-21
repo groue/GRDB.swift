@@ -46,17 +46,16 @@ private class Person : Record {
         container["creationDate"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
@@ -91,14 +90,14 @@ private class PersonWithOverrides : Person {
         try super.init(row: row)
     }
     
-    override func insert(_ db: Database) throws {
+    override func willInsert(_ db: Database) throws {
         lastSavingMethod = .insert
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func update(_ db: Database, columns: Set<String>) throws {
+    override func willUpdate(_ db: Database, columns: Set<String>) throws {
         lastSavingMethod = .update
-        try super.update(db, columns: columns)
+        try super.willUpdate(db, columns: columns)
     }
 }
 

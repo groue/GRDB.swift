@@ -16,15 +16,14 @@ private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
         self.creationDate = creationDate
     }
     
-    mutating func insert(_ db: Database) throws {
+    mutating func willInsert(_ db: Database) throws {
         if creationDate == nil {
            creationDate = Date()
         }
-        try performInsert(db)
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -302,8 +301,9 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 container[Columns.lastName] = lastName
             }
             
-            override func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            override func didInsert(_ inserted: InsertionSuccess) {
+                super.didInsert(inserted)
+                id = inserted.rowID
             }
         }
         
@@ -315,8 +315,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            // This `let` is part of the test
-            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
@@ -375,8 +374,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 self.lastName = lastName
             }
             
-            func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
             }
         }
         
@@ -388,8 +387,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            // This `let` is part of the test
-            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
@@ -442,8 +440,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             var firstName: String?
             var lastName: String?
             
-            mutating func didInsert(with rowID: Int64, for column: String?) {
-                id = rowID
+            mutating func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
             }
         }
         

@@ -67,8 +67,36 @@ extension DatabaseUUIDEncodingStrategy {
 @available(*, unavailable, message: "FastNullableDatabaseValueCursor<T> has been replaced with FastDatabaseValueCursor<T?>")
 typealias FastNullableDatabaseValueCursor<T: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<T?>
 
+extension MutablePersistableRecord {
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public mutating func performInsert(_ db: Database) throws { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public func performUpdate(_ db: Database, columns: Set<String>) throws { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public mutating func performSave(_ db: Database) throws { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public func performDelete(_ db: Database) throws -> Bool { preconditionFailure() }
+    
+    @available(*, unavailable, message: "performExists(_:) was removed without any replacement.")
+    public func performExists(_ db: Database) throws -> Bool { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "updateChanges(_:modify:)")
+    public mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool { preconditionFailure() }
+}
+
 @available(*, unavailable, message: "NullableDatabaseValueCursor<T> has been replaced with DatabaseValueCursor<T?>")
 typealias NullableDatabaseValueCursor<T: DatabaseValueConvertible> = DatabaseValueCursor<T?>
+
+extension PersistableRecord {
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public func performInsert(_ db: Database) throws { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use persistence callbacks instead.")
+    public func performSave(_ db: Database) throws { preconditionFailure() }
+}
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension QueryInterfaceRequest where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {

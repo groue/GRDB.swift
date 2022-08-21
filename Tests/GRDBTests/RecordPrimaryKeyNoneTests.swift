@@ -39,8 +39,9 @@ private class Item : Record, Hashable {
         container["email"] = email
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        insertedRowIDColumn = column
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        insertedRowIDColumn = inserted.rowIDColumn
     }
     
     static func == (lhs: Item, rhs: Item) -> Bool {

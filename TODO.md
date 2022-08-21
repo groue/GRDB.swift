@@ -35,6 +35,9 @@
     - [X] throwing Decodable FetchableRecord initializer SECOND
     - [X] deal with as much value decoding error as possible
     - [?] expose throwing row accessors
+- [ ] GRDB 6: Batch insert & Batch insert RETURNING - https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database 
+- [ ] GRDB 6: INSERT or UPDATE columns to their default value 
+- [ ] GRDB 6: afterNextTransactionCommit -> afterNextTransaction(onCommit:onRollback:)  
 - [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
     - [ ] throwing EncodableRecord.encode FIRST
 - [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 
@@ -45,10 +48,10 @@
 - [X] GRDB 6: primary associated types (cursor, requests, ...)
 - [X] GRDB 6: remove existential/generic duplicated methods
 - [ ] GRDB 6: remove useless AnyXXX Type erasers
-- [ ] GRDB 6: conflict resolution in persistence methods
+- [X] GRDB 6: conflict resolution in persistence methods
 - [ ] GRDB 6: UPSERT
-- [ ] GRDB 6: support for RETURNING
-    - [ ] Support for default values: `Player.insert(db, returning: FullPlayer.self)` ?
+- [X] GRDB 6: support for RETURNING
+    - [X] Support for default values: `Player.insert(db, as: FullPlayer.self)`
 - [?] GRDB 6: allow mutating `update` (for timestamps)
 - [?] GRDB 6: let record choose persistence table (insert(into:) ?)
 - [?] GRDB 6: Support opaque return types (macOS Catalina, iOS 13, tvOS 13, watchOS 6 and later: https://stackoverflow.com/questions/56518406)

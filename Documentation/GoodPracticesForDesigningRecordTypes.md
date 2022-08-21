@@ -109,29 +109,33 @@ struct Book: Codable, Identifiable {
     var authorId: Int64
     var title: String
 }
+```
 
+We add database powers to our types with [record protocols]. Since our records use auto-incremented ids, we provide an implementation of the `didInsert` method:
+
+```swift
 // Add Database access
 
 extension Author: FetchableRecord, MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
 extension Book: FetchableRecord, MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
 
-That's it. The `Author` type can read and write in the `author` database table. `Book` as well, in `book`. See [record protocols] for more information.
+That's it. The `Author` type can read and write in the `author` database table. `Book` as well, in `book`.
 
 > :bulb: **Tip**: When a column of a database table can't be NULL, store it in a non-optional property of your record type. On the other side, when the database may contain NULL, define an optional property.
 > 
-> :bulb: **Tip**: When a database table uses an auto-incremented identifier, make the `id` property optional (so that you can instantiate a record before it gets inserted and gains an id), and implement the `didInsert(with:for:)` method:
+> :bulb: **Tip**: When a database table uses an auto-incremented identifier, make the `id` property optional (so that you can instantiate a record before it gets inserted and gains an id), and implement the `didInsert(_:)` method:
 >
 > ```swift
 > try dbQueue.write { db in
@@ -234,7 +238,7 @@ Let's look at three examples:
     
     > :bulb: Private properties allow records to choose both their best database representation, and at the same time, their best Swift interface.
 
-**Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy. When needed, you can even [validate values](../README.md#customizing-the-persistence-methods) before they enter the database.
+**Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy. When needed, you can even [validate values](../README.md#persistence-callbacks) before they enter the database.
 
 
 ## Singleton Records

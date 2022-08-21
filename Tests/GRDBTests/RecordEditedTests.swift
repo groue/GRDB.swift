@@ -46,17 +46,16 @@ private class Person : Record {
         container["creationDate"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
@@ -115,17 +114,16 @@ private class PersonWithModifiedCaseColumns: Record {
         container["CREATIONDATE"] = creationDate
     }
     
-    override func insert(_ db: Database) throws {
-        // This is implicitly tested with the NOT NULL constraint on creationDate
+    override func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = Date()
         }
-        
-        try super.insert(db)
+        try super.willInsert(db)
     }
     
-    override func didInsert(with rowID: Int64, for column: String?) {
-        self.id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 
@@ -672,7 +670,7 @@ class RecordEditedTests: GRDBTestCase {
                 XCTAssertTrue(person.hasDatabaseChanges)
                 try person.updateChanges(db)
                 XCTFail("Expected PersistenceError")
-            } catch is PersistenceError { }
+            } catch PersistenceError.recordNotFound(databaseTableName: "persons", key: ["id": .null]) { }
             
             try person.insert(db)
 

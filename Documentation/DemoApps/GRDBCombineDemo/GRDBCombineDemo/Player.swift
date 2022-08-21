@@ -60,8 +60,8 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
     }
     
     /// Updates a player id after it has been inserted in the database.
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

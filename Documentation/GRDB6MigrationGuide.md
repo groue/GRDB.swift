@@ -110,7 +110,135 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     
     </details>
 
+- **The signature of the `didInsert` method has changed**.
+    
+    You have to update all the `didInsert` methods in your application:
+    
+    ```diff
+     struct Player: MutablePersistableRecord {
+         var id: Int64?
+     
+         // Update auto-incremented id upon successful insertion
+    -    mutating func didInsert(with rowID: Int64, for column: String?) {
+    -        id = rowID
+    +    mutating func didInsert(_ inserted: InsertionSuccess) {
+    +        id = inserted.rowID
+         }
+     }
+    ```
+    
+    If you subclass the `Record` class, you have to call `super` at some point of your implementation:
+    
+    ```diff
+     class Player: Record {
+         var id: Int64?
+     
+         // Update auto-incremented id upon successful insertion
+    -    override func didInsert(with rowID: Int64, for column: String?) {
+    -        id = rowID
+    +    override func didInsert(_ inserted: InsertionSuccess) {
+    +        super.didInsert(inserted)
+    +        id = inserted.rowID
+         }
+     }
+    ```
 
+- **PersistableRecord types now customize persistence methods with "persistence callbacks"**.
+    
+    It is no longer possible to override persistence methods such as `insert` or `update`. Customizing the persistence methods is now possible with callbacks such as `willSave`, `willInsert`, or `didDelete` (see [Persistence Callbacks](../README.md#persistence-callbacks) for the full list of callbacks).
+    
+    For example, let's consider a record that performs some validation before insertion and updates. In GRDB 5, this would look like:
+    
+    ```swift
+    // GRDB 5
+    struct Link: PersistableRecord {
+        var url: URL
+        
+        func insert(_ db: Database) throws {
+            try validate()
+            try performInsert(db)
+        }
+        
+        func update(_ db: Database, columns: Set<String>) throws {
+            try validate()
+            try performUpdate(db, columns: columns)
+        }
+        
+        func validate() throws {
+            if url.host == nil {
+                throw ValidationError("url must be absolute.")
+            }
+        }
+    }
+    ```
+    
+    With GRDB 6, record validation can be implemented with the `willSave` callback:
+    
+    ```swift
+    // GRDB 6
+    struct Link: PersistableRecord {
+        var url: URL
+        
+        func willSave(_ db: Database) throws {
+            if url.host == nil {
+                throw ValidationError("url must be absolute.")
+            }
+        }
+    }
+    
+    try link.insert(db) // Calls the willSave callback
+    try link.update(db) // Calls the willSave callback
+    try link.save(db)   // Calls the willSave callback
+    try link.upsert(db) // Calls the willSave callback
+    ```
+    
+    If you subclass the `Record` class, you have to call `super` at some point of your implementation:
+    
+    ```swift
+    // GRDB 6
+    class Link: Record {
+        var url: URL
+        
+        override func willSave(_ db: Database) throws {
+            try super.willSave(db)
+            if url.host == nil {
+                throw ValidationError("url must be absolute.")
+            }
+        }
+    }
+    ```
+
+- **Handling of the `IGNORE` conflict policy**
+    
+    The SQLite [IGNORE](https://www.sqlite.org/lang_conflict.html) conflict policy has SQLite skip insertions and updates that violate a schema constraint, without reporting any error. You can skip this paragraph if you do not use this policy.
+    
+    GRDB 6 has slightly changed the handling of the `IGNORE` policy.
+    
+    The `didInsert` callback is now always called on `INSERT OR IGNORE` insertions. In GRDB 5, `didInsert` was not called for record types that specify the `.ignore` conflict policy on inserts:
+    
+    ```swift
+    // Given a record with ignore conflict policy for inserts...
+    struct Player: TableRecord, FetchableRecord {
+        static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .ignore)
+    }
+    
+    // GRDB 5: Does not call didInsert
+    // GRDB 6: Calls didInsert
+    try player.insert(db)
+    ```
+    
+    Since `INSERT OR IGNORE` may silently fail, the `didInsert` method will be called with some random rowid in case of failed insert. You can detect failed insertions with the new method `insertAndFetch`:
+    
+    ```swift
+    // How to detect failed `INSERT OR IGNORE`:
+    // INSERT OR IGNORE INTO player ... RETURNING *
+    if let insertedPlayer = try player.insertAndFetch(db) {
+        // Succesful insertion
+    } else {
+        // Ignored failure
+    }
+    ```
+    
 ## Other Changes
 
 - The initializer of in-memory databases can now throw errors:

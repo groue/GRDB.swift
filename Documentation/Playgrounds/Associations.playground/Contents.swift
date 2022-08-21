@@ -44,8 +44,8 @@ struct Author: Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var name: String
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -54,8 +54,8 @@ struct Book: Codable, FetchableRecord, MutablePersistableRecord {
     var authorId: Int64
     var title: String
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

@@ -2473,8 +2473,9 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
-    - [Persistence Methods](#persistence-methods)
-    - [Customizing the Persistence Methods]
+    - [Persistence Methods]
+    - [Persistence Methods and the `RETURNING` clause](#persistence-methods-and-the-returning-clause)
+    - [Persistence Callbacks]
 - [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
@@ -2807,23 +2808,23 @@ protocol EncodableRecord {
 protocol MutablePersistableRecord: TableRecord, EncodableRecord {
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
-    mutating func didInsert(with rowID: Int64, for column: String?)
+    mutating func didInsert(_ inserted: InsertionSuccess)
 }
 
 // Adds immutability
 protocol PersistableRecord: MutablePersistableRecord {
-    /// Non-mutating version of the optional didInsert(with:for:)
-    func didInsert(with rowID: Int64, for column: String?)
+    /// Non-mutating version of the optional didInsert(_:)
+    func didInsert(_ inserted: InsertionSuccess)
 }
 ```
 
 Yes, three protocols instead of one. Here is how you pick one or the other:
 
-- **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(with:for:)` if the database table has an auto-incremented primary key.
+- **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(_:)` if the database table has an auto-incremented primary key.
 
-- **If your type is a struct, and the database table has an auto-incremented primary key**, choose `MutablePersistableRecord`, and implement `didInsert(with:for:)`.
+- **If your type is a struct, and the database table has an auto-incremented primary key**, choose `MutablePersistableRecord`, and implement `didInsert(_:)`.
 
-- **Otherwise**, choose `PersistableRecord`, and ignore `didInsert(with:for:)`.
+- **Otherwise**, choose `PersistableRecord`, and ignore `didInsert(_:)`.
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
@@ -2842,8 +2843,8 @@ extension Place : MutablePersistableRecord {
     }
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -2883,8 +2884,8 @@ struct Player: Encodable, MutablePersistableRecord {
     var score: Int
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -2892,7 +2893,7 @@ struct Player: Encodable, MutablePersistableRecord {
 
 ### Persistence Methods
 
-[Record](#record-class) subclasses and types that adopt [PersistableRecord] are given default implementations for methods that insert, update, and delete:
+[Record](#record-class) subclasses and types that adopt [PersistableRecord] are given methods that insert, update, and delete:
 
 ```swift
 // INSERT
@@ -2919,7 +2920,7 @@ try place.delete(db)
 let exists = try place.exists(db)
 ```
 
-The [TableRecord] protocol comes with batch operations:
+**The [TableRecord] protocol comes with batch operations**:
 
 ```swift
 // UPDATE
@@ -2943,56 +2944,203 @@ try Place.deleteOne(db, key:...)
 
 **All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
 
+**To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt at overriding the ready-made persistence methods.
 
-### Customizing the Persistence Methods
+### Persistence Methods and the `RETURNING` clause
 
-Your custom type may want to perform extra work when the persistence methods are invoked.
+SQLite 3.35.0+ is able to return values from a inserted or updated row, with the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html) (available from iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build]).
 
-For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
+The `RETURNING` clause helps dealing with database features such as auto-incremented ids, default values, and [generated columns](https://sqlite.org/gencol.html). You can, for example, insert a few columns and fetch the default or generated ones in one step.
 
-When you subclass [Record](#record-class), you simply have to override the customized method, and call `super`:
+GRDB uses the `RETURNING` clause in all persistence methods that contain `AndFetch` in their name.
+
+For example, given a database table with an auto-incremented primary key and a default score:
 
 ```swift
-class Player : Record {
-    var uuid: UUID?
+try dbQueue.write { db in
+    try db.execute(sql: """
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          score INTEGER NOT NULL DEFAULT 1000)
+        """)
+}
+```
+
+You can define a record type with full database information, and another partial record type that deals with a subset of columns:
+
+```swift
+// A player with full database information
+struct Player: Codable, PersistableRecord, FetchableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
+// A partial player
+struct PartialPlayer: Encodable, PersistableRecord {
+    static let databaseTableName = "player"
+    var name: String
+}
+```
+
+And now you can get a full player by inserting a partial one:
+
+```swift
+try dbQueue.write { db in
+    let partialPlayer = PartialPlayer(name: "Alice")
     
-    override func insert(_ db: Database) throws {
-        if uuid == nil {
-            uuid = UUID()
-        }
-        try super.insert(db)
+    // INSERT INTO player (name) VALUES ('Alice') RETURNING *
+    if let player = try partialPlayer.insertAndFetch(db, as: Player.self) {
+        print(player.id)    // The inserted id
+        print(player.name)  // The inserted name
+        print(player.score) // The default score
     }
 }
 ```
 
-If you use the raw [PersistableRecord] protocol, use one of the *special methods* `performInsert`, `performUpdate`, `performSave`, `performDelete`, or `performExists`:
+For extra precision, you can select only the columns you need, and fetch the desired value from the provided [prepared statement](#prepared-statements):
 
 ```swift
-struct Link : PersistableRecord {
+try dbQueue.write { db in
+    let partialPlayer = PartialPlayer(name: "Alice")
+    
+    // INSERT INTO player (name) VALUES ('Alice') RETURNING score
+    let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
+        try Int.fetchOne(statement)
+    }
+    print(score) // Prints 1000, the default score
+}
+```
+
+There are other similar persistence methods, such as `saveAndFetch`, `updateAndFetch`, `updateChangesAndFetch`, etc. They all behave like `save`, `update`, `updateChanges` (see [Persistence Methods] and the [`updateChanges` methods](#the-updatechanges-methods)), except that they return saved values. For example:
+
+```swift
+// Save and return the saved player
+let savedPlayer = try player.saveAndFetch(db)
+```
+
+**Batch operations** can return updated or deleted values:
+
+> :warning: **Warning**: Make sure you check the [documentation of the `RETURNING` clause](https://www.sqlite.org/lang_returning.html), which describes important limitations and caveats for batch operations.
+
+```swift
+let request = Player.filter(...)...
+
+// Fetch all deleted players
+// DELETE FROM player RETURNING *
+let deletedPlayers = try request.deleteAndFetchAll(db) // [Player]
+
+// Fetch a selection of columns from the deleted rows
+// DELETE FROM player RETURNING name
+let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+let deletedNames = try String.fetchSet(statement)
+
+// Fetch all updated players
+// UPDATE player SET score = score + 10 RETURNING *
+let updatedPlayers = try request.updateAndFetchAll(db, [Column("score") += 10]) // [Player]
+
+// Fetch a selection of columns from the updated rows
+// UPDATE player SET score = score + 10 RETURNING score
+let statement = try request.updateAndFetchStatement(
+    db, [Column("score") += 10],
+    select: [Column("score")])
+let updatedScores = try Int.fetchAll(statement)
+```
+
+
+### Persistence Callbacks
+
+Your custom type may want to perform extra work when the persistence methods are invoked.
+
+To this end, your record type can implement **persistence callbacks**. Callbacks are methods that get called at certain moments of a record's life cycle. With callbacks it is possible to write code that will run whenever an record is inserted, updated, or deleted.
+
+In order to use a callback method, you need to provide its implementation. For example, a frequently used callback is `didInsert`, in the case of auto-incremented database ids:
+
+```swift
+struct Player: MutablePersistableRecord {
+    var id: Int64?
+    
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+}
+
+try dbQueue.write { db in
+    var player = Player(id: nil, ...)
+    try player.insert(db)
+    print(player.id) // didInsert was called: prints some non-nil id
+}
+```
+
+When you subclass the [Record](#record-class) class, override the callback, and make sure you call `super` at some point of your implementation:
+
+```swift
+class Player: Record {
+    var id: Int64?
+    
+    // Update auto-incremented id upon successful insertion
+    func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
+    }
+}
+```
+
+Callbacks can also help implementing record validation:
+
+```swift
+struct Link: PersistableRecord {
     var url: URL
     
-    func insert(_ db: Database) throws {
-        try validate()
-        try performInsert(db)
-    }
-    
-    func update(_ db: Database, columns: Set<String>) throws {
-        try validate()
-        try performUpdate(db, columns: columns)
-    }
-    
-    func validate() throws {
+    func willSave(_ db: Database) throws {
         if url.host == nil {
             throw ValidationError("url must be absolute.")
         }
     }
 }
+
+try link.insert(db) // Calls the willSave callback
+try link.update(db) // Calls the willSave callback
+try link.save(db)   // Calls the willSave callback
+try link.upsert(db) // Calls the willSave callback
 ```
 
-> :point_up: **Note**: the special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
->
-> :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+#### Available Callbacks
 
+Here is a list with all the available callbacks, listed in the same order in which they will get called during the respective operations:
+
+- Inserting a record (all `record.insert` methods)
+    - `willSave`
+    - `aroundSave`
+    - `willInsert`
+    - `aroundInsert`
+    - `didInsert`
+    - `didSave`
+    
+- Updating a record (all `record.update` methods)
+    - `willSave`
+    - `aroundSave`
+    - `willUpdate`
+    - `aroundUpdate`
+    - `didUpdate`
+    - `didSave`
+    
+- Deleting a record (only the `record.delete(_:)` method)
+    - `willDelete`
+    - `aroundDelete`
+    - `didDelete`
+
+Make sure you provide implementations that match the exact callback signatures. When in doubt, check the [reference](http://groue.github.io/GRDB.swift/docs/5.26/Protocols/MutablePersistableRecord.html).
+
+In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mutating methods. In `PersistableRecord`, they are not mutating.
+
+> :point_up: **Note**: The `record.save(_:)` method performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key. It triggers update and/or insert callbacks accordingly.
+>
+> :warning: **Warning**: Callbacks are only invoked from persistence methods called on record instances. Callbacks are not invoked when you call a type method, perform a batch operations, or execute raw SQL.
+>
+> :warning: **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle committed changes, use the [After Commit Hook](#after-commit-hook).
 
 ## Identifiable Records
 
@@ -3354,8 +3502,9 @@ class Place: Record {
     }
     
     /// Update record ID after a successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 ```
@@ -3392,7 +3541,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
     }
     ```
 
-- `updateChanges(_:with:)`
+- `updateChanges(_:modify:)`
     
     This method lets you update a record in place:
     
@@ -3501,7 +3650,7 @@ For an efficient algorithm which synchronizes the content of a database table wi
 
 GRDB records come with many default behaviors, that are designed to fit most situations. Many of those defaults can be customized for your specific needs:
 
-- [Customizing the Persistence Methods]: define what happens when you call a persistence method such as `player.insert(db)`
+- [Persistence Callbacks]: define what happens when you call a persistence method such as `player.insert(db)`
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
 - [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
@@ -3560,7 +3709,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     try db.execute(sql: "INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods]:
 
 ```swift
 protocol MutablePersistableRecord {
@@ -3583,10 +3732,17 @@ struct Player : MutablePersistableRecord {
 try player.insert(db)
 ```
 
-> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
->
-> - if you specify the `ignore` policy in the database table definition, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
-> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
+> :point_up: **Note**: If you specify the `ignore` policy for inserts, the [`didInsert`  callback](#persistence-callbacks) will be called with some random id in case of failed insert. You can detect failed insertions with `insertAndFetch`:
+>     
+> ```swift
+> // How to detect failed `INSERT OR IGNORE`:
+> // INSERT OR IGNORE INTO player ... RETURNING *
+> if let insertedPlayer = try player.insertAndFetch(db) {
+>     // Succesful insertion
+> } else {
+>     // Ignored failure
+> }
+> ```
 >
 > :point_up: **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
 
@@ -3672,7 +3828,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     event.id // some value
     ```
 
-3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(with:for:)` method (both from the [PersistableRecord and MutablePersistableRecord](#persistablerecord-protocol) protocols):
+3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(_:)` callback (both from the [PersistableRecord and MutablePersistableRecord](#persistablerecord-protocol) protocols):
     
     ```swift
     struct Event : MutablePersistableRecord {
@@ -3685,8 +3841,8 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
         }
         
         // Update auto-incremented id upon successful insertion
-        mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowID
+        mutating func didInsert(_ inserted: InsertionSuccess) {
+            id = inserted.rowID
         }
     }
     ```
@@ -3784,8 +3940,8 @@ extension Place: FetchableRecord { }
 // Persistence methods
 extension Place: MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3838,8 +3994,8 @@ extension Place: MutablePersistableRecord {
     }
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3912,8 +4068,8 @@ extension Place: FetchableRecord {
 // Persistence methods
 extension Place: MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3969,8 +4125,9 @@ class Place: Record {
     }
     
     // Update auto-incremented id upon successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 ```
@@ -3990,16 +4147,27 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
 | `record.encode(to:)` | [EncodableRecord] | |
-| `record.didInsert(with:for:)` | [PersistableRecord] | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [PersistableRecord] | |
+| `record.insertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.insertAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.insertAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
 | `record.inserted(db)` | [PersistableRecord] | |
 | `record.save(db)` | [PersistableRecord] | |
+| `record.saveAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.saveAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.saveAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
 | `record.saved(db)` | [PersistableRecord] | |
 | `record.update(db)` | [PersistableRecord] | |
+| `record.updateAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.updateAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.updateAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
+| `record.updateAndFetch(_:columns:selection:fetch:)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
+| `record.updateChangesAndFetch(_:columns:as:modify:)` | [PersistableRecord] | |
+| `record.updateChangesAndFetch(_:columns:selection:fetch:modify:)` | [PersistableRecord] | |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
 | `Type.updateAll(db, ...)` | [TableRecord] | |
 | `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -4011,6 +4179,19 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.deleteAll(db, keys:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.deleteAll(db, ids:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| **Persistence Callbacks** | | |
+| `record.willInsert(_:)` | [PersistableRecord] | |
+| `record.aroundInsert(_:insert:)` | [PersistableRecord] | |
+| `record.didInsert(_:)` | [PersistableRecord] | |
+| `record.willUpdate(_:columns:)` | [PersistableRecord] | |
+| `record.aroundUpdate(_:columns:update:)` | [PersistableRecord] | |
+| `record.didUpdate(_:)` | [PersistableRecord] | |
+| `record.willSave(_:)` | [PersistableRecord] | |
+| `record.aroundSave(_:save:)` | [PersistableRecord] | |
+| `record.didSave(_:)` | [PersistableRecord] | |
+| `record.willDelete(_:)` | [PersistableRecord] | |
+| `record.aroundDelete(_:delete:)` | [PersistableRecord] | |
+| `record.didDelete(deleted:)` | [PersistableRecord] | |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
 | `Type.exists(db, key: ...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
@@ -8432,6 +8613,10 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
+#### Customizing the Persistence Methods
+
+This chapter was replaced with [Persistence Callbacks].
+
 #### ValueObservation and DatabaseRegionObservation
 
 This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
@@ -8480,7 +8665,6 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [common table expression]: Documentation/CommonTableExpressions.md
 [Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
-[Customizing the Persistence Methods]: #customizing-the-persistence-methods
 [Column Names Coding Strategies]: #column-names-coding-strategies
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
@@ -8495,6 +8679,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [PersistableRecord]: #persistablerecord-protocol
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
+[Persistence Callbacks]: #persistence-callbacks
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: #valueobservation
 [DatabaseRegionObservation]: #databaseregionobservation
@@ -8516,3 +8701,5 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
 [Database Configuration]: #database-configuration
+[Persistence Methods]: #persistence-methods
+[persistence methods]: #persistence-methods

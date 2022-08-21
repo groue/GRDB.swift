@@ -28,8 +28,8 @@ extension Book : MutablePersistableRecord {
         container["body"] = body
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 

@@ -107,10 +107,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: `DatabaseRegionObservation.start(in:onError:onChange:)` now returns a cancellable.
 - **Breaking**: The `DatabaseRegionObservation.extent` property was removed.
 - **Breaking**: The `statement` property of database cursors was replaced with read-only properties such as `sql` or `columnNames`.
+- **Breaking**: Record types can no longer override persistence methods. You use persistence callbacks instead.
 - **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 - **New**: You can append the contents of a cursor to a collection with `RangeReplaceableCollection.append(contentsOf:)`.
 - **New**: `ValueObservation.map` now accepts a throwing closure argument.
 - **New**: Value requests now throw an error when they find unexpected database values (they used to crash in GRDB 5).
+- **New**: Persistence callbacks allow record types to customize persistence methods.
+- **New**: All persistence methods now accept an explicit conflict policy: `player.insert(db, onConflict: .replace)`, etc.
+- **New**: Support for the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html) (available from iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a custom SQLite build): `player.insertAndFetch(db)`, `Player.deleteAndFetchAll(db)`, etc.
 
 ## 5.26.0
 

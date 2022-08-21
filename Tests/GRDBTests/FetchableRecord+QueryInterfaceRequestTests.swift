@@ -24,8 +24,8 @@ extension Reader : MutablePersistableRecord {
         container["age"] = age
     }
     
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
