@@ -37,7 +37,7 @@
     - [?] expose throwing row accessors
 - [ ] GRDB 6: Batch insert & Batch insert RETURNING - https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database 
 - [ ] GRDB 6: INSERT or UPDATE columns to their default value 
-- [ ] GRDB 6: afterNextTransactionCommit -> afterNextTransaction(onCommit:onRollback:)  
+- [X] GRDB 6: afterNextTransactionCommit -> afterNextTransaction(onCommit:onRollback:)  
 - [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
     - [ ] throwing EncodableRecord.encode FIRST
 - [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 

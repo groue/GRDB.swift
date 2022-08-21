@@ -39,40 +39,54 @@ extension Database {
         observationBroker.remove(transactionObserver: transactionObserver)
     }
     
-    /// Registers a closure to be executed after the next or current
+    /// Registers closures to be executed after the next or current
     /// transaction completion.
     ///
     ///     try dbQueue.write { db in
-    ///         db.afterNextTransactionCommit { _ in
+    ///         db.afterNextTransaction { _ in
     ///             print("success")
     ///         }
     ///         ...
-    ///     } // prints "success"
+    ///     } // prints "commit"
     ///
-    /// If the transaction is rollbacked, the closure is not executed.
+    /// Closure are executed in a protected dispatch queue, serialized will all
+    /// database updates.
     ///
-    /// If the transaction is committed, the closure is executed in a protected
-    /// dispatch queue, serialized will all database updates.
-    public func afterNextTransactionCommit(_ closure: @escaping (Database) -> Void) {
-        class CommitHandler: TransactionObserver {
-            let closure: (Database) -> Void
-            
-            init(_ closure: @escaping (Database) -> Void) {
-                self.closure = closure
+    /// - precondition: Database is not read-only.
+    /// - parameter onCommit: A closure execute on transaction commit.
+    /// - parameter onRollback: A closure execute on transaction rollback.
+    public func afterNextTransaction(
+        onCommit: @escaping (Database) -> Void,
+        onRollback: @escaping (Database) -> Void = { _ in })
+    {
+        class TransactionHandler: TransactionObserver {
+            let onCommit: (Database) -> Void
+            let onRollback: (Database) -> Void
+
+            init(onCommit: @escaping (Database) -> Void, onRollback: @escaping (Database) -> Void) {
+                self.onCommit = onCommit
+                self.onRollback = onRollback
             }
             
-            // Ignore individual changes and transaction rollbacks
+            // Ignore changes
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
             func databaseDidChange(with event: DatabaseEvent) { }
-            func databaseDidRollback(_ db: Database) { }
             
-            // On commit, run closure
             func databaseDidCommit(_ db: Database) {
-                closure(db)
+                onCommit(db)
+            }
+            
+            func databaseDidRollback(_ db: Database) {
+                onRollback(db)
             }
         }
         
-        add(transactionObserver: CommitHandler(closure), extent: .nextTransaction)
+        // We don't notify read-only transactions to transaction observers
+        GRDBPrecondition(!isReadOnly, "Read-only transactions are not notified")
+        
+        add(
+            transactionObserver: TransactionHandler(onCommit: onCommit, onRollback: onRollback),
+            extent: .nextTransaction)
     }
     
     /// The extent of a transaction observation.
@@ -497,7 +511,7 @@ class DatabaseObservationBroker {
         //
         // For example, is the code below expected to print "did commit"?
         //
-        //   db.afterNextTransactionCommit { _ in print("did commit") }
+        //   db.afterNextTransaction { _ in print("did commit") }
         //   try db.inTransaction {
         //       performSomeTask(db)
         //       return .commit

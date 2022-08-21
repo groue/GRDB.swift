@@ -3148,7 +3148,20 @@ In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mut
 >
 > :warning: **Warning**: Callbacks are only invoked from persistence methods called on record instances. Callbacks are not invoked when you call a type method, perform a batch operations, or execute raw SQL.
 >
-> :warning: **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle committed changes, use the [After Commit Hook](#after-commit-hook).
+> :warning: **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [Transaction Hook](#transaction-hook). For example:
+>
+> ```swift
+> struct PictureFile: PersistableRecord {
+>     var path: String
+>     
+>     func willDelete(_ db: Database) {
+>         db.afterNextTransaction { _ in
+>             try? deleteFileOnDisk()
+>         }
+>     }
+> }
+> ```
+
 
 ## Identifiable Records
 
@@ -6122,7 +6135,7 @@ Database Changes Observation
 
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
-- [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
+- [Transaction Hook](#transaction-hook): Handle transactions commits or rollbacks, one by one.
 - [ValueObservation]: Track changes of database values.
 - [DatabaseRegionObservation]: Tracking transactions that impact a database region.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
@@ -6132,24 +6145,20 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
 
-## After Commit Hook
+## Transaction Hook
 
-When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.
-
-Its closure argument is called right after database changes have been successfully written to disk:
+When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransaction(onCommit:onRollback:)` method.
 
 ```swift
 try dbQueue.write { db in
-    db.afterNextTransactionCommit { db in
-        print("success")
+    db.afterNextTransaction { db in
+        print("successful commit")
     }
     ...
-} // prints "success"
+} // prints "successful commit"
 ```
 
-The closure runs in a protected dispatch queue, serialized with all database updates.
-
-**This "after commit hook" helps synchronizing the database with other resources, such as files, or system sensors.**
+**This hook helps synchronizing the database with other resources, such as files, or system sensors.**
 
 In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
 
@@ -6165,7 +6174,7 @@ func startMonitoring(_ db: Database, region: CLRegion) throws {
         
         // Start monitoring if and only if the insertion is
         // eventually committed
-        db.afterNextTransactionCommit { _ in
+        db.afterNextTransaction { _ in
             // locationManager prefers the main queue:
             DispatchQueue.main.async {
                 locationManager.startMonitoring(for: region)
@@ -8627,6 +8636,10 @@ This protocol has been renamed [TableRecord] in GRDB 3.0.
 #### Customizing the Persistence Methods
 
 This chapter was replaced with [Persistence Callbacks].
+
+#### After Commit Hook
+
+This chapter was replaced with [Transaction Hook].
 
 #### ValueObservation and DatabaseRegionObservation
 

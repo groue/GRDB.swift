@@ -36,6 +36,9 @@ extension Database {
     
     @available(*, unavailable, renamed: "makeStatement(literal:)")
     public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> Statement { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "afterNextTransaction(onCommit:)")
+    public func afterNextTransactionCommit(_ closure: @escaping (Database) -> Void) { preconditionFailure() }
 }
 
 extension DatabaseCursor {

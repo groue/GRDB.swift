@@ -42,27 +42,28 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var transactionCount = 0
+            var commitCount = 0
             weak var deallocationWitness: Witness? = nil
             do {
                 let witness = Witness()
                 deallocationWitness = witness
-                db.afterNextTransactionCommit { _ in
+                // Usage test: single closure (the onCommit one)
+                db.afterNextTransaction { _ in
                     // use witness
                     withExtendedLifetime(witness, { })
-                    transactionCount += 1
+                    commitCount += 1
                 }
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(transactionCount, 0)
+            XCTAssertEqual(commitCount, 0)
             try db.execute(sql: startSQL)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -72,9 +73,9 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
             }
         }
     }
@@ -84,28 +85,38 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var transactionCount = 0
+            var commitCount = 0
+            var rollbackCount = 0
             try db.execute(sql: startSQL)
             
             weak var deallocationWitness: Witness? = nil
             do {
                 let witness = Witness()
                 deallocationWitness = witness
-                db.afterNextTransactionCommit { _ in
-                    // use witness
-                    withExtendedLifetime(witness, { })
-                    transactionCount += 1
-                }
+                // Usage test: both closure
+                db.afterNextTransaction(
+                    onCommit: { _ in
+                        // use witness
+                        withExtendedLifetime(witness, { })
+                        commitCount += 1
+                    },
+                    onRollback: { _ in
+                        // use witness
+                        withExtendedLifetime(witness, { })
+                        rollbackCount += 1
+                    })
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(transactionCount, 0)
+            XCTAssertEqual(commitCount, 0)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -115,9 +126,11 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(transactionCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
             }
         }
     }

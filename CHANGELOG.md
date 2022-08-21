@@ -107,6 +107,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: `DatabaseRegionObservation.start(in:onError:onChange:)` now returns a cancellable.
 - **Breaking**: The `DatabaseRegionObservation.extent` property was removed.
 - **Breaking**: The `statement` property of database cursors was replaced with read-only properties such as `sql` or `columnNames`.
+- **Breaking**: The `Database.afterNextTransactionCommit(_:)` method was renamed `Database.afterNextTransaction(onCommit:onRollback:)`, and is now able to report rollbacks as well as commits.
 - **Breaking**: Record types can no longer override persistence methods. You use persistence callbacks instead.
 - **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 - **New**: You can append the contents of a cursor to a collection with `RangeReplaceableCollection.append(contentsOf:)`.

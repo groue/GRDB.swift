@@ -315,3 +315,12 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     +let sql = cursor.sql
     +let columns = cursor.columnNames
     ```
+
+- The transaction hook `Database.afterNextTransactionCommit(_:)` was renamed `Database.afterNextTransaction(onCommit:onRollback:)`, and is now able to report rollbacks as well as commits.
+    
+    ```diff
+    -db.afterNextTransactionCommit { db in
+    +db.afterNextTransaction { db in
+         print("Succesful commit")
+     }
+    ```
