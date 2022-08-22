@@ -1045,7 +1045,7 @@ public struct PrimaryKeyInfo {
     ///
     /// Returns nil for WITHOUT ROWID tables with a multi-columns primary key
     var fastPrimaryKeyColumn: String? {
-        if let rowIDColumn = rowIDColumn {
+        if let rowIDColumn {
             // Prefer the user-provided name of the rowid
             //
             //  // CREATE TABLE player (id INTEGER PRIMARY KEY, ...)
