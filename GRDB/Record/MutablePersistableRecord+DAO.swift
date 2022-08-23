@@ -41,34 +41,93 @@ final class DAO<Record: MutablePersistableRecord> {
     
     func upsertStatement(
         _ db: Database,
-        conflictTarget conflictTargetColumns: [String],
+        onConflict conflictTargetColumns: [String],
+        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])?,
+        updateCondition: ((_ existing: TableAlias, _ excluded: TableAlias) -> any SQLExpressible)? = nil,
         returning selection: [any SQLSelectable])
     throws -> Statement
     {
-        // Don't update columns not present in the persistenceContainer
-        // Don't update columns not present in conflictTargetColumns
-        // Don't update primary key columns
-        let lowercaseUpdatedColumns = Set(persistenceContainer.columns.map { $0.lowercased() })
-            .subtracting(primaryKey.columns.map { $0.lowercased() })
-            .subtracting(conflictTargetColumns.map { $0.lowercased() })
-        
-        var updatedColumns: [String] = []
+        // INSERT
+        let insertedColumns = persistenceContainer.columns
+        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+        var sql = """
+            INSERT INTO \(databaseTableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         var arguments = StatementArguments(persistenceContainer.values)
-        for column in persistenceContainer.columns {
-            if lowercaseUpdatedColumns.contains(column.lowercased()) {
-                updatedColumns.append(column)
-                arguments += [persistenceContainer.databaseValue(at: column)]
-            }
+        
+        // ON CONFLICT
+        if conflictTargetColumns.isEmpty {
+            sql += " ON CONFLICT"
+        } else {
+            let targetSQL = conflictTargetColumns
+                .map { $0.quotedDatabaseIdentifier }
+                .joined(separator: ", ")
+            sql += " ON CONFLICT(\(targetSQL))"
         }
         
-        let query = UpsertQuery(
-            tableName: databaseTableName,
-            insertedColumns: persistenceContainer.columns,
-            conflictTargetColumns: conflictTargetColumns,
-            updatedColumns: updatedColumns)
+        // DO UPDATE SET
+        // We update explicit assignments from the `assignments` parameter.
+        // Other columns are overwritten by inserted values. This makes sure
+        // that no information stored in the record is lost, unless explicitly
+        // requested by the user.
+        sql += " DO UPDATE SET "
+        let excluded = TableAlias(name: "excluded")
+        var assignments = assignments?(excluded) ?? []
+        let lowercaseExcludedColumns = Set(primaryKey.columns.map { $0.lowercased() })
+            .union(conflictTargetColumns.map { $0.lowercased() })
+        for column in persistenceContainer.columns {
+            let lowercasedColumn = column.lowercased()
+            if lowercaseExcludedColumns.contains(lowercasedColumn) {
+                // excluded (primary key or conflict target)
+                continue
+            }
+            if assignments.contains(where: { $0.columnName.lowercased() == lowercasedColumn }) {
+                // already updated from the `assignments` argument
+                continue
+            }
+            // overwrite
+            assignments.append(Column(column).set(to: excluded[column]))
+        }
+        let context = SQLGenerationContext(db)
+        let updateSQL = try assignments
+            .compactMap { try $0.sql(context) }
+            .joined(separator: ", ")
+        if updateSQL.isEmpty {
+            if !selection.isEmpty {
+                // User has asked that no column was overwritten or updated.
+                // In case of conflict, the upsert would do nothing, and return
+                // nothing: <https://sqlite.org/forum/forumpost/1ead75e2c45de9a5>.
+                //
+                // But we have a RETURNING clause, so we WANT values to be
+                // returned, and we MUST prevent the upsert statement from
+                // return nothing. The RETURNING clause is how, for example, we
+                // fetch the rowid of the upserted record, and feed record
+                // callbacks such as `didInsert`. Not returning any value would
+                // be a GRDB bug.
+                //
+                // So let's make SURE something is returned, and to do so, let's
+                // update one column. The first column of the primary key should
+                // be ok.
+                let column = primaryKey.columns[0].quotedDatabaseIdentifier
+                sql += "\(column) = \(column)"
+            }
+        } else {
+            sql += updateSQL
+            arguments += context.arguments
+        }
+        
+        // WHERE
+        let existing = TableAlias(name: databaseTableName)
+        if let condition = updateCondition?(existing, excluded) {
+            let context = SQLGenerationContext(db)
+            sql += try " WHERE " + condition.sqlExpression.sql(context)
+            arguments += context.arguments
+        }
         
         return try makeStatement(
-            sql: query.sql,
+            sql: sql,
             checkedArguments: arguments,
             returning: selection)
     }
@@ -235,47 +294,6 @@ extension InsertQuery {
             VALUES (\(valuesSQL))
             """
         }
-        Self.sqlCache[self] = sql
-        return sql
-    }
-}
-
-// MARK: - UpsertQuery
-
-private struct UpsertQuery: Hashable {
-    let tableName: String
-    let insertedColumns: [String]
-    let conflictTargetColumns: [String]
-    let updatedColumns: [String]
-}
-
-extension UpsertQuery {
-    @ReadWriteBox private static var sqlCache: [UpsertQuery: String] = [:]
-    var sql: String {
-        if let sql = Self.sqlCache[self] {
-            return sql
-        }
-        
-        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
-        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
-        
-        let onConflictSQL: String
-        if conflictTargetColumns.isEmpty {
-            onConflictSQL = "ON CONFLICT"
-        } else {
-            let targetSQL = conflictTargetColumns
-                .map { $0.quotedDatabaseIdentifier }
-                .joined(separator: ", ")
-            onConflictSQL = "ON CONFLICT(\(targetSQL))"
-        }
-        
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        
-        let sql = """
-            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL)) \
-            \(onConflictSQL) DO UPDATE SET \(updateSQL)
-            """
         Self.sqlCache[self] = sql
         return sql
     }
