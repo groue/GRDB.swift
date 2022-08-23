@@ -1017,10 +1017,19 @@ extension QueryInterfaceRequest {
 ///     }
 public struct ColumnAssignment {
     var columnName: String
-    var value: SQLExpression
     
-    func sql(_ context: SQLGenerationContext) throws -> String {
-        try Column(columnName).sqlExpression.sql(context) + " = " + value.sql(context)
+    /// If nil, this is a "don't assign" assignment.
+    var value: SQLExpression?
+    
+    init(columnName: String, value: SQLExpression? = nil) {
+        self.columnName = columnName
+        self.value = value
+    }
+    
+    /// If nil, there's nothing to assign to.
+    func sql(_ context: SQLGenerationContext) throws -> String? {
+        guard let value else { return nil }
+        return try Column(columnName).sqlExpression.sql(context) + " = " + value.sql(context)
     }
 }
 
@@ -1038,6 +1047,11 @@ extension ColumnExpression {
     ///     }
     public func set(to value: (any SQLExpressible)?) -> ColumnAssignment {
         ColumnAssignment(columnName: name, value: value?.sqlExpression ?? .null)
+    }
+    
+    /// Returns an assignment that does not modify this column.
+    public var noOverwrite: ColumnAssignment {
+        ColumnAssignment(columnName: name, value: nil)
     }
 }
 
