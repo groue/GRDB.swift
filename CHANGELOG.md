@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.0.0` Betas - [6.0.0-beta](#600-beta)
+- `6.0.0` Betas - [6.0.0-beta](#600-beta) | [6.0.0-beta.2](#600-beta2)
 
 #### 5.x Releases
 
@@ -96,6 +96,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.0.0-beta.2
+
+Released August 23, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta...v6.0.0-beta.2)
+
+- **New**: Extended UPSERT apis with the ability to define the conflict target, and the assignments performed in case of conflicts.
+- **Documentation**: A new [Upsert](README.md#upsert) chapter describes upserts in detail.
 
 ## 6.0.0-beta
 

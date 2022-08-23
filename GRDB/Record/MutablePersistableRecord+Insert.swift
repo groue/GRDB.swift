@@ -460,7 +460,7 @@ extension MutablePersistableRecord {
         // This allows the Record class to set its `hasDatabaseChanges` property
         // to false in its `aroundInsert` callback.
         var persistenceContainer = dao.persistenceContainer
-        if let rowIDColumn = rowIDColumn {
+        if let rowIDColumn {
             persistenceContainer[caseInsensitive: rowIDColumn] = rowid
         }
         

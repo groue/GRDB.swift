@@ -288,12 +288,6 @@ struct SQLQueryGenerator: Refinable {
                     selection: selection)
             }
             
-            // Check for empty assignments after all programmer errors have
-            // been checked.
-            if assignments.isEmpty {
-                return nil
-            }
-            
             let context = SQLGenerationContext(db, aliases: relation.allAliases, ctes: relation.ctes)
             
             var sql = try commonTableExpressionsPrefix(context)
@@ -305,10 +299,13 @@ struct SQLQueryGenerator: Refinable {
             
             sql += try relation.source.sql(context)
             
-            sql += " SET "
-            sql += try assignments
-                .map { try $0.sql(context) }
+            let updateSQL = try assignments
+                .compactMap { try $0.sql(context) }
                 .joined(separator: ", ")
+            if updateSQL.isEmpty {
+                return nil
+            }
+            sql += " SET \(updateSQL)"
             
             if let filter = try relation.filterPromise?.resolve(db) {
                 sql += " WHERE "
@@ -351,12 +348,6 @@ struct SQLQueryGenerator: Refinable {
         selection: [any SQLSelectable])
     throws -> Statement?
     {
-        // Check for empty assignments after all programmer errors have
-        // been checked.
-        if assignments.isEmpty {
-            return nil
-        }
-        
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
@@ -374,10 +365,13 @@ struct SQLQueryGenerator: Refinable {
         sql += tableName.quotedDatabaseIdentifier
         
         // SET column = value...
-        sql += " SET "
-        sql += try assignments
-            .map { try $0.sql(context) }
+        let updateSQL = try assignments
+            .compactMap { try $0.sql(context) }
             .joined(separator: ", ")
+        if updateSQL.isEmpty {
+            return nil
+        }
+        sql += " SET \(updateSQL)"
         
         // WHERE id IN (SELECT id FROM ...)
         sql += " WHERE "
