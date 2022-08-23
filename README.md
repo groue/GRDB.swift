@@ -2924,6 +2924,8 @@ try place.delete(db)
 let exists = try place.exists(db)
 ```
 
+See [Upsert](#upsert) below for more information about upserts.
+
 **The [TableRecord] protocol comes with batch operations**:
 
 ```swift
@@ -2946,17 +2948,111 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 - `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
 
-- `upsert` requires SQLite 3.35.0+ (iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or [custom SQLite build]).
-
 - `delete` and `deleteOne` returns whether a database row was deleted or not. `deleteAll` returns the number of deleted rows. `updateAll` returns the number of updated rows. `updateChanges` returns whether a database row was updated or not.
 
 **All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
 
 **To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt at overriding the ready-made persistence methods.
 
+### Upsert
+
+[UPSERT](https://www.sqlite.org/lang_UPSERT.html) is an SQLite feature that causes an INSERT to behave as an UPDATE or a no-op if the INSERT would violate a uniqueness constraint (primary key or unique index).
+
+> **Note**: Upsert apis are available from SQLite 3.35.0+: iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build] or [SQLCipher](#encryption).
+>
+> **Note**: With regard to [persistence callbacks](#available-callbacks), an upsert behaves exactly like an insert. In particular: the `aroundInsert(_:)` and `didInsert(_:)` callbacks reports the rowid of the inserted or updated row; `willUpdate`, `aroundUdate`, `didUdate` are not called.
+
+[PersistableRecord] provides three upsert methods:
+
+- `upsert(_:)`
+    
+    Inserts or updates a record.
+    
+    The upsert behavior is triggered by a violation of any uniqueness constraint on the table (primary key or unique index). In case of conflict, all columns but the primary key are overwritten with the inserted values:
+    
+    ```swift
+    struct Player: Encodable, PersistableRecord {
+        var id: Int64
+        var name: String
+        var score: Int
+    }
+    
+    // INSERT INTO player (id, name, score)
+    // VALUES (1, 'Arthur', 1000)
+    // ON CONFLICT DO UPDATE SET
+    //   name = excluded.name,
+    //   score = excluded.score
+    let player = Player(id: 1, name: "Arthur", score: 1000)
+    try player.upsert(db)
+    ```
+
+- `upsertAndFetch(_:onConflict:doUpdate:)` (requires [FetchableRecord] conformance)
+
+    Inserts or updates a record, and returns the upserted record.
+    
+    The `onConflict` and `doUpdate` arguments let you further control the upsert behavior. Make sure you check the [SQLite UPSERT documentation](https://www.sqlite.org/lang_UPSERT.html) for detailed information.
+    
+    - `onConflict`: the "conflict target" is the array of columns in the uniqueness constraint (primary key or unique index) that triggers the upsert.
+        
+        If empty (the default), all uniqueness constraint are considered.
+    
+    - `doUpdate`: a closure that returns columns assignments to perform in case of conflict. Other columns are overwritten with the inserted values.
+        
+        By default, all inserted columns but the primary key and the conflict target are overwritten.
+    
+    In the example below, we upsert the new vocabulary word "jovial". It is inserted if that word is not already in the dictionary. Otherwise, `count` is incremented, `isTainted` is not overwritten, and `kind` is overwritten:
+    
+    ```swift
+    // CREATE TABLE vocabulary(
+    //   word TEXT NOT NULL PRIMARY KEY,
+    //   kind TEXT NOT NULL,
+    //   isTainted BOOLEAN DEFAULT 0,
+    //   count INT DEFAULT 1))
+    struct Vocabulary: Encodable, PersistableRecord {
+        var word: String
+        var kind: String
+        var isTainted: Bool
+    }
+    
+    // INSERT INTO vocabulary(word, kind, isTainted)
+    // VALUES('jovial', 'adjective', 0)
+    // ON CONFLICT(word) DO UPDATE SET \
+    //   count = count + 1,   -- on conflict, count is incremented
+    //   kind = excluded.kind -- on conflict, kind is overwritten
+    // RETURNING *
+    let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
+    let upserted = try vocabulary.upsertAndFetch(
+        db, onConflict: ["word"],
+        doUpdate: { _ in
+            [Column("count") += 1,            // on conflict, count is incremented
+             Column("isTainted").noOverwrite] // on conflict, isTainted is NOT overwritten
+        })
+    ```
+    
+    The `doUpdate` closure accepts an `excluded` TableAlias argument that refers to the inserted values that trigger the conflict. You can use it to specify an explicit overwrite, or to perform a computation. In the next example, the upsert keeps the maximum date in case of conflict:
+    
+    ```swift
+    // INSERT INTO message(id, text, date)
+    // VALUES(...)
+    // ON CONFLICT DO UPDATE SET \
+    //   text = excluded.text,
+    //   date = MAX(date, excluded.date)
+    // RETURNING *
+    let upserted = try message.upsertAndFetch(doUpdate: { excluded in
+        // keep the maximum date in case of conflict
+        [Column("date").set(to: max(Column("date"), excluded["date"]))]
+    })
+    ```
+
+- `upsertAndFetch(_:as:onConflict:doUpdate:)` (does not require [FetchableRecord] conformance)
+
+    This method is identical to `upsertAndFetch(_:onConflict:doUpdate:)` described above, but you can provide a distinct [FetchableRecord] record type as a result, in order to specify the returned columns.
+
 ### Persistence Methods and the `RETURNING` clause
 
-SQLite 3.35.0+ is able to return values from a inserted or updated row, with the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html) (available from iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build]).
+SQLite is able to return values from a inserted, updated, or deleted row, with the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html).
+
+> **Note**: Support for the `RETURNING` clause is available from SQLite 3.35.0+: iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build] or [SQLCipher](#encryption).
 
 The `RETURNING` clause helps dealing with database features such as auto-incremented ids, default values, and [generated columns](https://sqlite.org/gencol.html). You can, for example, insert a few columns and fetch the default or generated ones in one step.
 
@@ -3021,12 +3117,14 @@ try dbQueue.write { db in
 }
 ```
 
-There are other similar persistence methods, such as `saveAndFetch`, `updateAndFetch`, `updateChangesAndFetch`, etc. They all behave like `save`, `update`, `updateChanges` (see [Persistence Methods] and the [`updateChanges` methods](#the-updatechanges-methods)), except that they return saved values. For example:
+There are other similar persistence methods, such as `upsertAndFetch`, `saveAndFetch`, `updateAndFetch`, `updateChangesAndFetch`, etc. They all behave like `upsert`, `save`, `update`, `updateChanges`, except that they return saved values. For example:
 
 ```swift
 // Save and return the saved player
 let savedPlayer = try player.saveAndFetch(db)
 ```
+
+See [Persistence Methods], [Upsert](#upsert), and [`updateChanges` methods](#the-updatechanges-methods) for more information.
 
 **Batch operations** can return updated or deleted values:
 
@@ -3117,7 +3215,7 @@ try link.upsert(db) // Calls the willSave callback
 
 #### Available Callbacks
 
-Here is a list with all the available callbacks, listed in the same order in which they will get called during the respective operations:
+Here is a list with all the available [persistence callbacks], listed in the same order in which they will get called during the respective operations:
 
 - Inserting a record (all `record.insert` and `record.upsert` methods)
     - `willSave`
@@ -3140,7 +3238,7 @@ Here is a list with all the available callbacks, listed in the same order in whi
     - `aroundDelete`
     - `didDelete`
 
-Make sure you provide implementations that match the exact callback signatures. When in doubt, check the [reference](http://groue.github.io/GRDB.swift/docs/6.0.0-beta/Protocols/MutablePersistableRecord.html).
+For detailed information about each callback, check the [reference](http://groue.github.io/GRDB.swift/docs/6.0.0-beta/Protocols/MutablePersistableRecord.html).
 
 In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mutating methods. In `PersistableRecord`, they are not mutating.
 
@@ -8704,6 +8802,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
 [Persistence Callbacks]: #persistence-callbacks
+[persistence callbacks]: #persistence-callbacks
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: #valueobservation
 [DatabaseRegionObservation]: #databaseregionobservation
