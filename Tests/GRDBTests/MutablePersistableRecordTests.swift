@@ -2421,3 +2421,153 @@ extension MutablePersistableRecordTests {
         }
     }
 }
+
+// MARK: - Callback Misuse
+
+extension MutablePersistableRecordTests {
+    func test_aroundSave_misuse_by_not_calling_the_action() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+                // It is a programmer error to not call the `save` argument
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                try BadRecord().update(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundSave_misuse_by_not_rethrowing_the_action_error() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+                // It is a programmer error to not rethrow the error of the `save` argument
+                _ = try? save()
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                // Fails because we can't update anything
+                try BadRecord().update(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundUpdate_misuse_by_not_calling_the_action() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+                // It is a programmer error to not call the `update` argument
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                try BadRecord().update(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundUpdate_misuse_by_not_rethrowing_the_action_error() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+                // It is a programmer error to not rethrow the error of the `update` argument
+                _ = try? update()
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                // Fails because we can't update anything
+                try BadRecord().update(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundInsert_misuse_by_not_calling_the_action() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+                // It is a programmer error to not call the `insert` argument
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                var record = BadRecord()
+                try record.insert(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundInsert_misuse_by_not_rethrowing_the_action_error() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+                // It is a programmer error to not rethrow the error of the `insert` argument
+                _ = try? insert()
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: """
+                    CREATE TABLE badRecord(id INTEGER PRIMARY KEY);
+                    INSERT INTO badRecord (id) VALUES (1);
+                    """)
+                var record = BadRecord()
+                // Fails because we insert a conflict
+                try record.insert(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundDelete_misuse_by_not_calling_the_action() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+                // It is a programmer error to not call the `delete` argument
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: "CREATE TABLE badRecord(a)")
+                try BadRecord().delete(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+    
+    func test_aroundDelete_misuse_by_not_rethrowing_the_action_error() throws {
+        struct BadRecord: MutablePersistableRecord, Encodable {
+            let id = 1
+            func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+                // It is a programmer error to not rethrow the error of the `delete` argument
+                _ = try? delete()
+            }
+        }
+        do {
+            try makeDatabaseQueue().write { db in
+                try db.execute(sql: """
+                    CREATE TABLE badRecord(id INTEGER PRIMARY KEY);
+                    CREATE TABLE child(id INTEGER PRIMARY KEY REFERENCES badRecord(id) ON DELETE RESTRICT);
+                    INSERT INTO badRecord (id) VALUES (1);
+                    INSERT INTO child (id) VALUES (1);
+                    """)
+                // Fails because this deletion violates a constraint
+                try BadRecord().delete(db)
+                XCTFail("Expected SQLITE_MISUSE error")
+            }
+        } catch DatabaseError.SQLITE_MISUSE { }
+    }
+}

@@ -22,7 +22,8 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Persistence callback called around the record insertion.
     ///
     /// If you provide a custom implementation of this method, you must call
-    /// the `insert` parameter at some point in your implementation.
+    /// the `insert` parameter at some point in your implementation, and you
+    /// must rethrow its eventual error.
     ///
     /// For example:
     ///
@@ -71,7 +72,8 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Persistence callback called around the record update.
     ///
     /// If you provide a custom implementation of this method, you must call
-    /// the `update` parameter at some point in your implementation.
+    /// the `update` parameter at some point in your implementation, and you
+    /// must rethrow its eventual error.
     ///
     /// For example:
     ///
@@ -109,7 +111,8 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Persistence callback called around the record update or insertion.
     ///
     /// If you provide a custom implementation of this method, you must call
-    /// the `save` parameter at some point in your implementation.
+    /// the `save` parameter at some point in your implementation, and you
+    /// must rethrow its eventual error.
     ///
     /// For example:
     ///
@@ -145,7 +148,8 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Persistence callback called around the destruction of the record.
     ///
     /// If you provide a custom implementation of this method, you must call
-    /// the `delete` parameter at some point in your implementation.
+    /// the `delete` parameter at some point in your implementation, and you
+    /// must rethrow its eventual error.
     ///
     /// For example:
     ///
@@ -173,6 +177,21 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
 extension MutablePersistableRecord {
     public static var persistenceConflictPolicy: PersistenceConflictPolicy {
         PersistenceConflictPolicy(insert: .abort, update: .abort)
+    }
+    
+    /// Call for programmer errors from the `aroundXxx` callbacks.
+    @usableFromInline
+    func persistenceCallbackMisuse(_ callbackName: String) throws -> Never {
+        let message = """
+            Incorrect implementation of the `\(Self.self).\(callbackName)` persistence callback: \
+            the action function was not called, or its error was not rethrown.
+            """
+        // This is a programmer error, but we must not crash, because it can
+        // only be detected in case of database errors, which happen
+        // infrequently. That's why we gently throw SQLITE_MISUSE.
+        throw DatabaseError(
+            resultCode: .SQLITE_MISUSE,
+            message: message)
     }
 }
 
