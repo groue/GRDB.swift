@@ -26,13 +26,16 @@ extension MutablePersistableRecord {
     public mutating func upsert(_ db: Database) throws {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
+        var saved: PersistenceSuccess?
         try aroundSave(db) {
             let inserted = try upsertWithCallbacks(db)
             saved = PersistenceSuccess(inserted)
-            return saved
+            return saved!
         }
         
+        guard let saved else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
         didSave(saved)
     }
     
@@ -144,19 +147,21 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundSave(db) {
-            (inserted, returned) = try upsertAndFetchWithCallbacks(
+            success = try upsertAndFetchWithCallbacks(
                 db, onConflict: conflictTarget,
                 doUpdate: assignments,
                 selection: T.databaseSelection,
                 decode: { try T(row: $0) })
-            return PersistenceSuccess(inserted)
+            return PersistenceSuccess(success!.inserted)
         }
         
-        didSave(PersistenceSuccess(inserted))
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(PersistenceSuccess(success.inserted))
+        return success.returned
     }
 #else
     /// Executes an `INSERT ... ON CONFLICT DO UPDATE` statement.
@@ -184,13 +189,16 @@ extension MutablePersistableRecord {
     public mutating func upsert(_ db: Database) throws {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
+        var saved: PersistenceSuccess?
         try aroundSave(db) {
             let inserted = try upsertWithCallbacks(db)
             saved = PersistenceSuccess(inserted)
-            return saved
+            return saved!
         }
         
+        guard let saved else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
         didSave(saved)
     }
     
@@ -304,19 +312,21 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundSave(db) {
-            (inserted, returned) = try upsertAndFetchWithCallbacks(
+            success = try upsertAndFetchWithCallbacks(
                 db, onConflict: conflictTarget,
                 doUpdate: assignments,
                 selection: T.databaseSelection,
                 decode: { try T(row: $0) })
-            return PersistenceSuccess(inserted)
+            return PersistenceSuccess(success!.inserted)
         }
         
-        didSave(PersistenceSuccess(inserted))
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(PersistenceSuccess(success.inserted))
+        return success.returned
     }
 #endif
 }
@@ -347,19 +357,21 @@ extension MutablePersistableRecord {
     {
         try willInsert(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundInsert(db) {
-            (inserted, returned) = try upsertAndFetchWithoutCallbacks(
+            success = try upsertAndFetchWithoutCallbacks(
                 db, onConflict: conflictTarget,
                 doUpdate: assignments,
                 selection: selection,
                 decode: decode)
-            return inserted
+            return success!.inserted
         }
         
-        didInsert(inserted)
-        return (inserted, returned)
+        guard let success else {
+            try persistenceCallbackMisuse("aroundInsert")
+        }
+        didInsert(success.inserted)
+        return success
     }
     
     /// Executes an `INSERT ... RETURNING` statement, and DOES NOT run

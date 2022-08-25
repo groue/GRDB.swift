@@ -36,12 +36,15 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var updated: PersistenceSuccess!
+        var updated: PersistenceSuccess?
         try aroundSave(db) {
             updated = try updateWithCallbacks(db, onConflict: conflictResolution, columns: Set(columns))
-            return updated
+            return updated!
         }
         
+        guard let updated else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
         didSave(updated)
     }
     
@@ -292,19 +295,21 @@ extension MutablePersistableRecord {
         
         try willSave(db)
         
-        var updated: PersistenceSuccess!
-        var returned: T!
+        var success: (updated: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
-            (updated, returned) = try updateAndFetchWithCallbacks(
+            success = try updateAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 columns: Set(columns),
                 selection: selection,
                 fetch: fetch)
-            return updated
+            return success!.updated
         }
         
-        didSave(updated)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.updated)
+        return success.returned
     }
     
     /// Executes an `UPDATE ... RETURNING ...` statement on the provided
@@ -565,19 +570,21 @@ extension MutablePersistableRecord {
         
         try willSave(db)
         
-        var updated: PersistenceSuccess!
-        var returned: T!
+        var success: (updated: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
-            (updated, returned) = try updateAndFetchWithCallbacks(
+            success = try updateAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 columns: Set(columns),
                 selection: selection,
                 fetch: fetch)
-            return updated
+            return success!.updated
         }
         
-        didSave(updated)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.updated)
+        return success.returned
     }
     
     /// Executes an `UPDATE ... RETURNING ...` statement on the provided
@@ -777,19 +784,21 @@ extension MutablePersistableRecord {
     {
         try willUpdate(db, columns: columns)
         
-        var updated: PersistenceSuccess!
-        var returned: T!
+        var success: (updated: PersistenceSuccess, returned: T)?
         try aroundUpdate(db, columns: columns) {
-            (updated, returned) = try updateAndFetchWithoutCallbacks(
+            success = try updateAndFetchWithoutCallbacks(
                 db, onConflict: conflictResolution,
                 columns: columns,
                 selection: selection,
                 fetch: fetch)
-            return updated
+            return success!.updated
         }
         
-        didUpdate(updated)
-        return (updated, returned)
+        guard let success else {
+            try persistenceCallbackMisuse("aroundUpdate")
+        }
+        didUpdate(success.updated)
+        return success
     }
     
     /// Executes an `UPDATE` statement, with `RETURNING` clause if `selection`

@@ -29,12 +29,15 @@ extension MutablePersistableRecord {
     public func delete(_ db: Database) throws -> Bool {
         try willDelete(db)
         
-        var deleted = false
+        var deleted: Bool?
         try aroundDelete(db) {
             deleted = try deleteWithoutCallbacks(db)
-            return deleted
+            return deleted!
         }
         
+        guard let deleted else {
+            try persistenceCallbackMisuse("aroundDelete")
+        }
         didDelete(deleted: deleted)
         return deleted
     }

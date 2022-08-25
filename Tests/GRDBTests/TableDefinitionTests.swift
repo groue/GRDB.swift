@@ -241,12 +241,14 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .integer).check { $0 > 0 }
                 t.column("b", .integer).check(sql: "b <> 2")
                 t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
+                t.column("d", .integer).check { $0 != Column("c") }
             }
             assertEqualSQL(lastSQLQuery!, """
                 CREATE TABLE "test" (\
                 "a" INTEGER CHECK ("a" > 0), \
                 "b" INTEGER CHECK (b <> 2), \
-                "c" INTEGER CHECK ("c" > 0) CHECK ("c" < 10)\
+                "c" INTEGER CHECK ("c" > 0) CHECK ("c" < 10), \
+                "d" INTEGER CHECK ("d" <> "c")\
                 )
                 """)
 

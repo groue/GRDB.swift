@@ -22,13 +22,16 @@ extension PersistableRecord {
     {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
+        var saved: PersistenceSuccess?
         try aroundSave(db) {
             let inserted = try insertWithCallbacks(db, onConflict: conflictResolution)
             saved = PersistenceSuccess(inserted)
-            return saved
+            return saved!
         }
         
+        guard let saved else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
         didSave(saved)
     }
 }
@@ -152,18 +155,20 @@ extension PersistableRecord {
         
         try willSave(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundSave(db) {
-            (inserted, returned) = try insertAndFetchWithCallbacks(
+            success = try insertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: selection,
                 fetch: fetch)
-            return PersistenceSuccess(inserted)
+            return PersistenceSuccess(success!.inserted)
         }
         
-        didSave(PersistenceSuccess(inserted))
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(PersistenceSuccess(success.inserted))
+        return success.returned
     }
 #else
     /// Executes an `INSERT ... RETURNING ...` statement, and returns a new
@@ -283,18 +288,20 @@ extension PersistableRecord {
         
         try willSave(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundSave(db) {
-            (inserted, returned) = try insertAndFetchWithCallbacks(
+            success = try insertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: selection,
                 fetch: fetch)
-            return PersistenceSuccess(inserted)
+            return PersistenceSuccess(success!.inserted)
         }
         
-        didSave(PersistenceSuccess(inserted))
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(PersistenceSuccess(success.inserted))
+        return success.returned
     }
 #endif
 }
@@ -328,17 +335,19 @@ extension PersistableRecord {
     {
         try willInsert(db)
         
-        var inserted: InsertionSuccess!
-        var returned: T!
+        var success: (inserted: InsertionSuccess, returned: T)?
         try aroundInsert(db) {
-            (inserted, returned) = try insertAndFetchWithoutCallbacks(
+            success = try insertAndFetchWithoutCallbacks(
                 db, onConflict: conflictResolution,
                 selection: selection,
                 fetch: fetch)
-            return inserted
+            return success!.inserted
         }
         
-        didInsert(inserted)
-        return (inserted, returned)
+        guard let success else {
+            try persistenceCallbackMisuse("aroundInsert")
+        }
+        didInsert(success.inserted)
+        return success
     }
 }

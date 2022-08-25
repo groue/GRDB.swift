@@ -97,12 +97,21 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 6.0.0-beta.3
+
+Released August 25, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta...v6.0.0-beta.2)
+
+- **Fix**: [#1268](https://github.com/groue/GRDB.swift/pull/1268) by [@groue](https://github.com/groue): Fix SQL generation of CHECK constraints
+- **Breaking**: The `Column` type is no longer `Equatable`
+- **Documentation Update**: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md) describes in detail how to update records that customize their persistence methods.
+- **Documentation Update**: The [Single-Row Tables](Documentation/SingleRowTables.md) guide was updated for the new persistence callbacks.
+
 ## 6.0.0-beta.2
 
 Released August 23, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta...v6.0.0-beta.2)
 
 - **New**: Extended UPSERT apis with the ability to define the conflict target, and the assignments performed in case of conflicts.
-- **Documentation**: A new [Upsert](README.md#upsert) chapter describes upserts in detail.
+- **Documentation Update**: A new [Upsert](README.md#upsert) chapter describes upserts in detail.
 
 ## 6.0.0-beta
 
