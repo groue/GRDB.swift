@@ -116,16 +116,14 @@ We make our record able to access the database:
 extension AppConfiguration: FetchableRecord, PersistableRecord {
 ```
 
-We have seen in the [The Single-Row Table] chapter that by default, updates throw an error if the database table is empty. To avoid this error, we instruct GRDB to perform an insert in case of a failed update (see [Persistence Methods] for more information):
+We have seen in the [The Single-Row Table] chapter that by default, updates throw an error if the database table is empty. To avoid this error, we instruct GRDB to insert the missing default configuration before attempting to update (see [Persistence Callbacks] for more information about the `willSave` method):
 
 ```swift
     // Customize the default PersistableRecord behavior
-    func update(_ db: Database, columns: Set<String>) throws {
-        do {
-            try performUpdate(db, columns: columns)
-        } catch PersistenceError.recordNotFound {
-            // No row was updated: perform an insert
-            try performInsert(db)
+    func willUpdate(_ db: Database, columns: Set<String>) throws {
+        // Insert the default configuration if it does not exist yet.
+        if try !exists(db) {
+            try AppConfiguration.default.insert(db)
         }
     }
 ```
@@ -165,12 +163,13 @@ try dbQueue.write { db in
     try config.update(db)
     try config.save(db)
     try config.insert(db)
+    try config.upsert(db)
 }
 ```
 
-The three `update`, `save` and `insert` methods can be used interchangeably: all three make sure the configuration is stored in the database.
+The four `update`, `save`, `insert` and `upsert` methods can be used interchangeably. They all make sure the configuration is stored in the database.
 
-The `updateChanges` method only updates the values changed by its closure argument (and performs an insert if the database table is empty).
+The `updateChanges` method only updates the values changed by its closure argument (and performs an initial insert of default configuration if the database table is empty).
 
 See [Persistence Methods] for more information.
 
@@ -215,12 +214,10 @@ extension AppConfiguration {
 // Database Access
 extension AppConfiguration: FetchableRecord, PersistableRecord {
     // Customize the default PersistableRecord behavior
-    func update(_ db: Database, columns: Set<String>) throws {
-        do {
-            try performUpdate(db, columns: columns)
-        } catch PersistenceError.recordNotFound {
-            // No row was updated: perform an insert
-            try performInsert(db)
+    func willUpdate(_ db: Database, columns: Set<String>) throws {
+        // Insert the default configuration if it does not exist yet.
+        if try !exists(db) {
+            try AppConfiguration.default.insert(db)
         }
     }
     
@@ -239,4 +236,5 @@ extension AppConfiguration: FetchableRecord, PersistableRecord {
 [The Single-Row Record]: #the-single-row-record
 [Wrap-Up]: #wrap-up
 [DRY]: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+[Persistence Callbacks]: ../README.md#persistence-callbacks
 [Persistence Methods]: ../README.md#persistence-methods

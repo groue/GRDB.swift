@@ -37,12 +37,15 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
+        var saved: PersistenceSuccess?
         try aroundSave(db) {
             saved = try updateOrInsertWithCallbacks(db, onConflict: conflictResolution)
-            return saved
+            return saved!
         }
         
+        guard let saved else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
         didSave(saved)
     }
     
@@ -131,20 +134,22 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
-        var returned: T?
+        var success: (saved: PersistenceSuccess, returned: T?)?
         try aroundSave(db) {
-            (saved, returned) = try updateOrInsertAndFetchWithCallbacks(
+            success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
                     try T.fetchOne($0)
                 })
-            return saved
+            return success!.saved
         }
         
-        didSave(saved)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.saved)
+        return success.returned
     }
     
     /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
@@ -173,18 +178,20 @@ extension MutablePersistableRecord {
         
         try willSave(db)
         
-        var saved: PersistenceSuccess!
-        var returned: T!
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
-            (saved, returned) = try updateOrInsertAndFetchWithCallbacks(
+            success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: selection,
                 fetch: fetch)
-            return saved
+            return success!.saved
         }
         
-        didSave(saved)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.saved)
+        return success.returned
     }
 #else
     /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
@@ -242,20 +249,22 @@ extension MutablePersistableRecord {
     {
         try willSave(db)
         
-        var saved: PersistenceSuccess!
-        var returned: T?
+        var success: (saved: PersistenceSuccess, returned: T?)?
         try aroundSave(db) {
-            (saved, returned) = try updateOrInsertAndFetchWithCallbacks(
+            success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
                     try T.fetchOne($0)
                 })
-            return saved
+            return success!.saved
         }
         
-        didSave(saved)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.saved)
+        return success.returned
     }
     
     /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
@@ -285,18 +294,20 @@ extension MutablePersistableRecord {
         
         try willSave(db)
         
-        var saved: PersistenceSuccess!
-        var returned: T!
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
-            (saved, returned) = try updateOrInsertAndFetchWithCallbacks(
+            success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: selection,
                 fetch: fetch)
-            return saved
+            return success!.saved
         }
         
-        didSave(saved)
-        return returned
+        guard let success else {
+            try persistenceCallbackMisuse("aroundSave")
+        }
+        didSave(success.saved)
+        return success.returned
     }
 #endif
 }
