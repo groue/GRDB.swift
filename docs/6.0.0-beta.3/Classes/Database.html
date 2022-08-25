@@ -1,0 +1,3422 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Database Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Class/Database" class="dashAnchor"></a>
+    <a title="Database Class Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">GRDB 6.0.0-beta.3 Docs</a> (0% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F6.0.0-beta.3%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">GRDB Reference</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        Database Class Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseCancellable.html">AnyDatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseReader.html">AnyDatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseWriter.html">AnyDatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition/GeneratedColumnQualification.html">– GeneratedColumnQualification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TracingOptions.html">– TracingOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TraceEvent.html">– TraceEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionObservationExtent.html">– TransactionObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFuture.html">DatabaseFuture</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseSnapshot.html">DatabaseSnapshot</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseValueCursor.html">DatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FastDatabaseValueCursor.html">FastDatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/RecordCursor.html">RecordCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/ScopesView.html">– ScopesView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/ScopesTreeView.html">– ScopesTreeView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/PrefetchedRowsView.html">– PrefetchedRowsView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/RowCursor.html">RowCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SQLStatementCursor.html">SQLStatementCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SharedValueObservation.html">SharedValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlias.html">TableAlias</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ValueObservationScheduler.html">ValueObservationScheduler</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseColumnDecodingStrategy.html">DatabaseColumnDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseColumnEncodingStrategy.html">DatabaseColumnEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseDateDecodingStrategy.html">DatabaseDateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseDateEncodingStrategy.html">DatabaseDateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseUUIDEncodingStrategy.html">DatabaseUUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SQLDateModifier.html">SQLDateModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SharedValueObservationExtent.html">SharedValueObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html">ValueReducers</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/Fetch">– Fetch</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/Map">– Map</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/RemoveDuplicates">– RemoveDuplicates</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/Trace">– Trace</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/ArrayRowImpl">ArrayRowImpl</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Collection%3CSQL%3E.html">Collection&lt;SQL&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/ColumnDecoder">ColumnDecoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/ColumnEncoder">ColumnEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CommonTableExpression%3CRow%3E.html">CommonTableExpression&lt;Row&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Decimal.html">Decimal</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/FetchRequest%3CRow%3E.html">FetchRequest&lt;Row&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/JSONRequiredEncoder">JSONRequiredEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/OrderedDictionary">OrderedDictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/PrefetchedRowsDecoder">PrefetchedRowsDecoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/RangeReplaceableCollection.html">RangeReplaceableCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/RowDecodingError">RowDecodingError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/SQLRequest%3CRow%3E.html">SQLRequest&lt;Row&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence%3CSQL%3E.html">Sequence&lt;SQL&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence%3Cany%20SQLExpressible%3E.html">Sequence&lt;any SQLExpressible&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence%3Cany%20SQLSpecificExpressible%3E.html">Sequence&lt;any SQLSpecificExpressible&gt;</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/SerializedDatabase">SerializedDatabase</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Set.html">Set</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/URL">URL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UUID.html">UUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/ValueConcurrentObserver">ValueConcurrentObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/ValueWriteOnlyObserver">ValueWriteOnlyObserver</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Functions.html#/!(_:)">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/!=(_:_:)">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/!==(_:_:)">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/&amp;&amp;(_:_:)">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/*(_:_:)">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/*=(_:_:)">*=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/+(_:_:)">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/+=(_:_:)">+=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/-(_:)">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/-(_:_:)">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/-=(_:_:)">-=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#//(_:_:)">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#//=(_:_:)">/=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/&lt;(_:_:)">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/&lt;=(_:_:)">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/==(_:_:)">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/===(_:_:)">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/&gt;(_:_:)">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/&gt;=(_:_:)">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/??(_:_:)">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/abs(_:)">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/average(_:)">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/count(_:)">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/count(distinct:)">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/databaseQuestionMarks(count:)">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/dateTime(_:_:)">dateTime(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/julianDay(_:_:)">julianDay(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/length(_:)">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/max(_:)">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/min(_:)">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/splittingRowAdapters(columnCounts:)">splittingRowAdapters(columnCounts:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/sum(_:)">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/total(_:)">total(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/||(_:_:)">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/AggregatingRequest.html">AggregatingRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Association.html">Association</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/AssociationToMany.html">AssociationToMany</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/AssociationToOne.html">AssociationToOne</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/ColumnExpression.html">ColumnExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseAggregate.html">DatabaseAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseCancellable.html">DatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseRegionConvertible.html">DatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DerivableRequest.html">DerivableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/EncodableRecord.html">EncodableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FetchRequest.html">FetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FetchableRecord.html">FetchableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FilteredRequest.html">FilteredRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/JoinableRequest.html">JoinableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/OrderedRequest.html">OrderedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/PersistableRecord.html">PersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSubqueryable.html">SQLSubqueryable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SelectionRequest.html">SelectionRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementBinding.html">StatementBinding</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableRequest.html">TableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols.html#/ValueReducer">ValueReducer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AdaptedFetchRequest.html">AdaptedFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AllColumns.html">AllColumns</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyDatabaseRegionConvertible.html">AnyDatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyFetchRequest.html">AnyFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AssociationAggregate.html">AssociationAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/BelongsToAssociation">BelongsToAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/ColumnAssignment">ColumnAssignment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnInfo.html">ColumnInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CommonTableExpression.html">CommonTableExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseBackupProgress.html">DatabaseBackupProgress</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator/ForeignKeyChecks.html">– ForeignKeyChecks</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseRegion.html">DatabaseRegion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseRegionObservation.html">DatabaseRegionObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/EmptyRowAdapter.html">EmptyRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKey.html">ForeignKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKeyInfo.html">ForeignKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKeyViolation.html">ForeignKeyViolation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/HasManyAssociation">HasManyAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/HasManyThroughAssociation">HasManyThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/HasOneAssociation">HasOneAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/HasOneThroughAssociation">HasOneThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo/Origin.html">– Origin</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexOptions.html">IndexOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Inflections.html">Inflections</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/InsertionSuccess.html">InsertionSuccess</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/JoinAssociation">JoinAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceContainer.html">PersistenceContainer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceSuccess.html">PersistenceSuccess</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PreparedRequest.html">PreparedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RenameColumnAdapter.html">RenameColumnAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/RowIndex">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQL.html">SQL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpression/AssociativeBinaryOperator.html">– AssociativeBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/SQLOrdering">SQLOrdering</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/SQLSelection">SQLSelection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/SQLSubquery">SQLSubquery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Table.html">Table</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TableOptions.html">TableOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ValueObservation.html">ValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/VirtualTableConfiguration">VirtualTableConfiguration</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Typealiases.html">Type Aliases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/SQLiteConnection">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/SQLiteStatement">SQLiteStatement</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Database</h1>
+            <p>A Database connection.</p>
+
+<p>You don&rsquo;t create a database directly. Instead, you use a DatabaseQueue, or
+a DatabasePool:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1">// The Database is the `db` in the closure:</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SQLite%20C%20API"></a>
+                <a name="//apple_ref/swift/Section/SQLite C API" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SQLite%20C%20API"></a>
+                  <h3 class="section-name"><span>SQLite C API</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/sqliteConnection" class="dashAnchor"></a>
+                    <a class="token" href="#/">sqliteConnection</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The raw SQLite connection, suitable for the SQLite C API.</p>
+
+<p>It is nil after the database has been successfully closed with
+<code><a href="../Protocols/DatabaseReader.html#/close()">close()</a></code>.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Configuration"></a>
+                <a name="//apple_ref/swift/Section/Configuration" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Configuration"></a>
+                  <h3 class="section-name"><span>Configuration</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Variable/logError" class="dashAnchor"></a>
+                    <a class="token" href="#/">logError</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The error logging function.</p>
+
+<p>Quoting <a href="https://www.sqlite.org/errlog.html">https://www.sqlite.org/errlog.html</a>:</p>
+
+<blockquote>
+<p>SQLite can be configured to invoke a callback function containing an
+error code and a terse error message whenever anomalies occur. This
+mechanism is very helpful in tracking obscure problems that occur
+rarely and in the field. Application developers are encouraged to take
+advantage of the error logging facility of SQLite in their products,
+as it is very low CPU and memory cost but can be a huge aid
+for debugging.</p>
+</blockquote>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/configuration" class="dashAnchor"></a>
+                    <a class="token" href="#/">configuration</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The database configuration</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/description" class="dashAnchor"></a>
+                    <a class="token" href="#/">description</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>See <code><a href="../Structs/Configuration.html#/label">Configuration.label</a></code></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/debugDescription" class="dashAnchor"></a>
+                    <a class="token" href="#/">debugDescription</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Information"></a>
+                <a name="//apple_ref/swift/Section/Database Information" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database%20Information"></a>
+                  <h3 class="section-name"><span>Database Information</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/lastInsertedRowID" class="dashAnchor"></a>
+                    <a class="token" href="#/">lastInsertedRowID</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The rowID of the most recently inserted row.</p>
+
+<p>If no row has ever been inserted using this database connection,
+returns zero.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/last_insert_rowid.html">https://www.sqlite.org/c3ref/last_insert_rowid.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/changesCount" class="dashAnchor"></a>
+                    <a class="token" href="#/">changesCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The number of rows modified, inserted or deleted by the most recent
+successful INSERT, UPDATE or DELETE statement.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/changes.html">https://www.sqlite.org/c3ref/changes.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/totalChangesCount" class="dashAnchor"></a>
+                    <a class="token" href="#/">totalChangesCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The total number of rows modified, inserted or deleted by all successful
+INSERT, UPDATE or DELETE statements since the database connection was
+opened.</p>
+
+<p>For more detailed information, see <a href="https://www.sqlite.org/c3ref/total_changes.html">https://www.sqlite.org/c3ref/total_changes.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/isInsideTransaction" class="dashAnchor"></a>
+                    <a class="token" href="#/">isInsideTransaction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>True if the database connection is currently in a transaction.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/lastErrorCode" class="dashAnchor"></a>
+                    <a class="token" href="#/">lastErrorCode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The last error code</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/lastErrorMessage" class="dashAnchor"></a>
+                    <a class="token" href="#/">lastErrorMessage</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The last error message</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Limits"></a>
+                <a name="//apple_ref/swift/Section/Limits" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Limits"></a>
+                  <h3 class="section-name"><span>Limits</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Property/maximumStatementArgumentCount" class="dashAnchor"></a>
+                    <a class="token" href="#/">maximumStatementArgumentCount</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The maximum number of arguments accepted by an SQLite statement.</p>
+
+<p>For example, requests such as the one below must make sure the <code>ids</code>
+array does not contain more than <code>maximumStatementArgumentCount</code>
+elements:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">ids</span><span class="p">:</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">deleteAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">keys</span><span class="p">:</span> <span class="n">ids</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/limits.html">https://www.sqlite.org/limits.html</a>
+and <code>SQLITE_LIMIT_VARIABLE_NUMBER</code>.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Functions"></a>
+                <a name="//apple_ref/swift/Section/Functions" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Functions"></a>
+                  <h3 class="section-name"><span>Functions</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/add(function:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">add(function:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add or redefine an SQL function.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="kt">DatabaseFunction</span><span class="p">(</span><span class="s">"succ"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="n">dbValues</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">nil</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">int</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="p">}</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="n">fn</span><span class="p">)</span>
+<span class="k">try</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT succ(1)"</span><span class="p">)</span><span class="o">!</span> <span class="c1">// 2</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/remove(function:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">remove(function:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove an SQL function.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Collations"></a>
+                <a name="//apple_ref/swift/Section/Collations" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Collations"></a>
+                  <h3 class="section-name"><span>Collations</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/add(collation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">add(collation:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add or redefine a collation.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">collation</span> <span class="o">=</span> <span class="kt">DatabaseCollation</span><span class="p">(</span><span class="s">"localized_standard"</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">)</span> <span class="k">in</span>
+    <span class="nf">return</span> <span class="p">(</span><span class="n">string1</span> <span class="k">as</span> <span class="kt">NSString</span><span class="p">)</span><span class="o">.</span><span class="nf">localizedStandardCompare</span><span class="p">(</span><span class="n">string2</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">collation</span><span class="p">:</span> <span class="n">collation</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE TABLE files (name TEXT COLLATE localized_standard"</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/remove(collation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">remove(collation:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove a collation.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Trace"></a>
+                <a name="//apple_ref/swift/Section/Trace" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Trace"></a>
+                  <h3 class="section-name"><span>Trace</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/trace(options:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">trace(options:<wbr>_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Registers a tracing function.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// Trace all SQL statements executed by the database</span>
+<span class="k">var</span> <span class="nv">configuration</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">()</span>
+<span class="n">configuration</span><span class="o">.</span><span class="n">prepareDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="n">db</span><span class="o">.</span><span class="nf">trace</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="o">.</span><span class="n">statement</span><span class="p">)</span> <span class="p">{</span> <span class="n">event</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"SQL: </span><span class="se">\(</span><span class="n">event</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="s">"..."</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="n">configuration</span><span class="p">)</span>
+</code></pre>
+
+<p>Pass an empty options set in order to stop database tracing:</p>
+<pre class="highlight swift"><code><span class="c1">// Stop tracing</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">trace</span><span class="p">(</span><span class="nv">options</span><span class="p">:</span> <span class="p">[])</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/c3ref/trace_v2.html">https://www.sqlite.org/c3ref/trace_v2.html</a> for more information.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/WAL%20Checkpoints"></a>
+                <a name="//apple_ref/swift/Section/WAL Checkpoints" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/WAL%20Checkpoints"></a>
+                  <h3 class="section-name"><span>WAL Checkpoints</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/checkpoint(_:on:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">checkpoint(_:<wbr>on:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Runs a WAL checkpoint.</p>
+
+<p>See <a href="https://www.sqlite.org/wal.html">https://www.sqlite.org/wal.html</a> and
+<a href="https://www.sqlite.org/c3ref/wal_checkpoint_v2.html">https://www.sqlite.org/c3ref/wal_checkpoint_v2.html</a> for
+more information.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Suspension"></a>
+                <a name="//apple_ref/swift/Section/Database Suspension" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database%20Suspension"></a>
+                  <h3 class="section-name"><span>Database Suspension</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Variable/suspendNotification" class="dashAnchor"></a>
+                    <a class="token" href="#/">suspendNotification</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When this notification is posted, databases which were opened with the
+<code><a href="../Structs/Configuration.html#/observesSuspensionNotifications">Configuration.observesSuspensionNotifications</a></code> flag are suspended.</p>
+
+<p><a href="http://github.com/groue/GRDB.swift#what-are-experimental-features"><strong>Experimental</strong></a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Variable/resumeNotification" class="dashAnchor"></a>
+                    <a class="token" href="#/">resumeNotification</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When this notification is posted, databases which were opened with the
+<code><a href="../Structs/Configuration.html#/observesSuspensionNotifications">Configuration.observesSuspensionNotifications</a></code> flag are resumed.</p>
+
+<p><a href="http://github.com/groue/GRDB.swift#what-are-experimental-features"><strong>Experimental</strong></a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Transactions%20%26%20Savepoint"></a>
+                <a name="//apple_ref/swift/Section/Transactions &amp; Savepoint" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Transactions%20%26%20Savepoint"></a>
+                  <h3 class="section-name"><span>Transactions &amp; Savepoint</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/inTransaction(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">inTransaction(_:<wbr>_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes a block inside a database transaction.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="k">do</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="n">inTransaction</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ..."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">.</span><span class="n">commit</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>If the block throws an error, the transaction is rollbacked and the
+error is rethrown.</p>
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    <p>This method is not reentrant: you can&rsquo;t nest transactions.
+Use <code><a href="../Classes/Database.html#/inSavepoint(_:)">inSavepoint(_:)</a></code> instead.</p>
+
+</div><div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <p>The error thrown by the block.</p>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/inSavepoint(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">inSavepoint(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes a block inside a savepoint.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="k">do</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="n">inSavepoint</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ..."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">.</span><span class="n">commit</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>If the block throws an error, the savepoint is rollbacked and the
+error is rethrown.</p>
+
+<p>This method is reentrant: you can nest savepoints.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    The error thrown by the block.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/beginTransaction(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">beginTransaction(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Begins a database transaction.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <p>A DatabaseError whenever an SQLite error occurs.</p>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/rollback()" class="dashAnchor"></a>
+                    <a class="token" href="#/">rollback()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Rollbacks a database transaction.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/commit()" class="dashAnchor"></a>
+                    <a class="token" href="#/">commit()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Commits a database transaction.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Memory%20Management"></a>
+                <a name="//apple_ref/swift/Section/Memory Management" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Memory%20Management"></a>
+                  <h3 class="section-name"><span>Memory Management</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/releaseMemory()" class="dashAnchor"></a>
+                    <a class="token" href="#/">releaseMemory()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Free as much memory as possible.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Backup"></a>
+                <a name="//apple_ref/swift/Section/Backup" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Backup"></a>
+                  <h3 class="section-name"><span>Backup</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/backup(to:pagesPerStep:progress:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">backup(to:<wbr>pagesPerStep:<wbr>progress:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Copies the database contents into another database.</p>
+
+<p>The <code>backup</code> method blocks the current thread until the destination
+database contains the same contents as the source database.</p>
+
+<p>Usage:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">source</span><span class="p">:</span> <span class="kt">DatabaseQueue</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">let</span> <span class="nv">destination</span><span class="p">:</span> <span class="kt">DatabaseQueue</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span> <span class="n">source</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">sourceDb</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">destination</span><span class="o">.</span><span class="n">barrierWriteWithoutTransaction</span> <span class="p">{</span> <span class="n">destDb</span> <span class="k">in</span>
+        <span class="k">try</span> <span class="n">sourceDb</span><span class="o">.</span><span class="nf">backup</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="n">destDb</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>When you&rsquo;re after progress reporting during backup, you&rsquo;ll want to
+perform the backup in several steps. Each step copies the number of
+<em>database pages</em> you specify. See <a href="https://www.sqlite.org/c3ref/backup_finish.html">https://www.sqlite.org/c3ref/backup_finish.html</a>
+for more information:</p>
+<pre class="highlight swift"><code><span class="c1">// Backup with progress reporting</span>
+<span class="k">try</span> <span class="n">sourceDb</span><span class="o">.</span><span class="nf">backup</span><span class="p">(</span>
+    <span class="nv">to</span><span class="p">:</span> <span class="n">destDb</span><span class="p">,</span>
+    <span class="nv">pagesPerStep</span><span class="p">:</span> <span class="o">...</span><span class="p">)</span>
+    <span class="p">{</span> <span class="n">backupProgress</span> <span class="k">in</span>
+       <span class="nf">print</span><span class="p">(</span><span class="s">"Database backup progress:"</span><span class="p">,</span> <span class="n">backupProgress</span><span class="p">)</span>
+    <span class="p">}</span>
+</code></pre>
+
+<p>The <code>progress</code> callback will be called at least once—when
+<code>backupProgress.isCompleted == true</code>. If the callback throws
+when <code>backupProgress.isCompleted == false</code>, the backup is aborted
+and the error is rethrown.  If the callback throws when
+<code>backupProgress.isCompleted == true</code>, backup completion is
+unaffected and the error is silently ignored.</p>
+
+<p>See also <code>DatabaseReader.backup()</code>.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    The error thrown by <code>progress</code> if the backup is abandoned, or
+any <code><a href="../Structs/DatabaseError.html">DatabaseError</a></code> that would happen while performing the backup.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Schema"></a>
+                <a name="//apple_ref/swift/Section/Database Schema" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database%20Schema"></a>
+                  <h3 class="section-name"><span>Database Schema</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/clearSchemaCache()" class="dashAnchor"></a>
+                    <a class="token" href="#/">clearSchemaCache()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Clears the database schema cache.</p>
+
+<p>You may need to clear the cache manually if the database schema is
+modified by another connection.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/tableExists(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">tableExists(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a table exists, in the main or temp schema, or in an
+attached database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/isSQLiteInternalTable(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">isSQLiteInternalTable(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a table is an internal SQLite table.</p>
+
+<p>Those are tables whose name begins with <code>sqlite_</code> and <code>pragma_</code>.</p>
+
+<p>For more information, see <a href="https://www.sqlite.org/fileformat2.html">https://www.sqlite.org/fileformat2.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/isGRDBInternalTable(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">isGRDBInternalTable(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a table is an internal GRDB table.</p>
+
+<p>Those are tables whose name begins with &ldquo;grdb_&rdquo;.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/viewExists(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">viewExists(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a view exists, in the main or temp schema, or in an
+attached database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/triggerExists(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">triggerExists(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns whether a trigger exists, in the main or temp schema, or in an
+attached database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/primaryKey(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">primaryKey(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The primary key for table named <code>tableName</code>.</p>
+
+<p>All tables have a primary key, even when it is not explicit. When a
+table has no explicit primary key, the result is the hidden
+&ldquo;rowid&rdquo; column.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/indexes(on:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">indexes(on:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The indexes on table named <code>tableName</code>.</p>
+
+<p>Only indexes on columns are returned. Indexes on expressions are
+not returned.</p>
+
+<p>SQLite does not define any index for INTEGER PRIMARY KEY columns: this
+method does not return any index that represents the primary key.</p>
+
+<p>If you want to know if a set of columns uniquely identifies a row, because
+the columns contain the primary key or a unique index, use
+<code><a href="../Classes/Database.html#/table(_:hasUniqueKey:)">table(_:hasUniqueKey:)</a></code>.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/table(_:hasUniqueKey:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">table(_:<wbr>hasUniqueKey:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>True if a sequence of columns uniquely identifies a row, that is to say
+if the columns contain the primary key, or a unique index.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);</span>
+<span class="c1">// CREATE UNIQUE INDEX i ON t(a, b);</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">table</span><span class="p">(</span><span class="s">"t"</span><span class="p">,</span> <span class="nv">hasUniqueKey</span><span class="p">:</span> <span class="p">[</span><span class="s">"id"</span><span class="p">])</span>                <span class="c1">// true</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">table</span><span class="p">(</span><span class="s">"t"</span><span class="p">,</span> <span class="nv">hasUniqueKey</span><span class="p">:</span> <span class="p">[</span><span class="s">"a"</span><span class="p">,</span> <span class="s">"b"</span><span class="p">])</span>            <span class="c1">// true</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">table</span><span class="p">(</span><span class="s">"t"</span><span class="p">,</span> <span class="nv">hasUniqueKey</span><span class="p">:</span> <span class="p">[</span><span class="s">"c"</span><span class="p">])</span>                 <span class="c1">// false</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">table</span><span class="p">(</span><span class="s">"t"</span><span class="p">,</span> <span class="nv">hasUniqueKey</span><span class="p">:</span> <span class="p">[</span><span class="s">"id"</span><span class="p">,</span> <span class="s">"a"</span><span class="p">])</span>           <span class="c1">// true</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">table</span><span class="p">(</span><span class="s">"t"</span><span class="p">,</span> <span class="nv">hasUniqueKey</span><span class="p">:</span> <span class="p">[</span><span class="s">"id"</span><span class="p">,</span> <span class="s">"a"</span><span class="p">,</span> <span class="s">"b"</span><span class="p">,</span> <span class="s">"c"</span><span class="p">])</span> <span class="c1">// true</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/foreignKeys(on:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">foreignKeys(on:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The foreign keys defined on table named <code>tableName</code>.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/foreignKeyViolations()" class="dashAnchor"></a>
+                    <a class="token" href="#/">foreignKeyViolations()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a cursor over foreign key violations in the database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/foreignKeyViolations(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">foreignKeyViolations(in:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a cursor over foreign key violations in the table.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/checkForeignKeys()" class="dashAnchor"></a>
+                    <a class="token" href="#/">checkForeignKeys()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Throws a DatabaseError of extended code <code>SQLITE_CONSTRAINT_FOREIGNKEY</code>
+if there exists a foreign key violation in the database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/checkForeignKeys(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">checkForeignKeys(in:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Throws a DatabaseError of extended code <code>SQLITE_CONSTRAINT_FOREIGNKEY</code>
+if there exists a foreign key violation in the table.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/columns(in:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">columns(in:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The columns in the table, or view, named <code>tableName</code>.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError if table does not exist.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Statements"></a>
+                <a name="//apple_ref/swift/Section/Statements" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Statements"></a>
+                  <h3 class="section-name"><span>Statements</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/makeStatement(sql:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">makeStatement(sql:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a new prepared statement that can be reused.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT * FROM player WHERE id = ?"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">player1</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">player2</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">!</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO player (name) VALUES (?)"</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">])</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Barbara"</span><span class="p">])</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/makeStatement(literal:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">makeStatement(literal:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a new prepared statement that can be reused.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"SELECT * FROM player WHERE id = ?"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">player1</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">player2</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">!</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"INSERT INTO player (name) VALUES (?)"</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">])</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Barbara"</span><span class="p">])</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <p>No argument must be set, or all arguments must be set.
+An error is raised otherwise.</p>
+<pre class="highlight swift"><code><span class="c1">// OK</span>
+<span class="k">try</span> <span class="nf">makeStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &gt; ?
+    """</span><span class="p">)</span>
+<span class="k">try</span> <span class="nf">makeStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &gt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">
+    """</span><span class="p">)</span>
+
+<span class="c1">// NOT OK</span>
+<span class="k">try</span> <span class="nf">makeStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player
+    WHERE color = ? AND score &gt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">
+    """</span><span class="p">)</span>
+</code></pre>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/cachedStatement(sql:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">cachedStatement(sql:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a prepared statement that can be reused.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT * FROM player WHERE id = ?"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">player1</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">player2</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">!</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO player (name) VALUES (?)"</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">])</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Barbara"</span><span class="p">])</span>
+</code></pre>
+
+<p>The returned statement may have already been used: it may or may not
+contain values for its eventual arguments.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/cachedStatement(literal:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">cachedStatement(literal:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a prepared statement that can be reused.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"SELECT * FROM player WHERE id = ?"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">player1</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">player2</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">!</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"INSERT INTO player (name) VALUES (?)"</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">])</span>
+<span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Barbara"</span><span class="p">])</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever SQLite could not parse the sql query.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <p>No argument must be set, or all arguments must be set.
+An error is raised otherwise.</p>
+<pre class="highlight swift"><code><span class="c1">// OK</span>
+<span class="k">try</span> <span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &gt; ?
+    """</span><span class="p">)</span>
+<span class="k">try</span> <span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &gt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">
+    """</span><span class="p">)</span>
+
+<span class="c1">// NOT OK</span>
+<span class="k">try</span> <span class="nf">cachedStatement</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player
+    WHERE color = ? AND score &gt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">
+    """</span><span class="p">)</span>
+</code></pre>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/allStatements(sql:arguments:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">allStatements(sql:<wbr>arguments:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a cursor of all SQL statements separated by semi-colons.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statements</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">allStatements</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+    INSERT INTO player (name) VALUES (?);
+    INSERT INTO player (name) VALUES (?);
+    INSERT INTO player (name) VALUES (?);
+    """</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">,</span> <span class="s">"Barbara"</span><span class="p">,</span> <span class="s">"O'Brien"</span><span class="p">])</span>
+<span class="k">while</span> <span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">statements</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <p>Arguments must be nil, or all arguments must be set.
+The returned cursor will throw an error otherwise.</p>
+<pre class="highlight swift"><code><span class="c1">// OK</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; ?;
+    SELECT COUNT(*) FROM player WHERE score &gt; ?;
+    """</span><span class="p">)</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; ?;
+    SELECT COUNT(*) FROM player WHERE score &gt; ?;
+    """</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
+
+<span class="c1">// NOT OK</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; ?;
+    SELECT COUNT(*) FROM player WHERE score &gt; ?;
+    """</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="mi">1000</span><span class="p">])</span>
+</code></pre>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/allStatements(literal:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">allStatements(literal:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns a cursor of all SQL statements separated by semi-colons.</p>
+
+<p>Literals allow you to safely embed raw values in your SQL, without any
+risk of syntax errors or SQL injection:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">statements</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">allStatements</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"Arthur"</span><span class="se">)</span><span class="s">);
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"Barbara"</span><span class="se">)</span><span class="s">);
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"O'Brien"</span><span class="se">)</span><span class="s">);
+    """</span><span class="p">)</span>
+<span class="k">while</span> <span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">statements</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="n">statement</span><span class="o">.</span><span class="nf">execute</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <p>No argument must be set, or all arguments must be set.
+The returned cursor will throw an error otherwise.</p>
+<pre class="highlight swift"><code><span class="c1">// OK</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; ?;
+    SELECT COUNT(*) FROM player WHERE score &gt; ?;
+    """</span><span class="p">)</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">;
+    SELECT COUNT(*) FROM player WHERE score &gt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">;
+    """</span><span class="p">)</span>
+
+<span class="c1">// NOT OK</span>
+<span class="k">try</span> <span class="nf">allStatements</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    SELECT COUNT(*) FROM player WHERE score &lt; </span><span class="se">\(</span><span class="mi">1000</span><span class="se">)</span><span class="s">;
+    SELECT COUNT(*) FROM player WHERE score &gt; ?;
+    """</span><span class="p">)</span>
+</code></pre>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/execute(sql:arguments:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">execute(sql:<wbr>arguments:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes one or several SQL statements, separated by semi-colons.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span>
+    <span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO player (name) VALUES (:name)"</span><span class="p">,</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"name"</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">])</span>
+
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+    INSERT INTO player (name) VALUES (?);
+    INSERT INTO player (name) VALUES (?);
+    INSERT INTO player (name) VALUES (?);
+    """</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Arthur"</span><span class="p">,</span> <span class="s">"Barbara"</span><span class="p">,</span> <span class="s">"O'Brien"</span><span class="p">])</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/execute(literal:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">execute(literal:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes one or several SQL statements, separated by semi-colons.</p>
+
+<p>Literals allow you to safely embed raw values in your SQL, without any
+risk of syntax errors or SQL injection:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"Arthur"</span><span class="se">)</span><span class="s">)
+    """</span><span class="p">)</span>
+
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="s">"""
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"Arthur"</span><span class="se">)</span><span class="s">);
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"Barbara"</span><span class="se">)</span><span class="s">);
+    INSERT INTO player (name) VALUES (</span><span class="se">\(</span><span class="s">"O'Brien"</span><span class="se">)</span><span class="s">);
+    """</span><span class="p">)</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Encryption"></a>
+                <a name="//apple_ref/swift/Section/Encryption" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Encryption"></a>
+                  <h3 class="section-name"><span>Encryption</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/usePassphrase(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">usePassphrase(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Sets the passphrase used to crypt and decrypt an SQLCipher database.</p>
+
+<p>Call this method from <code>Configuration.prepareDatabase</code>,
+as in the example below:</p>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">prepareDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">usePassphrase</span><span class="p">(</span><span class="s">"secret"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/changePassphrase(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">changePassphrase(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Changes the passphrase used by an SQLCipher encrypted database.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database-Related%20Types"></a>
+                <a name="//apple_ref/swift/Section/Database-Related Types" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database-Related%20Types"></a>
+                  <h3 class="section-name"><span>Database-Related Types</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Alias/BusyCallback" class="dashAnchor"></a>
+                    <a class="token" href="#/">BusyCallback</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>See BusyMode and <a href="https://www.sqlite.org/c3ref/busy_handler.html">https://www.sqlite.org/c3ref/busy_handler.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/BusyMode" class="dashAnchor"></a>
+                    <a class="token" href="#/">BusyMode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When there are several connections to a database, a connection may try
+to access the database while it is locked by another connection.</p>
+
+<p>The BusyMode enum describes the behavior of GRDB when such a situation
+occurs:</p>
+
+<ul>
+<li><p>.immediateError: The SQLITE_BUSY error is immediately returned to the
+connection that tries to access the locked database.</p></li>
+<li><p>.timeout: The SQLITE_BUSY error will be returned only if the database
+remains locked for more than the specified duration.</p></li>
+<li><p>.callback: Perform your custom lock handling.</p></li>
+</ul>
+
+<p>To set the busy mode of a database, use Configuration:</p>
+<pre class="highlight swift"><code><span class="c1">// Wait 1 second before failing with SQLITE_BUSY</span>
+<span class="k">let</span> <span class="nv">configuration</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">(</span><span class="nv">busyMode</span><span class="p">:</span> <span class="o">.</span><span class="nf">timeout</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="s">"..."</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="n">configuration</span><span class="p">)</span>
+</code></pre>
+
+<p>Relevant SQLite documentation:</p>
+
+<ul>
+<li><a href="https://www.sqlite.org/c3ref/busy_timeout.html">https://www.sqlite.org/c3ref/busy_timeout.html</a></li>
+<li><a href="https://www.sqlite.org/c3ref/busy_handler.html">https://www.sqlite.org/c3ref/busy_handler.html</a></li>
+<li><a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a></li>
+<li><a href="https://www.sqlite.org/wal.html">https://www.sqlite.org/wal.html</a></li>
+</ul>
+
+                        <a href="../Classes/Database/BusyMode.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/CheckpointMode" class="dashAnchor"></a>
+                    <a class="token" href="#/">CheckpointMode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The available <a href="https://www.sqlite.org/c3ref/wal_checkpoint_v2.html">checkpoint modes</a>.</p>
+
+                        <a href="../Classes/Database/CheckpointMode.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Struct/CollationName" class="dashAnchor"></a>
+                    <a class="token" href="#/">CollationName</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A built-in SQLite collation.</p>
+
+<p>See <a href="https://www.sqlite.org/datatype3.html#collation">https://www.sqlite.org/datatype3.html#collation</a></p>
+
+                        <a href="../Classes/Database/CollationName.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Struct/ColumnType" class="dashAnchor"></a>
+                    <a class="token" href="#/">ColumnType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQL column type.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">table</span><span class="p">:</span> <span class="s">"player"</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">autoIncrementedPrimaryKey</span><span class="p">(</span><span class="s">"id"</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/datatype3.html">https://www.sqlite.org/datatype3.html</a></p>
+
+                        <a href="../Classes/Database/ColumnType.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/ConflictResolution" class="dashAnchor"></a>
+                    <a class="token" href="#/">ConflictResolution</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQLite conflict resolution.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_conflict.html">https://www.sqlite.org/lang_conflict.html</a></p>
+
+                        <a href="../Classes/Database/ConflictResolution.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/ForeignKeyAction" class="dashAnchor"></a>
+                    <a class="token" href="#/">ForeignKeyAction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A foreign key action.</p>
+
+<p>See <a href="https://www.sqlite.org/foreignkeys.html">https://www.sqlite.org/foreignkeys.html</a></p>
+
+                        <a href="../Classes/Database/ForeignKeyAction.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Alias/LogErrorFunction" class="dashAnchor"></a>
+                    <a class="token" href="#/">LogErrorFunction</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An error log function that takes an error code and message.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Struct/TracingOptions" class="dashAnchor"></a>
+                    <a class="token" href="#/">TracingOptions</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An option for <code><a href="../Classes/Database.html#/trace(options:_:)">Database.trace(options:_:)</a></code></p>
+
+                        <a href="../Classes/Database/TracingOptions.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/TraceEvent" class="dashAnchor"></a>
+                    <a class="token" href="#/">TraceEvent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An event reported by <code><a href="../Classes/Database.html#/trace(options:_:)">Database.trace(options:_:)</a></code></p>
+
+                        <a href="../Classes/Database/TraceEvent.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/TransactionCompletion" class="dashAnchor"></a>
+                    <a class="token" href="#/">TransactionCompletion</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Confirms or cancels the changes performed by a transaction or savepoint.</p>
+
+                        <a href="../Classes/Database/TransactionCompletion.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/TransactionKind" class="dashAnchor"></a>
+                    <a class="token" href="#/">TransactionKind</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An SQLite transaction kind. See <a href="https://www.sqlite.org/lang_transaction.html">https://www.sqlite.org/lang_transaction.html</a></p>
+
+                        <a href="../Classes/Database/TransactionKind.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Observation"></a>
+                <a name="//apple_ref/swift/Section/Database Observation" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database%20Observation"></a>
+                  <h3 class="section-name"><span>Database Observation</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/add(transactionObserver:extent:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">add(transactionObserver:<wbr>extent:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add a transaction observer, so that it gets notified of
+database changes.</p>
+
+<p>This method has no effect on read-only database connections.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/remove(transactionObserver:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">remove(transactionObserver:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Remove a transaction observer.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/afterNextTransaction(onCommit:onRollback:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">afterNextTransaction(onCommit:<wbr>onRollback:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Registers closures to be executed after the next or current
+transaction completion.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">afterNextTransaction</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"success"</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span> <span class="c1">// prints "commit"</span>
+</code></pre>
+
+<p>Closure are executed in a protected dispatch queue, serialized will all
+database updates.</p>
+<div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    Database is not read-only.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Enum/TransactionObservationExtent" class="dashAnchor"></a>
+                    <a class="token" href="#/">TransactionObservationExtent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The extent of a transaction observation.</p>
+
+<p>See <code><a href="../Classes/Database.html#/add(transactionObserver:extent:)">add(transactionObserver:extent:)</a></code>.</p>
+
+                        <a href="../Classes/Database/TransactionObservationExtent.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/dropFTS4SynchronizationTriggers(forTable:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">dropFTS4SynchronizationTriggers(forTable:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes the synchronization triggers for a synchronized FTS4 table</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/dropFTS5SynchronizationTriggers(forTable:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">dropFTS5SynchronizationTriggers(forTable:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes the synchronization triggers for a synchronized FTS5 table</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/FTS5"></a>
+                <a name="//apple_ref/swift/Section/FTS5" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/FTS5"></a>
+                  <h3 class="section-name"><span>FTS5</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/add(tokenizer:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">add(tokenizer:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add a custom FTS5 tokenizer.</p>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">MyTokenizer</span> <span class="p">:</span> <span class="kt">FTS5CustomTokenizer</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">tokenizer</span><span class="p">:</span> <span class="kt">MyTokenizer</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/makeFTS5Pattern(rawPattern:forTable:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">makeFTS5Pattern(rawPattern:<wbr>forTable:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a pattern from a raw pattern string; throws DatabaseError on
+invalid syntax.</p>
+
+<p>The pattern syntax is documented at <a href="https://www.sqlite.org/fts5.html#full_text_query_syntax">https://www.sqlite.org/fts5.html#full_text_query_syntax</a></p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeFTS5Pattern</span><span class="p">(</span><span class="nv">rawPattern</span><span class="p">:</span> <span class="s">"and"</span><span class="p">,</span> <span class="nv">forTable</span><span class="p">:</span> <span class="s">"document"</span><span class="p">)</span> <span class="c1">// OK</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeFTS5Pattern</span><span class="p">(</span><span class="nv">rawPattern</span><span class="p">:</span> <span class="s">"AND"</span><span class="p">,</span> <span class="nv">forTable</span><span class="p">:</span> <span class="s">"document"</span><span class="p">)</span> <span class="c1">// malformed MATCH expression: [AND]</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/makeTokenizer(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">makeTokenizer(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an FTS5 tokenizer, given its descriptor.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">unicode61</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeTokenizer</span><span class="p">(</span><span class="o">.</span><span class="nf">unicode61</span><span class="p">())</span>
+</code></pre>
+
+<p>It is a programmer error to use the tokenizer outside of a protected
+database queue, or after the database has been closed.</p>
+
+<p>Use this method when you implement a custom wrapper tokenizer:</p>
+<pre class="highlight swift"><code><span class="kd">final</span> <span class="kd">class</span> <span class="kt">MyTokenizer</span> <span class="p">:</span> <span class="kt">FTS5WrapperTokenizer</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">wrappedTokenizer</span><span class="p">:</span> <span class="kt">FTS5Tokenizer</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">db</span><span class="p">:</span> <span class="kt">Database</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">])</span> <span class="k">throws</span> <span class="p">{</span>
+        <span class="n">wrappedTokenizer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeTokenizer</span><span class="p">(</span><span class="o">.</span><span class="nf">unicode61</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Database%20Schema2"></a>
+                <a name="//apple_ref/swift/Section/Database Schema" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Database%20Schema2"></a>
+                  <h3 class="section-name"><span>Database Schema</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(table:temporary:ifNotExists:withoutRowID:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(table:<wbr>temporary:<wbr>ifNotExists:<wbr>withoutRowID:<wbr>body:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a database table.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">table</span><span class="p">:</span> <span class="s">"place"</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">autoIncrementedPrimaryKey</span><span class="p">(</span><span class="s">"id"</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"favorite"</span><span class="p">,</span> <span class="o">.</span><span class="n">boolean</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span><span class="o">.</span><span class="nf">default</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"longitude"</span><span class="p">,</span> <span class="o">.</span><span class="n">double</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"latitude"</span><span class="p">,</span> <span class="o">.</span><span class="n">double</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a> and
+<a href="https://www.sqlite.org/withoutrowid.html">https://www.sqlite.org/withoutrowid.html</a></p>
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    <p>This method is sunsetted. You should prefer
+<code><a href="../Classes/Database.html#/create(table:options:body:)">create(table:options:body:)</a></code> instead.</p>
+
+</div><div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <p>A DatabaseError whenever an SQLite error occurs.</p>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(table:options:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(table:<wbr>options:<wbr>body:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a database table.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">table</span><span class="p">:</span> <span class="s">"place"</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">autoIncrementedPrimaryKey</span><span class="p">(</span><span class="s">"id"</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"favorite"</span><span class="p">,</span> <span class="o">.</span><span class="n">boolean</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span><span class="o">.</span><span class="nf">default</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"longitude"</span><span class="p">,</span> <span class="o">.</span><span class="n">double</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"latitude"</span><span class="p">,</span> <span class="o">.</span><span class="n">double</span><span class="p">)</span><span class="o">.</span><span class="nf">notNull</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a> and
+<a href="https://www.sqlite.org/withoutrowid.html">https://www.sqlite.org/withoutrowid.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/rename(table:to:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">rename(table:<wbr>to:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Renames a database table.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/alter(table:body:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">alter(table:<wbr>body:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Modifies a database table.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">alter</span><span class="p">(</span><span class="nv">table</span><span class="p">:</span> <span class="s">"player"</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="s">"url"</span><span class="p">,</span> <span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_altertable.html">https://www.sqlite.org/lang_altertable.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/drop(table:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">drop(table:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes a database table.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_droptable.html">https://www.sqlite.org/lang_droptable.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(index:on:columns:unique:ifNotExists:condition:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(index:<wbr>on:<wbr>columns:<wbr>unique:<wbr>ifNotExists:<wbr>condition:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an index.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">index</span><span class="p">:</span> <span class="s">"playerByEmail"</span><span class="p">,</span> <span class="nv">on</span><span class="p">:</span> <span class="s">"player"</span><span class="p">,</span> <span class="nv">columns</span><span class="p">:</span> <span class="p">[</span><span class="s">"email"</span><span class="p">])</span>
+</code></pre>
+
+<p>SQLite can also index expressions (<a href="https://www.sqlite.org/expridx.html">https://www.sqlite.org/expridx.html</a>)
+and use specific collations. To create such an index, use a raw SQL
+query.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE INDEX ..."</span><span class="p">)</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createindex.html">https://www.sqlite.org/lang_createindex.html</a></p>
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    <p>This method is sunsetted. You should prefer
+<code><a href="../Classes/Database.html#/create(index:on:columns:options:condition:)">create(index:on:columns:options:condition:)</a></code> instead.</p>
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(index:on:columns:options:condition:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(index:<wbr>on:<wbr>columns:<wbr>options:<wbr>condition:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates an index.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">index</span><span class="p">:</span> <span class="s">"playerByEmail"</span><span class="p">,</span> <span class="nv">on</span><span class="p">:</span> <span class="s">"player"</span><span class="p">,</span> <span class="nv">columns</span><span class="p">:</span> <span class="p">[</span><span class="s">"email"</span><span class="p">])</span>
+</code></pre>
+
+<p>SQLite can also index expressions (<a href="https://www.sqlite.org/expridx.html">https://www.sqlite.org/expridx.html</a>)
+and use specific collations. To create such an index, use a raw SQL
+query.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE INDEX ..."</span><span class="p">)</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createindex.html">https://www.sqlite.org/lang_createindex.html</a></p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/drop(index:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">drop(index:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Deletes a database index.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_dropindex.html">https://www.sqlite.org/lang_dropindex.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/reindex(collation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">reindex(collation:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Delete and recreate from scratch all indices that use this collation.</p>
+
+<p>This method is useful when the definition of a collation sequence
+has changed.</p>
+
+<p>See <a href="https://www.sqlite.org/lang_reindex.html">https://www.sqlite.org/lang_reindex.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(virtualTable:ifNotExists:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(virtualTable:<wbr>ifNotExists:<wbr>using:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a virtual database table.</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"vocabulary"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="s">"spellfix1"</span><span class="p">)</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/create(virtualTable:ifNotExists:using:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">create(virtualTable:<wbr>ifNotExists:<wbr>using:<wbr>_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Creates a virtual database table.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">module</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"book"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">module</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>The type of the closure argument <code>t</code> depends on the type of the module
+argument: refer to this module&rsquo;s documentation.</p>
+
+<p>Use this method to create full-text tables using the FTS3, FTS4, or
+FTS5 modules:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"book"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">FTS4</span><span class="p">())</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"title"</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"author"</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"body"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>See <a href="https://www.sqlite.org/lang_createtable.html">https://www.sqlite.org/lang_createtable.html</a></p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2022 <a class="link" href="https://github.com/groue" target="_blank" rel="external noopener">Gwendal Roué</a>. All rights reserved. (Last updated: 2022-08-25)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.2</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>
