@@ -97,7 +97,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.0.0-beta.3
+
+Released August 25, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta...v6.0.0-beta.2)
 
 - **Fix**: [#1268](https://github.com/groue/GRDB.swift/pull/1268) by [@groue](https://github.com/groue): Fix SQL generation of CHECK constraints
 - **Breaking**: The `Column` type is no longer `Equatable`
