@@ -172,9 +172,32 @@ The record protocols have been refactored. We tried to keep the amount of modifi
 
 - **PersistableRecord types now customize persistence methods with "persistence callbacks"**.
     
-    It is no longer possible to override persistence methods such as `insert` or `update`. Customizing the persistence methods is now possible with callbacks such as `willSave`, `willInsert`, or `didDelete` (see [Persistence Callbacks](../README.md#persistence-callbacks) for the full list of callbacks).
+    It is no longer possible to override persistence methods such as `insert` or `update`. Customizing the persistence methods is now possible with callbacks such as `willSave`, `willInsert`, or `didDelete` (see [persistence callbacks] for the full list of callbacks).
     
-    For example, let's consider a record that performs some validation before insertion and updates. In GRDB 5, this would look like:
+    **You have to remove the methods below from your own code base**:
+    
+    ```swift
+    // GRDB 6: remove those methods from your code
+    func insert(_ db: Database) throws
+    func didInsert(with rowID: Int64, for column: String?)
+    func update(_ db: Database, columns: Set<String>) throws
+    func save(_ db: Database) throws
+    func delete(_ db: Database) throws -> Bool
+    func exists(_ db: Database) throws -> Bool
+    ```
+    
+    - `insert(_:)`: customization is now made with [persistence callbacks].
+    - `didInsert(with:for:)`: this method was renamed `didInsert(_:)` (see previous bullet point).
+    - `update(_:columns:)`: customization is now made with [persistence callbacks].
+    - `save(_:)`: customization is now made with [persistence callbacks].
+    - `delete(_:)`: customization is now made with [persistence callbacks].
+    - `exists(_:)`: this method is no longer customizable.
+    
+    To help you update your applications with persistence callbacks, let's look at two examples.
+    
+    First, check the updated [Single-Row Tables](SingleRowTables.md) guide, if your application defines a "singleton record".
+    
+    Next, let's consider a record that performs some validation before insertion and updates. In GRDB 5, this would look like:
     
     ```swift
     // GRDB 5
@@ -351,3 +374,5 @@ The record protocols have been refactored. We tried to keep the amount of modifi
          print("Succesful commit")
      }
     ```
+
+[persistence callbacks]: ../README.md#persistence-callbacks
