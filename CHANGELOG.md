@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.0.0` Betas - [6.0.0-beta](#600-beta) | [6.0.0-beta.2](#600-beta2)
+- `6.0.0` Betas - [6.0.0-beta](#600-beta) | [6.0.0-beta.2](#600-beta2) | [6.0.0-beta.3](#600-beta2)
 
 #### 5.x Releases
 
@@ -96,6 +96,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## Next Release
+
+- **New**: [#1271](https://github.com/groue/GRDB.swift/pull/1271) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.39.2
 
 ## 6.0.0-beta.3
 
