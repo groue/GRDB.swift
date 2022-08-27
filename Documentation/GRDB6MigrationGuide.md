@@ -375,4 +375,9 @@ The record protocols have been refactored. We tried to keep the amount of modifi
      }
     ```
 
+- If your application directly embeds the `GRDB.xcodeproj` or `GRDBCustom.xcodeproj` project, then you have to update your dependencies. Those projects now define cross-platform targets, and you must perform the following actions:
+
+    - In the **Target Dependencies** section of the **Build Phases** tab of your **application targets**, replace the GRDB target with `GRDB` or `GRDBCustom`.
+    - In the **Embedded Binaries** section of the **General**  tab of your **application target**, replace the GRDB framework with `GRDB.framework` or `GRDBCustom.framework`.
+
 [persistence callbacks]: ../README.md#persistence-callbacks
