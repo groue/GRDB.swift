@@ -135,6 +135,62 @@ extension Database {
         return schemaIdentifiers
     }
     
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Returns information about a table or a view
+    func table(_ tableName: String) throws -> TableInfo? {
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try table(for: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        return nil
+    }
+    
+    /// Returns information about a table or a view
+    func table(for table: TableIdentifier) throws -> TableInfo? {
+        // Maybe SQLCipher is too old: check actual version
+        GRDBPrecondition(sqlite3_libversion_number() >= 3037000, "SQLite 3.37+ required")
+        return try _table(for: table)
+    }
+#else
+    /// Returns information about a table or a view
+    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
+    func table(_ tableName: String) throws -> TableInfo? {
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try table(for: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        return nil
+    }
+    
+    /// Returns information about a table or a view
+    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
+    func table(for table: TableIdentifier) throws -> TableInfo? {
+        try _table(for: table)
+    }
+#endif
+    /// Returns information about a table or a view
+    private func _table(for table: TableIdentifier) throws -> TableInfo? {
+        assert(sqlite3_libversion_number() >= 3037000, "SQLite 3.37+ required")
+        SchedulingWatchdog.preconditionValidQueue(self)
+        
+        if let tableInfo = schemaCache[table.schemaID].table(table.name) {
+            return tableInfo.value
+        }
+        
+        guard let tableInfo = try TableInfo
+            .fetchOne(self, sql: "PRAGMA \(table.schemaID.sql).table_list(\(table.name.quotedDatabaseIdentifier))")
+        else {
+            // table does not exist
+            schemaCache[table.schemaID].set(tableInfo: .missing, forTable: table.name)
+            return nil
+        }
+        
+        schemaCache[table.schemaID].set(tableInfo: .value(tableInfo), forTable: table.name)
+        return tableInfo
+    }
+    
     /// Returns whether a table exists, in the main or temp schema, or in an
     /// attached database.
     public func tableExists(_ name: String) throws -> Bool {
@@ -310,7 +366,19 @@ extension Database {
     private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
         // No need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
-        //
+        
+        // Prefer PRAGMA table_list if available
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Maybe SQLCipher is too old: check actual version
+        if sqlite3_libversion_number() >= 3037000 {
+            return try self.table(for: table)!.hasRowID
+        }
+#else
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+            return try self.table(for: table)!.hasRowID
+        }
+#endif
+        
         // To check if the table has a rowid, we compile a statement that
         // selects the `rowid` column. If compilation fails, we assume that the
         // table is WITHOUT ROWID. This is not a very robust test (users may
@@ -1090,6 +1158,42 @@ public struct ForeignKeyInfo {
     /// The destination columns
     public var destinationColumns: [String] {
         mapping.map(\.destination)
+    }
+}
+
+/// See <https://www.sqlite.org/pragma.html#pragma_table_list>
+struct TableInfo: FetchableRecord {
+    struct Kind: RawRepresentable {
+        var rawValue: String
+        
+        static let table = Kind(rawValue: "table")
+        static let view = Kind(rawValue: "view")
+        static let shadow = Kind(rawValue: "shadow")
+        static let virtual = Kind(rawValue: "virtual")
+    }
+    
+    var schemaID: Database.SchemaIdentifier
+    var name: String
+    var kind: Kind
+    var columnCount: Int
+    var hasRowID: Bool
+    var strict: Bool
+    
+    init(row: Row) throws {
+        switch row[0] as String {
+        case "main":
+            schemaID = .main
+        case "temp":
+            schemaID = .temp
+        case let name:
+            schemaID = .attached(name)
+        }
+        
+        name = row[1]
+        kind = Kind(rawValue: row[2])
+        columnCount = row[3]
+        hasRowID = !row[4]
+        strict = row[5]
     }
 }
 

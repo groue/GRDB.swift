@@ -21,17 +21,27 @@ struct DatabaseSchemaCache {
     }
     
     var schemaInfo: SchemaInfo?
+    private var tables: [String: Presence<TableInfo>] = [:]
     private var primaryKeys: [String: Presence<PrimaryKeyInfo>] = [:]
     private var columns: [String: Presence<[ColumnInfo]>] = [:]
     private var indexes: [String: Presence<[IndexInfo]>] = [:]
     private var foreignKeys: [String: Presence<[ForeignKeyInfo]>] = [:]
     
     mutating func clear() {
+        tables = [:]
         primaryKeys = [:]
         columns = [:]
         indexes = [:]
         foreignKeys = [:]
         schemaInfo = nil
+    }
+    
+    func table(_ table: String) -> Presence<TableInfo>? {
+        tables[table]
+    }
+    
+    mutating func set(tableInfo: Presence<TableInfo>, forTable table: String) {
+        tables[table] = tableInfo
     }
     
     func primaryKey(_ table: String) -> Presence<PrimaryKeyInfo>? {
