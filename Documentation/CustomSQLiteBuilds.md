@@ -3,7 +3,7 @@ Custom SQLite Builds
 
 By default, GRDB uses the version of SQLite that ships with the target operating system.
 
-**You can build GRDB with a custom build of [SQLite 3.37.2](https://www.sqlite.org/changes.html).**
+**You can build GRDB with a custom build of [SQLite 3.39.2](https://www.sqlite.org/changes.html).**
 
 A custom SQLite build can activate extra SQLite features, and extra GRDB features as well, such as support for the [FTS5 full-text search engine](../../../#full-text-search), and [SQLite Pre-Update Hooks](../../../#support-for-sqlite-pre-update-hooks).
 
@@ -111,9 +111,9 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 
 5. Embed the `GRDBCustom.xcodeproj` project in your own project.
 
-6. Add the `GRDBCustomSQLiteOSX` or `GRDBCustomSQLiteiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
+6. Add the `GRDBCustom` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
 
-7. Add the `GRDBCustomSQLite.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
+7. Add the `GRDBCustom.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
 
 8. Add a Run Script phase for your target in the **Pre-actions** section of the **Build** tab of your **application scheme**:
     

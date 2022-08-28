@@ -110,7 +110,7 @@ test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_m
 test_framework_GRDBOSX_maxSwift:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBOSX \
+	  -scheme GRDB \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
@@ -121,7 +121,7 @@ test_framework_GRDBOSX_minSwift:
 ifdef MIN_SWIFT_VERSION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBOSX \
+	  -scheme GRDB \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
@@ -133,7 +133,7 @@ test_framework_GRDBWatchOS:
 	# XCTest is not supported for watchOS: we only make sure that the framework builds.
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBWatchOS \
+	  -scheme GRDB \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  clean build \
 	  $(XCPRETTY)
@@ -144,7 +144,7 @@ test_framework_GRDBiOS_maxTarget: test_framework_GRDBiOS_maxTarget_maxSwift test
 test_framework_GRDBiOS_maxTarget_maxSwift:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDB \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
@@ -156,7 +156,7 @@ test_framework_GRDBiOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDB \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
@@ -168,7 +168,7 @@ endif
 test_framework_GRDBiOS_minTarget:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -180,7 +180,7 @@ test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift te
 test_framework_GRDBtvOS_maxTarget_maxSwift:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBtvOS \
+	  -scheme GRDB \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
@@ -192,7 +192,7 @@ test_framework_GRDBtvOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBtvOS \
+	  -scheme GRDB \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
@@ -205,7 +205,7 @@ test_framework_GRDBtvOS_minTarget:
 ifdef MIN_TVOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBtvOS \
+	  -scheme GRDB \
 	  -destination $(MIN_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -215,7 +215,7 @@ endif
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBOSX \
+	  -scheme GRDBCustom \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
@@ -226,7 +226,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget: test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDBCustom \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -236,7 +236,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift: SQLiteCustom
 ifdef MIN_SWIFT_VERSION
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDBCustom \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -246,7 +246,7 @@ endif
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBiOS \
+	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -324,7 +324,7 @@ test_archive_GRDBOSX_xcframework:
 	mkdir Tests/products
 	$(XCODEBUILD) archive \
 	  -project GRDB.xcodeproj \
-	  -scheme GRDBOSX \
+	  -scheme GRDB \
 	  -configuration Release \
 	  -destination "generic/platform=macOS" \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
@@ -495,13 +495,16 @@ ifdef JAZZY
 	  --clean \
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
-	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.3 \
-	  --module-version 6.0.0-beta.3 \
+	  --source-host github \
+	  --source-host-url https://github.com/groue/GRDB.swift \
+	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.4 \
+	  --module-version 6.0.0-beta.4 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.3/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.4/ \
 	  --output Documentation/Reference \
-	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
+	  --swift-build-tool xcodebuild \
+	  --undocumented-text '' \
+	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDB
 else
 	@echo Jazzy must be installed for doc
 	@exit 1
