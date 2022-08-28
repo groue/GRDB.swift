@@ -40,7 +40,7 @@ How you can Contribute
 
 5. **Run tests**
     
-    You can run tests from `GRDB.xcworkspace`, after selecting your target (GRDBOSX, GRDBiOS, GRDBtvOS, from `GRDB.xcodeproj` or `GRDBCustom.xcodeproj`).
+    You can run tests from `GRDB.xcworkspace`, after selecting your scheme (`GRDB` from `GRDB.xcodeproj` or `GRDBCustom` from `GRDBCustom.xcodeproj`).
     
     Before submitting a pull request, please run in the terminal:
     
