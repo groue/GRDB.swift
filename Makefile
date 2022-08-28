@@ -495,12 +495,15 @@ ifdef JAZZY
 	  --clean \
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
-	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.3 \
-	  --module-version 6.0.0-beta.3 \
+	  --source-host github \
+	  --source-host-url https://github.com/groue/GRDB.swift \
+	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.4 \
+	  --module-version 6.0.0-beta.4 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.3/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.4/ \
 	  --output Documentation/Reference \
+	  --swift-build-tool xcodebuild \
+	  --undocumented-text '' \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDB
 else
 	@echo Jazzy must be installed for doc
