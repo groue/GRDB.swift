@@ -296,8 +296,11 @@ public struct Configuration {
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
     var SQLiteConnectionDidClose: (() -> Void)?
     var SQLiteOpenFlags: CInt {
-        let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
-        return threadingMode.SQLiteOpenFlags | readWriteFlags
+        var flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
+        if sqlite3_libversion_number() >= 3037000 {
+            flags |= 0x02000000 // SQLITE_OPEN_EXRESCODE
+        }
+        return threadingMode.SQLiteOpenFlags | flags
     }
     
     func setUp(_ db: Database) throws {

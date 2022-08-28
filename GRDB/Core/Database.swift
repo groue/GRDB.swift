@@ -347,6 +347,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     private func activateExtendedCodes() throws {
+        if (configuration.SQLiteOpenFlags & 0x02000000 /* SQLITE_OPEN_EXRESCODE */) != 0 {
+            // Nothing to do
+            return
+        }
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
