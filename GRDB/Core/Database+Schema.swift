@@ -366,7 +366,19 @@ extension Database {
     private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
         // No need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
-        //
+        
+        // Prefer PRAGMA table_list if available
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Maybe SQLCipher is too old: check actual version
+        if sqlite3_libversion_number() >= 3037000 {
+            return try self.table(for: table)!.hasRowID
+        }
+#else
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+            return try self.table(for: table)!.hasRowID
+        }
+#endif
+        
         // To check if the table has a rowid, we compile a statement that
         // selects the `rowid` column. If compilation fails, we assume that the
         // table is WITHOUT ROWID. This is not a very robust test (users may
