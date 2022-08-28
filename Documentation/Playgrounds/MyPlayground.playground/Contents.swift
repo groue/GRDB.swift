@@ -1,4 +1,4 @@
-// To run this playground, select and build the GRDBOSX scheme.
+// To run this playground, select and build the GRDB scheme.
 
 import GRDB
 
