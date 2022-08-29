@@ -103,8 +103,8 @@ Released August 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compa
 
 - **New**: [#1271](https://github.com/groue/GRDB.swift/pull/1271) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.39.2
 - **New**: [SQLITE_OPEN_EXRESCODE](https://www.sqlite.org/c3ref/open.html), when available, exposes [extended result codes](README.md#databaseerror) when opening a database connection.
+- **Fixed**: [PRAGMA table_list](https://www.sqlite.org/pragma.html#pragma_table_list), when available, makes it possible for GRDB to detect [WITHOUT ROWID](https://www.sqlite.org/withoutrowid.html) tables without [polluting the SQLite error log](https://github.com/groue/GRDB.swift/issues/945).
 - **Breaking Change**: The`GRDB.xcodeproj` or `GRDBCustom.xcodeproj` projects now define cross-platforms targets.
-- **Fixed**: [PRAGMA table_list](https://www.sqlite.org/pragma.html#pragma_table_list), when available, makes it possible for GRDB to detect [WITHOUT ROWID](https://www.sqlite.org/withoutrowid.html) tables without [polluting the SQLite error log](https://github.com/groue/GRDB.swift/issues/945).- **Breaking Change**: The`GRDB.xcodeproj` or `GRDBCustom.xcodeproj` projects now define cross-platforms targets.
 - **Documentation Update**: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md) describes how to update applications that directly embed the `GRDB.xcodeproj` or `GRDBCustom.xcodeproj` project.
 - **Documentation Update**: [Custom SQLite Builds](CustomSQLiteBuilds.md) was updated for the new cross-platform target defined by the `GRDBCustom.xcodeproj` project.
 
