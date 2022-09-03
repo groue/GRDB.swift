@@ -26,9 +26,6 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
     /// How to schedule observed values and errors.
     private let scheduler: ValueObservationScheduler
     
-    /// If true, database values are fetched from a read-only access.
-    private let readOnly: Bool
-    
     /// Configures the tracked database region.
     private let trackingMode: ValueObservationTrackingMode
     
@@ -79,8 +76,33 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
         /// The observed DatabaseWriter.
         let writer: Writer
         
-        /// The function that fetches database values.
-        let fetch: (Database) throws -> Reducer.Fetched
+        /// If true, database values are fetched from a read-only access.
+        private let readOnly: Bool
+        
+        /// A reducer that fetches database values.
+        private let reducer: Reducer
+        
+        init(writer: Writer, readOnly: Bool, reducer: Reducer) {
+            self.writer = writer
+            self.readOnly = readOnly
+            self.reducer = reducer
+        }
+        
+        func fetch(_ db: Database) throws -> Reducer.Fetched {
+            try db.isolated(readOnly: readOnly) {
+                try reducer._fetch(db)
+            }
+        }
+        
+        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetched, DatabaseRegion) {
+            var region = DatabaseRegion()
+            let fetchedValue = try db.isolated(readOnly: readOnly) {
+                try db.recordingSelection(&region) {
+                    try reducer._fetch(db)
+                }
+            }
+            return try (fetchedValue, region.observableRegion(db))
+        }
     }
     
     /// Ability to notify observation events
@@ -128,15 +150,15 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
     {
         // Configuration
         self.scheduler = scheduler
-        self.readOnly = readOnly
         self.trackingMode = trackingMode
         
         // State
         self.databaseAccess = DatabaseAccess(
             writer: writer,
+            readOnly: readOnly,
             // ValueReducer semantics guarantees that reducer._fetch
             // is independent from the reducer state
-            fetch: reducer._fetch)
+            reducer: reducer)
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
         self.reduceQueue = DispatchQueue(
@@ -276,18 +298,16 @@ extension ValueWriteOnlyObserver {
     /// single database access, we are sure that no concurrent write can happen
     /// during the initial fetch, and that we won't miss any future change.
     private func fetchAndStartObservation(_ db: Database) throws -> Reducer.Fetched? {
-        let (events, fetch) = lock.synchronized {
-            (notificationCallbacks?.events, databaseAccess?.fetch)
+        let (events, databaseAccess) = lock.synchronized {
+            (notificationCallbacks?.events, self.databaseAccess)
         }
-        guard let events, let fetch else {
+        guard let events, let databaseAccess else {
             return nil /* Cancelled */
         }
         
         switch trackingMode {
         case let .constantRegion(regions):
-            let fetchedValue = try db.isolated(readOnly: readOnly) {
-                try fetch(db)
-            }
+            let fetchedValue = try databaseAccess.fetch(db)
             let region = try DatabaseRegion.union(regions)(db)
             let observedRegion = try region.observableRegion(db)
             events.willTrackRegion?(observedRegion)
@@ -296,13 +316,7 @@ extension ValueWriteOnlyObserver {
             
         case .constantRegionRecordedFromSelection,
                 .nonConstantRegionRecordedFromSelection:
-            var region = DatabaseRegion()
-            let fetchedValue = try db.recordingSelection(&region) {
-                try db.isolated(readOnly: readOnly) {
-                    try fetch(db)
-                }
-            }
-            let observedRegion = try region.observableRegion(db)
+            let (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
             events.willTrackRegion?(observedRegion)
             startObservation(db, observedRegion: observedRegion)
             return fetchedValue
@@ -345,10 +359,10 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         
         // Ignore transaction unless we are still notifying database events, and
         // we can still fetch fresh values.
-        let (events, fetch) = lock.synchronized {
-            (notificationCallbacks?.events, databaseAccess?.fetch)
+        let (events, databaseAccess) = lock.synchronized {
+            (notificationCallbacks?.events, self.databaseAccess)
         }
-        guard let events, let fetch else { return /* Cancelled */ }
+        guard let events, let databaseAccess else { return /* Cancelled */ }
         
         // Notify
         events.databaseDidChange?()
@@ -360,19 +374,11 @@ extension ValueWriteOnlyObserver: TransactionObserver {
             switch trackingMode {
             case .constantRegion, .constantRegionRecordedFromSelection:
                 // Tracked region is already known. Fetch only.
-                fetchedValue = try db.isolated(readOnly: readOnly) {
-                    try fetch(db)
-                }
+                fetchedValue = try databaseAccess.fetch(db)
             case .nonConstantRegionRecordedFromSelection:
                 // Fetch and update the tracked region.
-                var region = DatabaseRegion()
-                fetchedValue = try db.recordingSelection(&region) {
-                    try db.isolated(readOnly: readOnly) {
-                        try fetch(db)
-                    }
-                }
-                
-                let observedRegion = try region.observableRegion(db)
+                let (value, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
+                fetchedValue = value
                 
                 // Don't spam the user with region tracking events: wait for an actual change
                 if let willTrackRegion = events.willTrackRegion, observedRegion != observationState.region {

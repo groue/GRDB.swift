@@ -76,8 +76,29 @@ final class ValueConcurrentObserver<Reducer: ValueReducer> {
         /// The observed DatabasePool.
         let dbPool: DatabasePool
         
-        /// The function that fetches database values.
-        let fetch: (Database) throws -> Reducer.Fetched
+        /// A reducer that fetches database values.
+        private let reducer: Reducer
+        
+        init(dbPool: DatabasePool, reducer: Reducer) {
+            self.dbPool = dbPool
+            self.reducer = reducer
+        }
+        
+        func fetch(_ db: Database) throws -> Reducer.Fetched {
+            try db.isolated(readOnly: true) {
+                try reducer._fetch(db)
+            }
+        }
+        
+        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetched, DatabaseRegion) {
+            var region = DatabaseRegion()
+            let fetchedValue = try db.isolated(readOnly: true) {
+                try db.recordingSelection(&region) {
+                    try reducer._fetch(db)
+                }
+            }
+            return try (fetchedValue, region.observableRegion(db))
+        }
     }
     
     /// Ability to notify observation events
@@ -135,7 +156,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer> {
             dbPool: dbPool,
             // ValueReducer semantics guarantees that reducer._fetch
             // is independent from the reducer state
-            fetch: reducer._fetch)
+            reducer: reducer)
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
         self.reduceQueue = DispatchQueue(
@@ -269,11 +290,7 @@ extension ValueConcurrentObserver {
                 
             case .constantRegionRecordedFromSelection,
                     .nonConstantRegionRecordedFromSelection:
-                var region = DatabaseRegion()
-                let fetchedValue = try db.recordingSelection(&region) {
-                    try databaseAccess.fetch(db)
-                }
-                let initialRegion = try region.observableRegion(db)
+                let (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
                 return (fetchedValue, initialRegion, WALSnapshot(db))
             }
         }
@@ -329,11 +346,7 @@ extension ValueConcurrentObserver {
                         
                     case .constantRegionRecordedFromSelection,
                             .nonConstantRegionRecordedFromSelection:
-                        var region = DatabaseRegion()
-                        fetchedValue = try db.recordingSelection(&region) {
-                            try databaseAccess.fetch(db)
-                        }
-                        initialRegion = try region.observableRegion(db)
+                        (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
                     }
                     
                     // Reduce
@@ -419,11 +432,7 @@ extension ValueConcurrentObserver {
                             
                         case .constantRegionRecordedFromSelection,
                                 .nonConstantRegionRecordedFromSelection:
-                            var region = DatabaseRegion()
-                            fetchedValue = try writerDB.recordingSelection(&region) {
-                                try databaseAccess.fetch(writerDB)
-                            }
-                            observedRegion = try region.observableRegion(writerDB)
+                            (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(writerDB)
                             events.willTrackRegion?(observedRegion)
                             self.startObservation(writerDB, observedRegion: observedRegion)
                         }
@@ -530,14 +539,7 @@ extension ValueConcurrentObserver: TransactionObserver {
             // Conclusion: fetch from the writer connection, and update the
             // tracked region.
             do {
-                var region = DatabaseRegion()
-                let fetchedValue = try writerDB.recordingSelection(&region) {
-                    try writerDB.isolated(readOnly: true) {
-                        try databaseAccess.fetch(writerDB)
-                    }
-                }
-                
-                let observedRegion = try region.observableRegion(writerDB)
+                let (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(writerDB)
                 
                 // Don't spam the user with region tracking events: wait for an actual change
                 if let willTrackRegion = events.willTrackRegion, observedRegion != observationState.region {
