@@ -19,7 +19,7 @@ import Foundation
 ///         onChange: { (players: [Player]) in
 ///             print("Players have changed.")
 ///         })
-public struct ValueObservation<Reducer: ValueReducer> {
+public struct ValueObservation<Reducer: _ValueReducer> {
     var events = ValueObservationEvents()
     
     /// Default is false. Set this property to true when the observation
@@ -144,6 +144,7 @@ extension ValueObservation: Refinable {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
+    where Reducer: ValueReducer
     {
         let observation = self.with {
             $0.events.didFail = concat($0.events.didFail, onError)
@@ -243,8 +244,10 @@ extension ValueObservation: Refinable {
     
     // MARK: - Fetching Values
     
-    /// Returns the value.
-    func fetchValue(_ db: Database) throws -> Reducer.Value {
+    /// Fetches the initial value.
+    func fetchInitialValue(_ db: Database) throws -> Reducer.Value
+    where Reducer: ValueReducer
+    {
         var reducer = makeReducer()
         guard let value = try reducer._value(reducer._fetch(db)) else {
             fatalError("Broken contract: reducer has no initial value")
@@ -269,6 +272,7 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
+    where Reducer: ValueReducer
     {
         AsyncValueObservation(bufferingPolicy: bufferingPolicy) { onError, onChange in
             self.start(in: reader, scheduling: scheduler, onError: onError, onChange: onChange)
@@ -400,6 +404,7 @@ extension ValueObservation {
         in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
+    where Reducer: ValueReducer
     {
         DatabasePublishers.Value { (onError, onChange) in
             self.start(

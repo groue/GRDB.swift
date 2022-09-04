@@ -83,6 +83,7 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>
+    where Reducer: ValueReducer
     {
         SharedValueObservation(scheduling: scheduler, extent: extent) { onError, onChange in
             self.start(in: reader, scheduling: scheduler, onError: onError, onChange: onChange)
