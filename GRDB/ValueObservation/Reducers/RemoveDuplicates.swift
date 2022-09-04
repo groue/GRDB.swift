@@ -50,3 +50,10 @@ extension ValueReducers.RemoveDuplicates: _DatabaseValueReducer where Base: _Dat
         try base._fetch(db)
     }
 }
+
+extension ValueReducers.RemoveDuplicates: _SnapshotValueReducer where Base: _SnapshotValueReducer {
+    /// :nodoc:
+    public func _fetch(_ db: Database, snapshot: DatabaseSnapshot) throws -> Base.Fetched {
+        try base._fetch(db, snapshot: snapshot)
+    }
+}

@@ -718,7 +718,7 @@ extension DatabasePool: DatabaseReader {
         writer.async(updates)
     }
     
-    // MARK: - Database Observation
+    // MARK: - ValueObservation Support
     
     /// :nodoc:
     public func _add<Reducer: ValueReducer>(
@@ -761,6 +761,96 @@ extension DatabasePool: DatabaseReader {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
         let observer = ValueConcurrentObserver(
+            dbPool: self,
+            scheduler: scheduler,
+            trackingMode: observation.trackingMode,
+            reducer: observation.makeReducer(),
+            events: observation.events,
+            onChange: onChange)
+        return observer.start()
+    }
+    
+    // MARK: - ValueObservation (Snapshot) Support
+    
+    func _add<Reducer: SnapshotReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    {
+        if configuration.readonly {
+            // The easy case: the database does not change
+            return _addReadOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
+            
+        } else {
+            // DatabasePool can perform concurrent observation
+            return _addConcurrent(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
+        }
+    }
+    
+    /// Adding an observation in a read-only database emits only the
+    /// initial value.
+    private func _addReadOnly<Reducer: SnapshotReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    {
+        if scheduler.immediateInitialValue() {
+            do {
+                // TODO: create a snapshot from a reader, without creating a database connection
+                let snapshot = try makeSnapshot()
+                let value = try snapshot.read { db in
+                    try observation.fetchInitialValue(db, snapshot: snapshot)
+                }
+                onChange(value)
+            } catch {
+                observation.events.didFail?(error)
+            }
+            return AnyDatabaseCancellable(cancel: { /* nothing to cancel */ })
+        } else {
+            var isCancelled = false
+            // TODO: perform an async read, and create a snapshot from this reader connection
+            DispatchQueue(label: "GRDB.Pool.wait", qos: configuration.readQoS).async {
+                guard !isCancelled else { return }
+                
+                let result = Result {
+                    let snapshot = try self.makeSnapshot()
+                    return try snapshot.read { db in
+                        try observation.fetchInitialValue(db, snapshot: snapshot)
+                    }
+                }
+                
+                scheduler.schedule {
+                    guard !isCancelled else { return }
+                    do {
+                        try onChange(result.get())
+                    } catch {
+                        observation.events.didFail?(error)
+                    }
+                }
+            }
+            return AnyDatabaseCancellable(cancel: { isCancelled = true })
+        }
+    }
+    
+    /// A concurrent observation fetches the initial value without waiting for
+    /// the writer.
+    private func _addConcurrent<Reducer: SnapshotReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    {
+        assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
+        assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
+        let observer = ValueSnapshotObserver(
             dbPool: self,
             scheduler: scheduler,
             trackingMode: observation.trackingMode,

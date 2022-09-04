@@ -115,6 +115,8 @@
 		56419C7824A51A38004967E1 /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419A5E24A51601004967E1 /* Recorder.swift */; };
 		56419C7924A51A38004967E1 /* RecordingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419A5F24A51601004967E1 /* RecordingError.swift */; };
 		564448831EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */; };
+		564CD11B28C37C7A001DB866 /* SnapshotFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CD11A28C37C7A001DB866 /* SnapshotFetch.swift */; };
+		564CD12028C49CE2001DB866 /* ValueSnapshotObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CD11F28C49CE2001DB866 /* ValueSnapshotObserver.swift */; };
 		564CE43121AA901800652B19 /* ValueConcurrentObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */; };
 		564CE4E921B2E06F00652B19 /* ValueObservationMapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE4E821B2E06F00652B19 /* ValueObservationMapTests.swift */; };
 		564CE59D21B7A8B500652B19 /* RemoveDuplicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE59621B7A8B500652B19 /* RemoveDuplicates.swift */; };
@@ -510,6 +512,8 @@
 		5643676D272EDF2400C718C7 /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
 		564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAfterNextTransactionCommitTests.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* DatabaseCollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCollationTests.swift; sourceTree = "<group>"; };
+		564CD11A28C37C7A001DB866 /* SnapshotFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnapshotFetch.swift; sourceTree = "<group>"; };
+		564CD11F28C49CE2001DB866 /* ValueSnapshotObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueSnapshotObserver.swift; sourceTree = "<group>"; };
 		564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValueConcurrentObserver.swift; sourceTree = "<group>"; };
 		564CE4E821B2E06F00652B19 /* ValueObservationMapTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationMapTests.swift; sourceTree = "<group>"; };
 		564CE59621B7A8B500652B19 /* RemoveDuplicates.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoveDuplicates.swift; sourceTree = "<group>"; };
@@ -906,11 +910,10 @@
 			children = (
 				563082E32430B6BE00C14A05 /* DatabaseCancellable.swift */,
 				560233C32724234F00529DF3 /* SharedValueObservation.swift */,
-				564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */,
 				563B06AA217EF0CC00B38F35 /* ValueObservation.swift */,
 				56848972242DE36F002F9702 /* ValueObservationScheduler.swift */,
-				5679533227E0A2FB004D18BD /* ValueWriteOnlyObserver.swift */,
-				56AACAA022ACEC9700A40F2A /* ValueReducer */,
+				564CD11E28C49C7A001DB866 /* Observers */,
+				56AACAA022ACEC9700A40F2A /* Reducers */,
 			);
 			path = ValueObservation;
 			sourceTree = "<group>";
@@ -1109,6 +1112,16 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		564CD11E28C49C7A001DB866 /* Observers */ = {
+			isa = PBXGroup;
+			children = (
+				564CD11F28C49CE2001DB866 /* ValueSnapshotObserver.swift */,
+				564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */,
+				5679533227E0A2FB004D18BD /* ValueWriteOnlyObserver.swift */,
+			);
+			path = Observers;
 			sourceTree = "<group>";
 		};
 		5653EABF20944B1300F46237 /* Association */ = {
@@ -1494,16 +1507,17 @@
 			path = Record;
 			sourceTree = "<group>";
 		};
-		56AACAA022ACEC9700A40F2A /* ValueReducer */ = {
+		56AACAA022ACEC9700A40F2A /* Reducers */ = {
 			isa = PBXGroup;
 			children = (
+				564CD11A28C37C7A001DB866 /* SnapshotFetch.swift */,
 				56AACAA722ACED7100A40F2A /* Fetch.swift */,
 				5613ED3421A95A5C00DC7A68 /* Map.swift */,
 				564CE59621B7A8B500652B19 /* RemoveDuplicates.swift */,
 				563B8F91249E6171007A48C9 /* Trace.swift */,
 				5613ED4321A95B2C00DC7A68 /* ValueReducer.swift */,
 			);
-			path = ValueReducer;
+			path = Reducers;
 			sourceTree = "<group>";
 		};
 		56DAA2C41DE99D8D006E10C8 /* Cursor */ = {
@@ -2008,6 +2022,7 @@
 				5636E9BC1D22574100B9B05F /* FetchRequest.swift in Sources */,
 				566DDE0D288D763C0000DCFB /* Fixits.swift in Sources */,
 				56BB6EA91D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */,
+				564CD12028C49CE2001DB866 /* ValueSnapshotObserver.swift in Sources */,
 				563EF44A2161F179007DAACD /* Inflections.swift in Sources */,
 				566B91091FA4C3970012D5B0 /* Database+Statements.swift in Sources */,
 				566B91231FA4CF810012D5B0 /* Database+Schema.swift in Sources */,
@@ -2040,6 +2055,7 @@
 				56A2387B1B9C75030082EB20 /* Configuration.swift in Sources */,
 				56FA0C3928B20ABE00B2DFF7 /* PersistableRecord+Upsert.swift in Sources */,
 				566475CC1D981D5E00FF74B8 /* SQLFunctions.swift in Sources */,
+				564CD11B28C37C7A001DB866 /* SnapshotFetch.swift in Sources */,
 				5698AC371D9E5A590056AF8C /* FTS3Pattern.swift in Sources */,
 				563EF415215F87EB007DAACD /* OrderedDictionary.swift in Sources */,
 				563B8FB524A1D029007A48C9 /* ReceiveValuesOn.swift in Sources */,

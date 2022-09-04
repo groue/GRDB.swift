@@ -156,6 +156,67 @@ extension ValueObservation: Refinable {
             onChange: onChange)
     }
     
+    /// Starts the value observation in the provided database pool.
+    ///
+    /// The observation lasts until the returned cancellable is cancelled
+    /// or deallocated.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation.trackingSnapshots { db, snapshot in
+    ///         ...
+    ///     }
+    ///
+    ///     let cancellable = try observation.start(
+    ///         in: dbPool,
+    ///         onError: { error in ... },
+    ///         onChange: { trackedValue in
+    ///             print("Value has changed")
+    ///         })
+    ///
+    /// By default, fresh values are dispatched asynchronously on the
+    /// main queue. You can change this behavior by providing a scheduler.
+    /// For example, `.immediate` notifies all values on the main queue as well,
+    /// and the first one is immediately notified when the start() method
+    /// is called:
+    ///
+    ///     let cancellable = try observation.start(
+    ///         in: dbPool,
+    ///         scheduling: .immediate, // <-
+    ///         onError: { error in ... },
+    ///         onChange: { trackedValue in
+    ///             print("Value has changed")
+    ///         })
+    ///     // <- here "Value has changed" is already printed.
+    ///
+    /// Note that the `.immediate` scheduler requires that the observation is
+    /// subscribed from the main thread. It raises a fatal error otherwise.
+    ///
+    /// - parameter pool: A DatabasePool.
+    /// - parameter scheduler: A Scheduler. By default, fresh values are
+    ///   dispatched asynchronously on the main queue.
+    /// - parameter onError: A closure that is provided eventual errors that
+    ///   happen during observation
+    /// - parameter onChange: A closure that is provided fresh values
+    /// - returns: a cancellable.
+    public func start(
+        in pool: DatabasePool,
+        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    where Reducer: SnapshotReducer
+    {
+        let observation = self.with {
+            $0.events.didFail = concat($0.events.didFail, onError)
+        }
+        observation.events.willStart?()
+        return pool._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
+    }
+    
     // MARK: - Debugging
     
     /// Performs the specified closures when ValueObservation events occur.
@@ -250,6 +311,17 @@ extension ValueObservation: Refinable {
     {
         var reducer = makeReducer()
         guard let value = try reducer._value(reducer._fetch(db)) else {
+            fatalError("Broken contract: reducer has no initial value")
+        }
+        return value
+    }
+    
+    /// Fetches the initial value.
+    func fetchInitialValue(_ db: Database, snapshot: DatabaseSnapshot) throws -> Reducer.Value
+    where Reducer: SnapshotReducer
+    {
+        var reducer = makeReducer()
+        guard let value = try reducer._value(reducer._fetch(db, snapshot: snapshot)) else {
             fatalError("Broken contract: reducer has no initial value")
         }
         return value
@@ -556,7 +628,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     
     // MARK: - Creating ValueObservation
     
-    /// Creates an optimized `ValueObservation` that notifies the values
+    /// Creates an optimized `ValueObservation` that notifies the value
     /// returned by the `fetch` function whenever a database transaction
     /// changes them.
     ///
@@ -624,8 +696,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///         }
     ///     }
     ///
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database.
     public static func trackingConstantRegion<Value>(
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
@@ -635,9 +707,9 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
-    /// Creates a `ValueObservation` that notifies the values returned by the
+    /// Creates a `ValueObservation` that notifies the value returned by the
     /// `fetch` function whenever a database transaction has an impact on the
-    /// given regions.
+    /// observed regions.
     ///
     /// The tracked region *is not* automatically inferred from the requests
     /// performed in the `fetch` function.
@@ -670,8 +742,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///         fetch: { db in ... })
     ///
     /// - parameter region: A list of observed regions.
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database.
     public static func tracking<Value>(
         region: any DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
@@ -680,9 +752,9 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         tracking(regions: region, fetch: fetch)
     }
     
-    /// Creates a `ValueObservation` that notifies the values returned by the
+    /// Creates a `ValueObservation` that notifies the value returned by the
     /// `fetch` function whenever a database transaction has an impact on the
-    /// given regions.
+    /// observed regions.
     ///
     /// The tracked region *is not* automatically inferred from the requests
     /// performed in the `fetch` function.
@@ -715,8 +787,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///         fetch: { db in ... })
     ///
     /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database.
     public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
@@ -727,7 +799,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
-    /// Creates a `ValueObservation` that notifies the values returned by the
+    /// Creates a `ValueObservation` that notifies the value returned by the
     /// `fetch` function whenever a database transaction changes them.
     ///
     /// For example:
@@ -743,8 +815,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///             print("Players have changed")
     ///         })
     ///
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database.
     public static func tracking<Value>(
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
@@ -752,5 +824,71 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         .init(
             trackingMode: .nonConstantRegionRecordedFromSelection,
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
+    }
+    
+    /// Creates a `ValueObservation` that notifies the value returned by the
+    /// `fetch` function whenever a database transaction changes them.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation.trackingSnapshots { db, snapshot in
+    ///         ...
+    ///     }
+    ///
+    ///     let cancellable = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { trackedValue in
+    ///             print("Value has changed")
+    ///         })
+    ///
+    /// Such an observation requires a ``DatabasePool``.
+    ///
+    /// - precondition: The observed region must be constant
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database. The function arguments are a database
+    ///   connection, and a ``DatabaseSnapshot``.
+    public static func trackingSnapshots<Value>(
+        _ fetch: @escaping (Database, DatabaseSnapshot) throws -> Value)
+    -> ValueObservation<ValueReducers.SnapshotFetch<Value>>
+    {
+        .init(
+            trackingMode: .constantRegionRecordedFromSelection,
+            makeReducer: {
+                ValueReducers.SnapshotFetch { db, snapshot in
+                    try fetch(db, snapshot)
+                }
+            })
+    }
+    
+    /// Creates a `ValueObservation` that notifies the value returned by the
+    /// `fetch` function whenever a database transaction has an impact on the
+    /// observed regions.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The tracked region *is not* automatically inferred from the requests
+    /// performed in the `fetch` function.
+    ///
+    /// Such an observation requires a ``DatabasePool``.
+    ///
+    /// - parameter regions: A list of observed regions.
+    /// - parameter fetch: A function that fetches and returns the observed
+    ///   value from the database. The function arguments are a database
+    ///   connection, and a ``DatabaseSnapshot``.
+    public static func trackingSnapshots<Value>(
+        observedRegions: [any DatabaseRegionConvertible],
+        fetch: @escaping (Database, DatabaseSnapshot) throws -> Value)
+    -> ValueObservation<ValueReducers.SnapshotFetch<Value>>
+    {
+        .init(
+            trackingMode: .constantRegion(observedRegions),
+            makeReducer: {
+                ValueReducers.SnapshotFetch { db, snapshot in
+                    try fetch(db, snapshot)
+                }
+            })
     }
 }

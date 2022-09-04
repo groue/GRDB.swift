@@ -34,9 +34,25 @@ public protocol _DatabaseValueReducer: _ValueReducer {
     func _fetch(_ db: Database) throws -> Fetched
 }
 
+/// Implementation details of `ValueReducer`, able to observe from
+/// ``DatabaseSnapshot`` only.
+///
+/// :nodoc:
+public protocol _SnapshotValueReducer: _ValueReducer {
+    #warning("TODO: consider providing a database connection from the snapshot as well")
+    /// Fetches database values upon changes in an observed database region.
+    ///
+    /// This method must does not depend on the state of the reducer.
+    func _fetch(_ db: Database, snapshot: DatabaseSnapshot) throws -> Fetched
+}
+
 /// `ValueReducer` supports ``ValueObservation`` that can observe from any
 /// database reader (``DatabaseQueue``, ``DatabasePool``).
 public typealias ValueReducer = _ValueReducer & _DatabaseValueReducer
+
+/// `SnapshotReducer` supports ``ValueObservation`` that can observer from
+/// ``DatabaseSnapshot`` only
+public typealias SnapshotReducer = _ValueReducer & _SnapshotValueReducer
 
 /// A namespace for types related to the `ValueReducer` protocol.
 public enum ValueReducers {
