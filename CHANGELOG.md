@@ -97,6 +97,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: Fixed a bug with HasManyThrough associations when the "through" association has the same association key as the association itself ([#1274](https://github.com/groue/GRDB.swift/discussions/1274)).
+
 ## 6.0.0-beta.4
 
 Released August 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta.3...v6.0.0-beta.4)
