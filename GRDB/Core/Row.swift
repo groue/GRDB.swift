@@ -1619,17 +1619,19 @@ extension Row {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
         for key in prefetchedRows.keys.sorted() {
-            let rows = prefetchedRows[key]!
-            let prefetchedRowsDescription: String
-            switch rows.count {
-            case 0:
-                prefetchedRowsDescription = "0 row"
-            case 1:
-                prefetchedRowsDescription = "1 row"
-            case let count:
-                prefetchedRowsDescription = "\(count) rows"
+            // rows is nil if key is a pivot in a "through" association
+            if let rows = prefetchedRows[key] {
+                let prefetchedRowsDescription: String
+                switch rows.count {
+                case 0:
+                    prefetchedRowsDescription = "0 row"
+                case 1:
+                    prefetchedRowsDescription = "1 row"
+                case let count:
+                    prefetchedRowsDescription = "\(count) rows"
+                }
+                str += "\n" + prefix + "+ " + key + ": \(prefetchedRowsDescription)"
             }
-            str += "\n" + prefix + "+ " + key + ": \(prefetchedRowsDescription)"
         }
         
         return str
@@ -1912,8 +1914,10 @@ extension Row {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {
                 let (prefetchKey, prefetch) = fifo.removeFirst()
-                if prefetchKey == key {
-                    return prefetch.rows
+                if prefetchKey == key,
+                   let rows = prefetch.rows // nil for "through" associations
+                {
+                    return rows
                 }
                 fifo.append(contentsOf: prefetch.prefetches)
             }
