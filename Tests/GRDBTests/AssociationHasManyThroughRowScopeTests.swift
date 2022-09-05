@@ -263,4 +263,85 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
         }
     }
+    
+    // https://github.com/groue/GRDB.swift/discussions/1274
+    func testDiscussion1274() throws {
+        struct MuscleGroup: Codable, Equatable, FetchableRecord, TableRecord {
+            var id: String
+          
+            static let primaryMuscleGroups = hasMany(PrimaryMuscleGroup.self)
+            static let primaryExercises = hasMany(
+                  Exercise.self,
+                  through: primaryMuscleGroups,
+                  using: PrimaryMuscleGroup.exercise
+            )
+        }
+
+        struct Exercise: Codable, Equatable, FetchableRecord, TableRecord {
+            var id: String
+          
+            // Primary Muscle Groups
+            static let primaryMuscleGroups = hasMany(
+                MuscleGroup.self,
+                // Tested: this has the "primaryMuscleGroups" key, just
+                // as Exercise.primaryMuscleGroups
+                through: Exercise.hasMany(PrimaryMuscleGroup.self),
+                using: PrimaryMuscleGroup.muscleGroup
+            )
+            .forKey("primaryMuscleGroups")
+        }
+
+        struct PrimaryMuscleGroup: Codable, FetchableRecord, TableRecord {
+            var muscleGroupId: String
+            var exerciseId: String
+          
+            static let muscleGroup = belongsTo(MuscleGroup.self)
+            static let exercise = belongsTo(Exercise.self)
+        }
+
+        struct CompleteExercise: Decodable, Equatable, FetchableRecord {
+            var exercise: Exercise
+            var primaryMuscleGroups: [MuscleGroup]
+        }
+        
+        dbConfiguration.prepareDatabase { db in
+            db.trace { print("SQL > \($0)") }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "muscleGroup") { table in
+                table.column("id", .text).notNull().primaryKey()
+            }
+            try db.create(table: "exercise") { table in
+                table.column("id", .text).notNull().primaryKey()
+            }
+            try db.create(table: "primaryMuscleGroup") { table in
+                table.column("muscleGroupId", .text).notNull().references("muscleGroup", onDelete: .cascade)
+                table.column("exerciseId", .text).notNull().references("exercise", onDelete: .cascade)
+                table.primaryKey(["muscleGroupId", "exerciseId"])
+            }
+            
+            try db.execute(sql: """
+                INSERT INTO muscleGroup (id) VALUES ('1');
+                INSERT INTO exercise (id) VALUES ('2');
+                INSERT INTO primaryMuscleGroup (muscleGroupId, exerciseId) VALUES ('1', '2');
+                """)
+            
+            let request = Exercise.including(all: Exercise.primaryMuscleGroups)
+            
+            do {
+                // Test records
+                let results = try request
+                    .asRequest(of: CompleteExercise.self)
+                    .fetchAll(db)
+                XCTAssertEqual(results, [
+                    CompleteExercise(
+                        exercise: Exercise(id: "2"),
+                        primaryMuscleGroups: [
+                            MuscleGroup(id: "1"),
+                        ]),
+                ])
+            }
+        }
+    }
 }
