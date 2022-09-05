@@ -79,7 +79,7 @@ Programming tools for both database beginners and SQLite experts:
 
 In-depth integration with our programming environment:
 
-- [Swift Concurrency]: `try await` your database (Xcode 13.3.1+).
+- [Swift Concurrency]: `try await` your database.
 - [SwiftUI](http://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
 - [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
 - [RxSwift](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
