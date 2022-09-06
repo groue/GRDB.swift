@@ -102,6 +102,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Bump custom SQLite builds v3.39.3
 - **Fixed**: [#1274](https://github.com/groue/GRDB.swift/discussions/1274) Fixed a bug with HasManyThrough associations when the "through" association has the same association key as the association itself.
 - **Fixed**: [#1275](https://github.com/groue/GRDB.swift/issues/1275) Enhance error message for some requests involving associations on common table expressions.
+- **Breaking Change**: Request methods that accept a closure with a `Database` argument have been renamed with the `WhenConnected` suffix: `request.filterWhenConnected { db in ... }`, etc. 
 
 ## 6.0.0-beta.4
 
