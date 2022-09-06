@@ -783,4 +783,45 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
         }
     }
+    
+    // https://github.com/groue/GRDB.swift/issues/1275
+    func testIssue1275() throws {
+        try makeDatabaseQueue().read { db in
+            do {
+                // Failing case: test that error message suggests to fix the cte
+                // definition by declaring columns.
+                let cte1 = CommonTableExpression(named: "cte1", sql: "SELECT * FROM cte2")
+                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let association = cte1.association(to: cte2)
+                let request = cte1.all().with(cte1).with(cte2).including(required: association)
+                _ = try request.asRequest(of: Row.self).fetchOne(db)
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, """
+                Can't compute the number of columns in the "cte1" common table expression: \
+                no such table: cte2. Check the syntax of the SQL definition, \
+                or provide the explicit list of selected columns with the \
+                `columns` parameter in the CommonTableExpression initializer.
+                """)
+            }
+            
+            do {
+                // Fixed case: specify columns
+                let cte1 = CommonTableExpression(named: "cte1", columns: ["a"], sql: "SELECT * FROM cte2")
+                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let association = cte1.association(to: cte2)
+                let request = cte1.all().with(cte1).with(cte2).including(required: association)
+                _ = try request.asRequest(of: Row.self).fetchOne(db)
+            }
+            
+            do {
+                // Handled case: no need to specify columns
+                let cte1 = CommonTableExpression(named: "cte1", request: Table("cte2").select(Column("a")))
+                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let association = cte1.association(to: cte2)
+                let request = cte1.all().with(cte1).with(cte2).including(required: association)
+                _ = try request.asRequest(of: Row.self).fetchOne(db)
+            }
+        }
+    }
 }

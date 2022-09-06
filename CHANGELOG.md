@@ -100,6 +100,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **Fixed**: Fixed a bug with HasManyThrough associations when the "through" association has the same association key as the association itself ([#1274](https://github.com/groue/GRDB.swift/discussions/1274)).
+- **Fixed**: [#1275](https://github.com/groue/GRDB.swift/issues/1275) Enhance error message for some requests involving associations on common table expressions.
 - **New**: Bump custom SQLite builds v3.39.3
 
 ## 6.0.0-beta.4
