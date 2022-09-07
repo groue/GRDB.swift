@@ -158,10 +158,7 @@ extension DatabaseValue: StatementBinding {
 }
 
 extension DatabaseValue: Sendable { }
-
-// @unchecked due to Foundation.Data not conforming to Sendable
-// TODO: Remove @unchecked when Foundation has been upgraded
-extension DatabaseValue.Storage: @unchecked Sendable { }
+extension DatabaseValue.Storage: Sendable { }
 
 // MARK: - Hashable & Equatable
 
