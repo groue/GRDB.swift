@@ -2055,9 +2055,7 @@ struct ArrayRowImpl: RowImpl {
     }
 }
 
-// @unchecked because columns property is not inferred as Sendable
-// TODO: remove this @unchecked when compiler can handle tuples.
-extension ArrayRowImpl: @unchecked Sendable { }
+extension ArrayRowImpl: Sendable { }
 
 // TODO: merge with ArrayRowImpl eventually?
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
