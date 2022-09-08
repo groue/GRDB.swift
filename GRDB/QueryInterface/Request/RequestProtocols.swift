@@ -277,7 +277,9 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(rawKeys: [1, 2, 3])
     ///
     /// - parameter keys: A collection of primary keys
-    func filter(rawKeys: some Sequence<some DatabaseValueConvertible>) -> Self {
+    func filter<Keys>(rawKeys: Keys) -> Self
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
+    {
         // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
         // change the SQLite results anyway.
         let expressions = rawKeys.map {
@@ -390,7 +392,9 @@ where Self: FilteredRequest,
     ///     let request = try Player...filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
+    public func filter<IDS>(ids: IDS) -> Self
+    where IDS: Collection, IDS.Element == RowDecoder.ID
+    {
         filter(keys: ids)
     }
 }

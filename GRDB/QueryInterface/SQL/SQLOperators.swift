@@ -337,7 +337,7 @@ extension Sequence where Element: SQLExpressible {
     }
 }
 
-extension Sequence<any SQLExpressible> {
+extension Sequence where Element == any SQLExpressible {
     /// An SQL expression that checks the inclusion of an expression in
     /// a sequence.
     ///

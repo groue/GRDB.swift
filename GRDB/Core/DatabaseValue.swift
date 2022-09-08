@@ -1,4 +1,5 @@
-import Foundation
+// TODO: remove @preconcurrency when Data conformance to Sendable is exposed.
+@preconcurrency import Foundation
 
 // MARK: - DatabaseValue
 

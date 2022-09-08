@@ -209,7 +209,9 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE id IN \(ids)
     ///         """
-    public mutating func appendInterpolation(_ sequence: some Sequence<some SQLExpressible>) {
+    public mutating func appendInterpolation<S>(_ sequence: S)
+    where S: Sequence, S.Element: SQLExpressible
+    {
         let e: [SQL.Element] = sequence.map { .expression($0.sqlExpression) }
         if e.isEmpty {
             appendLiteral("(SELECT NULL WHERE NULL)")
@@ -235,14 +237,18 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
-    public mutating func appendInterpolation(_ sequence: some Sequence<any SQLExpressible>){
+    public mutating func appendInterpolation<S>(_ sequence: S)
+    where S: Sequence, S.Element == any SQLExpressible
+    {
         appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
     
     // When a value is both an expression and a sequence of expressions,
     // favor the expression side. Use case: Foundation.Data interpolation.
     /// :nodoc:
-    public mutating func appendInterpolation(_ expressible: some SQLExpressible & Sequence<some SQLExpressible>) {
+    public mutating func appendInterpolation<S>(_ expressible: S)
+    where S: SQLExpressible, S: Sequence, S.Element: SQLExpressible
+    {
         elements.append(.expression(expressible.sqlExpression))
     }
     
