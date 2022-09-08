@@ -419,7 +419,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
         // Optimization not available
         expectedCounts = [0, 0, 1]
         #elseif GRDBCUSTOMSQLITE
@@ -477,7 +477,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
         // Optimization not available
         expectedCounts = [0, 0, 1]
         #elseif GRDBCUSTOMSQLITE
