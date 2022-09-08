@@ -93,6 +93,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 5.26.1
+
+Released September 8, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.26.0...v5.26.1)
+
+- **Fixed**: [#1276](https://github.com/groue/GRDB.swift/pull/1276) Fix build error with Xcode 14.0 RC (14A309)
+
 ## 5.26.0
 
 Released July 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.25.0...v5.26.0)
