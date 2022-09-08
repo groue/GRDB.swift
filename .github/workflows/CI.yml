@@ -5,6 +5,7 @@ on:
     branches: 
       - master
       - development
+      - GRDB5
     paths:
       - 'GRDB/**'
       - 'Tests/**'
