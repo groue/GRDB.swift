@@ -478,10 +478,10 @@ ifdef JAZZY
 	  --author_url https://github.com/groue \
 	  --source-host github \
 	  --source-host-url https://github.com/groue/GRDB.swift \
-	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.4 \
-	  --module-version 6.0.0-beta.4 \
+	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0 \
+	  --module-version 6.0.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.4/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/6.0/ \
 	  --output Documentation/Reference \
 	  --swift-build-tool xcodebuild \
 	  --undocumented-text '' \
