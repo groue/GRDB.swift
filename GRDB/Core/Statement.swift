@@ -651,7 +651,9 @@ public struct StatementArguments: CustomStringConvertible, Hashable,
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init(_ sequence: some Sequence<(any DatabaseValueConvertible)?>) {
+    public init<S>(_ sequence: S)
+    where S: Sequence, S.Element == (any DatabaseValueConvertible)?
+    {
         values = sequence.map { $0?.databaseValue ?? .null }
         namedValues = .init()
     }
@@ -663,7 +665,9 @@ public struct StatementArguments: CustomStringConvertible, Hashable,
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init(_ sequence: some Sequence<some DatabaseValueConvertible>) {
+    public init<S>(_ sequence: S)
+    where S: Sequence, S.Element: DatabaseValueConvertible
+    {
         values = sequence.map(\.databaseValue)
         namedValues = .init()
     }
@@ -712,7 +716,9 @@ public struct StatementArguments: CustomStringConvertible, Hashable,
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init(_ sequence: some Sequence<(String, (any DatabaseValueConvertible)?)>) {
+    public init<S>(_ sequence: S)
+    where S: Sequence, S.Element == (String, (any DatabaseValueConvertible)?)
+    {
         namedValues = .init(minimumCapacity: sequence.underestimatedCount)
         for (key, value) in sequence {
             namedValues[key] = value?.databaseValue ?? .null

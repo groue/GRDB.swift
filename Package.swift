@@ -18,6 +18,7 @@ if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
 
 let package = Package(
     name: "GRDB",
+    defaultLocalization: "en", // for tests
     platforms: [
         .iOS(.v11),
         .macOS(.v10_13),

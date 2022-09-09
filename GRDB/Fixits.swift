@@ -1,6 +1,14 @@
 // Fixits for changes introduced by GRDB 6.0.0
 // swiftlint:disable all
 
+extension AggregatingRequest {
+    @available(*, unavailable, renamed: "groupWhenConnected(_:)")
+    func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "havingWhenConnected(_:)")
+    func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self { preconditionFailure() }
+}
+
 extension Association {
     @available(*, unavailable, message: "limit(_:offset:) was not working properly, and was removed.")
     public func limit(_ limit: Int, offset: Int? = nil) -> Self { preconditionFailure() }
@@ -70,6 +78,11 @@ extension DatabaseUUIDEncodingStrategy {
 @available(*, unavailable, message: "FastNullableDatabaseValueCursor<T> has been replaced with FastDatabaseValueCursor<T?>")
 typealias FastNullableDatabaseValueCursor<T: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<T?>
 
+extension FilteredRequest {
+    @available(*, unavailable, renamed: "filterWhenConnected(with:)")
+    func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self { preconditionFailure() }
+}
+
 extension MutablePersistableRecord {
     @available(*, unavailable, message: "Use persistence callbacks instead.")
     public mutating func performInsert(_ db: Database) throws { preconditionFailure() }
@@ -93,6 +106,11 @@ extension MutablePersistableRecord {
 @available(*, unavailable, message: "NullableDatabaseValueCursor<T> has been replaced with DatabaseValueCursor<T?>")
 typealias NullableDatabaseValueCursor<T: DatabaseValueConvertible> = DatabaseValueCursor<T?>
 
+extension OrderedRequest {
+    @available(*, unavailable, renamed: "orderWhenConnected(_:)")
+    func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self { preconditionFailure() }
+}
+
 extension PersistableRecord {
     @available(*, unavailable, message: "Use persistence callbacks instead.")
     public func performInsert(_ db: Database) throws { preconditionFailure() }
@@ -114,6 +132,14 @@ extension Record {
 
 @available(*, unavailable, renamed: "Statement")
 public typealias SelectStatement = Statement
+
+extension SelectionRequest {
+    @available(*, unavailable, renamed: "annotatedWhenConnected(with:)")
+    func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "selectWhenConnected(_:)")
+    func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self { preconditionFailure() }
+}
 
 @available(*, unavailable, renamed: "SQLExpression.AssociativeBinaryOperator")
 public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryOperator

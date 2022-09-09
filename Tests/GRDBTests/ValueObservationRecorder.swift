@@ -222,7 +222,8 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: ((Error) -> Void)? = nil,
         onChange: ((Reducer.Value) -> Void)? = nil)
-        -> ValueObservationRecorder<Reducer.Value>
+    -> ValueObservationRecorder<Reducer.Value>
+    where Reducer: ValueReducer
     {
         let recorder = ValueObservationRecorder<Reducer.Value>()
         let cancellable = start(

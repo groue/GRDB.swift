@@ -625,7 +625,7 @@ extension DatabasePublishers {
         public typealias Output = Output
         public typealias Failure = Error
         
-        fileprivate let upstream: any Publisher<Output, Error>
+        fileprivate let upstream: AnyPublisher<Output, Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)
@@ -636,7 +636,7 @@ extension DatabasePublishers {
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToWritePublisher() -> DatabasePublishers.Write<Output> {
-        .init(upstream: self)
+        .init(upstream: self.eraseToAnyPublisher())
     }
 }
 #endif

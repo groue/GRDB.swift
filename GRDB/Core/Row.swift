@@ -1619,17 +1619,19 @@ extension Row {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
         for key in prefetchedRows.keys.sorted() {
-            let rows = prefetchedRows[key]!
-            let prefetchedRowsDescription: String
-            switch rows.count {
-            case 0:
-                prefetchedRowsDescription = "0 row"
-            case 1:
-                prefetchedRowsDescription = "1 row"
-            case let count:
-                prefetchedRowsDescription = "\(count) rows"
+            // rows is nil if key is a pivot in a "through" association
+            if let rows = prefetchedRows[key] {
+                let prefetchedRowsDescription: String
+                switch rows.count {
+                case 0:
+                    prefetchedRowsDescription = "0 row"
+                case 1:
+                    prefetchedRowsDescription = "1 row"
+                case let count:
+                    prefetchedRowsDescription = "\(count) rows"
+                }
+                str += "\n" + prefix + "+ " + key + ": \(prefetchedRowsDescription)"
             }
-            str += "\n" + prefix + "+ " + key + ": \(prefetchedRowsDescription)"
         }
         
         return str
@@ -1912,8 +1914,10 @@ extension Row {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {
                 let (prefetchKey, prefetch) = fifo.removeFirst()
-                if prefetchKey == key {
-                    return prefetch.rows
+                if prefetchKey == key,
+                   let rows = prefetch.rows // nil for "through" associations
+                {
+                    return rows
                 }
                 fifo.append(contentsOf: prefetch.prefetches)
             }
@@ -2025,7 +2029,9 @@ extension RowImpl {
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init(columns: some Collection<(String, DatabaseValue)>) {
+    init<Columns>(columns: Columns)
+    where Columns: Collection, Columns.Element == (String, DatabaseValue)
+    {
         self.columns = Array(columns)
     }
     
@@ -2051,9 +2057,7 @@ struct ArrayRowImpl: RowImpl {
     }
 }
 
-// @unchecked because columns property is not inferred as Sendable
-// TODO: remove this @unchecked when compiler can handle tuples.
-extension ArrayRowImpl: @unchecked Sendable { }
+extension ArrayRowImpl: Sendable { }
 
 // TODO: merge with ArrayRowImpl eventually?
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)

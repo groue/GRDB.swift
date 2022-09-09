@@ -114,8 +114,7 @@ test_framework_GRDBOSX_maxSwift:
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBOSX_minSwift:
 ifdef MIN_SWIFT_VERSION
@@ -125,8 +124,7 @@ ifdef MIN_SWIFT_VERSION
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 endif
 
 test_framework_GRDBWatchOS:
@@ -149,8 +147,7 @@ test_framework_GRDBiOS_maxTarget_maxSwift:
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBiOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
@@ -161,8 +158,7 @@ ifdef MIN_SWIFT_VERSION
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 endif
 
 test_framework_GRDBiOS_minTarget:
@@ -171,8 +167,7 @@ test_framework_GRDBiOS_minTarget:
 	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
 test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
@@ -185,8 +180,7 @@ test_framework_GRDBtvOS_maxTarget_maxSwift:
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBtvOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
@@ -197,8 +191,7 @@ ifdef MIN_SWIFT_VERSION
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 endif
 
 test_framework_GRDBtvOS_minTarget:
@@ -208,8 +201,7 @@ ifdef MIN_TVOS_DESTINATION
 	  -scheme GRDB \
 	  -destination $(MIN_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 endif
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
@@ -217,8 +209,7 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
 test_framework_GRDBCustomSQLiteiOS_maxTarget: test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
@@ -229,8 +220,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift: SQLiteCustom
 	  -scheme GRDBCustom \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift: SQLiteCustom
 ifdef MIN_SWIFT_VERSION
@@ -239,8 +229,7 @@ ifdef MIN_SWIFT_VERSION
 	  -scheme GRDBCustom \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
@@ -249,8 +238,7 @@ test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_framework_SQLCipher3:
 ifdef POD
@@ -260,8 +248,7 @@ ifdef POD
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  build-for-testing test-without-building \
-	  $(XCPRETTY)
+	  build-for-testing test-without-building
 else
 	@echo CocoaPods must be installed for test_framework_SQLCipher3
 	@exit 1
@@ -275,8 +262,7 @@ ifdef POD
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBEncryptedTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  build-for-testing test-without-building \
-	  $(XCPRETTY)
+	  build-for-testing test-without-building
 else
 	@echo CocoaPods must be installed for test_framework_SQLCipher3Encrypted
 	@exit 1
@@ -290,8 +276,7 @@ ifdef POD
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  build-for-testing test-without-building \
-	  $(XCPRETTY)
+	  build-for-testing test-without-building
 else
 	@echo CocoaPods must be installed for test_framework_SQLCipher4
 	@exit 1
@@ -305,8 +290,7 @@ ifdef POD
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBEncryptedTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  build-for-testing test-without-building \
-	  $(XCPRETTY)
+	  build-for-testing test-without-building
 else
 	@echo CocoaPods must be installed for test_framework_SQLCipher4Encrypted
 	@exit 1
@@ -317,7 +301,7 @@ test_SPM:
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
-	set -o pipefail && $(SWIFT) test $(XCPRETTY)
+	set -o pipefail && $(SWIFT) test --parallel
 
 test_archive_GRDBOSX_xcframework:
 	rm -rf Tests/products
@@ -443,8 +427,7 @@ test_GRDBDemoiOS:
 	  -scheme GRDBDemoiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_GRDBCombineDemo:
 	$(XCODEBUILD) \
@@ -452,8 +435,7 @@ test_GRDBCombineDemo:
 	  -scheme GRDBCombineDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_GRDBAsyncDemo:
 	$(XCODEBUILD) \
@@ -461,8 +443,7 @@ test_GRDBAsyncDemo:
 	  -scheme GRDBAsyncDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+	  $(TEST_ACTIONS)
 
 test_performance:
 	$(XCODEBUILD) \
@@ -497,10 +478,10 @@ ifdef JAZZY
 	  --author_url https://github.com/groue \
 	  --source-host github \
 	  --source-host-url https://github.com/groue/GRDB.swift \
-	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0-beta.4 \
-	  --module-version 6.0.0-beta.4 \
+	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0 \
+	  --module-version 6.0.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.0.0-beta.4/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/6.0/ \
 	  --output Documentation/Reference \
 	  --swift-build-tool xcodebuild \
 	  --undocumented-text '' \

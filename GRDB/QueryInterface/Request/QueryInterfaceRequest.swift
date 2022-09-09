@@ -76,9 +76,12 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
-    public func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
+    public func selectWhenConnected(
+        _ selection: @escaping (Database) throws -> [any SQLSelectable])
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.select { db in
+            $0.relation = $0.relation.selectWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
             }
         }
@@ -166,7 +169,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     {
         with { request in
             let tableName = request.relation.source.tableName
-            request.relation = request.relation.select { db in
+            request.relation = request.relation.selectWhenConnected { db in
                 try db.primaryKey(tableName).columns.map { Column($0).sqlSelection }
             }
         }
@@ -180,9 +183,12 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
-    public func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
+    public func annotatedWhenConnected(
+        with selection: @escaping (Database) throws -> [any SQLSelectable])
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.annotated { db in
+            $0.relation = $0.relation.annotatedWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
             }
         }
@@ -196,9 +202,12 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
-    public func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
+    public func filterWhenConnected(
+        _ predicate: @escaping (Database) throws -> any SQLExpressible)
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.filter { db in
+            $0.relation = $0.relation.filterWhenConnected { db in
                 try predicate(db).sqlExpression
             }
         }
@@ -219,9 +228,12 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .order{ _ in [Column("email")] }
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
-    public func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> QueryInterfaceRequest {
+    public func orderWhenConnected(
+        _ orderings: @escaping (Database) throws -> [any SQLOrderingTerm])
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.order { db in
+            $0.relation = $0.relation.orderWhenConnected { db in
                 try orderings(db).map(\.sqlOrdering)
             }
         }
@@ -258,9 +270,12 @@ extension QueryInterfaceRequest: OrderedRequest {
 
 extension QueryInterfaceRequest: AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> QueryInterfaceRequest {
+    public func groupWhenConnected(
+        _ expressions: @escaping (Database) throws -> [any SQLExpressible])
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.group { db in
+            $0.relation = $0.relation.groupWhenConnected { db in
                 try expressions(db).map(\.sqlExpression)
             }
         }
@@ -268,9 +283,12 @@ extension QueryInterfaceRequest: AggregatingRequest {
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
+    public func havingWhenConnected(
+        _ predicate: @escaping (Database) throws -> any SQLExpressible)
+    -> QueryInterfaceRequest
+    {
         with {
-            $0.relation = $0.relation.having { db in
+            $0.relation = $0.relation.havingWhenConnected { db in
                 try predicate(db).sqlExpression
             }
         }

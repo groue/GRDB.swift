@@ -555,7 +555,7 @@ extension TableRecord where Self: EncodableRecord {
             let destinationRelation = association
                 ._sqlAssociation
                 .with {
-                    $0.pivot.relation = $0.pivot.relation.filter { db in
+                    $0.pivot.relation = $0.pivot.relation.filterWhenConnected { db in
                         // Filter the pivot on self
                         try foreignKey
                             .joinMapping(db, from: Self.databaseTableName)

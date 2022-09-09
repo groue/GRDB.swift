@@ -690,14 +690,18 @@ public final class AnyCursor<Element>: Cursor {
     
     /// Creates a cursor that wraps a base iterator but whose type depends only
     /// on the base iterator’s element type
-    public convenience init(iterator: some IteratorProtocol<Element>) {
+    public convenience init<I>(iterator: I)
+    where I: IteratorProtocol, I.Element == Element
+    {
         var iterator = iterator
         self.init { iterator.next() }
     }
     
     /// Creates a cursor that wraps a base sequence but whose type depends only
     /// on the base sequence’s element type
-    public convenience init(_ s: some Sequence<Element>) {
+    public convenience init<S>(_ s: S)
+    where S: Sequence, S.Element == Element
+    {
         self.init(iterator: s.makeIterator())
     }
     

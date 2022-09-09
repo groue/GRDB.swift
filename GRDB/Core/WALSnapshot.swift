@@ -20,7 +20,14 @@
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot {
-#if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+    // Xcode 14 RC ships with a macOS SDK that misses snapshot support.
+    // TODO: when Xcode ships with a macOS SDK that exposes snapshots, replace
+    // the `os(macOS) || targetEnvironment(macCatalyst)` check with a compiler
+    // version check.
+    //
+    // We can't enable snapshots for SQLCipher, since we don't know if they
+    // are enabled.
+#if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
     init?(_ db: Database) {
         return nil
     }
@@ -56,5 +63,5 @@ final class WALSnapshot {
     func compare(_ other: WALSnapshot) -> CInt {
         return sqlite3_snapshot_cmp(snapshot, other.snapshot)
     }
-#endif // GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#endif // os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 }

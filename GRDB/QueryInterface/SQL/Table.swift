@@ -230,8 +230,9 @@ extension Table {
     ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let table = Table<Player>("player")
     ///     let request = table.filter(keys: [1, 2, 3])
-    public func filter(keys: some Sequence<some DatabaseValueConvertible>)
+    public func filter<Keys>(keys: Keys)
     -> QueryInterfaceRequest<RowDecoder>
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -390,7 +391,9 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     ///     let request = table.filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter(ids: some Collection<RowDecoder.ID>) -> QueryInterfaceRequest<RowDecoder> {
+    public func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<RowDecoder>
+    where IDS: Collection, IDS.Element == RowDecoder.ID
+    {
         all().filter(ids: ids)
     }
 }
@@ -1240,8 +1243,9 @@ extension Table {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public func deleteAll(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
+    public func deleteAll<Keys>(_ db: Database, keys: Keys)
     throws -> Int
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -1305,7 +1309,9 @@ where RowDecoder: Identifiable,
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public func deleteAll(_ db: Database, ids: some Collection<RowDecoder.ID>) throws -> Int {
+    public func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
+    where IDS: Collection, IDS.Element == RowDecoder.ID
+    {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0

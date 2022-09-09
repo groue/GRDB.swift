@@ -28,11 +28,12 @@ extension MutablePersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func update(
+    public func update<Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<String>)
+        columns: Columns)
     throws
+    where Columns: Sequence, Columns.Element == String
     {
         try willSave(db)
         
@@ -57,11 +58,12 @@ extension MutablePersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func update(
+    public func update<Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<some ColumnExpression>)
+        columns: Columns)
     throws
+    where Columns: Sequence, Columns.Element: ColumnExpression
     {
         try update(db, onConflict: conflictResolution, columns: columns.map(\.name))
     }
@@ -283,13 +285,14 @@ extension MutablePersistableRecord {
     ///   match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func updateAndFetch<T>(
+    public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<String>,
+        columns: Columns,
         selection: [any SQLSelectable],
         fetch: (Statement) throws -> T)
     throws -> T
+    where Columns: Sequence, Columns.Element == String
     {
         GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
         
@@ -338,13 +341,14 @@ extension MutablePersistableRecord {
     ///   match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func updateAndFetch<T>(
+    public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<some ColumnExpression>,
+        columns: Columns,
         selection: [any SQLSelectable],
         fetch: (Statement) throws -> T)
     throws -> T
+    where Columns: Sequence, Columns.Element: ColumnExpression
     {
         try updateAndFetch(
             db, onConflict: conflictResolution,
@@ -558,13 +562,14 @@ extension MutablePersistableRecord {
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
-    public func updateAndFetch<T>(
+    public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<String>,
+        columns: Columns,
         selection: [any SQLSelectable],
         fetch: (Statement) throws -> T)
     throws -> T
+    where Columns: Sequence, Columns.Element == String
     {
         GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
         
@@ -614,13 +619,14 @@ extension MutablePersistableRecord {
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
-    public func updateAndFetch<T>(
+    public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: some Sequence<some ColumnExpression>,
+        columns: Columns,
         selection: [any SQLSelectable],
         fetch: (Statement) throws -> T)
     throws -> T
+    where Columns: Sequence, Columns.Element: ColumnExpression
     {
         try updateAndFetch(
             db, onConflict: conflictResolution,

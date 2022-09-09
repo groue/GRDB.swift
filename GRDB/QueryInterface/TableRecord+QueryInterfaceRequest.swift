@@ -191,8 +191,9 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let request = Player.filter(keys: [1, 2, 3])
-    public static func filter(keys: some Sequence<some DatabaseValueConvertible>)
+    public static func filter<Keys>(keys: Keys)
     -> QueryInterfaceRequest<Self>
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -379,7 +380,9 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     let request = Player.filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public static func filter(ids: some Collection<ID>) -> QueryInterfaceRequest<Self> {
+    public static func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<Self>
+    where IDS: Collection, IDS.Element == ID
+    {
         all().filter(ids: ids)
     }
 }

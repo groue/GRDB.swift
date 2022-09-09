@@ -21,15 +21,15 @@ public protocol SelectionRequest {
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
-    ///     request = request.select { db in [Column("id"), Column("email") })
+    ///     request = request.selectWhenConnected { db in [Column("id"), Column("email") })
     ///
     /// Any previous selection is replaced:
     ///
     ///     // SELECT email FROM player
     ///     request
-    ///         .select { db in [Column("id")] }
-    ///         .select { db in [Column("email")] }
-    func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    ///         .selectWhenConnected { db in [Column("id")] }
+    ///         .selectWhenConnected { db in [Column("email")] }
+    func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
     
     /// Creates a request which appends *selection promise*.
     ///
@@ -37,8 +37,8 @@ public protocol SelectionRequest {
     ///     var request = Player.all()
     ///     request = request
     ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: { db in [Column("name")] })
-    func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    ///         .annotatedWhenConnected(with: { db in [Column("name")] })
+    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
 }
 
 extension SelectionRequest {
@@ -55,7 +55,7 @@ extension SelectionRequest {
     ///         .select([Column("id")])
     ///         .select([Column("email")])
     public func select(_ selection: [any SQLSelectable]) -> Self {
-        select { _ in selection }
+        selectWhenConnected { _ in selection }
     }
     
     /// Creates a request which selects *selection*.
@@ -121,7 +121,7 @@ extension SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
     public func annotated(with selection: [any SQLSelectable]) -> Self {
-        annotated(with: { _ in selection })
+        annotatedWhenConnected(with: { _ in selection })
     }
     
     /// Creates a request which appends *selection*.
@@ -145,8 +145,8 @@ public protocol FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
-    ///     request = request.filter { db in true }
-    func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    ///     request = request.filterWhenConnected { db in true }
+    func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
 }
 
 extension FilteredRequest {
@@ -160,7 +160,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
     public func filter(_ predicate: some SQLSpecificExpressible) -> Self {
-        filter { _ in predicate }
+        filterWhenConnected { _ in predicate }
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -194,7 +194,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.none()
     public func none() -> Self {
-        filter { _ in false }
+        filterWhenConnected { _ in false }
     }
 }
 
@@ -277,7 +277,9 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(rawKeys: [1, 2, 3])
     ///
     /// - parameter keys: A collection of primary keys
-    func filter(rawKeys: some Sequence<some DatabaseValueConvertible>) -> Self {
+    func filter<Keys>(rawKeys: Keys) -> Self
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
+    {
         // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
         // change the SQLite results anyway.
         let expressions = rawKeys.map {
@@ -290,7 +292,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         }
         
         let databaseTableName = self.databaseTableName
-        return filter { db in
+        return filterWhenConnected { db in
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
@@ -330,7 +332,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         }
         
         let databaseTableName = self.databaseTableName
-        return filter { db in
+        return filterWhenConnected { db in
             try keys
                 .map { key in
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
@@ -390,7 +392,9 @@ where Self: FilteredRequest,
     ///     let request = try Player...filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
+    public func filter<IDS>(ids: IDS) -> Self
+    where IDS: Collection, IDS.Element == RowDecoder.ID
+    {
         filter(keys: ids)
     }
 }
@@ -399,7 +403,7 @@ extension TableRequest where Self: OrderedRequest {
     /// Creates a request ordered by primary key.
     public func orderByPrimaryKey() -> Self {
         let tableName = self.databaseTableName
-        return order { db in
+        return orderWhenConnected { db in
             try db.primaryKey(tableName).columns.map(SQLExpression.column)
         }
     }
@@ -409,7 +413,7 @@ extension TableRequest where Self: AggregatingRequest {
     /// Creates a request grouped by primary key.
     public func groupByPrimaryKey() -> Self {
         let tableName = self.databaseTableName
-        return group { db in
+        return groupWhenConnected { db in
             let primaryKey = try db.primaryKey(tableName)
             if let rowIDColumn = primaryKey.rowIDColumn {
                 // Prefer the user-provided name of the rowid:
@@ -442,17 +446,17 @@ extension TableRequest where Self: AggregatingRequest {
 /// The protocol for all requests that can aggregate.
 public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
-    func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
+    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
 }
 
 extension AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: [any SQLExpressible]) -> Self {
-        group { _ in expressions }
+        groupWhenConnected { _ in expressions }
     }
     
     /// Creates a request grouped according to *expressions*.
@@ -474,7 +478,7 @@ extension AggregatingRequest {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     public func having(_ predicate: some SQLExpressible) -> Self {
-        having { _ in predicate }
+        havingWhenConnected { _ in predicate }
     }
     
     /// Creates a request with the provided *sql* added to the
@@ -505,10 +509,10 @@ public protocol OrderedRequest {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order{ _ in [Column("email")] }
+    ///         .orderWhenConnected{ _ in [Column("email")] }
     ///         .reversed()
-    ///         .order{ _ in [Column("name")] }
-    func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
+    ///         .orderWhenConnected{ _ in [Column("name")] }
+    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
     
     /// Creates a request that reverses applied orderings.
     ///
@@ -546,7 +550,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: any SQLOrderingTerm...) -> Self {
-        order { _ in orderings }
+        orderWhenConnected { _ in orderings }
     }
     
     /// Creates a request with the provided *orderings*.
@@ -563,7 +567,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: [any SQLOrderingTerm]) -> Self {
-        order { _ in orderings }
+        orderWhenConnected { _ in orderings }
     }
     
     /// Creates a request sorted according to *sql*.
@@ -705,7 +709,7 @@ extension JoinableRequest where Self: SelectionRequest {
         let selection = association._sqlAssociation.destination.relation.selectionPromise
         return self
             .joining(optional: association.aliased(alias))
-            .annotated(with: { db in
+            .annotatedWhenConnected(with: { db in
                 try selection.resolve(db).map { selection in
                     selection.qualified(with: alias)
                 }
@@ -748,7 +752,7 @@ extension JoinableRequest where Self: SelectionRequest {
         let alias = TableAlias()
         return self
             .joining(required: association.aliased(alias))
-            .annotated(with: { db in
+            .annotatedWhenConnected(with: { db in
                 try selection.resolve(db).map { selection in
                     selection.qualified(with: alias)
                 }

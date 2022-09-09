@@ -160,18 +160,19 @@ final class StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_FUNCTION:
-            guard let cString2 = cString2 else { return SQLITE_OK }
-            
-            // SQLite does not report ALTER TABLE DROP COLUMN with the
-            // SQLITE_ALTER_TABLE action code. So we need to find another way
-            // to set the `invalidatesDatabaseSchemaCache` flag for such
+            // SQLite 3.37.2 does not report ALTER TABLE DROP COLUMN with the
+            // SQLITE_ALTER_TABLE action code. SQLite 3.38 does.
+            //
+            // Until SQLite 3.38, we need to find another way to set the
+            // `invalidatesDatabaseSchemaCache` flag for such
             // statement, and it is SQLITE_FUNCTION sqlite_drop_column.
             //
             // See <https://github.com/groue/GRDB.swift/pull/1144#issuecomment-1015155717>
             // See <https://sqlite.org/forum/forumpost/bd47580ec2>
-            //
-            // TODO: remove when SQLite properly reports SQLITE_ALTER_TABLE
-            if strcmp(cString2, "sqlite_drop_column") == 0 {
+            if sqlite3_libversion_number() < 3038000,
+               let cString2,
+               strcmp(cString2, "sqlite_drop_column") == 0
+            {
                 invalidatesDatabaseSchemaCache = true
             }
             return SQLITE_OK

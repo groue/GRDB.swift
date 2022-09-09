@@ -561,7 +561,7 @@ extension DatabaseReader {
                 // started from a database access.
                 let value = try unsafeReentrantRead { db in
                     try db.isolated(readOnly: true) {
-                        try observation.fetchValue(db)
+                        try observation.fetchInitialValue(db)
                     }
                 }
                 onChange(value)
@@ -575,7 +575,7 @@ extension DatabaseReader {
                 guard !isCancelled else { return }
                 
                 let result = dbResult.flatMap { db in
-                    Result { try observation.fetchValue(db) }
+                    Result { try observation.fetchInitialValue(db) }
                 }
                 
                 scheduler.schedule {
