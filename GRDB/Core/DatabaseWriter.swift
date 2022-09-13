@@ -608,12 +608,35 @@ extension DatabaseWriter {
         .receiveValues(on: scheduler)
         .eraseToWritePublisher()
     }
+    
+    /// Returns a Publisher that synchronously writes into the database when
+    /// subscribed.
+    ///
+    ///     // DatabasePublishers.ImmediateWrite<Int>
+    ///     let newPlayerCount = dbQueue.immediateWritePublisher { db -> Int in
+    ///         try Player(...).insert(db)
+    ///         return try Player.fetchCount(db)
+    ///     }
+    ///
+    /// - parameter value: A closure that accesses the database and returns the
+    ///   published value.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func immediateWritePublisher<Output>(updates: @escaping (Database) throws -> Output)
+    -> DatabasePublishers.ImmediateWrite<Output>
+    {
+        let publisher = Deferred { [self] in
+            Result {
+                try write(updates)
+            }.publisher
+        }
+        return DatabasePublishers.ImmediateWrite(upstream: publisher.eraseToAnyPublisher())
+    }
 }
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that writes into the database. It publishes exactly
-    /// one element, or an error.
+    /// A publisher that asynchronously writes into the database. It publishes
+    /// exactly one element, or an error.
     ///
     /// See:
     ///
@@ -622,6 +645,23 @@ extension DatabasePublishers {
     /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
     /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
     public struct Write<Output>: Publisher {
+        public typealias Output = Output
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Output, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+    
+    /// A publisher that synchronously writes into the database, right on
+    /// subscription. It publishes exactly one element, or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseWriter.immediateWritePublisher(updates:)`.
+    public struct ImmediateWrite<Output>: Publisher {
         public typealias Output = Output
         public typealias Failure = Error
         

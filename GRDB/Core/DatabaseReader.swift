@@ -476,7 +476,8 @@ extension DatabaseReader {
     ///
     /// Its value and completion are emitted on the main dispatch queue.
     ///
-    /// - parameter value: A closure which accesses the database.
+    /// - parameter value: A closure that accesses the database and returns the
+    ///   published value.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func readPublisher<Output>(
         value: @escaping (Database) throws -> Output)
@@ -495,7 +496,8 @@ extension DatabaseReader {
     /// Its value and completion are emitted on `scheduler`.
     ///
     /// - parameter scheduler: A Combine Scheduler.
-    /// - parameter value: A closure which accesses the database.
+    /// - parameter value: A closure that accesses the database and returns the
+    ///   published value.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func readPublisher<S, Output>(
         receiveOn scheduler: S,
@@ -503,22 +505,48 @@ extension DatabaseReader {
     -> DatabasePublishers.Read<Output>
     where S: Scheduler
     {
-        Deferred {
+        let publisher = Deferred {
             Future { fulfill in
                 self.asyncRead { dbResult in
-                    fulfill(dbResult.flatMap { db in Result { try value(db) } })
+                    let result = dbResult.flatMap { db in
+                        Result {
+                            try value(db)
+                        }
+                    }
+                    fulfill(result)
                 }
             }
+        }.receiveValues(on: scheduler)
+        return DatabasePublishers.Read(upstream: publisher.eraseToAnyPublisher())
+    }
+    
+    /// Returns a Publisher that synchronously fetches and publishes one
+    /// database value when subscribed.
+    ///
+    ///     // DatabasePublishers.ImmediateRead<[Player]>
+    ///     let players = dbQueue.immediateReadPublisher { db in
+    ///         try Player.fetchAll(db)
+    ///     }
+    ///
+    /// - parameter value: A closure that accesses the database and returns the
+    ///   published value.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func immediateReadPublisher<Output>(value: @escaping (Database) throws -> Output)
+    -> DatabasePublishers.ImmediateRead<Output>
+    {
+        let publisher = Deferred { [self] in
+            Result {
+                try read(value)
+            }.publisher
         }
-        .receiveValues(on: scheduler)
-        .eraseToReadPublisher()
+        return DatabasePublishers.ImmediateRead(upstream: publisher.eraseToAnyPublisher())
     }
 }
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that reads a value from the database. It publishes exactly
-    /// one element, or an error.
+    /// A publisher that asynchronously reads a value from the database and
+    /// completes. It publishes exactly one value, or an error.
     ///
     /// See:
     ///
@@ -534,12 +562,23 @@ extension DatabasePublishers {
             upstream.receive(subscriber: subscriber)
         }
     }
-}
-
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-extension Publisher where Failure == Error {
-    fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
-        .init(upstream: eraseToAnyPublisher())
+    
+    /// A publisher that synchronously reads a value from the database and
+    /// completes, right on subscription. It publishes exactly one value,
+    /// or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseReader.immediateReadPublisher(value:)`.
+    public struct ImmediateRead<Output>: Publisher {
+        public typealias Output = Output
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Output, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
     }
 }
 #endif
