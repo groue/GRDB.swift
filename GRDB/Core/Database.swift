@@ -64,11 +64,12 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
-/// ### Observing Database Transactions
+/// ### Database Observation
 ///
 /// - ``add(transactionObserver:extent:)``
 /// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``remove(transactionObserver:)``
+/// - ``registerAccess(to:)``
 ///
 /// ### Collations
 ///
@@ -259,9 +260,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Whether the database region selected by statement execution is
-    /// recorded into `selectedRegion`.
+    /// recorded into `selectedRegion` by `track(_:)`.
     ///
-    /// To record the selected region, use `recordingSelection(_:_:)`.
+    /// To start recording the selected region, use `recordingSelection(_:_:)`.
     private(set) var isRecordingSelectedRegion = false
     
     /// The database region selected by statement execution, when
@@ -686,27 +687,67 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         readOnlyDepth > 0 || configuration.readonly
     }
     
-    // MARK: - Recording of the selected region
+    // MARK: - Database Observation
     
-    /// Extends the `region` argument with the database region selected by all
-    /// statements executed by the closure.
+    /// Reports the region to ``ValueObservation``.
     ///
     /// For example:
     ///
-    ///     var region = DatabaseRegion()
-    ///     try db.recordingSelection(&region) {
-    ///         let players = try Player.fetchAll(db)
-    ///         let team = try Team.fetchOne(db, id: 42)
-    ///     }
-    ///     print(region) // player(*),team(*)[42]
+    /// ```swift
+    /// let observation = ValueObservation.tracking { db in
+    ///     // All changes to the 'player' and 'team' tables
+    ///     // will trigger the observation.
+    ///     try db.registerAccess(to: Table("player"))
+    ///     try db.registerAccess(to: Table("team"))
+    /// }
+    /// ```
+    ///
+    /// See ``ValueObservation/trackingConstantRegion(_:)`` for some examples
+    /// of such explicit region tracking.
+    ///
+    /// This method only has an effect if and only if the ``ValueObservation``
+    /// is inferring the observed region from the database access. In the
+    /// example below, the observation explicitly tracks the `player` table
+    /// only. All calls to the `registerAccess` method are ignored:
+    ///
+    /// ```swift
+    /// // Observes the 'player' table only
+    /// let observation = ValueObservation.tracking(region: Table("player")) { db in
+    ///     // Ignored
+    ///     try db.registerAccess(to: Table("team"))
+    /// }
+    /// ```
+    public func registerAccess(to region: @autoclosure () -> some DatabaseRegionConvertible) throws {
+        if isRecordingSelectedRegion {
+            try selectedRegion.formUnion(region().databaseRegion(self))
+        }
+    }
+    
+    /// Extends the `region` argument with the database region selected by all
+    /// statements executed by the closure, and all regions explicitly tracked
+    /// with the ``registerAccess(to:)`` method.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var region = DatabaseRegion()
+    /// try db.recordingSelection(&region) {
+    ///     let players = try Player.fetchAll(db)
+    ///     let team = try Team.fetchOne(db, id: 42)
+    ///     try db.registerAccess(to: Table("awards"))
+    /// }
+    /// print(region) // awards,player(*),team(*)[42]
+    /// ```
     ///
     /// This method is used by ``ValueObservation``:
     ///
-    ///     let playersObservation = ValueObservation.tracking { db in
-    ///         // Here all fetches are recorded, so that we know what is the
-    ///         // database region that must be observed.
-    ///         try Player.fetchAll(db)
-    ///     }
+    /// ```swift
+    /// let playersObservation = ValueObservation.tracking { db in
+    ///     // Here all fetches are recorded, so that we know what is the
+    ///     // database region that must be observed.
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
     func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
         if region.isFullDatabase {
             return try block()

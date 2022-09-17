@@ -31,7 +31,7 @@ import Foundation
 /// - ``tracking(region:fetch:)``
 /// - ``tracking(regions:fetch:)``
 ///
-/// ### Creating A Shared Observation
+/// ### Creating a Shared Observation
 ///
 /// - ``shared(in:scheduling:extent:)``
 /// - ``SharedValueObservationExtent``
@@ -685,6 +685,43 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///
     /// // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
     /// let observation = ValueObservation.tracking { db -> Int in
+    ///     let pref = try Preference.fetchOne(db) ?? .default
+    ///     switch pref.selection {
+    ///     case .food: return try Food.fetchCount(db)
+    ///     case .beverage: return try Beverage.fetchCount(db)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// You can turn them into optimized observations of a constant region with
+    /// the ``Database/registerAccess(to:)`` method:
+    ///
+    /// ```swift
+    /// let observation = ValueObservation.trackingConstantRegion { db -> Player? in
+    ///     // Track all players so that the observed region does not depend on
+    ///     // the rowid of the favorite player.
+    ///     try db.registerAccess(to: Player.all())
+    ///
+    ///     let pref = try Preference.fetchOne(db) ?? .default
+    ///     return try Player.fetchOne(db, id: pref.favoritePlayerId)
+    /// }
+    ///
+    /// let observation = ValueObservation.trackingConstantRegion { db -> [User] in
+    ///     // Track all players so that the observed region does not change
+    ///     // even if there is no favorite player at all.
+    ///     try db.registerAccess(to: Player.all())
+    ///
+    ///     let pref = try Preference.fetchOne(db) ?? .default
+    ///     let playerIds: [Int64] = pref.favoritePlayerIds // may be empty
+    ///     return try Player.fetchAll(db, ids: playerIds)
+    /// }
+    ///
+    /// let observation = ValueObservation.trackingConstantRegion { db -> Int in
+    ///     // Track foods and beverages so that the observed region does not
+    ///     // depend on preferences.
+    ///     try db.registerAccess(to: Food.all())
+    ///     try db.registerAccess(to: Beverage.all())
+    ///
     ///     let pref = try Preference.fetchOne(db) ?? .default
     ///     switch pref.selection {
     ///     case .food: return try Food.fetchCount(db)
