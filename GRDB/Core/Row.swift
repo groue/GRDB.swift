@@ -1360,11 +1360,9 @@ public final class RowCursor: DatabaseCursor {
     @usableFromInline let _row: Row // Reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
+        let statement = try statement.databaseCursorStatement(with: arguments)
         self._statement = statement
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        
-        // Assume cursor is created for immediate iteration: reset and set arguments
-        try statement.prepareExecution(withArguments: arguments)
     }
     
     deinit {

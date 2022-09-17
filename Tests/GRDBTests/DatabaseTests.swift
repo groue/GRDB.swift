@@ -622,4 +622,66 @@ class DatabaseTests : GRDBTestCase {
         // 999 should be safe: https://www.sqlite.org/limits.html
         XCTAssertGreaterThanOrEqual(count, 999)
     }
+    
+    func testCache() throws {
+        // See "In-memory Databases And Shared Cache" in https://www.sqlite.org/inmemorydb.html
+        dbConfiguration.prepareDatabase { db in
+            db.trace { print($0)}
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in // transaction prevents DETACH DATABASE from wording
+            var region = DatabaseRegion()
+            try db.recordingSelection(&region) {
+                try db.withCache(atPath: ":memory:") {
+                    try db.execute(sql: """
+                        CREATE TABLE player(id INTEGER PRIMARY KEY, name TEXT);
+                        CREATE TABLE award(id INTEGER PRIMARY KEY, playerId INTEGER REFERENCES player(id), color TEXT);
+                        INSERT INTO player (name) VALUES ('Barbara');
+                        INSERT INTO player (name) VALUES ('Zoe');
+                        INSERT INTO player (name) VALUES ('Gaston');
+                        INSERT INTO player (name) VALUES ('Bernard');
+                        INSERT INTO player (name) VALUES ('Henri');
+                        INSERT INTO award(playerId, color) VALUES (1, 'Gold');
+                        INSERT INTO award(playerId, color) VALUES (1, 'Silver');
+                        INSERT INTO award(playerId, color) VALUES (1, 'Gold');
+                        INSERT INTO award(playerId, color) VALUES (2, 'Silver');
+                        INSERT INTO award(playerId, color) VALUES (3, 'Gold');
+                        INSERT INTO award(playerId, color) VALUES (4, 'Silver');
+                        """)
+                    
+                    struct Player: TableRecord, FetchableRecord, Decodable {
+                        static let awards = hasMany(Award.self)
+                        var id: Int64
+                        var name: String
+                    }
+                    struct Award: TableRecord, FetchableRecord, Decodable {
+                        var id: Int64
+                        var playerId: Int64
+                        var color: String
+                    }
+                    
+                    do {
+                        _ = try Row.fetchAll(db, sql: "SELECT * FROM player ORDER BY name")
+                    }
+                    do {
+                        // Test cache ordering with rowid disambiguation
+                        _ = try Row.fetchAll(db, sql: "SELECT rowid AS rowID, * FROM player ORDER BY name")
+                    }
+                    do {
+                        struct PlayerWithAwards: FetchableRecord, Decodable {
+                            var player: Player
+                            var awards: [Award]
+                        }
+                        
+                        _ = try Player
+                            .filter(Column("name") != "Gaston")
+                            .including(all: Player.awards.filter(Column("color") != "Gold"))
+                            .asRequest(of: PlayerWithAwards.self)
+                            .fetchAll(db)
+                    }
+                }
+            }
+            try print(region.observableRegion(db))
+        }
+    }
 }

@@ -57,6 +57,10 @@ extension Database {
             case let .attached(name): return "\(name).sqlite_master"
             }
         }
+        
+        func table(_ name: String) -> TableIdentifier {
+            TableIdentifier(schemaID: self, name: name)
+        }
     }
     
     /// The identifier of a database table or view.
@@ -210,7 +214,7 @@ extension Database {
         }
     }
     
-    private func tableExists(_ table: TableIdentifier) throws -> Bool {
+    func tableExists(_ table: TableIdentifier) throws -> Bool {
         try exists(type: .table, name: table.name, in: table.schemaID)
     }
     

@@ -168,9 +168,14 @@ public struct DatabaseRegion {
         // TransactionObserver protocol. By removing internal SQLite tables from
         // the observed region, we optimize database observation.
         //
+        // We also remove GRDB internal tables (cache tables).
+        //
         // And by canonicalizing table names, we remove views, and help the
         // `isModified` methods.
-        try ignoringInternalSQLiteTables().canonicalTables(db)
+        let notInternalTables = filteringTables {
+            !Database.isSQLiteInternalTable($0) && !Database.isGRDBInternalTable($0)
+        }
+        return try notInternalTables.canonicalTables(db)
     }
     
     /// Returns a region only made of actual tables with their canonical names.
@@ -190,11 +195,11 @@ public struct DatabaseRegion {
         return region
     }
     
-    /// Returns a region which doesn't contain any SQLite internal table.
-    private func ignoringInternalSQLiteTables() -> DatabaseRegion {
+    /// Returns a region which only contains the filtered tables
+    func filteringTables(_ predicate: (String) -> Bool) -> DatabaseRegion {
         guard let tableRegions else { return .fullDatabase }
         let filteredRegions = tableRegions.filter {
-            !Database.isSQLiteInternalTable($0.key.rawValue)
+            predicate($0.key.rawValue)
         }
         return DatabaseRegion(tableRegions: filteredRegions)
     }

@@ -342,6 +342,25 @@ extension DatabaseValue: CustomStringConvertible {
     }
 }
 
+extension DatabaseValue {
+    /// A string that represented the value in a lossless and
+    /// unambiguous way.
+    var losslessDescription: String {
+        switch storage {
+        case .null:
+            return "NULL"
+        case let .string(string):
+            return String(reflecting: string)
+        case let .double(double):
+            return double.description
+        case let .int64(int64):
+            return int64.description
+        case let .blob(data):
+            return "X'" + data.map { String(format: "%02X", $0) }.joined() + "'"
+        }
+    }
+}
+
 /// Compares DatabaseValue like SQLite.
 ///
 /// See RxGRDB for tests.

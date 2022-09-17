@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// A raw SQLite statement, suitable for the SQLite C API.
@@ -94,6 +95,23 @@ public final class Statement {
     var isDeleteStatement: Bool {
         authorizerEventKinds.contains(where: \.isDelete)
     }
+    
+    /// A string that represented the statement in a lossless and
+    /// unambiguous way.
+    lazy var losslessDescription: String = {
+        "\(sql); -- \(arguments.losslessDescription)"
+    }()
+    
+    /// A table name for caching the results of this statement
+    lazy var cacheTableName: String? = {
+        guard #available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *),
+              let losslessDescription = losslessDescription.data(using: .utf8)
+        else {
+            return nil
+        }
+        let digest = Insecure.SHA1.hash(data: losslessDescription)
+        return "grdb_cache_" + digest.map { String(format: "%02X", $0) }.joined()
+    }()
     
     @usableFromInline
     unowned let database: Database
@@ -779,10 +797,7 @@ final class StatementCursor: DatabaseCursor {
     
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
-        self._statement = statement
-        
-        // Assume cursor is created for immediate iteration: reset and set arguments
-        try statement.prepareExecution(withArguments: arguments)
+        _statement = try statement.databaseCursorStatement(with: arguments)
     }
     
     deinit {
@@ -1386,6 +1401,21 @@ extension StatementArguments: CustomStringConvertible {
             "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
+    }
+}
+
+extension StatementArguments {
+    /// A string that represented the value in a lossless and
+    /// unambiguous way.
+    var losslessDescription: String {
+        var chunks: [String] = []
+        for value in values {
+            chunks.append(value.losslessDescription)
+        }
+        for (key, value) in namedValues.sorted(by: { $0.key < $1.key }) {
+            chunks.append("\(key): \(value.losslessDescription)")
+        }
+        return chunks.joined(separator: ",")
     }
 }
 

@@ -331,6 +331,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    class AttachedCache {
+        var schema: SchemaIdentifier
+        var statementCache: StatementCache
+        
+        init(schema: Database.SchemaIdentifier, statementCache: StatementCache) {
+            self.schema = schema
+            self.statementCache = statementCache
+        }
+    }
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The attached database that caches the results of requests.
+    var attachedCache: AttachedCache?
+    
     // MARK: - Private properties
     
     /// Support for ``Configuration/busyMode``.
