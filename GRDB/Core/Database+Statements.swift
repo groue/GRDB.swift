@@ -399,9 +399,7 @@ extension Database {
         try checkForSuspensionViolation(from: statement)
         
         // Record the database region selected by the statement execution.
-        if isRecordingSelectedRegion {
-            selectedRegion.formUnion(statement.databaseRegion)
-        }
+        try track(statement.databaseRegion)
         
         // Database observation: prepare transaction observers.
         observationBroker?.statementWillExecute(statement)

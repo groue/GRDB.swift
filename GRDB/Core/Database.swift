@@ -170,9 +170,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Whether the database region selected by statement execution is
-    /// recorded into `selectedRegion`.
+    /// recorded into `selectedRegion` by `track(_:)`.
     ///
-    /// To record the selected region, use `recordingSelection(_:_:)`.
+    /// To start recording the selected region, use `recordingSelection(_:_:)`.
     private(set) var isRecordingSelectedRegion = false
     
     /// The database region selected by statement execution, when
@@ -583,10 +583,38 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         readOnlyDepth > 0 || configuration.readonly
     }
     
-    // MARK: - Recording of the selected region
+    // MARK: - Database Observation
+    
+    /// Reports the region to ``ValueObservation``.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation.tracking { db in
+    ///         // All changes to the 'player' and 'team' tables
+    ///         // will trigger the observation.
+    ///         try db.track(Table("player"))
+    ///         try db.track(Table("team"))
+    ///     }
+    ///
+    /// This method has an effect if and only if the `ValueObservation` is
+    /// inferring the observed region from the database access. In the example
+    /// below, the observation explicitly tracks the `player` table only, and
+    /// ignore all calls to the `track` method:
+    ///
+    ///     // Observes the 'player' table only
+    ///     let observation = ValueObservation.tracking(region: Table("player")) { db in
+    ///         // Ignored
+    ///         try db.track(Table("team"))
+    ///     }
+    public func track(_ region: @autoclosure () -> some DatabaseRegionConvertible) throws {
+        if isRecordingSelectedRegion {
+            try selectedRegion.formUnion(region().databaseRegion(self))
+        }
+    }
     
     /// Extends the `region` argument with the database region selected by all
-    /// statements executed by the closure.
+    /// statements executed by the closure, and all regions explicitly tracked
+    /// with the `track(_:)` method.
     ///
     /// For example:
     ///
@@ -594,8 +622,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///     try db.recordingSelection(&region) {
     ///         let players = try Player.fetchAll(db)
     ///         let team = try Team.fetchOne(db, id: 42)
+    ///         try db.track(Table("awards"))
     ///     }
-    ///     print(region) // player(*),team(*)[42]
+    ///     print(region) // awards,player(*),team(*)[42]
     ///
     /// This method is used by ``ValueObservation``:
     ///
