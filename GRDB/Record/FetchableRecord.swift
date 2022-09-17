@@ -521,11 +521,12 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
-    private let row: Row // Instantiated once, reused for performance
+    @usableFromInline
+    let _row: Row // Instantiated once, reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self._statement = statement
-        row = try Row(statement: statement).adapted(with: adapter, layout: statement)
+        _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         try statement.reset(withArguments: arguments)
     }
     
@@ -536,8 +537,9 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     }
     
     /// :nodoc:
+    @inlinable
     public func _element(sqliteStatement: SQLiteStatement) throws -> Record {
-        try Record(row: row)
+        try Record(row: _row)
     }
 }
 
