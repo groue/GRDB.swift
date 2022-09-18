@@ -248,9 +248,14 @@ public struct Configuration {
     /// Default: .userInitiated
     public var qos: DispatchQoS = .userInitiated
     
-    /// The quality of service of read accesses
-    var readQoS: DispatchQoS {
+    /// The quality of service of read database accesses.
+    public var readQoS: DispatchQoS {
         targetQueue?.qos ?? self.qos
+    }
+    
+    /// The quality of service of write database accesses.
+    public var writeQoS: DispatchQoS {
+        writeTargetQueue?.qos ?? targetQueue?.qos ?? self.qos
     }
     
     /// A target queue for database accesses.
