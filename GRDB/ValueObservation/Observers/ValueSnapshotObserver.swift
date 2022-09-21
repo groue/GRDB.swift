@@ -501,8 +501,17 @@ extension ValueSnapshotObserver: TransactionObserver {
         guard observationState.isModified else {
             return .none
         }
-        // No need to share a transaction with other observers
-        return .detached
+        
+        let dbPool = lock.synchronized {
+            self.databaseAccess?.dbPool
+        }
+        guard let dbPool else {
+            return .none
+        }
+        
+        return .coalescedInSnapshot(dbPool)
+//        // No need to share a transaction with other observers
+//        return .databaseDidCommit
     }
     
     func databaseDidCommit(_ writerDB: Database) {

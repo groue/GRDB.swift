@@ -492,12 +492,25 @@ class DatabaseObservationBroker {
                         observation.databaseDidCommit(database)
                     }
                 case .coalescedInReadOnlyTransaction:
-                    #warning("TODO: how do we notify this error?")
-                    try? database.isolated(readOnly: true) {
+                    do {
+                        try database.isolated(readOnly: true) {
+                            let observations = transactionObservations.filter { $0.commitHandling == commitHandling }
+                            for observation in observations {
+                                observation.databaseDidCommit(database)
+                            }
+                        }
+                    } catch {
+                        #warning("TODO: how do we notify this error?")
+                    }
+                case let .coalescedInSnapshot(dbPool):
+                    do {
+                        let snapshot = try dbPool.makeSnapshot()
                         let observations = transactionObservations.filter { $0.commitHandling == commitHandling }
                         for observation in observations {
-                            observation.databaseDidCommit(database)
+                            observation.databaseDidCommit(coalescedInSnapshot: snapshot)
                         }
+                    } catch {
+                        #warning("TODO: how do we notify this error?")
                     }
                 }
             }
@@ -781,6 +794,8 @@ public protocol TransactionObserver: AnyObject {
     /// This method is called on the database queue. It can change the database.
     func databaseDidRollback(_ db: Database)
     
+    func databaseDidCommit(coalescedInSnapshot snapshot: DatabaseSnapshot)
+    
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     /// Notifies before a database change (insert, update, or delete)
     /// with change information (initial / final values for the row's
@@ -816,7 +831,7 @@ public protocol TransactionObserver: AnyObject {
     #endif
 }
 
-public enum CommitHandling {
+public enum CommitHandling: Equatable {
     /// `databaseDidCommit` is not called.
     case none
     
@@ -826,14 +841,31 @@ public enum CommitHandling {
     /// `databaseDidCommit` is called within a read-only transaction, shared
     /// with all other transaction observers.
     case coalescedInReadOnlyTransaction
+    
+    case coalescedInSnapshot(DatabasePool)
+    
+    public static func == (lhs: CommitHandling, rhs: CommitHandling) -> Bool {
+        switch (lhs, rhs) {
+        case (.none, .none),
+            (.detached, .detached),
+            (.coalescedInReadOnlyTransaction, .coalescedInReadOnlyTransaction):
+            return true
+        case let (.coalescedInSnapshot(lhs), .coalescedInSnapshot(rhs)):
+            return lhs === rhs
+        default:
+            return false
+        }
+    }
 }
 
 extension TransactionObserver {
     var commitHandling: CommitHandling { .detached }
     
     /// Default implementation does nothing
-    public func databaseWillCommit() throws {
-    }
+    public func databaseWillCommit() throws { }
+    
+    /// Default implementation does nothing
+    func databaseDidCommit(coalescedInSnapshot snapshot: DatabaseSnapshot) { }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     /// Default implementation does nothing
