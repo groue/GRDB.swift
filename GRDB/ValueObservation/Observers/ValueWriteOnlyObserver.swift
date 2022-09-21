@@ -29,6 +29,9 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
     /// Configures the tracked database region.
     private let trackingMode: ValueObservationTrackingMode
     
+    /// If true, database values are fetched from a read-only access.
+    private let readOnly: Bool
+    
     // MARK: - Mutable State
     //
     // The observer has four distinct mutable states that evolve independently,
@@ -76,25 +79,21 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
         /// The observed DatabaseWriter.
         let writer: Writer
         
-        /// If true, database values are fetched from a read-only access.
-        private let readOnly: Bool
-        
         /// A reducer that fetches database values.
         private let reducer: Reducer
         
-        init(writer: Writer, readOnly: Bool, reducer: Reducer) {
+        init(writer: Writer, reducer: Reducer) {
             self.writer = writer
-            self.readOnly = readOnly
             self.reducer = reducer
         }
         
-        func fetch(_ db: Database) throws -> Reducer.Fetched {
+        func fetch(_ db: Database, readOnly: Bool) throws -> Reducer.Fetched {
             try db.isolated(readOnly: readOnly) {
                 try reducer._fetch(db)
             }
         }
         
-        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetched, DatabaseRegion) {
+        func fetchRecordingObservedRegion(_ db: Database, readOnly: Bool) throws -> (Reducer.Fetched, DatabaseRegion) {
             var region = DatabaseRegion()
             let fetchedValue = try db.isolated(readOnly: readOnly) {
                 try db.recordingSelection(&region) {
@@ -151,11 +150,11 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
         // Configuration
         self.scheduler = scheduler
         self.trackingMode = trackingMode
+        self.readOnly = readOnly
         
         // State
         self.databaseAccess = DatabaseAccess(
             writer: writer,
-            readOnly: readOnly,
             // ValueReducer semantics guarantees that reducer._fetch
             // is independent from the reducer state
             reducer: reducer)
@@ -307,7 +306,7 @@ extension ValueWriteOnlyObserver {
         
         switch trackingMode {
         case let .constantRegion(regions):
-            let fetchedValue = try databaseAccess.fetch(db)
+            let fetchedValue = try databaseAccess.fetch(db, readOnly: readOnly)
             let region = try DatabaseRegion.union(regions)(db)
             let observedRegion = try region.observableRegion(db)
             events.willTrackRegion?(observedRegion)
@@ -316,7 +315,7 @@ extension ValueWriteOnlyObserver {
             
         case .constantRegionRecordedFromSelection,
                 .nonConstantRegionRecordedFromSelection:
-            let (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
+            let (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db, readOnly: readOnly)
             events.willTrackRegion?(observedRegion)
             startObservation(db, observedRegion: observedRegion)
             return fetchedValue
@@ -350,11 +349,22 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         }
     }
     
-    func databaseDidCommit(_ db: Database) {
+    var commitHandling: CommitHandling {
         // Ignore transaction unless database was modified
-        guard observationState.isModified else { return }
-        
+        guard observationState.isModified else {
+            return .none
+        }
+        if readOnly {
+            // Let's share a common transaction with all observers
+            return .coalescedInReadOnlyTransaction
+        } else {
+            return .detached
+        }
+    }
+    
+    func databaseDidCommit(_ db: Database) {
         // Reset the isModified flag until next transaction
+        assert(observationState.isModified)
         observationState.isModified = false
         
         // Ignore transaction unless we are still notifying database events, and
@@ -374,10 +384,10 @@ extension ValueWriteOnlyObserver: TransactionObserver {
             switch trackingMode {
             case .constantRegion, .constantRegionRecordedFromSelection:
                 // Tracked region is already known. Fetch only.
-                fetchedValue = try databaseAccess.fetch(db)
+                fetchedValue = try databaseAccess.fetch(db, readOnly: readOnly)
             case .nonConstantRegionRecordedFromSelection:
                 // Fetch and update the tracked region.
-                let (value, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
+                let (value, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(db, readOnly: readOnly)
                 fetchedValue = value
                 
                 // Don't spam the user with region tracking events: wait for an actual change

@@ -496,11 +496,18 @@ extension ValueSnapshotObserver: TransactionObserver {
         }
     }
     
-    func databaseDidCommit(_ writerDB: Database) {
+    var commitHandling: CommitHandling {
         // Ignore transaction unless database was modified
-        guard observationState.isModified else { return }
-        
+        guard observationState.isModified else {
+            return .none
+        }
+        // No need to share a transaction with other observers
+        return .detached
+    }
+    
+    func databaseDidCommit(_ writerDB: Database) {
         // Reset the isModified flag until next transaction
+        assert(observationState.isModified)
         observationState.isModified = false
         
         // Ignore transaction unless we are still notifying database events, and

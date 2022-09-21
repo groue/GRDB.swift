@@ -480,8 +480,26 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         if !database.isReadOnly {
-            for observation in transactionObservations {
-                observation.databaseDidCommit(database)
+            var remainingObservations = transactionObservations[...]
+            while let commitHandling = remainingObservations.first?.commitHandling {
+                remainingObservations.removeAll { $0.commitHandling == commitHandling }
+                switch commitHandling {
+                case .none:
+                    break
+                case .detached:
+                    let observations = transactionObservations.filter { $0.commitHandling == commitHandling }
+                    for observation in observations {
+                        observation.databaseDidCommit(database)
+                    }
+                case .coalescedInReadOnlyTransaction:
+                    #warning("TODO: how do we notify this error?")
+                    try? database.isolated(readOnly: true) {
+                        let observations = transactionObservations.filter { $0.commitHandling == commitHandling }
+                        for observation in observations {
+                            observation.databaseDidCommit(database)
+                        }
+                    }
+                }
             }
         }
         
@@ -719,6 +737,7 @@ class DatabaseObservationBroker {
 ///
 /// Adopting types must be a class.
 public protocol TransactionObserver: AnyObject {
+    var commitHandling: CommitHandling { get }
     
     /// Filters database changes that should be notified the the
     /// databaseDidChange(with:) method.
@@ -797,7 +816,21 @@ public protocol TransactionObserver: AnyObject {
     #endif
 }
 
+public enum CommitHandling {
+    /// `databaseDidCommit` is not called.
+    case none
+    
+    /// `databaseDidCommit` is called outside of any transaction.
+    case detached
+    
+    /// `databaseDidCommit` is called within a read-only transaction, shared
+    /// with all other transaction observers.
+    case coalescedInReadOnlyTransaction
+}
+
 extension TransactionObserver {
+    var commitHandling: CommitHandling { .detached }
+    
     /// Default implementation does nothing
     public func databaseWillCommit() throws {
     }
@@ -853,6 +886,7 @@ final class TransactionObservation {
     private weak var weakObserver: (any TransactionObserver)?
     private var strongObserver: (any TransactionObserver)?
     private var observer: (any TransactionObserver)? { strongObserver ?? weakObserver }
+    var commitHandling: CommitHandling { observer?.commitHandling ?? .none }
     
     fileprivate var isObserving: Bool {
         observer != nil
