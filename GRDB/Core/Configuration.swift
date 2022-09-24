@@ -330,6 +330,22 @@ public struct Configuration {
     ///
     /// This configuration applies to ``DatabasePool`` only. The default value
     /// is 5.
+    ///
+    /// You can query this value at runtime in order to get the actual capacity
+    /// for concurrent reads of any ``DatabaseReader``. For example:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.maximumReaderCount = 5
+    ///
+    /// let path = "/path/to/database.sqlite"
+    /// let dbQueue = try DatabaseQueue(path: path, configuration: config)
+    /// let dbPool = try DatabasePool(path: path, configuration: config)
+    /// let dbSnapshot = try dbPool.makeSnapshot()
+    ///
+    /// print(dbQueue.configuration.maximumReaderCount)    // 1
+    /// print(dbPool.configuration.maximumReaderCount)     // 5
+    /// print(dbSnapshot.configuration.maximumReaderCount) // 1
     public var maximumReaderCount: Int = 5
     
     /// The quality of service of database accesses.

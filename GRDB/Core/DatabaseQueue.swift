@@ -83,6 +83,10 @@ public final class DatabaseQueue {
     ///     - configuration: A configuration.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
+        // DatabaseQueue can't perform parallel reads
+        var configuration = configuration
+        configuration.maximumReaderCount = 1
+        
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,

@@ -71,7 +71,10 @@ public final class DatabaseSnapshot {
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = DatabasePool.readerConfiguration(configuration)
-        configuration.allowsUnsafeTransactions = true // Snapshot keeps a long-lived transaction
+        // DatabaseSnapshot can't perform parallel reads
+        configuration.maximumReaderCount = 1
+        // Snapshot keeps a long-lived transaction
+        configuration.allowsUnsafeTransactions = true
         
         serializedDatabase = try SerializedDatabase(
             path: path,
