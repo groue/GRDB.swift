@@ -58,8 +58,6 @@ public protocol StatementColumnConvertible {
 extension StatementColumnConvertible {
     // `Optional` overrides this default behavior.
     /// Default implementation fails on decoding NULL.
-    @inline(__always)
-    @inlinable
     public static func fromStatement(_ sqliteStatement: SQLiteStatement, atUncheckedIndex index: CInt) -> Self? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
