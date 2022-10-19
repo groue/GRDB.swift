@@ -44,10 +44,13 @@ class TableDefinitionTests: GRDBTestCase {
                 ) WITHOUT ROWID
                 """)
         }
-        
-#if GRDBCUSTOMSQLITE
+    }
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    func testStrictTableCreationOptionCustomAndCipher() throws {
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.create(table: "test3", options: [.strict, .withoutRowID]) { t in
+            try db.create(table: "test3", options: [.strict]) { t in
                 t.column("id", .integer).primaryKey()
                 t.column("a", .integer)
                 t.column("b", .real)
@@ -63,18 +66,37 @@ class TableDefinitionTests: GRDBTestCase {
                 "c" TEXT, \
                 "d" BLOB, \
                 "e" ANY\
-                ) STRICT, WITHOUT ROWID
+                ) STRICT
                 """)
-            
-            do {
-                try db.execute(sql: "INSERT INTO test3 (id, a) VALUES (1, 'foo')")
-                XCTFail("Expected DatabaseError.SQLITE_CONSTRAINT_DATATYPE")
-            } catch DatabaseError.SQLITE_CONSTRAINT_DATATYPE {
-            }
         }
-#endif
     }
-    
+#endif
+
+    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *)
+    func testStrictTableCreationOption() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test3", options: [.strict]) { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .integer)
+                t.column("b", .real)
+                t.column("c", .text)
+                t.column("d", .blob)
+                t.column("e", .any)
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test3" (\
+                "id" INTEGER PRIMARY KEY, \
+                "a" INTEGER, \
+                "b" REAL, \
+                "c" TEXT, \
+                "d" BLOB, \
+                "e" ANY\
+                ) STRICT
+                """)
+        }
+    }
+
     func testColumnLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
