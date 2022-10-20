@@ -504,7 +504,7 @@ final class StatementCursor: DatabaseCursor {
         try? _statement.reset()
     }
     
-    @usableFromInline
+    @inlinable
     func _element(sqliteStatement: SQLiteStatement) throws { }
 }
 

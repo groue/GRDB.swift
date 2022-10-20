@@ -44,10 +44,21 @@ class TableDefinitionTests: GRDBTestCase {
                 ) WITHOUT ROWID
                 """)
         }
+    }
+
+    func testStrictTableCreationOption() throws {
+        guard sqlite3_libversion_number() >= 3037000 else {
+            throw XCTSkip("STRICT tables are not available")
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) else {
+            throw XCTSkip("STRICT tables are not available")
+        }
+        #endif
         
-#if GRDBCUSTOMSQLITE
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.create(table: "test3", options: [.strict, .withoutRowID]) { t in
+            try db.create(table: "test3", options: [.strict]) { t in
                 t.column("id", .integer).primaryKey()
                 t.column("a", .integer)
                 t.column("b", .real)
@@ -63,7 +74,7 @@ class TableDefinitionTests: GRDBTestCase {
                 "c" TEXT, \
                 "d" BLOB, \
                 "e" ANY\
-                ) STRICT, WITHOUT ROWID
+                ) STRICT
                 """)
             
             do {
@@ -72,7 +83,6 @@ class TableDefinitionTests: GRDBTestCase {
             } catch DatabaseError.SQLITE_CONSTRAINT_DATATYPE {
             }
         }
-#endif
     }
     
     func testColumnLiteral() throws {

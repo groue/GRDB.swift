@@ -241,8 +241,16 @@ public struct TableOptions: OptionSet {
     /// Creates a without rowid table. See <https://www.sqlite.org/withoutrowid.html>
     public static let withoutRowID = TableOptions(rawValue: 1 << 2)
     
-#if GRDBCUSTOMSQLITE
-    /// Creates a strict table. See <https://www.sqlite.org/stricttables.html>
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Creates a STRICT table
+    ///
+    /// See <https://www.sqlite.org/stricttables.html>
+    public static let strict = TableOptions(rawValue: 1 << 3)
+#else
+    /// Creates a STRICT table
+    ///
+    /// See <https://www.sqlite.org/stricttables.html>
+    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     public static let strict = TableOptions(rawValue: 1 << 3)
 #endif
 }
@@ -641,12 +649,17 @@ public final class TableDefinition {
             
             var tableOptions: [String] = []
             
-#if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
             if options.contains(.strict) {
                 tableOptions.append("STRICT")
             }
+#else
+            if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+                if options.contains(.strict) {
+                    tableOptions.append("STRICT")
+                }
+            }
 #endif
-            
             if options.contains(.withoutRowID) {
                 tableOptions.append("WITHOUT ROWID")
             }
