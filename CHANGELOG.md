@@ -98,6 +98,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1288](https://github.com/groue/GRDB.swift/pull/1288) by [@jcavar](https://github.com/jcavar): Support for strict tables
+
 ## 6.0.0
 
 Released September 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0-beta.4...v6.0.0)
