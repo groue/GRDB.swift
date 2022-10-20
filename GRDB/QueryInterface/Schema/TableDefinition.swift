@@ -247,10 +247,10 @@ public struct TableOptions: OptionSet {
     /// See <https://www.sqlite.org/stricttables.html>
     public static let strict = TableOptions(rawValue: 1 << 3)
 #else
-    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     /// Creates a STRICT table
     ///
     /// See <https://www.sqlite.org/stricttables.html>
+    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     public static let strict = TableOptions(rawValue: 1 << 3)
 #endif
 }
