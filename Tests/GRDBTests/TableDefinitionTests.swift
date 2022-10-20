@@ -46,34 +46,16 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
-    func testStrictTableCreationOptionCustomAndCipher() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "test3", options: [.strict]) { t in
-                t.column("id", .integer).primaryKey()
-                t.column("a", .integer)
-                t.column("b", .real)
-                t.column("c", .text)
-                t.column("d", .blob)
-                t.column("e", .any)
-            }
-            assertEqualSQL(lastSQLQuery!, """
-                CREATE TABLE "test3" (\
-                "id" INTEGER PRIMARY KEY, \
-                "a" INTEGER, \
-                "b" REAL, \
-                "c" TEXT, \
-                "d" BLOB, \
-                "e" ANY\
-                ) STRICT
-                """)
-        }
-    }
-#endif
-
-    @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *)
     func testStrictTableCreationOption() throws {
+        guard sqlite3_libversion_number() >= 3037000 else {
+            throw XCTSkip("STRICT tables are not available")
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) else {
+            throw XCTSkip("STRICT tables are not available")
+        }
+        #endif
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test3", options: [.strict]) { t in
@@ -96,7 +78,7 @@ class TableDefinitionTests: GRDBTestCase {
                 """)
         }
     }
-
+    
     func testColumnLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
