@@ -1,0 +1,2647 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PersistableRecord Protocol Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Protocol/PersistableRecord" class="dashAnchor"></a>
+    <a title="PersistableRecord Protocol Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="../index.html">GRDB 6.1.0 Docs</a> (89% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F6.1%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="../search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="../index.html">GRDB Reference</a>
+        <img id="carat" src="../img/carat.png" alt=""/>
+        PersistableRecord Protocol Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseCancellable.html">AnyDatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseReader.html">AnyDatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/AnyDatabaseWriter.html">AnyDatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ColumnDefinition/GeneratedColumnQualification.html">– GeneratedColumnQualification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TracingOptions.html">– TracingOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TraceEvent.html">– TraceEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Database/TransactionObservationExtent.html">– TransactionObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseFuture.html">DatabaseFuture</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseSnapshot.html">DatabaseSnapshot</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/DatabaseValueCursor.html">DatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/FastDatabaseValueCursor.html">FastDatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/RecordCursor.html">RecordCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/ScopesView.html">– ScopesView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/ScopesTreeView.html">– ScopesTreeView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Row/PrefetchedRowsView.html">– PrefetchedRowsView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/RowCursor.html">RowCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SQLStatementCursor.html">SQLStatementCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/SharedValueObservation.html">SharedValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlias.html">TableAlias</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Classes/ValueObservationScheduler.html">ValueObservationScheduler</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseColumnDecodingStrategy.html">DatabaseColumnDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseColumnEncodingStrategy.html">DatabaseColumnEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseDateDecodingStrategy.html">DatabaseDateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseDateEncodingStrategy.html">DatabaseDateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers.html">DatabasePublishers</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers/Read.html">– Read</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers/DatabaseRegion.html">– DatabaseRegion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers/Write.html">– Write</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers/Migrate.html">– Migrate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabasePublishers/Value.html">– Value</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/DatabaseUUIDEncodingStrategy.html">DatabaseUUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SQLDateModifier.html">SQLDateModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/SharedValueObservationExtent.html">SharedValueObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html">ValueReducers</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/s:4GRDB13ValueReducersO5FetchV">– Fetch</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/s:4GRDB13ValueReducersO3MapV">– Map</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/s:4GRDB13ValueReducersO16RemoveDuplicatesV">– RemoveDuplicates</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Enums/ValueReducers.html#/s:4GRDB13ValueReducersO5TraceV">– Trace</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Collection.html">Collection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/ColumnExpression.html">ColumnExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Decimal.html">Decimal</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/RangeReplaceableCollection.html">RangeReplaceableCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/Set.html">Set</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRequest.html">TableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions.html#/s:10Foundation3URLV">URL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/UUID.html">UUID</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1nopyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1nopyAA20AssociationAggregateVyxGAElF">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVAA14SQLExpressible_pSg_xtAA22SQLSpecificExpressibleRzlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVSb_xtAA22SQLSpecificExpressibleRzlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVx_AA14SQLExpressible_pSgtAA22SQLSpecificExpressibleRzlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVx_SbtAA22SQLSpecificExpressibleRzlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_AEtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_SbtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGSb_AEtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_xtAA22SQLSpecificExpressibleRzlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVx_AA14SQLExpressible_pSgtAA22SQLSpecificExpressibleRzlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGAE_AEtlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2aaoiyAA20AssociationAggregateVyxGAE_AEtlF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGAE_AEtlF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2meoiyAA16ColumnAssignmentVx_q_tAA0C10ExpressionRzAA14SQLExpressibleR_r0_lF">*=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGAE_AEtlF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2peoiyAA16ColumnAssignmentVx_q_tAA0C10ExpressionRzAA14SQLExpressibleR_r0_lF">+=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1sopyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1sopyAA20AssociationAggregateVyxGAElF">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGAE_AEtlF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2seoiyAA16ColumnAssignmentVx_q_tAA0C10ExpressionRzAA14SQLExpressibleR_r0_lF">-=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGAE_AEtlF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2deoiyAA16ColumnAssignmentVx_q_tAA0C10ExpressionRzAA14SQLExpressibleR_r0_lF">/=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGAE_AEtlF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGAE_AEtlF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_xtAA22SQLSpecificExpressibleRzlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVSb_xtAA22SQLSpecificExpressibleRzlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVx_AA14SQLExpressible_pSgtAA22SQLSpecificExpressibleRzlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVx_SbtAA22SQLSpecificExpressibleRzlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_AEtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_SbtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGSb_AEtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_xtAA22SQLSpecificExpressibleRzlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVx_AA14SQLExpressible_pSgtAA22SQLSpecificExpressibleRzlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGAE_AEtlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGAE_AEtlF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGAE_AEtlF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGq__AEtAA14SQLExpressibleR_r0_lF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2qqoiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2qqoiyAA20AssociationAggregateVyxGAE_q_tAA14SQLExpressibleR_r0_lF">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3absyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3absyAA20AssociationAggregateVyxGAElF">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB7averageyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB5countyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB5count8distinctAA13SQLExpressionVx_tAA22SQLSpecificExpressibleRzlF">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB21databaseQuestionMarks5countSSSi_tF">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB8dateTimeyAA13SQLExpressionVx_AA15SQLDateModifierOdtAA22SQLSpecificExpressibleRzlF">dateTime(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB9julianDayyAA13SQLExpressionVx_AA15SQLDateModifierOdtAA22SQLSpecificExpressibleRzlF">julianDay(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB6lengthyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB6lengthyAA20AssociationAggregateVyxGAElF">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3maxyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3minyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB20splittingRowAdapters12columnCountsSayAA0C7Adapter_pGSaySiG_tF">splittingRowAdapters(columnCounts:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB3sumyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB5totalyAA13SQLExpressionVxAA22SQLSpecificExpressibleRzlF">total(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVx_q_tAA14SQLExpressibleRzAA22SQLSpecificExpressibleR_r0_lF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAA14SQLExpressibleR_r0_lF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVx_q_tAA22SQLSpecificExpressibleRzAaER_r0_lF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Functions.html#/s:4GRDB2oooiyAA20AssociationAggregateVyxGAE_AEtlF">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Protocols/AggregatingRequest.html">AggregatingRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Association.html">Association</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/AssociationToMany.html">AssociationToMany</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/AssociationToOne.html">AssociationToOne</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/ColumnExpression.html">ColumnExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseAggregate.html">DatabaseAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseCancellable.html">DatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseRegionConvertible.html">DatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/DerivableRequest.html">DerivableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/EncodableRecord.html">EncodableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FetchRequest.html">FetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FetchableRecord.html">FetchableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/FilteredRequest.html">FilteredRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/JoinableRequest.html">JoinableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/OrderedRequest.html">OrderedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/PersistableRecord.html">PersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SQLSubqueryable.html">SQLSubqueryable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/SelectionRequest.html">SelectionRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementBinding.html">StatementBinding</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TableRequest.html">TableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/AdaptedFetchRequest.html">AdaptedFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AllColumns.html">AllColumns</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyDatabaseRegionConvertible.html">AnyDatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AnyFetchRequest.html">AnyFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AssociationAggregate.html">AssociationAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AsyncValueObservation.html">AsyncValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/AsyncValueObservation/Iterator.html">– Iterator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB20BelongsToAssociationV">BelongsToAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnInfo.html">ColumnInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/CommonTableExpression.html">CommonTableExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseBackupProgress.html">DatabaseBackupProgress</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseMigrator/ForeignKeyChecks.html">– ForeignKeyChecks</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseRegion.html">DatabaseRegion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseRegionObservation.html">DatabaseRegionObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/EmptyRowAdapter.html">EmptyRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKey.html">ForeignKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKeyInfo.html">ForeignKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ForeignKeyViolation.html">ForeignKeyViolation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB18HasManyAssociationV">HasManyAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB25HasManyThroughAssociationV">HasManyThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB17HasOneAssociationV">HasOneAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB24HasOneThroughAssociationV">HasOneThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexInfo/Origin.html">– Origin</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/IndexOptions.html">IndexOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Inflections.html">Inflections</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/InsertionSuccess.html">InsertionSuccess</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB15JoinAssociationV">JoinAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceContainer.html">PersistenceContainer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PersistenceSuccess.html">PersistenceSuccess</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PreparedRequest.html">PreparedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/RenameColumnAdapter.html">RenameColumnAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB8RowIndexV">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQL.html">SQL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLExpression/AssociativeBinaryOperator.html">– AssociativeBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLOrdering.html">SQLOrdering</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLSelection.html">SQLSelection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SQLSubquery.html">SQLSubquery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/Table.html">Table</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/TableOptions.html">TableOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs/ValueObservation.html">ValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Structs.html#/s:4GRDB25VirtualTableConfigurationV">VirtualTableConfiguration</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="../Typealiases.html">Type Aliases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB15SQLiteStatementa">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Typealiases.html#/s:4GRDB12ValueReducera">ValueReducer</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>PersistableRecord</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">PersistableRecord</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></span></code></pre>
+
+                </div>
+              </div>
+            <p>Types that adopt <code>PersistableRecord</code> can be inserted, updated, and deleted.</p>
+
+<p><code>PersistableRecord</code> has non-mutating variants of
+<code><a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></code> methods.</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord.swift#L5-L38">Show on GitHub</a>
+              </div>
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Insertion%20Callbacks"></a>
+                <a name="//apple_ref/swift/Section/Insertion Callbacks" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Insertion%20Callbacks"></a>
+                  <h3 class="section-name"><span>Insertion Callbacks</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordP10willInsertyyAA8DatabaseCKF"></a>
+                    <a name="//apple_ref/swift/Method/willInsert(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordP10willInsertyyAA8DatabaseCKF">willInsert(_:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Default implementation
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Persistence callback called before the record is inserted.</p>
+
+<p>Default implementation does nothing.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    If you need a mutating variant of this method, adopt the
+<code><a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></code> protocol instead.
+
+</div>
+
+                      </div>
+                      <h4>Default Implementation</h4>
+                      <div class="default_impl abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">willInsert</span><span class="p">(</span><span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord.swift#L15">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordP9didInsertyyAA16InsertionSuccessVF"></a>
+                    <a name="//apple_ref/swift/Method/didInsert(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordP9didInsertyyAA16InsertionSuccessVF">didInsert(_:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Default implementation
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Persistence callback called upon successful insertion.</p>
+
+<p>The default implementation does nothing.</p>
+
+<p>You can provide a custom implementation in order to grab the
+auto-incremented id:</p>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+
+    <span class="kd">func</span> <span class="nf">didInsert</span><span class="p">(</span><span class="n">_</span> <span class="nv">inserted</span><span class="p">:</span> <span class="kt">InsertionSuccess</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">id</span> <span class="o">=</span> <span class="n">inserted</span><span class="o">.</span><span class="n">rowID</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    <p>If you need a mutating variant of this method, adopt the
+<code><a href="../Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></code> protocol instead.</p>
+
+</div>
+
+                      </div>
+                      <h4>Default Implementation</h4>
+                      <div class="default_impl abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">func</span> <span class="nf">didInsert</span><span class="p">(</span><span class="n">_</span> <span class="nv">inserted</span><span class="p">:</span> <span class="kt"><a href="../Structs/InsertionSuccess.html">InsertionSuccess</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>inserted</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Information about the inserted row.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord.swift#L37">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Insert"></a>
+                <a name="//apple_ref/swift/Section/Insert" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Insert"></a>
+                  <h3 class="section-name"><span>Insert</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE6insert_10onConflictyAA8DatabaseC_AG0F10ResolutionOSgtKF"></a>
+                    <a name="//apple_ref/swift/Method/insert(_:onConflict:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE6insert_10onConflictyAA8DatabaseC_AG0F10ResolutionOSgtKF">insert(_:<wbr>onConflict:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT</code> statement.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">insert</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+<span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Insert.swift#L18-L36">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Insert%20and%20Fetch"></a>
+                <a name="//apple_ref/swift/Section/Insert and Fetch" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Insert%20and%20Fetch"></a>
+                  <h3 class="section-name"><span>Insert and Fetch</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/insertAndFetch(_:onConflict:as:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">insertAndFetch(_:<wbr>onConflict:<wbr>as:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> statement, and returns a new
+record built from the inserted row.</p>
+
+<p>This method helps dealing with default column values and
+generated columns.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// A table with an auto-incremented primary key and a default value</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          score INTEGER DEFAULT 1000)
+        """</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// A player with partial database information</span>
+<span class="kd">struct</span> <span class="kt">PartialPlayer</span><span class="p">:</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="c1">// A full player, with all database information</span>
+<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">FetchableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// Insert a base player, get a full one</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">let</span> <span class="nv">partialPlayer</span> <span class="o">=</span> <span class="kt">PartialPlayer</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Alice"</span><span class="p">)</span>
+
+    <span class="c1">// INSERT INTO player (name) VALUES ('Alice') RETURNING *</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="k">try</span> <span class="n">partialPlayer</span><span class="o">.</span><span class="nf">insertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">FullPlayer</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>    <span class="c1">// The inserted id</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1">// The inserted name</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">score</span><span class="p">)</span> <span class="c1">// The default score</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/insertAndFetch(_:onConflict:selection:fetch:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">insertAndFetch(_:<wbr>onConflict:<wbr>selection:<wbr>fetch:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> statement, and returns the
+selected columns from the inserted row.</p>
+
+<p>This method helps dealing with default column values and
+generated columns.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// A table with an auto-incremented primary key and a default value</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          score INTEGER DEFAULT 1000)
+        """</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// A player with partial database information</span>
+<span class="kd">struct</span> <span class="kt">PartialPlayer</span><span class="p">:</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="c1">// Insert a base player, get the inserted score</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">let</span> <span class="nv">partialPlayer</span> <span class="o">=</span> <span class="kt">PartialPlayer</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Alice"</span><span class="p">)</span>
+
+    <span class="c1">// INSERT INTO player (name) VALUES ('Alice') RETURNING score</span>
+    <span class="k">let</span> <span class="nv">score</span> <span class="o">=</span> <span class="k">try</span> <span class="n">partialPlayer</span><span class="o">.</span><span class="nf">insertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">selection</span><span class="p">:</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span> <span class="p">{</span> <span class="n">statement</span> <span class="k">in</span>
+        <span class="k">try</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nf">print</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="c1">// The inserted score</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <code>selection</code> is not empty.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE14insertAndFetch_10onConflict2asqd__SgAA8DatabaseC_AI0H10ResolutionOSgqd__mtKAA09FetchableC0Rd__AA05TableC0Rd__lF"></a>
+                    <a name="//apple_ref/swift/Method/insertAndFetch(_:onConflict:as:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE14insertAndFetch_10onConflict2asqd__SgAA8DatabaseC_AI0H10ResolutionOSgqd__mtKAA09FetchableC0Rd__AA05TableC0Rd__lF">insertAndFetch(_:<wbr>onConflict:<wbr>as:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> statement, and returns a new
+record built from the inserted row.</p>
+
+<p>This method helps dealing with default column values and
+generated columns.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// A table with an auto-incremented primary key and a default value</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          score INTEGER DEFAULT 1000)
+        """</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// A player with partial database information</span>
+<span class="kd">struct</span> <span class="kt">PartialPlayer</span><span class="p">:</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="c1">// A full player, with all database information</span>
+<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">FetchableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// Insert a base player, get a full one</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">let</span> <span class="nv">partialPlayer</span> <span class="o">=</span> <span class="kt">PartialPlayer</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Alice"</span><span class="p">)</span>
+
+    <span class="c1">// INSERT INTO player (name) VALUES ('Alice') RETURNING *</span>
+    <span class="k">if</span> <span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="k">try</span> <span class="n">partialPlayer</span><span class="o">.</span><span class="nf">insertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">FullPlayer</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>    <span class="c1">// The inserted id</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1">// The inserted name</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">score</span><span class="p">)</span> <span class="c1">// The default score</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="n">insertAndFetch</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt"><a href="../Protocols/FetchableRecord.html">FetchableRecord</a></span> <span class="o">&amp;</span> <span class="kt"><a href="../Protocols/TableRecord.html">TableRecord</a></span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="k">as</span> <span class="nv">returnedType</span><span class="p">:</span> <span class="kt">T</span><span class="o">.</span><span class="k">Type</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>returnedType</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The type of the returned record.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A record of type <code>returnedType</code>. The result can be
+nil when the conflict policy is <code>IGNORE</code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Insert.swift#L225-L234">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE14insertAndFetch_10onConflict9selection5fetchqd__AA8DatabaseC_AI0H10ResolutionOSgSayAA13SQLSelectable_pGqd__AA9StatementCKXEtKlF"></a>
+                    <a name="//apple_ref/swift/Method/insertAndFetch(_:onConflict:selection:fetch:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE14insertAndFetch_10onConflict9selection5fetchqd__AA8DatabaseC_AI0H10ResolutionOSgSayAA13SQLSelectable_pGqd__AA9StatementCKXEtKlF">insertAndFetch(_:<wbr>onConflict:<wbr>selection:<wbr>fetch:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> statement, and returns the
+selected columns from the inserted row.</p>
+
+<p>This method helps dealing with default column values and
+generated columns.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="c1">// A table with an auto-incremented primary key and a default value</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"""
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          score INTEGER DEFAULT 1000)
+        """</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// A player with partial database information</span>
+<span class="kd">struct</span> <span class="kt">PartialPlayer</span><span class="p">:</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="c1">// Insert a base player, get the inserted score</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">let</span> <span class="nv">partialPlayer</span> <span class="o">=</span> <span class="kt">PartialPlayer</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"Alice"</span><span class="p">)</span>
+
+    <span class="c1">// INSERT INTO player (name) VALUES ('Alice') RETURNING score</span>
+    <span class="k">let</span> <span class="nv">score</span> <span class="o">=</span> <span class="k">try</span> <span class="n">partialPlayer</span><span class="o">.</span><span class="nf">insertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">selection</span><span class="p">:</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span> <span class="p">{</span> <span class="n">statement</span> <span class="k">in</span>
+        <span class="k">try</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nf">print</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="c1">// The inserted score</span>
+<span class="p">}</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <code>selection</code> is not empty.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="n">insertAndFetch</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">selection</span><span class="p">:</span> <span class="p">[</span><span class="n">any</span> <span class="kt"><a href="../Protocols/SQLSelectable.html">SQLSelectable</a></span><span class="p">],</span>
+    <span class="nv">fetch</span><span class="p">:</span> <span class="p">(</span><span class="kt"><a href="../Classes/Statement.html">Statement</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>selection</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The returned columns (must not be empty).</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fetch</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A function that executes its <code><a href="../Classes/Statement.html">Statement</a></code> argument.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The result of the <code>fetch</code> function.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Insert.swift#L280-L305">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Save"></a>
+                <a name="//apple_ref/swift/Section/Save" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Save"></a>
+                  <h3 class="section-name"><span>Save</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE4save_10onConflictyAA8DatabaseC_AG0F10ResolutionOSgtKF"></a>
+                    <a name="//apple_ref/swift/Method/save(_:onConflict:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE4save_10onConflictyAA8DatabaseC_AG0F10ResolutionOSgtKF">save(_:<wbr>onConflict:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT</code> or <code>UPDATE</code> statement.</p>
+
+<p>If the receiver has a non-nil primary key and a matching row in the
+database, this method performs an update.</p>
+
+<p>Otherwise, performs an insert.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">save</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+<span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Save.swift#L15-L32">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Save%20and%20Fetch"></a>
+                <a name="//apple_ref/swift/Section/Save and Fetch" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Save%20and%20Fetch"></a>
+                  <h3 class="section-name"><span>Save and Fetch</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/saveAndFetch(_:onConflict:as:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">saveAndFetch(_:<wbr>onConflict:<wbr>as:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> or <code>UPDATE ... RETURNING ...</code>
+statement, and returns a new record built from the saved row.</p>
+
+<p>If the receiver has a non-nil primary key and a matching row in the
+database, this method performs an update. Otherwise, it performs
+an insert.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/saveAndFetch(_:onConflict:selection:fetch:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">saveAndFetch(_:<wbr>onConflict:<wbr>selection:<wbr>fetch:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> or <code>UPDATE ... RETURNING ...</code>
+statement, and returns the selected columns from the saved row.</p>
+
+<p>If the receiver has a non-nil primary key and a matching row in the
+database, this method performs an update. Otherwise, it performs
+an insert.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <code>selection</code> is not empty.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE12saveAndFetch_10onConflict2asqd__SgAA8DatabaseC_AI0H10ResolutionOSgqd__mtKAA09FetchableC0Rd__AA05TableC0Rd__lF"></a>
+                    <a name="//apple_ref/swift/Method/saveAndFetch(_:onConflict:as:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE12saveAndFetch_10onConflict2asqd__SgAA8DatabaseC_AI0H10ResolutionOSgqd__mtKAA09FetchableC0Rd__AA05TableC0Rd__lF">saveAndFetch(_:<wbr>onConflict:<wbr>as:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> or <code>UPDATE ... RETURNING ...</code>
+statement, and returns a new record built from the saved row.</p>
+
+<p>If the receiver has a non-nil primary key and a matching row in the
+database, this method performs an update. Otherwise, it performs
+an insert.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="n">saveAndFetch</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt"><a href="../Protocols/FetchableRecord.html">FetchableRecord</a></span> <span class="o">&amp;</span> <span class="kt"><a href="../Protocols/TableRecord.html">TableRecord</a></span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="k">as</span> <span class="nv">returnedType</span><span class="p">:</span> <span class="kt">T</span><span class="o">.</span><span class="k">Type</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>returnedType</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The type of the returned record.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A record of type <code>returnedType</code>. The result can be nil when
+the conflict policy is <code>IGNORE</code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Save.swift#L136-L160">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE12saveAndFetch_10onConflict9selection5fetchqd__AA8DatabaseC_AI0H10ResolutionOSgSayAA13SQLSelectable_pGqd__AA9StatementCKXEtKlF"></a>
+                    <a name="//apple_ref/swift/Method/saveAndFetch(_:onConflict:selection:fetch:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE12saveAndFetch_10onConflict9selection5fetchqd__AA8DatabaseC_AI0H10ResolutionOSgSayAA13SQLSelectable_pGqd__AA9StatementCKXEtKlF">saveAndFetch(_:<wbr>onConflict:<wbr>selection:<wbr>fetch:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... RETURNING ...</code> or <code>UPDATE ... RETURNING ...</code>
+statement, and returns the selected columns from the saved row.</p>
+
+<p>If the receiver has a non-nil primary key and a matching row in the
+database, this method performs an update. Otherwise, it performs
+an insert.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div><div class="aside aside-precondition">
+    <p class="aside-title">Precondition</p>
+    <code>selection</code> is not empty.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="n">saveAndFetch</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictResolution</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="o">.</span><span class="kt">ConflictResolution</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">selection</span><span class="p">:</span> <span class="p">[</span><span class="n">any</span> <span class="kt"><a href="../Protocols/SQLSelectable.html">SQLSelectable</a></span><span class="p">],</span>
+    <span class="nv">fetch</span><span class="p">:</span> <span class="p">(</span><span class="kt"><a href="../Classes/Statement.html">Statement</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictResolution</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A policy for conflict resolution.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>selection</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The returned columns (must not be empty).</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>fetch</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A function that executes it <code><a href="../Classes/Statement.html">Statement</a></code> argument.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The result of the <code>fetch</code> function.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Save.swift#L178-L203">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Upsert"></a>
+                <a name="//apple_ref/swift/Section/Upsert" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Upsert"></a>
+                  <h3 class="section-name"><span>Upsert</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/upsert(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">upsert(_:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE</code> statement.</p>
+
+<p>The upsert behavior is triggered by a violation of any uniqueness
+constraint on the table (primary key or unique index). In case of
+violation, all columns but the primary key are overwritten with the
+inserted values:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO player (id, name, score)</span>
+<span class="c1">// VALUES (1, 'Arthur', 1000)</span>
+<span class="c1">// ON CONFLICT DO UPDATE SET</span>
+<span class="c1">//   name = excluded.name,</span>
+<span class="c1">//   score = excluded.score</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="nv">score</span><span class="p">:</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/upsertAndFetch(_:onConflict:doUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">upsertAndFetch(_:<wbr>onConflict:<wbr>doUpdate:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...</code>
+statement, and returns the upserted record.</p>
+
+<p>With default parameters (<code>upsertAndFetch(db)</code>), the upsert behavior is
+triggered by a violation of any uniqueness constraint on the table
+(primary key or unique index). In case of violation, all columns but the
+primary key are overwritten with the inserted values:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO player (id, name, score)</span>
+<span class="c1">// VALUES (1, 'Arthur', 1000)</span>
+<span class="c1">// ON CONFLICT DO UPDATE SET</span>
+<span class="c1">//   name = excluded.name,</span>
+<span class="c1">//   score = excluded.score</span>
+<span class="c1">// RETURNING *</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="nv">score</span><span class="p">:</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">upsertedPlayer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">upsertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+<p>With <code>conflictTarget</code> and <code>assignments</code> arguments, you can further
+control the upsert behavior. Make sure you check
+<a href="https://www.sqlite.org/lang_UPSERT.html">https://www.sqlite.org/lang_UPSERT.html</a> for detailed information.</p>
+
+<p>The conflict target are the columns of the uniqueness constraint
+(primary key or unique index) that triggers the upsert. If empty, all
+uniqueness constraint are considered.</p>
+
+<p>The assignments describe how to update columns in case of violation of
+a uniqueness constraint. In the next example, we insert the new
+vocabulary word &ldquo;jovial&rdquo; if that word is not already in the dictionary.
+If the word is already in the dictionary, it increments the counter,
+does not overwrite the tainted flag, and overwrites the
+remaining columns:</p>
+<pre class="highlight swift"><code><span class="c1">// CREATE TABLE vocabulary(</span>
+<span class="c1">//   word TEXT PRIMARY KEY,</span>
+<span class="c1">//   kind TEXT NOT NULL,</span>
+<span class="c1">//   isTainted BOOLEAN DEFAULT 0,</span>
+<span class="c1">//   count INT DEFAULT 1))</span>
+<span class="kd">struct</span> <span class="kt">Vocabulary</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">word</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">kind</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">isTainted</span><span class="p">:</span> <span class="kt">Bool</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO vocabulary(word, kind, isTainted)</span>
+<span class="c1">// VALUES('jovial', 'adjective', 0)</span>
+<span class="c1">// ON CONFLICT(word) DO UPDATE SET \</span>
+<span class="c1">//   count = count + 1,</span>
+<span class="c1">//   kind = excluded.kind</span>
+<span class="c1">// RETURNING *</span>
+<span class="k">let</span> <span class="nv">vocabulary</span> <span class="o">=</span> <span class="kt">Vocabulary</span><span class="p">(</span><span class="nv">word</span><span class="p">:</span> <span class="s">"jovial"</span><span class="p">,</span> <span class="nv">kind</span><span class="p">:</span> <span class="s">"adjective"</span><span class="p">,</span> <span class="nv">isTainted</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">upserted</span> <span class="o">=</span> <span class="k">try</span> <span class="n">vocabulary</span><span class="o">.</span><span class="nf">upsertAndFetch</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">,</span>
+    <span class="nv">onConflict</span><span class="p">:</span> <span class="p">[</span><span class="s">"word"</span><span class="p">],</span>
+    <span class="nv">doUpdate</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+        <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"count"</span><span class="p">)</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">,</span>
+         <span class="kt">Column</span><span class="p">(</span><span class="s">"isTainted"</span><span class="p">)</span><span class="o">.</span><span class="n">noOverwrite</span><span class="p">]</span>
+    <span class="p">})</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Method/upsertAndFetch(_:as:onConflict:doUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/">upsertAndFetch(_:<wbr>as:<wbr>onConflict:<wbr>doUpdate:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...</code>
+statement, and returns the upserted record.</p>
+
+<p>See <code><a href="../Protocols/PersistableRecord.html#/upsertAndFetch(_:onConflict:doUpdate:)">upsertAndFetch(_:onConflict:doUpdate:)</a></code> for more information about
+the <code>conflictTarget</code> and <code>assignments</code> parameters.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE6upsertyyAA8DatabaseCKF"></a>
+                    <a name="//apple_ref/swift/Method/upsert(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE6upsertyyAA8DatabaseCKF">upsert(_:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE</code> statement.</p>
+
+<p>The upsert behavior is triggered by a violation of any uniqueness
+constraint on the table (primary key or unique index). In case of
+violation, all columns but the primary key are overwritten with the
+inserted values:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO player (id, name, score)</span>
+<span class="c1">// VALUES (1, 'Arthur', 1000)</span>
+<span class="c1">// ON CONFLICT DO UPDATE SET</span>
+<span class="c1">//   name = excluded.name,</span>
+<span class="c1">//   score = excluded.score</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="nv">score</span><span class="p">:</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">upsert</span><span class="p">(</span><span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Upsert.swift#L189-L203">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE14upsertAndFetch_10onConflict8doUpdatexAA8DatabaseC_SaySSGSayAA16ColumnAssignmentVGAA10TableAliasCcSgtKAA09FetchableC0RzrlF"></a>
+                    <a name="//apple_ref/swift/Method/upsertAndFetch(_:onConflict:doUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE14upsertAndFetch_10onConflict8doUpdatexAA8DatabaseC_SaySSGSayAA16ColumnAssignmentVGAA10TableAliasCcSgtKAA09FetchableC0RzrlF">upsertAndFetch(_:<wbr>onConflict:<wbr>doUpdate:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...</code>
+statement, and returns the upserted record.</p>
+
+<p>With default parameters (<code>upsertAndFetch(db)</code>), the upsert behavior is
+triggered by a violation of any uniqueness constraint on the table
+(primary key or unique index). In case of violation, all columns but the
+primary key are overwritten with the inserted values:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO player (id, name, score)</span>
+<span class="c1">// VALUES (1, 'Arthur', 1000)</span>
+<span class="c1">// ON CONFLICT DO UPDATE SET</span>
+<span class="c1">//   name = excluded.name,</span>
+<span class="c1">//   score = excluded.score</span>
+<span class="c1">// RETURNING *</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="nv">score</span><span class="p">:</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">upsertedPlayer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">upsertAndFetch</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+<p>With <code>conflictTarget</code> and <code>assignments</code> arguments, you can further
+control the upsert behavior. Make sure you check
+<a href="https://www.sqlite.org/lang_UPSERT.html">https://www.sqlite.org/lang_UPSERT.html</a> for detailed information.</p>
+
+<p>The conflict target are the columns of the uniqueness constraint
+(primary key or unique index) that triggers the upsert. If empty, all
+uniqueness constraint are considered.</p>
+
+<p>The assignments describe how to update columns in case of violation of
+a uniqueness constraint. In the next example, we insert the new
+vocabulary word &ldquo;jovial&rdquo; if that word is not already in the dictionary.
+If the word is already in the dictionary, it increments the counter,
+does not overwrite the tainted flag, and overwrites the
+remaining columns:</p>
+<pre class="highlight swift"><code><span class="c1">// CREATE TABLE vocabulary(</span>
+<span class="c1">//   word TEXT PRIMARY KEY,</span>
+<span class="c1">//   kind TEXT NOT NULL,</span>
+<span class="c1">//   isTainted BOOLEAN DEFAULT 0,</span>
+<span class="c1">//   count INT DEFAULT 1))</span>
+<span class="kd">struct</span> <span class="kt">Vocabulary</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">word</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">kind</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">isTainted</span><span class="p">:</span> <span class="kt">Bool</span>
+<span class="p">}</span>
+
+<span class="c1">// INSERT INTO vocabulary(word, kind, isTainted)</span>
+<span class="c1">// VALUES('jovial', 'adjective', 0)</span>
+<span class="c1">// ON CONFLICT(word) DO UPDATE SET \</span>
+<span class="c1">//   count = count + 1,</span>
+<span class="c1">//   kind = excluded.kind</span>
+<span class="c1">// RETURNING *</span>
+<span class="k">let</span> <span class="nv">vocabulary</span> <span class="o">=</span> <span class="kt">Vocabulary</span><span class="p">(</span><span class="nv">word</span><span class="p">:</span> <span class="s">"jovial"</span><span class="p">,</span> <span class="nv">kind</span><span class="p">:</span> <span class="s">"adjective"</span><span class="p">,</span> <span class="nv">isTainted</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">upserted</span> <span class="o">=</span> <span class="k">try</span> <span class="n">vocabulary</span><span class="o">.</span><span class="nf">upsertAndFetch</span><span class="p">(</span>
+    <span class="n">db</span><span class="p">,</span>
+    <span class="nv">onConflict</span><span class="p">:</span> <span class="p">[</span><span class="s">"word"</span><span class="p">],</span>
+    <span class="nv">doUpdate</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+        <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"count"</span><span class="p">)</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">,</span>
+         <span class="kt">Column</span><span class="p">(</span><span class="s">"isTainted"</span><span class="p">)</span><span class="o">.</span><span class="n">noOverwrite</span><span class="p">]</span>
+    <span class="p">})</span>
+</code></pre>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="nf">upsertAndFetch</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictTarget</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="n">doUpdate</span> <span class="nv">assignments</span><span class="p">:</span> <span class="p">((</span><span class="n">_</span> <span class="nv">excluded</span><span class="p">:</span> <span class="kt"><a href="../Classes/TableAlias.html">TableAlias</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a></span><span class="p">])?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="k">Self</span>
+<span class="k">where</span> <span class="k">Self</span><span class="p">:</span> <span class="kt"><a href="../Protocols/FetchableRecord.html">FetchableRecord</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictTarget</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The conflict target.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>assignments</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An optional function that returns an array of
+<code><a href="../Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a></code>. In case of violation of a uniqueness
+constraints, these assignments are performed, and remaining columns
+are overwritten by inserted values.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The upserted record.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Upsert.swift#L279-L287">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordPAAE14upsertAndFetch_2as10onConflict8doUpdateqd__AA8DatabaseC_qd__mSaySSGSayAA16ColumnAssignmentVGAA10TableAliasCcSgtKAA09FetchableC0Rd__AA0oC0Rd__lF"></a>
+                    <a name="//apple_ref/swift/Method/upsertAndFetch(_:as:onConflict:doUpdate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordPAAE14upsertAndFetch_2as10onConflict8doUpdateqd__AA8DatabaseC_qd__mSaySSGSayAA16ColumnAssignmentVGAA10TableAliasCcSgtKAA09FetchableC0Rd__AA0oC0Rd__lF">upsertAndFetch(_:<wbr>as:<wbr>onConflict:<wbr>doUpdate:<wbr>)</a>
+                    </code>
+                      <span class="declaration-note">
+                        Extension method
+                      </span>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Executes an <code>INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...</code>
+statement, and returns the upserted record.</p>
+
+<p>See <code><a href="../Protocols/PersistableRecord.html#/upsertAndFetch(_:onConflict:doUpdate:)">upsertAndFetch(_:onConflict:doUpdate:)</a></code> for more information about
+the <code>conflictTarget</code> and <code>assignments</code> parameters.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    A DatabaseError whenever an SQLite error occurs.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">8.0</span><span class="p">,</span> <span class="n">macOS</span> <span class="mf">12.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">@inlinable</span>
+<span class="kd">public</span> <span class="kd">func</span> <span class="n">upsertAndFetch</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt"><a href="../Protocols/FetchableRecord.html">FetchableRecord</a></span> <span class="o">&amp;</span> <span class="kt"><a href="../Protocols/TableRecord.html">TableRecord</a></span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
+    <span class="k">as</span> <span class="nv">returnedType</span><span class="p">:</span> <span class="kt">T</span><span class="o">.</span><span class="k">Type</span><span class="p">,</span>
+    <span class="n">onConflict</span> <span class="nv">conflictTarget</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="n">doUpdate</span> <span class="nv">assignments</span><span class="p">:</span> <span class="p">((</span><span class="n">_</span> <span class="nv">excluded</span><span class="p">:</span> <span class="kt"><a href="../Classes/TableAlias.html">TableAlias</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt"><a href="../Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a></span><span class="p">])?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
+<span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">T</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>db</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>A database connection.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>returnedType</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The type of the returned record.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>conflictTarget</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The conflict target.</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>assignments</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>An optional function that returns an array of
+<code><a href="../Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a></code>. In case of violation of a uniqueness
+constraints, these assignments are performed, and remaining columns
+are overwritten by inserted values.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A record of type <code>returnedType</code>.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v6.1.0/GRDB/Record/PersistableRecord+Upsert.swift#L306-L330">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2022 <a class="link" href="https://github.com/groue" target="_blank" rel="external noopener">Gwendal Roué</a>. All rights reserved. (Last updated: 2022-10-20)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>
