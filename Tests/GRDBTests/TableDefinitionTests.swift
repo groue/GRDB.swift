@@ -76,6 +76,12 @@ class TableDefinitionTests: GRDBTestCase {
                 "e" ANY\
                 ) STRICT
                 """)
+            
+            do {
+                try db.execute(sql: "INSERT INTO test3 (id, a) VALUES (1, 'foo')")
+                XCTFail("Expected DatabaseError.SQLITE_CONSTRAINT_DATATYPE")
+            } catch DatabaseError.SQLITE_CONSTRAINT_DATATYPE {
+            }
         }
     }
     
