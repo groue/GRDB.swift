@@ -236,13 +236,26 @@ extension SQL: SQLSelectable {
 }
 
 extension SQL: SQLOrderingTerm {
-    /// Creates a literal SQL ordering.
+    /// Creates a literal SQL ordering term.
     ///
     /// Use this property when you need an explicit `SQLOrdering`. For example:
     ///
-    ///     // SELECT * FROM player ORDER BY name DESC
-    ///     let ordering = SQL("name DESC").sqlOrdering
-    ///     let request = Player.order(ordering)
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name DESC
+    /// let ordering = SQL("name DESC").sqlOrdering
+    /// let request = Player.order(ordering)
+    /// ```
+    ///
+    /// An ordering term is only valid if it represent a single ordering terms.
+    ///
+    /// ```swift
+    /// // Valid
+    /// SQL("score DESC").sqlOrdering
+    /// SQL("name").sqlOrdering
+    ///
+    /// // Invalid
+    /// SQL("score DESC, name").sqlOrdering
+    /// ```
     public var sqlOrdering: SQLOrdering {
         .literal(self)
     }

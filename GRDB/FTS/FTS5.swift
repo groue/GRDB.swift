@@ -444,7 +444,7 @@ extension Column {
 }
 
 extension Database {
-    /// Deletes the synchronization triggers for a synchronized FTS5 table
+    /// Deletes the synchronization triggers for a synchronized FTS5 table.
     public func dropFTS5SynchronizationTriggers(forTable tableName: String) throws {
         try execute(sql: """
             DROP TRIGGER IF EXISTS \("__\(tableName)_ai".quotedDatabaseIdentifier);

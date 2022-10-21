@@ -2,15 +2,19 @@ extension TableRequest where Self: FilteredRequest {
     
     // MARK: Full Text Search
     
-    /// Creates a request with a full-text predicate added to the eventual
-    /// set of already applied predicates.
+    /// Filters rows that match an ``FTS3`` full-text pattern.
     ///
-    ///     // SELECT * FROM book WHERE book MATCH '...'
-    ///     var request = Book.all()
-    ///     request = request.matching(pattern)
+    /// For example:
     ///
-    /// If the search pattern is nil, the request does not match any
-    /// database row.
+    /// ```swift
+    /// // SELECT * FROM book WHERE book MATCH 'sqlite OR database'
+    /// let pattern = FTS3Pattern(matchingAnyTokenIn: "SQLite Database")
+    /// let request = Book.all().matching(pattern)
+    /// ```
+    ///
+    /// If `pattern` is nil, the returned request fetches no row.
+    ///
+    /// - parameter pattern: An ``FTS3Pattern``.
     public func matching(_ pattern: FTS3Pattern?) -> Self {
         guard let pattern else {
             return none()

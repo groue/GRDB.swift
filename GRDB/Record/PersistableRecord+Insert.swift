@@ -12,8 +12,11 @@ extension PersistableRecord {
     /// Executes an `INSERT` statement.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func insert(
         _ db: Database,
@@ -40,8 +43,8 @@ extension PersistableRecord {
 
 extension PersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns a new
-    /// record built from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
@@ -71,7 +74,7 @@ extension PersistableRecord {
     ///         var score: Int
     ///     }
     ///
-    ///     // Insert a base player, get a full one
+    ///     // Insert a partial player, get a full one
     ///     try dbQueue.write { db in
     ///         let partialPlayer = PartialPlayer(name: "Alice")
     ///
@@ -84,11 +87,14 @@ extension PersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be
     ///   nil when the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func insertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -101,8 +107,8 @@ extension PersistableRecord {
         }
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// selected columns from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns the selected
+    /// columns from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
@@ -125,7 +131,7 @@ extension PersistableRecord {
     ///         var name: String
     ///     }
     ///
-    ///     // Insert a base player, get the inserted score
+    ///     // Insert a partial player, get the inserted score
     ///     try dbQueue.write { db in
     ///         let partialPlayer = PartialPlayer(name: "Alice")
     ///
@@ -137,11 +143,15 @@ extension PersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes its ``Statement`` argument.
+    /// - parameter fetch: A closure that executes its ``Statement`` argument.
+    ///   If the conflict policy is `IGNORE`, the statement may return no row.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public func insertAndFetch<T>(
@@ -171,8 +181,8 @@ extension PersistableRecord {
         return success.returned
     }
 #else
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns a new
-    /// record built from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
@@ -202,7 +212,7 @@ extension PersistableRecord {
     ///         var score: Int
     ///     }
     ///
-    ///     // Insert a base player, get a full one
+    ///     // Insert a partial player, get a full one
     ///     try dbQueue.write { db in
     ///         let partialPlayer = PartialPlayer(name: "Alice")
     ///
@@ -215,11 +225,14 @@ extension PersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be
     ///   nil when the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func insertAndFetch<T: FetchableRecord & TableRecord>(
@@ -233,8 +246,8 @@ extension PersistableRecord {
         }
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// selected columns from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns the selected
+    /// columns from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
@@ -257,7 +270,7 @@ extension PersistableRecord {
     ///         var name: String
     ///     }
     ///
-    ///     // Insert a base player, get the inserted score
+    ///     // Insert a partial player, get the inserted score
     ///     try dbQueue.write { db in
     ///         let partialPlayer = PartialPlayer(name: "Alice")
     ///
@@ -269,11 +282,15 @@ extension PersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes its ``Statement`` argument.
+    /// - parameter fetch: A closure that executes its ``Statement`` argument.
+    ///   If the conflict policy is `IGNORE`, the statement may return no row.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+

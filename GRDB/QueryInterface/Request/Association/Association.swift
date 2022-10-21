@@ -7,8 +7,32 @@ public protocol _Association {
     var _sqlAssociation: _SQLAssociation { get set }
 }
 
-/// The base protocol for all associations that define a connection between two
+/// The base protocol for associations that define a connection between two
 /// record types.
+///
+/// ## Topics
+///
+/// ### Association To One
+///
+/// - ``BelongsToAssociation``
+/// - ``HasOneAssociation``
+/// - ``HasOneThroughAssociation``
+/// - ``AssociationToOne``
+///
+/// ### Association To Many
+///
+/// - ``HasManyAssociation``
+/// - ``HasManyThroughAssociation``
+/// - ``AssociationToMany``
+///
+/// ### Associations to Common Table Expressions
+///
+/// - ``CommonTableExpression``
+/// - ``JoinAssociation``
+///
+/// ### Association Aggregates
+///
+/// - ``AssociationAggregate``
 public protocol Association: _Association, DerivableRequest {
     // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
     // type safety:
@@ -199,7 +223,7 @@ extension Association {
     ///     let association = Player.team.select { db in [Column("color")]
     ///     var request = Player.including(required: association)
     ///
-    /// Any previous selection is replaced:
+    /// Any previous selection is discarded:
     ///
     ///     // SELECT player.*, team.color
     ///     // FROM player
@@ -370,16 +394,12 @@ extension Association {
 
 // DerivableRequest conformance
 extension Association {
-    /// Creates an association for returns distinct rows.
     public func distinct() -> Self {
         withDestinationRelation { relation in
             relation.isDistinct = true
         }
     }
     
-    /// Returns an association that embeds the common table expression.
-    ///
-    /// See `QueryInterfaceRequest.with(_:)` for more information.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         withDestinationRelation { relation in
             relation.ctes[cte.tableName] = cte.cte

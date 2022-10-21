@@ -1,4 +1,10 @@
 /// A protocol indicating that an activity or action supports cancellation.
+///
+/// ## Topics
+///
+/// ### Supporting Types
+///
+/// - ``AnyDatabaseCancellable``
 public protocol DatabaseCancellable {
     /// Cancel the activity.
     func cancel()
@@ -7,7 +13,7 @@ public protocol DatabaseCancellable {
 /// A type-erasing cancellable object that executes a provided closure
 /// when canceled.
 ///
-/// An AnyDatabaseCancellable instance automatically calls cancel()
+/// An `AnyDatabaseCancellable` instance automatically calls ``cancel()``
 ///  when deinitialized.
 public class AnyDatabaseCancellable: DatabaseCancellable {
     private var _cancel: (() -> Void)?
@@ -17,10 +23,9 @@ public class AnyDatabaseCancellable: DatabaseCancellable {
         _cancel = cancel
     }
     
-    /// Creates a cancellable object that forwards cancellation to the
-    /// provided cancellable.
-    public convenience init(_ cancellable: some DatabaseCancellable) {
-        var cancellable = Optional.some(cancellable)
+    /// Creates a cancellable object that forwards cancellation to `base`.
+    public convenience init(_ base: some DatabaseCancellable) {
+        var cancellable = Optional.some(base)
         self.init {
             cancellable?.cancel()
             cancellable = nil // Release memory

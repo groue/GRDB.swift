@@ -1,5 +1,39 @@
-/// SQLExpression is the type that represents an SQL expression, as
-/// described at <https://www.sqlite.org/lang_expr.html>
+/// An SQL expression.
+///
+/// `SQLExpression` is an opaque representation of an SQL expression.
+/// You generally build `SQLExpression` from other expressions. For example:
+///
+/// ```swift
+/// // Values
+/// 1000.sqlExpression
+/// "O'Brien".sqlExpression
+///
+/// // Computed expressions
+/// Column("score") + Column("bonus")
+/// (0...1000).contains(Column("score"))
+/// !Column("isBlue")
+///
+/// // Literal expression
+/// SQL("IFNULL(name, \(defaultName))").sqlExpression
+///
+/// // Subquery
+/// Player.select(max(Column("score"))).sqlExpression
+/// ```
+///
+/// `SQLExpression` is better used as the return type of a function. For
+/// function arguments, prefer the ``SQLExpressible`` or
+/// ``SQLSpecificExpressible`` protocols. For example:
+///
+/// ```swift
+/// func date(_ value: some SQLSpecificExpressible) -> SQLExpression {
+///     SQL("DATE(\(value))").sqlExpression
+/// }
+///
+/// // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+/// let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_expr.html>
 public struct SQLExpression {
     private var impl: Impl
     
@@ -160,17 +194,18 @@ public struct SQLExpression {
         case falsey
     }
     
-    /// `AssociativeBinaryOperator` is an associative binary operator,
-    /// such as `+`, `*`, `AND`, etc.
+    /// An associative binary SQL operator, such as `+`, `*`, `AND`, etc.
     ///
     /// Use it with the `joined(operator:)` method. For example:
     ///
-    ///     // SELECT score + bonus + 1000 FROM player
-    ///     let values = [
-    ///         scoreColumn,
-    ///         bonusColumn,
-    ///         1000.databaseValue]
-    ///     Player.select(values.joined(operator: .add))
+    /// ```swift
+    /// // SELECT score + bonus + 1000 FROM player
+    /// let values = [
+    ///     scoreColumn,
+    ///     bonusColumn,
+    ///     1000.databaseValue]
+    /// let request = Player.select(values.joined(operator: .add))
+    /// ```
     public struct AssociativeBinaryOperator: Hashable {
         /// The SQL operator
         let sql: String
@@ -202,60 +237,70 @@ public struct SQLExpression {
             self.isBijective = bijective
         }
         
-        /// The `+` binary operator
+        /// The `+` binary SQL operator.
         ///
         /// For example:
         ///
-        ///     // score + bonus
-        ///     [Column("score"), Column("bonus")].joined(operator: .add)
+        /// ```swift
+        /// // score + bonus
+        /// [Column("score"), Column("bonus")].joined(operator: .add)
+        /// ```
         public static let add = AssociativeBinaryOperator(
             sql: "+",
             neutralValue: 0.databaseValue,
             strictlyAssociative: false,
             bijective: false)
         
-        /// The `*` binary operator
+        /// The `*` binary SQL operator.
         ///
         /// For example:
         ///
-        ///     // score * factor
-        ///     [Column("score"), Column("factor")].joined(operator: .multiply)
+        /// ```swift
+        /// // score * factor
+        /// [Column("score"), Column("factor")].joined(operator: .multiply)
+        /// ```
         public static let multiply = AssociativeBinaryOperator(
             sql: "*",
             neutralValue: 1.databaseValue,
             strictlyAssociative: false,
             bijective: false)
         
-        /// The `AND` binary operator
+        /// The `AND` binary SQL operator.
         ///
         /// For example:
         ///
-        ///     // isBlue AND isTall
-        ///     [Column("isBlue"), Column("isTall")].joined(operator: .and)
+        /// ```swift
+        /// // isBlue AND isTall
+        /// [Column("isBlue"), Column("isTall")].joined(operator: .and)
+        /// ```
         public static let and = AssociativeBinaryOperator(
             sql: "AND",
             neutralValue: true.databaseValue,
             strictlyAssociative: true,
             bijective: false)
         
-        /// The `OR` binary operator
+        /// The `OR` binary SQL operator.
         ///
         /// For example:
         ///
-        ///     // isBlue OR isTall
-        ///     [Column("isBlue"), Column("isTall")].joined(operator: .or)
+        /// ```swift
+        /// // isBlue OR isTall
+        /// [Column("isBlue"), Column("isTall")].joined(operator: .or)
+        /// ```
         public static let or = AssociativeBinaryOperator(
             sql: "OR",
             neutralValue: false.databaseValue,
             strictlyAssociative: true,
             bijective: false)
         
-        /// The `||` string concatenation operator
+        /// The `||` string concatenation SQL operator.
         ///
         /// For example:
         ///
-        ///     // firstName || ' ' || lastName
-        ///     [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
+        /// ```swift
+        /// // firstName || ' ' || lastName
+        /// [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
+        /// ```
         public static let concat = AssociativeBinaryOperator(
             sql: "||",
             neutralValue: "".databaseValue,

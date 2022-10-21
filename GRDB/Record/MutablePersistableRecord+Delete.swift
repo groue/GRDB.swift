@@ -23,7 +23,7 @@ extension MutablePersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     @inlinable // allow specialization so that empty callbacks are removed
     public func delete(_ db: Database) throws -> Bool {

@@ -8,26 +8,165 @@ typealias SQLiteValue = OpaquePointer
 
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 
-/// A Database connection.
+/// An SQLite connection.
 ///
-/// You don't create a database directly. Instead, you use a DatabaseQueue, or
-/// a DatabasePool:
+/// You don't create `Database` instances directly. Instead, you use a database
+/// access method from ``DatabaseQueue``, ``DatabasePool``.
+/// ``DatabaseSnapshot``, ``DatabaseMigrator`` or ``ValueObservation``.
+/// For example:
 ///
-///     let dbQueue = try DatabaseQueue(...)
+/// ```swift
+/// let dbQueue = try DatabaseQueue()
 ///
-///     // The Database is the `db` in the closure:
-///     try dbQueue.write { db in
-///         try Player(...).insert(db)
-///     }
+/// // The Database is the `db` in the closure:
+/// try dbQueue.write { db in
+///     try Player(name: "Arthur").insert(db)
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### Database Information
+///
+/// - ``changesCount``
+/// - ``configuration``
+/// - ``debugDescription``
+/// - ``description``
+/// - ``lastErrorCode``
+/// - ``lastErrorMessage``
+/// - ``lastInsertedRowID``
+/// - ``maximumStatementArgumentCount``
+/// - ``sqliteConnection``
+/// - ``totalChangesCount``
+/// - ``SQLiteConnection``
+///
+/// ### Database Statements
+///
+/// - ``allStatements(literal:)``
+/// - ``allStatements(sql:arguments:)``
+/// - ``cachedStatement(literal:)``
+/// - ``cachedStatement(sql:)``
+/// - ``execute(literal:)``
+/// - ``execute(sql:arguments:)``
+/// - ``makeStatement(literal:)``
+/// - ``makeStatement(sql:)``
+/// - ``DatabaseCursor``
+/// - ``Statement``
+/// - ``StatementArguments``
+/// - ``SQLStatementCursor``
+///
+/// ### Database Transactions
+///
+/// - ``beginTransaction(_:)``
+/// - ``commit()``
+/// - ``inSavepoint(_:)``
+/// - ``inTransaction(_:_:)``
+/// - ``isInsideTransaction``
+/// - ``rollback()``
+/// - ``TransactionCompletion``
+/// - ``TransactionKind``
+///
+/// ### Observing Database Transactions
+///
+/// - ``add(transactionObserver:extent:)``
+/// - ``afterNextTransaction(onCommit:onRollback:)``
+/// - ``remove(transactionObserver:)``
+/// - ``TransactionObserver``
+/// - ``TransactionObservationExtent``
+///
+/// ### Defining the Database Schema
+///
+/// - ``alter(table:body:)``
+/// - ``clearSchemaCache()``
+/// - ``create(index:on:columns:options:condition:)``
+/// - ``create(table:options:body:)``
+/// - ``create(virtualTable:ifNotExists:using:)``
+/// - ``create(virtualTable:ifNotExists:using:_:)``
+/// - ``drop(index:)``
+/// - ``drop(table:)``
+/// - ``dropFTS4SynchronizationTriggers(forTable:)``
+/// - ``rename(table:to:)``
+/// - ``ColumnType``
+/// - ``ConflictResolution``
+/// - ``ForeignKeyAction``
+/// - ``IndexOptions``
+/// - ``TableAlteration``
+/// - ``TableDefinition``
+/// - ``TableOptions``
+/// - ``VirtualTableModule``
+///
+/// ### Querying the Database Schema
+///
+/// - ``columns(in:)``
+/// - ``foreignKeys(on:)``
+/// - ``indexes(on:)``
+/// - ``isGRDBInternalTable(_:)``
+/// - ``isSQLiteInternalTable(_:)``
+/// - ``primaryKey(_:)``
+/// - ``table(_:hasUniqueKey:)``
+/// - ``tableExists(_:)``
+/// - ``triggerExists(_:)``
+/// - ``viewExists(_:)``
+/// - ``ColumnInfo``
+/// - ``ForeignKeyInfo``
+/// - ``IndexInfo``
+/// - ``PrimaryKeyInfo``
+///
+/// ### Collations
+///
+/// - ``add(collation:)``
+/// - ``reindex(collation:)-171fj``
+/// - ``reindex(collation:)-2hxil``
+/// - ``remove(collation:)``
+/// - ``CollationName``
+/// - ``DatabaseCollation``
+///
+/// ### SQL Functions
+///
+/// - ``add(function:)``
+/// - ``remove(function:)``
+/// - ``DatabaseFunction``
+///
+/// ### Integrity Checks
+///
+/// - ``checkForeignKeys()``
+/// - ``checkForeignKeys(in:)``
+/// - ``foreignKeyViolations()``
+/// - ``foreignKeyViolations(in:)``
+/// - ``ForeignKeyViolation``
+///
+/// ### Notifications
+///
+/// - ``resumeNotification``
+/// - ``suspendNotification``
+///
+/// ### Other Operations
+///
+/// - ``backup(to:pagesPerStep:progress:)``
+/// - ``checkpoint(_:on:)``
+/// - ``logError``
+/// - ``releaseMemory()``
+/// - ``trace(options:_:)``
+/// - ``CheckpointMode``
+/// - ``DatabaseBackupProgress``
+/// - ``TraceEvent``
+/// - ``TracingOptions``
+///
+/// ### Sunsetted Methods
+///
+/// - ``create(index:on:columns:unique:ifNotExists:condition:)``
+/// - ``create(table:temporary:ifNotExists:withoutRowID:body:)``
 public final class Database: CustomStringConvertible, CustomDebugStringConvertible {
     // The Database class is not thread-safe. An instance should always be
     // used through a SerializedDatabase.
     
     // MARK: - SQLite C API
     
+    // TODO: make it non optional, since one can't get a `Database` instance
+    // after `close()`.
     /// The raw SQLite connection, suitable for the SQLite C API.
     ///
-    /// It is nil after the database has been successfully closed with
+    /// The result is nil after the database has been successfully closed with
     /// ``DatabaseReader/close()``.
     public private(set) var sqliteConnection: SQLiteConnection?
     
@@ -35,15 +174,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The error logging function.
     ///
-    /// Quoting <https://www.sqlite.org/errlog.html>:
-    ///
-    /// > SQLite can be configured to invoke a callback function containing an
-    /// > error code and a terse error message whenever anomalies occur. This
-    /// > mechanism is very helpful in tracking obscure problems that occur
-    /// > rarely and in the field. Application developers are encouraged to take
-    /// > advantage of the error logging facility of SQLite in their products,
-    /// > as it is very low CPU and memory cost but can be a huge aid
-    /// > for debugging.
+    /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
     public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
@@ -59,10 +190,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// The database configuration
+    /// The database configuration.
     public let configuration: Configuration
     
-    /// See `Configuration.label`
+    /// A description of this database connection.
+    ///
+    /// The returned string is based on the ``Configuration/label``
+    /// of ``configuration``.
     public let description: String
     
     public var debugDescription: String { "<Database: \(description)>" }
@@ -72,9 +206,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// The rowID of the most recently inserted row.
     ///
     /// If no row has ever been inserted using this database connection,
-    /// returns zero.
+    /// the last inserted rowID is zero.
     ///
-    /// For more detailed information, see <https://www.sqlite.org/c3ref/last_insert_rowid.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/last_insert_rowid.html>
     public var lastInsertedRowID: Int64 {
         SchedulingWatchdog.preconditionValidQueue(self)
         return sqlite3_last_insert_rowid(sqliteConnection)
@@ -83,7 +217,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// The number of rows modified, inserted or deleted by the most recent
     /// successful INSERT, UPDATE or DELETE statement.
     ///
-    /// For more detailed information, see <https://www.sqlite.org/c3ref/changes.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/changes.html>
     public var changesCount: Int {
         SchedulingWatchdog.preconditionValidQueue(self)
         return Int(sqlite3_changes(sqliteConnection))
@@ -93,13 +227,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// INSERT, UPDATE or DELETE statements since the database connection was
     /// opened.
     ///
-    /// For more detailed information, see <https://www.sqlite.org/c3ref/total_changes.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/total_changes.html>
     public var totalChangesCount: Int {
         SchedulingWatchdog.preconditionValidQueue(self)
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
-    /// True if the database connection is currently in a transaction.
+    /// A Boolean value indicating whether the database connection is currently
+    /// inside a transaction.
+    ///
+    /// A database is inside a transaction if and only if it is not in the
+    /// autocommit mode. See <https://sqlite.org/c3ref/get_autocommit.html>.
     public var isInsideTransaction: Bool {
         // https://sqlite.org/c3ref/get_autocommit.html
         //
@@ -119,10 +257,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
-    /// The last error code
+    /// The last error code.
     public var lastErrorCode: ResultCode { ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     
-    /// The last error message
+    /// The last error message.
     public var lastErrorMessage: String? { String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     // MARK: - Internal properties
@@ -477,35 +615,42 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// array does not contain more than `maximumStatementArgumentCount`
     /// elements:
     ///
-    ///     let ids: [Int] = ...
-    ///     try dbQueue.write { db in
-    ///         try Player.deleteAll(db, keys: ids)
-    ///     }
+    /// ```swift
+    /// // DELETE FROM player WHERE id IN (?, ?, ...)
+    /// let ids: [Int] = ...
+    /// try dbQueue.write { db in
+    ///     try Player.deleteAll(db, keys: ids)
+    /// }
+    /// ```
     ///
-    /// See <https://www.sqlite.org/limits.html>
-    /// and `SQLITE_LIMIT_VARIABLE_NUMBER`.
+    /// Related SQLite documentation: see `SQLITE_LIMIT_VARIABLE_NUMBER` in
+    /// <https://www.sqlite.org/limits.html>.
     public var maximumStatementArgumentCount: Int {
         Int(sqlite3_limit(sqliteConnection, SQLITE_LIMIT_VARIABLE_NUMBER, -1))
     }
     
     // MARK: - Functions
     
-    /// Add or redefine an SQL function.
+    /// Adds or redefines a custom SQL function.
     ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     db.add(function: fn)
-    ///     try Int.fetchOne(db, sql: "SELECT succ(1)")! // 2
+    /// When you want to add a function to all connections created by a
+    /// ``DatabasePool``, add the function in
+    /// ``Configuration/prepareDatabase(_:)``:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.prepareDatabase { db in
+    ///     // Add the function to both writer and readers connections.
+    ///     db.add(function: ...)
+    /// }
+    /// let dbPool = try DatabasePool(path: ..., configuration: config)
+    /// ```
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
         function.install(in: self)
     }
     
-    /// Remove an SQL function.
+    /// Removes a custom SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
         function.uninstall(in: self)
@@ -513,13 +658,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Collations
     
-    /// Add or redefine a collation.
+    /// Adds or redefines a collation.
     ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     db.add(collation: collation)
-    ///     try db.execute(sql: "CREATE TABLE files (name TEXT COLLATE localized_standard")
+    /// When you want to add a collation to all connections created by a
+    /// ``DatabasePool``, add the collation in
+    /// ``Configuration/prepareDatabase(_:)``:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.prepareDatabase { db in
+    ///     // Add the collation to both writer and readers connections.
+    ///     db.add(collation: ...)
+    /// }
+    /// let dbPool = try DatabasePool(path: ..., configuration: config)
+    /// ```
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
@@ -538,7 +690,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// Remove a collation.
+    /// Removes a collation.
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
         sqlite3_create_collation_v2(
@@ -631,21 +783,29 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// For example:
     ///
-    ///     // Trace all SQL statements executed by the database
-    ///     var configuration = Configuration()
-    ///     configuration.prepareDatabase { db in
-    ///         db.trace(options: .statement) { event in
-    ///             print("SQL: \(event)")
-    ///         }
+    /// ```swift
+    /// // Trace all SQL statements executed by the database
+    /// var config = Configuration()
+    /// config.prepareDatabase { db in
+    ///     db.trace(options: .statement) { event in
+    ///         print("SQL: \(event)")
     ///     }
-    ///     let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+    /// }
+    /// let dbQueue = try DatabaseQueue(path: ..., configuration: config)
+    /// ```
     ///
     /// Pass an empty options set in order to stop database tracing:
     ///
-    ///     // Stop tracing
-    ///     db.trace(options: [])
+    /// ```swift
+    /// // Stop tracing
+    /// db.trace(options: [])
+    /// ```
     ///
-    /// See <https://www.sqlite.org/c3ref/trace_v2.html> for more information.
+    /// If you want to see statement arguments in the traced events, you will
+    /// need to set the ``Configuration/publicStatementArguments`` flag in the
+    /// database ``configuration``.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/trace_v2.html>
     ///
     /// - parameter options: The set of desired event kinds. Defaults to
     ///   `.statement`, which notifies all executed database statements.
@@ -725,16 +885,15 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Runs a WAL checkpoint.
     ///
-    /// See <https://www.sqlite.org/wal.html> and
-    /// <https://www.sqlite.org/c3ref/wal_checkpoint_v2.html> for
-    /// more information.
+    /// Related SQLite documentation:
+    /// - <https://www.sqlite.org/wal.html>
+    /// - <https://www.sqlite.org/c3ref/wal_checkpoint_v2.html>
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     /// - parameter dbName: The database name (default "main")
-    /// - returns: A tuple:
-    ///     - `walFrameCount`: the total number of frames in the log file
-    ///     - `checkpointedFrameCount`: the total number of checkpointed frames
-    ///       in the log file
+    /// - returns: A tuple where `walFrameCount` is the total number of frames
+    ///   in the log file and `checkpointedFrameCount` is the total number of
+    ///   checkpointed frames in the log file
     @discardableResult
     public func checkpoint(_ kind: Database.CheckpointMode = .passive, on dbName: String? = "main") throws
     -> (walFrameCount: Int, checkpointedFrameCount: Int)
@@ -766,13 +925,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// When this notification is posted, databases which were opened with the
     /// `Configuration.observesSuspensionNotifications` flag are suspended.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
     /// `Configuration.observesSuspensionNotifications` flag are resumed.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let resumeNotification = Notification.Name("GRDB.Database.Resume")
     
     /// Suspends the database. A suspended database prevents database locks in
@@ -922,21 +1081,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// Executes a block inside a database transaction.
+    /// Wraps database operations inside a database transaction.
     ///
     /// For example:
     ///
-    ///     try dbQueue.inDatabase do {
-    ///         try db.inTransaction {
-    ///             try db.execute(sql: "INSERT ...")
-    ///             return .commit
-    ///         }
+    /// ```swift
+    /// try dbQueue.writeWithoutTransaction do {
+    ///     try db.inTransaction {
+    ///         try db.execute(sql: "INSERT ...")
+    ///         return .commit
     ///     }
+    /// }
+    /// ```
     ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
+    /// If `operations` throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If it returns ``TransactionCompletion/rollback``, the
+    /// transaction is also rollbacked, but no error is thrown.
     ///
-    /// - warning: This method is not reentrant: you can't nest transactions.
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
+    ///
+    /// - warning: This method is not reentrant: you can not nest transactions.
     ///   Use ``inSavepoint(_:)`` instead.
     ///
     /// - parameters:
@@ -946,15 +1110,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///       kind is ``TransactionKind/deferred``.
     ///
     ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is ``Configuration/defaultTransactionKind``.
-    ///
-    ///       See <https://www.sqlite.org/lang_transaction.html> for
-    ///       more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       ``TransactionCompletion/commit`` or
-    ///       ``TransactionCompletion/rollback``.
-    /// - throws: The error thrown by the block.
-    public func inTransaction(_ kind: TransactionKind? = nil, _ block: () throws -> TransactionCompletion) throws {
+    ///       transaction kind is the ``Configuration/defaultTransactionKind``
+    ///       of the ``configuration``.
+    ///     - operations: A function that executes SQL statements and returns
+    ///       either ``TransactionCompletion/commit`` or ``TransactionCompletion/rollback``.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
+    ///   error thrown by `operations`.
+    public func inTransaction(_ kind: TransactionKind? = nil, _ operations: () throws -> TransactionCompletion) throws {
         // Begin transaction
         try beginTransaction(kind)
         
@@ -971,7 +1133,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         var firstError: Error? = nil
         let needsRollback: Bool
         do {
-            let completion = try block()
+            let completion = try operations()
             switch completion {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
@@ -1042,27 +1204,33 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// Executes a block inside a savepoint.
+    /// Wraps database operations inside a savepoint.
     ///
     /// For example:
     ///
-    ///     try dbQueue.inDatabase do {
-    ///         try db.inSavepoint {
-    ///             try db.execute(sql: "INSERT ...")
-    ///             return .commit
-    ///         }
+    /// ```swift
+    /// try dbQueue.write do {
+    ///     try db.inSavepoint {
+    ///         try db.execute(sql: "INSERT ...")
+    ///         return .commit
     ///     }
+    /// }
+    /// ```
     ///
-    /// If the block throws an error, the savepoint is rollbacked and the
-    /// error is rethrown.
+    /// If `operations` throws an error, the savepoint is rollbacked and the
+    /// error is rethrown. If it returns ``TransactionCompletion/rollback``, the
+    /// savepoint is also rollbacked, but no error is thrown.
     ///
     /// This method is reentrant: you can nest savepoints.
     ///
-    /// - parameter block: A block that executes SQL statements and return
-    ///   either ``TransactionCompletion/commit`` or
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_savepoint.html>
+    ///
+    /// - parameter operations: A function that executes SQL statements and
+    ///   returns either ``TransactionCompletion/commit`` or
     ///   ``TransactionCompletion/rollback``.
-    /// - throws: The error thrown by the block.
-    public func inSavepoint(_ block: () throws -> TransactionCompletion) throws {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
+    ///   error thrown by `operations`.
+    public func inSavepoint(_ operations: () throws -> TransactionCompletion) throws {
         if !isInsideTransaction {
             // By default, top level SQLite savepoints open a
             // deferred transaction.
@@ -1084,7 +1252,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             //
             // For those two reasons, we open a transaction instead of a
             // top-level savepoint.
-            try inTransaction { try block() }
+            try inTransaction { try operations() }
             return
         }
         
@@ -1109,7 +1277,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         var firstError: Error? = nil
         let needsRollback: Bool
         do {
-            let completion = try block()
+            let completion = try operations()
             switch completion {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
@@ -1153,6 +1321,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Begins a database transaction.
     ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
+    ///
     /// - parameters:
     ///     - kind: The transaction type (default nil).
     ///
@@ -1160,11 +1330,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///       kind is ``TransactionKind/deferred``.
     ///
     ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is ``Configuration/defaultTransactionKind``.
-    ///
-    ///       See <https://www.sqlite.org/lang_transaction.html> for
-    ///       more information.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    ///       transaction kind is the ``Configuration/defaultTransactionKind``
+    ///       of the ``configuration``.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         // SQLite throws an error for non-deferred transactions when read-only.
         let kind = kind ?? (isReadOnly ? .deferred : configuration.defaultTransactionKind)
@@ -1173,6 +1341,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Rollbacks a database transaction.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func rollback() throws {
         // The SQLite documentation contains two related but distinct techniques
         // to handle rollbacks and errors:
@@ -1220,6 +1392,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Commits a database transaction.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func commit() throws {
         try execute(sql: "COMMIT TRANSACTION")
         assert(sqlite3_get_autocommit(sqliteConnection) != 0)
@@ -1227,7 +1403,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Memory Management
     
-    /// Free as much memory as possible.
+    /// Frees as much memory as possible.
     public func releaseMemory() {
         SchedulingWatchdog.preconditionValidQueue(self)
         sqlite3_db_release_memory(sqliteConnection)
@@ -1283,36 +1459,36 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Usage:
     ///
-    ///     let source: DatabaseQueue = ...
-    ///     let destination: DatabaseQueue = ...
-    ///     try source.write { sourceDb in
-    ///         try destination.barrierWriteWithoutTransaction { destDb in
-    ///             try sourceDb.backup(to: destDb)
-    ///         }
+    /// ```swift
+    /// let source: DatabaseQueue = ...
+    /// let destination: DatabaseQueue = ...
+    /// try source.write { sourceDb in
+    ///     try destination.barrierWriteWithoutTransaction { destDb in
+    ///         try sourceDb.backup(to: destDb)
     ///     }
-    ///
+    /// }
+    /// ```
     ///
     /// When you're after progress reporting during backup, you'll want to
     /// perform the backup in several steps. Each step copies the number of
     /// _database pages_ you specify. See <https://www.sqlite.org/c3ref/backup_finish.html>
     /// for more information:
     ///
-    ///     // Backup with progress reporting
-    ///     try sourceDb.backup(
-    ///         to: destDb,
-    ///         pagesPerStep: ...)
-    ///         { backupProgress in
-    ///            print("Database backup progress:", backupProgress)
-    ///         }
+    /// ```swift
+    /// // Backup with progress reporting
+    /// try sourceDb.backup(to: destDb, pagesPerStep: ...) { progress in
+    ///     print("Database backup progress:", progress)
+    /// }
+    /// ```
     ///
     /// The `progress` callback will be called at least once—when
     /// `backupProgress.isCompleted == true`. If the callback throws
     /// when `backupProgress.isCompleted == false`, the backup is aborted
-    /// and the error is rethrown.  If the callback throws when
+    /// and the error is rethrown. If the callback throws when
     /// `backupProgress.isCompleted == true`, backup completion is
     /// unaffected and the error is silently ignored.
     ///
-    /// See also `DatabaseReader.backup()`.
+    /// See also ``DatabaseReader/backup(to:pagesPerStep:progress:)``.
     ///
     /// - parameters:
     ///     - destDb: The destination database.
@@ -1320,8 +1496,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///       step. By default, all pages are copied in one single step.
     ///     - progress: An optional function that is notified of the backup
     ///       progress.
-    /// - throws: The error thrown by `progress` if the backup is abandoned, or
-    ///   any `DatabaseError` that would happen while performing the backup.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
+    ///   error thrown by `progress`.
     public func backup(
         to destDb: Database,
         pagesPerStep: CInt = -1,
@@ -1485,7 +1661,7 @@ extension Database {
     ///
     ///     // Wait 1 second before failing with SQLITE_BUSY
     ///     let configuration = Configuration(busyMode: .timeout(1))
-    ///     let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+    ///     let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
     ///
     /// Relevant SQLite documentation:
     ///
@@ -1494,66 +1670,84 @@ extension Database {
     /// - <https://www.sqlite.org/lang_transaction.html>
     /// - <https://www.sqlite.org/wal.html>
     public enum BusyMode {
-        /// The SQLITE_BUSY error is immediately returned to the connection that
-        /// tries to access the locked database.
+        /// The `SQLITE_BUSY` error is immediately returned to the connection
+        /// that tries to access the locked database.
         case immediateError
         
-        /// The SQLITE_BUSY error will be returned only if the database remains
-        /// locked for more than the specified duration (in seconds).
+        /// The `SQLITE_BUSY` error will be returned only if the database
+        /// remains locked for more than the specified duration (in seconds).
         case timeout(TimeInterval)
         
         /// A custom callback that is called when a database is locked.
-        /// See <https://www.sqlite.org/c3ref/busy_handler.html>
+        ///
+        /// Related SQLite documentation: <https://www.sqlite.org/c3ref/busy_handler.html>
         case callback(BusyCallback)
     }
     
-    /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
+    /// The available checkpoint modes.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/wal_checkpoint_v2.html>
     public enum CheckpointMode: CInt {
-        /// The `SQLITE_CHECKPOINT_PASSIVE` mode
+        /// The `SQLITE_CHECKPOINT_PASSIVE` mode.
         case passive = 0
         
-        /// The `SQLITE_CHECKPOINT_FULL` mode
+        /// The `SQLITE_CHECKPOINT_FULL` mode.
         case full = 1
         
-        /// The `SQLITE_CHECKPOINT_RESTART` mode
+        /// The `SQLITE_CHECKPOINT_RESTART` mode.
         case restart = 2
         
-        /// The `SQLITE_CHECKPOINT_TRUNCATE` mode
+        /// The `SQLITE_CHECKPOINT_TRUNCATE` mode.
         case truncate = 3
     }
     
-    /// A built-in SQLite collation.
+    /// The name of a string comparison function used by SQLite.
     ///
-    /// See <https://www.sqlite.org/datatype3.html#collation>
+    /// Related SQLite documentation:
+    /// - <https://www.sqlite.org/datatype3.html#collating_sequences>
+    /// - <https://www.sqlite.org/datatype3.html#collation>
     public struct CollationName: RawRepresentable, Hashable {
-        /// :nodoc:
         public let rawValue: String
         
-        /// Creates a built-in collation name.
+        /// Creates a collation name.
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
         
-        /// The `BINARY` built-in SQL collation
+        /// The `BINARY` built-in SQL collation.
         public static let binary = CollationName(rawValue: "BINARY")
         
-        /// The `NOCASE` built-in SQL collation
+        /// The `NOCASE` built-in SQL collation.
         public static let nocase = CollationName(rawValue: "NOCASE")
         
-        /// The `RTRIM` built-in SQL collation
+        /// The `RTRIM` built-in SQL collation.
         public static let rtrim = CollationName(rawValue: "RTRIM")
     }
     
     /// An SQL column type.
     ///
-    ///     try db.create(table: "player") { t in
-    ///         t.autoIncrementedPrimaryKey("id")
-    ///         t.column("title", .text)
-    ///     }
+    /// You use column types when you modify the database schema. For example,
+    /// the code below create a `player` table with a `name` column whose type
+    /// is ``text`` (`TEXT` in SQL):
     ///
-    /// See <https://www.sqlite.org/datatype3.html>
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// //   name TEXT
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.autoIncrementedPrimaryKey("id")
+    ///     t.column("name", .text)
+    /// }
+    /// ```
+    ///
+    /// A `ColumnType` is an element of the SQL language, as is `TEXT` in the
+    /// example above. The type comes with many built-in constants for
+    /// frequently used types: ``text``, ``integer``, etc.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/datatype3.html>
     public struct ColumnType: RawRepresentable, Hashable {
-        /// :nodoc:
+        /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
         /// Creates an SQL column type.
@@ -1561,111 +1755,113 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        /// The `TEXT` SQL column type
+        /// The `TEXT` SQL column type.
         public static let text = ColumnType(rawValue: "TEXT")
         
-        /// The `INTEGER` SQL column type
+        /// The `INTEGER` SQL column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
         
-        /// The `DOUBLE` SQL column type
+        /// The `DOUBLE` SQL column type.
         public static let double = ColumnType(rawValue: "DOUBLE")
         
-        /// The `REAL` SQL column type
+        /// The `REAL` SQL column type.
         public static let real = ColumnType(rawValue: "REAL")
 
-        /// The `NUMERIC` SQL column type
+        /// The `NUMERIC` SQL column type.
         public static let numeric = ColumnType(rawValue: "NUMERIC")
         
-        /// The `BOOLEAN` SQL column type
+        /// The `BOOLEAN` SQL column type.
         public static let boolean = ColumnType(rawValue: "BOOLEAN")
         
-        /// The `BLOB` SQL column type
+        /// The `BLOB` SQL column type.
         public static let blob = ColumnType(rawValue: "BLOB")
         
-        /// The `DATE` SQL column type
+        /// The `DATE` SQL column type.
         public static let date = ColumnType(rawValue: "DATE")
         
-        /// The `DATETIME` SQL column type
+        /// The `DATETIME` SQL column type.
         public static let datetime = ColumnType(rawValue: "DATETIME")
         
-        /// The `ANY` SQL column type
+        /// The `ANY` SQL column type.
         public static let any = ColumnType(rawValue: "ANY")
     }
     
     /// An SQLite conflict resolution.
     ///
-    /// See <https://www.sqlite.org/lang_conflict.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_conflict.html>
     public enum ConflictResolution: String {
-        /// The `ROLLBACK` conflict resolution
+        /// The `ROLLBACK` conflict resolution.
         case rollback = "ROLLBACK"
         
-        /// The `ABORT` conflict resolution
+        /// The `ABORT` conflict resolution.
         case abort = "ABORT"
         
-        /// The `FAIL` conflict resolution
+        /// The `FAIL` conflict resolution.
         case fail = "FAIL"
         
-        /// The `IGNORE` conflict resolution
+        /// The `IGNORE` conflict resolution.
         case ignore = "IGNORE"
         
-        /// The `REPLACE` conflict resolution
+        /// The `REPLACE` conflict resolution.
         case replace = "REPLACE"
     }
     
     /// A foreign key action.
     ///
-    /// See <https://www.sqlite.org/foreignkeys.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/foreignkeys.html>
     public enum ForeignKeyAction: String {
-        /// The `CASCADE` foreign key action
+        /// The `CASCADE` foreign key action.
         case cascade = "CASCADE"
         
-        /// The `RESTRICT` foreign key action
+        /// The `RESTRICT` foreign key action.
         case restrict = "RESTRICT"
         
-        /// The `SET NULL` foreign key action
+        /// The `SET NULL` foreign key action.
         case setNull = "SET NULL"
         
-        /// The `SET DEFAULT` foreign key action
+        /// The `SET DEFAULT` foreign key action.
         case setDefault = "SET DEFAULT"
     }
     
     /// An error log function that takes an error code and message.
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
     
-    /// An option for `Database.trace(options:_:)`
+    /// An option for the SQLite tracing feature.
+    ///
+    /// You use `TracingOptions` with the `Database`
+    /// ``Database/trace(options:_:)`` method.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/c_trace.html>
     public struct TracingOptions: OptionSet {
-        /// The raw "Trace Event Code".
-        ///
-        /// See <https://www.sqlite.org/c3ref/c_trace.html>
+        /// The raw trace event code.
         public let rawValue: CInt
         
-        /// Creates a `TracingOptions` from a raw "Trace Event Code".
-        ///
-        /// See:
-        /// - <https://www.sqlite.org/c3ref/c_trace.html>
-        /// - `Database.trace(options:_:)`
+        /// Creates a `TracingOptions` from a raw trace event code.
         public init(rawValue: CInt) {
             self.rawValue = rawValue
         }
         
-        /// Reports executed statements.
+        /// The option that reports executed statements.
         ///
-        /// See `Database.trace(options:_:)`
+        /// Trace event code: `SQLITE_TRACE_STMT`.
         public static let statement = TracingOptions(rawValue: SQLITE_TRACE_STMT)
         
         #if !os(Linux)
-        /// Reports executed statements and the estimated duration that the
-        /// statement took to run.
+        /// The option that reports executed statements and the estimated
+        /// duration that the statement took to run.
         ///
-        /// See `Database.trace(options:_:)`
+        /// Trace event code: `SQLITE_TRACE_PROFILE`.
         public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
         #endif
     }
     
-    /// An event reported by `Database.trace(options:_:)`
+    /// A trace event.
+    ///
+    /// You get instances of `TraceEvent` from the `Database`
+    /// ``Database/trace(options:_:)`` method.
     public enum TraceEvent: CustomStringConvertible {
         
-        /// Information about a statement reported by `Database.trace(options:_:)`
+        /// Information about an executed statement.
         public struct Statement: CustomStringConvertible {
             enum Impl {
                 case trace_v1(String)
@@ -1682,7 +1878,9 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     SELECT * FROM player WHERE email = ?
+            /// ```sql
+            /// SELECT * FROM player WHERE email = ?
+            /// ```
             public var sql: String { _sql }
             #endif
             
@@ -1705,7 +1903,9 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     SELECT * FROM player WHERE email = 'arthur@example.com'
+            /// ```sql
+            /// SELECT * FROM player WHERE email = 'arthur@example.com'
+            /// ```
             ///
             /// - warning: It is your responsibility to prevent sensitive
             ///   information from leaking in unexpected locations, so use this
@@ -1739,13 +1939,15 @@ extension Database {
             }
         }
         
-        /// An event reported by `TracingOptions.statement`.
+        /// An event reported by the
+        /// ``Database/TracingOptions/statement`` option.
         case statement(Statement)
         
-        /// An event reported by `TracingOptions.profile`.
+        /// An event reported by the
+        /// ``Database/TracingOptions/profile`` option.
         case profile(statement: Statement, duration: TimeInterval)
         
-        /// The trace event description.
+        /// A description of the trace event.
         ///
         /// For example:
         ///
@@ -1764,7 +1966,8 @@ extension Database {
             }
         }
         
-        /// The trace event description, where bound parameters are expanded.
+        /// A description of the trace event, where bound parameters
+        /// are expanded.
         ///
         /// For example:
         ///
@@ -1788,25 +1991,26 @@ extension Database {
         }
     }
     
-    /// Confirms or cancels the changes performed by a transaction or savepoint.
+    /// A transaction commit, or rollback.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
     @frozen
     public enum TransactionCompletion {
-        /// Confirms changes
         case commit
-        
-        /// Cancel changes
         case rollback
     }
     
-    /// An SQLite transaction kind. See <https://www.sqlite.org/lang_transaction.html>
+    /// A transaction kind.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
     public enum TransactionKind: String {
-        /// The `DEFERRED` transaction kind
+        /// The `DEFERRED` transaction kind.
         case deferred = "DEFERRED"
         
-        /// The `IMMEDIATE` transaction kind
+        /// The `IMMEDIATE` transaction kind.
         case immediate = "IMMEDIATE"
         
-        /// The `EXCLUSIVE` transaction kind
+        /// The `EXCLUSIVE` transaction kind.
         case exclusive = "EXCLUSIVE"
     }
     

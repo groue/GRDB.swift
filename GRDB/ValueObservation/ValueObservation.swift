@@ -4,21 +4,69 @@ import Combine
 import Dispatch
 import Foundation
 
-/// ValueObservation tracks changes in the results of database requests, and
+/// `ValueObservation` tracks changes in the results of database requests, and
 /// notifies fresh values whenever the database changes.
 ///
 /// For example:
 ///
-///     let observation = ValueObservation.tracking { db in
-///         try Player.fetchAll(db)
-///     }
+/// ```swift
+/// let observation = ValueObservation.tracking { db in
+///     try Player.fetchAll(db)
+/// }
 ///
-///     let cancellable = try observation.start(
-///         in: dbQueue,
-///         onError: { error in ... },
-///         onChange: { (players: [Player]) in
-///             print("Players have changed.")
-///         })
+/// let cancellable = try observation.start(
+///     in: dbQueue,
+///     onError: { error in
+///         print("An error occurred: \(error)") },
+///     onChange: { (players: [Player]) in
+///         print("Fresh players: \(players)")
+///     })
+/// ```
+///
+/// ## Topics
+///
+/// ### Creating a ValueObservation
+///
+/// - ``tracking(_:)``
+/// - ``trackingConstantRegion(_:)``
+/// - ``tracking(region:fetch:)``
+/// - ``tracking(regions:fetch:)``
+///
+/// ### Accessing Observed Values
+///
+/// - ``publisher(in:scheduling:)``
+/// - ``start(in:scheduling:onError:onChange:)``
+/// - ``values(in:scheduling:bufferingPolicy:)``
+/// - ``DatabaseCancellable``
+/// - ``DatabasePublishers/Value``
+/// - ``ValueObservationScheduler``
+///
+/// ### Mapping Values
+///
+/// - ``map(_:)``
+///
+/// ### Filtering Values
+///
+/// - ``removeDuplicates()``
+/// - ``removeDuplicates(by:)``
+///
+/// ### Requiring Write Access
+///
+/// - ``requiresWriteAccess``
+///
+/// ### Debugging
+///
+/// - ``handleEvents(willStart:willFetch:willTrackRegion:databaseDidChange:didReceiveValue:didFail:didCancel:)``
+/// - ``print(_:to:)``
+///
+/// ### Creating A Shared Observation
+///
+/// - ``shared(in:scheduling:extent:)``
+/// - ``SharedValueObservationExtent``
+///
+/// ### Support
+///
+/// - ``ValueReducer``
 public struct ValueObservation<Reducer: _ValueReducer> {
     var events = ValueObservationEvents()
     
@@ -261,7 +309,7 @@ extension ValueObservation {
     /// The database observation, as an asynchronous sequence of
     /// database changes.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
@@ -282,7 +330,7 @@ extension ValueObservation {
 
 /// An asynchronous sequence of database changes.
 ///
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 ///
 /// Usage:
 ///
@@ -344,7 +392,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
     
     /// An asynchronous iterator that supplies database changes one at a time.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public struct Iterator: AsyncIteratorProtocol {
         var iterator: AsyncThrowingStream<Element, Error>.AsyncIterator
         let cancellable: AnyDatabaseCancellable

@@ -148,7 +148,7 @@ extension TableRecord {
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted records
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
         try all().deleteAll(db)
@@ -397,7 +397,7 @@ extension TableRecord {
     ///   defaulting to the record's persistenceConflictPolicy.
     /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
@@ -422,7 +422,7 @@ extension TableRecord {
     ///   defaulting to the record's persistenceConflictPolicy.
     /// - parameter assignments: Column assignments.
     /// - returns: The number of updated records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,

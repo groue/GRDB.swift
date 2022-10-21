@@ -2,8 +2,8 @@ extension Database {
     
     // MARK: - Database Observation
     
-    /// Add a transaction observer, so that it gets notified of
-    /// database changes.
+    /// Adds a transaction observer, so that it gets notified of
+    /// database changes and transactions.
     ///
     /// This method has no effect on read-only database connections.
     ///
@@ -26,7 +26,7 @@ extension Database {
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
-    /// Remove a transaction observer.
+    /// Removes a transaction observer.
     public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
         guard let observationBroker else { return }
@@ -40,21 +40,25 @@ extension Database {
     }
     
     /// Registers closures to be executed after the next or current
-    /// transaction completion.
+    /// transaction completes.
     ///
-    ///     try dbQueue.write { db in
-    ///         db.afterNextTransaction { _ in
-    ///             print("success")
-    ///         }
-    ///         ...
-    ///     } // prints "commit"
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     db.afterNextTransaction { _ in
+    ///         print("success")
+    ///     }
+    ///     ...
+    /// } // prints "success"
+    /// ```
     ///
     /// Closure are executed in a protected dispatch queue, serialized will all
     /// database updates.
     ///
-    /// - precondition: Database is not read-only.
-    /// - parameter onCommit: A closure execute on transaction commit.
-    /// - parameter onRollback: A closure execute on transaction rollback.
+    /// - precondition: Database connection is not read-only.
+    /// - parameter onCommit: A closure executed on transaction commit.
+    /// - parameter onRollback: A closure executed on transaction rollback.
     public func afterNextTransaction(
         onCommit: @escaping (Database) -> Void,
         onRollback: @escaping (Database) -> Void = { _ in })
@@ -93,11 +97,11 @@ extension Database {
     ///
     /// See ``Database/add(transactionObserver:extent:)``.
     public enum TransactionObservationExtent {
-        /// Observation lasts until observer is deallocated
+        /// Observation lasts until observer is deallocated.
         case observerLifetime
-        /// Observation lasts until the next transaction
+        /// Observation lasts until the next transaction.
         case nextTransaction
-        /// Observation lasts until the database is closed
+        /// Observation lasts until the database is closed.
         case databaseLifetime
     }
 }
@@ -714,73 +718,112 @@ class DatabaseObservationBroker {
 
 // MARK: - TransactionObserver
 
-/// A transaction observer is notified of all changes and transactions committed
-/// or rollbacked on a database.
+/// A `TransactionObserver` is notified of all database changes and transactions
+/// performed in a database.
 ///
-/// Adopting types must be a class.
+/// An observer starts receiving notifications after it has been added to a
+/// database connection with the
+/// ``DatabaseWriter/add(transactionObserver:extent:)`` or
+/// ``Database/add(transactionObserver:extent:)`` methods.
+///
+/// All observer methods are called in a protected dispatch queue, serialized
+/// with all database updates.
+///
+/// Some changes and transactions are not notified:
+/// - Transactions performed in read-only database connections.
+/// - Changes and transactions performed by other database connections.
+/// - Changes to internal system tables (such as `sqlite_master`).
+/// - Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables
+/// - The deletion of duplicate rows triggered by
+///   [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses
+///   (this last exception might change in a future release of SQLite).
+///
+/// ## Topics
+///
+/// ### Handling Database Changes
+///
+/// - ``observes(eventsOfKind:)``
+/// - ``databaseDidChange(with:)``
+/// - ``stopObservingDatabaseChangesUntilNextTransaction()``
+/// - ``DatabaseEvent``
+/// - ``DatabaseEventKind``
+///
+/// ### Handling Transactions
+///
+/// - ``databaseWillCommit()-7mksu``
+/// - ``databaseDidCommit(_:)``
+/// - ``databaseDidRollback(_:)``
 public protocol TransactionObserver: AnyObject {
     
-    /// Filters database changes that should be notified the the
-    /// databaseDidChange(with:) method.
+    /// Returns whether specific kinds of database changes should be notified
+    /// to the observer.
+    ///
+    /// When this method returns false, database events of this kind are not
+    /// notified to the ``databaseDidChange(with:)`` method.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // An observer that is only interested in the "player" table
+    /// class PlayerObserver: TransactionObserver {
+    ///     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+    ///         return eventKind.tableName == "player"
+    ///     }
+    /// }
+    /// ```
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
-    /// Notifies a database change (insert, update, or delete).
+    /// Called when the database is changed by an insert, update, or
+    /// delete event.
     ///
     /// The change is pending until the current transaction ends. See
-    /// databaseWillCommit, databaseDidCommit and databaseDidRollback.
-    ///
-    /// This method is called in a protected dispatch queue, serialized will all
-    /// database updates.
-    ///
-    /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy: `event.copy()`
+    /// ``databaseWillCommit()-7mksu``, ``databaseDidCommit(_:)`` and
+    /// ``databaseDidRollback(_:)``.
     ///
     /// The observer has an opportunity to stop receiving further change events
     /// from the current transaction by calling the
-    /// stopObservingDatabaseChangesUntilNextTransaction() method.
+    /// ``stopObservingDatabaseChangesUntilNextTransaction()`` method.
     ///
-    /// - warning: this method must not change the database.
+    /// - note: The event is only valid for the duration of this method call.
+    ///   If you need to keep it longer, store a copy: `event.copy()`.
+    ///
+    /// - precondition: This method must not access the database.
     func databaseDidChange(with event: DatabaseEvent)
     
-    /// When a transaction is about to be committed, the transaction observer
-    /// has an opportunity to rollback pending changes by throwing an error.
+    /// Called when a transaction is about to be committed.
     ///
-    /// This method is called on the database queue.
+    /// The transaction observer has an opportunity to rollback pending changes
+    /// by throwing an error from this method.
     ///
-    /// - warning: this method must not change the database.
-    ///
-    /// - throws: An eventual error that rollbacks pending changes.
+    /// - precondition: This method must not access the database.
+    /// - throws: The eventual error that rollbacks pending changes.
     func databaseWillCommit() throws
     
-    /// Database changes have been committed.
-    ///
-    /// This method is called on the database queue. It can change the database.
+    /// Called when a transaction has been committed on disk.
     func databaseDidCommit(_ db: Database)
     
-    /// Database changes have been rollbacked.
-    ///
-    /// This method is called on the database queue. It can change the database.
+    /// Called when a transaction has been rollbacked.
     func databaseDidRollback(_ db: Database)
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Called when the database is changed by an insert, update, or
+    /// delete event.
+    ///
     /// Notifies before a database change (insert, update, or delete)
     /// with change information (initial / final values for the row's
-    /// columns). (Called *before* databaseDidChangeWithEvent.)
+    /// columns). (Called *before* ``databaseDidChange(with:)``.)
     ///
     /// The change is pending until the end of the current transaction,
     /// and you always get a second chance to get basic event information in
-    /// the databaseDidChangeWithEvent callback.
+    /// the ``databaseDidChange(with:)`` callback.
     ///
     /// This callback is mostly useful for calculating detailed change
     /// information for a row, and provides the initial / final values.
     ///
-    /// This method is called in a protected dispatch queue, serialized will all
-    /// database updates.
-    ///
     /// The event is only valid for the duration of this method call. If you
     /// need to keep it longer, store a copy: `event.copy()`
     ///
-    /// - warning: this method must not change the database.
+    /// - warning: this method must not access the database.
     ///
     /// **Availability Info**
     ///
@@ -790,45 +833,47 @@ public protocol TransactionObserver: AnyObject {
     /// does not have this enabled, so you'll need to compile your own
     /// version of SQLite:
     /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md>
-    ///
-    /// The databaseDidChangeWithEvent callback is always available,
-    /// and may provide most/all of what you need.
     func databaseWillChange(with event: DatabasePreUpdateEvent)
     #endif
 }
 
 extension TransactionObserver {
-    /// Default implementation does nothing
-    public func databaseWillCommit() throws {
-    }
+    /// The default implementation does nothing.
+    public func databaseWillCommit() throws { }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Default implementation does nothing
-    public func databaseWillChange(with event: DatabasePreUpdateEvent) {
-    }
+    /// The default implementation does nothing.
+    public func databaseWillChange(with event: DatabasePreUpdateEvent) { }
     #endif
     
-    /// After this method has been called, the `databaseDidChange(with:)`
+    /// Prevents the observer from receiving further change notifications until
+    /// the next transaction.
+    ///
+    /// After this method has been called, the ``databaseDidChange(with:)``
     /// method won't be called until the next transaction.
     ///
     /// For example:
     ///
-    ///     class PlayerObserver: TransactionObserver {
-    ///         var playerTableWasModified = false
+    /// ```swift
+    /// // An observer that is only interested in the "player" table
+    /// class PlayerObserver: TransactionObserver {
+    ///     var playerTableWasModified = false
     ///
-    ///         func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-    ///             return eventKind.tableName == "player"
-    ///         }
-    ///
-    ///         func databaseDidChange(with event: DatabaseEvent) {
-    ///             playerTableWasModified = true
-    ///
-    ///             // It is pointless to keep on tracking further changes:
-    ///             stopObservingDatabaseChangesUntilNextTransaction()
-    ///         }
+    ///     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+    ///         return eventKind.tableName == "player"
     ///     }
     ///
-    /// - precondition: This method must be called from `databaseDidChange(with:)`.
+    ///     func databaseDidChange(with event: DatabaseEvent) {
+    ///         playerTableWasModified = true
+    ///
+    ///         // It is pointless to keep on tracking further changes:
+    ///         stopObservingDatabaseChangesUntilNextTransaction()
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - precondition: This method must be called from
+    ///   ``databaseDidChange(with:)``.
     public func stopObservingDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
@@ -944,17 +989,19 @@ struct StatementObservation {
 
 // MARK: - Database events
 
-/// A kind of database event. See the `TransactionObserver` protocol for
-/// more information.
+/// A kind of database event.
+///
+/// See the ``TransactionObserver/observes(eventsOfKind:)`` method in the
+/// ``TransactionObserver`` protocol for more information.
 @frozen
 public enum DatabaseEventKind {
-    /// The insertion of a row in a database table
+    /// The insertion of a row in a database table.
     case insert(tableName: String)
     
-    /// The deletion of a row in a database table
+    /// The deletion of a row in a database table.
     case delete(tableName: String)
     
-    /// The update of a set of columns in a database table
+    /// The update of a set of columns in a database table.
     case update(tableName: String, columnNames: Set<String>)
     
     var modifiedRegion: DatabaseRegion {
@@ -979,7 +1026,7 @@ public enum DatabaseEventKind {
 }
 
 extension DatabaseEventKind {
-    /// The impacted database table
+    /// The name of the impacted database table.
     public var tableName: String {
         switch self {
         case let .insert(tableName: tableName): return tableName
@@ -994,43 +1041,51 @@ protocol DatabaseEventProtocol {
     func matchesKind(_ databaseEventKind: DatabaseEventKind) -> Bool
 }
 
-/// A database event, notified to TransactionObserver.
+/// A database event.
+///
+/// See the ``TransactionObserver/databaseDidChange(with:)`` method in the
+/// ``TransactionObserver`` protocol for more information.
 public struct DatabaseEvent {
-    
-    /// An event kind
+    /// An event kind.
     public enum Kind: CInt {
-        /// SQLITE_INSERT
-        case insert = 18
+        /// An insertion event
+        case insert = 18 // SQLITE_INSERT
         
-        /// SQLITE_DELETE
-        case delete = 9
+        /// A deletion event
+        case delete = 9 // SQLITE_DELETE
         
-        /// SQLITE_UPDATE
-        case update = 23
+        /// An update event
+        case update = 23 // SQLITE_UPDATE
     }
     
     private let impl: any DatabaseEventImpl
     
-    /// The event kind
+    /// The event kind (insert, delete, or update).
     public let kind: Kind
     
-    /// The database name
+    /// The name of the changed database.
     public var databaseName: String { impl.databaseName }
     
-    /// The table name
+    /// The name of the changed database table.
     public var tableName: String { impl.tableName }
     
     /// The rowID of the changed row.
     public let rowID: Int64
     
-    /// Returns an event that can be stored:
+    /// Returns a copy of the event.
     ///
-    ///     class MyObserver: TransactionObserver {
-    ///         var events: [DatabaseEvent]
-    ///         func databaseDidChange(with event: DatabaseEvent) {
-    ///             events.append(event.copy())
-    ///         }
+    /// An event is only valid for the duration of the
+    /// ``TransactionObserver/databaseDidChange(with:)`` method. You must copy
+    /// the event when you want to store it for later:
+    ///
+    /// ```swift
+    /// class MyObserver: TransactionObserver {
+    ///     var events: [DatabaseEvent]
+    ///     func databaseDidChange(with event: DatabaseEvent) {
+    ///         events.append(event.copy())
     ///     }
+    /// }
+    /// ```
     public func copy() -> DatabaseEvent {
         impl.copy(self)
     }

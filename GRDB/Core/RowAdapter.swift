@@ -184,15 +184,6 @@ public protocol _RowAdapter {
 /// `RowAdapter` is a protocol that helps two incompatible row interfaces
 /// working together.
 ///
-/// GRDB ships with four concrete types that adopt the RowAdapter protocol:
-///
-/// - `ColumnMapping`: renames row columns
-/// - `EmptyRowAdapter`: hides all columns
-/// - `RangeRowAdapter`: exposes a range of columns
-/// - `RenameColumnAdapter`: transforms column names with a function
-/// - `ScopeAdapter`: defines row scopes
-/// - `SuffixRowAdapter`: hides the first columns of a row
-///
 /// To use a row adapter, provide it to any method that fetches:
 ///
 ///     let adapter = SuffixRowAdapter(fromIndex: 2)
@@ -200,6 +191,17 @@ public protocol _RowAdapter {
 ///
 ///     // [baz:3]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
+///
+/// ## Topics
+///
+/// ### Built-in Adapters
+///
+/// - ``ColumnMapping``
+/// - ``EmptyRowAdapter``
+/// - ``RangeRowAdapter``
+/// - ``RenameColumnAdapter``
+/// - ``ScopeAdapter``
+/// - ``SuffixRowAdapter``
 public protocol RowAdapter: _RowAdapter { }
 
 extension RowAdapter {

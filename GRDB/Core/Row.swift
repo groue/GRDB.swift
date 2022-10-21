@@ -1,10 +1,85 @@
 import Foundation
 
 /// A database row.
-public final class Row: Equatable, Hashable, RandomAccessCollection,
-                        ExpressibleByDictionaryLiteral, CustomStringConvertible,
-                        CustomDebugStringConvertible
-{
+///
+/// ## Topics
+///
+/// ### Creating Rows
+///
+/// - ``init()``
+/// - ``init(_:)-5uezw``
+/// - ``init(_:)-65by6``
+///
+/// ### Copying a Row
+///
+/// - ``copy()``
+///
+/// ### Row Informations
+///
+/// - ``columnNames``
+/// - ``containsNonNullValue``
+/// - ``count-5flaw``
+/// - ``databaseValues``
+/// - ``hasColumn(_:)``
+/// - ``hasNull(atIndex:)``
+///
+/// ### Accessing Row Values by Int Index
+///
+/// - ``subscript(_:)-9c1fw``
+/// - ``subscript(_:)-3jhwm``
+/// - ``subscript(_:)-7krrg``
+///
+/// ### Accessing Row Values by Column Name
+///
+/// - ``subscript(_:)-3tp8o``
+/// - ``subscript(_:)-4k8od``
+/// - ``subscript(_:)-9rbo7``
+///
+/// ### Accessing Row Values by Column
+///
+/// - ``subscript(_:)-9txgm``
+/// - ``subscript(_:)-2esg7``
+/// - ``subscript(_:)-wl9a``
+///
+/// ### Accessing Data Values
+///
+/// - ``dataNoCopy(_:)``
+/// - ``dataNoCopy(atIndex:)``
+/// - ``dataNoCopy(named:)``
+///
+/// ### Row Scopes & Associated Rows
+///
+/// - ``prefetchedRows``
+/// - ``scopes``
+/// - ``scopesTree``
+/// - ``unadapted``
+/// - ``unscoped``
+/// - ``subscript(_:)-4dx01``
+/// - ``subscript(_:)-6ge6t``
+/// - ``subscript(_:)-8god3``
+/// - ``subscript(_:)-jwnx``
+/// - ``PrefetchedRowsView``
+/// - ``ScopesTreeView``
+/// - ``ScopesView``
+///
+/// ### Fetching Rows
+///
+/// ### Row as RandomAccessCollection
+///
+/// - ``columnNames``
+/// - ``count-5flaw``
+/// - ``databaseValues``
+/// - ``subscript(_:)-11eb``
+/// - ``RowIndex``
+///
+/// ### Adapting Rows
+///
+/// - ``RowAdapter``
+///
+/// ### Supporting Types
+///
+/// - ``RowCursor``
+public final class Row {
     // It is not a violation of the Demeter law when another type uses this
     // property, which is exposed for optimizations.
     let impl: any RowImpl
@@ -43,15 +118,15 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
         self.init(impl: EmptyRowImpl())
     }
     
-    /// Creates a row from a dictionary of values.
+    /// Creates a row from a dictionary of database values.
     public convenience init(_ dictionary: [String: (any DatabaseValueConvertible)?]) {
         self.init(impl: ArrayRowImpl(columns: dictionary.map { ($0, $1?.databaseValue ?? .null) }))
     }
     
-    /// Creates a row from [AnyHashable: Any].
+    /// Creates a row from a dictionary.
     ///
     /// The result is nil unless all dictionary keys are strings, and values
-    /// adopt DatabaseValueConvertible.
+    /// conform to ``DatabaseValueConvertible``.
     public convenience init?(_ dictionary: [AnyHashable: Any]) {
         var initDictionary = [String: (any DatabaseValueConvertible)?]()
         for (key, value) in dictionary {
@@ -64,17 +139,6 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
             initDictionary[columnName] = dbValue
         }
         self.init(initDictionary)
-    }
-    
-    // ExpressibleByDictionaryLiteral
-    /// Creates a row initialized with elements. Column order is preserved, and
-    /// duplicated columns names are allowed.
-    ///
-    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
-    ///     print(row)
-    ///     // Prints [foo:1 foo:"bar" baz:NULL]
-    public convenience init(dictionaryLiteral elements: (String, (any DatabaseValueConvertible)?)...) {
-        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
     
     /// Returns an immutable copy of the row.
@@ -140,7 +204,7 @@ extension Row {
     
     // MARK: - Columns
     
-    /// The names of columns in the row.
+    /// The names of columns in the row, from left to right.
     ///
     /// Columns appear in the same order as they occur as the `.0` member
     /// of column-value pairs in `self`.
@@ -148,9 +212,8 @@ extension Row {
         lazy.map { $0.0 }
     }
     
-    /// Returns true if and only if the row has that column.
-    ///
-    /// This method is case-insensitive.
+    /// Returns whether the row has one column with the given name
+    /// (case-insensitive).
     public func hasColumn(_ columnName: String) -> Bool {
         index(forColumn: columnName) != nil
     }
@@ -172,17 +235,18 @@ extension Row {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
     }
     
-    /// Returns true if and only if one column contains a non-null value, or if
-    /// the row was fetched with a row adapter that defines a scoped row that
-    /// contains a non-null value.
+    /// Returns a boolean value indicating if the row contains one value this
+    /// is not `NULL`.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'foo', 1")!
-    ///     row.containsNonNullValue // true
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'foo', NULL")!
+    /// row.containsNonNullValue // true
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL, NULL")!
-    ///     row.containsNonNullValue // false
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL, NULL")!
+    /// row.containsNonNullValue // false
+    /// ```
     public var containsNonNullValue: Bool {
         for i in (0..<count) where !impl.hasNull(atUncheckedIndex: i) {
             return true
@@ -195,23 +259,23 @@ extension Row {
         return false
     }
     
-    /// Returns true if the row contains null at given index.
+    /// Returns whether the row has a `NULL` value at given index.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// This method is equivalent to `row[index] == nil`, but may be preferred
-    /// in performance-critical code because it can avoid decoding database
-    /// values.
+    /// in performance-critical code because it avoids decoding
+    /// database values.
     public func hasNull(atIndex index: Int) -> Bool {
         _checkIndex(index)
         return impl.hasNull(atUncheckedIndex: index)
     }
     
-    /// Returns Int64, Double, String, Data or nil, depending on the value
-    /// stored at the given index.
+    /// Returns `Int64`, `Double`, `String`, `Data` or nil, depending on the
+    /// value stored at the given index.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     public subscript(_ index: Int) -> (any DatabaseValueConvertible)? {
         _checkIndex(index)
@@ -220,21 +284,25 @@ extension Row {
     
     /// Returns the value at given index, converted to the requested type.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
-    ///     let score: Int = row[0] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    /// let score: Int = row[0] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
-    ///     let name: String = row[0] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    /// let name: String = row[0] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
-    ///     let name: String? = row[0] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    /// let name: String? = row[0] // nil
+    /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
@@ -242,38 +310,42 @@ extension Row {
     
     /// Returns the value at given index, converted to the requested type.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// rightmost column.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// ``StatementColumnConvertible``. It can trigger SQLite built-in
-    /// conversions (see <https://www.sqlite.org/datatype3.html>).
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
+    /// rightmost column.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
-    ///     let score: Int = row[0] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    /// let score: Int = row[0] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
-    ///     let name: String = row[0] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    /// let name: String = row[0] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
-    ///     let name: String? = row[0] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    /// let name: String? = row[0] // nil
+    /// ```
     @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
     }
     
-    /// Returns Int64, Double, String, Data or nil, depending on the value
-    /// stored at the given column.
+    /// Returns `Int64`, `Double`, `String`, `Data` or nil, depending on the
+    /// value stored at the given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
-    /// The result is nil if the row does not contain the column.
+    /// The result is nil if the row does not contain any column with that name.
     public subscript(_ columnName: String) -> (any DatabaseValueConvertible)? {
         // IMPLEMENTATION NOTE
         // This method has a single known use case: checking if the value is nil,
@@ -290,26 +362,32 @@ extension Row {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row["score"] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score: Int = row["score"] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row["name"] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String = row["name"] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row["name"] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = row["name"] // nil
+    /// ```
     ///
     /// When the column does not exist, nil is returned:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row["missing"] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = row["missing"] // nil
+    /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
@@ -317,68 +395,80 @@ extension Row {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// `StatementColumnConvertible`. It can trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row["score"] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score: Int = row["score"] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row["name"] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String = row["name"] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row["name"] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = row["name"] // nil
+    /// ```
     ///
     /// When the column does not exist, nil is returned:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row["missing"] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = row["missing"] // nil
+    /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
     }
     
-    /// Returns Int64, Double, String, Data or nil, depending on the value
-    /// stored at the given column.
+    /// Returns `Int64`, `Double`, `String`, `Data` or nil, depending on the
+    /// value stored at the given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
-    /// The result is nil if the row does not contain the column.
+    /// The result is nil if the row does not contain any column with that name.
     public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         self[column.name]
     }
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row[Column("score")] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score: Int = row[Column("score")] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row[Column("name")] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String = row[Column("name")] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row[Column("name")] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = row[Column("name")] // nil
+    /// ```
     ///
     /// When the column does not exist, nil is returned:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row[Column("missing")] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = row[Column("missing")] // nil
+    /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ column: some ColumnExpression) -> Value {
         try! decode(Value.self, forKey: column.name)
@@ -386,30 +476,36 @@ extension Row {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// ``StatementColumnConvertible``. It can trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row[Column("score")] // 42
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score: Int = row[Column("score")] // 42
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row[Column("name")] // "Alice"
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String = row[Column("name")] // "Alice"
+    /// ```
     ///
     /// When the database value may be nil, ask for an optional:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row[Column("name")] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = row[Column("name")] // nil
+    /// ```
     ///
     /// When the column does not exist, nil is returned:
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row[Column("missing")] // nil
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = row[Column("missing")] // nil
+    /// ```
     @inlinable
     public subscript<Value>(_ column: some ColumnExpression)
     -> Value
@@ -420,7 +516,7 @@ extension Row {
     
     /// Returns the optional `Data` at given index.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
@@ -434,7 +530,7 @@ extension Row {
     
     /// Returns the optional `Data` at given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
@@ -449,7 +545,7 @@ extension Row {
     
     /// Returns the optional `Data` at given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
@@ -467,7 +563,7 @@ extension Row {
     
     // MARK: - Extracting DatabaseValue
     
-    /// The database values in the row.
+    /// The database values in the row, from left to right.
     ///
     /// Values appear in the same order as they occur as the `.1` member
     /// of column-value pairs in `self`.
@@ -484,27 +580,31 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     let request = Book.including(required: Book.author)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Book.including(required: Book.author)
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// try print(Book(row: row).title)
+    /// // Prints "Moby-Dick"
     ///
-    ///     let author: Author = row["author"]
-    ///     print(author.name)
-    ///     // Prints "Herman Melville"
+    /// let author: Author = row["author"]
+    /// print(author.name)
+    /// // Prints "Herman Melville"
+    /// ```
     ///
     /// Associated records stored in nested associations are available, too:
     ///
-    ///     let request = Book.including(required: Book.author.including(required: Author.country))
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Book.including(required: Book.author.including(required: Author.country))
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// try print(Book(row: row).title)
+    /// // Prints "Moby-Dick"
     ///
-    ///     let country: Country = row["country"]
-    ///     print(country.name)
-    ///     // Prints "United States"
+    /// let country: Country = row["country"]
+    /// print(country.name)
+    /// // Prints "United States"
+    /// ```
     ///
     /// A fatal error is raised if the scope is not available, or contains only
     /// null values.
@@ -519,27 +619,31 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     let request = Book.including(optional: Book.author)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Book.including(optional: Book.author)
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// try print(Book(row: row).title)
+    /// // Prints "Moby-Dick"
     ///
-    ///     let author: Author? = row["author"]
-    ///     print(author.name)
-    ///     // Prints "Herman Melville"
+    /// let author: Author? = row["author"]
+    /// print(author.name)
+    /// // Prints "Herman Melville"
+    /// ```
     ///
     /// Associated records stored in nested associations are available, too:
     ///
-    ///     let request = Book.including(optional: Book.author.including(optional: Author.country))
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Book.including(optional: Book.author.including(optional: Author.country))
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// try print(Book(row: row).title)
+    /// // Prints "Moby-Dick"
     ///
-    ///     let country: Country? = row["country"]
-    ///     print(country.name)
-    ///     // Prints "United States"
+    /// let country: Country? = row["country"]
+    /// print(country.name)
+    /// // Prints "United States"
+    /// ```
     ///
     /// Nil is returned if the scope is not available, or contains only
     /// null values.
@@ -554,37 +658,41 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Author.including(all: Author.books)
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Author(row: row).name)
-    ///     // Prints "Herman Melville"
+    /// try print(Author(row: row).name)
+    /// // Prints "Herman Melville"
     ///
-    ///     let books: [Book] = row["books"]
-    ///     print(books[0].title)
-    ///     // Prints "Moby-Dick"
-    public subscript<Collection>(_ key: String)
-    -> Collection
+    /// let books: [Book] = row["books"]
+    /// print(books[0].title)
+    /// // Prints "Moby-Dick"
+    /// ```
+    public subscript<Records>(_ key: String)
+    -> Records
     where
-        Collection: RangeReplaceableCollection,
-        Collection.Element: FetchableRecord
+        Records: RangeReplaceableCollection,
+        Records.Element: FetchableRecord
     {
-        try! decode(Collection.self, forKey: key)
+        try! decode(Records.self, forKey: key)
     }
     
     /// Returns the set of records encoded in the given prefetched rows.
     ///
     /// For example:
     ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// let request = Author.including(all: Author.books)
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     try print(Author(row: row).name)
-    ///     // Prints "Herman Melville"
+    /// try print(Author(row: row).name)
+    /// // Prints "Herman Melville"
     ///
-    ///     let books: Set<Book> = row["books"]
-    ///     print(books.first!.title)
-    ///     // Prints "Moby-Dick"
+    /// let books: Set<Book> = row["books"]
+    /// print(books.first!.title)
+    /// // Prints "Moby-Dick"
+    /// ```
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         try! decode(Set<Record>.self, forKey: key)
     }
@@ -678,7 +786,7 @@ extension Row {
 extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
@@ -695,7 +803,7 @@ extension Row {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the row does not contain the column, or if the SQLite value is NULL,
@@ -723,15 +831,15 @@ extension Row {
 extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// This method exists as an optimization opportunity for types that adopt
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
     @inline(__always)
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -745,16 +853,16 @@ extension Row {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// This method exists as an optimization opportunity for types that adopt
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the row does not contain the column, or if the SQLite value is NULL,
     /// or if the SQLite value can not be converted to `Value`, a
     /// `RowDecodingError` is thrown.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -787,7 +895,7 @@ extension Row {
 extension Row {
     /// Returns the optional Data at given index.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
@@ -802,7 +910,7 @@ extension Row {
     
     /// Returns the Data at given index.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the SQLite value can not be converted
@@ -817,7 +925,7 @@ extension Row {
     
     /// Returns the optional Data at given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
@@ -835,7 +943,7 @@ extension Row {
     
     /// Returns the Data at given column.
     ///
-    /// Column name lookup is case-insensitive, and when several columns have
+    /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing, or if the SQLite value is NULL, or if the
@@ -1080,16 +1188,26 @@ extension Row {
 
 // MARK: - RowCursor
 
-/// A cursor of database rows. For example:
+/// A cursor of raw database rows.
 ///
-///     try dbQueue.read { db in
-///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
+/// A `RowCursor` iterates all rows from a database request.
+///
+/// For example:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     let rows = try Row.fetchCursor(db, sql: """
+///         SELECT * FROM player
+///         """)
+///     while let row = try rows.next() {
+///         let id: Int64 = row[0]
+///         let name: String = row[1]
 ///     }
+/// }
+/// ```
 public final class RowCursor: DatabaseCursor {
     public typealias Element = Row
-    /// :nodoc:
     public let _statement: Statement
-    /// :nodoc:
     public var _isDone = false
     @usableFromInline let _row: Row // Reused for performance
     
@@ -1107,7 +1225,6 @@ public final class RowCursor: DatabaseCursor {
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func _element(sqliteStatement: SQLiteStatement) -> Row { _row }
 }
@@ -1120,7 +1237,7 @@ extension Row {
     ///
     ///     let statement = try db.makeStatement(sql: "SELECT ...")
     ///     let rows = try Row.fetchCursor(statement) // RowCursor
-    ///     while let row = try rows.next() { // Row
+    ///     while let row = try rows.next() {
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
     ///     }
@@ -1133,18 +1250,19 @@ extension Row {
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
     ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: An SQL query.
+    ///     - sql: An SQL string.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RowCursor`` over fetched rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
@@ -1164,7 +1282,7 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
@@ -1185,7 +1303,7 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
@@ -1206,7 +1324,7 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
@@ -1228,7 +1346,7 @@ extension Row {
     /// Returns a cursor over rows fetched from an SQL query.
     ///
     ///     let rows = try Row.fetchCursor(db, sql: "SELECT id, name FROM player") // RowCursor
-    ///     while let row = try rows.next() { // Row
+    ///     while let row = try rows.next() {
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
     ///     }
@@ -1241,18 +1359,19 @@ extension Row {
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
     ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: An SQL query.
+    ///     - sql: An SQL string.
     ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RowCursor`` over fetched rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(
         _ db: Database,
         sql: String,
@@ -1273,11 +1392,11 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: An SQL query.
+    ///     - sql: An SQL string.
     ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(
         _ db: Database,
         sql: String,
@@ -1298,11 +1417,11 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: An SQL query.
+    ///     - sql: An SQL string.
     ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(
         _ db: Database,
         sql: String,
@@ -1323,11 +1442,11 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: An SQL query.
+    ///     - sql: An SQL string.
     ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(
         _ db: Database,
         sql: String,
@@ -1347,7 +1466,7 @@ extension Row {
     ///
     ///     let request = Player.all()
     ///     let rows = try Row.fetchCursor(db, request) // RowCursor
-    ///     while let row = try rows.next() { // Row
+    ///     while let row = try rows.next() {
     ///         let id: Int64 = row["id"]
     ///         let name: String = row["name"]
     ///     }
@@ -1360,17 +1479,18 @@ extension Row {
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
     ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
+    /// - returns: A ``RowCursor`` over fetched rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RowCursor {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with supplementary fetch")
         return try fetchCursor(request.statement, adapter: request.adapter)
@@ -1385,8 +1505,8 @@ extension Row {
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
     /// - returns: An array of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
         try request.supplementaryFetch?(db, rows)
@@ -1402,8 +1522,8 @@ extension Row {
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
     /// - returns: A set of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<R: FetchRequest>(_ db: Database, _ request: R) throws -> Set<Row> {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try fetchAll(request.statement, adapter: request.adapter)
@@ -1423,8 +1543,8 @@ extension Row {
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
     /// - returns: An optional row.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
         let request = try request.makePreparedRequest(db, forSingleResult: true)
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
@@ -1438,84 +1558,116 @@ extension FetchRequest<Row> {
     
     // MARK: Fetching Rows
     
-    /// A cursor over fetched rows.
+    /// Returns a cursor over fetched rows.
     ///
-    ///     let request: some FetchRequest<Row> = ...
-    ///     let rows = try request.fetchCursor(db) // RowCursor
-    ///     while let row = try rows.next() {  // Row
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
+    ///     let rows = try request.fetchCursor(db)
+    ///     while let row = try rows.next() {
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
     ///     }
+    /// }
+    /// ```
     ///
     /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
+    /// cursor into an array with `Array(rows)` since you would not get the
+    /// distinct rows you expect.
+    /// Use ``FetchRequest/fetchAll(_:)-7p809`` instead.
     ///
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
     ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RowCursor`` over fetched rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RowCursor {
         try Row.fetchCursor(db, self)
     }
     
-    /// An array of fetched rows.
+    /// Returns an array of fetched rows.
     ///
-    ///     let request: some FetchRequest<Row> = ...
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
     ///     let rows = try request.fetchAll(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - returns: An array of fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [Row] {
         try Row.fetchAll(db, self)
     }
     
-    /// A set of fetched rows.
+    /// Returns a set of fetched rows.
     ///
-    ///     let request: some FetchRequest<Row> = ...
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
     ///     let rows = try request.fetchSet(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - returns: A set of fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<Row> {
         try Row.fetchSet(db, self)
     }
     
-    /// The first fetched row.
+    /// Returns a single row.
     ///
-    ///     let request: some FetchRequest<Row> = ...
-    ///     let row = try request.fetchOne(db)
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         """
+    ///     let rows = try request.fetchOne(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - returns: An optional row.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
         try Row.fetchOne(db, self)
     }
 }
 
-// RandomAccessCollection
-extension Row {
-    
-    // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
+extension Row: RandomAccessCollection {
     
     /// The index of the first (ColumnName, DatabaseValue) pair.
-    /// :nodoc:
     public var startIndex: RowIndex { RowIndex(0) }
     
     /// The "past-the-end" index, successor of the index of the last
     /// (ColumnName, DatabaseValue) pair.
-    /// :nodoc:
     public var endIndex: RowIndex { RowIndex(count) }
     
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
@@ -1528,12 +1680,9 @@ extension Row {
     }
 }
 
-// Equatable
-extension Row {
-    
+extension Row: Equatable {
     /// Returns true if and only if both rows have the same columns and values,
     /// in the same order. Columns are compared in a case-sensitive way.
-    /// :nodoc:
     public static func == (lhs: Row, rhs: Row) -> Bool {
         if lhs === rhs {
             return true
@@ -1574,9 +1723,7 @@ extension Row {
     }
 }
 
-// Hashable
-extension Row {
-    /// :nodoc:
+extension Row: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(count)
         for (column, dbValue) in self {
@@ -1586,16 +1733,15 @@ extension Row {
     }
 }
 
-// CustomStringConvertible & CustomDebugStringConvertible
-extension Row {
-    /// :nodoc:
+extension Row: CustomStringConvertible {
     public var description: String {
         "["
-            + map { (column, dbValue) in "\(column):\(dbValue)" }.joined(separator: " ")
-            + "]"
+        + map { (column, dbValue) in "\(column):\(dbValue)" }.joined(separator: " ")
+        + "]"
     }
-    
-    /// :nodoc:
+}
+
+extension Row: CustomDebugStringConvertible {
     public var debugDescription: String {
         debugDescription(level: 0)
     }
@@ -1638,36 +1784,43 @@ extension Row {
     }
 }
 
+extension Row: ExpressibleByDictionaryLiteral {
+    /// Creates a row initialized with elements. Column order is preserved, and
+    /// duplicated columns names are allowed.
+    ///
+    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    ///     print(row)
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
+    public convenience init(dictionaryLiteral elements: (String, (any DatabaseValueConvertible)?)...) {
+        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
+    }
+}
 
 // MARK: - RowIndex
 
 /// Indexes to (ColumnName, DatabaseValue) pairs in a database row.
-public struct RowIndex: Comparable, Strideable {
+public struct RowIndex {
     let index: Int
     init(_ index: Int) { self.index = index }
 }
 
-// Comparable
-extension RowIndex {
-    /// :nodoc:
+extension RowIndex: Equatable {
     public static func == (lhs: RowIndex, rhs: RowIndex) -> Bool {
         lhs.index == rhs.index
     }
-    
-    /// :nodoc:
+}
+
+extension RowIndex: Comparable {
     public static func < (lhs: RowIndex, rhs: RowIndex) -> Bool {
         lhs.index < rhs.index
     }
 }
 
-// Strideable: support for Row: RandomAccessCollection
-extension RowIndex {
-    /// :nodoc:
+extension RowIndex: Strideable {
     public func distance(to other: RowIndex) -> Int {
         other.index - index
     }
     
-    /// :nodoc:
     public func advanced(by n: Int) -> RowIndex {
         RowIndex(index + n)
     }
@@ -1719,22 +1872,18 @@ extension Row {
             self.prefetchedRows = prefetchedRows
         }
         
-        /// :nodoc:
         public var startIndex: Index {
             scopes.startIndex
         }
         
-        /// :nodoc:
         public var endIndex: Index {
             scopes.endIndex
         }
         
-        /// :nodoc:
         public func index(after i: Index) -> Index {
             scopes.index(after: i)
         }
         
-        /// :nodoc:
         public subscript(position: Index) -> (name: String, row: Row) {
             let (name, adapter) = scopes[position]
             let adaptedRow = Row(base: row, adapter: adapter)
@@ -2095,7 +2244,6 @@ private struct StatementCopyRowImpl: RowImpl {
         row
     }
 }
-
 
 /// See Row.init(statement:)
 private struct StatementRowImpl: RowImpl {

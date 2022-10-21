@@ -99,8 +99,8 @@ extension Table {
     
     /// Creates a request which selects an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let table = Table("player")
@@ -167,8 +167,8 @@ extension Table {
     /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT IFNULL(name, 'Anonymous') FROM player
     ///     let table = Table("player")
@@ -277,8 +277,8 @@ extension Table {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT * FROM player WHERE name = 'O''Brien'
     ///     let table = Table<Player>("player")
@@ -445,16 +445,18 @@ extension Table where RowDecoder: FetchableRecord {
     ///         ...
     ///     }
     ///
-    /// Records are iterated in the natural ordering of the table.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
@@ -465,8 +467,11 @@ extension Table where RowDecoder: FetchableRecord {
     ///     let table = Table<Player>("player")
     ///     let players = try table.fetchAll(db) // [Player]
     ///
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
@@ -478,7 +483,7 @@ extension Table where RowDecoder: FetchableRecord {
     ///     let player = try table.fetchOne(db) // Player?
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
@@ -492,7 +497,7 @@ extension Table where RowDecoder: FetchableRecord & Hashable {
     ///     let players = try table.fetchSet(db) // Set<Player>
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -510,16 +515,18 @@ extension Table where RowDecoder == Row {
     ///         ...
     ///     }
     ///
-    /// Rows are iterated in the natural ordering of the table.
+    /// The order in which the rows are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RowCursor {
         try all().fetchCursor(db)
     }
@@ -530,8 +537,11 @@ extension Table where RowDecoder == Row {
     ///     let table = Table("player")
     ///     let players = try table.fetchAll(db) // [Row]
     ///
+    /// The order in which the rows are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [Row] {
         try all().fetchAll(db)
     }
@@ -543,7 +553,7 @@ extension Table where RowDecoder == Row {
     ///     let row = try table.fetchOne(db) // Row?
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
         try all().fetchOne(db)
     }
@@ -555,7 +565,7 @@ extension Table where RowDecoder == Row {
     ///     let rows = try table.fetchSet(db) // Set<Row>
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<Row> {
         try all().fetchSet(db)
     }
@@ -573,16 +583,18 @@ extension Table where RowDecoder: DatabaseValueConvertible {
     ///         ...
     ///     }
     ///
-    /// Values are iterated in the natural ordering of the table.
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
@@ -593,8 +605,11 @@ extension Table where RowDecoder: DatabaseValueConvertible {
     ///     let table = Table<String>("name")
     ///     let names = try table.fetchAll(db) // [String]
     ///
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
@@ -606,7 +621,7 @@ extension Table where RowDecoder: DatabaseValueConvertible {
     ///     let name = try table.fetchOne(db) // String?
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
@@ -620,7 +635,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
     ///     let names = try table.fetchSet(db) // Set<String>
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -638,16 +653,18 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     ///         ...
     ///     }
     ///
-    /// Values are iterated in the natural ordering of the table.
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> FastDatabaseValueCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
@@ -658,8 +675,11 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     ///     let table = Table<String>("name")
     ///     let names = try table.fetchAll(db) // [String]
     ///
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
@@ -671,7 +691,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     ///     let name = try table.fetchOne(db) // String?
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
@@ -685,7 +705,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     ///     let names = try table.fetchSet(db) // Set<String>
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -1146,7 +1166,7 @@ extension Table {
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
         try all().deleteAll(db)
@@ -1402,7 +1422,7 @@ extension Table {
     /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
@@ -1426,7 +1446,7 @@ extension Table {
     /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: Column assignments.
     /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,

@@ -89,7 +89,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     
     // MARK: - DatabaseValueConvertible adoption
     
-    /// Returns a value that can be stored in the database.
+    /// Returns a TEXT database value.
     public var databaseValue: DatabaseValue {
         let dateString: String?
         switch format {
@@ -128,25 +128,23 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         return [dateString, timeString].compactMap { $0 }.joined(separator: " ").databaseValue
     }
     
-    /// Returns a DatabaseDateComponents if *dbValue* contains a
-    /// valid date.
+    /// Creates a `DatabaseDateComponents` from the specified database value.
+    ///
+    /// The supported formats are:
+    ///
+    /// - `YYYY-MM-DD`
+    /// - `YYYY-MM-DD HH:MM`
+    /// - `YYYY-MM-DD HH:MM:SS`
+    /// - `YYYY-MM-DD HH:MM:SS.SSS`
+    /// - `YYYY-MM-DDTHH:MM`
+    /// - `YYYY-MM-DDTHH:MM:SS`
+    /// - `YYYY-MM-DDTHH:MM:SS.SSS`
+    /// - `HH:MM`
+    /// - `HH:MM:SS`
+    /// - `HH:MM:SS.SSS`
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseDateComponents? {
-        // https://www.sqlite.org/lang_datefunc.html
-        //
-        // Supported formats are:
-        //
-        // - YYYY-MM-DD
-        // - YYYY-MM-DD HH:MM
-        // - YYYY-MM-DD HH:MM:SS
-        // - YYYY-MM-DD HH:MM:SS.SSS
-        // - YYYY-MM-DDTHH:MM
-        // - YYYY-MM-DDTHH:MM:SS
-        // - YYYY-MM-DDTHH:MM:SS.SSS
-        // - HH:MM
-        // - HH:MM:SS
-        // - HH:MM:SS.SSS
-        
-        // We need a String
         guard let string = String.fromDatabaseValue(dbValue) else {
             return nil
         }

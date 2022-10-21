@@ -3,6 +3,7 @@ import Foundation
 #if !os(Linux)
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID: DatabaseValueConvertible {
+    /// Returns a BLOB database value containing the uuid bytes.
     public var databaseValue: DatabaseValue {
         var uuidBytes = ContiguousArray(repeating: UInt8(0), count: 16)
         return uuidBytes.withUnsafeMutableBufferPointer { buffer in
@@ -11,6 +12,14 @@ extension NSUUID: DatabaseValueConvertible {
         }
     }
     
+    /// Returns a `NSUUID` from the specified database value.
+    ///
+    /// If the database value contains a string, parses this string as an uuid.
+    ///
+    /// If the database value contains a data blob that contains 16 bytes,
+    /// returns a uuid from those bytes.
+    ///
+    /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
@@ -28,12 +37,21 @@ extension NSUUID: DatabaseValueConvertible {
 
 /// UUID adopts DatabaseValueConvertible
 extension UUID: DatabaseValueConvertible {
+    /// Returns a BLOB database value containing the uuid bytes.
     public var databaseValue: DatabaseValue {
         withUnsafeBytes(of: uuid) {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }
     
+    /// Returns a `UUID` from the specified database value.
+    ///
+    /// If the database value contains a string, parses this string as an uuid.
+    ///
+    /// If the database value contains a data blob that contains 16 bytes,
+    /// returns a uuid from those bytes.
+    ///
+    /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UUID? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:

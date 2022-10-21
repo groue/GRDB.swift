@@ -126,13 +126,10 @@ extension Database {
 }
 
 extension FTS5Pattern: DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         rawPattern.databaseValue
     }
     
-    /// Returns an FTS5Pattern initialized from *dbValue*, if it
-    /// contains a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS5Pattern? {
         String
             .fromDatabaseValue(dbValue)

@@ -26,8 +26,8 @@ extension ValueObservation {
     /// database observation for all subscriptions, and thus spares
     /// database resources.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// 
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
     /// For example:
     ///
     ///     let sharedObservation = ValueObservation
@@ -91,10 +91,10 @@ extension ValueObservation {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// A shared value observation that shares a single underlying database
 /// observation for all subscriptions, and thus spares database resources.
+///
+/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 ///
 /// For example:
 ///
@@ -305,7 +305,7 @@ extension SharedValueObservation {
     /// The database observation, as an asynchronous sequence of
     /// database changes.
     ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func values(bufferingPolicy: AsyncValueObservation<Element>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Element>

@@ -11,13 +11,19 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
         }
     }
     
-    /// Returns a value that can be stored in the database.
+    /// Returns a BLOB database value.
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .blob(self))
     }
     
-    /// Returns a Data initialized from *dbValue*, if it contains
-    /// a Blob.
+    /// Returns a `Data` from the specified database value.
+    ///
+    /// If the database value contains a data blob, returns it.
+    ///
+    /// If the database value contains a string, returns this string converted
+    /// to UTF8 data.
+    ///
+    /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
         switch dbValue.storage {
         case .blob(let data):

@@ -49,8 +49,8 @@ extension TableRecord {
     
     /// Creates a request which selects an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
@@ -113,8 +113,8 @@ extension TableRecord {
     /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT IFNULL(name, 'Anonymous') FROM player
     ///     let defaultName = "Anonymous"
@@ -235,8 +235,8 @@ extension TableRecord {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT * FROM player WHERE name = 'O''Brien'
     ///     let name = "O'Brien"

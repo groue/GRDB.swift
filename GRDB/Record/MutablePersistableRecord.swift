@@ -1,5 +1,87 @@
-/// Types that adopt `MutablePersistableRecord` can be inserted, updated,
-/// and deleted.
+/// A type that can be persisted in a database row.
+///
+/// ## Topics
+///
+/// ### Testing if a Record Exists in the Database
+///
+/// - ``exists(_:)``
+///
+/// ### Inserting a Record
+///
+/// - ``insert(_:onConflict:)``
+/// - ``inserted(_:onConflict:)``
+/// - ``upsert(_:)``
+///
+/// ### Inserting a Record and Fetching the Inserted Row
+///
+/// - ``insertAndFetch(_:onConflict:)``
+/// - ``insertAndFetch(_:onConflict:as:)``
+/// - ``insertAndFetch(_:onConflict:selection:fetch:)``
+/// - ``upsertAndFetch(_:onConflict:doUpdate:)``
+/// - ``upsertAndFetch(_:as:onConflict:doUpdate:)``
+///
+/// ### Updating a Record
+///
+/// - ``update(_:onConflict:)``
+/// - ``update(_:onConflict:columns:)-4foo1``
+/// - ``update(_:onConflict:columns:)-5hxyx``
+/// - ``updateChanges(_:onConflict:from:)``
+/// - ``updateChanges(_:onConflict:modify:)``
+///
+/// ### Updating a Record and Fetching the Updated Row
+///
+/// - ``updateAndFetch(_:onConflict:)``
+/// - ``updateAndFetch(_:onConflict:as:)``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-7s7y1``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-30d2v``
+/// - ``updateAndFetch(_:onConflict:selection:fetch:)``
+/// - ``updateChangesAndFetch(_:onConflict:modify:)``
+/// - ``updateChangesAndFetch(_:onConflict:as:modify:)``
+/// - ``updateChangesAndFetch(_:onConflict:selection:fetch:modify:)``
+///
+/// ### Saving a Record
+///
+/// - ``save(_:onConflict:)``
+/// - ``saved(_:onConflict:)``
+///
+/// ### Saving a Record and Fetching the Saved Row
+///
+/// - ``saveAndFetch(_:onConflict:)``
+/// - ``saveAndFetch(_:onConflict:as:)``
+/// - ``saveAndFetch(_:onConflict:selection:fetch:)``
+///
+/// ### Deleting Records
+///
+/// - ``delete(_:)``
+/// - ``TableRecord/deleteAll(_:)``
+/// - ``TableRecord/deleteAll(_:ids:)``
+/// - ``TableRecord/deleteAll(_:keys:)-jbkm``
+/// - ``TableRecord/deleteAll(_:keys:)-5s1jg``
+/// - ``TableRecord/deleteOne(_:id:)``
+/// - ``TableRecord/deleteOne(_:key:)-413u8``
+/// - ``TableRecord/deleteOne(_:key:)-5pdh5``
+///
+/// ### Persistence Callbacks
+///
+/// - ``willDelete(_:)-7rmqk``
+/// - ``willInsert(_:)-1xfwo``
+/// - ``willSave(_:)-6jitc``
+/// - ``willUpdate(_:columns:)-3oko4``
+/// - ``didDelete(deleted:)-7sq9c``
+/// - ``didInsert(_:)-109jm``
+/// - ``didSave(_:)-177yz``
+/// - ``didUpdate(_:)-1oql8``
+/// - ``aroundDelete(_:delete:)-8w9ei``
+/// - ``aroundInsert(_:insert:)-67r8o``
+/// - ``aroundSave(_:save:)-5o9jz``
+/// - ``aroundUpdate(_:columns:update:)-ka41``
+/// - ``InsertionSuccess``
+/// - ``PersistenceSuccess``
+///
+/// ### Configuring Persistence
+///
+/// - ``persistenceConflictPolicy-1isyv``
+/// - ``PersistenceConflictPolicy``
 public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
@@ -198,12 +280,11 @@ extension MutablePersistableRecord {
 // MARK: - Existence Check
 
 extension MutablePersistableRecord {
-    /// Returns true if and only if the primary key matches a row in
+    /// Returns whether the primary key of the record matches a row in
     /// the database.
     ///
     /// - parameter db: A database connection.
-    /// - returns: Whether the primary key matches a row in the database.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func exists(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).existsStatement() else {
             // Nil primary key
@@ -213,14 +294,15 @@ extension MutablePersistableRecord {
     }
 }
 
-/// An error thrown by a type that adopts `MutablePersistableRecord`.
+/// An error thrown by persistence methods of the
+/// ``MutablePersistableRecord`` protocol.
 public enum PersistenceError: Error {
-    
-    /// Thrown by `MutablePersistableRecord.update(_:)` methods when no matching
-    /// row could be found in the database.
+    /// Thrown by ``MutablePersistableRecord`` updating methods, when no
+    /// matching row could be found and updated.
     ///
-    /// - `databaseTableName`: the table of the unfound record
-    /// - `key`: the key of the unfound record (column and values)
+    /// - parameters:
+    ///     - databaseTableName: The table of the unfound record.
+    ///     - key: The key of the unfound record (column and values).
     case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
 }
 

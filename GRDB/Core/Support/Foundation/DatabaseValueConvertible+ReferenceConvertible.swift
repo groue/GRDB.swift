@@ -15,12 +15,10 @@ import Foundation
 ///     extension Foo : DatabaseValueConvertible { /* empty */ }
 extension DatabaseValueConvertible where Self: ReferenceConvertible, Self.ReferenceType: DatabaseValueConvertible {
     
-    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         (self as! ReferenceType).databaseValue
     }
     
-    /// Returns a value initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         ReferenceType.fromDatabaseValue(dbValue).flatMap { cast($0) }
     }

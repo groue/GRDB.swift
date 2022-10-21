@@ -2,7 +2,7 @@
 
 extension PersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE` statement.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE` statement.
     ///
     /// The upsert behavior is triggered by a violation of any uniqueness
     /// constraint on the table (primary key or unique index). In case of
@@ -22,6 +22,10 @@ extension PersistableRecord {
     ///     //   score = excluded.score
     ///     let player = Player(id: 1, name: "Arthur", score: 1000)
     ///     try player.upsert(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func upsert(_ db: Database) throws {
         try willSave(db)
@@ -39,8 +43,8 @@ extension PersistableRecord {
         didSave(saved)
     }
     
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...`
-    /// statement, and returns the upserted record.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
+    /// returns the upserted record.
     ///
     /// With default parameters (`upsertAndFetch(db)`), the upsert behavior is
     /// triggered by a violation of any uniqueness constraint on the table
@@ -110,7 +114,8 @@ extension PersistableRecord {
     ///   constraints, these assignments are performed, and remaining columns
     ///   are overwritten by inserted values.
     /// - returns: The upserted record.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func upsertAndFetch(
         _ db: Database,
@@ -122,8 +127,8 @@ extension PersistableRecord {
         try upsertAndFetch(db, as: Self.self, onConflict: conflictTarget, doUpdate: assignments)
     }
     
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...`
-    /// statement, and returns the upserted record.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
+    /// returns the upserted record.
     ///
     /// See `upsertAndFetch(_:onConflict:doUpdate:)` for more information about
     /// the `conflictTarget` and `assignments` parameters.
@@ -136,7 +141,8 @@ extension PersistableRecord {
     ///   constraints, these assignments are performed, and remaining columns
     ///   are overwritten by inserted values.
     /// - returns: A record of type `returnedType`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func upsertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -164,7 +170,7 @@ extension PersistableRecord {
         return success.returned
     }
 #else
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE` statement.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE` statement.
     ///
     /// The upsert behavior is triggered by a violation of any uniqueness
     /// constraint on the table (primary key or unique index). In case of
@@ -184,6 +190,10 @@ extension PersistableRecord {
     ///     //   score = excluded.score
     ///     let player = Player(id: 1, name: "Arthur", score: 1000)
     ///     try player.upsert(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func upsert(_ db: Database) throws {
@@ -202,8 +212,8 @@ extension PersistableRecord {
         didSave(saved)
     }
     
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...`
-    /// statement, and returns the upserted record.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
+    /// returns the upserted record.
     ///
     /// With default parameters (`upsertAndFetch(db)`), the upsert behavior is
     /// triggered by a violation of any uniqueness constraint on the table
@@ -273,7 +283,8 @@ extension PersistableRecord {
     ///   constraints, these assignments are performed, and remaining columns
     ///   are overwritten by inserted values.
     /// - returns: The upserted record.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func upsertAndFetch(
@@ -286,8 +297,8 @@ extension PersistableRecord {
         try upsertAndFetch(db, as: Self.self, onConflict: conflictTarget, doUpdate: assignments)
     }
     
-    /// Executes an `INSERT ... ON CONFLICT DO UPDATE ... RETURNING ...`
-    /// statement, and returns the upserted record.
+    /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
+    /// returns the upserted record.
     ///
     /// See `upsertAndFetch(_:onConflict:doUpdate:)` for more information about
     /// the `conflictTarget` and `assignments` parameters.
@@ -300,7 +311,8 @@ extension PersistableRecord {
     ///   constraints, these assignments are performed, and remaining columns
     ///   are overwritten by inserted values.
     /// - returns: A record of type `returnedType`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func upsertAndFetch<T: FetchableRecord & TableRecord>(

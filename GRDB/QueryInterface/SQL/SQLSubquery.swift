@@ -1,4 +1,6 @@
-/// The type that can be embedded as a subquery.
+/// An SQL subquery.
+///
+/// `SQLSubquery` is an opaque representation of an SQL subquery.
 public struct SQLSubquery {
     private var impl: Impl
     
