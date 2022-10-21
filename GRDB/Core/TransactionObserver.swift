@@ -1158,7 +1158,7 @@ public struct DatabasePreUpdateEvent {
     /// Returns the initial `DatabaseValue` at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// The result is nil if the event is an .Insert event.
     public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? {
@@ -1180,7 +1180,7 @@ public struct DatabasePreUpdateEvent {
     /// Returns the final `DatabaseValue` at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// The result is nil if the event is a .Delete event.
     public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
