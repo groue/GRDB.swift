@@ -128,6 +128,8 @@ public struct FTS5TokenizerDescriptor {
     /// - parameters:
     ///     - diacritics: By default SQLite will strip diacritics from
     ///       latin characters.
+    ///     - categories: Unless empty (the default), SQLite will consider
+    ///       "L* N* Co" Unicode categories for tokens.
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will
@@ -136,6 +138,7 @@ public struct FTS5TokenizerDescriptor {
     /// See <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
     public static func unicode61(
         diacritics: FTS5.Diacritics = .removeLegacy,
+        categories: String = "",
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
     -> FTS5TokenizerDescriptor
@@ -153,6 +156,17 @@ public struct FTS5TokenizerDescriptor {
         case .remove:
             components.append(contentsOf: ["remove_diacritics", "2"])
         #endif
+        }
+        if !categories.isEmpty {
+            let separatorComponents = try! DatabaseQueue().inDatabase { db in
+                try [
+                    "categories",
+                    categories
+                        .sqlExpression
+                        .quotedSQL(db)
+                ]
+            }
+            components.append(contentsOf: separatorComponents)
         }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
