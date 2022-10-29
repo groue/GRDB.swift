@@ -65,37 +65,15 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let separatorComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "separators",
-                    separators
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)]
-            }
-            components.append(contentsOf: separatorComponents)
+            components.append("separators")
+            components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "tokenchars",
-                    tokenCharacters
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: tokenCharactersComponents)
+            components.append("tokenchars")
+            components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
         return FTS5TokenizerDescriptor(components: components)
     }
@@ -158,53 +136,22 @@ public struct FTS5TokenizerDescriptor {
         #endif
         }
         if !categories.isEmpty {
-            let separatorComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "categories",
-                    categories
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: separatorComponents)
+            components.append("categories")
+            components.append(categories)
         }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let separatorComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "separators",
-                    separators
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: separatorComponents)
+            components.append("separators")
+            components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "tokenchars",
-                    tokenCharacters
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: tokenCharactersComponents)
+            components.append("tokenchars")
+            components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
         return FTS5TokenizerDescriptor(components: components)
     }
