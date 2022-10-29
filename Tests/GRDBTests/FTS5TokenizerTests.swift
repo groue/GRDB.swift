@@ -197,6 +197,20 @@ class FTS5TokenizerTests: GRDBTestCase {
     }
     #endif
 
+    func testUnicode61TokenizerCategories() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .unicode61(categories: "L* N* S*")
+                t.column("content")
+            }
+            
+            XCTAssertTrue(match(db, "👍", "👍"))
+            XCTAssertTrue(match(db, "👁‍🗨", "🗨"))
+            XCTAssertFalse(match(db, "🔎🐠", "🐠"))
+        }
+    }
+
     func testUnicode61TokenizerSeparators() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
