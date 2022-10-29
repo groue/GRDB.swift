@@ -32,29 +32,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_13.2.1.app"
-            runsOn: macOS-11
-            name: "macOS 11, Xcode 13.2.1, Swift 5.5.2"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_13.1.app"
-            runsOn: macOS-11
-            name: "macOS 11, Xcode 13.1, Swift 5.5.1"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_13.0.app"
-            runsOn: macOS-11
-            name: "macOS 11, Xcode 13.0, Swift 5.5.0"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_12.5.1.app"
-            runsOn: macOS-11
-            name: "macOS 11, Xcode 12.5.1, Swift 5.4"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_12.4.app"
-            runsOn: macOS-10.15
-            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -68,13 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_12.4.app"
-            runsOn: macOS-10.15
-            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -88,9 +64,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -104,9 +80,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -120,13 +96,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_12.4.app"
-            runsOn: macOS-10.15
-            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -140,13 +112,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
-            shell: "/bin/zsh {0}"
-          - xcode: "Xcode_12.4.app"
-            runsOn: macOS-10.15
-            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3
@@ -160,9 +128,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_13.3.1.app"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
             shell: "/bin/zsh {0}"
     steps:
       - uses: actions/checkout@v3

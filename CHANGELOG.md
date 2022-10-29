@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.2.x` Releases - [6.2.0](#620)
 - `6.1.x` Releases - [6.1.0](#610)
 - `6.0.x` Releases - [6.0.0](#600)
 - `6.0.0` Betas - [6.0.0-beta](#600-beta) | [6.0.0-beta.2](#600-beta2) | [6.0.0-beta.3](#600-beta3) | [6.0.0-beta.4](#600-beta4)
@@ -98,6 +99,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.2.0
+
+Released October 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.1.0...v6.2.0)
+
+- **New**: [#1289](https://github.com/groue/GRDB.swift/pull/1289) by [@arkie](https://github.com/arkie): Add support for passing in categories to the FTS5 unicode61 tokenizer (SQLite 3.25+)
+- **Fixed**: The `FTS5Tokenizer.tokenize(query:)` method no longer returns incorrect results for certain tokenizer arguments.
 
 ## 6.1.0
 

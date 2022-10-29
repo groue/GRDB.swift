@@ -103,6 +103,9 @@ public struct FTS5: VirtualTableModule {
         if let tokenizer = definition.tokenizer {
             let tokenizerSQL = try tokenizer
                 .components
+                .map { component in
+                    try component.sqlExpression.quotedSQL(db)
+                }
                 .joined(separator: " ")
                 .sqlExpression
                 .quotedSQL(db)

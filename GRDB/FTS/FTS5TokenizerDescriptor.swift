@@ -65,37 +65,15 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let separatorComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "separators",
-                    separators
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)]
-            }
-            components.append(contentsOf: separatorComponents)
+            components.append("separators")
+            components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "tokenchars",
-                    tokenCharacters
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: tokenCharactersComponents)
+            components.append("tokenchars")
+            components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
         return FTS5TokenizerDescriptor(components: components)
     }
@@ -128,6 +106,8 @@ public struct FTS5TokenizerDescriptor {
     /// - parameters:
     ///     - diacritics: By default SQLite will strip diacritics from
     ///       latin characters.
+    ///     - categories: Unless empty (the default), SQLite will consider
+    ///       "L* N* Co" Unicode categories for tokens.
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will
@@ -136,6 +116,7 @@ public struct FTS5TokenizerDescriptor {
     /// See <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
     public static func unicode61(
         diacritics: FTS5.Diacritics = .removeLegacy,
+        categories: String = "",
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
     -> FTS5TokenizerDescriptor
@@ -154,43 +135,23 @@ public struct FTS5TokenizerDescriptor {
             components.append(contentsOf: ["remove_diacritics", "2"])
         #endif
         }
+        if !categories.isEmpty {
+            components.append("categories")
+            components.append(categories)
+        }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let separatorComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "separators",
-                    separators
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: separatorComponents)
+            components.append("separators")
+            components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            //
-            // Assume quoting a string in an in-memory database never fails
-            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
-                try [
-                    "tokenchars",
-                    tokenCharacters
-                        .sorted()
-                        .map { String($0) }
-                        .joined()
-                        .sqlExpression
-                        .quotedSQL(db)
-                ]
-            }
-            components.append(contentsOf: tokenCharactersComponents)
+            components.append("tokenchars")
+            components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
         return FTS5TokenizerDescriptor(components: components)
     }

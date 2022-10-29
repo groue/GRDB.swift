@@ -198,7 +198,7 @@ extension Row {
     /// Returns true if the row contains null at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// This method is equivalent to `row[index] == nil`, but may be preferred
     /// in performance-critical code because it can avoid decoding database
@@ -212,7 +212,7 @@ extension Row {
     /// stored at the given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     public subscript(_ index: Int) -> (any DatabaseValueConvertible)? {
         _checkIndex(index)
         return impl.databaseValue(atUncheckedIndex: index).storage.value
@@ -221,7 +221,7 @@ extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// For example:
     ///
@@ -243,7 +243,7 @@ extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// ``StatementColumnConvertible``. It can trigger SQLite built-in
@@ -421,7 +421,7 @@ extension Row {
     /// Returns the optional `Data` at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
     /// not be converted to Data, a fatal error is raised.
@@ -679,7 +679,7 @@ extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
@@ -724,7 +724,7 @@ extension Row {
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
@@ -788,7 +788,7 @@ extension Row {
     /// Returns the optional Data at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
     /// not be converted to Data, a `RowDecodingError` is thrown.
@@ -803,7 +803,7 @@ extension Row {
     /// Returns the Data at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// rightmost column.
     ///
     /// If the SQLite value is NULL, or if the SQLite value can not be converted
     /// to Data, a `RowDecodingError` is thrown.
