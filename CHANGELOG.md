@@ -99,6 +99,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1289](https://github.com/groue/GRDB.swift/pull/1289) by [@arkie](https://github.com/arkie): Add support for passing in categories to the unicode61 tokenizer
+- **Fixed**: The `FTS5Tokenizer.tokenize(query:)` method no longer returns incorrect results for certain tokenizer arguments.
+
 ## 6.1.0
 
 Released October 20, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.0.0...v6.1.0)
