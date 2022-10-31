@@ -1280,6 +1280,43 @@ extension MutablePersistableRecordTests {
                 XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
                 XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
             }
+
+            do {
+                // Test onConflict: .ignore
+                sqlQueries.removeAll()
+                var player = FullPlayer(id: 1, name: "Barbara", score: 100)
+                try XCTAssertTrue(player.exists(db))
+                let score = try player.insertAndFetch(db, onConflict: .ignore, selection: [Column("score")]) { (statement: Statement) in
+                    try Int.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT OR IGNORE INTO "player" ("id", "name", "score") VALUES (1,'Barbara',100) RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(player.id, 1)
+                XCTAssertNil(score)
+                
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(player.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(player.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
         }
     }
 }
