@@ -108,24 +108,27 @@ class RowCopiedFromStatementTests: RowTestCase {
         }
     }
 
-    func testDataNoCopy() throws {
+    func testWithUnsafeData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let data = "foo".data(using: .utf8)!
             let emptyData = Data()
             let row = try Row.fetchOne(db, sql: "SELECT ? AS a, ? AS b, ? AS c", arguments: [data, emptyData, nil])!
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
-            XCTAssertEqual(row.dataNoCopy(named: "a"), data)
-            XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            try row.withUnsafeData(atIndex: 0) { XCTAssertEqual($0, data) }
+            try row.withUnsafeData(named: "a") { XCTAssertEqual($0, data) }
+            try row.withUnsafeData(at: Column("a")) { XCTAssertEqual($0, data) }
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 1), emptyData)
-            XCTAssertEqual(row.dataNoCopy(named: "b"), emptyData)
-            XCTAssertEqual(row.dataNoCopy(Column("b")), emptyData)
+            try row.withUnsafeData(atIndex: 1) { XCTAssertEqual($0, emptyData) }
+            try row.withUnsafeData(named: "b") { XCTAssertEqual($0, emptyData) }
+            try row.withUnsafeData(at: Column("b")) { XCTAssertEqual($0, emptyData) }
             
-            XCTAssertNil(row.dataNoCopy(atIndex: 2))
-            XCTAssertNil(row.dataNoCopy(named: "c"))
-            XCTAssertNil(row.dataNoCopy(Column("c")))
+            try row.withUnsafeData(atIndex: 2) { XCTAssertNil($0) }
+            try row.withUnsafeData(named: "c") { XCTAssertNil($0) }
+            try row.withUnsafeData(at: Column("c")) { XCTAssertNil($0) }
+            
+            try row.withUnsafeData(named: "missing") { XCTAssertNil($0) }
+            try row.withUnsafeData(at: Column("missing")) { XCTAssertNil($0) }
         }
     }
 

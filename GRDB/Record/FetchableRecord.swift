@@ -65,14 +65,14 @@ import Foundation
 /// - ``fetchSet(_:arguments:adapter:)``
 /// - ``fetchOne(_:arguments:adapter:)``
 ///
-/// ### Fetching Record from a Request
+/// ### Fetching Records from a Request
 ///
 /// - ``fetchCursor(_:_:)``
 /// - ``fetchAll(_:_:)``
 /// - ``fetchSet(_:_:)``
 /// - ``fetchOne(_:_:)``
 ///
-/// ### Fetching Record by Primary Key
+/// ### Fetching Records by Primary Key
 ///
 /// - ``fetchCursor(_:ids:)``
 /// - ``fetchAll(_:ids:)``

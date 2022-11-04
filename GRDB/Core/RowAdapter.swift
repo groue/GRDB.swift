@@ -507,14 +507,9 @@ struct AdaptedRowImpl: RowImpl {
         return try Value.fastDecode(fromRow: base, atUncheckedIndex: mappedIndex)
     }
     
-    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
+    func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecodeDataNoCopy(atUncheckedIndex: mappedIndex)
-    }
-    
-    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
-        let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: mappedIndex)
+        return try base.impl.withUnsafeData(atUncheckedIndex: mappedIndex, body)
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

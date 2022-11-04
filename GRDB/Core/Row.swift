@@ -514,6 +514,54 @@ extension Row {
         try! decode(Value.self, forKey: column.name)
     }
     
+    /// Calls the given closure with the `Data` at given index.
+    ///
+    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
+    /// rightmost column.
+    ///
+    /// If the SQLite value is `NULL`, the data is nil. If the SQLite value can
+    /// not be converted to `Data`, an error is thrown.
+    ///
+    /// - warning: The `Data` argument to the body must not be stored or used
+    ///   outside of the lifetime of the call to the closure.
+    public func withUnsafeData<T>(atIndex index: Int, _ body: (Data?) throws -> T) throws -> T {
+        _checkIndex(index)
+        return try impl.withUnsafeData(atUncheckedIndex: index, body)
+    }
+    
+    /// Calls the given closure with the `Data` at the given column.
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain any column with that name, or if the SQLite
+    /// value is `NULL`, the data is nil. If the SQLite value can not be
+    /// converted to `Data`, an error is thrown.
+    ///
+    /// - warning: The `Data` argument to the body must not be stored or used
+    ///   outside of the lifetime of the call to the closure.
+    public func withUnsafeData<T>(named columnName: String, _ body: (Data?) throws -> T) throws -> T {
+        guard let index = index(forColumn: columnName) else {
+            return try body(nil)
+        }
+        return try impl.withUnsafeData(atUncheckedIndex: index, body)
+    }
+    
+    /// Calls the given closure with the `Data` at the given column.
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain any column with that name, or if the SQLite
+    /// value is `NULL`, the data is nil. If the SQLite value can not be
+    /// converted to `Data`, an error is thrown.
+    ///
+    /// - warning: The `Data` argument to the body must not be stored or used
+    ///   outside of the lifetime of the call to the closure.
+    public func withUnsafeData<T>(at column: some ColumnExpression, _ body: (Data?) throws -> T) throws -> T {
+        try withUnsafeData(named: column.name, body)
+    }
+    
     /// Returns the optional `Data` at given index.
     ///
     /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
@@ -524,8 +572,9 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
+    @available(*, deprecated, message: "Use withUnsafeData(atIndex:_:) instead.")
     public func dataNoCopy(atIndex index: Int) -> Data? {
-        try! decodeDataNoCopyIfPresent(atIndex: index)
+        try! withUnsafeData(atIndex: index, { $0 })
     }
     
     /// Returns the optional `Data` at given column.
@@ -539,8 +588,12 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
+    @available(*, deprecated, message: "Use withUnsafeData(named:_:) instead.")
     public func dataNoCopy(named columnName: String) -> Data? {
-        try! decodeDataNoCopyIfPresent(forKey: columnName)
+        guard let index = index(forColumn: columnName) else {
+            return nil
+        }
+        return try! withUnsafeData(atUncheckedIndex: index, { $0 })
     }
     
     /// Returns the optional `Data` at given column.
@@ -554,8 +607,9 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
+    @available(*, deprecated, message: "Use withUnsafeData(at:_:) instead.")
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
-        try! decodeDataNoCopyIfPresent(forKey: column.name)
+        dataNoCopy(named: column.name)
     }
 }
 
@@ -893,80 +947,18 @@ extension Row {
 // MARK: - Throwing Data Decoding Methods
 
 extension Row {
-    /// Returns the optional Data at given index.
+    /// Calls the given closure with the `Data` at given index.
     ///
     /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
-    /// If the SQLite value is NULL, the result is nil. If the SQLite value can
-    /// not be converted to Data, a `RowDecodingError` is thrown.
+    /// If the SQLite value is `NULL`, the data is nil. If the SQLite value can
+    /// not be converted to `Data`, an error is thrown.
     ///
-    /// The returned data does not owns its bytes: it must not be used longer
-    /// than the row's lifetime.
-    func decodeDataNoCopyIfPresent(atIndex index: Int) throws -> Data? {
-        _checkIndex(index)
-        return try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
-    }
-    
-    /// Returns the Data at given index.
-    ///
-    /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
-    /// rightmost column.
-    ///
-    /// If the SQLite value is NULL, or if the SQLite value can not be converted
-    /// to Data, a `RowDecodingError` is thrown.
-    ///
-    /// The returned data does not owns its bytes: it must not be used longer
-    /// than the row's lifetime.
-    func decodeDataNoCopy(atIndex index: Int) throws -> Data {
-        _checkIndex(index)
-        return try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
-    }
-    
-    /// Returns the optional Data at given column.
-    ///
-    /// Column name lookup is case-insensitive. When several columns exist with
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. If the SQLite value can not be converted to Data, a
-    /// `RowDecodingError` is thrown.
-    ///
-    /// The returned data does not owns its bytes: it must not be used longer
-    /// than the row's lifetime.
-    func decodeDataNoCopyIfPresent(forKey columnName: String) throws -> Data? {
-        guard let index = index(forColumn: columnName) else {
-            return nil
-        }
-        return try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
-    }
-    
-    /// Returns the Data at given column.
-    ///
-    /// Column name lookup is case-insensitive. When several columns exist with
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing, or if the SQLite value is NULL, or if the
-    /// SQLite value can not be converted to Data, a
-    /// `RowDecodingError` is thrown.
-    ///
-    /// The returned data does not owns its bytes: it must not be used longer
-    /// than the row's lifetime.
-    func decodeDataNoCopy(forKey columnName: String) throws -> Data {
-        guard let index = index(forColumn: columnName) else {
-            throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
-        }
-        return try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
-    }
-    
-    // Support for fast decoding in scoped rows
-    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
-        try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
-    }
-    
-    // Support for fast decoding in scoped rows
-    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
-        try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
+    /// - warning: The `Data` argument to the body must not be stored or used
+    ///   outside of the lifetime of the call to the closure.
+    func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T {
+        try impl.withUnsafeData(atUncheckedIndex: index, body)
     }
 }
 
@@ -2108,9 +2100,7 @@ protocol RowImpl {
         atUncheckedIndex index: Int)
     throws -> Value
     
-    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data
-    
-    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data?
+    func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T
     
     /// Returns the index of the leftmost column that matches *name* (case-insensitive)
     func index(forColumn name: String) -> Int?
@@ -2158,18 +2148,12 @@ extension RowImpl {
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
-    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
+    func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
-        try Data.decode(
+        let data = try Optional<Data>.decode(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
-    }
-    
-    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
-        // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
-        try Optional<Data>.decode(
-            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
-            context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
+        return try body(data)
     }
 }
 
@@ -2290,26 +2274,17 @@ private struct StatementRowImpl: RowImpl {
             context: RowDecodingContext(statement: statement, index: index))
     }
     
-    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
+    func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T {
         guard sqlite3_column_type(sqliteStatement, CInt(index)) != SQLITE_NULL else {
-            throw RowDecodingError.valueMismatch(Data.self, statement: statement, index: index)
+            return try body(nil)
         }
         guard let bytes = sqlite3_column_blob(sqliteStatement, CInt(index)) else {
-            return Data()
+            return try body(Data())
         }
+        
         let count = Int(sqlite3_column_bytes(sqliteStatement, CInt(index)))
-        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
-    }
-    
-    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
-        guard sqlite3_column_type(sqliteStatement, CInt(index)) != SQLITE_NULL else {
-            return nil
-        }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, CInt(index)) else {
-            return Data()
-        }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, CInt(index)))
-        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
+        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
+        return try body(data)
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

@@ -1383,7 +1383,9 @@ At each step of the request iteration, the `row[]` subscript creates *two copies
 
 ```swift
 while let row = try rows.next() {
-    let data = row.dataNoCopy(named: "data") // Data?
+    try row.withUnsafeData(name: "data") { (data: Data?) in
+        ...
+    }
 }
 ```
 
