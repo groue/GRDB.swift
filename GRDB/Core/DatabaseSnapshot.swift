@@ -89,7 +89,6 @@ extension DatabaseSnapshot: DatabaseReader {
     
     // MARK: - Database Observation
     
-    /// :nodoc:
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,

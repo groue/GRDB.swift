@@ -41,8 +41,6 @@ public func splittingRowAdapters(columnCounts: [Int]) -> [any RowAdapter] {
 }
 
 /// _LayoutedColumnMapping is a type that supports the RowAdapter protocol.
-///
-/// :nodoc:
 public struct _LayoutedColumnMapping {
     /// An array of (baseIndex, mappedName) pairs, where baseIndex is the index
     /// of a column in a base row, and mappedName the mapped name of
@@ -93,7 +91,6 @@ public struct _LayoutedColumnMapping {
     }
 }
 
-/// :nodoc:
 extension _LayoutedColumnMapping: _LayoutedRowAdapter {
     /// Returns self.
     public var _mapping: _LayoutedColumnMapping { self }
@@ -102,7 +99,6 @@ extension _LayoutedColumnMapping: _LayoutedRowAdapter {
     public var _scopes: [String: any _LayoutedRowAdapter] { [:] }
 }
 
-/// :nodoc:
 extension _LayoutedColumnMapping: _RowLayout {
     /// Returns the index of the leftmost column named `name`, in a
     /// case-insensitive way.
@@ -118,8 +114,6 @@ extension _LayoutedColumnMapping: _RowLayout {
 ///
 /// GRBD ships with a ready-made type that adopts this protocol:
 /// `_LayoutedColumnMapping`.
-///
-/// :nodoc:
 public protocol _LayoutedRowAdapter {
     /// A LayoutedColumnMapping that defines how to map a column name to a
     /// column in a base row.
@@ -131,8 +125,6 @@ public protocol _LayoutedRowAdapter {
 
 /// `_RowLayout` is a protocol that supports the `RowAdapter` protocol. It
 /// describes the layout of a base row.
-///
-/// :nodoc:
 public protocol _RowLayout {
     /// An array of (baseIndex, name) pairs, where baseIndex is the index
     /// of a column in a base row, and name the name of that column.
@@ -144,21 +136,41 @@ public protocol _RowLayout {
 }
 
 extension Statement: _RowLayout {
-    /// :nodoc:
     public var _layoutColumns: [(Int, String)] {
         Array(columnNames.enumerated())
     }
     
-    /// :nodoc:
     public func _layoutIndex(ofColumn name: String) -> Int? {
         index(ofColumn: name)
     }
 }
 
-/// Implementation details of `RowAdapter`.
+/// `RowAdapter` is a protocol that helps two incompatible row interfaces
+/// working together.
 ///
-/// :nodoc:
-public protocol _RowAdapter {
+/// To use a row adapter, provide it to any method that fetches:
+///
+///     let adapter = SuffixRowAdapter(fromIndex: 2)
+///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+///
+///     // [baz:3]
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
+///
+/// ## Topics
+///
+/// ### Splitting a Row
+///
+/// - ``splittingRowAdapters(columnCounts:)``
+///
+/// ### Built-in Adapters
+///
+/// - ``ColumnMapping``
+/// - ``EmptyRowAdapter``
+/// - ``RangeRowAdapter``
+/// - ``RenameColumnAdapter``
+/// - ``ScopeAdapter``
+/// - ``SuffixRowAdapter``
+public protocol RowAdapter {
     /// You never call this method directly. It is called for you whenever an
     /// adapter has to be applied.
     ///
@@ -180,29 +192,6 @@ public protocol _RowAdapter {
     ///     try Row.fetchOne(db, sql: "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
     func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter
 }
-
-/// `RowAdapter` is a protocol that helps two incompatible row interfaces
-/// working together.
-///
-/// To use a row adapter, provide it to any method that fetches:
-///
-///     let adapter = SuffixRowAdapter(fromIndex: 2)
-///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-///
-///     // [baz:3]
-///     try Row.fetchOne(db, sql: sql, adapter: adapter)
-///
-/// ## Topics
-///
-/// ### Built-in Adapters
-///
-/// - ``ColumnMapping``
-/// - ``EmptyRowAdapter``
-/// - ``RangeRowAdapter``
-/// - ``RenameColumnAdapter``
-/// - ``ScopeAdapter``
-/// - ``SuffixRowAdapter``
-public protocol RowAdapter: _RowAdapter { }
 
 extension RowAdapter {
     /// Returns an adapter based on self, with added scopes.
@@ -232,7 +221,6 @@ public struct EmptyRowAdapter: RowAdapter {
     /// Creates an EmptyRowAdapter
     public init() { }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         _LayoutedColumnMapping(layoutColumns: [])
     }
@@ -255,7 +243,6 @@ public struct ColumnMapping: RowAdapter {
         self.mapping = mapping
     }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         let layoutColumns = try mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
@@ -296,7 +283,6 @@ public struct SuffixRowAdapter: RowAdapter {
         self.index = index
     }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         _LayoutedColumnMapping(layoutColumns: layout._layoutColumns.suffix(from: index))
     }
@@ -325,7 +311,6 @@ public struct RangeRowAdapter: RowAdapter {
         self.range = range.lowerBound..<(range.upperBound + 1)
     }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         _LayoutedColumnMapping(layoutColumns: layout._layoutColumns[range])
     }
@@ -401,7 +386,6 @@ public struct ScopeAdapter: RowAdapter {
         self.scopes = scopes
     }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         let layoutedAdapter = try base._layoutedAdapter(from: layout)
         var layoutedScopes = layoutedAdapter._scopes
@@ -447,7 +431,6 @@ public struct RenameColumnAdapter: RowAdapter {
         self.transform = transform
     }
     
-    /// :nodoc:
     public func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
         let layoutColumns = layout._layoutColumns.map { (index, column) in (index, transform(column)) }
         return _LayoutedColumnMapping(layoutColumns: layoutColumns)

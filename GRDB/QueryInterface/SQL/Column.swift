@@ -1,4 +1,4 @@
-/// A column in a database table.
+/// A type that represents a column in a database table.
 ///
 /// ## Topics
 ///
@@ -16,9 +16,12 @@
 /// - ``noOverwrite``
 /// - ``set(to:)``
 public protocol ColumnExpression: SQLSpecificExpressible {
-    /// The unqualified name of a database column.
+    /// The column name.
     ///
-    /// `"score"` is a valid unqualified name. `"player.score"` is not.
+    /// The column name is never qualified with a table name.
+    ///
+    /// For example, the name of a column can be `"score"`, but
+    /// not `"player.score"`.
     var name: String { get }
 }
 

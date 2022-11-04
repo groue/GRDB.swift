@@ -3,7 +3,7 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for types that can write into an SQLite database.
+/// The protocol for types that write into an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseWriter`. Only the
 /// ``DatabaseQueue`` and ``DatabasePool`` types are valid conforming types.
@@ -31,6 +31,7 @@ import Dispatch
 ///
 /// - ``concurrentRead(_:)``
 /// - ``spawnConcurrentRead(_:)``
+/// - ``DatabaseFuture``
 ///
 /// ### Exclusive Access to the Database
 ///
@@ -78,9 +79,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -117,9 +118,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -161,9 +162,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
     ///   can see changes performed by concurrent writes or writes performed by
@@ -194,9 +195,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
     ///   can see changes performed by concurrent writes or writes performed by
@@ -226,9 +227,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
     ///   can see changes performed by concurrent writes or writes performed by
@@ -353,9 +354,9 @@ extension DatabaseWriter {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -407,7 +408,7 @@ extension DatabaseWriter {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` and `completion` is valid only
+    /// The ``Database`` argument to `updates` and `completion` is valid only
     /// during the execution of those closures. Do not store or return the
     /// database connection for later use.
     ///
@@ -563,9 +564,9 @@ extension DatabaseWriter {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -599,9 +600,9 @@ extension DatabaseWriter {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -649,9 +650,9 @@ extension DatabaseWriter {
     /// Database operations run in the writer dispatch queue, serialized
     /// with all database updates performed by this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// It is a programmer error to call this method from another database
     /// access method. Doing so raises a "Database methods are not reentrant"
@@ -762,9 +763,9 @@ extension DatabaseWriter {
     /// queue, serialized with all database updates performed by
     /// this `DatabaseWriter`.
     ///
-    /// The `Database` argument to `updates` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter updates: A closure which accesses the database.
@@ -826,7 +827,7 @@ extension DatabaseWriter {
     /// When you use a ``DatabaseQueue``, the results are guaranteed to be
     /// identical, but no scheduling optimization is applied.
     ///
-    /// The `Database` argument to `updates` and `value` is valid only during
+    /// The ``Database`` argument to `updates` and `value` is valid only during
     /// the execution of those closures. Do not store or return the database
     /// connection for later use.
     ///
@@ -867,15 +868,11 @@ extension DatabaseWriter {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that writes into the database. It publishes exactly
-    /// one element, or an error.
+    /// A publisher that writes into the database.
     ///
-    /// See:
+    /// `Write` publishes exactly one element, or an error.
     ///
-    /// - `DatabaseWriter.writePublisher(updates:)`.
-    /// - `DatabaseWriter.writePublisher(updates:thenRead:)`.
-    /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
-    /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
+    /// You build such a publisher from ``DatabaseWriter``.
     public struct Write<Output>: Publisher {
         public typealias Output = Output
         public typealias Failure = Error

@@ -17,19 +17,22 @@
 //     playerRequest.including(required: Player.team) // OK
 //     fruitRequest.including(required: Player.team)  // Does not compile
 
-/// A request that builds SQL query with Swift.
+/// A request that builds SQL queries with Swift.
 ///
-/// For example:
+/// You build a `QueryInterfaceRequest` from a ``TableRecord`` type, or a
+/// ``Table`` instance. For example:
 ///
 /// ```swift
+/// struct Player: TableRecord, FetchableRecord, DecodableRecord { }
+///
 /// try dbQueue.read { db in
 ///     // SELECT * FROM player
-///     // WHERE score > 1000
-///     // ORDER BY name
+///     // WHERE name = 'O''Reilly'
+///     // ORDER BY score DESC
 ///     let request = Player
-///         .filter(Column("score") > 1000)
-///         .order(Column("name"))
-///     let players = try request.fetchAll(db) // [Player]
+///         .filter(Column("name") == "O'Reilly")
+///         .order(Column("score").desc)
+///     let players: [Player] = try request.fetchAll(db)
 /// }
 /// ```
 ///
@@ -362,7 +365,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
 }
 
-extension QueryInterfaceRequest: _JoinableRequest {
+extension QueryInterfaceRequest: JoinableRequest {
     public func _including(all association: _SQLAssociation) -> Self {
         with {
             $0.relation = $0.relation._including(all: association)
@@ -393,8 +396,6 @@ extension QueryInterfaceRequest: _JoinableRequest {
         }
     }
 }
-
-extension QueryInterfaceRequest: JoinableRequest { }
 
 extension QueryInterfaceRequest: TableRequest {
     public var databaseTableName: String {

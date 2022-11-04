@@ -1,13 +1,15 @@
 /// The virtual table module for the FTS4 full-text engine.
 ///
+/// To create FTS4 tables, use the ``Database`` method
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``.
+///
 /// Related SQLite documentation: <https://www.sqlite.org/fts3.html>
 ///
 /// ## Topics
 ///
-/// ### Creating Full-Text Virtual Tables
+/// ### The FTS4 Module
 ///
 /// - ``init()``
-/// - ``Database/create(virtualTable:ifNotExists:using:_:)``
 /// - ``FTS4TableDefinition``
 /// - ``FTS4ColumnDefinition``
 public struct FTS4 {

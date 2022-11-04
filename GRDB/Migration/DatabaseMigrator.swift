@@ -537,10 +537,11 @@ extension DatabaseMigrator {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that migrates a database. It publishes exactly
-    /// one element, or an error.
+    /// A publisher that migrates a database.
     ///
-    /// See `DatabaseMigrator.migratePublisher(_:receiveOn:)`.
+    /// `Migrate` publishes exactly one element, or an error.
+    ///
+    /// You build such a publisher from ``DatabaseMigrator``.
     public struct Migrate: Publisher {
         public typealias Output = Void
         public typealias Failure = Error

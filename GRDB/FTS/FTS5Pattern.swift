@@ -1,5 +1,5 @@
 #if SQLITE_ENABLE_FTS5
-/// A full text pattern that can query FTS5 virtual tables.
+/// A full text pattern for querying FTS5 virtual tables.
 public struct FTS5Pattern {
     
     /// The raw pattern string. Guaranteed to be a valid FTS5 pattern.

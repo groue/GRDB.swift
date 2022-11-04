@@ -254,10 +254,8 @@ extension Database {
 
 /// Table creation options
 public struct TableOptions: OptionSet {
-    /// :nodoc:
     public let rawValue: Int
     
-    /// :nodoc:
     public init(rawValue: Int) { self.rawValue = rawValue }
     
     /// Only creates the table if it does not already exist.
@@ -1607,10 +1605,8 @@ public final class ColumnDefinition {
 
 /// Table creation options
 public struct IndexOptions: OptionSet {
-    /// :nodoc:
     public let rawValue: Int
     
-    /// :nodoc:
     public init(rawValue: Int) { self.rawValue = rawValue }
     
     /// Only creates the index if it does not already exist.

@@ -1,4 +1,4 @@
-/// An ``FTS3`` search pattern.
+/// A full text pattern for querying FTS3 virtual tables.
 ///
 /// `FTS3Pattern` can be used with both ``FTS3`` and ``FTS4`` tables.
 ///

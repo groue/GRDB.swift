@@ -25,7 +25,6 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
         self.attemptToFulfill = attemptToFulfill
     }
     
-    /// :nodoc:
     func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
         let subscription = OnDemandFutureSubscription(
             attemptToFulfill: attemptToFulfill,

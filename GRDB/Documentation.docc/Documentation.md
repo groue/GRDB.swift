@@ -9,81 +9,29 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 ## Topics
 
-### Database Connections
+### Fundamentals
 
-- ``Configuration``
-- ``DatabasePool``
-- ``DatabaseQueue``
-- ``DatabaseSnapshot``
-- ``Database``
-- ``DatabaseReader``
-- ``DatabaseWriter``
-
-### Errors
-
-- ``DatabaseError``
-- ``PersistenceError``
+- <doc:DatabaseConnections>
+- <doc:SQLLanguage>
+- <doc:Errors>
 
 ### Migrations
 
 - ``DatabaseMigrator``
 
-### Database Rows & Values
+### Record Types and the Query Interface
 
-- ``DatabaseValue``
-- ``Row``
-- ``DatabaseValueConvertible``
-- ``StatementColumnConvertible``
-
-### Records
-
-- ``Record``
-- ``EncodableRecord``
-- ``FetchableRecord``
-- ``MutablePersistableRecord``
-- ``PersistableRecord``
-- ``TableRecord``
-
-### Requests
-
-- ``AdaptedFetchRequest``
-- ``QueryInterfaceRequest``
-- ``SQLRequest``
-- ``FetchRequest``
-
-### The Query Interface
-
-- ``AllColumns``
-- ``Column``
-- ``CommonTableExpression``
-- ``ForeignKey``
-- ``QueryInterfaceRequest``
-- ``SQLExpression``
-- ``SQLOrdering``
-- ``SQLSelection``
-- ``SQLSubquery``
-- ``Table``
-- ``Association``
-- ``ColumnExpression``
-- ``DerivableRequest``
-- ``SQLExpressible``
-- ``SQLOrderingTerm``
-- ``SQLSelectable``
-- ``SQLSpecificExpressible``
-- ``SQLSubqueryable``
+- <doc:QueryInterface>
 
 ### Database Observation
 
-- ``AsyncValueObservation``
-- ``DatabaseRegion``
-- ``DatabaseRegionConvertible``
-- ``DatabaseRegionObservation``
-- ``SharedValueObservation``
-- ``ValueObservation``
-- ``ValueObservationScheduler``
-- ``TransactionObserver``
+- <doc:DatabaseObservation>
 
 ### Full-Text Search
 
 - ``FTS3``
 - ``FTS4``
+
+### Combine Publishers
+
+- ``DatabasePublishers``

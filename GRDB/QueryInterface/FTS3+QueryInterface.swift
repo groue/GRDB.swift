@@ -29,17 +29,20 @@ extension TableRecord {
     
     // MARK: Full Text Search
     
-    /// Returns a QueryInterfaceRequest with a matching predicate.
+    /// Returns a request filtered on records that match an ``FTS3``
+    /// full-text pattern.
     ///
-    ///     // SELECT * FROM book WHERE book MATCH '...'
-    ///     var request = Book.matching(pattern)
+    /// For example:
     ///
-    /// If the search pattern is nil, the request does not match any
-    /// database row.
+    /// ```swift
+    /// // SELECT * FROM book WHERE book MATCH 'sqlite OR database'
+    /// let pattern = FTS3Pattern(matchingAnyTokenIn: "SQLite Database")
+    /// let request = Book.matching(pattern)
+    /// ```
     ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    /// If `pattern` is nil, the returned request fetches no row.
+    ///
+    /// - parameter pattern: An ``FTS3Pattern``.
     public static func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<Self> {
         all().matching(pattern)
     }

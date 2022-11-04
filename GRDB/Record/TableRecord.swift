@@ -1,51 +1,145 @@
 import Foundation
 
-/// Types that adopt `TableRecord` declare a particular relationship with
-/// a database table.
+/// A type that builds database queries with the Swift language instead of SQL.
 ///
-/// Types that adopt both `TableRecord` and `FetchableRecord` are granted with
-/// built-in methods that allow to fetch instances identified by key:
+/// A `TableRecord` type is tied to one database table, and can build SQL
+/// queries on that table.
 ///
-///     try Player.fetchOne(db, key: 123)  // Player?
-///     try Citizenship.fetchOne(db, key: ["citizenId": 12, "countryId": 45]) // Citizenship?
+/// To build SQL queries that involve several tables, define some ``Association``
+/// between two `TableRecord` types.
+///
+/// Most of the time, your record types will get `TableRecord` conformance
+/// through the ``MutablePersistableRecord`` or ``PersistableRecord`` protocols,
+/// which provide persistence methods.
+///
+/// ## Topics
+///
+/// ### Configuring the Generated SQL
+///
+/// - ``databaseTableName-3tcw2``
+/// - ``databaseSelection-7iphs``
+/// - ``numberOfSelectedColumns(_:)``
+///
+/// ### Counting Records
+///
+/// - ``fetchCount(_:)``
+///
+/// ### Testing for Record Existence
+///
+/// - ``exists(_:id:)``
+/// - ``exists(_:key:)-60hf2``
+/// - ``exists(_:key:)-6ha6``
+///
+/// ### Deleting Records
+///
+/// - ``deleteAll(_:)``
+/// - ``deleteAll(_:ids:)``
+/// - ``deleteAll(_:keys:)-jbkm``
+/// - ``deleteAll(_:keys:)-5s1jg``
+/// - ``deleteOne(_:id:)``
+/// - ``deleteOne(_:key:)-413u8``
+/// - ``deleteOne(_:key:)-5pdh5``
+///
+/// ### Updating Records
+///
+/// - ``updateAll(_:onConflict:_:)-7vv9x``
+/// - ``updateAll(_:onConflict:_:)-7atfw``
+///
+/// ### Building Query Interface Requests
+///
+/// `TableRecord` provide convenience access to most ``DerivableRequest`` and
+/// ``QueryInterfaceRequest`` methods as static methods on the type itself.
+///
+/// - ``aliased(_:)``
+/// - ``all()``
+/// - ``annotated(with:)-3zi1n``
+/// - ``annotated(with:)-4xoen``
+/// - ``annotated(with:)-8ce7u``
+/// - ``annotated(with:)-79389``
+/// - ``annotated(withOptional:)``
+/// - ``annotated(withRequired:)``
+/// - ``filter(_:)``
+/// - ``filter(id:)``
+/// - ``filter(ids:)``
+/// - ``filter(key:)-9ey53``
+/// - ``filter(key:)-34lau``
+/// - ``filter(keys:)-4hq8y``
+/// - ``filter(keys:)-7skw1``
+/// - ``filter(literal:)``
+/// - ``filter(sql:arguments:)``
+/// - ``having(_:)``
+/// - ``including(all:)``
+/// - ``including(optional:)``
+/// - ``including(required:)``
+/// - ``joining(optional:)``
+/// - ``joining(required:)``
+/// - ``limit(_:offset:)``
+/// - ``matching(_:)``
+/// - ``none()``
+/// - ``order(_:)-9rc11``
+/// - ``order(_:)-2033k``
+/// - ``order(literal:)``
+/// - ``order(sql:arguments:)``
+/// - ``orderByPrimaryKey()``
+/// - ``request(for:)``
+/// - ``select(_:)-1gvtj``
+/// - ``select(_:)-5oylt``
+/// - ``select(_:as:)-1puz3``
+/// - ``select(_:as:)-tjh0``
+/// - ``select(literal:)``
+/// - ``select(literal:as:)``
+/// - ``select(sql:arguments:)``
+/// - ``select(sql:arguments:as:)``
+/// - ``selectPrimaryKey(as:)``
+/// - ``with(_:)``
+///
+/// ### Defining Associations
+///
+/// - ``association(to:)``
+/// - ``association(to:on:)``
+/// - ``belongsTo(_:key:using:)-13t5r``
+/// - ``belongsTo(_:key:using:)-81six``
+/// - ``hasMany(_:key:using:)-45axo``
+/// - ``hasMany(_:key:using:)-10d4k``
+/// - ``hasMany(_:through:using:key:)``
+/// - ``hasOne(_:key:using:)-4g9tm``
+/// - ``hasOne(_:key:using:)-4v5xa``
+/// - ``hasOne(_:through:using:key:)``
 public protocol TableRecord {
-    /// The name of the database table used to build requests.
+    /// The name of the database table used to build SQL queries.
     ///
-    ///     struct Player : TableRecord {
-    ///         static var databaseTableName = "player"
-    ///     }
+    /// For example:
     ///
-    ///     // SELECT * FROM player
-    ///     try Player.fetchAll(db)
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     static var databaseTableName = "player"
+    /// }
+    ///
+    /// // SELECT * FROM player
+    /// try Player.fetchAll(db)
+    /// ```
     static var databaseTableName: String { get }
     
-    /// The default request selection.
+    /// The columns selected by the record.
     ///
-    /// Unless said otherwise, requests select all columns:
+    /// For example:
     ///
-    ///     // SELECT * FROM player
-    ///     try Player.fetchAll(db)
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     static let databaseSelection = [AllColumns()]
+    /// }
     ///
-    /// You can provide a custom implementation and provide an explicit list
-    /// of columns:
+    /// struct PartialPlayer: TableRecord {
+    ///     static let databaseTableName = "player"
+    ///     static let databaseSelection = [Column("id"), Column("name")]
+    /// }
     ///
-    ///     struct RestrictedPlayer : TableRecord {
-    ///         static var databaseTableName = "player"
-    ///         static var databaseSelection = [Column("id"), Column("name")]
-    ///     }
+    /// // SELECT * FROM player
+    /// try Player.fetchAll(db)
     ///
-    ///     // SELECT id, name FROM player
-    ///     try RestrictedPlayer.fetchAll(db)
-    ///
-    /// You can also add extra columns such as the `rowid` column:
-    ///
-    ///     struct ExtendedPlayer : TableRecord {
-    ///         static var databaseTableName = "player"
-    ///         static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
-    ///     }
-    ///
-    ///     // SELECT *, rowid FROM player
-    ///     try ExtendedPlayer.fetchAll(db)
+    /// // SELECT id, name FROM player
+    /// try PartialPlayer.fetchAll(db)
+    /// ```
     static var databaseSelection: [any SQLSelectable] { get }
 }
 
@@ -58,7 +152,7 @@ extension TableRecord {
     /// - PostalAddress -> "postalAddress"
     /// - HTTPRequest -> "httpRequest"
     /// - TOEFL -> "toefl"
-    internal static var defaultDatabaseTableName: String {
+    static var defaultDatabaseTableName: String {
         if let cached = defaultDatabaseTableNameCache.object(forKey: "\(Self.self)" as NSString) {
             return cached as String
         }
@@ -79,18 +173,19 @@ extension TableRecord {
         return tableName
     }
     
-    /// The default name of the database table used to build requests.
+    /// The default name of the database table is derived from the name of
+    /// the type.
     ///
-    /// - Player -> "player"
-    /// - Place -> "place"
-    /// - PostalAddress -> "postalAddress"
-    /// - HTTPRequest -> "httpRequest"
-    /// - TOEFL -> "toefl"
+    /// - `Player` -> "player"
+    /// - `Place` -> "place"
+    /// - `PostalAddress` -> "postalAddress"
+    /// - `HTTPRequest` -> "httpRequest"
+    /// - `TOEFL` -> "toefl"
     public static var databaseTableName: String {
         defaultDatabaseTableName
     }
     
-    /// Default value: `[AllColumns()]`.
+    /// The default selection is all columns: `[AllColumns()]`.
     public static var databaseSelection: [any SQLSelectable] {
         [AllColumns()]
     }
@@ -100,7 +195,18 @@ extension TableRecord {
     
     // MARK: - Counting All
     
-    /// The number of records.
+    /// Returns the number of records in the database table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// try dbQueue.read { db in
+    ///     // SELECT COUNT(*) FROM player
+    ///     let count = try Player.fetchCount(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     public static func fetchCount(_ db: Database) throws -> Int {
@@ -116,20 +222,25 @@ extension TableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: TableRecord {
-    ///         static let databaseTableName = "player"
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// struct PartialPlayer: TableRecord {
+    ///     static let databaseTableName = "player"
+    ///     static let databaseSelection = [Column("id"), Column("name")]
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     try db.create(table: "player") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
+    ///         t.column("name", .text)
+    ///         t.column("score", .integer)
     ///     }
     ///
-    ///     try dbQueue.write { db in
-    ///         try db.create(table: "player") { t in
-    ///             t.autoIncrementedPrimaryKey("id")
-    ///             t.column("name", .text)
-    ///             t.column("score", .integer)
-    ///         }
-    ///
-    ///         // 3
-    ///         try Player.numberOfSelectedColumns(db)
-    ///     }
+    ///     try Player.numberOfSelectedColumns(db)        // 3
+    ///     try PartialPlayer.numberOfSelectedColumns(db) // 2
+    /// }
+    /// ```
     public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
         // The alias makes it possible to count the columns in `SELECT *`:
         let alias = TableAlias(tableName: databaseTableName)
@@ -146,8 +257,19 @@ extension TableRecord {
 
     /// Deletes all records, and returns the number of deleted records.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player
+    ///     let count = try Player.deleteAll(db)
+    /// }
+    /// ```
+    ///
     /// - parameter db: A database connection.
-    /// - returns: The number of deleted records
+    /// - returns: The number of deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
@@ -160,13 +282,17 @@ extension TableRecord {
 extension TableRecord {
     /// Returns whether a record exists for this primary key.
     ///
-    ///     try Player.exists(db, key: 123)
-    ///     try Country.exists(db, key: "FR")
+    /// All single-column primary keys are supported:
     ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Country: TableRecord { }
     ///
-    ///     try Document.exists(db, key: 1)
+    /// try dbQueue.read { db in
+    ///     let playerExists = try Player.exists(db, key: 1)
+    ///     let countryExists = try Country.exists(db, key: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -181,13 +307,21 @@ extension TableRecord {
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
-    ///     try Player.deleteOne(db, id: 123)
-    ///     try Country.deleteOne(db, id: "FR")
+    /// All single-column primary keys are supported:
     ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
+    /// ```swift
+    /// struct Player: TableRecord, Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: TableRecord, Identifiable {
+    ///     var id: String
+    /// }
     ///
-    ///     try Document.deleteOne(db, id: 1)
+    /// try dbQueue.read { db in
+    ///     let playerExists = try Player.exists(db, id: 1)
+    ///     let countryExists = try Country.exists(db, id: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -205,14 +339,30 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
 // MARK: - Check Existence by Key
 
 extension TableRecord {
-    /// Returns whether a record exists for this unique key (primary key or any
-    /// key with a unique index on it).
+    /// Returns whether a record exists for this primary or unique key.
     ///
-    ///     try Player.exists(db, key: ["name": Arthur"])
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Citizenship: TableRecord { }
+    ///
+    /// try dbQueue.read { db in
+    ///     let playerExists = Player.exists(db, key: ["id": 1])
+    ///     let playerExists = Player.exists(db, key: ["email": "arthur@example.com"])
+    ///     let citizenshipExists = Citizenship.exists(db, key: [
+    ///         "citizenId": 1,
+    ///         "countryCode": "FR",
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A unique key.
     /// - returns: Whether a record exists for this key.
     public static func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
@@ -222,26 +372,28 @@ extension TableRecord {
 // MARK: - Deleting by Single-Column Primary Key
 
 extension TableRecord {
-    
-    /// Delete records identified by their primary keys, and returns the number
+    /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
     ///
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Country: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
     ///     try Player.deleteAll(db, keys: [1, 2, 3])
     ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, keys: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, keys: [1, 2, 3])
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US')
+    ///     try Country.deleteAll(db, keys: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
-    /// - returns: The number of deleted records
+    /// - returns: The number of deleted records.
     @discardableResult
     public static func deleteAll<Keys>(_ db: Database, keys: Keys)
     throws -> Int
@@ -255,20 +407,23 @@ extension TableRecord {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Delete a record, identified by its primary key, and returns whether a
+    /// Deletes the record identified by its primary key, and returns whether a
     /// record was deleted.
     ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, key: 123)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Country: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try Player.deleteOne(db, key: 1)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
     ///     try Country.deleteOne(db, key: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, key: 1)
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -286,25 +441,32 @@ extension TableRecord {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
-    /// Delete records identified by their primary keys, and returns the number
+    /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
     ///
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: TableRecord, Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// try dbQueue.write { db in
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
     ///     try Player.deleteAll(db, ids: [1, 2, 3])
     ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, ids: [1, 2, 3])
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US')
+    ///     try Country.deleteAll(db, ids: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted records
+    /// - returns: The number of deleted records.
     @discardableResult
     public static func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
     where IDS: Collection, IDS.Element == ID
@@ -316,20 +478,27 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
         return try filter(ids: ids).deleteAll(db)
     }
     
-    /// Delete a record, identified by its primary key, and returns whether a
+    /// Deletes the record identified by its primary key, and returns whether a
     /// record was deleted.
     ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, id: 123)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: TableRecord, Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try Player.deleteOne(db, id: 1)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
     ///     try Country.deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, id: 1)
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -344,16 +513,36 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
 // MARK: - Deleting by Key
 
 extension TableRecord {
-    /// Delete records identified by the provided unique keys (primary key or
-    /// any key with a unique index on it), and returns the number of
-    /// deleted records.
+    /// Deletes records identified by their primary or unique keys, and returns
+    /// the number of deleted records.
     ///
-    ///     try Player.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Citizenship: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try Player.deleteAll(db, keys: [["id": 1]])
+    ///     
+    ///     // DELETE FROM player WHERE email = 'arthur@example.com'
+    ///     try Player.deleteAll(db, keys: [["email": "arthur@example.com"]])
+    ///
+    ///     // DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    ///     try Citizenship.deleteAll(db, keys: [
+    ///         ["citizenId": 1, "countryCode": "FR"],
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
-    /// - returns: The number of deleted records
+    /// - returns: The number of deleted records.
     @discardableResult
     public static func deleteAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Int {
         if keys.isEmpty {
@@ -363,12 +552,32 @@ extension TableRecord {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Delete a record, identified by a unique key (the primary key or any key
-    /// with a unique index on it), and returns whether a database record
-    /// was deleted.
+    /// Deletes the record identified by its primary or unique keys, and returns
+    /// whether a record was deleted.
     ///
-    ///     Player.deleteOne(db, key: ["name": Arthur"])
+    /// For example:
     ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// struct Citizenship: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try Player.deleteOne(db, key: ["id": 1])
+    ///
+    ///     // DELETE FROM player WHERE email = 'arthur@example.com'
+    ///     try Player.deleteOne(db, key: ["email": "arthur@example.com"])
+    ///
+    ///     // DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    ///     try Citizenship.deleteOne(db, key: [
+    ///         "citizenId": 1,
+    ///         "countryCode": "FR",
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
@@ -387,10 +596,14 @@ extension TableRecord {
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, [Column("score").set(to: 0)])
-    ///     }
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db, [Column("score").set(to: 0)])
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
@@ -412,10 +625,14 @@ extension TableRecord {
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, Column("score").set(to: 0))
-    ///     }
+    /// ```swift
+    /// struct Player: TableRecord { }
+    /// 
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db, Column("score").set(to: 0))
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,

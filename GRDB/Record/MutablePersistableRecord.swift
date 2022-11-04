@@ -1,4 +1,48 @@
-/// A type that can be persisted in a database row.
+/// A type that can be persisted in the database, and mutates on insertion.
+///
+/// ## Overview
+///
+/// A `MutablePersistableRecord` instance mutates on insertion. This protocol
+/// is suited for record types that are a `struct`, and target a database table
+/// where ids are generated on insertion. Such records implement the
+/// ``didInsert(_:)-109jm`` callback in order to grab this id. For example:
+///
+/// ```swift
+/// // CREATE TABLE player (
+/// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+/// //   name TEXT NOT NULL,
+/// //   score INTEGER NOT NULL
+/// // )
+/// struct Player: Encodable {
+///     var id: Int64?
+///     var name: String
+///     var score: Int
+/// }
+///
+/// extension Player: MutablePersistableRecord {
+///     mutating func didInsert(_ inserted: InsertionSuccess) {
+///         id = inserted.rowID
+///     }
+/// }
+///
+/// try dbQueue.write { db in
+///     var player = Player(id: nil, name:: "Arthur", score: 1000)
+///     try player.insert(db)
+///     print(player.id) // Some id that is not nil
+/// }
+/// ```
+///
+/// Other record types (classes, and generally records that do not mutate on
+/// insertion) should prefer the ``PersistableRecord`` protocol instead.
+///
+/// ## Conforming to the MutablePersistableRecord Protocol
+///
+/// To conform to `MutablePersistableRecord`, provide an implementation for the
+/// ``EncodableRecord/encode(to:)-k9pf`` method. This implementation is
+/// ready-made for `Encodable` types.
+///
+/// You configure the database table where records are persisted with the
+/// ``TableRecord`` inherited protocol.
 ///
 /// ## Topics
 ///
@@ -21,6 +65,8 @@
 /// - ``upsertAndFetch(_:as:onConflict:doUpdate:)``
 ///
 /// ### Updating a Record
+///
+/// See inherited ``TableRecord`` methods for batch updates.
 ///
 /// - ``update(_:onConflict:)``
 /// - ``update(_:onConflict:columns:)-4foo1``
@@ -50,16 +96,11 @@
 /// - ``saveAndFetch(_:onConflict:as:)``
 /// - ``saveAndFetch(_:onConflict:selection:fetch:)``
 ///
-/// ### Deleting Records
+/// ### Deleting a Record
+///
+/// See inherited ``TableRecord`` methods for batch deletes.
 ///
 /// - ``delete(_:)``
-/// - ``TableRecord/deleteAll(_:)``
-/// - ``TableRecord/deleteAll(_:ids:)``
-/// - ``TableRecord/deleteAll(_:keys:)-jbkm``
-/// - ``TableRecord/deleteAll(_:keys:)-5s1jg``
-/// - ``TableRecord/deleteOne(_:id:)``
-/// - ``TableRecord/deleteOne(_:key:)-413u8``
-/// - ``TableRecord/deleteOne(_:key:)-5pdh5``
 ///
 /// ### Persistence Callbacks
 ///
@@ -109,13 +150,15 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: MutablePersistableRecord {
-    ///         func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
-    ///             print("Player will insert")
-    ///             _ = try insert()
-    ///             print("Player did insert")
-    ///         }
+    /// ```swift
+    /// struct Player: MutablePersistableRecord {
+    ///     func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+    ///         print("Player will insert")
+    ///         _ = try insert()
+    ///         print("Player did insert")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter insert: A function that inserts the record, and returns
@@ -129,14 +172,16 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// You can provide a custom implementation in order to grab the
     /// auto-incremented id:
     ///
-    ///     struct Player: MutablePersistableRecord {
-    ///         var id: Int64?
-    ///         var name: String
+    /// ```swift
+    /// struct Player: MutablePersistableRecord {
+    ///     var id: Int64?
+    ///     var name: String
     ///
-    ///         mutating func didInsert(_ inserted: InsertionSuccess) {
-    ///             id = inserted.rowID
-    ///         }
+    ///     mutating func didInsert(_ inserted: InsertionSuccess) {
+    ///         id = inserted.rowID
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter inserted: Information about the inserted row.
     mutating func didInsert(_ inserted: InsertionSuccess)
@@ -159,13 +204,14 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: MutablePersistableRecord {
-    ///         func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
-    ///             print("Player will update")
-    ///             _ = try update()
-    ///             print("Player did update")
-    ///         }
+    /// ```swift
+    /// struct Player: MutablePersistableRecord {
+    ///     func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
+    ///         print("Player will update")
+    ///         _ = try update()
+    ///         print("Player did update")
     ///     }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter columns: The updated columns.
@@ -198,13 +244,15 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: MutablePersistableRecord {
-    ///         func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
-    ///             print("Player will save")
-    ///             _ = try save()
-    ///             print("Player did save")
-    ///         }
+    /// ```swift
+    /// struct Player: MutablePersistableRecord {
+    ///     func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+    ///         print("Player will save")
+    ///         _ = try save()
+    ///         print("Player did save")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter update: A function that updates the record. Its result is
@@ -235,13 +283,15 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// For example:
     ///
-    ///     struct Player: MutablePersistableRecord {
-    ///         func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
-    ///             print("Player will delete")
-    ///             _ = try delete()
-    ///             print("Player did delete")
-    ///         }
+    /// ```swift
+    /// struct Player: MutablePersistableRecord {
+    ///     func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+    ///         print("Player will delete")
+    ///         _ = try delete()
+    ///         print("Player did delete")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter delete: A function that deletes the record and returns
@@ -307,7 +357,6 @@ public enum PersistenceError: Error {
 }
 
 extension PersistenceError: CustomStringConvertible {
-    /// :nodoc:
     public var description: String {
         switch self {
         case let .recordNotFound(databaseTableName: databaseTableName, key: key):
@@ -340,35 +389,39 @@ public struct PersistenceConflictPolicy {
 /// The result of a successful record insertion.
 ///
 /// `InsertionSuccess` gives the auto-incremented id after a successful
-/// record insertion:
+/// record insertion. For example:
 ///
-///     struct Player: Encodable, MutablePersistableRecord {
-///         var id: Int64?
-///         var name: String
+/// ```swift
+/// struct Player: Encodable, MutablePersistableRecord {
+///     var id: Int64?
+///     var name: String
 ///
-///         mutating func didInsert(_ inserted: InsertionSuccess) {
-///             id = inserted.rowID
-///         }
+///     mutating func didInsert(_ inserted: InsertionSuccess) {
+///         id = inserted.rowID
 ///     }
+/// }
 ///
-///     try dbQueue.write { db in
-///         var player = Player(id: nil, name: "Alice")
-///         try player.insert(db)
-///         print(player.id) // The inserted id
-///     }
+/// try dbQueue.write { db in
+///     var player = Player(id: nil, name: "Alice")
+///     try player.insert(db)
+///     print(player.id) // The inserted id
+/// }
+/// ```
 public struct InsertionSuccess {
     /// The rowid of the inserted record.
     ///
     /// For example:
     ///
-    ///     struct Player: Encodable, MutablePersistableRecord {
-    ///         var id: Int64?
-    ///         var name: String
+    /// ```swift
+    /// struct Player: Encodable, MutablePersistableRecord {
+    ///     var id: Int64?
+    ///     var name: String
     ///
-    ///         mutating func didInsert(_ inserted: InsertionSuccess) {
-    ///             id = inserted.rowID
-    ///         }
+    ///     mutating func didInsert(_ inserted: InsertionSuccess) {
+    ///         id = inserted.rowID
     ///     }
+    /// }
+    /// ```
     ///
     /// To learn about rowids, see <https://www.sqlite.org/lang_createtable.html#rowids_and_the_integer_primary_key>.
     public var rowID: Int64

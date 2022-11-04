@@ -3,7 +3,7 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for types that can read from an SQLite database.
+/// The protocol for types that read from an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseReader`. Only the
 /// ``DatabaseQueue``, ``DatabasePool``, and ``DatabaseSnapshot`` types are
@@ -157,8 +157,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// The database connection is read-only: attempts to write throw a
     /// ``DatabaseError`` with resultCode `SQLITE_READONLY`.
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// It is a programmer error to call this method from another database
@@ -215,8 +215,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// }
     /// ```
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// It is a programmer error to call this method from another database
@@ -286,8 +286,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// }
     /// ```
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
@@ -310,7 +310,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// method instead.
     ///
     /// - parameter observation: a ValueObservation.
-    /// - returns: a cancellable.
+    /// - returns: A DatabaseCancellable that can stop the observation.
     func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
@@ -422,8 +422,8 @@ extension DatabaseReader {
     /// The database connection is read-only: attempts to write throw a
     /// ``DatabaseError`` with resultCode `SQLITE_READONLY`.
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// - parameter value: A closure which accesses the database.
@@ -460,8 +460,8 @@ extension DatabaseReader {
     /// }
     /// ```
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
@@ -512,8 +512,8 @@ extension DatabaseReader {
     /// The database connection is read-only: attempts to write throw a
     /// ``DatabaseError`` with resultCode `SQLITE_READONLY`.
     ///
-    /// The `Database` argument to `value` is valid only during the execution of
-    /// the closure. Do not store or return the database connection for
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
     /// - parameter scheduler: A Combine Scheduler.
@@ -538,11 +538,11 @@ extension DatabaseReader {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A Combine publisher that reads a value from the database.
+    /// A publisher that reads from the database.
     ///
     /// `Read` publishes exactly one element, or an error.
     ///
-    /// See ``DatabaseReader/readPublisher(receiveOn:value:)``
+    /// You build such a publisher from ``DatabaseReader``.
     public struct Read<Output>: Publisher {
         public typealias Output = Output
         public typealias Failure = Error

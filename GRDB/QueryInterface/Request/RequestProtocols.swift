@@ -347,9 +347,10 @@ public protocol TableRequest {
     /// // JOIN author ON author.id = book.authorId
     /// // WHERE book.publishDate >= author.deathDate
     /// let authorAlias = TableAlias()
-    /// let request = Book
+    /// let posthumousBooks = try Book
     ///     .joining(required: Book.author.aliased(authorAlias))
     ///     .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    ///     .fetchAll(db)
     /// ```
     ///
     /// The second example sorts books by author name first, and then by title:
@@ -360,9 +361,10 @@ public protocol TableRequest {
     /// // JOIN author ON author.id = book.authorId
     /// // ORDER BY author.name, book.title
     /// let authorAlias = TableAlias()
-    /// let request = Book
+    /// let books = try Book
     ///     .joining(required: Book.author.aliased(authorAlias))
     ///     .order(authorAlias[Column("name")], Column("title"))
+    ///     .fetchAll(db)
     /// ```
     ///
     /// The third example uses named ``TableAlias`` so that SQL snippets can
@@ -376,10 +378,11 @@ public protocol TableRequest {
     /// // WHERE b.publishDate >= a.deathDate
     /// let bookAlias = TableAlias(name: "b")
     /// let authorAlias = TableAlias(name: "a")
-    /// let request = Book.aliased(bookAlias)
+    /// let posthumousFrenchBooks = try Book.aliased(bookAlias)
     ///     .joining(required: Book.author.aliased(authorAlias)
     ///         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
     ///     .filter(sql: "b.publishDate >= a.deathDate")
+    ///     .fetchAll(db)
     /// ```
     func aliased(_ alias: TableAlias) -> Self
 }
@@ -480,7 +483,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///
     /// ```swift
     /// // SELECT * FROM player WHERE id = 1
-    /// let request = Player.all().filter(keys: ["id": 1])
+    /// let request = Player.all().filter(key: ["id": 1])
     ///
     /// // SELECT * FROM player WHERE email = 'arthur@example.com'
     /// let request = Player.all().filter(key: ["email": "arthur@example.com"])
@@ -495,7 +498,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter key: A unique key
+    /// - parameter key: A unique key.
     public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> Self {
         guard let key else {
             return none()
@@ -613,6 +616,19 @@ where Self: FilteredRequest,
 
 extension TableRequest where Self: OrderedRequest {
     /// Sorts the fetched rows according to the primary key.
+    ///
+    /// All primary keys are supported:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY id
+    /// let request = Player.all().orderByPrimaryKey()
+    ///
+    /// // SELECT * FROM country ORDER BY code
+    /// let request = Country.all().orderByPrimaryKey()
+    ///
+    /// // SELECT * FROM citizenship ORDER BY citizenId, countryCode
+    /// let request = Citizenship.all().orderByPrimaryKey()
+    /// ```
     ///
     /// Any previous ordering is discarded.
     public func orderByPrimaryKey() -> Self {
@@ -1017,8 +1033,32 @@ extension OrderedRequest {
 
 // MARK: - JoinableRequest
 
-/// Implementation details of `JoinableRequest`.
-public protocol _JoinableRequest {
+/// A request that can join and prefetch associations.
+///
+/// `JoinableRequest` is adopted by ``QueryInterfaceRequest`` and all
+/// types conforming to ``Association``.
+///
+/// It provides the methods that build requests involving several tables linked
+/// through associations.
+///
+/// ## Topics
+///
+/// ### Extending the Selection with Columns of Associated Records
+///
+/// - ``annotated(withOptional:)``
+/// - ``annotated(withRequired:)``
+///
+/// ### Prefetching Associated Records
+///
+/// - ``including(all:)``
+/// - ``including(optional:)``
+/// - ``including(required:)``
+///
+/// ### Joining Associated Records
+///
+/// - ``joining(optional:)``
+/// - ``joining(required:)``
+public protocol JoinableRequest<RowDecoder>: TypedRequest {
     /// Creates a request that prefetches an association.
     func _including(all association: _SQLAssociation) -> Self
     
@@ -1042,21 +1082,6 @@ public protocol _JoinableRequest {
     /// that the associated database table contains a matching row.
     func _joining(required association: _SQLAssociation) -> Self
 }
-
-/// A request that can join and prefetch associations.
-///
-/// ## Topics
-///
-/// ### Associations
-///
-/// - ``annotated(withOptional:)``
-/// - ``annotated(withRequired:)``
-/// - ``including(all:)``
-/// - ``including(optional:)``
-/// - ``including(required:)``
-/// - ``joining(optional:)``
-/// - ``joining(required:)``
-public protocol JoinableRequest<RowDecoder>: TypedRequest, _JoinableRequest { }
 
 extension JoinableRequest {
     /// Returns a request that fetches all records associated with each record
@@ -1271,7 +1296,8 @@ extension JoinableRequest where Self: SelectionRequest {
 
 // MARK: - DerivableRequest
 
-/// The base protocol for ``QueryInterfaceRequest`` and ``Association``.
+/// `DerivableRequest` is the base protocol for ``QueryInterfaceRequest``
+/// and ``Association``.
 ///
 /// Most features of `DerivableRequest` come from the protocols it
 /// inherits from.

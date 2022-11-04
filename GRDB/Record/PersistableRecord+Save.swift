@@ -10,7 +10,7 @@ extension PersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
-    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
@@ -48,7 +48,7 @@ extension PersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
-    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
@@ -91,7 +91,7 @@ extension PersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
-    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
@@ -136,7 +136,7 @@ extension PersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
-    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
@@ -180,7 +180,7 @@ extension PersistableRecord {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
-    ///   nil, <doc:MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
@@ -219,7 +219,7 @@ extension PersistableRecord {
 #endif
 }
 
-// MARK: - Internals
+// MARK: - Internal
 
 extension PersistableRecord {
     /// Executes an `UPDATE` or `INSERT` statement, and runs insertion or

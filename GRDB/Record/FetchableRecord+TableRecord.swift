@@ -7,6 +7,8 @@ extension FetchableRecord where Self: TableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
     /// try dbQueue.read { db in
     ///     // SELECT * FROM player
     ///     let players = try Player.fetchCursor(db)
@@ -37,6 +39,8 @@ extension FetchableRecord where Self: TableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
     /// try dbQueue.read { db in
     ///     // SELECT * FROM player
     ///     let players = try Player.fetchAll(db)
@@ -57,6 +61,8 @@ extension FetchableRecord where Self: TableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
     /// try dbQueue.read { db in
     ///     // SELECT * FROM player LIMIT 1
     ///     let player = try Player.fetchOne(db)
@@ -76,6 +82,8 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable { }
+    ///
     /// try dbQueue.read { db in
     ///     // SELECT * FROM player
     ///     let players = try Player.fetchSet(db)

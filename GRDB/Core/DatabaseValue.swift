@@ -4,19 +4,24 @@ import Foundation
 ///
 /// To get `DatabaseValue` instances, you can:
 ///
-/// - Fetch `DatabaseValue` from the database:
+/// - Fetch `DatabaseValue` from a ``Database`` instace:
 ///
 ///     ```swift
 ///     try dbQueue.read { db in
-///         let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT name FROM player")
+///         let dbValue = try DatabaseValue.fetchOne(db, sql: """
+///             SELECT name FROM player
+///             """)
 ///     }
 ///     ```
 ///
-/// - Extract `DatabaseValue` from a database row:
+/// - Extract `DatabaseValue` from a database ``Row``:
 ///
 ///     ```swift
 ///     try dbQueue.read { db in
-///         if let row = try Row.fetchOne(db, sql: "SELECT name FROM player") {
+///         if let row = try Row.fetchOne(db, sql: """
+///             SELECT name FROM player
+///             """)
+///         {
 ///             let dbValue = row[0] as DatabaseValue
 ///         }
 ///     }
@@ -26,12 +31,26 @@ import Foundation
 ///   ``DatabaseValueConvertible`` value:
 ///
 ///     ```swift
+///     let dbValue = DatabaseValue.null
 ///     let dbValue = 1.databaseValue
 ///     let dbValue = "Arthur".databaseValue
 ///     let dbValue = Date().databaseValue
 ///     ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/datatype3.html>
+///
+/// ## Topics
+///
+/// ### Creating a DatabaseValue
+///
+/// - ``init(value:)``
+/// - ``null``
+///
+/// ### Accessing the SQLite storage
+///
+/// - ``isNull``
+/// - ``storage-swift.property``
+/// - ``Storage-swift.enum``
 public struct DatabaseValue: Hashable {
     /// The SQLite storage.
     public let storage: Storage
@@ -44,7 +63,7 @@ public struct DatabaseValue: Hashable {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes>
     @frozen
-    public enum Storage: Equatable {
+    public enum Storage {
         /// The NULL storage class.
         case null
         
@@ -73,22 +92,6 @@ public struct DatabaseValue: Hashable {
                 return string
             case .blob(let data):
                 return data
-            }
-        }
-        
-        /// Return true if the storages are identical.
-        ///
-        /// Unlike ``DatabaseValue`` equality that considers the integer 1 as
-        /// equal to the 1.0 double (as SQLite does), int64 and double storages
-        /// are never equal.
-        public static func == (_ lhs: Storage, _ rhs: Storage) -> Bool {
-            switch (lhs, rhs) {
-            case (.null, .null): return true
-            case let (.int64(lhs), .int64(rhs)): return lhs == rhs
-            case let (.double(lhs), .double(rhs)): return lhs == rhs
-            case let (.string(lhs), .string(rhs)): return lhs == rhs
-            case let (.blob(lhs), .blob(rhs)): return lhs == rhs
-            default: return false
             }
         }
     }
@@ -193,6 +196,24 @@ extension DatabaseValue: Sendable { }
 extension DatabaseValue.Storage: @unchecked Sendable { }
 
 // MARK: - Hashable & Equatable
+
+extension DatabaseValue.Storage: Equatable {
+    /// Return true if the storages are identical.
+    ///
+    /// Unlike ``DatabaseValue`` equality that considers the integer 1 as
+    /// equal to the 1.0 double (as SQLite does), int64 and double storages
+    /// are never equal.
+    public static func == (_ lhs: Self, _ rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.null, .null): return true
+        case let (.int64(lhs), .int64(rhs)): return lhs == rhs
+        case let (.double(lhs), .double(rhs)): return lhs == rhs
+        case let (.string(lhs), .string(rhs)): return lhs == rhs
+        case let (.blob(lhs), .blob(rhs)): return lhs == rhs
+        default: return false
+        }
+    }
+}
 
 extension DatabaseValue: Equatable {
     /// Returns whether two ``DatabaseValue`` are equal.

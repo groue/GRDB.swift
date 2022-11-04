@@ -38,13 +38,14 @@
 /// - ``makePreparedRequest(_:forSingleResult:)``
 /// - ``PreparedRequest``
 ///
-/// ### Support for Database Observation
+/// ### Database Observation Support
 ///
 /// - ``databaseRegion(_:)``
 ///
 /// ### Adapting the Fetched Rows
 ///
 /// - ``adapted(_:)``
+/// - ``AdaptedFetchRequest``
 ///
 /// ### Supporting Types
 ///

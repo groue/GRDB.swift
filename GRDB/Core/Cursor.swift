@@ -214,13 +214,13 @@ extension Sequence {
 ///
 /// ## Overview
 ///
-/// The most common way to iterate over the elements of a cursor is to use a
-/// `while` loop:
+/// To iterate over the elements of a cursor, use a `while` loop:
 ///
-///     let cursor = ...
-///     while let element = try cursor.next() {
-///         ...
-///     }
+/// ```swift
+/// while let element = try cursor.next() {
+///     print(element)
+/// }
+/// ```
 ///
 /// ## Relationship with standard Sequence and IteratorProtocol
 ///
@@ -237,6 +237,20 @@ extension Sequence {
 /// `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`,
 /// `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`,
 /// `suffix`.
+///
+/// ## Topics
+///
+/// ### Supporting Types
+///
+/// - ``AnyCursor``
+/// - ``DropFirstCursor``
+/// - ``DropWhileCursor``
+/// - ``EnumeratedCursor``
+/// - ``FilterCursor``
+/// - ``FlattenCursor``
+/// - ``MapCursor``
+/// - ``PrefixCursor``
+/// - ``PrefixWhileCursor``
 public protocol Cursor<Element>: AnyObject {
     /// The type of element traversed by the cursor.
     associatedtype Element

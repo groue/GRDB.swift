@@ -1,42 +1,35 @@
 import Foundation
 
-/// A type that can be decoded from a database row.
+/// A type that can decode itself from a database row.
+///
+/// To conform to `FetchableRecord`, provide an implementation for the
+/// ``init(row:)-9w9yp`` initializer. This implementation is ready-made for
+/// `Decodable` types.
 ///
 /// For example:
 ///
 /// ```swift
+/// struct Player: FetchableRecord, Decodable {
+///     var name: String
+///     var score: Int
+/// }
+///
 /// if let row = try Row.fetchOne(db, sql: "SELECT * FROM player") {
 ///     let player = try Player(row: row)
 /// }
 /// ```
 ///
-/// The protocol comes with built-in methods that allow to fetch cursors,
-/// arrays, sets, or single records:
+/// If you add conformance to ``TableRecord``, the record type can generate
+/// SQL queries for you:
 ///
 /// ```swift
-/// let lastName = "O'Reilly"
+/// struct Player: FetchableRecord, TableRecord, Decodable {
+///     var name: String
+///     var score: Int
+/// }
 ///
-/// // Raw SQL
-/// let players = try Player.fetchAll(db, sql: """
-///     SELECT * FROM player WHERE lastName = ?
-///     """,
-///     arguments: [lastName])
-///
-/// // Prepared Statements
-/// let statement = try db.makeStatement(sql: """
-///     SELECT * FROM player WHERE lastName = ?
-///     """)
-/// let players = try Player.fetchAll(statement, arguments: [lastName])
-///
-/// // SQL Requests
-/// let request: SQLRequest<Player> = """
-///     SELECT * FROM player WHERE lastName = \(lastName)
-///     """
-/// let players = try request.fetchAll(db)
-///
-/// // Query Interface Requests
-/// let request = Player.filter(Column("lastName") == lastName)
-/// let players = try request.fetchAll(db)
+/// let players = try Player.fetchAll(db)
+/// let players = try Player.order(Column("score")).fetchAll(db)
 /// ```
 ///
 /// ## Topics
@@ -96,6 +89,8 @@ import Foundation
 /// - ``databaseDateDecodingStrategy-78y03``
 /// - ``databaseDecodingUserInfo-77jim``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
+/// - ``DatabaseColumnDecodingStrategy``
+/// - ``DatabaseDateDecodingStrategy``
 ///
 /// ### Supporting Types
 /// 

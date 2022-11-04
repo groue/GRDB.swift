@@ -1,6 +1,14 @@
 import Foundation // For JSONEncoder
 
-/// A type that can be encoded in a database row.
+/// A type that can encode itself in a database row.
+///
+/// To conform to `EncodableRecord`, provide an implementation for the
+/// ``encode(to:)-k9pf`` method. This implementation is ready-made for
+/// `Encodable` types.
+///
+/// Most of the time, your record types will get `EncodableRecord` conformance
+/// through the ``MutablePersistableRecord`` or ``PersistableRecord`` protocols,
+/// which provide persistence methods.
 ///
 /// ## Topics
 ///
@@ -313,8 +321,6 @@ public struct PersistenceContainer {
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
-    ///
-    /// :nodoc:
     subscript(caseInsensitive column: String) -> (any DatabaseValueConvertible)? {
         get {
             if let value = storage[column] {

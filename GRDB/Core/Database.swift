@@ -50,9 +50,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``execute(sql:arguments:)``
 /// - ``makeStatement(literal:)``
 /// - ``makeStatement(sql:)``
-/// - ``DatabaseCursor``
-/// - ``Statement``
-/// - ``StatementArguments``
 /// - ``SQLStatementCursor``
 ///
 /// ### Database Transactions
@@ -178,14 +175,14 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
-                registerErrorLogCallback { (_, code, message) in
+                _registerErrorLogCallback { (_, code, message) in
                     guard let logError = Database.logError else { return }
                     guard let message = message.map(String.init) else { return }
                     let resultCode = ResultCode(rawValue: code)
                     logError(resultCode, message)
                 }
             } else {
-                registerErrorLogCallback(nil)
+                _registerErrorLogCallback(nil)
             }
         }
     }
@@ -417,9 +414,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     private func setupDoubleQuotedStringLiterals() {
         if configuration.acceptsDoubleQuotedStringLiterals {
-            enableDoubleQuotedStringLiterals(sqliteConnection)
+            _enableDoubleQuotedStringLiterals(sqliteConnection)
         } else {
-            disableDoubleQuotedStringLiterals(sqliteConnection)
+            _disableDoubleQuotedStringLiterals(sqliteConnection)
         }
     }
     

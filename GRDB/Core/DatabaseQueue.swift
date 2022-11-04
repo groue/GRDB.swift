@@ -260,9 +260,6 @@ extension DatabaseQueue: DatabaseReader {
         })
     }
     
-    /// Performs the same job as asyncConcurrentRead.
-    ///
-    /// :nodoc:
     public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
@@ -287,7 +284,6 @@ extension DatabaseQueue: DatabaseReader {
     
     // MARK: - Database Observation
     
-    /// :nodoc:
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
@@ -365,15 +361,39 @@ extension DatabaseQueue: DatabaseWriter {
         writer.async { updates(.success($0)) }
     }
     
-    /// Executes database operations outside of any transaction.
-    ///
-    /// The `updates` function runs in the writer dispatch queue, serialized
-    /// with all database updates.
+    /// Executes database operations, and returns their result after they have
+    /// finished executing.
     ///
     /// This method is identical to
     /// ``DatabaseWriter/writeWithoutTransaction(_:)-4qh1w``
     ///
-    /// - parameter updates: A function that accesses the database.
+    /// For example:
+    ///
+    /// ```swift
+    /// let newPlayerCount = try dbQueue.inDatabase { db in
+    ///     try Player(name: "Arthur").insert(db)
+    ///     return try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// Database operations run in the writer dispatch queue, serialized
+    /// with all database updates performed by this `DatabaseWriter`.
+    ///
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
+    ///
+    /// It is a programmer error to call this method from another database
+    /// access method. Doing so raises a "Database methods are not reentrant"
+    /// fatal error at runtime.
+    ///
+    /// - warning: Database operations are not wrapped in a transaction. They
+    ///   can see changes performed by concurrent writes or writes performed by
+    ///   other processes: two identical requests performed by the `updates`
+    ///   closure may not return the same value. Concurrent database accesses
+    ///   can see partial updates performed by the `updates` closure.
+    ///
+    /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     public func inDatabase<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)

@@ -1,9 +1,9 @@
 import Foundation
 
-/// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible, Codable {
+/// A database value that holds date components.
+public struct DatabaseDateComponents {
     
-    /// The available formats for reading and storing date components.
+    /// The SQLite formats for date components.
     public enum Format: String {
         
         /// The format "yyyy-MM-dd".
@@ -43,8 +43,6 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
     }
     
-    // MARK: - NSDateComponents conversion
-    
     /// The date components
     public let dateComponents: DateComponents
     
@@ -61,9 +59,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         self.format = format
         self.dateComponents = dateComponents
     }
-    
-    // MARK: - StatementColumnConvertible adoption
-    
+}
+
+extension DatabaseDateComponents: StatementColumnConvertible {
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameters:
@@ -86,9 +84,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         self.init(components.dateComponents, format: components.format)
     }
-    
-    // MARK: - DatabaseValueConvertible adoption
-    
+}
+
+extension DatabaseDateComponents: DatabaseValueConvertible {
     /// Returns a TEXT database value.
     public var databaseValue: DatabaseValue {
         let dateString: String?
@@ -151,14 +149,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         
         return SQLiteDateParser().components(from: string)
     }
-    
-    // MARK: - Codable adoption
-    
-    
-    /// Creates a new instance by decoding from the given decoder.
-    ///
-    /// - parameters:
-    ///     - decoder: The decoder to read data from.
+}
+
+extension DatabaseDateComponents: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let stringValue = try container.decode(String.self)
@@ -168,11 +161,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         self = decodedValue
     }
-    
-    /// Encodes this value into the given encoder.
-    ///
-    /// - parameters:
-    ///     - encoder: The encoder to write data to.
+}
+
+extension DatabaseDateComponents: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(String.fromDatabaseValue(databaseValue)!)

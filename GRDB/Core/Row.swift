@@ -2,6 +2,21 @@ import Foundation
 
 /// A database row.
 ///
+/// To get `Row` instances, you will generally fetch them from a ``Database``
+/// instance. For example:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     let rows = try Row.fetchCursor(db, sql: """
+///         SELECT * FROM player
+///         """)
+///     while let row = try rows.next() {
+///         let id: Int64 = row["id"]
+///         let name: String = row["name"]
+///     }
+/// }
+/// ```
+///
 /// ## Topics
 ///
 /// ### Creating Rows
@@ -28,24 +43,24 @@ import Foundation
 /// - ``subscript(_:)-9c1fw``
 /// - ``subscript(_:)-3jhwm``
 /// - ``subscript(_:)-7krrg``
+/// - ``withUnsafeData(atIndex:_:)``
+/// - ``dataNoCopy(atIndex:)``
 ///
 /// ### Accessing Row Values by Column Name
 ///
 /// - ``subscript(_:)-3tp8o``
 /// - ``subscript(_:)-4k8od``
 /// - ``subscript(_:)-9rbo7``
+/// - ``withUnsafeData(named:_:)``
+/// - ``dataNoCopy(named:)``
 ///
 /// ### Accessing Row Values by Column
 ///
 /// - ``subscript(_:)-9txgm``
 /// - ``subscript(_:)-2esg7``
 /// - ``subscript(_:)-wl9a``
-///
-/// ### Accessing Data Values
-///
+/// - ``withUnsafeData(at:_:)``
 /// - ``dataNoCopy(_:)``
-/// - ``dataNoCopy(atIndex:)``
-/// - ``dataNoCopy(named:)``
 ///
 /// ### Row Scopes & Associated Rows
 ///
@@ -55,22 +70,39 @@ import Foundation
 /// - ``unadapted``
 /// - ``unscoped``
 /// - ``subscript(_:)-4dx01``
-/// - ``subscript(_:)-6ge6t``
 /// - ``subscript(_:)-8god3``
 /// - ``subscript(_:)-jwnx``
+/// - ``subscript(_:)-6ge6t``
 /// - ``PrefetchedRowsView``
 /// - ``ScopesTreeView``
 /// - ``ScopesView``
 ///
-/// ### Fetching Rows
+/// ### Fetching Rows from Raw SQL
+///
+/// - ``fetchCursor(_:sql:arguments:adapter:)``
+/// - ``fetchAll(_:sql:arguments:adapter:)``
+/// - ``fetchSet(_:sql:arguments:adapter:)``
+/// - ``fetchOne(_:sql:arguments:adapter:)``
+///
+/// ### Fetching Rows from a Prepared Statement
+///
+/// - ``fetchCursor(_:arguments:adapter:)``
+/// - ``fetchAll(_:arguments:adapter:)``
+/// - ``fetchSet(_:arguments:adapter:)``
+/// - ``fetchOne(_:arguments:adapter:)``
+///
+/// ### Fetching Rows from a Request
+///
+/// - ``fetchCursor(_:_:)``
+/// - ``fetchAll(_:_:)``
+/// - ``fetchSet(_:_:)``
+/// - ``fetchOne(_:_:)``
 ///
 /// ### Row as RandomAccessCollection
 ///
-/// - ``columnNames``
 /// - ``count-5flaw``
-/// - ``databaseValues``
-/// - ``subscript(_:)-11eb``
-/// - ``RowIndex``
+/// - ``subscript(_:)-68yae``
+/// - ``Index``
 ///
 /// ### Adapting Rows
 ///
@@ -98,17 +130,30 @@ public final class Row {
     
     /// A view on the prefetched associated rows.
     ///
+    /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
+    /// request method.
+    ///
     /// For example:
     ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// struct Author: TableRecord {
+    ///     static let books = hasMany(Book.self)
+    /// }
     ///
-    ///     print(row)
-    ///     // Prints [id:1 name:"Herman Melville"]
+    /// struct Book: TableRecord { }
     ///
-    ///     let bookRows = row.prefetchedRows["books"]
-    ///     print(bookRows[0])
-    ///     // Prints [id:42 title:"Moby-Dick"]
+    /// let request = Author.including(all: Author.books)
+    /// let authorRow = try Row.fetchOne(db, request)!
+    ///
+    /// print(authorRow)
+    /// // Prints [id:1, name:"Herman Melville"]
+    ///
+    /// let bookRows = authorRow.prefetchedRows["books"]!
+    /// print(bookRows[0])
+    /// // Prints [id:42, title:"Moby-Dick", authorId:1]
+    /// print(bookRows[1])
+    /// // Prints [id:57, title:"Pierre", authorId:1]
+    /// ```
     public internal(set) var prefetchedRows = PrefetchedRowsView()
     
     // MARK: - Building rows
@@ -630,99 +675,119 @@ extension Row {
     
     // MARK: - Extracting Records
     
-    /// Returns the record associated with the given scope.
+    /// The record associated to the given scope.
+    ///
+    /// Row scopes can be defined manually, with ``ScopeAdapter``.
+    /// The ``JoinableRequest/including(required:)`` and
+    /// ``JoinableRequest/including(optional:)`` request methods define scopes
+    /// named after the key of included associations between record types.
+    ///
+    /// A depth-first search is performed in all available scopes in the row,
+    /// recursively.
+    ///
+    /// A fatal error is raised if the scope is not available, or contains only
+    /// `NULL` values.
     ///
     /// For example:
     ///
     /// ```swift
-    /// let request = Book.including(required: Book.author)
-    /// let row = try Row.fetchOne(db, request)!
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    /// try print(Book(row: row).title)
-    /// // Prints "Moby-Dick"
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    /// let author: Author = row["author"]
-    /// print(author.name)
-    /// // Prints "Herman Melville"
+    /// struct Country: TableRecord, FetchableRecord { }
+    ///
+    /// // Fetch a book, with its author, and the country of its author.
+    /// let request = Book
+    ///     .including(required: Book.author
+    ///         .including(required: Author.country))
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// let book = try Book(row: bookRow)
+    /// let author: Author = bookRow["author"]
+    /// let country: Country = bookRow["country"]
     /// ```
     ///
-    /// Associated records stored in nested associations are available, too:
+    /// See also: ``scopesTree``
     ///
-    /// ```swift
-    /// let request = Book.including(required: Book.author.including(required: Author.country))
-    /// let row = try Row.fetchOne(db, request)!
-    ///
-    /// try print(Book(row: row).title)
-    /// // Prints "Moby-Dick"
-    ///
-    /// let country: Country = row["country"]
-    /// print(country.name)
-    /// // Prints "United States"
-    /// ```
-    ///
-    /// A fatal error is raised if the scope is not available, or contains only
-    /// null values.
-    ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
-    /// for more information.
+    /// - parameter scope: A scope identifier.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         try! decode(Record.self, forKey: scope)
     }
     
-    /// Returns the eventual record associated with the given scope.
+    /// The eventual record associated to the given scope.
+    ///
+    /// Row scopes can be defined manually, with ``ScopeAdapter``.
+    /// The ``JoinableRequest/including(required:)`` and
+    /// ``JoinableRequest/including(optional:)`` request methods define scopes
+    /// named after the key of included associations between record types.
+    ///
+    /// A depth-first search is performed in all available scopes in the row,
+    /// recursively.
+    ///
+    /// The result is nil if the scope is not available, or contains only
+    /// `NULL` values.
     ///
     /// For example:
     ///
     /// ```swift
-    /// let request = Book.including(optional: Book.author)
-    /// let row = try Row.fetchOne(db, request)!
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    /// try print(Book(row: row).title)
-    /// // Prints "Moby-Dick"
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    /// let author: Author? = row["author"]
-    /// print(author.name)
-    /// // Prints "Herman Melville"
+    /// struct Country: TableRecord, FetchableRecord { }
+    ///
+    /// // Fetch a book, with its author, and the country of its author.
+    /// let request = Book
+    ///     .including(optional: Book.author
+    ///         .including(optional: Author.country))
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// let book = try Book(row: bookRow)
+    /// let author: Author? = bookRow["author"]
+    /// let country: Country? = bookRow["country"]
     /// ```
     ///
-    /// Associated records stored in nested associations are available, too:
+    /// See also: ``scopesTree``
     ///
-    /// ```swift
-    /// let request = Book.including(optional: Book.author.including(optional: Author.country))
-    /// let row = try Row.fetchOne(db, request)!
-    ///
-    /// try print(Book(row: row).title)
-    /// // Prints "Moby-Dick"
-    ///
-    /// let country: Country? = row["country"]
-    /// print(country.name)
-    /// // Prints "United States"
-    /// ```
-    ///
-    /// Nil is returned if the scope is not available, or contains only
-    /// null values.
-    ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
-    /// for more information.
+    /// - parameter scope: A scope identifier.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
         try! decodeIfPresent(Record.self, forKey: scope)
     }
     
-    /// Returns the records encoded in the given prefetched rows.
+    /// A collection of prefetched records associated to the given
+    /// association key.
+    ///
+    /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
+    /// request method.
     ///
     /// For example:
     ///
     /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let books = hasMany(Book.self)
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord { }
+    ///
     /// let request = Author.including(all: Author.books)
-    /// let row = try Row.fetchOne(db, request)!
+    /// let authorRow = try Row.fetchOne(db, request)!
     ///
-    /// try print(Author(row: row).name)
-    /// // Prints "Herman Melville"
-    ///
-    /// let books: [Book] = row["books"]
-    /// print(books[0].title)
-    /// // Prints "Moby-Dick"
+    /// let author = try Author(row: authorRow)
+    /// let books: [Book] = author["books"]
     /// ```
+    ///
+    /// See also: ``prefetchedRows``
+    ///
+    /// - parameter key: An association key.
     public subscript<Records>(_ key: String)
     -> Records
     where
@@ -732,21 +797,30 @@ extension Row {
         try! decode(Records.self, forKey: key)
     }
     
-    /// Returns the set of records encoded in the given prefetched rows.
+    /// A set prefetched records associated to the given association key.
+    ///
+    /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
+    /// request method.
     ///
     /// For example:
     ///
     /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let books = hasMany(Book.self)
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord, Hashable { }
+    ///
     /// let request = Author.including(all: Author.books)
-    /// let row = try Row.fetchOne(db, request)!
+    /// let authorRow = try Row.fetchOne(db, request)!
     ///
-    /// try print(Author(row: row).name)
-    /// // Prints "Herman Melville"
-    ///
-    /// let books: Set<Book> = row["books"]
-    /// print(books.first!.title)
-    /// // Prints "Moby-Dick"
+    /// let author = try Author(row: authorRow)
+    /// let books: Set<Book> = author["books"]
     /// ```
+    ///
+    /// See also: ``prefetchedRows``
+    ///
+    /// - parameter key: An association key.
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         try! decode(Set<Record>.self, forKey: key)
     }
@@ -756,63 +830,125 @@ extension Row {
     
     // MARK: - Scopes
     
-    /// Returns a view on the scopes defined by row adapters.
+    /// A view on the scopes defined by row adapters.
+    ///
+    /// The returned object provides an access to all available scopes in
+    /// the row.
+    ///
+    /// Row scopes can be defined manually, with ``ScopeAdapter``.
+    /// The ``JoinableRequest/including(required:)`` and
+    /// ``JoinableRequest/including(optional:)`` request methods define scopes
+    /// named after the key of included associations between record types.
     ///
     /// For example:
     ///
-    ///     // Define a tree of nested scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": RangeRowAdapter(0..<1),
-    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
-    ///             "baz" : RangeRowAdapter(2..<3)])])
+    /// ```swift
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    ///     // Fetch
-    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
+    /// struct Author: TableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    ///     row.scopes.count  // 2
-    ///     row.scopes.names  // ["foo", "bar"]
+    /// struct Country: TableRecord { }
     ///
-    ///     row.scopes["foo"] // [foo:1]
-    ///     row.scopes["bar"] // [bar:2]
-    ///     row.scopes["baz"] // nil
+    /// // Fetch a book, with its author, and the country of its author.
+    /// let request = Book
+    ///     .including(required: Book.author
+    ///         .including(required: Author.country))
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// print(bookRow)
+    /// // Prints [id:42, title:"Moby-Dick", authorId:1]
+    ///
+    /// let authorRow = bookRow.scopes["author"]!
+    /// print(authorRow)
+    /// // Prints [id:1, name:"Herman Melville", countryCode: "US"]
+    ///
+    /// let countryRow = authorRow.scopes["country"]!
+    /// print(countryRow)
+    /// // Prints [code:"US" name:"United States of America"]
+    /// ```
+    ///
+    /// See also ``scopesTree``.
     public var scopes: ScopesView {
         impl.scopes(prefetchedRows: prefetchedRows)
     }
     
-    /// Returns a view on the scopes tree defined by row adapters.
+    /// A view on the scopes tree defined by row adapters.
+    ///
+    /// The returned object provides an access to all available scopes in
+    /// the row, recursively. For any given scope identifier, a depth-first
+    /// search is performed.
+    ///
+    /// Row scopes can be defined manually, with ``ScopeAdapter``.
+    /// The ``JoinableRequest/including(required:)`` and
+    /// ``JoinableRequest/including(optional:)`` request methods define scopes
+    /// named after the key of included associations between record types.
     ///
     /// For example:
     ///
-    ///     // Define a tree of nested scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": RangeRowAdapter(0..<1),
-    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
-    ///             "baz" : RangeRowAdapter(2..<3)])])
+    /// ```swift
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    ///     // Fetch
-    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
+    /// struct Author: TableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
+    /// struct Country: TableRecord { }
     ///
-    ///     row.scopesTree["foo"] // [foo:1]
-    ///     row.scopesTree["bar"] // [bar:2]
-    ///     row.scopesTree["baz"] // [baz:3]
+    /// // Fetch a book, with its author, and the country of its author.
+    /// let request = Book
+    ///     .including(required: Book.author
+    ///         .including(required: Author.country))
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// print(bookRow)
+    /// // Prints [id:42, title:"Moby-Dick", authorId:1]
+    ///
+    /// print(bookRow.scopesTree["author"])
+    /// // Prints [id:1, name:"Herman Melville", countryCode: "US"]
+    ///
+    /// print(bookRow.scopesTree["country"])
+    /// // Prints [code:"US" name:"United States of America"]
+    /// ```
+    ///
+    /// See also ``scopes``.
     public var scopesTree: ScopesTreeView {
         ScopesTreeView(scopes: scopes)
     }
     
-    /// Returns a copy of the row, without any scopes.
+    /// The row, without any scope of prefetched rows.
     ///
-    /// This property can turn out useful when you want to test the content of
-    /// adapted rows, such as rows fetched from joined requests.
+    /// This property is useful when testing the content of rows fetched from
+    /// joined requests.
     ///
-    ///     let row = ...
-    ///     // Failure because row equality tests for row scopes:
-    ///     XCTAssertEqual(row, ["id": 1, "name": "foo"])
-    ///     // Success:
-    ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///     static let awards = hasMany(Award.self)
+    /// }
+    ///
+    /// struct Author: TableRecord { }
+    /// struct Award: TableRecord { }
+    ///
+    /// // Fetch a book, with its author, and its awards.
+    /// let request = Book
+    ///     .including(required: Book.author)
+    ///     .including(all: Book.awards)
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// // Failure
+    /// XCTAssertEqual(bookRow, ["id":42, "title":"Moby-Dick", "authorId":1])
+    ///
+    /// // Success
+    /// XCTAssertEqual(bookRow.unscoped, ["id":42, "title":"Moby-Dick", "authorId":1])
+    /// ```
     public var unscoped: Row {
         var row = impl.unscopedRow(self)
         
@@ -826,10 +962,32 @@ extension Row {
         return row
     }
     
-    /// Return the raw row fetched from the database.
+    /// The raw row fetched from the database.
     ///
-    /// This property can turn out useful when you debug the consumption of
-    /// adapted rows, such as rows fetched from joined requests.
+    /// This property is useful when debugging the content of rows fetched from
+    /// joined requests.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
+    ///
+    /// struct Author: TableRecord { }
+    ///
+    /// // SELECT book.*, author.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// let request = Book.including(required: Book.author)
+    /// let bookRow = try Row.fetchOne(db, request)!
+    ///
+    /// print(bookRow)
+    /// // Prints [id:42, title:"Moby-Dick", authorId:1]
+    ///
+    /// print(bookRow.unadapted)
+    /// // Prints [id:42, title:"Moby-Dick", authorId:1, id:1, name:"Herman Melville"]
+    /// ```
     public var unadapted: Row {
         impl.unadaptedRow(self)
     }
@@ -1192,8 +1350,8 @@ extension Row {
 ///         SELECT * FROM player
 ///         """)
 ///     while let row = try rows.next() {
-///         let id: Int64 = row[0]
-///         let name: String = row[1]
+///         let id: Int64 = row["id"]
+///         let name: String = row["name"]
 ///     }
 /// }
 /// ```
@@ -1227,17 +1385,25 @@ extension Row {
     
     /// Returns a cursor over rows fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeStatement(sql: "SELECT ...")
-    ///     let rows = try Row.fetchCursor(statement) // RowCursor
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let statement = try db.makeStatement(sql: sql)
+    ///     let rows = try Row.fetchCursor(statement, arguments: [lastName])
     ///     while let row = try rows.next() {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
     ///     }
+    /// }
+    /// ```
     ///
     /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
+    /// cursor into an array with `Array(rows)` since you would not get the
+    /// distinct rows you expect.
+    /// Use ``fetchAll(_:arguments:adapter:)`` instead.
     ///
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
@@ -1266,8 +1432,16 @@ extension Row {
     
     /// Returns an array of rows fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeStatement(sql: "SELECT ...")
-    ///     let rows = try Row.fetchAll(statement)
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let statement = try db.makeStatement(sql: sql)
+    ///     let rows = try Row.fetchAll(statement, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -1287,8 +1461,16 @@ extension Row {
     
     /// Returns a set of rows fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeStatement(sql: "SELECT ...")
-    ///     let rows = try Row.fetchSet(statement)
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let statement = try db.makeStatement(sql: sql)
+    ///     let rows = try Row.fetchSet(statement, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -1308,8 +1490,16 @@ extension Row {
     
     /// Returns a single row fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeStatement(sql: "SELECT ...")
-    ///     let row = try Row.fetchOne(statement)
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ? LIMIT 1"
+    ///     let statement = try db.makeStatement(sql: sql)
+    ///     let row = try Row.fetchOne(statement, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -1337,16 +1527,24 @@ extension Row {
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, sql: "SELECT id, name FROM player") // RowCursor
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let rows = try Row.fetchCursor(db, sql: sql, arguments: [lastName])
     ///     while let row = try rows.next() {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
     ///     }
+    /// }
+    /// ```
     ///
     /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
+    /// cursor into an array with `Array(rows)` since you would not get the
+    /// distinct rows you expect.
+    /// Use ``fetchAll(_:sql:arguments:adapter:)`` instead.
     ///
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
@@ -1376,11 +1574,15 @@ extension Row {
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchAll(db, sql: "SELECT id, name FROM player") // [Row]
-    ///     for row in rows {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let rows = try Row.fetchAll(db, sql: sql, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1401,11 +1603,15 @@ extension Row {
     
     /// Returns a set of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchSet(db, sql: "SELECT id, name FROM player") // Set<Row>
-    ///     for row in rows {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ?"
+    ///     let rows = try Row.fetchSet(db, sql: sql, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1426,11 +1632,15 @@ extension Row {
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = try Row.fetchOne(db, sql: "SELECT id, name FROM player") // Row?
-    ///     if let row = row {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///     let sql = "SELECT * FROM player WHERE lastName = ? LIMIT 1"
+    ///     let row = try Row.fetchOne(db, sql: sql, arguments: [lastName])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1456,17 +1666,32 @@ extension Row {
     
     /// Returns a cursor over rows fetched from a fetch request.
     ///
-    ///     let request = Player.all()
-    ///     let rows = try Row.fetchCursor(db, request) // RowCursor
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///
+    ///     // Query interface request
+    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///
+    ///     // SQL request
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
+    ///
+    ///     let rows = try Row.fetchCursor(db, request)
     ///     while let row = try rows.next() {
     ///         let id: Int64 = row["id"]
     ///         let name: String = row["name"]
     ///     }
+    /// }
+    /// ```
     ///
     /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
+    /// cursor into an array with `Array(rows)` since you would not get the
+    /// distinct rows you expect.
+    /// Use ``fetchAll(_:_:)`` instead.
     ///
     /// For the same reason, make sure you make a copy whenever you extract a
     /// row for later use: `row.copy()`.
@@ -1490,8 +1715,23 @@ extension Row {
     
     /// Returns an array of rows fetched from a fetch request.
     ///
-    ///     let request = Player.all()
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///
+    ///     // Query interface request
+    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///
+    ///     // SQL request
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
+    ///
     ///     let rows = try Row.fetchAll(db, request)
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1507,8 +1747,23 @@ extension Row {
     
     /// Returns a set of rows fetched from a fetch request.
     ///
-    ///     let request = Player.all()
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///
+    ///     // Query interface request
+    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///
+    ///     // SQL request
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         """
+    ///
     ///     let rows = try Row.fetchSet(db, request)
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1528,8 +1783,23 @@ extension Row {
     
     /// Returns a single row fetched from a fetch request.
     ///
-    ///     let request = Player.filter(key: 1)
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let lastName = "O'Reilly"
+    ///
+    ///     // Query interface request
+    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///
+    ///     // SQL request
+    ///     let request: SQLRequest<Row> = """
+    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         """
+    ///
     ///     let row = try Row.fetchOne(db, request)
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1562,8 +1832,8 @@ extension FetchRequest<Row> {
     ///         """
     ///     let rows = try request.fetchCursor(db)
     ///     while let row = try rows.next() {
-    ///         let id: Int64 = row[0]
-    ///         let name: String = row[1]
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
     ///     }
     /// }
     /// ```
@@ -1654,16 +1924,12 @@ extension FetchRequest<Row> {
 }
 
 extension Row: RandomAccessCollection {
+    public var startIndex: Index { Index(0) }
     
-    /// The index of the first (ColumnName, DatabaseValue) pair.
-    public var startIndex: RowIndex { RowIndex(0) }
+    public var endIndex: Index { Index(count) }
     
-    /// The "past-the-end" index, successor of the index of the last
-    /// (ColumnName, DatabaseValue) pair.
-    public var endIndex: RowIndex { RowIndex(count) }
-    
-    /// Accesses the (ColumnName, DatabaseValue) pair at given index.
-    public subscript(position: RowIndex) -> (String, DatabaseValue) {
+    /// Returns the (column, value) pair at given index.
+    public subscript(position: Index) -> (String, DatabaseValue) {
         let index = position.index
         _checkIndex(index)
         return (
@@ -1788,68 +2054,55 @@ extension Row: ExpressibleByDictionaryLiteral {
     }
 }
 
-// MARK: - RowIndex
+// MARK: - Index
 
-/// Indexes to (ColumnName, DatabaseValue) pairs in a database row.
-public struct RowIndex {
-    let index: Int
-    init(_ index: Int) { self.index = index }
+@available(*, deprecated, renamed: "Row.Index")
+typealias RowIndex = Row.Index
+
+extension Row {
+    /// An index to a (column, value) pair in a ``Row``.
+    public struct Index {
+        let index: Int
+        init(_ index: Int) { self.index = index }
+    }
 }
 
-extension RowIndex: Equatable {
-    public static func == (lhs: RowIndex, rhs: RowIndex) -> Bool {
+extension Row.Index: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.index == rhs.index
     }
 }
 
-extension RowIndex: Comparable {
-    public static func < (lhs: RowIndex, rhs: RowIndex) -> Bool {
+extension Row.Index: Comparable {
+    public static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.index < rhs.index
     }
 }
 
-extension RowIndex: Strideable {
-    public func distance(to other: RowIndex) -> Int {
+extension Row.Index: Strideable {
+    public func distance(to other: Self) -> Int {
         other.index - index
     }
     
-    public func advanced(by n: Int) -> RowIndex {
-        RowIndex(index + n)
+    public func advanced(by n: Int) -> Self {
+        Row.Index(index + n)
     }
 }
 
 // MARK: - Row.ScopesView
 
 extension Row {
-    /// A view of the scopes defined by row adapters. It is a collection of
-    /// tuples made of a scope name and a scoped row, which behaves like a
-    /// dictionary.
+    /// A view on the scopes defined by row adapters.
     ///
-    /// For example:
+    /// `ScopesView` is a `Collection` of `(name: String, row: Row)` pairs.
     ///
-    ///     // Define a tree of nested scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": RangeRowAdapter(0..<1),
-    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
-    ///             "baz" : RangeRowAdapter(2..<3)])])
-    ///
-    ///     // Fetch
-    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
-    ///
-    ///     row.scopes.count  // 2
-    ///     row.scopes.names  // ["foo", "bar"]
-    ///
-    ///     row.scopes["foo"] // [foo:1]
-    ///     row.scopes["bar"] // [bar:2]
-    ///     row.scopes["baz"] // nil
-    public struct ScopesView: Collection {
-        public typealias Index = Dictionary<String, any _LayoutedRowAdapter>.Index
+    /// See ``Row/scopes`` for more information.
+    public struct ScopesView {
         private let row: Row
         private let scopes: [String: any _LayoutedRowAdapter]
         private let prefetchedRows: Row.PrefetchedRowsView
         
-        /// The scopes defined on this row.
+        /// The available scopes in this row.
         public var names: Dictionary<String, any _LayoutedRowAdapter>.Keys {
             scopes.keys
         }
@@ -1864,39 +2117,43 @@ extension Row {
             self.prefetchedRows = prefetchedRows
         }
         
-        public var startIndex: Index {
-            scopes.startIndex
-        }
-        
-        public var endIndex: Index {
-            scopes.endIndex
-        }
-        
-        public func index(after i: Index) -> Index {
-            scopes.index(after: i)
-        }
-        
-        public subscript(position: Index) -> (name: String, row: Row) {
-            let (name, adapter) = scopes[position]
-            let adaptedRow = Row(base: row, adapter: adapter)
-            if let prefetch = prefetchedRows.prefetches[name] {
-                // Let the adapted row access its own prefetched rows.
-                // Use case:
-                //
-                //      let request = A.including(required: A.b.including(all: B.c))
-                //      let row = try Row.fetchOne(db, request)!
-                //      row.prefetchedRows["cs"]              // Some array
-                //      row.scopes["b"]!.prefetchedRows["cs"] // The same array
-                adaptedRow.prefetchedRows = Row.PrefetchedRowsView(prefetches: prefetch.prefetches)
-            }
-            return (name: name, row: adaptedRow)
-        }
-        
-        /// Returns the row associated with the given scope, or nil if the
-        /// scope is not defined.
+        /// The row associated with the given scope, or nil if the scope is
+        /// not available.
         public subscript(_ name: String) -> Row? {
             scopes.index(forKey: name).map { self[$0].row }
         }
+    }
+}
+
+extension Row.ScopesView: Collection {
+    public typealias Index = Dictionary<String, any _LayoutedRowAdapter>.Index
+    
+    public var startIndex: Index {
+        scopes.startIndex
+    }
+    
+    public var endIndex: Index {
+        scopes.endIndex
+    }
+    
+    public func index(after i: Index) -> Index {
+        scopes.index(after: i)
+    }
+    
+    public subscript(position: Index) -> (name: String, row: Row) {
+        let (name, adapter) = scopes[position]
+        let adaptedRow = Row(base: row, adapter: adapter)
+        if let prefetch = prefetchedRows.prefetches[name] {
+            // Let the adapted row access its own prefetched rows.
+            // Use case:
+            //
+            //      let request = A.including(required: A.b.including(all: B.c))
+            //      let row = try Row.fetchOne(db, request)!
+            //      row.prefetchedRows["cs"]              // Some array
+            //      row.scopes["b"]!.prefetchedRows["cs"] // The same array
+            adaptedRow.prefetchedRows = Row.PrefetchedRowsView(prefetches: prefetch.prefetches)
+        }
+        return (name: name, row: adaptedRow)
     }
 }
 
@@ -1906,27 +2163,11 @@ extension Row {
     
     /// A view on the scopes tree defined by row adapters.
     ///
-    /// For example:
-    ///
-    ///     // Define a tree of nested scopes
-    ///     let adapter = ScopeAdapter([
-    ///         "foo": RangeRowAdapter(0..<1),
-    ///         "bar": RangeRowAdapter(1..<2).addingScopes([
-    ///             "baz" : RangeRowAdapter(2..<3)])])
-    ///
-    ///     // Fetch
-    ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
-    ///
-    ///     row.scopesTree.names  // ["foo", "bar", "baz"]
-    ///
-    ///     row.scopesTree["foo"] // [foo:1]
-    ///     row.scopesTree["bar"] // [bar:2]
-    ///     row.scopesTree["baz"] // [baz:3]
+    /// See ``Row/scopesTree`` for more information.
     public struct ScopesTreeView {
         let scopes: ScopesView
         
-        /// The scopes defined on this row, recursively.
+        /// The scopes available on this row, recursively.
         public var names: Set<String> {
             var names = Set<String>()
             for (name, row) in scopes {
@@ -1936,33 +2177,12 @@ extension Row {
             return names
         }
         
-        /// Returns the row associated with the given scope.
+        /// The row associated with the given scope, or nil if the scope is
+        /// not available.
         ///
-        /// For example:
+        /// See ``Row/scopesTree`` for more information.
         ///
-        ///     let request = Book.including(required: Book.author)
-        ///     let row = try Row.fetchOne(db, request)!
-        ///
-        ///     print(row)
-        ///     // Prints [id:42 title:"Moby-Dick"]
-        ///
-        ///     let authorRow = row.scopesTree["author"]
-        ///     print(authorRow)
-        ///     // Prints [id:1 name:"Herman Melville"]
-        ///
-        /// Associated rows stored in nested associations are available, too:
-        ///
-        ///     let request = Book.including(required: Book.author.including(required: Author.country))
-        ///     let row = try Row.fetchOne(db, request)!
-        ///
-        ///     print(row)
-        ///     // Prints [id:42 title:"Moby-Dick"]
-        ///
-        ///     let countryRow = row.scopesTree["country"]
-        ///     print(countryRow)
-        ///     // Prints [code:"US" name:"United States"]
-        ///
-        /// Nil is returned if the scope is not available.
+        /// - parameter key: An association key.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
@@ -1990,36 +2210,43 @@ extension Row {
     
     /// A view on the prefetched associated rows.
     ///
-    /// For example:
-    ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
-    ///
-    ///     print(row)
-    ///     // Prints [id:1 name:"Herman Melville"]
-    ///
-    ///     let bookRows = row.prefetchedRows["books"]
-    ///     print(bookRows[0])
-    ///     // Prints [id:42 title:"Moby-Dick"]
+    /// See ``Row/prefetchedRows`` for more information.
     public struct PrefetchedRowsView: Equatable {
         // OrderedDictionary so that breadth-first search gives a consistent result
         // (we preserve the ordering of associations in the request)
         fileprivate var prefetches: OrderedDictionary<String, Prefetch> = [:]
         
-        /// True if there is no prefetched associated rows.
+        /// A boolean value indicating if there is no prefetched
+        /// associated rows.
         public var isEmpty: Bool {
             prefetches.isEmpty
         }
         
-        /// The keys for available prefetched rows
+        /// The available association keys.
+        ///
+        /// Keys in the returned set can be used with ``subscript(_:)``.
         ///
         /// For example:
         ///
-        ///     let request = Author.including(all: Author.books)
-        ///     let row = try Row.fetchOne(db, request)!
+        /// ```swift
+        /// struct Author: TableRecord {
+        ///     static let books = hasMany(Book.self)
+        /// }
         ///
-        ///     print(row.prefetchedRows.keys)
-        ///     // Prints ["books"]
+        /// struct Book: TableRecord { }
+        ///
+        /// let request = Author.including(all: Author.books)
+        /// let authorRow = try Row.fetchOne(db, request)!
+        ///
+        /// print(authorRow.prefetchedRows.keys)
+        /// // Prints ["books"]
+        ///
+        /// let bookRows = authorRow.prefetchedRows["books"]!
+        /// print(bookRows[0])
+        /// // Prints [id:42, title:"Moby-Dick", authorId:1]
+        /// print(bookRows[1])
+        /// // Prints [id:57, title:"Pierre", authorId:1]
+        /// ```
         public var keys: Set<String> {
             var result: Set<String> = []
             var fifo = Array(prefetches)
@@ -2033,24 +2260,13 @@ extension Row {
             return result
         }
         
-        /// Returns the prefetched rows associated with the given key.
+        /// The prefetched rows associated with the given association key.
         ///
-        /// For example:
+        /// The result is nil if the key is not available.
         ///
-        ///     let request = Author.including(all: Author.books)
-        ///     let row = try Row.fetchOne(db, request)!
+        /// See ``Row/prefetchedRows`` for more information.
         ///
-        ///     print(row)
-        ///     // Prints [id:1 name:"Herman Melville"]
-        ///
-        ///     let bookRows = row.prefetchedRows["books"]
-        ///     print(bookRows[0])
-        ///     // Prints [id:42 title:"Moby-Dick"]
-        ///
-        /// Prefetched rows stored in nested "to-one" associations are
-        /// available, too.
-        ///
-        /// Nil is returned if the key is not available.
+        /// - parameter key: An association key.
         public subscript(_ key: String) -> [Row]? {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {

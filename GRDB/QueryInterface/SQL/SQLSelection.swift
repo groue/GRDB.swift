@@ -279,8 +279,16 @@ enum SQLCount {
 
 // MARK: - SQLSelectable
 
-/// SQLSelectable is the protocol for types that can be selected, as
-/// described at <https://www.sqlite.org/syntax/result-column.html>
+/// A type that can be used as SQL result columns.
+///
+/// Related SQLite documentation <https://www.sqlite.org/syntax/result-column.html>
+///
+/// ## Topics
+///
+/// ### Supporting Types
+///
+/// - ``AllColumns``
+/// - ``SQLSelection``
 public protocol SQLSelectable {
     /// Returns an SQL selection.
     var sqlSelection: SQLSelection { get }

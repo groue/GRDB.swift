@@ -1,4 +1,4 @@
-/// A type that can be converted to and from a ``DatabaseValue``.
+/// A type that can convert itself into and out of a database value.
 ///
 /// `DatabaseValueConvertible` is adopted by `Bool`, `Int`, `String`,
 /// `Date`, etc.
@@ -217,6 +217,9 @@ extension DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
+    ///
     /// The returned cursor is valid only during the remaining execution of the
     /// database access. Do not store or return the cursor for later use.
     ///
@@ -251,6 +254,9 @@ extension DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
+    ///
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
@@ -267,6 +273,9 @@ extension DatabaseValueConvertible {
     }
     
     /// Returns a single value fetched from a prepared statement.
+    ///
+    /// The value is decoded from the leftmost column if the `adapter` argument
+    /// is nil.
     ///
     /// The result is nil if the request returns no row, or one row with a
     /// `NULL` value.
@@ -314,6 +323,9 @@ extension DatabaseValueConvertible where Self: Hashable {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
+    ///
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
@@ -348,6 +360,9 @@ extension DatabaseValueConvertible {
     ///     }
     /// }
     /// ```
+    ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
     ///
     /// The returned cursor is valid only during the remaining execution of the
     /// database access. Do not store or return the cursor for later use.
@@ -384,6 +399,9 @@ extension DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
+    ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL string.
@@ -402,6 +420,9 @@ extension DatabaseValueConvertible {
     }
     
     /// Returns a single value fetched from an SQL query.
+    ///
+    /// The value is decoded from the leftmost column if the `adapter` argument
+    /// is nil.
     ///
     /// The result is nil if the request returns no row, or one row with a
     /// `NULL` value.
@@ -446,6 +467,9 @@ extension DatabaseValueConvertible where Self: Hashable {
     ///     let scores = try Int.fetchSet(db, sql: sql, arguments: [lastName])
     /// }
     /// ```
+    ///
+    /// Values are decoded from the leftmost column if the `adapter` argument
+    /// is nil.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -494,6 +518,8 @@ extension DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column.
+    ///
     /// The returned cursor is valid only during the remaining execution of the
     /// database access. Do not store or return the cursor for later use.
     ///
@@ -532,6 +558,8 @@ extension DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column.
+    ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
@@ -543,6 +571,8 @@ extension DatabaseValueConvertible {
     }
     
     /// Returns a single value fetched from a fetch request.
+    ///
+    /// The value is decoded from the leftmost column.
     ///
     /// The result is nil if the request returns no row, or one row with a
     /// `NULL` value.
@@ -601,6 +631,8 @@ extension DatabaseValueConvertible where Self: Hashable {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column.
+    ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - request: A FetchRequest.
@@ -641,6 +673,8 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column.
+    ///
     /// The returned cursor is valid only during the remaining execution of the
     /// database access. Do not store or return the cursor for later use.
     ///
@@ -676,6 +710,8 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// }
     /// ```
     ///
+    /// Values are decoded from the leftmost column.
+    ///
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
@@ -684,6 +720,8 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     }
     
     /// Returns a single fetched value.
+    ///
+    /// The value is decoded from the leftmost column.
     ///
     /// The result is nil if the request returns no row, or one row with a
     /// `NULL` value.
@@ -738,6 +776,8 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible & Hashable {
     ///     let scores = try request.fetchSet(db)
     /// }
     /// ```
+    ///
+    /// Values are decoded from the leftmost column.
     ///
     /// - parameter db: A database connection.
     /// - returns: A set of values.

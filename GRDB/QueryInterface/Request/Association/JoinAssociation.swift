@@ -1,13 +1,6 @@
-/// The Join association is used to join common table expression to regular
+/// The `JoinAssociation` joins common table expression to regular
 /// tables or other common table expressions.
-public struct JoinAssociation<Origin, Destination>: AssociationToOne {
-    /// :nodoc:
-    public typealias OriginRowDecoder = Origin
-    
-    /// :nodoc:
-    public typealias RowDecoder = Destination
-    
-    /// :nodoc:
+public struct JoinAssociation<Origin, Destination> {
     public var _sqlAssociation: _SQLAssociation
     
     /// Creates a `JoinAssociation` whose key is the table name of the relation.
@@ -21,4 +14,9 @@ public struct JoinAssociation<Origin, Destination>: AssociationToOne {
             relation: relation,
             cardinality: .toOne)
     }
+}
+
+extension JoinAssociation: AssociationToOne {
+    public typealias OriginRowDecoder = Origin
+    public typealias RowDecoder = Destination
 }

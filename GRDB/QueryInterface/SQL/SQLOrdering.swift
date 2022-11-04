@@ -129,8 +129,15 @@ extension SQLOrdering {
 
 // MARK: - SQLOrderingTerm
 
-/// The protocol for all types that can be used as an SQL ordering term, as
-/// described at <https://www.sqlite.org/syntax/ordering-term.html>
+/// A type that can be used as an SQL ordering term.
+///
+/// Related SQLite documentation <https://www.sqlite.org/syntax/ordering-term.html>
+///
+/// ## Topics
+///
+/// ### Supporting Type
+///
+/// - ``SQLOrdering``
 public protocol SQLOrderingTerm {
     /// Returns an SQL ordering.
     var sqlOrdering: SQLOrdering { get }

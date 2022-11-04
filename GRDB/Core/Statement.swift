@@ -27,6 +27,33 @@ extension String {
 
 /// A prepared statement.
 ///
+/// You create prepared statements from a ``Database`` instance. For example:
+///
+/// ```swift
+/// try dbQueue.write { db in
+///     let statement = try db.makeStatement(sql: """
+///         DELETE FROM player WHERE id = ?
+///         """)
+///     try statement.execute(arguments: [1])!
+///     try statement.execute(arguments: [12])!
+/// }
+/// ```
+///
+/// To fetch rows and values from a prepared statement, use a fetching method of
+///``Row``, ``DatabaseValueConvertible``, or ``FetchableRecord``:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     let statement = try db.makeStatement(sql: """
+///         SELECT name FROM player WHERE id = ?
+///         """)
+///     let name1 = try String.fetchOne(statement, arguments: [1])!
+///     let name2 = try String.fetchOne(statement, arguments: [12])!
+/// }
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/c3ref/stmt.html>
+///
 /// ## Topics
 ///
 /// ### Executing a Prepared Statement
@@ -39,6 +66,7 @@ extension String {
 /// - ``setArguments(_:)``
 /// - ``setUncheckedArguments(_:)``
 /// - ``validateArguments(_:)``
+/// - ``StatementArguments``
 ///
 /// ### Statement Informations
 ///
@@ -477,11 +505,8 @@ extension Statement {
 
 // MARK: - Cursors
 
-/// Implementation details of `DatabaseCursor`.
-///
-/// :nodoc:
-public protocol _DatabaseCursor: Cursor {
-    /// Reserved to `_DatabaseCursor` implementation.
+/// A cursor that iterates the result of a prepared ``Statement``.
+public protocol DatabaseCursor: Cursor {
     /// Must be initialized to false.
     var _isDone: Bool { get set }
     
@@ -492,10 +517,6 @@ public protocol _DatabaseCursor: Cursor {
     /// element for the current statement step.
     func _element(sqliteStatement: SQLiteStatement) throws -> Element
 }
-
-/// A `DatabaseCursor` is as ``Cursor`` that iterates the result of a
-/// prepared ``Statement``.
-public protocol DatabaseCursor: _DatabaseCursor { }
 
 // Read-only access to statement information. We don't want the user to modify
 // a statement through a cursor, in case this would mess with the cursor state.

@@ -1,13 +1,15 @@
 /// The virtual table module for the FTS3 full-text engine.
 ///
+/// To create FTS3 tables, use the ``Database`` method
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``.
+///
 /// Related SQLite documentation: <https://www.sqlite.org/fts3.html>
 ///
 /// ## Topics
 ///
-/// ### Creating Full-Text Virtual Tables
+/// ### The FTS3 Module
 ///
 /// - ``init()``
-/// - ``Database/create(virtualTable:ifNotExists:using:_:)``
 /// - ``FTS3TableDefinition``
 /// - ``FTS3TokenizerDescriptor``
 ///

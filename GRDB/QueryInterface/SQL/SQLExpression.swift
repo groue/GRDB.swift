@@ -1692,13 +1692,15 @@ extension SQLExpression {
 
 // MARK: - SQLExpressible
 
-/// `SQLExpressible` is the protocol for all types that can be used as an
-/// SQL expression.
+/// A type that can be used as an SQL expression.
 ///
-/// It is adopted by protocols like `DatabaseValueConvertible`, and types
-/// like `Column`.
+/// Related SQLite documentation <https://www.sqlite.org/syntax/expr.html>
 ///
-/// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+/// ## Topics
+///
+/// ### Supporting Type
+///
+/// - ``SQLExpression``
 public protocol SQLExpressible {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
@@ -1709,15 +1711,63 @@ extension SQLExpressible where Self == Column {
     public static var rowID: Self { Column.rowID }
 }
 
-/// `SQLSpecificExpressible` is a protocol for all database-specific types that
-/// can be turned into an SQL expression. Types whose existence is not purely
-/// dedicated to the database should adopt the `SQLExpressible`
+/// A database-specific type that can be used as an SQL expression.
+///
+/// `SQLSpecificExpressible` is the protocol for all database-specific types
+/// that can be turned into an SQL expression. Types whose existence is not purely
+/// dedicated to the database should adopt the ``SQLExpressible``
 /// protocol instead.
 ///
-/// For example, `Column` is a type that only exists to help you build requests,
-/// and it adopts `SQLSpecificExpressible`.
+/// For example, ``Column`` is a type that only exists to help you build
+/// requests, and it adopts `SQLSpecificExpressible`.
 ///
-/// On the other side, `Int` adopts `SQLExpressible`.
+/// On the other side, `Int` adopts ``SQLExpressible``.
+///
+/// ## Topics
+///
+/// ### Column Expressions
+///
+/// - ``Column``
+/// - ``ColumnExpression``
+///
+/// ### Applying a Collation
+///
+/// - ``collating(_:)-2mr78``
+/// - ``collating(_:)-10dk1``
+///
+/// ### SQL Functions & Operators
+///
+/// - ``abs(_:)-5l6xp``
+/// - ``average(_:)``
+/// - ``capitalized``
+/// - ``count(_:)``
+/// - ``count(distinct:)``
+/// - ``dateTime(_:_:)``
+/// - ``julianDay(_:_:)``
+/// - ``length(_:)-41me0``
+/// - ``like(_:escape:)``
+/// - ``localizedCapitalized``
+/// - ``localizedLowercased``
+/// - ``localizedUppercased``
+/// - ``lowercased``
+/// - ``min(_:)``
+/// - ``max(_:)``
+/// - ``sum(_:)``
+/// - ``total(_:)``
+/// - ``uppercased``
+/// - ``SQLDateModifier``
+///
+/// ### Creating Ordering Terms
+///
+/// - ``asc``
+/// - ``ascNullsLast``
+/// - ``desc``
+/// - ``descNullsFirst``
+///
+/// ### Creating Result Columns
+///
+/// - ``forKey(_:)-3xk0``
+/// - ``forKey(_:)-3egx6``
 public protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderingTerm {
     // SQLExpressible can be adopted by Swift standard types, and user
     // types, through the DatabaseValueConvertible protocol which inherits
@@ -1761,19 +1811,26 @@ extension Sequence where Element: SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     // SELECT * FROM player
-    ///     // WHERE (registered
-    ///     //        AND (score >= 1000)
-    ///     //        AND (name IS NOT NULL))
-    ///     let conditions = [
-    ///         Column("registered"),
-    ///         Column("score") >= 1000,
-    ///         Column("name") != nil]
-    ///     Player.filter(conditions.joined(operator: .and))
+    /// ```swift
+    /// // SELECT * FROM player
+    /// // WHERE (registered
+    /// //        AND (score >= 1000)
+    /// //        AND (name IS NOT NULL))
+    /// let conditions = [
+    ///     Column("registered"),
+    ///     Column("score") >= 1000,
+    ///     Column("name") != nil]
+    /// Player.filter(conditions.joined(operator: .and))
+    /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
-    /// value of the operator. It is 0 (zero) for `.add`, 1 for ‘.multiply`,
-    /// false for `.or`, and true for `.and`.
+    /// value of the operator. It is:
+    ///
+    /// - `0` for ``SQLExpression/AssociativeBinaryOperator/add``
+    /// - `1` for ``SQLExpression/AssociativeBinaryOperator/multiply``
+    /// - `false` for ``SQLExpression/AssociativeBinaryOperator/or``
+    /// - `true` for ``SQLExpression/AssociativeBinaryOperator/and``
+    /// - `""` for ``SQLExpression/AssociativeBinaryOperator/concat``
     public func joined(operator: SQLExpression.AssociativeBinaryOperator) -> SQLExpression {
         .associativeBinary(`operator`, map(\.sqlExpression))
     }
@@ -1785,19 +1842,26 @@ extension Sequence where Element == any SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     // SELECT * FROM player
-    ///     // WHERE (registered
-    ///     //        AND (score >= 1000)
-    ///     //        AND (name IS NOT NULL))
-    ///     let conditions = [
-    ///         Column("registered"),
-    ///         Column("score") >= 1000,
-    ///         Column("name") != nil]
-    ///     Player.filter(conditions.joined(operator: .and))
+    /// ```
+    /// // SELECT * FROM player
+    /// // WHERE (registered
+    /// //        AND (score >= 1000)
+    /// //        AND (name IS NOT NULL))
+    /// let conditions = [
+    ///     Column("registered"),
+    ///     Column("score") >= 1000,
+    ///     Column("name") != nil]
+    /// Player.filter(conditions.joined(operator: .and))
+    /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
-    /// value of the operator. It is 0 (zero) for `.add`, 1 for ‘.multiply`,
-    /// false for `.or`, and true for `.and`.
+    /// value of the operator. It is:
+    ///
+    /// - `0` for ``SQLExpression/AssociativeBinaryOperator/add``
+    /// - `1` for ``SQLExpression/AssociativeBinaryOperator/multiply``
+    /// - `false` for ``SQLExpression/AssociativeBinaryOperator/or``
+    /// - `true` for ``SQLExpression/AssociativeBinaryOperator/and``
+    /// - `""` for ``SQLExpression/AssociativeBinaryOperator/concat``
     public func joined(operator: SQLExpression.AssociativeBinaryOperator) -> SQLExpression {
         .associativeBinary(`operator`, map(\.sqlExpression))
     }
@@ -1807,46 +1871,34 @@ extension Sequence where Element == any SQLSpecificExpressible {
 
 extension SQLSpecificExpressible {
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for ascending order (nulls first).
     public var asc: SQLOrdering {
         .asc(sqlExpression)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for descending order (nulls last).
     public var desc: SQLOrdering {
         .desc(sqlExpression)
     }
     
     #if GRDBCUSTOMSQLITE
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for ascending order (nulls last).
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for descending order (nulls first).
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }
     #elseif !GRDBCIPHER
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for ascending order (nulls last).
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
-    ///
-    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
+    /// An ordering term for descending order (nulls first).
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
@@ -1857,53 +1909,34 @@ extension SQLSpecificExpressible {
 // MARK: - SQL Selection Support
 
 extension SQLSpecificExpressible {
-    /// Returns an aliased column.
+    /// Returns an aliased result column.
     ///
     /// For example:
     ///
-    ///     // SELECT (width * height) AS area FROM shape
-    ///     let area = (Column("width") * Column("height")).forKey("area")
-    ///     let request = Shape.select(area)
-    ///     if let row = try Row.fetchOne(db, request) {
-    ///         let area: Int = row["area"]
-    ///     }
+    /// ```swift
+    /// // SELECT (score + bonus) AS totalScore FROM player
+    /// let totalScore = (Column("score") * Column("bonus")).forKey("totalScore")
+    /// let request = Player.select(totalScore)
+    /// ```
     ///
     /// If you need to refer to the aliased column in another part of a request,
-    /// use `Column(...).detached`. For example:
+    /// use ``ColumnExpression/detached``. For example:
     ///
-    ///     // SELECT (width * height) AS area FROM shape ORDER BY area
-    ///     let area = (Column("width") * Column("height")).forKey("area")
-    ///     let request = Shape
-    ///         .select(area)
-    ///         .order(Column("area").detached)
-    ///     let rows = try Row.fetchCursor(db, request)
-    ///     while let row = try rows.next() {
-    ///         let area: Int = row["area"]
-    ///     }
+    /// ```swift
+    /// // SELECT (score + bonus) AS totalScore
+    /// // FROM player
+    /// // ORDER BY totalScore
+    /// let request = Player
+    ///     .select(totalScore)
+    ///     .order(Column("totalScore").detached)
+    /// ```
     public func forKey(_ key: String) -> SQLSelection {
         .aliasedExpression(sqlExpression, key)
     }
     
     /// Returns an aliased column with the same name as the coding key.
     ///
-    /// For example:
-    ///
-    ///     struct Shape: Decodable, FetchableRecord, TableRecord {
-    ///         let width: Int
-    ///         let height: Int
-    ///         let area: Int
-    ///
-    ///         static let databaseSelection: [any SQLSelectable] = [
-    ///             Column(CodingKeys.width),
-    ///             Column(CodingKeys.height),
-    ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).forKey(CodingKeys.area),
-    ///         ]
-    ///     }
-    ///
-    ///     // SELECT width, height, (width * height) AS area FROM shape
-    ///     let shapes: [Shape] = try Shape.fetchAll(db)
-    ///
-    /// See `forKey(_ key: String)` for more information.
+    /// See ``forKey(_:)-3xk0``.
     public func forKey(_ key: some CodingKey) -> SQLSelection {
         forKey(key.stringValue)
     }
@@ -1917,7 +1950,11 @@ extension SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     Player.filter(Column("email").collating(.nocase) == "contact@example.com")
+    /// ```swift
+    /// // SELECT * FROM player
+    /// // WHERE email = 'contact@example.com'  COLLATE NOCASE
+    /// Player.filter(Column("email").collating(.nocase) == "contact@example.com")
+    /// ```
     public func collating(_ collation: Database.CollationName) -> SQLExpression {
         .collated(sqlExpression, collation)
     }
@@ -1926,7 +1963,9 @@ extension SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
+    /// ```swift
+    /// Player.order(Column("name").collating(.localizedStandardCompare))
+    /// ```
     public func collating(_ collation: DatabaseCollation) -> SQLExpression {
         .collated(sqlExpression, Database.CollationName(rawValue: collation.name))
     }

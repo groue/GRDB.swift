@@ -215,10 +215,15 @@ extension ResultCode: Sendable { }
 /// ```swift
 /// do {
 ///     try player.insert(db)
-/// } catch let error as DatabaseError
-///   where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY
-/// {
-///     // A foreign key constraint error occurred.
+/// } catch let error as DatabaseError {
+///     switch error.resultCode {
+///     case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+///         // foreign key constraint error
+///     case ResultCode.SQLITE_CONSTRAINT:
+///         // any other constraint error
+///     default:
+///         // any other database error
+///     }
 /// }
 /// ```
 ///
@@ -228,7 +233,11 @@ extension ResultCode: Sendable { }
 /// do {
 ///     try player.insert(db)
 /// } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
-///     // A foreign key constraint error occurred.
+///     // foreign key constraint error
+/// } catch DatabaseError.SQLITE_CONSTRAINT {
+///     // any other constraint error
+/// } catch {
+///     // any other database error
 /// }
 /// ```
 ///

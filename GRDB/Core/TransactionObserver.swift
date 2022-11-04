@@ -718,18 +718,19 @@ class DatabaseObservationBroker {
 
 // MARK: - TransactionObserver
 
-/// A `TransactionObserver` is notified of all database changes and transactions
-/// performed in a database.
+/// A type that tracks all database changes and transactions performed in
+/// a database.
 ///
-/// An observer starts receiving notifications after it has been added to a
-/// database connection with the
+/// An observer starts receiving change notifications after it has been added to
+/// a database connection with the
 /// ``DatabaseWriter/add(transactionObserver:extent:)`` or
 /// ``Database/add(transactionObserver:extent:)`` methods.
 ///
-/// All observer methods are called in a protected dispatch queue, serialized
-/// with all database updates.
+/// All observer methods are called in a the writer dispatch queue, serialized
+/// with all database updates (see ``DatabaseWriter``).
 ///
 /// Some changes and transactions are not notified:
+///
 /// - Transactions performed in read-only database connections.
 /// - Changes and transactions performed by other database connections.
 /// - Changes to internal system tables (such as `sqlite_master`).

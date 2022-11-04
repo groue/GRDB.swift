@@ -7,21 +7,25 @@ extension PersistableRecord {
     /// The upsert behavior is triggered by a violation of any uniqueness
     /// constraint on the table (primary key or unique index). In case of
     /// violation, all columns but the primary key are overwritten with the
-    /// inserted values:
+    /// inserted values.
     ///
-    ///     struct Player: Encodable, PersistableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// For example:
     ///
-    ///     // INSERT INTO player (id, name, score)
-    ///     // VALUES (1, 'Arthur', 1000)
-    ///     // ON CONFLICT DO UPDATE SET
-    ///     //   name = excluded.name,
-    ///     //   score = excluded.score
-    ///     let player = Player(id: 1, name: "Arthur", score: 1000)
-    ///     try player.upsert(db)
+    /// ```swift
+    /// struct Player: Encodable, PersistableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
+    ///
+    /// // INSERT INTO player (id, name, score)
+    /// // VALUES (1, 'Arthur', 1000)
+    /// // ON CONFLICT DO UPDATE SET
+    /// //   name = excluded.name,
+    /// //   score = excluded.score
+    /// let player = Player(id: 1, name: "Arthur", score: 1000)
+    /// try player.upsert(db)
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
@@ -51,20 +55,22 @@ extension PersistableRecord {
     /// (primary key or unique index). In case of violation, all columns but the
     /// primary key are overwritten with the inserted values:
     ///
-    ///     struct Player: Encodable, PersistableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// ```swift
+    /// struct Player: Encodable, PersistableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
     ///
-    ///     // INSERT INTO player (id, name, score)
-    ///     // VALUES (1, 'Arthur', 1000)
-    ///     // ON CONFLICT DO UPDATE SET
-    ///     //   name = excluded.name,
-    ///     //   score = excluded.score
-    ///     // RETURNING *
-    ///     let player = Player(id: 1, name: "Arthur", score: 1000)
-    ///     let upsertedPlayer = try player.upsertAndFetch(db)
+    /// // INSERT INTO player (id, name, score)
+    /// // VALUES (1, 'Arthur', 1000)
+    /// // ON CONFLICT DO UPDATE SET
+    /// //   name = excluded.name,
+    /// //   score = excluded.score
+    /// // RETURNING *
+    /// let player = Player(id: 1, name: "Arthur", score: 1000)
+    /// let upsertedPlayer = try player.upsertAndFetch(db)
+    /// ```
     ///
     /// With `conflictTarget` and `assignments` arguments, you can further
     /// control the upsert behavior. Make sure you check
@@ -81,31 +87,33 @@ extension PersistableRecord {
     /// does not overwrite the tainted flag, and overwrites the
     /// remaining columns:
     ///
-    ///     // CREATE TABLE vocabulary(
-    ///     //   word TEXT PRIMARY KEY,
-    ///     //   kind TEXT NOT NULL,
-    ///     //   isTainted BOOLEAN DEFAULT 0,
-    ///     //   count INT DEFAULT 1))
-    ///     struct Vocabulary: Encodable, PersistableRecord {
-    ///         var word: String
-    ///         var kind: String
-    ///         var isTainted: Bool
-    ///     }
+    /// ```swift
+    /// // CREATE TABLE vocabulary(
+    /// //   word TEXT PRIMARY KEY,
+    /// //   kind TEXT NOT NULL,
+    /// //   isTainted BOOLEAN DEFAULT 0,
+    /// //   count INT DEFAULT 1))
+    /// struct Vocabulary: Encodable, PersistableRecord {
+    ///     var word: String
+    ///     var kind: String
+    ///     var isTainted: Bool
+    /// }
     ///
-    ///     // INSERT INTO vocabulary(word, kind, isTainted)
-    ///     // VALUES('jovial', 'adjective', 0)
-    ///     // ON CONFLICT(word) DO UPDATE SET \
-    ///     //   count = count + 1,
-    ///     //   kind = excluded.kind
-    ///     // RETURNING *
-    ///     let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
-    ///     let upserted = try vocabulary.upsertAndFetch(
-    ///         db,
-    ///         onConflict: ["word"],
-    ///         doUpdate: { _ in
-    ///             [Column("count") += 1,
-    ///              Column("isTainted").noOverwrite]
-    ///         })
+    /// // INSERT INTO vocabulary(word, kind, isTainted)
+    /// // VALUES('jovial', 'adjective', 0)
+    /// // ON CONFLICT(word) DO UPDATE SET \
+    /// //   count = count + 1,
+    /// //   kind = excluded.kind
+    /// // RETURNING *
+    /// let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
+    /// let upserted = try vocabulary.upsertAndFetch(
+    ///     db,
+    ///     onConflict: ["word"],
+    ///     doUpdate: { _ in
+    ///         [Column("count") += 1,
+    ///          Column("isTainted").noOverwrite]
+    ///     })
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictTarget: The conflict target.
@@ -175,21 +183,25 @@ extension PersistableRecord {
     /// The upsert behavior is triggered by a violation of any uniqueness
     /// constraint on the table (primary key or unique index). In case of
     /// violation, all columns but the primary key are overwritten with the
-    /// inserted values:
+    /// inserted values.
     ///
-    ///     struct Player: Encodable, PersistableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// For example:
     ///
-    ///     // INSERT INTO player (id, name, score)
-    ///     // VALUES (1, 'Arthur', 1000)
-    ///     // ON CONFLICT DO UPDATE SET
-    ///     //   name = excluded.name,
-    ///     //   score = excluded.score
-    ///     let player = Player(id: 1, name: "Arthur", score: 1000)
-    ///     try player.upsert(db)
+    /// ```swift
+    /// struct Player: Encodable, PersistableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
+    ///
+    /// // INSERT INTO player (id, name, score)
+    /// // VALUES (1, 'Arthur', 1000)
+    /// // ON CONFLICT DO UPDATE SET
+    /// //   name = excluded.name,
+    /// //   score = excluded.score
+    /// let player = Player(id: 1, name: "Arthur", score: 1000)
+    /// try player.upsert(db)
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
@@ -220,20 +232,22 @@ extension PersistableRecord {
     /// (primary key or unique index). In case of violation, all columns but the
     /// primary key are overwritten with the inserted values:
     ///
-    ///     struct Player: Encodable, PersistableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// ```swift
+    /// struct Player: Encodable, PersistableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
     ///
-    ///     // INSERT INTO player (id, name, score)
-    ///     // VALUES (1, 'Arthur', 1000)
-    ///     // ON CONFLICT DO UPDATE SET
-    ///     //   name = excluded.name,
-    ///     //   score = excluded.score
-    ///     // RETURNING *
-    ///     let player = Player(id: 1, name: "Arthur", score: 1000)
-    ///     let upsertedPlayer = try player.upsertAndFetch(db)
+    /// // INSERT INTO player (id, name, score)
+    /// // VALUES (1, 'Arthur', 1000)
+    /// // ON CONFLICT DO UPDATE SET
+    /// //   name = excluded.name,
+    /// //   score = excluded.score
+    /// // RETURNING *
+    /// let player = Player(id: 1, name: "Arthur", score: 1000)
+    /// let upsertedPlayer = try player.upsertAndFetch(db)
+    /// ```
     ///
     /// With `conflictTarget` and `assignments` arguments, you can further
     /// control the upsert behavior. Make sure you check
@@ -250,31 +264,33 @@ extension PersistableRecord {
     /// does not overwrite the tainted flag, and overwrites the
     /// remaining columns:
     ///
-    ///     // CREATE TABLE vocabulary(
-    ///     //   word TEXT PRIMARY KEY,
-    ///     //   kind TEXT NOT NULL,
-    ///     //   isTainted BOOLEAN DEFAULT 0,
-    ///     //   count INT DEFAULT 1))
-    ///     struct Vocabulary: Encodable, PersistableRecord {
-    ///         var word: String
-    ///         var kind: String
-    ///         var isTainted: Bool
-    ///     }
+    /// ```swift
+    /// // CREATE TABLE vocabulary(
+    /// //   word TEXT PRIMARY KEY,
+    /// //   kind TEXT NOT NULL,
+    /// //   isTainted BOOLEAN DEFAULT 0,
+    /// //   count INT DEFAULT 1))
+    /// struct Vocabulary: Encodable, PersistableRecord {
+    ///     var word: String
+    ///     var kind: String
+    ///     var isTainted: Bool
+    /// }
     ///
-    ///     // INSERT INTO vocabulary(word, kind, isTainted)
-    ///     // VALUES('jovial', 'adjective', 0)
-    ///     // ON CONFLICT(word) DO UPDATE SET \
-    ///     //   count = count + 1,
-    ///     //   kind = excluded.kind
-    ///     // RETURNING *
-    ///     let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
-    ///     let upserted = try vocabulary.upsertAndFetch(
-    ///         db,
-    ///         onConflict: ["word"],
-    ///         doUpdate: { _ in
-    ///             [Column("count") += 1,
-    ///              Column("isTainted").noOverwrite]
-    ///         })
+    /// // INSERT INTO vocabulary(word, kind, isTainted)
+    /// // VALUES('jovial', 'adjective', 0)
+    /// // ON CONFLICT(word) DO UPDATE SET \
+    /// //   count = count + 1,
+    /// //   kind = excluded.kind
+    /// // RETURNING *
+    /// let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
+    /// let upserted = try vocabulary.upsertAndFetch(
+    ///     db,
+    ///     onConflict: ["word"],
+    ///     doUpdate: { _ in
+    ///         [Column("count") += 1,
+    ///          Column("isTainted").noOverwrite]
+    ///     })
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictTarget: The conflict target.
@@ -300,8 +316,8 @@ extension PersistableRecord {
     /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
     /// returns the upserted record.
     ///
-    /// See `upsertAndFetch(_:onConflict:doUpdate:)` for more information about
-    /// the `conflictTarget` and `assignments` parameters.
+    /// See ``upsertAndFetch(_:onConflict:doUpdate:)`` for more information
+    /// about the `conflictTarget` and `assignments` parameters.
     ///
     /// - parameter db: A database connection.
     /// - parameter returnedType: The type of the returned record.

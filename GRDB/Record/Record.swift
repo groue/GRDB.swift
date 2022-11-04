@@ -1,6 +1,6 @@
 // MARK: - Record
 
-/// A base class for types that can decode database rows.
+/// A base class for types that can be fetched and persisted in the database.
 ///
 /// ## Topics
 ///
@@ -8,6 +8,10 @@
 ///
 /// - ``init()``
 /// - ``init(row:)``
+///
+/// ### Encoding a Database Row
+///
+/// - ``encode(to:)``
 ///
 /// ### Changes Tracking
 ///
@@ -50,7 +54,7 @@ open class Record {
     
     // MARK: - Core methods
     
-    /// The name of the database table used to build requests.
+    /// The name of the database table used to build SQL queries.
     ///
     /// Subclasses must override this method. For example:
     ///
@@ -72,9 +76,9 @@ open class Record {
         PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
-    /// The default request selection.
+    /// The columns selected by the record.
     ///
-    /// Unless this method is overridden, requests select all columns:
+    /// By default, all columns are selected:
     ///
     /// ```swift
     /// class Player: Record { }
@@ -100,6 +104,33 @@ open class Record {
         [AllColumns()]
     }
     
+    /// Encodes the record into the provided persistence container.
+    ///
+    /// In your implementation of this method, store in the `container` argument
+    /// all values that should be stored in database columns.
+    ///
+    /// Primary key columns, if any, must be included.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// class Player: Record {
+    ///     var id: Int64?
+    ///     var name: String?
+    ///
+    ///     override func encode(to container: inout PersistenceContainer) {
+    ///         container["id"] = id
+    ///         container["name"] = name
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// It is undefined behavior to set different values for the same column.
+    /// Column names are case insensitive, so defining both "name" and "NAME"
+    /// is considered undefined behavior.
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
     open func encode(to container: inout PersistenceContainer) throws { }
     
     // MARK: - Compare with Previous Versions
