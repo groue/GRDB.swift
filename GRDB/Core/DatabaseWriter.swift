@@ -546,6 +546,8 @@ extension DatabaseWriter {
     /// Executes database operations, and returns their result after they have
     /// finished executing.
     ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
     /// For example:
     ///
     /// ```swift
@@ -587,6 +589,8 @@ extension DatabaseWriter {
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// For example:
     ///
@@ -631,6 +635,8 @@ extension DatabaseWriter {
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Database operations are not executed until all currently executing
     /// database accesses performed by the database writer finish executing
