@@ -69,7 +69,9 @@ How you can Contribute
 
 7. **Please provide documentation for your changes**
 
-    GRDB documentation is provided as reference (inline doc comments starting with `///`, see [Documentation Comment Syntax](https://github.com/apple/swift/blob/main/docs/DocumentationComments.md)), and guides ([README.md](README.md) and the [Documentation](Documentation) folder).
+    GRDB documentation is provided as a DocC reference, and guides ([README.md](README.md) and the [Documentation](Documentation) folder).
+    
+    Please keep the reference and the guides up-to-date. Use Xcode > Product > Build Documentation in order to control the quality of your reference documentation.
     
     GRDB is "documentation-driven", which means that nothing ships until it is supported by documentation that makes sense. Documentation makes sense when someone who is not you is able to figure out what is the purpose of your contribution, how to use it, and what are its eventual caveats and corner cases. When the documentation is hard to write, or reveals too many caveats, it is the sign that the api needs to be fixed.
     
