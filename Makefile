@@ -162,12 +162,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBiOS_minTarget:
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
 test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
@@ -233,12 +235,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_SQLCipher3:
 ifdef POD
