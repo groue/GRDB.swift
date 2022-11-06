@@ -12,7 +12,7 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 ### Fundamentals
 
 - <doc:DatabaseConnections>
-- <doc:SQLLanguage>
+- <doc:SQLSupport>
 - <doc:Errors>
 
 ### Migrations
