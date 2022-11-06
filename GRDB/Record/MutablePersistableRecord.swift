@@ -195,7 +195,6 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// - parameter db: A database connection.
     func willUpdate(_ db: Database, columns: Set<String>) throws
     
-    // swiftlint:disable line_length
     /// Persistence callback called around the record update.
     ///
     /// If you provide a custom implementation of this method, you must call
@@ -218,7 +217,6 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// - parameter update: A function that updates the record. Its result is
     ///   reserved for GRDB usage.
     func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws
-    // swiftlint:enable line_length
     
     /// Persistence callback called upon successful update.
     ///

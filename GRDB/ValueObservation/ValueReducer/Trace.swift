@@ -1,4 +1,5 @@
 extension ValueReducers {
+    // swiftlint:disable line_length
     /// A `ValueReducer` that handles ``ValueObservation`` events.
     ///
     /// See ``ValueObservation/handleEvents(willStart:willFetch:willTrackRegion:databaseDidChange:didReceiveValue:didFail:didCancel:)``
@@ -16,6 +17,7 @@ extension ValueReducers {
             return value
         }
     }
+    // swiftlint:enable line_length
 }
 
 extension ValueReducers.Trace: _DatabaseValueReducer where Base: _DatabaseValueReducer {

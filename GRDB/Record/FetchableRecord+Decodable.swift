@@ -370,7 +370,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 // Decode from JSON
                 return try row.withUnsafeData(atIndex: index) { data in
                     guard let data = data else {
-                        throw DecodingError.valueNotFound(Data.self, DecodingError.Context(codingPath: codingPath + [key], debugDescription: "Missing Data"))
+                        throw DecodingError.valueNotFound(Data.self, DecodingError.Context(
+                            codingPath: codingPath + [key],
+                            debugDescription: "Missing Data"))
                     }
                     return try R
                         .databaseJSONDecoder(for: key.stringValue)
