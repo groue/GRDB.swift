@@ -102,6 +102,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+- Inline documentation can be built with DocC.
 - The `Row.dataNoCopy` methods are deprecated. Use `Row.withUnsafeData` instead.
 
 ## 6.2.0
