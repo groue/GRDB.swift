@@ -5,19 +5,21 @@ import Foundation
 ///
 /// For example:
 ///
-///     let sql = "SELECT 1, 2,3,4, 5,6, 7,8"
-///     //               <.><. . .><. .><. .>
-///     let adapters = splittingRowAdapters([1, 3, 2])
-///     let adapter = ScopeAdapter([
-///         "a": adapters[0],
-///         "b": adapters[1],
-///         "c": adapters[2],
-///         "d": adapters[3]])
-///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)
-///     row.scopes["a"] // [1]
-///     row.scopes["b"] // [2, 3, 4]
-///     row.scopes["c"] // [5, 6]
-///     row.scopes["d"] // [7, 8]
+/// ```swift
+/// let sql = "SELECT 1, 2,3,4, 5,6, 7,8"
+/// //               <.><. . .><. .><. .>
+/// let adapters = splittingRowAdapters([1, 3, 2])
+/// let adapter = ScopeAdapter([
+///     "a": adapters[0],
+///     "b": adapters[1],
+///     "c": adapters[2],
+///     "d": adapters[3]])
+/// let row = try Row.fetchOne(db, sql: sql, adapter: adapter)
+/// row.scopes["a"] // [1]
+/// row.scopes["b"] // [2, 3, 4]
+/// row.scopes["c"] // [5, 6]
+/// row.scopes["d"] // [7, 8]
+/// ```
 public func splittingRowAdapters(columnCounts: [Int]) -> [any RowAdapter] {
     guard !columnCounts.isEmpty else {
         // Identity adapter
@@ -145,16 +147,20 @@ extension Statement: _RowLayout {
     }
 }
 
-/// `RowAdapter` is a protocol that helps two incompatible row interfaces
-/// working together.
+/// A type that helps two incompatible row interfaces working together.
 ///
-/// To use a row adapter, provide it to any method that fetches:
+/// You provide row adapters to methods that fetch. For example:
 ///
+/// ```swift
+/// try dbQueue.read {
+///     // An adapter that ignores the first two columns
 ///     let adapter = SuffixRowAdapter(fromIndex: 2)
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
 ///     // [baz:3]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
+/// }
+/// ```
 ///
 /// ## Topics
 ///
