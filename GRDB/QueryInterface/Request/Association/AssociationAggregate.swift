@@ -559,50 +559,48 @@ private func combine<RowDecoder>(
 // MARK: - Logical Operators (AND, OR, NOT)
 
 extension AssociationAggregate {
-    /// Returns a logically negated aggregate.
+    /// A negated logical aggregate.
     ///
     /// For example:
     ///
-    ///     Author.having(!Author.books.isEmpty)
+    /// ```swift
+    /// Author.having(!Author.books.isEmpty)
+    /// ```
     public static prefix func ! (aggregate: Self) -> Self {
         aggregate.map { !$0 }
     }
     
-    /// Groups two aggregates with the `AND` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.isEmpty && Author.paintings.isEmpty)
+    /// The `AND` SQL operator.
     public static func && (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: &&)
     }
     
     // TODO: test
+    /// The `AND` SQL operator.
     public static func && (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 && rhs }
     }
     
     // TODO: test
+    /// The `AND` SQL operator.
     public static func && (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs && $0 }
     }
     
     
-    /// Groups two aggregates with the `OR` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(!Author.books.isEmpty || !Author.paintings.isEmpty)
+    /// The `OR` SQL operator.
     public static func || (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: ||)
     }
     
     // TODO: test
+    /// The `OR` SQL operator.
     public static func || (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 || rhs }
     }
     
     // TODO: test
+    /// The `OR` SQL operator.
     public static func || (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs || $0 }
     }
@@ -611,147 +609,95 @@ extension AssociationAggregate {
 // MARK: - Egality and Identity Operators (=, <>, IS, IS NOT)
 
 extension AssociationAggregate {
-    /// Returns an aggregate that compares two aggregates with the `=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count == Author.paintings.count)
+    /// The `=` SQL operator.
     public static func == (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: ==)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `=` SQL operator.
+    /// The `=` SQL operator.
     ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count == 3)
-    public static func == (lhs: Self, rhs: some SQLExpressible) -> Self {
+    /// When the right operand is nil, `IS NULL` is used instead of the
+    /// `=` operator.
+    public static func == (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
         lhs.map { $0 == rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `=` SQL operator.
+    /// The `=` SQL operator.
     ///
-    /// For example:
-    ///
-    ///    Author.having(3 == Author.books.count)
-    public static func == (lhs: some SQLExpressible, rhs: Self) -> Self {
+    /// When the left operand is nil, `IS NULL` is used instead of the
+    /// `=` operator.
+    public static func == (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
         rhs.map { lhs == $0 }
     }
     
-    /// Returns an aggregate that checks the boolean value of an aggregate.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.isEmpty == false)
+    /// The `=` SQL operator.
     public static func == (lhs: Self, rhs: Bool) -> Self {
         lhs.map { $0 == rhs }
     }
     
-    /// Returns an aggregate that checks the boolean value of an aggregate.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(false == Author.books.isEmpty)
+    /// The `=` SQL operator.
     public static func == (lhs: Bool, rhs: Self) -> Self {
         rhs.map { lhs == $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `<>` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count != Author.paintings.count)
+    /// The `<>` SQL operator.
     public static func != (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: !=)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<>` SQL operator.
+    /// The `<>` SQL operator.
     ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count != 3)
-    public static func != (lhs: Self, rhs: some SQLExpressible) -> Self {
+    /// When the right operand is nil, `IS NOT NULL` is used instead of the
+    /// `<>` operator.
+    public static func != (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
         lhs.map { $0 != rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<>` SQL operator.
+    /// The `<>` SQL operator.
     ///
-    /// For example:
-    ///
-    ///     Author.having(3 != Author.books.count)
-    public static func != (lhs: some SQLExpressible, rhs: Self) -> Self {
+    /// When the left operand is nil, `IS NOT NULL` is used instead of the
+    /// `<>` operator.
+    public static func != (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
         rhs.map { lhs != $0 }
     }
     
-    /// Returns an aggregate that checks the boolean value of an aggregate.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.isEmpty != true)
+    /// The `<>` SQL operator.
     public static func != (lhs: Self, rhs: Bool) -> Self {
         lhs.map { $0 != rhs }
     }
     
-    /// Returns an aggregate that checks the boolean value of an aggregate.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(true != Author.books.isEmpty)
+    /// The `<>` SQL operator.
     public static func != (lhs: Bool, rhs: Self) -> Self {
         rhs.map { lhs != $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `IS` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count === Author.paintings.count)
+    /// The `IS` SQL operator.
     public static func === (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: ===)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `IS` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count === 3)
-    public static func === (lhs: Self, rhs: some SQLExpressible) -> Self {
+    /// The `IS` SQL operator.
+    public static func === (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
         lhs.map { $0 === rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `IS` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 === Author.books.count)
-    public static func === (lhs: some SQLExpressible, rhs: Self) -> Self {
+    /// The `IS` SQL operator.
+    public static func === (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
         rhs.map { lhs === $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `IS NOT` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count !== Author.paintings.count)
+    /// The `IS NOT` SQL operator.
     public static func !== (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: !==)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `IS NOT` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count !== 3)
-    public static func !== (lhs: Self, rhs: some SQLExpressible) -> Self {
+    /// The `IS NOT` SQL operator.
+    public static func !== (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
         lhs.map { $0 !== rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `IS NOT` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 !== Author.books.count)
-    public static func !== (lhs: some SQLExpressible, rhs: Self) -> Self {
+    /// The `IS NOT` SQL operator.
+    public static func !== (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
         rhs.map { lhs !== $0 }
     }
 }
@@ -759,110 +705,62 @@ extension AssociationAggregate {
 // MARK: - Comparison Operators (<, >, <=, >=)
 
 extension AssociationAggregate {
-    /// Returns an aggregate that compares two aggregates with the `<=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count <= Author.paintings.count)
+    /// The `<=` SQL operator.
     public static func <= (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: <=)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count <= 3)
+    /// The `<=` SQL operator.
     public static func <= (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 <= rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 <= Author.books.count)
+    /// The `<=` SQL operator.
     public static func <= (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs <= $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `<` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count < Author.paintings.count)
+    /// The `<` SQL operator.
     public static func < (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: <)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count < 3)
+    /// The `<` SQL operator.
     public static func < (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 < rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `<` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 < Author.books.count)
+    /// The `<` SQL operator.
     public static func < (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs < $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `>` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count > Author.paintings.count)
+    /// The `>` SQL operator.
     public static func > (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: >)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `>` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count > 3)
+    /// The `>` SQL operator.
     public static func > (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 > rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `>` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 > Author.books.count)
+    /// The `>` SQL operator.
     public static func > (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs > $0 }
     }
     
-    /// Returns an aggregate that compares two aggregates with the `>=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count >= Author.paintings.count)
+    /// The `>=` SQL operator.
     public static func >= (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: >=)
     }
     
-    /// Returns an aggregate that compares an aggregate with the `>=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(Author.books.count >= 3)
+    /// The `>=` SQL operator.
     public static func >= (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 >= rhs }
     }
     
-    /// Returns an aggregate that compares an aggregate with the `>=` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.having(3 >= Author.books.count)
+    /// The `>=` SQL operator.
     public static func >= (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs >= $0 }
     }
@@ -871,119 +769,67 @@ extension AssociationAggregate {
 // MARK: - Arithmetic Operators (+, -, *, /)
 
 extension AssociationAggregate {
-    /// Returns an arithmetically negated aggregate.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: -Author.books.count)
+    /// The `-` SQL operator.
     public static prefix func - (aggregate: Self) -> Self {
         aggregate.map { -$0 }
     }
     
-    /// Returns an aggregate that sums two aggregates with the `+` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count + Author.paintings.count)
+    /// The `+` SQL operator.
     public static func + (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: +)
     }
     
-    /// Returns an aggregate that sums an aggregate with the `+` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count + 1)
+    /// The `+` SQL operator.
     public static func + (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 + rhs }
     }
     
-    /// Returns an aggregate that sums an aggregate with the `+` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: 1 + Author.books.count)
+    /// The `+` SQL operator.
     public static func + (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs + $0 }
     }
     
-    /// Returns an aggregate that substracts two aggregates with the `-` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count - Author.paintings.count)
+    /// The `-` SQL operator.
     public static func - (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: -)
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `-` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count - 1)
+    /// The `-` SQL operator.
     public static func - (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 - rhs }
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `-` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: 1 - Author.books.count)
+    /// The `-` SQL operator.
     public static func - (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs - $0 }
     }
     
-    /// Returns an aggregate that multiplies two aggregates with the `*` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count * Author.paintings.count)
+    /// The `*` SQL operator.
     public static func * (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: *)
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `*` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count * 2)
+    /// The `*` SQL operator.
     public static func * (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 * rhs }
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `*` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: 2 * Author.books.count)
+    /// The `*` SQL operator.
     public static func * (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs * $0 }
     }
     
-    /// Returns an aggregate that multiplies two aggregates with the `/` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count / Author.paintings.count)
+    /// The `/` SQL operator.
     public static func / (lhs: Self, rhs: Self) -> Self {
         combine(lhs, rhs, with: /)
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `/` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: Author.books.count / 2)
+    /// The `/` SQL operator.
     public static func / (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs.map { $0 / rhs }
     }
     
-    /// Returns an aggregate that substracts an aggregate with the `/` SQL operator.
-    ///
-    /// For example:
-    ///
-    ///     Author.annotated(with: 2 / Author.books.count)
+    /// The `/` SQL operator.
     public static func / (lhs: some SQLExpressible, rhs: Self) -> Self {
         rhs.map { lhs / $0 }
     }
@@ -992,9 +838,15 @@ extension AssociationAggregate {
 // MARK: - IFNULL(...)
 
 extension AssociationAggregate {
-    /// Returns an aggregate that evaluates the `IFNULL` SQL function.
+    /// The `IFNULL` SQL function.
     ///
-    ///     Team.annotated(with: Team.players.min(Column("score")) ?? 0)
+    /// For example:
+    ///
+    /// ```swift
+    /// Team.annotated(with: Team.players.min(Column("score")) ?? 0)
+    /// ```
+    ///
+    /// The returned aggregate has the same key as the input.
     public static func ?? (lhs: Self, rhs: some SQLExpressible) -> Self {
         lhs
             .map { $0 ?? rhs }
@@ -1004,8 +856,7 @@ extension AssociationAggregate {
 
 // MARK: - ABS(...)
 
-/// Returns an aggregate that evaluates to the absolute value of the
-/// input aggregate.
+/// The `ABS` SQL function.
 public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 -> AssociationAggregate<RowDecoder>
 {
@@ -1014,8 +865,7 @@ public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 
 // MARK: - LENGTH(...)
 
-/// Returns an aggregate that evaluates the `LENGTH` SQL function on the
-/// input aggregate.
+/// The `LENGTH` SQL function.
 public func length<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 -> AssociationAggregate<RowDecoder>
 {
