@@ -470,6 +470,20 @@ SQLiteCustom/src/sqlite3.h:
 # Documentation
 # =============
 
+docs-localhost:
+	# Generates documentation in ~/Sites/GRDB
+	# See https://discussions.apple.com/docs/DOC-3083 for Apache setup on the mac
+	mkdir -p ~/Sites/GRDB
+	GRDB_DOCC_PLUGIN=1 swift package \
+	  --allow-writing-to-directory ~/Sites/GRDB \
+	  generate-documentation \
+	  --output-path ~/Sites/GRDB \
+	  --target GRDB \
+	  --disable-indexing \
+	  --transform-for-static-hosting \
+	  --hosting-base-path "~$(USER)/GRDB"
+	open "http://localhost/~$(USER)/GRDB/documentation/grdb/"
+
 doc:
 ifdef JAZZY
 	$(JAZZY) \
