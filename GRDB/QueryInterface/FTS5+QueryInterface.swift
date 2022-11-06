@@ -3,19 +3,19 @@ extension TableRequest where Self: FilteredRequest {
     
     // MARK: Full Text Search
     
-    /// Creates a request with a full-text predicate added to the eventual
-    /// set of already applied predicates.
+    /// Filters rows that match an ``FTS5`` full-text pattern.
     ///
-    ///     // SELECT * FROM book WHERE book MATCH '...'
-    ///     var request = Book.all()
-    ///     request = request.matching(pattern)
+    /// For example:
     ///
-    /// If the search pattern is nil, the request does not match any
-    /// database row.
+    /// ```swift
+    /// // SELECT * FROM book WHERE book MATCH 'sqlite OR database'
+    /// let pattern = FTS5Pattern(matchingAnyTokenIn: "SQLite Database")
+    /// let request = Book.all().matching(pattern)
+    /// ```
     ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    /// If `pattern` is nil, the returned request fetches no row.
+    ///
+    /// - parameter pattern: An ``FTS5Pattern``.
     public func matching(_ pattern: FTS5Pattern?) -> Self {
         guard let pattern else {
             return none()
@@ -30,13 +30,20 @@ extension TableRecord {
     
     // MARK: Full Text Search
     
-    /// Returns a QueryInterfaceRequest with a matching predicate.
+    /// Returns a request filtered on records that match an ``FTS5``
+    /// full-text pattern.
     ///
-    ///     // SELECT * FROM book WHERE book MATCH '...'
-    ///     var request = Book.matching(pattern)
+    /// For example:
     ///
-    /// If the search pattern is nil, the request does not match any
-    /// database row.
+    /// ```swift
+    /// // SELECT * FROM book WHERE book MATCH 'sqlite OR database'
+    /// let pattern = FTS5Pattern(matchingAnyTokenIn: "SQLite Database")
+    /// let request = Book.matching(pattern)
+    /// ```
+    ///
+    /// If `pattern` is nil, the returned request fetches no row.
+    ///
+    /// - parameter pattern: An ``FTS5Pattern``.
     public static func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<Self> {
         all().matching(pattern)
     }

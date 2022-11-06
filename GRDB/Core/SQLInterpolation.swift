@@ -1,4 +1,3 @@
-/// :nodoc:
 public struct SQLInterpolation: StringInterpolationProtocol {
     var elements: [SQL.Element]
     

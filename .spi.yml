@@ -1,3 +1,4 @@
 version: 1
-external_links:
-  documentation: "https://github.com/groue/GRDB.swift/blob/master/README.md"
+builder:
+  configs:
+    - documentation_targets: [GRDB]

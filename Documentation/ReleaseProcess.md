@@ -17,14 +17,11 @@ To release a new GRDB version:
     - CHANGELOG.md
     - GRDB.swift.podspec
     - README.md
-    - Documentation/FullTextSearch.md
-    - Documentation/Migrations.md
     - Support/Info.plist
 - Commit and tag
 - Check tag authors: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
 - Push to the master & development branch
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
-- `make doc`, and update index.html in the `gh-pages` branch
 - Update http://github.com/groue/WWDCCompanion
 - Update [performance comparison](https://github.com/groue/GRDB.swift/wiki/Performance):
 

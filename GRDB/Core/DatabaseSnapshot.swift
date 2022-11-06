@@ -1,12 +1,19 @@
 import Dispatch
 
-/// A DatabaseSnapshot sees an unchanging database content, as it existed at the
-/// moment it was created.
+/// A database connection that sees an unchanging database content, as it
+/// existed at the moment it was created.
 ///
-/// See DatabasePool.makeSnapshot()
+/// You create instances of `DatabaseSnapshot` from a ``DatabasePool``, with
+/// ``DatabasePool/makeSnapshot()``.
 ///
-/// For more information, read about "snapshot isolation" at <https://sqlite.org/isolation.html>
-public final class DatabaseSnapshot: DatabaseReader {
+/// A database snapshot creates one single SQLite connection. All database
+/// accesses are executed in a serial dispatch queue.
+///
+/// A database snapshot inherits all of its database access methods from the
+/// ``DatabaseReader`` protocol.
+///
+/// Related SQLite documentation: <https://sqlite.org/isolation.html>
+public final class DatabaseSnapshot {
     private let serializedDatabase: SerializedDatabase
     
     /// The database configuration
@@ -16,7 +23,7 @@ public final class DatabaseSnapshot: DatabaseReader {
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = DatabasePool.readerConfiguration(configuration)
-        configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
+        configuration.allowsUnsafeTransactions = true // Snapshot keeps a long-lived transaction
         
         serializedDatabase = try SerializedDatabase(
             path: path,
@@ -45,14 +52,12 @@ public final class DatabaseSnapshot: DatabaseReader {
             try? db.commit()
         }
     }
-    
+}
+
+extension DatabaseSnapshot: DatabaseReader {
     public func close() throws {
         try serializedDatabase.sync { try $0.close() }
     }
-}
-
-// DatabaseReader
-extension DatabaseSnapshot {
     
     // MARK: - Interrupting Database Operations
     
@@ -84,7 +89,6 @@ extension DatabaseSnapshot {
     
     // MARK: - Database Observation
     
-    /// :nodoc:
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,

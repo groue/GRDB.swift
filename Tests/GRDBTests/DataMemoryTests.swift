@@ -27,6 +27,16 @@ class DataMemoryTests: GRDBTestCase {
                     
                     do {
                         // This data should not be copied
+                        try row.withUnsafeData(atIndex: 0) { nonCopiedData in
+                            XCTAssertEqual(nonCopiedData, data)
+                            nonCopiedData!.withUnsafeBytes {
+                                XCTAssertEqual($0.baseAddress, blobPointer)
+                            }
+                        }
+                    }
+                    
+                    do {
+                        // This data should not be copied
                         let nonCopiedData = row.dataNoCopy(atIndex: 0)!
                         XCTAssertEqual(nonCopiedData, data)
                         nonCopiedData.withUnsafeBytes {
@@ -54,6 +64,16 @@ class DataMemoryTests: GRDBTestCase {
                     
                     do {
                         // This data should not be copied
+                        try nestedRow.withUnsafeData(atIndex: 0) { nonCopiedData in
+                            XCTAssertEqual(nonCopiedData, data)
+                            nonCopiedData!.withUnsafeBytes {
+                                XCTAssertEqual($0.baseAddress, blobPointer)
+                            }
+                        }
+                    }
+
+                    do {
+                        // This data should not be copied
                         let nonCopiedData = nestedRow.dataNoCopy(atIndex: 0)!
                         XCTAssertEqual(nonCopiedData, data)
                         nonCopiedData.withUnsafeBytes {
@@ -68,7 +88,7 @@ class DataMemoryTests: GRDBTestCase {
                 let dbValue = row.first!.1 // TODO: think about exposing a (column:,databaseValue:) tuple
                 switch dbValue.storage {
                 case .blob(let data):
-                    data.withUnsafeBytes { buffer in
+                    try data.withUnsafeBytes { buffer in
                         do {
                             // This data should not be copied:
                             let nonCopiedData: Data = row[0]
@@ -78,6 +98,15 @@ class DataMemoryTests: GRDBTestCase {
                             }
                         }
                         
+                        do {
+                            // This data should not be copied:
+                            try row.withUnsafeData(atIndex: 0) { nonCopiedData in
+                                XCTAssertEqual(nonCopiedData, data)
+                                nonCopiedData!.withUnsafeBytes { nonCopiedBuffer in
+                                    XCTAssertEqual(nonCopiedBuffer.baseAddress, buffer.baseAddress)
+                                }
+                            }
+                        }
                         do {
                             // This data should not be copied:
                             let nonCopiedData = row.dataNoCopy(atIndex: 0)!

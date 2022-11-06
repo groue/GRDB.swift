@@ -1,6 +1,8 @@
 import Foundation
 
 extension EncodableRecord where Self: Encodable {
+    /// Encodes the record into the provided persistence container, using the
+    /// `Encodable` conformance.
     public func encode(to container: inout PersistenceContainer) throws {
         let encoder = RecordEncoder<Self>(persistenceContainer: container)
         try encode(to: encoder)

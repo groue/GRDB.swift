@@ -3,12 +3,22 @@ import Foundation
 
 /// Decimal adopts DatabaseValueConvertible
 extension Decimal: DatabaseValueConvertible {
+    /// Returns a TEXT decimal value.
     public var databaseValue: DatabaseValue {
         NSDecimalNumber(decimal: self)
             .description(withLocale: Locale(identifier: "en_US_POSIX"))
             .databaseValue
     }
     
+    /// Creates an `Decimal` with the specified database value.
+    ///
+    /// If the database value contains a integer or a double, returns a
+    /// `Decimal` initialized from this number.
+    ///
+    /// If the database value contains a string, parses the string with the
+    /// `en_US_POSIX` locale.
+    ///
+    /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
         case .int64(let int64):

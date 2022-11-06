@@ -1,9 +1,9 @@
 import Foundation
 
-/// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible, Codable {
+/// A database value that holds date components.
+public struct DatabaseDateComponents {
     
-    /// The available formats for reading and storing date components.
+    /// The SQLite formats for date components.
     public enum Format: String {
         
         /// The format "yyyy-MM-dd".
@@ -43,8 +43,6 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
     }
     
-    // MARK: - NSDateComponents conversion
-    
     /// The date components
     public let dateComponents: DateComponents
     
@@ -61,9 +59,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         self.format = format
         self.dateComponents = dateComponents
     }
-    
-    // MARK: - StatementColumnConvertible adoption
-    
+}
+
+extension DatabaseDateComponents: StatementColumnConvertible {
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameters:
@@ -86,10 +84,10 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         self.init(components.dateComponents, format: components.format)
     }
-    
-    // MARK: - DatabaseValueConvertible adoption
-    
-    /// Returns a value that can be stored in the database.
+}
+
+extension DatabaseDateComponents: DatabaseValueConvertible {
+    /// Returns a TEXT database value.
     public var databaseValue: DatabaseValue {
         let dateString: String?
         switch format {
@@ -128,39 +126,32 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         return [dateString, timeString].compactMap { $0 }.joined(separator: " ").databaseValue
     }
     
-    /// Returns a DatabaseDateComponents if *dbValue* contains a
-    /// valid date.
+    /// Creates a `DatabaseDateComponents` from the specified database value.
+    ///
+    /// The supported formats are:
+    ///
+    /// - `YYYY-MM-DD`
+    /// - `YYYY-MM-DD HH:MM`
+    /// - `YYYY-MM-DD HH:MM:SS`
+    /// - `YYYY-MM-DD HH:MM:SS.SSS`
+    /// - `YYYY-MM-DDTHH:MM`
+    /// - `YYYY-MM-DDTHH:MM:SS`
+    /// - `YYYY-MM-DDTHH:MM:SS.SSS`
+    /// - `HH:MM`
+    /// - `HH:MM:SS`
+    /// - `HH:MM:SS.SSS`
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseDateComponents? {
-        // https://www.sqlite.org/lang_datefunc.html
-        //
-        // Supported formats are:
-        //
-        // - YYYY-MM-DD
-        // - YYYY-MM-DD HH:MM
-        // - YYYY-MM-DD HH:MM:SS
-        // - YYYY-MM-DD HH:MM:SS.SSS
-        // - YYYY-MM-DDTHH:MM
-        // - YYYY-MM-DDTHH:MM:SS
-        // - YYYY-MM-DDTHH:MM:SS.SSS
-        // - HH:MM
-        // - HH:MM:SS
-        // - HH:MM:SS.SSS
-        
-        // We need a String
         guard let string = String.fromDatabaseValue(dbValue) else {
             return nil
         }
         
         return SQLiteDateParser().components(from: string)
     }
-    
-    // MARK: - Codable adoption
-    
-    
-    /// Creates a new instance by decoding from the given decoder.
-    ///
-    /// - parameters:
-    ///     - decoder: The decoder to read data from.
+}
+
+extension DatabaseDateComponents: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let stringValue = try container.decode(String.self)
@@ -170,11 +161,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         self = decodedValue
     }
-    
-    /// Encodes this value into the given encoder.
-    ///
-    /// - parameters:
-    ///     - encoder: The encoder to write data to.
+}
+
+extension DatabaseDateComponents: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(String.fromDatabaseValue(databaseValue)!)

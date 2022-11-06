@@ -49,8 +49,6 @@
 ///             through: Pivot1.hasMany(Pivot2.self),
 ///             via: Pivot2.belongsTo(Destination.self)))
 ///     Origin.including(required: association)
-///
-/// :nodoc:
 public struct _SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]

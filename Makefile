@@ -50,7 +50,16 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
-ifeq ($(XCODEVERSION),14.0)
+ifeq ($(XCODEVERSION),14.1)
+  MAX_SWIFT_VERSION = 5.7
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 14,OS=16.1"
+  #MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.4" TODO: restore
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=16.1"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
+  OTHER_SWIFT_FLAGS = '$$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' # -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks'
+  GCC_PREPROCESSOR_DEFINITIONS = '$$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1'
+else ifeq ($(XCODEVERSION),14.0)
   MAX_SWIFT_VERSION = 5.7
   MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=16.0"
@@ -162,12 +171,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBiOS_minTarget:
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
 test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
@@ -233,12 +244,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_SQLCipher3:
 ifdef POD
@@ -469,6 +482,20 @@ SQLiteCustom/src/sqlite3.h:
 
 # Documentation
 # =============
+
+docs-localhost:
+	# Generates documentation in ~/Sites/GRDB
+	# See https://discussions.apple.com/docs/DOC-3083 for Apache setup on the mac
+	mkdir -p ~/Sites/GRDB
+	GRDB_DOCC_PLUGIN=1 swift package \
+	  --allow-writing-to-directory ~/Sites/GRDB \
+	  generate-documentation \
+	  --output-path ~/Sites/GRDB \
+	  --target GRDB \
+	  --disable-indexing \
+	  --transform-for-static-hosting \
+	  --hosting-base-path "~$(USER)/GRDB"
+	open "http://localhost/~$(USER)/GRDB/documentation/grdb/"
 
 doc:
 ifdef JAZZY

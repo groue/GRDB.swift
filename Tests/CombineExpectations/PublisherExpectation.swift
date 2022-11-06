@@ -6,8 +6,6 @@ public enum PublisherExpectations { }
 
 /// The base protocol for PublisherExpectation. It is an implementation detail
 /// that you are not supposed to use, as shown by the underscore prefix.
-///
-/// :nodoc:
 public protocol _PublisherExpectationBase {
     /// Sets up an XCTestExpectation. This method is an implementation detail
     /// that you are not supposed to use, as shown by the underscore prefix.
@@ -19,7 +17,6 @@ public protocol _PublisherExpectationBase {
 }
 
 extension _PublisherExpectationBase {
-    /// :nodoc:
     public func _makeWaiter() -> XCTWaiter? { nil }
 }
 

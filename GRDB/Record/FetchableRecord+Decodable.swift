@@ -1,6 +1,7 @@
 import Foundation
 
 extension FetchableRecord where Self: Decodable {
+    /// Creates a record from `row`, using the `Decodable` conformance.
     public init(row: Row) throws {
         self = try RowDecoder().decode(from: row)
     }
@@ -367,10 +368,16 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 return try T(from: columnDecoder)
             } catch is JSONRequiredError {
                 // Decode from JSON
-                let data = try row.decodeDataNoCopy(atIndex: index)
-                return try R
-                    .databaseJSONDecoder(for: key.stringValue)
-                    .decode(type.self, from: data)
+                return try row.withUnsafeData(atIndex: index) { data in
+                    guard let data = data else {
+                        throw DecodingError.valueNotFound(Data.self, DecodingError.Context(
+                            codingPath: codingPath + [key],
+                            debugDescription: "Missing Data"))
+                    }
+                    return try R
+                        .databaseJSONDecoder(for: key.stringValue)
+                        .decode(type.self, from: data)
+                }
             }
         }
     }

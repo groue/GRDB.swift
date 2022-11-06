@@ -1,14 +1,44 @@
 // MARK: - Record
 
-/// Record is a class that wraps a table row, or the result of any query. It is
-/// designed to be subclassed.
-open class Record: FetchableRecord, TableRecord, PersistableRecord {
+/// A base class for types that can be fetched and persisted in the database.
+///
+/// ## Topics
+///
+/// ### Creating Record Instances
+///
+/// - ``init()``
+/// - ``init(row:)``
+///
+/// ### Encoding a Database Row
+///
+/// - ``encode(to:)``
+///
+/// ### Changes Tracking
+///
+/// - ``databaseChanges``
+/// - ``hasDatabaseChanges``
+/// - ``updateChanges(_:)``
+///
+/// ### Persistence Callbacks
+///
+/// - ``willSave(_:)``
+/// - ``willInsert(_:)``
+/// - ``willUpdate(_:columns:)``
+/// - ``willDelete(_:)``
+/// - ``didSave(_:)``
+/// - ``didInsert(_:)``
+/// - ``didUpdate(_:)``
+/// - ``didDelete(deleted:)``
+/// - ``aroundSave(_:save:)``
+/// - ``aroundInsert(_:insert:)``
+/// - ``aroundUpdate(_:columns:update:)``
+/// - ``aroundDelete(_:delete:)``
+open class Record {
     
     // MARK: - Initializers
     
     /// Creates a Record.
-    public init() {
-    }
+    public init() { }
     
     /// Creates a Record from a row.
     public required init(row: Row) throws {
@@ -22,21 +52,19 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
         }
     }
     
-    
     // MARK: - Core methods
     
-    /// The name of a database table.
+    /// The name of the database table used to build SQL queries.
     ///
-    /// This table name is required by the insert, update, save, delete,
-    /// and exists methods.
+    /// Subclasses must override this method. For example:
     ///
-    ///     class Player : Record {
-    ///         override class var databaseTableName: String {
-    ///             return "player"
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     override class var databaseTableName: String {
+    ///         return "player"
     ///     }
-    ///
-    /// The implementation of the base class Record raises a fatal error.
+    /// }
+    /// ```
     ///
     /// - returns: The name of a database table.
     open class var databaseTableName: String {
@@ -44,88 +72,83 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
         fatalError("subclass must override")
     }
     
-    /// The policy that handles SQLite conflicts when records are inserted
-    /// or updated.
-    ///
-    /// The default implementation uses the ABORT policy for both insertions and
-    /// updates, and has GRDB generate regular INSERT and UPDATE queries.
-    ///
-    /// See <https://www.sqlite.org/lang_conflict.html>
     open class var persistenceConflictPolicy: PersistenceConflictPolicy {
         PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
-    /// The default request selection.
+    /// The columns selected by the record.
     ///
-    /// Unless this method is overridden, requests select all columns:
+    /// By default, all columns are selected:
     ///
-    ///     // SELECT * FROM player
-    ///     try Player.fetchAll(db)
+    /// ```swift
+    /// class Player: Record { }
     ///
-    /// You can override this property and provide an explicit list
-    /// of columns:
+    /// // SELECT * FROM player
+    /// try Player.fetchAll(db)
+    /// ```
     ///
-    ///     class RestrictedPlayer : Record {
-    ///         override static var databaseSelection: [any SQLSelectable] {
-    ///             return [Column("id"), Column("name")]
-    ///         }
+    /// You can override this property and provide an explicit selection.
+    /// For example:
+    ///
+    /// ```swift
+    /// class PartialPlayer: Record {
+    ///     override static var databaseSelection: [any SQLSelectable] {
+    ///         [Column("id"), Column("name")]
     ///     }
+    /// }
     ///
-    ///     // SELECT id, name FROM player
-    ///     try RestrictedPlayer.fetchAll(db)
-    ///
-    /// You can also add extra columns such as the `rowid` column:
-    ///
-    ///     class ExtendedPlayer : Player {
-    ///         override static var databaseSelection: [any SQLSelectable] {
-    ///             return [AllColumns(), Column.rowID]
-    ///         }
-    ///     }
-    ///
-    ///     // SELECT *, rowid FROM player
-    ///     try ExtendedPlayer.fetchAll(db)
+    /// // SELECT id, name FROM player
+    /// try PartialPlayer.fetchAll(db)
+    /// ```
     open class var databaseSelection: [any SQLSelectable] {
         [AllColumns()]
     }
     
-    
-    /// Defines the values persisted in the database.
+    /// Encodes the record into the provided persistence container.
     ///
-    /// Store in the *container* parameter all values that should be stored in
-    /// the columns of the database table (see Record.databaseTableName()).
+    /// In your implementation of this method, store in the `container` argument
+    /// all values that should be stored in database columns.
     ///
     /// Primary key columns, if any, must be included.
     ///
-    ///     class Player : Record {
-    ///         var id: Int64?
-    ///         var name: String?
+    /// For example:
     ///
-    ///         override func encode(to container: inout PersistenceContainer) throws {
-    ///             container["id"] = id
-    ///             container["name"] = name
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     var id: Int64?
+    ///     var name: String?
+    ///
+    ///     override func encode(to container: inout PersistenceContainer) {
+    ///         container["id"] = id
+    ///         container["name"] = name
     ///     }
+    /// }
+    /// ```
     ///
-    /// The implementation of the base class Record does not store any value in
-    /// the container.
+    /// It is undefined behavior to set different values for the same column.
+    /// Column names are case insensitive, so defining both "name" and "NAME"
+    /// is considered undefined behavior.
+    ///
+    /// - throws: An error is thrown if the record can't be encoded to its
+    ///   database representation.
     open func encode(to container: inout PersistenceContainer) throws { }
     
     // MARK: - Compare with Previous Versions
     
-    /// A boolean that indicates whether the record has changes that have not
+    /// A boolean value indicating whether the record has changes that have not
     /// been saved.
     ///
-    /// This flag is purely informative, and does not prevent insert(),
-    /// update(), and save() from performing their database queries.
+    /// This flag is purely informative, and does not prevent insertions and
+    /// updates from performing their database queries.
     ///
     /// A record is *edited* if has been changed since last database
-    /// synchronization (fetch, update, insert). Comparison
-    /// is performed between *values* (values stored in the `encode(to:)`
-    /// method, and values loaded from the database). Property setters do not
+    /// synchronization (fetch, update, or insert). Comparison
+    /// is performed between *values* (values stored in the ``encode(to:)``
+    /// method, and values decoded from ``init(row:)``). Property setters do not
     /// trigger this flag.
     ///
-    /// You can rely on the Record base class to compute this flag for you, or
-    /// you may set it to true or false when you know better. Setting it to
+    /// You can rely on the ``Record`` base class to compute this flag for you,
+    /// or you may set it to true or false when you know better. Setting it to
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
     public var hasDatabaseChanges: Bool {
@@ -139,13 +162,14 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     
     /// A dictionary of changes that have not been saved.
     ///
-    /// Its keys are column names, and values the old values that have been
-    /// changed since last fetching or saving of the record.
+    /// The keys of the dictionary are column names, and values are the old
+    /// values that have been changed since last fetching or saving of
+    /// the record.
     ///
     /// Unless the record has actually been fetched or saved, the old values
     /// are nil.
     ///
-    /// See `hasDatabaseChanges` for more information.
+    /// See ``hasDatabaseChanges`` for more information.
     ///
     /// - throws: An error is thrown if the record can't be encoded to its
     ///   database representation.
@@ -211,13 +235,15 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// For example:
     ///
-    ///     class Player: Record {
-    ///         func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
-    ///             print("Player will insert")
-    ///             try super.aroundInsert(db, insert: insert)
-    ///             print("Player did insert")
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     func aroundInsert(_ db: Database, insert: () throws -> InsertionSuccess) throws {
+    ///         print("Player will insert")
+    ///         try super.aroundInsert(db, insert: insert)
+    ///         print("Player did insert")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter insert: A function that inserts the record, and returns
@@ -231,15 +257,17 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// You can override this method in order to grab the auto-incremented id:
     ///
-    ///     class Player: Record {
-    ///         var id: Int64?
-    ///         var name: String
+    /// ```swift
+    /// class Player: Record {
+    ///     var id: Int64?
+    ///     var name: String
     ///
-    ///         override func didInsert(_ inserted: InsertionSuccess) {
-    ///             super.didInsert(inserted)
-    ///             id = inserted.rowID
-    ///         }
+    ///     override func didInsert(_ inserted: InsertionSuccess) {
+    ///         super.didInsert(inserted)
+    ///         id = inserted.rowID
     ///     }
+    /// }
+    /// ```
     ///
     /// If you override this method, you must call `super` at some point in
     /// your implementation.
@@ -255,7 +283,6 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// - parameter db: A database connection.
     open func willUpdate(_ db: Database, columns: Set<String>) throws { }
     
-    // swiftlint:disable line_length
     /// Called around the record update.
     ///
     /// If you override this method, you must call `super` at some point in
@@ -263,13 +290,20 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// For example:
     ///
-    ///     class Player: Record {
-    ///         override func aroundUpdate(_ db: Database, columns: Set<String>, update: () throws -> PersistenceSuccess) throws {
-    ///             print("Player will update")
-    ///             try super.aroundUpdate(db, columns: columns, update: update)
-    ///             print("Player did update")
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     override func aroundUpdate(
+    ///         _ db: Database,
+    ///         columns: Set<String>,
+    ///         update: () throws -> PersistenceSuccess)
+    ///     throws
+    ///     {
+    ///         print("Player will update")
+    ///         try super.aroundUpdate(db, columns: columns, update: update)
+    ///         print("Player did update")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter columns: The updated columns.
@@ -279,7 +313,6 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
         let updated = try update()
         resetDatabaseChanges(with: updated.persistenceContainer)
     }
-    // swiftlint:enable line_length
     
     /// Called upon successful update.
     ///
@@ -304,13 +337,15 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// For example:
     ///
-    ///     class Player: Record {
-    ///         override func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
-    ///             print("Player will save")
-    ///             try super.aroundSave(db, save: save)
-    ///             print("Player did save")
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     override func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
+    ///         print("Player will save")
+    ///         try super.aroundSave(db, save: save)
+    ///         print("Player did save")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter update: A function that updates the record. Its result is
@@ -342,13 +377,15 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// For example:
     ///
-    ///     class Player: Record {
-    ///         override func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
-    ///             print("Player will delete")
-    ///             try super.aroundDelete(db, delete: delete)
-    ///             print("Player did delete")
-    ///         }
+    /// ```swift
+    /// class Player: Record {
+    ///     override func aroundDelete(_ db: Database, delete: () throws -> Bool) throws {
+    ///         print("Player will delete")
+    ///         try super.aroundDelete(db, delete: delete)
+    ///         print("Player did delete")
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter delete: A function that deletes the record and returns
@@ -368,20 +405,17 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     
     // MARK: - CRUD
     
-    /// If the record has been changed, executes an UPDATE statement so that
+    /// If the record has been changed, executes an `UPDATE` statement so that
     /// those changes and only those changes are saved in the database.
     ///
-    /// On success, this method sets the *hasDatabaseChanges* flag to false.
-    ///
-    /// This method is guaranteed to have saved the eventual changes in the
-    /// database if it returns without error.
+    /// On success, this method sets the `hasDatabaseChanges` flag to false.
     ///
     /// - parameter db: A database connection.
-    /// - parameter columns: The columns to update.
     /// - returns: Whether the record had changes.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    ///   ``PersistenceError/recordNotFound(databaseTableName:key:)`` is thrown
+    ///   if the primary key does not match any row in the database and record
+    ///   could not be updated.
     @discardableResult
     public final func updateChanges(_ db: Database) throws -> Bool {
         let changedColumns = try Set(databaseChanges.keys)
@@ -393,3 +427,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
         }
     }
 }
+
+extension Record: TableRecord { }
+extension Record: PersistableRecord { }
+extension Record: FetchableRecord { }

@@ -100,6 +100,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- Inline documentation can be built with DocC.
+- The `Row.dataNoCopy` methods are deprecated. Use `Row.withUnsafeData` instead.
+
 ## 6.2.0
 
 Released October 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.1.0...v6.2.0)

@@ -1,5 +1,5 @@
 #if SQLITE_ENABLE_FTS5
-/// A full text pattern that can query FTS5 virtual tables.
+/// A full text pattern for querying FTS5 virtual tables.
 public struct FTS5Pattern {
     
     /// The raw pattern string. Guaranteed to be a valid FTS5 pattern.
@@ -126,13 +126,10 @@ extension Database {
 }
 
 extension FTS5Pattern: DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         rawPattern.databaseValue
     }
     
-    /// Returns an FTS5Pattern initialized from *dbValue*, if it
-    /// contains a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS5Pattern? {
         String
             .fromDatabaseValue(dbValue)

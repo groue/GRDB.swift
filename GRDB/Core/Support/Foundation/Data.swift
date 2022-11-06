@@ -11,13 +11,19 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
         }
     }
     
-    /// Returns a value that can be stored in the database.
+    /// Returns a BLOB database value.
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .blob(self))
     }
     
-    /// Returns a Data initialized from *dbValue*, if it contains
-    /// a Blob.
+    /// Returns a `Data` from the specified database value.
+    ///
+    /// If the database value contains a data blob, returns it.
+    ///
+    /// If the database value contains a string, returns this string converted
+    /// to UTF8 data.
+    ///
+    /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
         switch dbValue.storage {
         case .blob(let data):
@@ -59,51 +65,5 @@ extension Data {
         }
         let count = Int(sqlite3_column_bytes(sqliteStatement, index))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
-    }
-    
-    static func fastDecodeNoCopy(
-        fromRow row: Row,
-        atUncheckedIndex index: Int)
-    throws -> Data
-    {
-        if let sqliteStatement = row.sqliteStatement {
-            return try fastDecodeNoCopy(
-                fromStatement: sqliteStatement,
-                atUncheckedIndex: CInt(index),
-                context: RowDecodingContext(row: row, key: .columnIndex(index)))
-        }
-        // Support for fast decoding from adapted rows
-        return try row.fastDecodeDataNoCopy(atUncheckedIndex: index)
-    }
-
-    static func fastDecodeNoCopyIfPresent(
-        fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: CInt,
-        context: @autoclosure () -> RowDecodingContext)
-    -> Data?
-    {
-        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
-            return nil
-        }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, index) else {
-            return Data()
-        }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, index))
-        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
-    }
-
-    static func fastDecodeNoCopyIfPresent(
-        fromRow row: Row,
-        atUncheckedIndex index: Int)
-    throws -> Data?
-    {
-        if let sqliteStatement = row.sqliteStatement {
-            return fastDecodeNoCopyIfPresent(
-                fromStatement: sqliteStatement,
-                atUncheckedIndex: CInt(index),
-                context: RowDecodingContext(row: row, key: .columnIndex(index)))
-        }
-        // Support for fast decoding from adapted rows
-        return try row.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
     }
 }

@@ -1,22 +1,27 @@
-/// An instance of `DatabaseBackupProgress` is passed to a callback of the
-/// `DatabaseReader.backup` or `Database.backup` methods to report
-/// database backup progress to the caller.
+/// Describe the progress of a database backup.
 ///
-/// This is an advanced API for expert users. It is based directly on the SQLite
-/// [online backup API](https://www.sqlite.org/c3ref/backup_finish.html).
+/// Related SQLite documentation: <https://www.sqlite.org/c3ref/backup_finish.html>
 public struct DatabaseBackupProgress {
-    /// Total page count is defined by the `sqlite3_backup_remaining` function
+    /// The number of pages still to be backed up.
+    ///
+    /// It is the result of the `sqlite3_backup_remaining` function.
     public let remainingPageCount: Int
-
-    /// Total page count is defined by the `sqlite3_backup_pagecount` function
+    
+    /// The number of pages in the source database.
+    ///
+    /// It is the result of the `sqlite3_backup_pagecount` function.
     public let totalPageCount: Int
-
-    /// Completed page count is defined as `sqlite3_backup_pagecount() - sqlite3_backup_remaining()`
+    
+    /// The number of of backed up pages.
+    ///
+    /// It is equal to `totalPageCount - remainingPageCount`.
     public var completedPageCount: Int {
         totalPageCount - remainingPageCount
     }
-
-    /// This property is true if and only if `sqlite3_backup_step()` returns
-    /// `SQLITE_DONE`
+    
+    /// A boolean value indicating whether the backup is complete.
+    ///
+    /// It is true if and only if the last call the `sqlite3_backup_step` has
+    /// returned `SQLITE_DONE`.
     public let isCompleted: Bool
 }

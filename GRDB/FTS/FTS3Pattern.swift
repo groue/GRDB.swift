@@ -1,16 +1,42 @@
-/// A full text pattern that can query FTS3 and FTS4 virtual tables.
+/// A full text pattern for querying FTS3 virtual tables.
+///
+/// `FTS3Pattern` can be used with both ``FTS3`` and ``FTS4`` tables.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/fts3.html#full_text_index_queries>
+///
+/// ## Topics
+///
+/// ### Creating Raw FTS3 Patterns
+///
+/// - ``init(rawPattern:)``
+///
+/// ### Creating FTS3 Patterns from User Input
+///
+/// - ``init(matchingAllPrefixesIn:)``
+/// - ``init(matchingAllTokensIn:)``
+/// - ``init(matchingAnyTokenIn:)``
+/// - ``init(matchingPhrase:)``
 public struct FTS3Pattern {
-    
-    /// The raw pattern string. Guaranteed to be a valid FTS3/4 pattern.
+    /// The raw pattern string.
+    ///
+    /// It is guaranteed to be a valid FTS3/4 pattern.
     public let rawPattern: String
     
-    /// Creates a pattern from a raw pattern string; throws DatabaseError on
-    /// invalid syntax.
+    /// Creates a pattern from a raw pattern string.
     ///
     /// The pattern syntax is documented at <https://www.sqlite.org/fts3.html#full_text_index_queries>
     ///
-    ///     try FTS3Pattern(rawPattern: "and") // OK
-    ///     try FTS3Pattern(rawPattern: "AND") // malformed MATCH expression: [AND]
+    /// For example:
+    ///
+    /// ```swift
+    /// // OK
+    /// let pattern = try FTS3Pattern(rawPattern: "and")
+    ///
+    /// // Throws an error: malformed MATCH expression: [AND]
+    /// let pattern = try FTS3Pattern(rawPattern: "AND")
+    /// ```
+    ///
+    /// - throws: A ``DatabaseError`` if the pattern has an invalid syntax.
     public init(rawPattern: String) throws {
         // Correctness above all: use SQLite to validate the pattern.
         //
@@ -33,13 +59,18 @@ public struct FTS3Pattern {
         self.rawPattern = rawPattern
     }
     
-    /// Creates a pattern that matches any token found in the input string;
-    /// returns nil if no pattern could be built.
+    /// Creates a pattern that matches any token found in the input string.
     ///
-    ///     FTS3Pattern(matchingAnyTokenIn: "")        // nil
-    ///     FTS3Pattern(matchingAnyTokenIn: "foo bar") // foo OR bar
+    /// The result is nil if no pattern could be built.
     ///
-    /// - parameter string: The string to turn into an FTS3 pattern
+    /// For example:
+    ///
+    /// ```swift
+    /// FTS3Pattern(matchingAnyTokenIn: "")        // nil
+    /// FTS3Pattern(matchingAnyTokenIn: "foo bar") // foo OR bar
+    /// ```
+    ///
+    /// - parameter string: The string to turn into an FTS3 pattern.
     public init?(matchingAnyTokenIn string: String) {
         guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
               !tokens.isEmpty
@@ -47,13 +78,18 @@ public struct FTS3Pattern {
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
     
-    /// Creates a pattern that matches all tokens found in the input string;
-    /// returns nil if no pattern could be built.
+    /// Creates a pattern that matches all tokens found in the input string.
     ///
-    ///     FTS3Pattern(matchingAllTokensIn: "")        // nil
-    ///     FTS3Pattern(matchingAllTokensIn: "foo bar") // foo bar
+    /// The result is nil if no pattern could be built.
     ///
-    /// - parameter string: The string to turn into an FTS3 pattern
+    /// For example:
+    ///
+    /// ```swift
+    /// FTS3Pattern(matchingAllTokensIn: "")        // nil
+    /// FTS3Pattern(matchingAllTokensIn: "foo bar") // foo bar
+    /// ```
+    ///
+    /// - parameter string: The string to turn into an FTS3 pattern.
     public init?(matchingAllTokensIn string: String) {
         guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
               !tokens.isEmpty
@@ -62,12 +98,18 @@ public struct FTS3Pattern {
     }
     
     /// Creates a pattern that matches all token prefixes found in the input
-    /// string; returns nil if no pattern could be built.
+    /// string.
     ///
-    ///     FTS3Pattern(matchingAllTokensIn: "")        // nil
-    ///     FTS3Pattern(matchingAllTokensIn: "foo bar") // foo* bar*
+    /// The result is nil if no pattern could be built.
     ///
-    /// - parameter string: The string to turn into an FTS3 pattern
+    /// For example:
+    ///
+    /// ```swift
+    /// FTS3Pattern(matchingAllTokensIn: "")        // nil
+    /// FTS3Pattern(matchingAllTokensIn: "foo bar") // foo* bar*
+    /// ```
+    ///
+    /// - parameter string: The string to turn into an FTS3 pattern.
     public init?(matchingAllPrefixesIn string: String) {
         guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
               !tokens.isEmpty
@@ -75,13 +117,18 @@ public struct FTS3Pattern {
         try? self.init(rawPattern: tokens.map { "\($0)*" }.joined(separator: " "))
     }
     
-    /// Creates a pattern that matches a contiguous string; returns nil if no
-    /// pattern could be built.
+    /// Creates a pattern that matches a contiguous string.
     ///
-    ///     FTS3Pattern(matchingPhrase: "")        // nil
-    ///     FTS3Pattern(matchingPhrase: "foo bar") // "foo bar"
+    /// The result is nil if no pattern could be built.
     ///
-    /// - parameter string: The string to turn into an FTS3 pattern
+    /// For example:
+    ///
+    /// ```swift
+    /// FTS3Pattern(matchingPhrase: "")        // nil
+    /// FTS3Pattern(matchingPhrase: "foo bar") // "foo bar"
+    /// ```
+    ///
+    /// - parameter string: The string to turn into an FTS3 pattern.
     public init?(matchingPhrase string: String) {
         guard let tokens = try? FTS3.tokenize(string, withTokenizer: .simple),
               !tokens.isEmpty
@@ -91,13 +138,10 @@ public struct FTS3Pattern {
 }
 
 extension FTS3Pattern: DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         rawPattern.databaseValue
     }
     
-    /// Returns an FTS3Pattern initialized from *dbValue*, if it contains
-    /// a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS3Pattern? {
         String
             .fromDatabaseValue(dbValue)
