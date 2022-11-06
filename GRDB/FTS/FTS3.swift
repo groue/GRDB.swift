@@ -1,59 +1,94 @@
-/// FTS3 lets you define "fts3" virtual tables.
+/// The virtual table module for the FTS3 full-text engine.
 ///
-///     // CREATE VIRTUAL TABLE document USING fts3(content)
-///     try db.create(virtualTable: "document", using: FTS3()) { t in
-///         t.column("content")
-///     }
-public struct FTS3: VirtualTableModule {
-    /// Options for Latin script characters. Matches the raw "remove_diacritics"
-    /// tokenizer argument.
-    ///
-    /// See <https://www.sqlite.org/fts3.html>
+/// To create FTS3 tables, use the ``Database`` method
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/fts3.html>
+///
+/// ## Topics
+///
+/// ### The FTS3 Module
+///
+/// - ``init()``
+/// - ``FTS3TableDefinition``
+/// - ``FTS3TokenizerDescriptor``
+///
+/// ### Full-Text Search Pattern
+///
+/// - ``FTS3Pattern``
+///
+/// ### Tokenizing Strings
+///
+/// - ``tokenize(_:withTokenizer:)``
+public struct FTS3 {
+    /// Options for Latin script characters.
     public enum Diacritics {
-        /// Do not remove diacritics from Latin script characters. This
-        /// option matches the raw "remove_diacritics=0" tokenizer argument.
+        /// Do not remove diacritics from Latin script characters.
+        ///
+        /// This option matches the `remove_diacritics=0` tokenizer argument.
         case keep
-        /// Remove diacritics from Latin script characters. This
-        /// option matches the raw "remove_diacritics=1" tokenizer argument.
+        
+        /// Remove diacritics from Latin script characters.
+        ///
+        /// This option matches the `remove_diacritics=1` tokenizer argument.
         case removeLegacy
+        
         #if GRDBCUSTOMSQLITE
-        /// Remove diacritics from Latin script characters. This
-        /// option matches the raw "remove_diacritics=2" tokenizer argument,
-        /// available from SQLite 3.27.0
+        /// Remove diacritics from Latin script characters.
+        ///
+        /// This option matches the `remove_diacritics=2` tokenizer argument.
         case remove
         #elseif !GRDBCIPHER
-        /// Remove diacritics from Latin script characters. This
-        /// option matches the raw "remove_diacritics=2" tokenizer argument,
-        /// available from SQLite 3.27.0
-        @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+        /// Remove diacritics from Latin script characters.
+        ///
+        /// This option matches the `remove_diacritics=2` tokenizer argument.
+        @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) // SQLite 3.27+
         case remove
         #endif
     }
     
-    /// Creates a FTS3 module suitable for the Database
-    /// `create(virtualTable:using:)` method.
+    /// Creates an FTS3 module.
     ///
-    ///     // CREATE VIRTUAL TABLE document USING fts3(content)
-    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
-    ///         t.column("content")
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE document USING fts3(content)
+    /// try db.create(virtualTable: "document", using: FTS3()) { t in
+    ///     t.column("content")
+    /// }
+    /// ```
+    ///
+    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
     public init() { }
     
     /// Returns an array of tokens found in the string argument.
     ///
     /// For example:
     ///
-    ///     try FTS3.tokenize("SQLite database")  // ["sqlite", "database"]
-    ///     try FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
+    /// ```swift
+    /// // ["sqlite", "database"]
+    /// try FTS3.tokenize("SQLite database")
     ///
-    /// Results can be altered with an explicit tokenizer - default is `.simple`.
-    /// See <https://www.sqlite.org/fts3.html#tokenizer>.
+    /// // ["gustave", "doré"])
+    /// try FTS3.tokenize("Gustave Doré")
+    /// ```
     ///
-    ///     try FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
-    ///     try FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+    /// Results can be altered with the `tokenizer` argument:
     ///
-    /// Tokenization is performed by the `fts3tokenize` virtual table described
-    /// at <https://www.sqlite.org/fts3.html#querying_tokenizers>.
+    /// ```swift
+    /// // ["sqlite", "databas"]
+    /// try FTS3.tokenize("SQLite database", withTokenizer: .porter)
+    ///
+    /// // ["gustave", "dore"])
+    /// try FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61())
+    /// ```
+    ///
+    /// Related SQLite documentation:
+    ///
+    /// - <https://www.sqlite.org/fts3.html#tokenizer>
+    /// - <https://www.sqlite.org/fts3.html#querying_tokenizers>
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func tokenize(
         _ string: String,
         withTokenizer tokenizer: FTS3TokenizerDescriptor = .simple)
@@ -72,22 +107,15 @@ public struct FTS3: VirtualTableModule {
                 """, arguments: [string])
         }
     }
+}
+
+extension FTS3: VirtualTableModule {
+    public var moduleName: String { "fts3" }
     
-    // MARK: - VirtualTableModule Adoption
-    
-    /// The virtual table module name
-    public let moduleName = "fts3"
-    
-    /// Reserved; part of the VirtualTableModule protocol.
-    ///
-    /// See Database.create(virtualTable:using:)
     public func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS3TableDefinition {
         FTS3TableDefinition()
     }
     
-    /// Reserved; part of the VirtualTableModule protocol.
-    ///
-    /// See Database.create(virtualTable:using:)
     public func moduleArguments(for definition: FTS3TableDefinition, in db: Database) -> [String] {
         var arguments = definition.columns
         if let tokenizer = definition.tokenizer {
@@ -103,37 +131,47 @@ public struct FTS3: VirtualTableModule {
         return arguments
     }
     
-    /// Reserved; part of the VirtualTableModule protocol.
-    ///
-    /// See Database.create(virtualTable:using:)
-    public func database(_ db: Database, didCreate tableName: String, using definition: FTS3TableDefinition) {
-    }
+    public func database(_ db: Database, didCreate tableName: String, using definition: FTS3TableDefinition) { }
 }
 
-/// The FTS3TableDefinition class lets you define columns of a FTS3 virtual table.
+/// A `FTS3TableDefinition` lets you define the components of an FTS3
+/// virtual table.
 ///
-/// You don't create instances of this class. Instead, you use the Database
-/// `create(virtualTable:using:)` method:
+/// You don't create instances of this class. Instead, you use the `Database`
+/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
 ///
-///     try db.create(virtualTable: "document", using: FTS3()) { t in // t is FTS3TableDefinition
-///         t.column("content")
-///     }
+/// ```swift
+/// try db.create(virtualTable: "document", using: FTS3()) { t in // t is FTS3TableDefinition
+///     t.column("content")
+/// }
+/// ```
 public final class FTS3TableDefinition {
     fileprivate var columns: [String] = []
     
-    /// The virtual table tokenizer
+    /// The virtual table tokenizer.
     ///
-    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
-    ///         t.tokenizer = .porter
-    ///     }
-    /// See <https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables>
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE documents USING fts3(tokenize=porter)
+    /// try db.create(virtualTable: "document", using: FTS3()) { t in
+    ///     t.tokenizer = .porter
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables>
     public var tokenizer: FTS3TokenizerDescriptor?
     
     /// Appends a table column.
     ///
-    ///     try db.create(virtualTable: "document", using: FTS3()) { t in
-    ///         t.column("content")
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE document USING fts3(content)
+    /// try db.create(virtualTable: "document", using: FTS3()) { t in
+    ///     t.column("content")
+    /// }
+    /// ```
     ///
     /// - parameter name: the column name.
     public func column(_ name: String) {

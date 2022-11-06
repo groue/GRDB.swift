@@ -1,4 +1,3 @@
-/// :nodoc:
 extension SQLInterpolation {
     
     // MARK: - TableRecord
@@ -245,7 +244,6 @@ extension SQLInterpolation {
     
     // When a value is both an expression and a sequence of expressions,
     // favor the expression side. Use case: Foundation.Data interpolation.
-    /// :nodoc:
     public mutating func appendInterpolation<S>(_ expressible: S)
     where S: SQLExpressible, S: Sequence, S.Element: SQLExpressible
     {

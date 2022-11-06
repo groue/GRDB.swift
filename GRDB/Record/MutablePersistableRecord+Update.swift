@@ -21,12 +21,26 @@ extension MutablePersistableRecord {
 extension MutablePersistableRecord {
     /// Executes an `UPDATE` statement on the provided columns.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     if var player = Player.fetchOne(db, id: 1) {
+    ///         player.score += 10
+    ///         try player.update(db, columns: ["score"])
+    ///     }
+    /// }
+    /// ```
+    ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update<Columns>(
         _ db: Database,
@@ -51,12 +65,26 @@ extension MutablePersistableRecord {
     
     /// Executes an `UPDATE` statement on the provided columns.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     if var player = Player.fetchOne(db, id: 1) {
+    ///         player.score += 10
+    ///         try player.update(db, columns: [Column("score")])
+    ///     }
+    /// }
+    /// ```
+    ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update<Columns>(
         _ db: Database,
@@ -70,11 +98,25 @@ extension MutablePersistableRecord {
     
     /// Executes an `UPDATE` statement on all columns.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     if var player = Player.fetchOne(db, id: 1) {
+    ///         player.score += 10
+    ///         try player.update(db)
+    ///     }
+    /// }
+    /// ```
+    ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update(
         _ db: Database,
@@ -92,20 +134,32 @@ extension MutablePersistableRecord {
     ///
     /// For example:
     ///
-    ///     if let oldPlayer = try Player.fetchOne(db, key: 42) {
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     if let oldPlayer = Player.fetchOne(db, id: 1) {
     ///         var newPlayer = oldPlayer
-    ///         newPlayer.score += 10
+    ///         newPlayer.score = 1000
     ///         newPlayer.hasAward = true
-    ///         try newPlayer.updateChanges(db, from: oldRecord)
+    ///         let modified = try newPlayer.updateChanges(db, from: oldPlayer)
+    ///         if modified {
+    ///             print("player was modified")
+    ///         } else {
+    ///             print("player was not modified")
+    ///         }
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter record: The comparison record.
     /// - returns: Whether the record had changes.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     @inlinable // allow specialization so that empty callbacks are removed
@@ -124,20 +178,32 @@ extension MutablePersistableRecord {
     ///
     /// For example:
     ///
-    ///     if var player = try Player.fetchOne(db, key: 42) {
-    ///         try player.updateChanges(db) {
-    ///             $0.score += 10
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     if var player = Player.fetchOne(db, id: 1) {
+    ///         let modified = try player.updateChanges(db) {
+    ///             $0.score = 1000
     ///             $0.hasAward = true
     ///         }
+    ///         if modified {
+    ///             print("player was modified")
+    ///         } else {
+    ///             print("player was not modified")
+    ///         }
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: Whether the record had changes.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @discardableResult
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChanges(
@@ -156,22 +222,19 @@ extension MutablePersistableRecord {
 
 extension MutablePersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Executes an `UPDATE ... RETURNING ...` statement, and returns the
-    /// updated record.
-    ///
-    /// This method helps dealing with default column values and
-    /// generated columns.
-    ///
-    /// For example:
-    ///
-    ///     let player: Player = ...
-    ///     let updatedPlayer = player.updateAndFetch(db)
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The updated record. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch(
         _ db: Database,
@@ -182,17 +245,20 @@ extension MutablePersistableRecord {
         try updateAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on all columns, and
-    /// returns a new record built from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
     ///   the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -206,18 +272,21 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: An updated record, or nil if the record has no change, or
     ///   in case of a failed update due to the `IGNORE` conflict policy.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChangesAndFetch(
         _ db: Database,
@@ -230,20 +299,23 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: A record of type `returnedType`, or nil if the record has
     ///   no change, or in case of a failed update due to the `IGNORE`
     ///   conflict policy.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChangesAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -259,30 +331,35 @@ extension MutablePersistableRecord {
             modify: modify)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on the provided
-    /// columns, and returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on the provided columns, and
+    /// returns the selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(
-    ///             db, columns: ["Score"],
-    ///             selection: [Column("totalScore")],
-    ///             fetch: { statement in
-    ///                 try Int.fetchOne(statement)
-    ///             })
-    ///     }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(
+    ///         db, columns: ["Score"],
+    ///         selection: [Column("totalScore")],
+    ///         fetch: { statement in
+    ///             try Int.fetchOne(statement)
+    ///         })
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch<T, Columns>(
@@ -315,30 +392,35 @@ extension MutablePersistableRecord {
         return success.returned
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on the provided
-    /// columns, and returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on the provided columns, and
+    /// returns the selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(
-    ///             db, columns: [Column("Score")],
-    ///             selection: [Column("totalScore")],
-    ///             fetch: { statement in
-    ///                 try Int.fetchOne(statement)
-    ///             })
-    ///     }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(
+    ///         db, columns: [Column("Score")],
+    ///         selection: [Column("totalScore")],
+    ///         fetch: { statement in
+    ///             try Int.fetchOne(statement)
+    ///         })
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch<T, Columns>(
@@ -357,26 +439,31 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on all columns, and
-    /// returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns the
+    /// selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(db, selection: [Column("totalScore")]) { statement in
-    ///             try Int.fetchOne(statement)
-    ///         }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(db, selection: [Column("totalScore")]) { statement in
+    ///         try Int.fetchOne(statement)
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch<T>(
@@ -396,19 +483,22 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChangesAndFetch<T>(
@@ -428,22 +518,19 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
 #else
-    /// Executes an `UPDATE ... RETURNING ...` statement, and returns the
-    /// updated record.
-    ///
-    /// This method helps dealing with default column values and
-    /// generated columns.
-    ///
-    /// For example:
-    ///
-    ///     let player: Player = ...
-    ///     let updatedPlayer = player.updateAndFetch(db)
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The updated record. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func updateAndFetch(
@@ -455,17 +542,20 @@ extension MutablePersistableRecord {
         try updateAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on all columns, and
-    /// returns a new record built from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
     ///   the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func updateAndFetch<T: FetchableRecord & TableRecord>(
@@ -480,18 +570,21 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: An updated record, or nil if the record has no change, or
     ///   in case of a failed update due to the `IGNORE` conflict policy.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public mutating func updateChangesAndFetch(
@@ -505,20 +598,23 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: A record of type `returnedType`, or nil if the record has
     ///   no change, or in case of a failed update due to the `IGNORE`
     ///   conflict policy.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public mutating func updateChangesAndFetch<T: FetchableRecord & TableRecord>(
@@ -535,30 +631,35 @@ extension MutablePersistableRecord {
             modify: modify)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on the provided
-    /// columns, and returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on the provided columns, and
+    /// returns the selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(
-    ///             db, columns: ["Score"],
-    ///             selection: [Column("totalScore")],
-    ///             fetch: { statement in
-    ///                 try Int.fetchOne(statement)
-    ///             })
-    ///     }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(
+    ///         db, columns: ["Score"],
+    ///         selection: [Column("totalScore")],
+    ///         fetch: { statement in
+    ///             try Int.fetchOne(statement)
+    ///         })
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -592,30 +693,35 @@ extension MutablePersistableRecord {
         return success.returned
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on the provided
-    /// columns, and returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on the provided columns, and
+    /// returns the selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(
-    ///             db, columns: [Column("Score")],
-    ///             selection: [Column("totalScore")],
-    ///             fetch: { statement in
-    ///                 try Int.fetchOne(statement)
-    ///             })
-    ///     }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(
+    ///         db, columns: [Column("Score")],
+    ///         selection: [Column("totalScore")],
+    ///         fetch: { statement in
+    ///             try Int.fetchOne(statement)
+    ///         })
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -635,26 +741,31 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
     
-    /// Executes an `UPDATE ... RETURNING ...` statement on all columns, and
-    /// returns the selected columns from the updated row.
+    /// Executes an `UPDATE RETURNING` statement on all columns, and returns the
+    /// selected columns from the updated row.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET ... RETURNING totalScore
-    ///         let totalScore = try player.updateAndFetch(db, selection: [Column("totalScore")]) { statement in
-    ///             try Int.fetchOne(statement)
-    ///         }
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET ... RETURNING totalScore
+    ///     let totalScore = try player.updateAndFetch(db, selection: [Column("totalScore")]) { statement in
+    ///         try Int.fetchOne(statement)
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -675,19 +786,22 @@ extension MutablePersistableRecord {
     }
     
     /// Modifies the record according to the provided `modify` closure, and
-    /// executes an `UPDATE ... RETURNING ...` statement that updates the
-    /// modified columns, if and only the record was modified. The method
-    /// returns a new record built from the updated row.
+    /// executes an `UPDATE RETURNING` statement that updates the modified
+    /// columns, if and only the record was modified. The method returns a new
+    /// record built from the updated row.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.recordNotFound is thrown if the primary key does not
-    ///   match any row in the database and record could not be updated.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type,
+    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+

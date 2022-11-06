@@ -2,9 +2,9 @@ import Foundation
 
 /// An SQLite result code.
 ///
-/// See <https://www.sqlite.org/rescode.html>
-public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
-    /// The raw SQLite result code
+/// Related SQLite documentation: <https://www.sqlite.org/rescode.html>
+public struct ResultCode: RawRepresentable, Equatable {
+    /// The raw SQLite result code.
     public let rawValue: CInt
     
     /// Creates a `ResultCode` from a raw SQLite result code.
@@ -12,11 +12,14 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
         self.rawValue = rawValue
     }
     
-    /// A result code limited to the least significant 8 bits of the receiver.
-    /// See <https://www.sqlite.org/rescode.html> for more information.
+    /// A primary result code limited to the least significant 8 bits.
     ///
-    ///     let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
-    ///     resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
+    /// For example:
+    ///
+    /// ```swift
+    /// let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+    /// resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
+    /// ```
     public var primaryResultCode: ResultCode {
         ResultCode(rawValue: rawValue & 0xFF)
     }
@@ -28,11 +31,15 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     /// Primary result codes match themselves and their extended result codes,
     /// while extended result codes match only themselves:
     ///
-    ///     switch error.extendedResultCode {
-    ///     case .SQLITE_CONSTRAINT_FOREIGNKEY: // foreign key constraint error
-    ///     case .SQLITE_CONSTRAINT:            // any other constraint error
-    ///     default:                            // any other database error
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// switch error.extendedResultCode {
+    /// case .SQLITE_CONSTRAINT_FOREIGNKEY: // foreign key constraint error
+    /// case .SQLITE_CONSTRAINT:            // any other constraint error
+    /// default:                            // any other database error
+    /// }
+    /// ```
     public static func ~= (pattern: ResultCode, code: ResultCode) -> Bool {
         if pattern.isPrimary {
             return pattern == code.primaryResultCode
@@ -166,28 +173,30 @@ extension ResultCode {
     /// Primary result codes match themselves and their extended result codes,
     /// while extended result codes match only themselves.
     ///
-    ///     do {
-    ///         try ...
-    ///     } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
-    ///         // foreign key constraint error
-    ///     } catch ResultCode.SQLITE_CONSTRAINT {
-    ///         // any other constraint error
-    ///     } catch {
-    ///         // any other database error
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// do {
+    ///     try ...
+    /// } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///     // foreign key constraint error
+    /// } catch ResultCode.SQLITE_CONSTRAINT {
+    ///     // any other constraint error
+    /// } catch {
+    ///     // any other database error
+    /// }
+    /// ```
     public static func ~= (lhs: Self, rhs: Error) -> Bool {
         guard let error = rhs as? DatabaseError else { return false }
         return lhs ~= error.extendedResultCode
     }
 }
 
-// CustomStringConvertible
-extension ResultCode {
+extension ResultCode: CustomStringConvertible {
     var errorString: String? {
         String(cString: sqlite3_errstr(rawValue))
     }
     
-    /// :nodoc:
     public var description: String {
         if let errorString = errorString {
             return "\(rawValue) (\(errorString))"
@@ -199,61 +208,143 @@ extension ResultCode {
 
 extension ResultCode: Sendable { }
 
-/// DatabaseError wraps an SQLite error.
-public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
-    
-    /// The SQLite error code (see
-    /// <https://www.sqlite.org/rescode.html#primary_result_code_list>).
-    ///
-    ///     do {
-    ///         ...
-    ///     } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
-    ///         // A constraint error
-    ///     }
+/// A `DatabaseError` describes an SQLite error.
+///
+/// For example:
+///
+/// ```swift
+/// do {
+///     try player.insert(db)
+/// } catch let error as DatabaseError {
+///     switch error.resultCode {
+///     case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+///         // foreign key constraint error
+///     case ResultCode.SQLITE_CONSTRAINT:
+///         // any other constraint error
+///     default:
+///         // any other database error
+///     }
+/// }
+/// ```
+///
+/// The above example can also be written in a shorter way:
+///
+/// ```swift
+/// do {
+///     try player.insert(db)
+/// } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+///     // foreign key constraint error
+/// } catch DatabaseError.SQLITE_CONSTRAINT {
+///     // any other constraint error
+/// } catch {
+///     // any other database error
+/// }
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/rescode.html>
+///
+/// ## Topics
+///
+/// ### Creating DatabaseError
+///
+/// - ``init(resultCode:message:sql:arguments:publicStatementArguments:)``
+/// - ``ResultCode``
+///
+/// ### Error Information
+///
+/// - ``arguments``
+/// - ``extendedResultCode``
+/// - ``isInterruptionError``
+/// - ``message``
+/// - ``resultCode``
+/// - ``sql``
+///
+/// ### Converting DatabaseError to String
+///
+/// - ``description``
+/// - ``expandedDescription``
+public struct DatabaseError: Error {
+    /// The SQLite primary result code.
     ///
     /// This property returns a "primary result code", that is to say the least
-    /// significant 8 bits of any SQLite result code. See
-    /// <https://www.sqlite.org/rescode.html> for more information.
+    /// significant 8 bits of any SQLite result code.
     ///
-    /// See also `extendedResultCode`.
+    /// For example:
+    ///
+    /// ```swift
+    /// do {
+    ///     ...
+    /// } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
+    ///     // A constraint error
+    /// }
+    /// ```
+    ///
+    /// The above example can also be written in a shorter way:
+    ///
+    /// ```swift
+    /// do {
+    ///     ...
+    /// } catch DatabaseError.SQL_CONSTRAINT {
+    ///     // A constraint error
+    /// }
+    /// ```
+    ///
+    /// See also ``extendedResultCode``.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/rescode.html>
     public var resultCode: ResultCode {
         extendedResultCode.primaryResultCode
     }
     
-    /// The SQLite extended error code (see
-    /// <https://www.sqlite.org/rescode.html#extended_result_code_list>).
+    /// The SQLite extended error code.
     ///
-    ///     do {
-    ///         ...
-    ///     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
-    ///         // A foreign key constraint error
-    ///     }
+    /// For example:
     ///
-    /// See also `resultCode`.
+    /// ```swift
+    /// do {
+    ///     ...
+    /// } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///     // A foreign key constraint error
+    /// }
+    /// ```
+    ///
+    /// The above example can also be written in a shorter way:
+    ///
+    /// ```swift
+    /// do {
+    ///     ...
+    /// } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///     // A foreign key constraint error
+    /// }
+    /// ```
+    ///
+    /// See also ``resultCode``.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/rescode.html>
     public let extendedResultCode: ResultCode
     
     /// The SQLite error message.
     public let message: String?
     
-    /// The SQL query that yielded the error (if relevant).
+    /// The SQL query that yielded the error.
     public let sql: String?
     
-    /// The query arguments that yielded the error (if relevant).
+    /// The query arguments that yielded the error.
     public let arguments: StatementArguments?
     
     /// See Configuration.publicStatementArguments
     var publicStatementArguments: Bool
     
-    /// Creates a DatabaseError.
+    /// Creates a `DatabaseError`.
     ///
     /// - parameters:
     ///     - resultCode: A ResultCode (defaults to .SQLITE_ERROR).
     ///     - message: An eventual error message. If nil, the error message is
     ///       derived from the result code.
     ///     - sql: An eventual SQL string.
-    ///     - arguments: Eventual Statement arguments.
+    ///     - arguments: Eventual statement arguments.
     ///     - publicStatementArguments: If false (the default), statement
-    ///       arguments are not visible in the error's `description` property.
+    ///       arguments are not visible in the error's ``description`` property.
     public init(
         resultCode: ResultCode = .SQLITE_ERROR,
         message: String? = nil,
@@ -422,13 +513,14 @@ extension DatabaseError {
 }
 
 extension DatabaseError {
-    /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT`.
+    /// A boolean value indicating if the error has code
+    /// `SQLITE_ABORT` or `SQLITE_INTERRUPT`.
     ///
     /// Such an error can be thrown when a database has been interrupted, or
     /// when the database is suspended.
     ///
-    /// See `DatabaseReader.interrupt()` and `DatabaseReader.suspend()` for
-    /// more information.
+    /// See ``DatabaseReader/interrupt()`` and ``Database/suspendNotification``
+    /// for more information.
     public var isInterruptionError: Bool {
         switch resultCode {
         case .SQLITE_ABORT, .SQLITE_INTERRUPT:
@@ -439,8 +531,7 @@ extension DatabaseError {
     }
 }
 
-// CustomStringConvertible
-extension DatabaseError {
+extension DatabaseError: CustomStringConvertible {
     /// The error description.
     ///
     /// For example:
@@ -493,19 +584,18 @@ extension DatabaseError {
     }
 }
 
-// CustomNSError
-extension DatabaseError {
-    
-    /// NSError bridging: the domain of the error.
-    /// :nodoc:
+extension DatabaseError: CustomNSError {
+    /// Part of the `CustomNSError` conformance.
+    ///
+    /// Returns `GRDB.DatabaseError`.
     public static var errorDomain: String { "GRDB.DatabaseError" }
     
-    /// NSError bridging: the error code within the given domain.
-    /// :nodoc:
+    /// Part of the `CustomNSError` conformance.
+    ///
+    /// Returns the ``extendedResultCode``.
     public var errorCode: Int { Int(extendedResultCode.rawValue) }
     
-    /// NSError bridging: the user-info dictionary.
-    /// :nodoc:
+    /// Part of the `CustomNSError` conformance.
     public var errorUserInfo: [String: Any] {
         var userInfo = [NSLocalizedDescriptionKey: description]
         if let message = message {

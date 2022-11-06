@@ -1,33 +1,172 @@
-/// `Table` can build query interface requests.
+/// A `Table` builds database queries with the Swift language instead of SQL.
 ///
+/// ## Overview
+///
+/// A `Table` instance is similar to a ``TableRecord`` type. You will use one
+/// when the other is impractical or impossible to use.
+///
+/// For example:
+///
+/// ```swift
+/// let table = Table("player")
+/// try dbQueue.read { db in
 ///     // SELECT * FROM player WHERE score >= 1000
-///     let table = Table("player")
-///     let rows: [Row] = try dbQueue.read { db in
-///         table.all()
-///             .filter(Column("score") >= 1000)
-///             .fetchAll(db)
-///     }
+///     let rows: [Row] = table.filter(Column("score") >= 1000).fetchAll(db)
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### Creating a Table
+///
+/// - ``init(_:)-2iz5y``
+/// - ``init(_:)-3mfb8``
+///
+/// ### Instance Properties
+///
+/// - ``tableName``
+/// 
+/// ### Counting Rows
+///
+/// - ``fetchCount(_:)``
+///
+/// ### Testing for Row Existence
+///
+/// - ``exists(_:id:)``
+/// - ``exists(_:key:)-4dk7e``
+/// - ``exists(_:key:)-36jtu``
+///
+/// ### Deleting Rows
+///
+/// - ``deleteAll(_:)``
+/// - ``deleteAll(_:ids:)``
+/// - ``deleteAll(_:keys:)-5t865``
+/// - ``deleteAll(_:keys:)-28sff``
+/// - ``deleteOne(_:id:)``
+/// - ``deleteOne(_:key:)-404su``
+/// - ``deleteOne(_:key:)-64wmq``
+///
+/// ### Updating Rows
+///
+/// - ``updateAll(_:onConflict:_:)-4w9b``
+/// - ``updateAll(_:onConflict:_:)-4cvap``
+///
+/// ### Building Query Interface Requests
+///
+/// `Table` provide convenience access to most ``DerivableRequest`` and
+/// ``QueryInterfaceRequest`` methods.
+///
+/// - ``aliased(_:)``
+/// - ``all()``
+/// - ``annotated(with:)-6i101``
+/// - ``annotated(with:)-6x399``
+/// - ``annotated(with:)-4sbgw``
+/// - ``annotated(with:)-98t4p``
+/// - ``annotated(withOptional:)``
+/// - ``annotated(withRequired:)``
+/// - ``filter(_:)``
+/// - ``filter(id:)``
+/// - ``filter(ids:)``
+/// - ``filter(key:)-tw3i``
+/// - ``filter(key:)-4sun7``
+/// - ``filter(keys:)-85e0v``
+/// - ``filter(keys:)-qqgf``
+/// - ``filter(literal:)``
+/// - ``filter(sql:arguments:)``
+/// - ``having(_:)``
+/// - ``including(all:)``
+/// - ``including(optional:)``
+/// - ``including(required:)``
+/// - ``joining(optional:)``
+/// - ``joining(required:)``
+/// - ``limit(_:offset:)``
+/// - ``none()``
+/// - ``order(_:)-2gvi7``
+/// - ``order(_:)-9o5bb``
+/// - ``order(literal:)``
+/// - ``order(sql:arguments:)``
+/// - ``orderByPrimaryKey()``
+/// - ``select(_:)-1599q``
+/// - ``select(_:)-2cnd1``
+/// - ``select(_:as:)-20ci9``
+/// - ``select(_:as:)-3pr6x``
+/// - ``select(literal:)``
+/// - ``select(literal:as:)``
+/// - ``select(sql:arguments:)``
+/// - ``select(sql:arguments:as:)``
+/// - ``selectPrimaryKey(as:)``
+/// - ``with(_:)``
+///
+/// ### Defining Associations
+///
+/// - ``association(to:)``
+/// - ``association(to:on:)``
+/// - ``belongsTo(_:key:using:)-8p5xr``
+/// - ``belongsTo(_:key:using:)-117wr``
+/// - ``hasMany(_:key:using:)-3i6yk``
+/// - ``hasMany(_:key:using:)-57dwf``
+/// - ``hasMany(_:through:using:key:)``
+/// - ``hasOne(_:key:using:)-81vqy``
+/// - ``hasOne(_:key:using:)-3438j``
+/// - ``hasOne(_:through:using:key:)``
+///
+/// ### Fetching Database Rows
+///
+/// - ``fetchCursor(_:)-1oqex``
+/// - ``fetchAll(_:)-4s7yn``
+/// - ``fetchSet(_:)-5lp4s``
+/// - ``fetchOne(_:)-3bduz``
+///
+/// ### Fetching Database Values
+///
+/// - ``fetchCursor(_:)-65lci``
+/// - ``fetchCursor(_:)-295uw``
+/// - ``fetchAll(_:)-6xr01``
+/// - ``fetchAll(_:)-7tjdp``
+/// - ``fetchSet(_:)-3mchk``
+/// - ``fetchSet(_:)-8k2uk``
+/// - ``fetchOne(_:)-infc``
+/// - ``fetchOne(_:)-71icb``
+///
+/// ### Fetching Records
+///
+/// - ``fetchCursor(_:)-81wuu``
+/// - ``fetchAll(_:)-3l7ol``
+/// - ``fetchSet(_:)-ko77``
+/// - ``fetchOne(_:)-8n1q``
+///
+/// ### Database Observation Support
+///
+/// - ``databaseRegion(_:)``
 public struct Table<RowDecoder> {
-    /// The table name
+    /// The table name.
     public var tableName: String
     
     private init(_ tableName: String, _ type: RowDecoder.Type) {
         self.tableName = tableName
     }
     
-    /// Create a `Table`
+    /// Creates a `Table`.
     ///
-    ///     let table = Table<Row>("player")
-    ///     let table = Table<Player>("player")
+    /// For example:
+    ///
+    /// ```swift
+    /// let table = Table<Row>("player")
+    /// let table = Table<Player>("player")
+    /// ```
     public init(_ tableName: String) {
         self.init(tableName, RowDecoder.self)
     }
 }
 
 extension Table where RowDecoder == Row {
-    /// Create a `Table` of `Row`.
+    /// Create a `Table<Row>`.
     ///
-    ///     let table = Table("player") // Table<Row>
+    /// For example:
+    ///
+    /// ```swift
+    /// let table = Table("player") // Table<Row>
+    /// ```
     public init(_ tableName: String) {
         self.init(tableName, Row.self)
     }
@@ -46,49 +185,73 @@ extension Table {
         .all(fromTable: tableName)
     }
     
-    /// Creates a request for all rows of the table.
+    /// Returns a request for all rows of the table.
     ///
-    ///     // Fetch all players
-    ///     let table = Table<Player>("player")
-    ///     let request = table.all()
-    ///     let players: [Player] = try request.fetchAll(db)
+    /// ```swift
+    /// // Fetch all players
+    /// let table = Table<Player>("player")
+    /// let request = table.all()
+    /// let players: [Player] = try request.fetchAll(db)
+    /// ```
     public func all() -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest(relation: relationForAll)
     }
     
-    /// Creates a request which fetches no row.
+    /// Returns an empty request that fetches no row.
     ///
-    ///     // Fetch no players
-    ///     let table = Table<Player>("player")
-    ///     let request = table.none()
-    ///     let players: [Player] = try request.fetchAll(db) // Empty array
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let request = Table("player").none()
+    ///     let rows = try request.fetchAll(db) // empty array
+    /// }
     public func none() -> QueryInterfaceRequest<RowDecoder> {
         all().none() // don't laugh
     }
     
-    /// Creates a request which selects *selection*.
+    /// Returns a request that selects the provided result columns.
     ///
-    ///     // SELECT id, email FROM player
-    ///     let table = Table("player")
-    ///     let request = table.select(Column("id"), Column("email"))
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = playerTable.select(Column("id"), Column("score"))
+    /// ```
     public func select(_ selection: any SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
         all().select(selection)
     }
     
-    /// Creates a request which selects *selection*.
+    /// Returns a request that selects the provided result columns.
     ///
-    ///     // SELECT id, email FROM player
-    ///     let table = Table("player")
-    ///     let request = table.select([Column("id"), Column("email")])
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = playerTable.select([Column("id"), Column("score")])
+    /// ```
     public func select(_ selection: [any SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
         all().select(selection)
     }
     
-    /// Creates a request which selects *sql*.
+    /// Returns a request that selects the provided SQL string.
     ///
-    ///     // SELECT id, email FROM player
-    ///     let table = Table("player")
-    ///     let request = table.select(sql: "id, email")
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT id, name FROM player
+    /// let request = playerTable.select(sql: "id, name")
+    ///
+    /// // SELECT id, IFNULL(name, 'Anonymous') FROM player
+    /// let defaultName = "Anonymous"
+    /// let request = playerTable.select(sql: "id, IFNULL(name, ?)", arguments: [defaultName])
+    /// ```
     public func select(
         sql: String,
         arguments: StatementArguments = StatementArguments())
@@ -97,30 +260,44 @@ extension Table {
         all().select(SQL(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request which selects an SQL *literal*.
+    /// Returns a request that selects the provided ``SQL`` literal.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // SELECT id, email, score + 1000 FROM player
-    ///     let table = Table("player")
-    ///     let bonus = 1000
-    ///     let request = table.select(literal: """
-    ///         id, email, score + \(bonus)
-    ///         """)
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT id, IFNULL(name, 'Anonymous') FROM player
+    /// let defaultName = "Anonymous"
+    /// let request = playerTable.select(literal: "id, IFNULL(name, \(defaultName))")
+    /// ```
     public func select(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
         all().select(sqlLiteral)
     }
     
-    /// Creates a request which selects *selection*, and fetches values of
-    /// type *type*.
+    /// Returns a request that selects the provided result columns, and defines
+    /// the type of decoded rows.
     ///
-    ///     try dbQueue.read { db in
-    ///         // SELECT max(score) FROM player
-    ///         let table = Table("player")
-    ///         let request = table.select([max(Column("score"))], as: Int.self)
-    ///         let maxScore: Int? = try request.fetchOne(db)
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// let minScore = min(Column("score"))
+    /// let maxScore = max(Column("score"))
+    ///
+    /// // SELECT MAX(score) FROM player
+    /// let request = playerTable.select([maxScore], as: Int.self)
+    /// let maxScore = try request.fetchOne(db) // Int?
+    ///
+    /// // SELECT MIN(score), MAX(score) FROM player
+    /// let request = playerTable.select([minScore, maxScore], as: Row.self)
+    /// if let row = try request.fetchOne(db) {
+    ///     let minScore: Int = row[0]
+    ///     let maxScore: Int = row[1]
+    /// }
+    /// ```
     public func select<RowDecoder>(
         _ selection: [any SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
@@ -129,15 +306,28 @@ extension Table {
         all().select(selection, as: type)
     }
     
-    /// Creates a request which selects *selection*, and fetches values of
-    /// type *type*.
+    /// Returns a request that selects the provided result columns, and defines
+    /// the type of decoded rows.
     ///
-    ///     try dbQueue.read { db in
-    ///         // SELECT max(score) FROM player
-    ///         let table = Table("player")
-    ///         let request = table.select(max(Column("score")), as: Int.self)
-    ///         let maxScore: Int? = try request.fetchOne(db)
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// let minScore = min(Column("score"))
+    /// let maxScore = max(Column("score"))
+    ///
+    /// // SELECT MAX(score) FROM player
+    /// let request = playerTable.select(maxScore, as: Int.self)
+    /// let maxScore = try request.fetchOne(db) // Int?
+    ///
+    /// // SELECT MIN(score), MAX(score) FROM player
+    /// let request = playerTable.select(minScore, maxScore, as: Row.self)
+    /// if let row = try request.fetchOne(db) {
+    ///     let minScore: Int = row[0]
+    ///     let maxScore: Int = row[1]
+    /// }
+    /// ```
     public func select<RowDecoder>(
         _ selection: any SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
@@ -146,15 +336,23 @@ extension Table {
         all().select(selection, as: type)
     }
     
-    /// Creates a request which selects *sql*, and fetches values of
-    /// type *type*.
+    /// Returns a request that selects the provided SQL string, and defines the
+    /// type of decoded rows.
     ///
-    ///     try dbQueue.read { db in
-    ///         // SELECT max(score) FROM player
-    ///         let table = Table("player")
-    ///         let request = table.select(sql: "max(score)", as: Int.self)
-    ///         let maxScore: Int? = try request.fetchOne(db)
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT name FROM player
+    /// let request = playerTable.select(sql: "name", as: String.self)
+    /// let names = try request.fetchAll(db) // [String]
+    ///
+    /// // SELECT IFNULL(name, 'Anonymous') FROM player
+    /// let defaultName = "Anonymous"
+    /// let request = playerTable.select(sql: "IFNULL(name, ?)", arguments: [defaultName], as: String.self)
+    /// let names = try request.fetchAll(db) // [String]
+    /// ```
     public func select<RowDecoder>(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -164,19 +362,20 @@ extension Table {
         all().select(SQL(sql: sql, arguments: arguments), as: type)
     }
     
-    /// Creates a request which selects an SQL *literal*, and fetches values of
-    /// type *type*.
+    /// Returns a request that selects the provided ``SQL`` literal, and defines
+    /// the type of decoded rows.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // SELECT IFNULL(name, 'Anonymous') FROM player
-    ///     let table = Table("player")
-    ///     let defaultName = "Anonymous"
-    ///     let request = table.select(
-    ///         literal: "IFNULL(name, \(defaultName))",
-    ///         as: String.self)
-    ///     let name: String? = try request.fetchOne(db)
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT IFNULL(name, 'Anonymous') FROM player
+    /// let defaultName = "Anonymous"
+    /// let request = playerTable.select(literal: "IFNULL(name, \(defaultName))", as: String.self)
+    /// let names = try request.fetchAll(db) // [String]
+    /// ```
     public func select<RowDecoder>(
         literal sqlLiteral: SQL,
         as type: RowDecoder.Type = RowDecoder.self)
@@ -185,51 +384,129 @@ extension Table {
         all().select(sqlLiteral, as: type)
     }
     
-    /// Creates a request which appends *selection*.
+    /// Returns a request that selects the primary key.
     ///
-    ///     // SELECT id, email, name FROM player
-    ///     let table = Table("player")
-    ///     let request = table
-    ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: [Column("name")])
+    /// All primary keys are supported:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// // SELECT id FROM player WHERE ...
+    /// let request = try playerTable.selectPrimaryKey(as: Int64.self)
+    /// let ids = try request.fetchAll(db) // [Int64]
+    ///
+    /// // SELECT code FROM country WHERE ...
+    /// let request = try countryTable.selectPrimaryKey(as: String.self)
+    /// let countryCodes = try request.fetchAll(db) // [String]
+    ///
+    /// // SELECT citizenId, countryCode FROM citizenship WHERE ...
+    /// let request = try citizenshipTable.selectPrimaryKey(as: Row.self)
+    /// let rows = try request.fetchAll(db) // [Row]
+    /// ```
+    ///
+    /// For composite primary keys, you can define a ``FetchableRecord`` type:
+    ///
+    /// ```swift
+    /// extension Citizenship {
+    ///     struct ID: Decodable, FetchableRecord {
+    ///         var citizenId: Int64
+    ///         var countryCode: String
+    ///     }
+    /// }
+    /// let request = try citizenshipTable.selectPrimaryKey(as: Citizenship.ID.self)
+    /// let ids = try request.fetchAll(db) // [Citizenship.ID]
+    /// ```
+    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        all().selectPrimaryKey(as: type)
+    }
+    
+    /// Returns a request with the provided result columns appended to the
+    /// table columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let totalScore = (Column("score") + Column("bonus")).forKey("totalScore")
+    /// let request = playerTable.annotated(with: [totalScore])
+    /// ```
     public func annotated(with selection: [any SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: selection)
     }
     
-    /// Creates a request which appends *selection*.
+    /// Returns a request with the provided result columns appended to the
+    /// table columns.
     ///
-    ///     // SELECT id, email, name FROM player
-    ///     let table = Table("player")
-    ///     let request = table
-    ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: Column("name"))
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let totalScore = (Column("score") + Column("bonus")).forKey("totalScore")
+    /// let request = playerTable.annotated(with: totalScore)
+    /// ```
     public func annotated(with selection: any SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: selection)
     }
     
-    /// Creates a request with the provided *predicate*.
+    /// Returns a request filtered with a boolean SQL expression.
     ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(Column("email") == "arthur@example.com")
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = playerTable.filter(Column("name") == name)
+    /// ```
     public func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(predicate)
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Returns a request filtered by primary key.
     ///
-    ///     // SELECT * FROM player WHERE id = 1
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(key: 1)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    ///
+    /// // SELECT * FROM player WHERE id = 1
+    /// let request = playerTable.filter(key: 1)
+    ///
+    /// // SELECT * FROM country WHERE code = 'FR'
+    /// let request = countryTable.filter(key: "FR")
+    /// ```
+    ///
+    /// - parameter key: A primary key
     public func filter(key: some DatabaseValueConvertible) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(key: key)
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Returns a request filtered by primary key.
     ///
-    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(keys: [1, 2, 3])
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    ///
+    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// let request = playerTable.filter(keys: [1, 2, 3])
+    ///
+    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// let request = countryTable.filter(keys: ["FR", "US"])
+    /// ```
+    ///
+    /// - parameter keys: A collection of primary keys
     public func filter<Keys>(keys: Keys)
     -> QueryInterfaceRequest<RowDecoder>
     where Keys: Sequence, Keys.Element: DatabaseValueConvertible
@@ -237,35 +514,74 @@ extension Table {
         all().filter(keys: keys)
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Returns a request filtered by primary or unique key.
     ///
-    ///     // SELECT * FROM passport WHERE personId = 1 AND countryCode = 'FR'
-    ///     let table = Table<Passport>("passport")
-    ///     let request = table.filter(key: ["personId": 1, "countryCode": "FR"])
+    /// For example:
     ///
-    /// When executed, this request raises a fatal error if there is no unique
-    /// index on the key columns.
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// // SELECT * FROM player WHERE id = 1
+    /// let request = playerTable.filter(key: ["id": 1])
+    ///
+    /// // SELECT * FROM player WHERE email = 'arthur@example.com'
+    /// let request = playerTable.filter(key: ["email": "arthur@example.com"])
+    ///
+    /// // SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    /// let request = citizenshipTable.filter(key: [
+    ///     "citizenId": 1,
+    ///     "countryCode": "FR",
+    /// ])
+    /// ```
+    ///
+    /// When executed, this request raises a fatal error if no unique index
+    /// exists on a subset of the key columns.
+    ///
+    /// - parameter key: A unique key.
     public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(key: key)
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Returns a request filtered by primary or unique key.
     ///
-    ///     // SELECT * FROM passport WHERE (personId = 1 AND countryCode = 'FR') OR ...
-    ///     let table = Table<Passport>("passport")
-    ///     let request = table.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
+    /// For example:
     ///
-    /// When executed, this request raises a fatal error if there is no unique
-    /// index on the key columns.
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// // SELECT * FROM player WHERE id = 1
+    /// let request = playerTable.filter(keys: [["id": 1]])
+    ///
+    /// // SELECT * FROM player WHERE email = 'arthur@example.com'
+    /// let request = playerTable.filter(keys: [["email": "arthur@example.com"]])
+    ///
+    /// // SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    /// let request = citizenshipTable.filter(keys: [
+    ///     ["citizenId": 1, "countryCode": "FR"],
+    /// ])
+    /// ```
+    ///
+    /// When executed, this request raises a fatal error if no unique index
+    /// exists on a subset of the key columns.
+    ///
+    /// - parameter keys: A collection of unique keys
     public func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(keys: keys)
     }
     
-    /// Creates a request with the provided *predicate*.
+    /// Returns a request filtered with an SQL string.
     ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(sql: "email = ?", arguments: ["arthur@example.com"])
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = playerTable.filter(sql: "name = ?", arguments: [name])
+    /// ```
     public func filter(
         sql: String,
         arguments: StatementArguments = StatementArguments())
@@ -274,57 +590,82 @@ extension Table {
         filter(SQL(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request with the provided *predicate* added to the
-    /// eventual set of already applied predicates.
+    /// Returns a request filtered with an ``SQL`` literal.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // SELECT * FROM player WHERE name = 'O''Brien'
-    ///     let table = Table<Player>("player")
-    ///     let name = "O'Brien"
-    ///     let request = table.filter(literal: "email = \(email)")
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = playerTable.filter(literal: "name = \(name)")
+    /// ```
     public func filter(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(sqlLiteral)
     }
     
-    /// Creates a request sorted according to the
-    /// provided *orderings*.
+    /// Returns a request sorted according to the given SQL ordering terms.
     ///
-    ///     // SELECT * FROM player ORDER BY name
-    ///     let table = Table<Player>("player")
-    ///     let request = table.order(Column("name"))
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = playerTable.order(Column("score").desc, Column("name"))
+    /// ```
     public func order(_ orderings: any SQLOrderingTerm...) -> QueryInterfaceRequest<RowDecoder> {
         all().order(orderings)
     }
     
-    /// Creates a request sorted according to the
-    /// provided *orderings*.
+    /// Returns a request sorted according to the given SQL ordering terms.
     ///
-    ///     // SELECT * FROM player ORDER BY name
-    ///     let table = Table<Player>("player")
-    ///     let request = table.order([Column("name")])
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = playerTable.order([Column("score").desc, Column("name")])
+    /// ```
     public func order(_ orderings: [any SQLOrderingTerm]) -> QueryInterfaceRequest<RowDecoder> {
         all().order(orderings)
     }
     
-    /// Creates a request sorted by primary key.
+    /// Returns a request sorted by primary key.
     ///
-    ///     // SELECT * FROM player ORDER BY id
-    ///     let table = Table<Player>("player")
-    ///     let request = table.orderByPrimaryKey()
+    /// All primary keys are supported:
     ///
-    ///     // SELECT * FROM country ORDER BY code
-    ///     let request = Country.orderByPrimaryKey()
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// // SELECT * FROM player ORDER BY id
+    /// let request = playerTable.orderByPrimaryKey()
+    ///
+    /// // SELECT * FROM country ORDER BY code
+    /// let request = countryTable.orderByPrimaryKey()
+    ///
+    /// // SELECT * FROM citizenship ORDER BY citizenId, countryCode
+    /// let request = citizenshipTable.orderByPrimaryKey()
+    /// ```
     public func orderByPrimaryKey() -> QueryInterfaceRequest<RowDecoder> {
         all().orderByPrimaryKey()
     }
     
-    /// Creates a request sorted according to *sql*.
+    /// Returns a request sorted according to the given SQL string.
     ///
-    ///     // SELECT * FROM player ORDER BY name
-    ///     let table = Table<Player>("player")
-    ///     let request = table.order(sql: "name")
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = playerTable.order(sql: "score DESC, name")
+    /// ```
     public func order(
         sql: String,
         arguments: StatementArguments = StatementArguments())
@@ -333,39 +674,50 @@ extension Table {
         all().order(SQL(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request sorted according to an SQL *literal*.
+    /// Returns a request sorted according to the given ``SQL`` literal.
     ///
-    ///     // SELECT * FROM player ORDER BY name
-    ///     let table = Table<Player>("player")
-    ///     let request = table.order(literal: "name")
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = playerTable.order(literal: "score DESC, name")
+    /// ```
     public func order(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
         all().order(sqlLiteral)
     }
     
-    /// Creates a request which fetches *limit* rows, starting at
-    /// *offset*.
+    /// Returns a limited request.
     ///
-    ///     // SELECT * FROM player LIMIT 1
-    ///     let table = Table<Player>("player")
-    ///     let request = table.limit(1)
+    /// The returned request fetches `limit` rows, starting at `offset`. For
+    /// example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// // SELECT * FROM player LIMIT 10
+    /// let request = playerTable.limit(10)
+    ///
+    /// // SELECT * FROM player LIMIT 10 OFFSET 20
+    /// let request = playerTable.limit(10, offset: 20)
+    /// ```
     public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<RowDecoder> {
         all().limit(limit, offset: offset)
     }
     
-    /// Creates a request that allows you to define expressions that target
-    /// a specific database table.
+    /// Returns a request that can be referred to with the provided alias.
     ///
-    /// See `TableRecord.aliased(_:)` for more information.
+    /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    /// See ``TableRequest/aliased(_:)`` for more information.
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
     
-    /// Returns a request which embeds the common table expression.
+    /// Returns a request that embeds a common table expression.
     ///
-    /// See `TableRecord.with(_:)` for more information.
-    ///
-    /// - parameter cte: A common table expression.
-    /// - returns: A request.
+    /// `table.with(cte)` is equivalent to `table.all().with(cte)`.
+    /// See ``DerivableRequest/with(_:)`` for more information.
     public func with<T>(_ cte: CommonTableExpression<T>) -> QueryInterfaceRequest<RowDecoder> {
         all().with(cte)
     }
@@ -373,22 +725,54 @@ extension Table {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
-    /// Creates a request filtered by primary key.
+    /// Returns a request filtered by primary key.
     ///
-    ///     // SELECT * FROM player WHERE id = 1
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(id: 1)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    /// let countryTable = Table<Country>("country")
+    ///
+    /// // SELECT * FROM player WHERE id = 1
+    /// let request = playerTable.filter(id: 1)
+    ///
+    /// // SELECT * FROM country WHERE code = 'FR'
+    /// let request = countryTable.filter(id: "FR")
+    /// ```
     ///
     /// - parameter id: A primary key
     public func filter(id: RowDecoder.ID) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(id: id)
     }
-    
-    /// Creates a request filtered by primary key.
+
+    /// Returns a request filtered by primary key.
     ///
-    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    ///     let table = Table<Player>("player")
-    ///     let request = table.filter(ids: [1, 2, 3])
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    /// let countryTable = Table<Country>("country")
+    ///
+    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// let request = playerTable.filter(ids: [1, 2, 3])
+    ///
+    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// let request = countryTable.filter(ids: ["FR", "US"])
+    /// ```
     ///
     /// - parameter ids: A collection of primary keys
     public func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<RowDecoder>
@@ -399,33 +783,21 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
 }
 
 extension Table {
-    /// Creates a request which selects the primary key.
-    ///
-    /// All primary keys are supported:
-    ///
-    ///     // SELECT id FROM player
-    ///     let table = Table("player")
-    ///     let request = try table.selectPrimaryKey(as: Int64.self)
-    ///
-    ///     // SELECT code FROM country
-    ///     let table = Table("country")
-    ///     let request = try table.selectPrimaryKey(as: String.self)
-    ///
-    ///     // SELECT citizenId, countryCode FROM citizenship
-    ///     let table = Table("citizenship")
-    ///     let request = try table.selectPrimaryKey(as: Row.self)
-    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
-    -> QueryInterfaceRequest<PrimaryKey>
-    {
-        all().selectPrimaryKey(as: type)
-    }
-}
 
-extension Table {
-    
     // MARK: - Counting All
-    
-    /// The number of rows.
+
+    /// Returns the number of rows in the database table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.read { db in
+    ///     // SELECT COUNT(*) FROM player
+    ///     let count = try playerTable.fetchCount(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
@@ -436,63 +808,100 @@ extension Table {
 // MARK: - Fetching Records from Table
 
 extension Table where RowDecoder: FetchableRecord {
-    /// A cursor over all records fetched from the database.
+    /// Returns a cursor over all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord { }
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table<Player>("player")
-    ///     let players = try table.fetchCursor(db) // Cursor of Player
-    ///     while let player = try players.next() {  // Player
-    ///         ...
+    ///     let players = try playerTable.fetchCursor(db)
+    ///     while let player = try players.next() {
+    ///         print(player.name)
     ///     }
+    /// }
+    /// ```
     ///
-    /// Records are iterated in the natural ordering of the table.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RecordCursor`` over fetched records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
-    
-    /// An array of all records fetched from the database.
+
+    /// Returns an array of all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord { }
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table<Player>("player")
-    ///     let players = try table.fetchAll(db) // [Player]
+    ///     let players = try playerTable.fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
-    
-    /// The first found record.
+
+    /// Returns a single record fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord { }
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player LIMIT 1
-    ///     let table = Table<Player>("player")
-    ///     let player = try table.fetchOne(db) // Player?
+    ///     let player = try playerTable.fetchOne(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
 
 extension Table where RowDecoder: FetchableRecord & Hashable {
-    /// A set of all records fetched from the database.
+    /// Returns a set of all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, Hashable { }
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table<Player>("player")
-    ///     let players = try table.fetchSet(db) // Set<Player>
+    ///     let players = try playerTable.fetchSet(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -501,61 +910,95 @@ extension Table where RowDecoder: FetchableRecord & Hashable {
 // MARK: - Fetching Rows from Table
 
 extension Table where RowDecoder == Row {
-    /// A cursor over all rows fetched from the database.
+    /// Returns a cursor over all rows fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table("player")
-    ///     let rows = try table.fetchCursor(db) // Cursor of Row
-    ///     while let row = try rows.next() {    // Row
-    ///         ...
+    ///     let rows = try playerTable.fetchCursor(db)
+    ///     while let row = try rows.next() {
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
     ///     }
+    /// }
+    /// ```
     ///
-    /// Rows are iterated in the natural ordering of the table.
+    /// The order in which the rows are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RowCursor`` over fetched rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RowCursor {
         try all().fetchCursor(db)
     }
-    
-    /// An array of all rows fetched from the database.
+
+    /// Returns an array of all rows fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table("player")
-    ///     let players = try table.fetchAll(db) // [Row]
+    ///     let rows = try playerTable.fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// The order in which the rows are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [Row] {
         try all().fetchAll(db)
     }
-    
-    /// The first found row.
+
+    /// Returns a single row fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player LIMIT 1
-    ///     let table = Table("player")
-    ///     let row = try table.fetchOne(db) // Row?
+    ///     let row = try playerTable.fetchOne(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
         try all().fetchOne(db)
     }
-    
-    /// A set of all rows fetched from the database.
+
+    /// Returns a set of all rows fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let table = Table("player")
-    ///     let rows = try table.fetchSet(db) // Set<Row>
+    ///     let rows = try playerTable.fetchSet(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<Row> {
         try all().fetchSet(db)
     }
@@ -564,63 +1007,60 @@ extension Table where RowDecoder == Row {
 // MARK: - Fetching Values from Table
 
 extension Table where RowDecoder: DatabaseValueConvertible {
-    /// A cursor over all values fetched from the leftmost column.
+    /// Returns a cursor over fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchCursor(db) // Cursor of String
-    ///     while let name = try names.next() {   // String
-    ///         ...
-    ///     }
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
-    /// Values are iterated in the natural ordering of the table.
+    /// Values are decoded from the leftmost column.
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``DatabaseValueCursor`` over fetched values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
-    
-    /// An array of all values fetched from the leftmost column.
+
+    /// Returns an array of fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchAll(db) // [String]
+    /// Values are decoded from the leftmost column.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: An array of values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
-    
-    /// The value from the leftmost column of the first row.
+
+    /// Returns a single fetched value.
     ///
-    ///     // SELECT * FROM name LIMIT 1
-    ///     let table = Table<String>("name")
-    ///     let name = try table.fetchOne(db) // String?
+    /// The value is decoded from the leftmost column.
+    ///
+    /// The result is nil if the request returns no row, or one row with a
+    /// `NULL` value.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: An optional value.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
 
 extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
-    /// A set of all values fetched from the leftmost column.
+    /// Returns a set of fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchSet(db) // Set<String>
+    /// Values are decoded from the leftmost column.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A set of values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -629,63 +1069,60 @@ extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
 // MARK: - Fetching Fast Values from Table
 
 extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
-    /// A cursor over all values fetched from the leftmost column.
+    /// Returns a cursor over fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchCursor(db) // Cursor of String
-    ///     while let name = try names.next() {   // String
-    ///         ...
-    ///     }
+    /// The order in which the values are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
-    /// Values are iterated in the natural ordering of the table.
+    /// Values are decoded from the leftmost column.
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``FastDatabaseValueCursor`` over fetched values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> FastDatabaseValueCursor<RowDecoder> {
         try all().fetchCursor(db)
     }
-    
-    /// An array of all values fetched from the leftmost column.
+
+    /// Returns an array of fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchAll(db) // [String]
+    /// Values are decoded from the leftmost column.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: An array of values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
-    
-    /// The value from the leftmost column of the first row.
+
+    /// Returns a single fetched value.
     ///
-    ///     // SELECT * FROM name LIMIT 1
-    ///     let table = Table<String>("name")
-    ///     let name = try table.fetchOne(db) // String?
+    /// The value is decoded from the leftmost column.
+    ///
+    /// The result is nil if the request returns no row, or one row with a
+    /// `NULL` value.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: An optional value.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
 
 extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible & Hashable {
-    /// A set of all values fetched from the leftmost column.
+    /// Returns a set of fetched values.
     ///
-    ///     // SELECT * FROM name
-    ///     let table = Table<String>("name")
-    ///     let names = try table.fetchSet(db) // Set<String>
+    /// Values are decoded from the leftmost column.
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A set of values.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
@@ -694,20 +1131,18 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
 // MARK: - Associations to TableRecord
 
 extension Table {
-    /// Creates a "Belongs To" association between Self and the destination
-    /// type, based on a database foreign key.
+    /// Creates a ``BelongsToAssociation`` between this table and the
+    /// destination `TableRecord` type.
     ///
-    /// For more information, see `TableRecord.belongsTo(_:key:using:)`.
+    /// For more information, see ``TableRecord/belongsTo(_:key:using:)-13t5r``.
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is `destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key to the destination table, or when the schema defines several
-    ///       foreign keys to the destination table.
+    ///     - key: The association key. By default, it
+    ///       is `Destination.databaseTableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func belongsTo<Destination>(
         _ destination: Destination.Type,
         key: String? = nil,
@@ -720,21 +1155,19 @@ extension Table {
             key: key,
             using: foreignKey)
     }
-    
-    /// Creates a "Has many" association between Self and the destination type,
-    /// based on a database foreign key.
+
+    /// Creates a ``HasManyAssociation`` between this table and the
+    /// destination `TableRecord` type.
     ///
-    /// For more information, see `TableRecord.hasMany(_:key:using:)`.
+    /// For more information, see ``TableRecord/hasMany(_:key:using:)-45axo``.
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is `destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key from the destination table, or when the schema defines several
-    ///       foreign keys from the destination table.
+    ///     - key: The association key. By default, it
+    ///       is `Destination.databaseTableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func hasMany<Destination>(
         _ destination: Destination.Type,
         key: String? = nil,
@@ -747,21 +1180,19 @@ extension Table {
             key: key,
             using: foreignKey)
     }
-    
-    /// Creates a "Has one" association between Self and the destination type,
-    /// based on a database foreign key.
+
+    /// Creates a ``HasOneAssociation`` between this table and the
+    /// destination `TableRecord` type.
     ///
-    /// For more information, see `TableRecord.hasOne(_:key:using:)`.
+    /// For more information, see ``TableRecord/hasOne(_:key:using:)-4g9tm``.
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is `destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key from the destination table, or when the schema defines several
-    ///       foreign keys from the destination table.
+    ///     - key: The association key. By default, it
+    ///       is `Destination.databaseTableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func hasOne<Destination>(
         _ destination: Destination.Type,
         key: String? = nil,
@@ -779,20 +1210,18 @@ extension Table {
 // MARK: - Associations to Table
 
 extension Table {
-    /// Creates a "Belongs To" association between Self and the destination
-    /// table, based on a database foreign key.
+    /// Creates a ``BelongsToAssociation`` between this table and the
+    /// destination `Table`.
     ///
-    /// For more information, see `TableRecord.belongsTo(_:key:using:)`.
+    /// For more information, see ``TableRecord/belongsTo(_:key:using:)-13t5r``.
     ///
     /// - parameters:
     ///     - destination: The table at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
+    ///     - key: The association key. By default, it
     ///       is `destination.tableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key to the destination table, or when the schema defines several
-    ///       foreign keys to the destination table.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func belongsTo<Destination>(
         _ destination: Table<Destination>,
         key: String? = nil,
@@ -804,21 +1233,19 @@ extension Table {
             key: key,
             using: foreignKey)
     }
-    
-    /// Creates a "Has many" association between Self and the destination table,
-    /// based on a database foreign key.
+
+    /// Creates a ``HasManyAssociation`` between this table and the
+    /// destination `Table`.
     ///
-    /// For more information, see `TableRecord.hasMany(_:key:using:)`.
+    /// For more information, see ``TableRecord/hasMany(_:key:using:)-45axo``.
     ///
     /// - parameters:
     ///     - destination: The table at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
+    ///     - key: The association key. By default, it
     ///       is `destination.tableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key from the destination table, or when the schema defines several
-    ///       foreign keys from the destination table.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func hasMany<Destination>(
         _ destination: Table<Destination>,
         key: String? = nil,
@@ -830,21 +1257,19 @@ extension Table {
             key: key,
             using: foreignKey)
     }
-    
-    /// Creates a "Has one" association between Self and the destination table,
-    /// based on a database foreign key.
+
+    /// Creates a ``HasOneAssociation`` between this table and the
+    /// destination `Table`.
     ///
-    /// For more information, see `TableRecord.hasOne(_:key:using:)`.
+    /// For more information, see ``TableRecord/hasOne(_:key:using:)-4g9tm``.
     ///
     /// - parameters:
     ///     - destination: The table at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is `destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key from the destination table, or when the schema defines several
-    ///       foreign keys from the destination table.
+    ///     - key: The association key. By default, it
+    ///       is `destination.tableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///       no foreign key exists to the destination table, or several foreign
+    ///       keys exist.
     public func hasOne<Destination>(
         _ destination: Table<Destination>,
         key: String? = nil,
@@ -861,10 +1286,9 @@ extension Table {
 // MARK: - Associations to CommonTableExpression
 
 extension Table {
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
+    /// Creates an association to a common table expression.
     ///
-    /// For more information, see `TableRecord.association(to:on:)`.
+    /// For more information, see ``TableRecord/association(to:on:)``.
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
@@ -880,12 +1304,10 @@ extension Table {
             to: cte.relationForAll,
             condition: .expression { condition($0, $1).sqlExpression })
     }
-    
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
+
+    /// Creates an association to a common table expression.
     ///
-    /// The key of the returned association is the table name of the common
-    /// table expression.
+    /// For more information, see ``TableRecord/association(to:)``.
     ///
     /// - parameter cte: A common table expression.
     /// - returns: An association to the common table expression.
@@ -900,18 +1322,17 @@ extension Table {
 // MARK: - "Through" Associations
 
 extension Table {
-    /// Creates a "Has Many Through" association between Self and the
+    /// Creates a ``HasManyThroughAssociation`` between this table and the
     /// destination type.
     ///
-    /// For more information, see `TableRecord.hasMany(_:through:using:key:)`.
+    /// For more information, see ``TableRecord/hasMany(_:through:using:key:)``.
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
-    ///     - pivot: An association from Self to the intermediate type.
+    ///     - pivot: An association from `Self` to the intermediate type.
     ///     - target: A target association from the intermediate type to the
     ///       destination type.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is the same key as the target.
+    ///     - key: The association key. By default, it is the key of the target.
     public func hasMany<Pivot, Target>(
         _ destination: Target.RowDecoder.Type,
         through pivot: Pivot,
@@ -924,18 +1345,18 @@ extension Table {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation(through: pivot, using: target)
-        
+
         if let key = key {
             return association.forKey(key)
         } else {
             return association
         }
     }
-    
-    /// Creates a "Has One Through" association between Self and the
+
+    /// Creates a ``HasOneThroughAssociation`` between this table and the
     /// destination type.
     ///
-    /// For more information, see `TableRecord.hasOne(_:through:using:key:)`.
+    /// For more information, see ``TableRecord/hasOne(_:through:using:key:)``.
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
@@ -956,7 +1377,7 @@ extension Table {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation(through: pivot, using: target)
-        
+
         if let key = key {
             return association.forKey(key)
         } else {
@@ -968,129 +1389,84 @@ extension Table {
 // MARK: - Joining Methods
 
 extension Table {
-    /// Creates a request that prefetches an association.
+    /// Returns a request that fetches all rows associated with each row
+    /// in this request.
+    ///
+    /// See the ``TableRecord`` method ``TableRecord/including(all:)``
+    /// for more information.
     public func including<A: AssociationToMany>(all association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().including(all: association)
     }
-    
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association does not
-    /// require that the associated database table contains a matching row.
+
+    /// Returns a request that fetches the eventual row associated with each
+    /// row of this request.
+    ///
+    /// See the ``TableRecord`` method ``TableRecord/including(optional:)``
+    /// for more information.
     public func including<A: Association>(optional association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().including(optional: association)
     }
-    
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association requires
-    /// that the associated database table contains a matching row.
+
+    /// Returns a request that fetches the row associated with each row in
+    /// this request. Rows that do not have an associated row are discarded.
+    ///
+    /// See the ``TableRecord`` method ``TableRecord/including(required:)``
+    /// for more information.
     public func including<A: Association>(required association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().including(required: association)
     }
-    
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association does not
-    /// require that the associated database table contains a matching row.
+
+    /// Returns a request that joins each row of this request to its
+    /// eventual associated row.
+    ///
+    /// See the ``TableRecord`` method ``TableRecord/including(optional:)``
+    /// for more information.
     public func joining<A: Association>(optional association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().joining(optional: association)
     }
-    
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association requires
-    /// that the associated database table contains a matching row.
+
+    /// Returns a request that joins each row of this request to its
+    /// associated row. Rows that do not have an associated row are discarded.
+    ///
+    /// See the ``TableRecord`` method ``TableRecord/including(required:)``
+    /// for more information.
     public func joining<A: Association>(required association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().joining(required: association)
     }
-    
-    /// Creates a request which appends *columns of an associated record* to
-    /// the columns of the table.
+
+    /// Returns a request with the columns of the eventual associated row
+    /// appended to the table columns.
     ///
-    ///     let playerTable = Table("player")
-    ///     let teamTable = Table("team")
-    ///     let playerTeam = playerTable.belongsTo(teamTable)
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player LEFT JOIN team ...
-    ///     let teamColor = playerTeam.select(Column("color")
-    ///     let request = playerTable.annotated(withOptional: teamColor))
-    ///
-    /// This method performs the same SQL request as `including(optional:)`.
-    /// The difference is in the shape of Decodable records that decode such
-    /// a request: the associated columns can be decoded at the same level as
-    /// the main record:
-    ///
-    ///     struct PlayerWithTeamColor: FetchableRecord, Decodable {
-    ///         var player: Player
-    ///         var color: String?
-    ///     }
-    ///     let players = try dbQueue.read { db in
-    ///         try request
-    ///             .asRequest(of: PlayerWithTeamColor.self)
-    ///             .fetchAll(db)
-    ///     }
-    ///
-    /// Note: this is a convenience method. You can build the same request with
-    /// `TableAlias`, `annotated(with:)`, and `joining(optional:)`:
-    ///
-    ///     let teamAlias = TableAlias()
-    ///     let request = playerTable
-    ///         .annotated(with: teamAlias[Column("color")])
-    ///         .joining(optional: playerTeam.aliased(teamAlias))
+    /// See the ``TableRecord`` method ``TableRecord/annotated(withOptional:)``
+    /// for more information.
     public func annotated<A: Association>(withOptional association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
     {
         all().annotated(withOptional: association)
     }
-    
-    /// Creates a request which appends *columns of an associated record* to
-    /// the columns of the table.
+
+    /// Returns a request with the columns of the associated row appended to
+    /// the table columns. Rows that do not have an associated row
+    /// are discarded.
     ///
-    ///     let playerTable = Table("player")
-    ///     let teamTable = Table("team")
-    ///     let playerTeam = playerTable.belongsTo(teamTable)
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player JOIN team ...
-    ///     let teamColor = playerTeam.select(Column("color")
-    ///     let request = playerTable.annotated(withRequired: teamColor))
-    ///
-    /// This method performs the same SQL request as `including(required:)`.
-    /// The difference is in the shape of Decodable records that decode such
-    /// a request: the associated columns can be decoded at the same level as
-    /// the main record:
-    ///
-    ///     struct PlayerWithTeamColor: FetchableRecord, Decodable {
-    ///         var player: Player
-    ///         var color: String
-    ///     }
-    ///     let players = try dbQueue.read { db in
-    ///         try request
-    ///             .asRequest(of: PlayerWithTeamColor.self)
-    ///             .fetchAll(db)
-    ///     }
-    ///
-    /// Note: this is a convenience method. You can build the same request with
-    /// `TableAlias`, `annotated(with:)`, and `joining(required:)`:
-    ///
-    ///     let teamAlias = TableAlias()
-    ///     let request = playerTable
-    ///         .annotated(with: teamAlias[Column("color")])
-    ///         .joining(required: playerTeam.aliased(teamAlias))
+    /// See the ``TableRecord`` method ``TableRecord/annotated(withRequired:)``
+    /// for more information.
     public func annotated<A: Association>(withRequired association: A)
     -> QueryInterfaceRequest<RowDecoder>
     where A.OriginRowDecoder == RowDecoder
@@ -1102,38 +1478,29 @@ extension Table {
 // MARK: - Association Aggregates
 
 extension Table {
-    /// Creates a request with *aggregates* appended to the selection.
+    /// Returns a request with the given association aggregates appended to
+    /// the table colums.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
-    ///     // FROM player LEFT JOIN book ...
-    ///     let table = Table<Player>("player")
-    ///     let request = table.annotated(with: Player.books.count)
+    /// See the ``TableRecord`` method ``TableRecord/annotated(with:)-4xoen``
+    /// for more information.
     public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: aggregates)
     }
-    
-    /// Creates a request with *aggregates* appended to the selection.
+
+    /// Returns a request with the given association aggregates appended to
+    /// the table colums.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
-    ///     // FROM player LEFT JOIN book ...
-    ///     let table = Table<Player>("player")
-    ///     let request = table.annotated(with: [Player.books.count])
+    /// See the ``TableRecord`` method ``TableRecord/annotated(with:)-8ce7u``
+    /// for more information.
     public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder> {
         all().annotated(with: aggregates)
     }
-    
-    /// Creates a request with the provided aggregate *predicate*.
+
+    /// Returns a request filtered according to the provided
+    /// association aggregate.
     ///
-    ///     // SELECT player.*
-    ///     // FROM player LEFT JOIN book ...
-    ///     // HAVING COUNT(DISTINCT book.id) = 0
-    ///     let table = Table<Player>("player")
-    ///     var request = table.all()
-    ///     request = request.having(Player.books.isEmpty)
-    ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    /// See the ``TableRecord`` method ``TableRecord/having(_:)``
+    /// for more information.
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().having(predicate)
     }
@@ -1146,7 +1513,7 @@ extension Table {
     ///
     /// - parameter db: A database connection.
     /// - returns: The number of deleted rows
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
         try all().deleteAll(db)
@@ -1158,13 +1525,17 @@ extension Table {
 extension Table {
     /// Returns whether a row exists for this primary key.
     ///
-    ///     try Table("player").exists(db, key: 123)
-    ///     try Table("country").exists(db, key: "FR")
+    /// All single-column primary keys are supported:
     ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
     ///
-    ///     try Table("document").exists(db, key: 1)
+    /// try dbQueue.read { db in
+    ///     let playerExists = try playerTable.exists(db, key: 1)
+    ///     let countryExists = try countryTable.exists(db, key: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1182,13 +1553,24 @@ where RowDecoder: Identifiable,
 {
     /// Returns whether a row exists for this primary key.
     ///
-    ///     try Table<Player>("player").exists(db, id: 123)
-    ///     try Table<Country>("player").exists(db, id: "FR")
+    /// All single-column primary keys are supported:
     ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: Identifiable {
+    ///     var id: String
+    /// }
     ///
-    ///     try Table<Document>("document").exists(db, id: 1)
+    /// let playerTable = Table<Player>("player")
+    /// let countryTable = Table<Country>("country")
+    ///
+    /// try dbQueue.read { db in
+    ///     let playerExists = try playerTable.exists(db, id: 1)
+    ///     let countryExists = try countryTable.exists(db, id: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1206,14 +1588,30 @@ where RowDecoder: Identifiable,
 // MARK: - Check Existence by Key
 
 extension Table {
-    /// Returns whether a row exists for this unique key (primary key or any key
-    /// with a unique index on it).
+    /// Returns whether a row exists for this primary or unique key.
     ///
-    ///     Table("player").exists(db, key: ["name": Arthur"])
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// try dbQueue.read { db in
+    ///     let playerExists = playerTable.exists(db, key: ["id": 1])
+    ///     let playerExists = playerTable.exists(db, key: ["email": "arthur@example.com"])
+    ///     let citizenshipExists = citizenshipTable.exists(db, key: [
+    ///         "citizenId": 1,
+    ///         "countryCode": "FR",
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A unique key.
     /// - returns: Whether a row exists for this key.
     public func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
@@ -1223,25 +1621,28 @@ extension Table {
 // MARK: - Deleting by Single-Column Primary Key
 
 extension Table {
-    /// Delete rows identified by their primary keys, and returns the number of
-    /// deleted rows.
+    /// Deletes rows identified by their primary keys, and returns the number
+    /// of deleted rows.
     ///
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    ///
+    /// try dbQueue.write { db in
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Table("player").deleteAll(db, keys: [1, 2, 3])
+    ///     try playerTable.deleteAll(db, keys: [1, 2, 3])
     ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Table("country").deleteAll(db, keys: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Table("document").deleteAll(db, keys: [1, 2, 3])
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US')
+    ///     try countryTable.deleteAll(db, keys: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted rows.
     @discardableResult
     public func deleteAll<Keys>(_ db: Database, keys: Keys)
     throws -> Int
@@ -1254,26 +1655,29 @@ extension Table {
         }
         return try filter(keys: keys).deleteAll(db)
     }
-    
-    /// Delete a row, identified by its primary key, and returns whether a
-    /// database row was deleted.
+
+    /// Deletes the row identified by its primary key, and returns whether a
+    /// row was deleted.
     ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Table("player").deleteOne(db, key: 123)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let countryTable = Table("country")
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try playerTable.deleteOne(db, key: 1)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Table("country").deleteOne(db, key: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Table("document").deleteOne(db, key: 1)
+    ///     try countryTable.deleteOne(db, key: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A primary key value.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
         if key.databaseValue.isNull {
@@ -1289,25 +1693,35 @@ extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
 {
-    /// Delete rows identified by their primary keys, and returns the number of
-    /// deleted rows.
+    /// Deletes rows identified by their primary keys, and returns the number
+    /// of deleted rows.
     ///
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    /// let countryTable = Table<Country>("country")
+    ///
+    /// try dbQueue.write { db in
     ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Table<Player>("player").deleteAll(db, ids: [1, 2, 3])
+    ///     try playerTable.deleteAll(db, ids: [1, 2, 3])
     ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Table<Country>("country").deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Table<Document>("document").deleteAll(db, ids: [1, 2, 3])
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US')
+    ///     try countryTable.deleteAll(db, ids: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted rows.
     @discardableResult
     public func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
     where IDS: Collection, IDS.Element == RowDecoder.ID
@@ -1318,26 +1732,36 @@ where RowDecoder: Identifiable,
         }
         return try filter(ids: ids).deleteAll(db)
     }
-    
-    /// Delete a row, identified by its primary key, and returns whether a
-    /// database row was deleted.
+
+    /// Deletes the row identified by its primary key, and returns whether a
+    /// row was deleted.
     ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Table<Player>("player").deleteOne(db, id: 123)
+    /// All single-column primary keys are supported:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64
+    /// }
+    /// struct Country: Identifiable {
+    ///     var id: String
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    /// let countryTable = Table<Country>("country")
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try playerTable.deleteOne(db, id: 1)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Table<Country>("country").deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Table<Document>("document").deleteOne(db, id: 1)
+    ///     try countryTable.deleteOne(db, id: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, id: RowDecoder.ID) throws -> Bool {
         if id.databaseValue.isNull {
@@ -1351,16 +1775,36 @@ where RowDecoder: Identifiable,
 // MARK: - Deleting by Key
 
 extension Table {
-    /// Delete rows identified by the provided unique keys (primary key or
-    /// any key with a unique index on it), and returns the number of
-    /// deleted rows.
+    /// Deletes rows identified by their primary or unique keys, and returns
+    /// the number of deleted rows.
     ///
-    ///     try Table("player").deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
+    /// For example:
+    ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try playerTable.deleteAll(db, keys: [["id": 1]])
+    ///
+    ///     // DELETE FROM player WHERE email = 'arthur@example.com'
+    ///     try playerTable.deleteAll(db, keys: [["email": "arthur@example.com"]])
+    ///
+    ///     // DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    ///     try citizenshipTable.deleteAll(db, keys: [
+    ///         ["citizenId": 1, "countryCode": "FR"],
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
-    /// - returns: The number of deleted rows
+    /// - returns: The number of deleted rows.
     @discardableResult
     public func deleteAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Int {
         if keys.isEmpty {
@@ -1369,17 +1813,37 @@ extension Table {
         }
         return try filter(keys: keys).deleteAll(db)
     }
-    
-    /// Delete a row, identified by a unique key (the primary key or any key
-    /// with a unique index on it), and returns whether a database row
-    /// was deleted.
+
+    /// Deletes the row identified by its primary or unique keys, and returns
+    /// whether a row was deleted.
     ///
-    ///     Table("player").deleteOne(db, key: ["name": Arthur"])
+    /// For example:
     ///
+    /// ```swift
+    /// let playerTable = Table("player")
+    /// let citizenshipTable = Table("citizenship")
+    ///
+    /// try dbQueue.write { db in
+    ///     // DELETE FROM player WHERE id = 1
+    ///     try playerTable.deleteOne(db, key: ["id": 1])
+    ///
+    ///     // DELETE FROM player WHERE email = 'arthur@example.com'
+    ///     try playerTable.deleteOne(db, key: ["email": "arthur@example.com"])
+    ///
+    ///     // DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
+    ///     try citizenshipTable.deleteOne(db, key: [
+    ///         "citizenId": 1,
+    ///         "countryCode": "FR",
+    ///     ])
+    /// }
+    /// ```
+    ///
+    /// A fatal error is raised if no unique index exists on a subset of the
+    /// key columns.
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
-    /// - returns: Whether a database row was deleted.
+    /// - returns: Whether a row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try deleteAll(db, keys: [key]) > 0
@@ -1389,20 +1853,24 @@ extension Table {
 // MARK: - Batch Update
 
 extension Table {
-    /// Updates all rows, and returns the number of updated rows..
+    /// Updates all rows, and returns the number of updated rows.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Table("player").updateAll(db, [Column("score").set(to: 0)])
-    ///     }
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db, [Column("score").set(to: 0)])
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
@@ -1412,21 +1880,25 @@ extension Table {
     {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
-    
-    /// Updates all rows, and returns the number of updated rows..
+
+    /// Updates all rows, and returns the number of updated rows.
     ///
     /// For example:
     ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Table("player").updateAll(db, Column("score").set(to: 0))
-    ///     }
+    /// ```swift
+    /// let playerTable = Table("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db, Column("score").set(to: 0))
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - parameter assignments: Column assignments.
+    /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,

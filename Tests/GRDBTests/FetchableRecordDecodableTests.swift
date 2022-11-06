@@ -616,8 +616,9 @@ extension FetchableRecordDecodableTests {
             for row in array {
                 let data1: Data? = row["name"]
                 XCTAssertEqual(jsonAsData, data1)
-                let data = row.dataNoCopy(named: "name")
-                XCTAssertEqual(jsonAsData, data)
+                try row.withUnsafeData(named: "name") { data in
+                    XCTAssertEqual(jsonAsData, data)
+                }
             }
         }
     }
@@ -676,8 +677,9 @@ extension FetchableRecordDecodableTests {
             while let row = try cursor.next() {
                 let data1: Data? = row["name"]
                 XCTAssertEqual(jsonAsData, data1)
-                let data = row.dataNoCopy(named: "name")
-                XCTAssertEqual(jsonAsData, data)
+                try row.withUnsafeData(named: "name") { data in
+                    XCTAssertEqual(jsonAsData, data)
+                }
             }
         }
     }

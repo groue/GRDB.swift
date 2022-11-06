@@ -1,15 +1,39 @@
 import Foundation
 
-/// Implementation details of `Association`.
+/// A type that defines a connection between two tables.
 ///
-/// :nodoc:
-public protocol _Association {
-    var _sqlAssociation: _SQLAssociation { get set }
-}
-
-/// The base protocol for all associations that define a connection between two
-/// record types.
-public protocol Association: _Association, DerivableRequest {
+/// ``Association`` feeds methods of the ``JoinableRequest`` protocol. They are
+/// built from a ``TableRecord`` type, or a ``Table`` instance.
+///
+/// ## Topics
+///
+/// ### Instance Methods
+///
+/// - ``forKey(_:)-247af``
+/// - ``forKey(_:)-54yh6``
+///
+/// ### Associations To One
+///
+/// - ``BelongsToAssociation``
+/// - ``HasOneAssociation``
+/// - ``HasOneThroughAssociation``
+/// - ``AssociationToOne``
+///
+/// ### Associations To Many
+///
+/// - ``HasManyAssociation``
+/// - ``HasManyThroughAssociation``
+/// - ``AssociationToMany``
+///
+/// ### Associations to Common Table Expressions
+///
+/// - ``JoinAssociation``
+///
+/// ### Supporting Types
+///
+/// - ``ForeignKey``
+/// - ``Inflections``
+public protocol Association: DerivableRequest {
     // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
     // type safety:
     //
@@ -18,28 +42,42 @@ public protocol Association: _Association, DerivableRequest {
     
     /// The record type at the origin of the association.
     ///
-    /// In the `belongsTo` association below, it is Book:
+    /// In the ``BelongsToAssociation`` association below, it is `Book`:
     ///
-    ///     struct Book: TableRecord {
-    ///         // BelongsToAssociation<Book, Author>
-    ///         static let author = belongsTo(Author.self)
-    ///     }
+    /// ```swift
+    /// struct Book: TableRecord {
+    ///     // BelongsToAssociation<Book, Author>
+    ///     static let author = belongsTo(Author.self)
+    /// }
+    /// ```
     associatedtype OriginRowDecoder
     
-    /// Creates an association with the given key.
+    var _sqlAssociation: _SQLAssociation { get set }
+    
+    /// Returns an association with the given key.
     ///
-    /// This new key impacts how rows fetched from the resulting association
-    /// should be consumed:
+    /// For example:
     ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
+    /// ```swift
+    /// struct Employee: FetchableRecord, TableRecord {
+    ///     static let manager = belongsTo(Employee.self).forKey("manager")
+    ///     static let subordinates = hasMany(Employee.self).forKey("subordinates")
+    /// }
     ///
-    ///     // Consume rows:
-    ///     let request = Player.including(required: Player.team.forKey("custom"))
-    ///     for row in Row.fetchAll(db, request) {
-    ///         let team: Team = row["custom"]
-    ///     }
+    /// struct EmployeeInfo: FetchableRecord, Decodable {
+    ///     var employee: Employee
+    ///     var manager: Employee?       // property name matches the association key
+    ///     var subordinates: [Employee] // property name matches the association key
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let employeeInfos: [EmployeeInfo] = try Employee
+    ///         .including(optional: Employee.manager)
+    ///         .including(all: Employee.subordinates)
+    ///         .asRequest(of: EmployeeInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
     func forKey(_ key: String) -> Self
 }
 
@@ -60,35 +98,30 @@ extension Association {
 }
 
 extension Association {
-    /// :nodoc:
     public func _including(all association: _SQLAssociation) -> Self {
         withDestinationRelation { relation in
             relation = relation._including(all: association)
         }
     }
     
-    /// :nodoc:
     public func _including(optional association: _SQLAssociation) -> Self {
         withDestinationRelation { relation in
             relation = relation._including(optional: association)
         }
     }
     
-    /// :nodoc:
     public func _including(required association: _SQLAssociation) -> Self {
         withDestinationRelation { relation in
             relation = relation._including(required: association)
         }
     }
     
-    /// :nodoc:
     public func _joining(optional association: _SQLAssociation) -> Self {
         withDestinationRelation { relation in
             relation = relation._joining(optional: association)
         }
     }
     
-    /// :nodoc:
     public func _joining(required association: _SQLAssociation) -> Self {
         withDestinationRelation { relation in
             relation = relation._joining(required: association)
@@ -123,60 +156,14 @@ extension Association {
     ///     }
     var key: SQLAssociationKey { _sqlAssociation.destination.key }
     
-    /// Creates an association with the given key.
-    ///
-    /// This new key helps Decodable records decode rows fetched from the
-    /// resulting association:
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     struct PlayerInfo: FetchableRecord, Decodable {
-    ///         let player: Player
-    ///         let team: Team
-    ///
-    ///         static func all() -> QueryInterfaceRequest<PlayerInfo> {
-    ///             return Player
-    ///                 .including(required: Player.team.forKey(CodingKeys.team))
-    ///                 .asRequest(of: PlayerInfo.self)
-    ///         }
-    ///     }
-    ///
-    ///     let playerInfos = PlayerInfo.all().fetchAll(db)
-    ///     print(playerInfos.first?.team)
+    /// Returns an association with the given key.
     public func forKey(_ codingKey: some CodingKey) -> Self {
         forKey(codingKey.stringValue)
     }
-    
-    /// Creates an association that allows you to define expressions that target
-    /// a specific database table.
-    ///
-    /// In the example below, the "team.color = 'red'" condition in the where
-    /// clause could be not achieved without table aliases.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // JOIN team ON ...
-    ///     // WHERE team.color = 'red'
-    ///     let teamAlias = TableAlias()
-    ///     let request = Player
-    ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(teamAlias[Column("color")] == "red")
-    ///
-    /// When you give a name to a table alias, you can reliably inject sql
-    /// snippets in your requests:
-    ///
-    ///     // SELECT player.*, custom.*
-    ///     // JOIN team custom ON ...
-    ///     // WHERE custom.color = 'red'
-    ///     let teamAlias = TableAlias(name: "custom")
-    ///     let request = Player
-    ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(sql: "custom.color = ?", arguments: ["red"])
+}
+
+// TableRequest conformance
+extension Association {
     public func aliased(_ alias: TableAlias) -> Self {
         withDestinationRelation { relation in
             relation = relation.aliased(alias)
@@ -186,28 +173,6 @@ extension Association {
 
 // SelectionRequest conformance
 extension Association {
-    
-    /// Creates an association which selects *selection*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.select { db in [Column("color")]
-    ///     var request = Player.including(required: association)
-    ///
-    /// Any previous selection is replaced:
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team
-    ///         .select { db in [Column("id")] }
-    ///         .select { db in [Column("color") }
-    ///     var request = Player.including(required: association)
     public func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
         withDestinationRelation { relation in
             relation = relation.selectWhenConnected { db in
@@ -216,19 +181,6 @@ extension Association {
         }
     }
     
-    /// Creates an association which appends *selection*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.color, team.name
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team
-    ///         .select([Column("color")])
-    ///         .annotated(with: { db in [Column("name")] })
-    ///     var request = Player.including(required: association)
     public func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
         withDestinationRelation { relation in
             relation = relation.annotatedWhenConnected { db in
@@ -240,18 +192,6 @@ extension Association {
 
 // FilteredRequest conformance
 extension Association {
-    /// Creates an association with the provided *predicate promise* added to
-    /// the eventual set of already applied predicates.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId AND 1
-    ///     let association = Player.team.filter { db in true }
-    ///     var request = Player.including(required: association)
     public func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
         withDestinationRelation { relation in
             relation = relation.filterWhenConnected { db in
@@ -263,30 +203,6 @@ extension Association {
 
 // OrderedRequest conformance
 extension Association {
-    /// Creates an association with the provided *orderings promise*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name
-    ///     let association = Player.team.order { _ in [Column("name")] }
-    ///     var request = Player.including(required: association)
-    ///
-    /// Any previous ordering is replaced:
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name
-    ///     let association = Player.team
-    ///         .order{ _ in [Column("color")] }
-    ///         .reversed()
-    ///         .order{ _ in [Column("name")] }
-    ///     var request = Player.including(required: association)
     public func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self {
         withDestinationRelation { relation in
             relation = relation.orderWhenConnected { db in
@@ -295,43 +211,12 @@ extension Association {
         }
     }
     
-    /// Creates an association that reverses applied orderings.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name DESC
-    ///     let association = Player.team.order(Column("name")).reversed()
-    ///     var request = Player.including(required: association)
-    ///
-    /// If no ordering was applied, the returned association is identical.
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.reversed()
-    ///     var request = Player.including(required: association)
     public func reversed() -> Self {
         withDestinationRelation { relation in
             relation = relation.reversed()
         }
     }
     
-    /// Creates an association without any ordering.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.order(Column("name")).unordered()
-    ///     var request = Player.including(required: association)
     public func unordered() -> Self {
         withDestinationRelation { relation in
             relation = relation.unordered()
@@ -348,7 +233,6 @@ extension Association {
 
 // AggregatingRequest conformance
 extension Association {
-    /// Creates an association grouped according to *expressions promise*.
     public func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self {
         withDestinationRelation { relation in
             relation = relation.groupWhenConnected { db in
@@ -357,8 +241,6 @@ extension Association {
         }
     }
     
-    /// Creates an association with the provided *predicate promise* added to
-    /// the eventual set of already applied predicates.
     public func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
         withDestinationRelation { relation in
             relation = relation.havingWhenConnected { db in
@@ -370,16 +252,12 @@ extension Association {
 
 // DerivableRequest conformance
 extension Association {
-    /// Creates an association for returns distinct rows.
     public func distinct() -> Self {
         withDestinationRelation { relation in
             relation.isDistinct = true
         }
     }
     
-    /// Returns an association that embeds the common table expression.
-    ///
-    /// See `QueryInterfaceRequest.with(_:)` for more information.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         withDestinationRelation { relation in
             relation.ctes[cte.tableName] = cte.cte
@@ -389,7 +267,7 @@ extension Association {
 
 // MARK: - AssociationToOne
 
-/// The base protocol for all associations that define a one-to-one connection.
+/// An association that defines a to-one connection.
 public protocol AssociationToOne: Association { }
 
 extension AssociationToOne {
@@ -403,7 +281,21 @@ extension AssociationToOne {
 
 // MARK: - AssociationToMany
 
-/// The base protocol for all associations that define a one-to-many connection.
+/// An association that defines a to-many connection.
+///
+/// ## Topics
+///
+/// ### Building Association Aggregates
+///
+/// - ``average(_:)``
+/// - ``count``
+/// - ``isEmpty``
+/// - ``max(_:)``
+/// - ``min(_:)``
+/// - ``sum(_:)``
+/// - ``total(_:)``
+///
+/// - ``AssociationAggregate``
 public protocol AssociationToMany: Association { }
 
 extension AssociationToMany {

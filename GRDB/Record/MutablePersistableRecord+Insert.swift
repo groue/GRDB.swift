@@ -21,9 +21,21 @@ extension MutablePersistableRecord {
 extension MutablePersistableRecord {
     /// Executes an `INSERT` statement.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     var player = Player(name: "Arthur")
+    ///     try player.insert(db)
+    /// }
+    /// ```
+    ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func insert(
         _ db: Database,
@@ -47,19 +59,22 @@ extension MutablePersistableRecord {
     
     /// Executes an `INSERT` statement, and returns the inserted record.
     ///
-    /// Usage:
+    /// For example:
     ///
-    ///     let player = Player(id: nil, name: "Arthur")
-    ///     let insertedPlayer = try dbQueue.write { db in
-    ///         try player.inserted(db)
-    ///     }
-    ///     print(player.id)         // nil
-    ///     print(insertedPlayer.id) // some id
+    /// ```swift
+    /// let player = Player(name: "Arthur")
+    /// let insertedPlayer = try await dbQueue.write { [player] db in
+    ///     try player.inserted(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The inserted record.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func inserted(
         _ db: Database,
@@ -76,22 +91,26 @@ extension MutablePersistableRecord {
 
 extension MutablePersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// inserted record.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
-    /// This method helps dealing with default column values and
-    /// generated columns.
+    /// This method is equivalent to ``insertAndFetch(_:onConflict:as:)``,
+    /// with `Self` as the `returnedType` argument:
     ///
-    /// For example:
-    ///
-    ///     let player: Player = ...
-    ///     let insertedPlayer = player.insertAndFetch(db)
+    /// ```swift
+    /// // Equivalent
+    /// let insertedPlayer = try player.insertAndFetch(db)
+    /// let insertedPlayer = try player.insertAndFetch(db, as: Player.self)
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The inserted record, if any. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func insertAndFetch(
         _ db: Database,
@@ -103,55 +122,60 @@ extension MutablePersistableRecord {
         return try result.insertAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns a new
-    /// record built from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
     ///
     /// For example:
     ///
-    ///     // A table with an auto-incremented primary key and a default value
-    ///     try dbQueue.write { db in
-    ///         try db.execute(sql: """
-    ///             CREATE TABLE player(
-    ///               id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ///               name TEXT,
-    ///               score INTEGER DEFAULT 1000)
-    ///             """)
-    ///     }
+    /// ```swift
+    /// // A table with an auto-incremented primary key and a default value
+    /// try dbQueue.write { db in
+    ///     try db.execute(sql: """
+    ///         CREATE TABLE player(
+    ///           id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ///           name TEXT,
+    ///           score INTEGER DEFAULT 1000)
+    ///         """)
+    /// }
     ///
-    ///     // A player with partial database information
-    ///     struct PartialPlayer: MutablePersistableRecord {
-    ///         static let databaseTableName = "player"
-    ///         var name: String
-    ///     }
+    /// // A player with partial database information
+    /// struct PartialPlayer: MutablePersistableRecord {
+    ///     static let databaseTableName = "player"
+    ///     var name: String
+    /// }
     ///
-    ///     // A full player, with all database information
-    ///     struct Player: TableRecord, FetchableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// // A full player, with all database information
+    /// struct Player: TableRecord, FetchableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
     ///
-    ///     // Insert a base player, get a full one
-    ///     try dbQueue.write { db in
-    ///         var partialPlayer = PartialPlayer(name: "Alice")
+    /// // Insert a partial player, get a full one
+    /// try dbQueue.write { db in
+    ///     var partialPlayer = PartialPlayer(name: "Alice")
     ///
-    ///         // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///         if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
-    ///             print(player.id)    // The inserted id
-    ///             print(player.name)  // The inserted name
-    ///             print(player.score) // The default score
-    ///         }
+    ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
+    ///     if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
+    ///         print(player.id)    // The inserted id
+    ///         print(player.name)  // The inserted name
+    ///         print(player.score) // The default score
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`, if any. The result can be
     ///   nil when the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func insertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -164,47 +188,53 @@ extension MutablePersistableRecord {
         }
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// selected columns from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns the selected
+    /// columns from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
     ///
     /// For example:
     ///
-    ///     // A table with an auto-incremented primary key and a default value
-    ///     try dbQueue.write { db in
-    ///         try db.execute(sql: """
-    ///             CREATE TABLE player(
-    ///               id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ///               name TEXT,
-    ///               score INTEGER DEFAULT 1000)
-    ///             """)
-    ///     }
+    /// ```swift
+    /// // A table with an auto-incremented primary key and a default value
+    /// try dbQueue.write { db in
+    ///     try db.execute(sql: """
+    ///         CREATE TABLE player(
+    ///           id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ///           name TEXT,
+    ///           score INTEGER DEFAULT 1000)
+    ///         """)
+    /// }
     ///
-    ///     // A player with partial database information
-    ///     struct PartialPlayer: MutablePersistableRecord {
-    ///         static let databaseTableName = "player"
-    ///         var name: String
-    ///     }
+    /// // A player with partial database information
+    /// struct PartialPlayer: MutablePersistableRecord {
+    ///     static let databaseTableName = "player"
+    ///     var name: String
+    /// }
     ///
-    ///     // Insert a base player, get the inserted score
-    ///     try dbQueue.write { db in
-    ///         var partialPlayer = PartialPlayer(name: "Alice")
+    /// // Insert a partial player, get the inserted score
+    /// try dbQueue.write { db in
+    ///     var partialPlayer = PartialPlayer(name: "Alice")
     ///
-    ///         // INSERT INTO player (name) VALUES ('Alice') RETURNING score
-    ///         let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
-    ///             try Int.fetchOne(statement)
-    ///         }
-    ///         print(score) // The inserted score
+    ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING score
+    ///     let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
+    ///         try Int.fetchOne(statement)
     ///     }
+    ///     print(score) // The inserted score
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes its ``Statement`` argument.
+    /// - parameter fetch: A closure that executes its ``Statement`` argument.
+    ///   If the conflict policy is `IGNORE`, the statement may return no row.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func insertAndFetch<T>(
@@ -234,22 +264,26 @@ extension MutablePersistableRecord {
         return success.returned
     }
 #else
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// inserted record.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
-    /// This method helps dealing with default column values and
-    /// generated columns.
+    /// This method is equivalent to ``insertAndFetch(_:onConflict:as:)``,
+    /// with `Self` as the `returnedType` argument:
     ///
-    /// For example:
-    ///
-    ///     let player: Player = ...
-    ///     let insertedPlayer = player.insertAndFetch(db)
+    /// ```swift
+    /// // Equivalent
+    /// let insertedPlayer = try player.insertAndFetch(db)
+    /// let insertedPlayer = try player.insertAndFetch(db, as: Player.self)
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The inserted record, if any. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func insertAndFetch(
@@ -262,55 +296,60 @@ extension MutablePersistableRecord {
         return try result.insertAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns a new
-    /// record built from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns a new record built
+    /// from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
     ///
     /// For example:
     ///
-    ///     // A table with an auto-incremented primary key and a default value
-    ///     try dbQueue.write { db in
-    ///         try db.execute(sql: """
-    ///             CREATE TABLE player(
-    ///               id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ///               name TEXT,
-    ///               score INTEGER DEFAULT 1000)
-    ///             """)
-    ///     }
+    /// ```swift
+    /// // A table with an auto-incremented primary key and a default value
+    /// try dbQueue.write { db in
+    ///     try db.execute(sql: """
+    ///         CREATE TABLE player(
+    ///           id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ///           name TEXT,
+    ///           score INTEGER DEFAULT 1000)
+    ///         """)
+    /// }
     ///
-    ///     // A player with partial database information
-    ///     struct PartialPlayer: MutablePersistableRecord {
-    ///         static let databaseTableName = "player"
-    ///         var name: String
-    ///     }
+    /// // A player with partial database information
+    /// struct PartialPlayer: MutablePersistableRecord {
+    ///     static let databaseTableName = "player"
+    ///     var name: String
+    /// }
     ///
-    ///     // A full player, with all database information
-    ///     struct Player: TableRecord, FetchableRecord {
-    ///         var id: Int64
-    ///         var name: String
-    ///         var score: Int
-    ///     }
+    /// // A full player, with all database information
+    /// struct Player: TableRecord, FetchableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    /// }
     ///
-    ///     // Insert a base player, get a full one
-    ///     try dbQueue.write { db in
-    ///         var partialPlayer = PartialPlayer(name: "Alice")
+    /// // Insert a partial player, get a full one
+    /// try dbQueue.write { db in
+    ///     var partialPlayer = PartialPlayer(name: "Alice")
     ///
-    ///         // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///         if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
-    ///             print(player.id)    // The inserted id
-    ///             print(player.name)  // The inserted name
-    ///             print(player.score) // The default score
-    ///         }
+    ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
+    ///     if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
+    ///         print(player.id)    // The inserted id
+    ///         print(player.name)  // The inserted name
+    ///         print(player.score) // The default score
     ///     }
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`, if any. The result can be
     ///   nil when the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public mutating func insertAndFetch<T: FetchableRecord & TableRecord>(
@@ -324,47 +363,53 @@ extension MutablePersistableRecord {
         }
     }
     
-    /// Executes an `INSERT ... RETURNING ...` statement, and returns the
-    /// selected columns from the inserted row.
+    /// Executes an `INSERT RETURNING` statement, and returns the selected
+    /// columns from the inserted row.
     ///
     /// This method helps dealing with default column values and
     /// generated columns.
     ///
     /// For example:
     ///
-    ///     // A table with an auto-incremented primary key and a default value
-    ///     try dbQueue.write { db in
-    ///         try db.execute(sql: """
-    ///             CREATE TABLE player(
-    ///               id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ///               name TEXT,
-    ///               score INTEGER DEFAULT 1000)
-    ///             """)
-    ///     }
+    /// ```swift
+    /// // A table with an auto-incremented primary key and a default value
+    /// try dbQueue.write { db in
+    ///     try db.execute(sql: """
+    ///         CREATE TABLE player(
+    ///           id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ///           name TEXT,
+    ///           score INTEGER DEFAULT 1000)
+    ///         """)
+    /// }
     ///
-    ///     // A player with partial database information
-    ///     struct PartialPlayer: MutablePersistableRecord {
-    ///         static let databaseTableName = "player"
-    ///         var name: String
-    ///     }
+    /// // A player with partial database information
+    /// struct PartialPlayer: MutablePersistableRecord {
+    ///     static let databaseTableName = "player"
+    ///     var name: String
+    /// }
     ///
-    ///     // Insert a base player, get the inserted score
-    ///     try dbQueue.write { db in
-    ///         var partialPlayer = PartialPlayer(name: "Alice")
+    /// // Insert a partial player, get the inserted score
+    /// try dbQueue.write { db in
+    ///     var partialPlayer = PartialPlayer(name: "Alice")
     ///
-    ///         // INSERT INTO player (name) VALUES ('Alice') RETURNING score
-    ///         let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
-    ///             try Int.fetchOne(statement)
-    ///         }
-    ///         print(score) // The inserted score
+    ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING score
+    ///     let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
+    ///         try Int.fetchOne(statement)
     ///     }
+    ///     print(score) // The inserted score
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes its ``Statement`` argument.
+    /// - parameter fetch: A closure that executes its ``Statement`` argument.
+    ///   If the conflict policy is `IGNORE`, the statement may return no row.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+

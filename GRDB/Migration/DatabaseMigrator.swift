@@ -4,64 +4,95 @@ import Combine
 import Foundation
 
 // TODO: provide concurrent apis for migrations that run @Sendable closures.
-/// A DatabaseMigrator registers and applies database migrations.
+/// A `DatabaseMigrator` registers and applies database migrations.
 ///
-/// Migrations are named blocks of SQL statements that are guaranteed to be
+/// Migrations are named blocks of database operations that are guaranteed to be
 /// applied in order, once and only once.
 ///
-/// When a user upgrades your application, only non-applied migration are run.
+/// When a migrator migrates a database, only non-applied migration are run.
 ///
 /// Usage:
 ///
-///     var migrator = DatabaseMigrator()
+/// ```swift
+/// // Define a DatabaseMigrator
+/// var migrator = DatabaseMigrator()
 ///
-///     // 1st migration
-///     migrator.registerMigration("createLibrary") { db in
-///         try db.create(table: "author") { t in
-///             t.autoIncrementedPrimaryKey("id")
-///             t.column("creationDate", .datetime)
-///             t.column("name", .text).notNull()
-///         }
-///
-///         try db.create(table: "book") { t in
-///             t.autoIncrementedPrimaryKey("id")
-///             t.column("authorId", .integer)
-///                 .notNull()
-///                 .references("author", onDelete: .cascade)
-///             t.column("title", .text).notNull()
-///         }
+/// // 1st migration
+/// migrator.registerMigration("createLibrary") { db in
+///     try db.create(table: "author") { t in
+///         t.autoIncrementedPrimaryKey("id")
+///         t.column("creationDate", .datetime)
+///         t.column("name", .text).notNull()
 ///     }
 ///
-///     // 2nd migration
-///     migrator.registerMigration("AddBirthYearToAuthors") { db in
-///         try db.alter(table: "author") { t
-///             t.add(column: "birthYear", .integer)
-///         }
+///     try db.create(table: "book") { t in
+///         t.autoIncrementedPrimaryKey("id")
+///         t.column("authorId", .integer)
+///             .notNull()
+///             .references("author", onDelete: .cascade)
+///         t.column("title", .text).notNull()
 ///     }
+/// }
 ///
-///     // Migrations for future versions will be inserted here:
-///     //
-///     // // 3rd migration
-///     // migrator.registerMigration("...") { db in
-///     //     ...
-///     // }
+/// // 2nd migration
+/// migrator.registerMigration("AddBirthYearToAuthors") { db in
+///     try db.alter(table: "author") { t
+///         t.add(column: "birthYear", .integer)
+///     }
+/// }
 ///
-///     try migrator.migrate(dbQueue)
+/// // Migrations for future versions will be inserted here:
+/// //
+/// // // 3rd migration
+/// // migrator.registerMigration("...") { db in
+/// //     ...
+/// // }
+///
+/// // Connect and migrate a database
+/// let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+/// try migrator.migrate(dbQueue)
+/// ```
+///
+/// ## Topics
+///
+/// ### Creating and Configuring a DatabaseMigrator
+///
+/// - ``init()``
+/// - ``eraseDatabaseOnSchemaChange``
+/// - ``disablingDeferredForeignKeyChecks()``
+/// - ``registerMigration(_:foreignKeyChecks:migrate:)``
+/// - ``ForeignKeyChecks``
+///
+/// ### Migrating a Database
+///
+/// - ``asyncMigrate(_:completion:)``
+/// - ``migrate(_:)``
+/// - ``migrate(_:upTo:)``
+/// - ``migratePublisher(_:receiveOn:)``
+///
+/// ### Querying Migrations
+///
+/// - ``migrations``
+/// - ``appliedIdentifiers(_:)``
+/// - ``appliedMigrations(_:)``
+/// - ``completedMigrations(_:)``
+/// - ``hasBeenSuperseded(_:)``
+/// - ``hasCompletedMigrations(_:)``
 public struct DatabaseMigrator {
-    /// Controls how migrations handle foreign keys constraints.
+    /// Controls how a migration handle foreign keys constraints.
     public enum ForeignKeyChecks {
         /// The migration runs with disabled foreign keys, until foreign keys
         /// are checked right before changes are committed on disk.
         ///
-        /// These deferred checks are not executed if the migrator comes
-        /// from `disablingDeferredForeignKeyChecks()`.
+        /// These deferred checks are not executed if the migrator is the
+        /// result of ``DatabaseMigrator/disablingDeferredForeignKeyChecks()``.
         ///
         /// Deferred foreign key checks are necessary for migrations that
         /// perform schema changes as described in
         /// <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
         case deferred
         
-        /// The migration runs for foreign keys on.
+        /// The migration runs with enabled foreign keys.
         ///
         /// Immediate foreign key checks are not compatible with migrations that
         /// perform schema changes as described in
@@ -69,30 +100,35 @@ public struct DatabaseMigrator {
         case immediate
     }
     
-    /// When the `eraseDatabaseOnSchemaChange` flag is true, the migrator will
-    /// automatically wipe out the full database content, and recreate the whole
-    /// database from scratch, if it detects that a migration has changed its
-    /// definition.
+    /// A boolean value indicating whether the migrator recreates the whole
+    /// database from scratch if it detects a change in the definition
+    /// of migrations.
     ///
-    /// This flag can destroy your precious users' data!
+    /// - warning: This flag can destroy your precious users' data!
     ///
-    /// But it may be useful in two situations:
+    /// When true, the database migrator wipes out the full database content,
+    /// and runs all migrations from the start, if one of those conditions
+    /// is met:
     ///
-    /// 1. During application development, as you are still designing
-    ///     migrations, and the schema changes often.
+    /// - A migration has been removed, or renamed.
+    /// - A schema change is detected. A schema change is any difference in
+    ///   the `sqlite_master` table, which contains the SQL used to create
+    ///   database tables, indexes, triggers, and views.
     ///
-    ///     In this case, it is recommended that you make sure this flag does
-    ///     not ship in the distributed application, in order to avoid undesired
-    ///     data loss:
+    /// This flag is useful during application development: you are still
+    /// designing migrations, and the schema changes often.
     ///
-    ///         var migrator = DatabaseMigrator()
-    ///         #if DEBUG
-    ///         // Speed up development by nuking the database when migrations change
-    ///         migrator.eraseDatabaseOnSchemaChange = true
-    ///         #endif
+    /// It is recommended to not ship it in the distributed application, in
+    /// order to avoid undesired data loss. Use the `DEBUG`
+    /// compilation condition:
     ///
-    /// 2. When the database content can easily be recreated, such as a cache
-    ///     for some downloaded data.
+    /// ```swift
+    /// var migrator = DatabaseMigrator()
+    /// #if DEBUG
+    /// // Speed up development by nuking the database when migrations change
+    /// migrator.eraseDatabaseOnSchemaChange = true
+    /// #endif
+    /// ```
     public var eraseDatabaseOnSchemaChange = false
     private var defersForeignKeyChecks = true
     private var _migrations: [Migration] = []
@@ -103,37 +139,41 @@ public struct DatabaseMigrator {
     
     // MARK: - Disabling Foreign Key Checks
     
-    /// Returns a migrator that will not perform deferred foreign key checks in
-    /// all newly registered migrations.
+    /// Returns a migrator that disables foreign key checks in all newly
+    /// registered migrations.
     ///
     /// The returned migrator is _unsafe_, because it no longer guarantees the
-    /// integrity of the database. It is your responsibility to register
-    /// migrations that do not break foreign key constraints.
+    /// integrity of the database. It is now _your_ responsibility to register
+    /// migrations that do not break foreign key constraints. See
+    /// ``Database/checkForeignKeys()`` and ``Database/checkForeignKeys(in:)``.
     ///
     /// Running migrations without foreign key checks can improve migration
     /// performance on huge databases.
     ///
     /// Example:
     ///
-    ///     var migrator = DatabaseMigrator()
-    ///     migrator.registerMigration("A") { db in
-    ///         // Runs with deferred foreign key checks
-    ///     }
-    ///     migrator.registerMigration("B", foreignKeyChecks: .immediate) { db in
-    ///         // Runs with immediate foreign key checks
-    ///     }
+    /// ```swift
+    /// var migrator = DatabaseMigrator()
+    /// migrator.registerMigration("A") { db in
+    ///     // Runs with deferred foreign key checks
+    /// }
+    /// migrator.registerMigration("B", foreignKeyChecks: .immediate) { db in
+    ///     // Runs with immediate foreign key checks
+    /// }
     ///
-    ///     migrator = migrator.disablingDeferredForeignKeyChecks()
-    ///     migrator.registerMigration("C") { db in
-    ///         // Runs with disabled foreign key checks
-    ///     }
-    ///     migrator.registerMigration("D", foreignKeyChecks: .immediate) { db in
-    ///         // Runs with immediate foreign key checks
-    ///     }
+    /// migrator = migrator.disablingDeferredForeignKeyChecks()
+    /// migrator.registerMigration("C") { db in
+    ///     // Runs without foreign key checks
+    /// }
+    /// migrator.registerMigration("D", foreignKeyChecks: .immediate) { db in
+    ///     // Runs with immediate foreign key checks
+    /// }
+    /// ```
     ///
-    /// - warning: Before using this unsafe method, try to run your migrations with
-    /// `.immediate` foreign key checks, if possible. This may enhance migration
-    /// performances, while preserving the database integrity guarantee.
+    /// - warning: Before using this unsafe method, try to register your
+    ///   migrations with the `foreignKeyChecks: .immediate` option, _if
+    ///   possible_, as in the example above. This will enhance migration
+    ///   performances, while preserving the database integrity guarantee.
     public func disablingDeferredForeignKeyChecks() -> DatabaseMigrator {
         with { $0.defersForeignKeyChecks = false }
     }
@@ -142,33 +182,55 @@ public struct DatabaseMigrator {
     
     /// Registers a migration.
     ///
-    ///     migrator.registerMigration("createAuthors") { db in
-    ///         try db.create(table: "author") { t in
-    ///             t.autoIncrementedPrimaryKey("id")
-    ///             t.column("creationDate", .datetime)
-    ///             t.column("name", .text).notNull()
-    ///         }
+    /// The registered migration is appended to the list of migrations to run:
+    /// it will execute after previously registered migrations, after before
+    /// migrations that are registered later.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// migrator.registerMigration("createAuthors") { db in
+    ///     try db.create(table: "author") { t in
+    ///         t.autoIncrementedPrimaryKey("id")
+    ///         t.column("creationDate", .datetime)
+    ///         t.column("name", .text).notNull()
     ///     }
+    /// }
+    /// ```
+    ///
+    /// Database operations are wrapped in a transaction. If they throw an
+    /// error, the transaction is rollbacked, migrations are aborted, and the
+    /// error is thrown by the migrating method.
+    ///
+    /// By default, database operations run with disabled foreign keys, and
+    /// foreign keys are checked right before changes are committed on disk. You
+    /// can control this behavior with the `foreignKeyChecks` argument.
+    ///
+    /// Database operations run in the writer dispatch queue, serialized
+    /// with all database updates performed by the migrated `DatabaseWriter`.
+    ///
+    /// The `Database` argument to `migrate` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
+    /// later use.
     ///
     /// - parameters:
     ///     - identifier: The migration identifier.
-    ///     - foreignKeyChecks: This parameter is ignored if the database has
-    ///       not enabled foreign keys.
+    ///     - foreignKeyChecks: This parameter is ignored if the database
+    ///       ``Configuration`` has disabled foreign keys.
     ///
     ///       The default `.deferred` checks have the migration run with
     ///       disabled foreign keys, until foreign keys are checked right before
     ///       changes are committed on disk. These deferred checks are not
-    ///       executed if the migrator comes
-    ///       from `disablingDeferredForeignKeyChecks()`.
+    ///       executed if the migrator is the result of
+    ///       ``disablingDeferredForeignKeyChecks()``.
     ///
     ///       The `.immediate` checks have the migration run with foreign
-    ///       keys enabled.
-    ///
-    ///       Only use `.immediate` if you are sure that the migration does not
-    ///       perform schema changes described in
+    ///       keys enabled. Make sure you only use `.immediate` if the migration
+    ///       does not perform schema changes described in
     ///       <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
-    ///     - block: The migration block that performs SQL statements.
-    /// - precondition: No migration with the same same as already been registered.
+    ///     - migrate: A closure that performs database operations.
+    /// - precondition: No migration with the same identifier as already
+    ///   been registered.
     public mutating func registerMigration(
         _ identifier: String,
         foreignKeyChecks: ForeignKeyChecks = .deferred,
@@ -190,13 +252,11 @@ public struct DatabaseMigrator {
     
     // MARK: - Applying Migrations
     
-    /// Iterate migrations in the same order as they were registered. If a
-    /// migration has not yet been applied, its block is executed in
-    /// a transaction.
+    /// Runs all unapplied migrations, in the same order as they
+    /// were registered.
     ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    /// - throws: An eventual error thrown by the registered migration blocks.
+    /// - parameter writer: A DatabaseWriter.
+    /// - throws: The error thrown by the first failed migration.
     public func migrate(_ writer: some DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
@@ -204,29 +264,31 @@ public struct DatabaseMigrator {
         try migrate(writer, upTo: lastMigration.identifier)
     }
     
-    /// Iterate migrations in the same order as they were registered, up to the
-    /// provided target. If a migration has not yet been applied, its block is
-    /// executed in a transaction.
+    /// Runs all unapplied migrations, in the same order as they
+    /// were registered, up to the target migration identifier (included).
     ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    /// - parameter targetIdentifier: The identifier of a registered migration.
-    /// - throws: An eventual error thrown by the registered migration blocks.
+    /// - precondition: `targetIdentifier` is the identifier of a
+    ///   registered migration.
+    ///
+    /// - precondition: The database has not already been migrated beyond the
+    ///   target migration.
+    ///
+    /// - parameter writer: A DatabaseWriter.
+    /// - parameter targetIdentifier: A migration identifier.
+    /// - throws: The error thrown by the first failed migration.
     public func migrate(_ writer: some DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
     }
     
-    /// Iterate migrations in the same order as they were registered. If a
-    /// migration has not yet been applied, its block is executed in
-    /// a transaction.
+    /// Schedules unapplied migrations for execution, and returns immediately.
     ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
+    /// - parameter writer: A DatabaseWriter.
     /// - parameter completion: A function that can access the database. Its
     ///   argument is a `Result` that provides a connection to the migrated
-    ///   database, or the failure that would prevent the migration to complete.
+    ///   database, or the failure that prevented the migrations
+    ///   from succeeding.
     public func asyncMigrate(
         _ writer: some DatabaseWriter,
         completion: @escaping (Result<Database, Error>) -> Void)
@@ -255,10 +317,8 @@ public struct DatabaseMigrator {
     /// Returns the identifiers of registered and applied migrations, in the
     /// order of registration.
     ///
-    /// See also `appliedIdentifiers(_:)`.
-    ///
     /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func appliedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try self.appliedIdentifiers(db)
         return _migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
@@ -266,10 +326,8 @@ public struct DatabaseMigrator {
     
     /// Returns the applied migration identifiers, even unregistered ones.
     ///
-    /// See also `appliedMigrations(_:)`.
-    ///
     /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func appliedIdentifiers(_ db: Database) throws -> Set<String> {
         do {
             return try String.fetchSet(db, sql: "SELECT identifier FROM grdb_migrations")
@@ -282,11 +340,14 @@ public struct DatabaseMigrator {
         }
     }
     
-    /// Returns the identifiers of completed migrations, of which all previous
-    /// migrations have been applied.
+    /// Returns the identifiers of registered and completed migrations, in the
+    /// order of registration.
+    ///
+    /// A migration is completed if and only if all previous migrations have
+    /// been applied.
     ///
     /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func completedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try appliedMigrations(db)
         let knownIdentifiers = _migrations.map(\.identifier)
@@ -295,20 +356,23 @@ public struct DatabaseMigrator {
             .map { $0.0 }
     }
     
-    /// Returns true if all migrations are applied.
+    /// A boolean value indicating whether all registered migrations, and only
+    /// registered migrations, have been applied.
     ///
     /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
         try completedMigrations(db).last == _migrations.last?.identifier
     }
     
-    /// Returns whether database contains unknown migration
-    /// identifiers, which is likely the sign that the database
-    /// has migrated further than the migrator itself supports.
+    /// A boolean value indicating whether the database refers to
+    /// unregistered migrations.
+    ///
+    /// When the result is true, the database has likely been migrated by a
+    /// more recent migrator.
     ///
     /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func hasBeenSuperseded(_ db: Database) throws -> Bool {
         let appliedIdentifiers = try self.appliedIdentifiers(db)
         let knownIdentifiers = _migrations.map(\.identifier)
@@ -447,32 +511,16 @@ extension DatabaseMigrator {
     
     /// Returns a Publisher that asynchronously migrates a database.
     ///
-    ///     let migrator: DatabaseMigrator = ...
-    ///     let dbQueue: DatabaseQueue = ...
-    ///     let publisher = migrator.migratePublisher(dbQueue)
+    /// The database is not accessed until subscription. Value and completion
+    /// are published on `scheduler` (the main dispatch queue by default).
     ///
-    /// It completes on the main dispatch queue.
-    ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher(_ writer: some DatabaseWriter) -> DatabasePublishers.Migrate {
-        migratePublisher(writer, receiveOn: DispatchQueue.main)
-    }
-    
-    /// Returns a Publisher that asynchronously migrates a database.
-    ///
-    ///     let migrator: DatabaseMigrator = ...
-    ///     let dbQueue: DatabaseQueue = ...
-    ///     let publisher = migrator.migratePublisher(dbQueue, receiveOn: DispatchQueue.global())
-    ///
-    /// It completes on `scheduler`.
-    ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    /// - parameter writer: A DatabaseWriter.
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher(_ writer: some DatabaseWriter, receiveOn scheduler: some Scheduler)
+    public func migratePublisher(
+        _ writer: some DatabaseWriter,
+        receiveOn scheduler: some Scheduler = DispatchQueue.main)
     -> DatabasePublishers.Migrate
     {
         DatabasePublishers.Migrate(
@@ -489,10 +537,11 @@ extension DatabaseMigrator {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that migrates a database. It publishes exactly
-    /// one element, or an error.
+    /// A publisher that migrates a database.
     ///
-    /// See `DatabaseMigrator.migratePublisher(_:receiveOn:)`.
+    /// `Migrate` publishes exactly one element, or an error.
+    ///
+    /// You build such a publisher from ``DatabaseMigrator``.
     public struct Migrate: Publisher {
         public typealias Output = Void
         public typealias Failure = Error

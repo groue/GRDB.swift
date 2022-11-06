@@ -4,34 +4,63 @@ import Foundation
 import UIKit
 #endif
 
-/// A DatabaseQueue serializes access to an SQLite database.
-public final class DatabaseQueue: DatabaseWriter {
+/// A database connection that serializes accesses to an SQLite database.
+///
+/// A database queue creates one single SQLite connection. All database accesses
+/// are executed in a serial **writer dispatch queue**.
+///
+/// A database queue inherits most of its database access methods from the
+/// ``DatabaseReader`` and ``DatabaseWriter`` protocols. It defines a few
+/// specific database access methods as well.
+/// 
+/// ## Topics
+/// 
+/// ### Creating a DatabaseQueue
+///
+/// - ``init(configuration:)``
+/// - ``init(path:configuration:)``
+///
+/// ### Accessing the Database
+///
+/// - ``inDatabase(_:)``
+/// - ``inTransaction(_:_:)``
+///
+/// ### Managing the SQLite Connection
+///
+/// - ``releaseMemory()``
+public final class DatabaseQueue {
     private let writer: SerializedDatabase
     
     // MARK: - Configuration
     
-    /// The database configuration
     public var configuration: Configuration {
         writer.configuration
     }
     
-    /// The path to the database file; it is ":memory:" for in-memory databases.
+    /// The path to the database file.
+    ///
+    /// The path is `:memory:` for in-memory databases.
     public var path: String {
         writer.path
     }
     
     // MARK: - Initializers
     
-    /// Opens the SQLite database at path *path*.
+    /// Opens or creates an SQLite database.
     ///
-    ///     let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+    /// For example:
     ///
-    /// Database connections get closed when the database queue gets deallocated.
+    /// ```swift
+    /// let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+    /// ```
+    ///
+    /// The SQLite connection is closed when the database queue
+    /// gets deallocated.
     ///
     /// - parameters:
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
         writer = try SerializedDatabase(
             path: path,
@@ -51,9 +80,8 @@ public final class DatabaseQueue: DatabaseWriter {
     
     /// Opens an in-memory SQLite database.
     ///
-    ///     let dbQueue = try DatabaseQueue()
-    ///
-    /// Database memory is released when the database queue gets deallocated.
+    /// The database memory is released when the database queue
+    /// gets deallocated.
     ///
     /// - parameter configuration: A configuration.
     public init(configuration: Configuration = Configuration()) throws {
@@ -69,10 +97,6 @@ public final class DatabaseQueue: DatabaseWriter {
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before OS X 10.11.
         NotificationCenter.default.removeObserver(self)
-    }
-    
-    public func close() throws {
-        try writer.sync { try $0.close() }
     }
 }
 
@@ -133,7 +157,10 @@ extension DatabaseQueue {
     #endif
 }
 
-extension DatabaseQueue {
+extension DatabaseQueue: DatabaseReader {
+    public func close() throws {
+        try writer.sync { try $0.close() }
+    }
     
     // MARK: - Interrupting Database Operations
     
@@ -233,9 +260,6 @@ extension DatabaseQueue {
         })
     }
     
-    /// Performs the same job as asyncConcurrentRead.
-    ///
-    /// :nodoc:
     public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
@@ -258,33 +282,59 @@ extension DatabaseQueue {
         }
     }
     
+    // MARK: - Database Observation
+    
+    public func _add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    {
+        if configuration.readonly {
+            // The easy case: the database does not change
+            return _addReadOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
+        } else {
+            // Observe from the writer database connection.
+            return _addWriteOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
+        }
+    }
+}
+
+extension DatabaseQueue: DatabaseWriter {
     // MARK: - Writing in Database
     
-    /// Synchronously executes database updates in a protected dispatch queue,
-    /// wrapped inside a transaction, and returns the result.
+    /// Wraps database operations inside a database transaction.
     ///
-    /// If the updates throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the updates return .rollback, the transaction is
-    /// also rollbacked, but no error is thrown.
+    /// The `updates` function runs in the writer dispatch queue, serialized
+    /// with all database updates.
+    /// 
+    /// If `updates` throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If it returns
+    /// ``Database/TransactionCompletion/rollback``, the transaction is also
+    /// rollbacked, but no error is thrown.
     ///
-    /// Eventual concurrent database accesses are postponed until the
-    /// transaction has completed.
+    /// For example:
     ///
-    /// This method is *not* reentrant.
-    ///
-    ///     try dbQueue.writeInTransaction { db in
-    ///         db.execute(...)
-    ///         return .commit
-    ///     }
+    /// ```swift
+    /// try dbQueue.inTransaction { db in
+    ///     try Player(name: "Arthur").insert(db)
+    ///     try Player(name: "Barbara").insert(db)
+    ///     return .commit
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .deferred. See <https://www.sqlite.org/lang_transaction.html>
-    ///       for more information.
-    ///     - updates: The updates to the database.
-    /// - throws: The error thrown by the updates, or by the
-    ///   wrapping transaction.
+    ///       type is the ``Configuration/defaultTransactionKind`` of the
+    ///       the ``configuration``.
+    ///     - updates: A function that updates the database.
+    /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func inTransaction(
         _ kind: Database.TransactionKind? = nil,
         _ updates: (Database) throws -> Database.TransactionCompletion)
@@ -311,19 +361,40 @@ extension DatabaseQueue {
         writer.async { updates(.success($0)) }
     }
     
-    /// Synchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction, and returns the result.
+    /// Executes database operations, and returns their result after they have
+    /// finished executing.
     ///
-    /// Eventual concurrent database updates are postponed until the updates
-    /// are completed.
+    /// This method is identical to
+    /// ``DatabaseWriter/writeWithoutTransaction(_:)-4qh1w``
     ///
-    /// Eventual concurrent reads may see partial updates unless you wrap them
-    /// in a transaction.
+    /// For example:
     ///
-    /// This method is *not* reentrant.
+    /// ```swift
+    /// let newPlayerCount = try dbQueue.inDatabase { db in
+    ///     try Player(name: "Arthur").insert(db)
+    ///     return try Player.fetchCount(db)
+    /// }
+    /// ```
     ///
-    /// - parameter updates: The updates to the database.
-    /// - throws: The error thrown by the updates.
+    /// Database operations run in the writer dispatch queue, serialized
+    /// with all database updates performed by this `DatabaseWriter`.
+    ///
+    /// The ``Database`` argument to `updates` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
+    ///
+    /// It is a programmer error to call this method from another database
+    /// access method. Doing so raises a "Database methods are not reentrant"
+    /// fatal error at runtime.
+    ///
+    /// - warning: Database operations are not wrapped in a transaction. They
+    ///   can see changes performed by concurrent writes or writes performed by
+    ///   other processes: two identical requests performed by the `updates`
+    ///   closure may not return the same value. Concurrent database accesses
+    ///   can see partial updates performed by the `updates` closure.
+    ///
+    /// - parameter updates: A closure which accesses the database.
+    /// - throws: The error thrown by `updates`.
     public func inDatabase<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
@@ -334,29 +405,5 @@ extension DatabaseQueue {
     
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         writer.async(updates)
-    }
-    
-    // MARK: - Database Observation
-    
-    /// :nodoc:
-    public func _add<Reducer: ValueReducer>(
-        observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
-        if configuration.readonly {
-            // The easy case: the database does not change
-            return _addReadOnly(
-                observation: observation,
-                scheduling: scheduler,
-                onChange: onChange)
-        } else {
-            // Observe from the writer database connection.
-            return _addWriteOnly(
-                observation: observation,
-                scheduling: scheduler,
-                onChange: onChange)
-        }
     }
 }

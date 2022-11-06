@@ -16,6 +16,13 @@ if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
     cSettings.append(.define("GRDB_SQLITE_ENABLE_PREUPDATE_HOOK"))
 }
 
+// Don't rely on this environment variable. It is only a convenience:
+// $ make docs-localhost
+var dependencies: [PackageDescription.Package.Dependency] = []
+if ProcessInfo.processInfo.environment["GRDB_DOCC_PLUGIN"] == "1" {
+    dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
+}
+
 let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
@@ -29,8 +36,7 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
-    dependencies: [
-    ],
+    dependencies: dependencies,
     targets: [
         .systemLibrary(
             name: "CSQLite",

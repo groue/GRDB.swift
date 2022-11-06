@@ -13,18 +13,14 @@ To release a new GRDB version:
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
 - On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in Documentation/CustomSQLiteBuilds.md
 - Update GRDB version number and release date in:
-    - Makefile
     - CHANGELOG.md
     - GRDB.swift.podspec
     - README.md
-    - Documentation/FullTextSearch.md
-    - Documentation/Migrations.md
     - Support/Info.plist
 - Commit and tag
 - Check tag authors: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
 - Push to the master & development branch
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
-- `make doc`, and update index.html in the `gh-pages` branch
 - Update http://github.com/groue/WWDCCompanion
 - Update [performance comparison](https://github.com/groue/GRDB.swift/wiki/Performance):
 

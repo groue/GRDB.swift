@@ -27,8 +27,11 @@ extension MutablePersistableRecord {
     /// Otherwise, performs an insert.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func save(
         _ db: Database,
@@ -62,9 +65,12 @@ extension MutablePersistableRecord {
     ///     print(savedPlayer.id) // some id
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The saved record.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func saved(
         _ db: Database,
@@ -81,8 +87,8 @@ extension MutablePersistableRecord {
 
 extension MutablePersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns a new record built from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
@@ -97,10 +103,13 @@ extension MutablePersistableRecord {
     ///     let savedPlayer = player.saveAndFetch(db)
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The saved record. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public func saveAndFetch(
         _ db: Database,
@@ -112,19 +121,22 @@ extension MutablePersistableRecord {
         return try result.saveAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns a new record built from the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns a new record built from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
     ///   the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func saveAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
@@ -152,19 +164,22 @@ extension MutablePersistableRecord {
         return success.returned
     }
     
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns the selected columns from the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns the selected columns from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func saveAndFetch<T>(
@@ -194,8 +209,8 @@ extension MutablePersistableRecord {
         return success.returned
     }
 #else
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns a new record built from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
@@ -210,10 +225,13 @@ extension MutablePersistableRecord {
     ///     let savedPlayer = player.saveAndFetch(db)
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - returns: The saved record. The result can be nil when the
     ///   conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func saveAndFetch(
@@ -226,19 +244,22 @@ extension MutablePersistableRecord {
         return try result.saveAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns a new record built from the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns a new record built from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter returnedType: The type of the returned record.
     /// - returns: A record of type `returnedType`. The result can be nil when
     ///   the conflict policy is `IGNORE`.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public mutating func saveAndFetch<T: FetchableRecord & TableRecord>(
@@ -267,19 +288,22 @@ extension MutablePersistableRecord {
         return success.returned
     }
     
-    /// Executes an `INSERT ... RETURNING ...` or `UPDATE ... RETURNING ...`
-    /// statement, and returns the selected columns from the saved row.
+    /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
+    /// returns the selected columns from the saved row.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter conflictResolution: A policy for conflict resolution. If
+    ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
+    ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
     /// - parameter fetch: A function that executes it ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
+    ///   error thrown by the persistence callbacks defined by the record type.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+

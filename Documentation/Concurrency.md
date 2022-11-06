@@ -118,7 +118,7 @@ let playerCount = try dbQueue.read { db in
 }
 
 let newPlayerCount = try dbQueue.write { db -> Int in
-    try Player(id: 12, name: "Arthur").insert(db)
+    try Player(name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }
 ```
@@ -145,7 +145,7 @@ let playerCount = try await dbQueue.read { db in
 }
 
 let newPlayerCount = try await dbQueue.write { db -> Int in
-    try Player(id: 12, name: "Arthur").insert(db)
+    try Player(name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }
 ```
@@ -163,7 +163,7 @@ let playerCountPublisher = dbQueue.readPublisher { db in
 }
 
 let newPlayerCountPublisher = dbQueue.writePublisher { db -> Int in
-    try Player(id: 12, name: "Arthur").insert(db)
+    try Player(name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }
 ```
@@ -181,7 +181,7 @@ let playerCountObservable = dbQueue.rx.read { db in
 }
 
 let newPlayerCountObservable = dbQueue.rx.write { db -> Int in
-    try Player(id: 12, name: "Arthur").insert(db)
+    try Player(name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }
 ```
@@ -196,27 +196,24 @@ Those observables do not access the database until they are subscribed. They com
 ```swift
 dbQueue.asyncRead { (dbResult: Result<Database, Error>) in
     do {
-        // Maybe read access could not be established
         let db = try dbResult.get()
         let playerCount = try Player.fetchCount(db)
-        ... // Handle playerCount
     } catch {
-        ... // Handle error
+        // Handle error
     }
 }
 
-dbQueue.asyncWrite({ (db: Database) -> Int in
-    try Player(id: 12, name: "Arthur").insert(db)
+dbQueue.asyncWrite { (db: Database) -> Int in
+    try Player(name: "Arthur").insert(db)
     return try Player.fetchCount(db)
-}, completion: { (db: Database, result: Result<Int, Error>) in
-    // Handle write transaction result:
+} completion: { (db: Database, result: Result<Int, Error>) in
     switch result {
     case let .success(newPlayerCount):
-        ... // Handle newPlayerCount
+        // Handle success
     case let .failure(error):
-        ... // Handle error
+        // Handle error
     }
-})
+}
 ```
 
 </details>

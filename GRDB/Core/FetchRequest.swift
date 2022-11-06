@@ -1,38 +1,82 @@
 // MARK: - FetchRequest
 
-/// The protocol for all requests that fetch database rows, and tell how those
-/// rows should be interpreted.
+/// A type that fetches and decodes database rows.
 ///
-///     struct Player: FetchableRecord { ... }
-///     let request: some FetchRequest<Player> = ...
+/// ## Topics
 ///
-///     try request.fetchCursor(db) // Cursor of Player
-///     try request.fetchAll(db)    // [Player]
-///     try request.fetchSet(db)    // Set<Player>
-///     try request.fetchOne(db)    // Player?
-///     try request.fetchCount(db)  // Int
+/// ### Counting the Results
+///
+/// - ``fetchCount(_:)``
+///
+/// ### Fetching Database Rows
+///
+/// - ``fetchCursor(_:)-9283d``
+/// - ``fetchAll(_:)-7p809``
+/// - ``fetchOne(_:)-9fafl``
+/// - ``fetchSet(_:)-6bdrd``
+///
+/// ### Fetching Database Values
+///
+/// - ``fetchCursor(_:)-19f5g``
+/// - ``fetchCursor(_:)-66xoi``
+/// - ``fetchAll(_:)-1loau``
+/// - ``fetchAll(_:)-28pne``
+/// - ``fetchOne(_:)-44mvv``
+/// - ``fetchOne(_:)-5hlkf``
+/// - ``fetchSet(_:)-4hhtm``
+/// - ``fetchSet(_:)-9wshm``
+///
+/// ### Fetching Records
+///
+/// - ``fetchCursor(_:)-2ah3q``
+/// - ``fetchAll(_:)-vdos``
+/// - ``fetchOne(_:)-2bq0k``
+/// - ``fetchSet(_:)-4jdrq``
+///
+/// ### Preparing Database Requests
+///
+/// - ``makePreparedRequest(_:forSingleResult:)``
+/// - ``PreparedRequest``
+///
+/// ### Database Observation Support
+///
+/// - ``databaseRegion(_:)``
+///
+/// ### Adapting the Fetched Rows
+///
+/// - ``adapted(_:)``
+/// - ``AdaptedFetchRequest``
+///
+/// ### Supporting Types
+///
+/// - ``AnyFetchRequest``
 public protocol FetchRequest<RowDecoder>: SQLSubqueryable, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
-    /// Returns a PreparedRequest that is ready to be executed.
+    /// Returns a ``PreparedRequest``.
+    ///
+    /// The `singleResult` argument is a hint that a single result row will be
+    /// consumed. Implementations can optionally use it to optimize the
+    /// prepared statement, for example by adding a `LIMIT 1` SQL clause:
+    ///
+    /// ```swift
+    /// // Calls makePreparedRequest(db, forSingleResult: true)
+    /// try request.fetchOne(db)
+    ///
+    /// // Calls makePreparedRequest(db, forSingleResult: false)
+    /// try request.fetchAll(db)
+    /// ```
     ///
     /// - parameter db: A database connection.
     /// - parameter singleResult: A hint that a single result row will be
-    ///   consumed. Implementations can optionally use it to optimize the
-    ///   prepared statement, for example by adding a `LIMIT 1` SQL clause.
-    ///
-    ///       // Calls makePreparedRequest(db, forSingleResult: true)
-    ///       try request.fetchOne(db)
-    ///
-    ///       // Calls makePreparedRequest(db, forSingleResult: false)
-    ///       try request.fetchAll(db)
-    /// - returns: A prepared request.
+    ///   consumed.
     func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
     
     /// Returns the number of rows fetched by the request.
     ///
     /// - parameter db: A database connection.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     func fetchCount(_ db: Database) throws -> Int
 }
 
@@ -47,12 +91,12 @@ extension FetchRequest {
 
 // MARK: - PreparedRequest
 
-/// A PreparedRequest is a request that is ready to be executed.
+/// A `PreparedRequest` is a request that is ready to be executed.
 public struct PreparedRequest {
-    /// A prepared statement
+    /// A prepared statement with bound parameters.
     public var statement: Statement
     
-    /// An eventual adapter for rows fetched by the select statement
+    /// An eventual adapter for rows fetched by the select statement.
     public var adapter: (any RowAdapter)?
     
     /// Support for eager loading of hasMany associations.
@@ -75,15 +119,21 @@ extension PreparedRequest: Refinable { }
 
 extension FetchRequest {
     /// Returns an adapted request.
+    ///
+    /// The returned request performs an identical database query, but adapts
+    /// the fetched rows. See ``RowAdapter``.
+    ///
+    /// - parameter adapter: A closure that accepts a database connection and
+    ///   returns a row adapter.
     public func adapted(_ adapter: @escaping (Database) throws -> any RowAdapter) -> AdaptedFetchRequest<Self> {
         AdaptedFetchRequest(self, adapter)
     }
 }
 
 /// An adapted request.
-public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
-    public typealias RowDecoder = Base.RowDecoder
-    
+///
+/// See ``FetchRequest/adapted(_:)``.
+public struct AdaptedFetchRequest<Base: FetchRequest> {
     let base: Base
     let adapter: (Database) throws -> any RowAdapter
     
@@ -93,10 +143,16 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         self.base = base
         self.adapter = adapter
     }
-    
+}
+
+extension AdaptedFetchRequest: SQLSubqueryable {
     public var sqlSubquery: SQLSubquery {
         base.sqlSubquery
     }
+}
+
+extension AdaptedFetchRequest: FetchRequest {
+    public typealias RowDecoder = Base.RowDecoder
     
     public func fetchCount(_ db: Database) throws -> Int {
         try base.fetchCount(db)
@@ -125,21 +181,39 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
 ///
 /// An `AnyFetchRequest` forwards its operations to an underlying request,
 /// hiding its specifics.
-public struct AnyFetchRequest<RowDecoder>: FetchRequest {
+public struct AnyFetchRequest<RowDecoder> {
     private let request: FetchRequestEraser
     
-    /// Creates a request bound to type RowDecoder.
+    /// Returns a request that performs an identical database query, but decodes
+    /// database rows with `type`.
     ///
-    /// - parameter type: The fetched type RowDecoder
-    /// - returns: A request bound to type RowDecoder.
+    /// For example:
+    ///
+    /// ```swift
+    /// // AnyFetchRequest<Player>
+    /// let playerRequest = AnyFetchRequest(Player.all())
+    ///
+    /// // AnyFetchRequest<Row>
+    /// let rowRequest = playerRequest.asRequest(of: Row.self)
     public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> AnyFetchRequest<RowDecoder> {
         AnyFetchRequest<RowDecoder>(request: request)
     }
-    
+}
+
+extension AnyFetchRequest {
+    /// Creates a request that wraps and forwards operations to `request`.
+    public init(_ request: some FetchRequest<RowDecoder>) {
+        self.init(request: ConcreteFetchRequestEraser(request: request))
+    }
+}
+
+extension AnyFetchRequest: SQLSubqueryable {
     public var sqlSubquery: SQLSubquery {
         request.sqlSubquery
     }
-    
+}
+
+extension AnyFetchRequest: FetchRequest {
     public func fetchCount(_ db: Database) throws -> Int {
         try request.fetchCount(db)
     }
@@ -150,13 +224,6 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     throws -> PreparedRequest
     {
         try request.makePreparedRequest(db, forSingleResult: singleResult)
-    }
-}
-
-extension AnyFetchRequest {
-    /// Creates a request that wraps and forwards operations to `request`.
-    public init(_ request: some FetchRequest<RowDecoder>) {
-        self.init(request: ConcreteFetchRequestEraser(request: request))
     }
 }
 

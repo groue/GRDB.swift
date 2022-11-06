@@ -1,10 +1,25 @@
-/// An FTS3 tokenizer, suitable for FTS3 and FTS4 table definitions:
+/// An ``FTS3`` tokenizer.
 ///
-///     db.create(virtualTable: "book", using: FTS4()) { t in
-///         t.tokenizer = .simple // FTS3TokenizerDescriptor
-///     }
+/// `FTS3TokenizerDescriptor` can be used in both ``FTS3`` and ``FTS4`` tables.
 ///
-/// See <https://www.sqlite.org/fts3.html#tokenizer>
+/// For example:
+///
+/// ```swift
+/// db.create(virtualTable: "book", using: FTS4()) { t in
+///     t.tokenizer = .simple // FTS3TokenizerDescriptor
+/// }
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/fts3.html#tokenizer>
+///
+/// ## Topics
+///
+/// ### Creating Tokenizers
+///
+/// - ``porter``
+/// - ``simple``
+/// - ``unicode61(diacritics:separators:tokenCharacters:)``
+/// - ``FTS3/Diacritics``
 public struct FTS3TokenizerDescriptor {
     let name: String
     let arguments: [String]
@@ -14,29 +29,43 @@ public struct FTS3TokenizerDescriptor {
         self.arguments = arguments
     }
     
-    /// The "simple" tokenizer.
+    /// The simple tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS4()) { t in
-    ///         t.tokenizer = .simple
-    ///     }
+    /// For example:
     ///
-    /// See <https://www.sqlite.org/fts3.html#tokenizer>
+    /// ```swift
+    /// db.create(virtualTable: "book", using: FTS4()) { t in
+    ///     t.tokenizer = .simple
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#tokenizer>
     public static let simple = FTS3TokenizerDescriptor("simple")
     
-    /// The "porter" tokenizer.
+    /// The porter tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS4()) { t in
-    ///         t.tokenizer = .porter
-    ///     }
+    /// For example:
     ///
-    /// See <https://www.sqlite.org/fts3.html#tokenizer>
+    /// ```swift
+    /// db.create(virtualTable: "book", using: FTS4()) { t in
+    ///     t.tokenizer = .porter
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#tokenizer>
     public static let porter = FTS3TokenizerDescriptor("porter")
     
-    /// The "unicode61" tokenizer.
+    /// The unicode61 tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS4()) { t in
-    ///         t.tokenizer = .unicode61()
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// db.create(virtualTable: "book", using: FTS4()) { t in
+    ///     t.tokenizer = .unicode61()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#tokenizer>
     ///
     /// - parameters:
     ///     - diacritics: By default SQLite will strip diacritics from
@@ -45,8 +74,6 @@ public struct FTS3TokenizerDescriptor {
     ///       characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will consider
     ///       these characters as token characters.
-    ///
-    /// See <https://www.sqlite.org/fts3.html#tokenizer>
     public static func unicode61(
         diacritics: FTS3.Diacritics = .removeLegacy,
         separators: Set<Character> = [],

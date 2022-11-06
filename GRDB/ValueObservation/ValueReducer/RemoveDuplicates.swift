@@ -1,6 +1,10 @@
 extension ValueObservation {
-    /// Returns a ValueObservation which only publishes elements that don’t
-    /// match the previous element, as evaluated by a provided closure.
+    /// Notifies only values that don’t match the previously observed value, as
+    /// evaluated by a provided closure.
+    ///
+    /// - parameter predicate: A closure to evaluate whether two values are
+    ///   equivalent, for purposes of filtering. Return true from this closure
+    ///   to indicate that the second element is a duplicate of the first.
     public func removeDuplicates(by predicate: @escaping (Reducer.Value, Reducer.Value) -> Bool)
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
@@ -9,7 +13,7 @@ extension ValueObservation {
 }
 
 extension ValueObservation where Reducer.Value: Equatable {
-    /// Returns a ValueObservation which filters out consecutive equal values.
+    /// Notifies only values that don’t match the previously observed value.
     public func removeDuplicates()
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
@@ -18,7 +22,10 @@ extension ValueObservation where Reducer.Value: Equatable {
 }
 
 extension ValueReducers {
-    /// See `ValueObservation.removeDuplicates()`
+    /// A `ValueReducer` that notifies only values that don’t match the
+    /// previously observed value.
+    ///
+    /// See ``ValueObservation/removeDuplicates()``.
     public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer {
         private var base: Base
         private var previousValue: Base.Value?
@@ -29,7 +36,6 @@ extension ValueReducers {
             self.predicate = predicate
         }
         
-        /// :nodoc:
         public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {
             guard let value = try base._value(fetched) else {
                 return nil
@@ -45,7 +51,6 @@ extension ValueReducers {
 }
 
 extension ValueReducers.RemoveDuplicates: _DatabaseValueReducer where Base: _DatabaseValueReducer {
-    /// :nodoc:
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         try base._fetch(db)
     }

@@ -104,7 +104,7 @@ extension CommonTableExpression {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sql: An SQL query.
+    /// - parameter sql: An SQL string.
     /// - parameter arguments: Statement arguments.
     public init(
         recursive: Bool = false,
@@ -123,8 +123,8 @@ extension CommonTableExpression {
     
     /// Creates a common table expression from an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
     ///     let name = "O'Brien"
@@ -137,7 +137,7 @@ extension CommonTableExpression {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - parameter sqlLiteral: An ``SQL`` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,
@@ -204,7 +204,7 @@ extension CommonTableExpression<Row> {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sql: An SQL query.
+    /// - parameter sql: An SQL string.
     /// - parameter arguments: Statement arguments.
     public init(
         recursive: Bool = false,
@@ -223,8 +223,8 @@ extension CommonTableExpression<Row> {
     
     /// Creates a common table expression from an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL, without any
-    /// risk of syntax errors or SQL injection:
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
     ///     let name = "O'Brien"
@@ -237,7 +237,7 @@ extension CommonTableExpression<Row> {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - parameter sqlLiteral: An ``SQL`` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,

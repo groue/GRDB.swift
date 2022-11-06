@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.3.x` Releases - [6.3.0](#630)
 - `6.2.x` Releases - [6.2.0](#620)
 - `6.1.x` Releases - [6.1.0](#610)
 - `6.0.x` Releases - [6.0.0](#600)
@@ -99,6 +100,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.3.0
+
+Released November 6, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.2.0...v6.3.0)
+
+- **New**: [#1291](https://github.com/groue/GRDB.swift/pull/1291) by [@groue](https://github.com/groue): DocC inline documentation
+- **New**: The `Row.dataNoCopy` methods are deprecated. Use `Row.withUnsafeData` instead.
 
 ## 6.2.0
 

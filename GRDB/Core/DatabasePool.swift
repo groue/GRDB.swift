@@ -4,8 +4,42 @@ import Foundation
 import UIKit
 #endif
 
-/// A DatabasePool grants concurrent accesses to an SQLite database.
-public final class DatabasePool: DatabaseWriter {
+/// A database connection that allows concurrent accesses to an SQLite database.
+///
+/// Unless ``Configuration/readonly``, a database pool opens an SQLite database
+/// in the [WAL mode](https://sqlite.org/wal.html).
+///
+/// It creates one writer SQLite connection, and a pool of up to
+/// ``Configuration/maximumReaderCount`` read-only SQLite connections. All
+/// write accesses are executed in a serial **writer dispatch queue**. All
+/// read accesses are executed in **reader dispatch queues** (one per read-only
+/// SQLite connection).
+///
+/// A database pool inherits most of its database access methods from the
+/// ``DatabaseReader`` and ``DatabaseWriter`` protocols. It defines a few
+/// specific database access methods as well.
+///
+/// ## Topics
+///
+/// ### Creating a DatabasePool
+///
+/// - ``init(path:configuration:)``
+///
+/// ### Creating a DatabaseSnapshot
+///
+/// - ``makeSnapshot()``
+///
+/// ### Accessing the Database
+///
+/// - ``asyncConcurrentRead(_:)``
+/// - ``writeInTransaction(_:_:)``
+///
+/// ### Managing SQLite Connections
+///
+/// - ``invalidateReadOnlyConnections()``
+/// - ``releaseMemory()``
+/// - ``releaseMemoryEventually()``
+public final class DatabasePool {
     private let writer: SerializedDatabase
     
     /// The pool of reader connections.
@@ -16,7 +50,6 @@ public final class DatabasePool: DatabaseWriter {
     
     // MARK: - Database Information
     
-    /// The database configuration
     public var configuration: Configuration {
         writer.configuration
     }
@@ -28,16 +61,21 @@ public final class DatabasePool: DatabaseWriter {
     
     // MARK: - Initializer
     
-    /// Opens the SQLite database at path *path*.
+    /// Opens or creates an SQLite database.
     ///
-    ///     let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+    /// For example:
     ///
-    /// Database connections get closed when the database pool gets deallocated.
+    /// ```swift
+    /// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+    /// ```
+    ///
+    /// The SQLite connections are closed when the database pool
+    /// gets deallocated.
     ///
     /// - parameters:
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
@@ -462,47 +500,45 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    /// Performs the same job as asyncConcurrentRead.
-    ///
-    /// :nodoc:
     public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         asyncConcurrentRead(value)
     }
     
-    /// Asynchronously executes a read-only function in a protected
-    /// dispatch queue.
+    /// Performs an asynchronous read access.
     ///
-    /// This method must be called from a writing dispatch queue, outside of any
-    /// transaction. You'll get a fatal error otherwise.
+    /// This method must be called from the writer dispatch queue, outside of
+    /// any transaction. You'll get a fatal error otherwise.
     ///
     /// The `value` function is guaranteed to see the database in the last
     /// committed state at the moment this method is called. Eventual
     /// concurrent database updates are not visible from the function.
     ///
-    /// This method returns as soon as the isolation guarantees described above
-    /// are established.
+    /// This method returns as soon as the isolation guarantee described above
+    /// has been established.
     ///
     /// In the example below, the number of players is fetched concurrently with
-    /// the player insertion. Yet the future is guaranteed to return zero:
+    /// the player insertion. Yet it is guaranteed to be zero:
     ///
-    ///     try writer.asyncWriteWithoutTransaction { db in
-    ///         // Delete all players
-    ///         try Player.deleteAll()
+    /// ```swift
+    /// try writer.asyncWriteWithoutTransaction { db in
+    ///     // Delete all players
+    ///     try Player.deleteAll()
     ///
-    ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { dbResult in
-    ///             do {
-    ///                 let db = try dbResult.get()
-    ///                 // Guaranteed to be zero
-    ///                 let count = try Player.fetchCount(db)
-    ///             } catch {
-    ///                 // Handle error
-    ///             }
+    ///     // Count players concurrently
+    ///     writer.asyncConcurrentRead { dbResult in
+    ///         do {
+    ///             let db = try dbResult.get()
+    ///             // Guaranteed to be zero
+    ///             let count = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // Handle error
     ///         }
-    ///
-    ///         // Insert a player
-    ///         try Player(...).insert(db)
     ///     }
+    ///
+    ///     // Insert a player
+    ///     try Player(...).insert(db)
+    /// }
+    /// ```
     ///
     /// - parameter value: A function that accesses the database.
     public func asyncConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
@@ -638,89 +674,8 @@ extension DatabasePool: DatabaseReader {
         return readers.first { $0.onValidQueue }
     }
     
-    // MARK: - Writing in Database
-    
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        try writer.sync(updates)
-    }
-    
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
-        guard let readerPool else {
-            throw DatabaseError.connectionIsClosed()
-        }
-        return try readerPool.barrier {
-            try writer.sync(updates)
-        }
-    }
-    
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
-        guard let readerPool else {
-            updates(.failure(DatabaseError.connectionIsClosed()))
-            return
-        }
-        readerPool.asyncBarrier {
-            self.writer.sync { updates(.success($0)) }
-        }
-    }
-    
-    /// Synchronously executes database updates in a protected dispatch queue,
-    /// wrapped inside a transaction, and returns the result.
-    ///
-    /// If the updates throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the updates return .rollback, the transaction is
-    /// also rollbacked, but no error is thrown.
-    ///
-    /// Eventual concurrent database updates are postponed until the transaction
-    /// has completed.
-    ///
-    /// Eventual concurrent reads are guaranteed to not see any partial updates
-    /// of the database until the transaction has completed.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    ///     try dbPool.writeInTransaction { db in
-    ///         db.execute(...)
-    ///         return .commit
-    ///     }
-    ///
-    /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .deferred. See <https://www.sqlite.org/lang_transaction.html>
-    ///       for more information.
-    ///     - updates: The updates to the database.
-    /// - throws: The error thrown by the updates, or by the
-    ///   wrapping transaction.
-    public func writeInTransaction(
-        _ kind: Database.TransactionKind? = nil,
-        _ updates: (Database) throws -> Database.TransactionCompletion)
-    throws
-    {
-        try writer.sync { db in
-            try db.inTransaction(kind) {
-                try updates(db)
-            }
-        }
-    }
-    
-    public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        try writer.reentrantSync(updates)
-    }
-    
-    /// Asynchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction.
-    ///
-    /// Eventual concurrent reads may see partial updates unless you wrap them
-    /// in a transaction.
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
-        writer.async(updates)
-    }
-    
     // MARK: - Database Observation
     
-    /// :nodoc:
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
@@ -771,68 +726,147 @@ extension DatabasePool: DatabaseReader {
     }
 }
 
+extension DatabasePool: DatabaseWriter {
+    // MARK: - Writing in Database
+    
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        try writer.sync(updates)
+    }
+    
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        return try readerPool.barrier {
+            try writer.sync(updates)
+        }
+    }
+    
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+        guard let readerPool else {
+            updates(.failure(DatabaseError.connectionIsClosed()))
+            return
+        }
+        readerPool.asyncBarrier {
+            self.writer.sync { updates(.success($0)) }
+        }
+    }
+    
+    /// Wraps database operations inside a database transaction.
+    ///
+    /// The `updates` function runs in the writer dispatch queue, serialized
+    /// with all database updates.
+    ///
+    /// If `updates` throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If it returns
+    /// ``Database/TransactionCompletion/rollback``, the transaction is also
+    /// rollbacked, but no error is thrown.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbPool.writeInTransaction { db in
+    ///     try Player(name: "Arthur").insert(db)
+    ///     try Player(name: "Barbara").insert(db)
+    ///     return .commit
+    /// }
+    /// ```
+    ///
+    /// - precondition: This method is not reentrant.
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is the ``Configuration/defaultTransactionKind`` of the
+    ///       the ``configuration``.
+    ///     - updates: A function that updates the database.
+    /// - throws: The error thrown by `updates`, or by the wrapping transaction.
+    public func writeInTransaction(
+        _ kind: Database.TransactionKind? = nil,
+        _ updates: (Database) throws -> Database.TransactionCompletion)
+    throws
+    {
+        try writer.sync { db in
+            try db.inTransaction(kind) {
+                try updates(db)
+            }
+        }
+    }
+    
+    public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        try writer.reentrantSync(updates)
+    }
+    
+    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        writer.async(updates)
+    }
+}
+
 extension DatabasePool {
     
     // MARK: - Snapshots
     
     /// Creates a database snapshot.
     ///
-    /// The snapshot sees an unchanging database content, as it existed at the
-    /// moment it was created.
+    /// The returned snapshot sees an unchanging database content, as it existed
+    /// at the moment it was created.
     ///
     /// When you want to control the latest committed changes seen by a
-    /// snapshot, create it from the pool's writer protected dispatch queue:
+    /// snapshot, create it from the pool's writer dispatch queue. Compare:
     ///
-    ///     let snapshot1 = try dbPool.write { db -> DatabaseSnapshot in
+    /// ```swift
+    /// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
+    ///     try Player.deleteAll()
+    ///     return try dbPool.makeSnapshot()
+    /// }
+    /// // <- Other threads may modify the database here
+    /// let snapshot2 = try dbPool.makeSnapshot()
+    ///
+    /// try snapshot1.read { db in
+    ///     // Guaranteed to be zero
+    ///     try Player.fetchCount(db)
+    /// }
+    ///
+    /// try snapshot2.read { db in
+    ///     // Could be anything
+    ///     try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// It is forbidden to create a snapshot from the writer dispatch queue when
+    /// a transaction is opened, because it is likely a programmer error:
+    ///
+    /// ```swift
+    /// try dbPool.writeInTransaction { db in
+    ///     try Player.deleteAll()
+    ///     // fatal error: makeSnapshot() must not be called from inside a transaction
+    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     return .commit
+    /// }
+    /// ```
+    ///
+    /// To avoid this fatal error, create the snapshot *before* or *after*
+    /// the transaction:
+    ///
+    /// ```swift
+    /// try dbPool.writeWithoutTransaction { db in
+    ///     // OK
+    ///     let snapshot = try dbPool.makeSnapshot()
+    ///
+    ///     try db.inTransaction {
     ///         try Player.deleteAll()
-    ///         return try dbPool.makeSnapshot()
-    ///     }
-    ///     // <- Other threads may modify the database here
-    ///     let snapshot2 = try dbPool.makeSnapshot()
-    ///
-    ///     try snapshot1.read { db in
-    ///         // Guaranteed to be zero
-    ///         try Player.fetchCount(db)
+    ///         return .commit
     ///     }
     ///
-    ///     try snapshot2.read { db in
-    ///         // Could be anything
-    ///         try Player.fetchCount(db)
-    ///     }
-    ///
-    /// It is forbidden to create a snapshot from the writer protected dispatch
-    /// queue when a transaction is opened, though, because it is likely a
-    /// programmer error:
-    ///
-    ///     try dbPool.write { db in
-    ///         try db.inTransaction {
-    ///             try Player.deleteAll()
-    ///             // fatal error: makeSnapshot() must not be called from inside a transaction
-    ///             let snapshot = try dbPool.makeSnapshot()
-    ///             return .commit
-    ///         }
-    ///     }
-    ///
-    /// To avoid this fatal error, create the snapshot *before* or *after* the
-    /// transaction:
-    ///
-    ///     try dbPool.writeWithoutTransaction { db in
-    ///         // OK
-    ///         let snapshot = try dbPool.makeSnapshot()
-    ///
-    ///         try db.inTransaction {
-    ///             try Player.deleteAll()
-    ///             return .commit
-    ///         }
-    ///
-    ///         // OK
-    ///         let snapshot = try dbPool.makeSnapshot()
-    ///     }
+    ///     // OK
+    ///     let snapshot = try dbPool.makeSnapshot()
+    /// }
+    /// ```
     ///
     /// You can create as many snapshots as you need, regardless of the maximum
     /// number of reader connections in the pool.
     ///
-    /// For more information, read about "snapshot isolation" at <https://sqlite.org/isolation.html>
+    /// Related SQLite documentation: <https://sqlite.org/isolation.html>
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check
         if writer.onValidQueue {

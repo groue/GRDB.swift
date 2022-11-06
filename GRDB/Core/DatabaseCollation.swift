@@ -1,21 +1,44 @@
 import Foundation
 
-/// A Collation is a string comparison function used by SQLite.
+/// `DatabaseCollation` is a custom string comparison function used by SQLite.
+///
+/// See also ``Database/CollationName``.
+/// 
+/// Related SQLite documentation: <https://www.sqlite.org/datatype3.html#collating_sequences>
+///
+/// ## Topics
+///
+/// ### Creating a Custom Collation
+///
+/// - ``init(_:function:)``
+/// - ``name``
+///
+/// ### Built-in Collations
+///
+/// - ``caseInsensitiveCompare``
+/// - ``localizedCaseInsensitiveCompare``
+/// - ``localizedCompare``
+/// - ``localizedStandardCompare``
+/// - ``unicodeCompare``
 public final class DatabaseCollation {
-    /// The name of the collation
+    /// The name of the collation.
     public let name: String
     let function: (CInt, UnsafeRawPointer?, CInt, UnsafeRawPointer?) -> ComparisonResult
     
     /// Creates a collation.
     ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     db.add(collation: collation)
-    ///     try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE localized_standard")
+    /// For example:
+    ///
+    /// ```swift
+    /// let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///     return (string1 as NSString).localizedStandardCompare(string2)
+    /// }
+    /// db.add(collation: collation)
+    /// try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE localized_standard")
+    /// ```
     ///
     /// - parameters:
-    ///     - name: The function name.
+    ///     - name: The collation name.
     ///     - function: A function that compares two strings.
     public init(_ name: String, function: @escaping (String, String) -> ComparisonResult) {
         self.name = name
@@ -43,13 +66,11 @@ extension DatabaseCollation: Hashable {
     // implies hash equality) is thus non trivial. But it's not that
     // important, since this hashValue is only used when one adds
     // or removes a collation from a database connection.
-    /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(0)
     }
     
     /// Two collations are equal if they share the same name (case insensitive)
-    /// :nodoc:
     public static func == (lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
         // See <https://www.sqlite.org/c3ref/create_collation.html>
         return sqlite3_stricmp(lhs.name, rhs.name) == 0
