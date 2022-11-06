@@ -3433,7 +3433,7 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseColumnDecodingStrategy](https://groue.github.io/GRDB.swift/docs/6.2/Enums/DatabaseColumnDecodingStrategy.html) and [DatabaseColumnEncodingStrategy](https://groue.github.io/GRDB.swift/docs/6.2/Enums/DatabaseColumnEncodingStrategy.html) to learn about all available strategies.
+See [DatabaseColumnDecodingStrategy](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databasecolumndecodingstrategy) and [DatabaseColumnEncodingStrategy](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databasecolumnencodingstrategy/) to learn about all available strategies.
 
 
 ### Date and UUID Coding Strategies
@@ -3455,7 +3455,7 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/6.2/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/6.2/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/6.2/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
+See [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
 
 There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
@@ -7252,7 +7252,7 @@ DatabaseRegion helps [ValueObservation] and [DatabaseRegionObservation] track ch
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-For more details, see the [reference](https://groue.github.io/GRDB.swift/docs/6.2/Structs/DatabaseRegion.html).
+For more details, see the [reference](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databaseregion/).
 
 
 #### The DatabaseRegionConvertible Protocol
