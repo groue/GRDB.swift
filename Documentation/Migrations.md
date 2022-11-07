@@ -77,7 +77,7 @@ try dbQueue.read { db in
 }
 ```
 
-See the [DatabaseMigrator reference](https://swiftpackageindex.com/groue/grdb/documentation/grdb/databasemigrator) for more migrator methods.
+See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator) for more migrator methods.
 
 
 ## The `eraseDatabaseOnSchemaChange` Option
