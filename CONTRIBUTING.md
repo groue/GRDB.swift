@@ -15,8 +15,6 @@ How you can Contribute
         - [xcpretty](https://github.com/xcpretty/xcpretty) (gem)
     - For contributing code:
         - [Swiftlint](https://github.com/realm/SwiftLint) (present in the `$PATH` or in `/opt/homebrew/bin/`)
-    - For generating documentation:
-        - [Jazzy](https://github.com/realm/jazzy) (gem)
 
 2. **Clone the `development` branch on your machine.**
 

@@ -3,7 +3,7 @@
 #
 # make test - Run all tests but performance tests
 # make test_performance - Run performance tests
-# make documentation - Generate jazzy documentation
+# make doc - Generate DocC documentation
 # make clean - Remove build artifacts
 # make distclean - Restore repository to a pristine state
 
@@ -15,10 +15,8 @@ smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget tes
 #
 # Xcode
 # CocoaPods - https://cocoapods.org
-# Jazzy - https://github.com/realm/jazzy
 
 GIT := $(shell command -v git)
-JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
 XCRUN := $(shell command -v xcrun)
 XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
@@ -41,6 +39,7 @@ ifeq ($(TRAVIS),true)
   COCOAPODS_EXTRA_TIME = --verbose
 endif
 
+DOCS_PATH = Documentation/Reference
 
 # Tests
 # =====
@@ -483,11 +482,11 @@ SQLiteCustom/src/sqlite3.h:
 # Documentation
 # =============
 
-docs-localhost:
+doc-localhost:
 	# Generates documentation in ~/Sites/GRDB
 	# See https://discussions.apple.com/docs/DOC-3083 for Apache setup on the mac
 	mkdir -p ~/Sites/GRDB
-	GRDB_DOCC_PLUGIN=1 swift package \
+	GRDB_DOCC_PLUGIN=1 $(SWIFT) package \
 	  --allow-writing-to-directory ~/Sites/GRDB \
 	  generate-documentation \
 	  --output-path ~/Sites/GRDB \
@@ -498,25 +497,17 @@ docs-localhost:
 	open "http://localhost/~$(USER)/GRDB/documentation/grdb/"
 
 doc:
-ifdef JAZZY
-	$(JAZZY) \
-	  --clean \
-	  --author 'Gwendal Roué' \
-	  --author_url https://github.com/groue \
-	  --source-host github \
-	  --source-host-url https://github.com/groue/GRDB.swift \
-	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.2.0 \
-	  --module-version 6.2.0 \
-	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.2/ \
-	  --output Documentation/Reference \
-	  --swift-build-tool xcodebuild \
-	  --undocumented-text '' \
-	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDB
-else
-	@echo Jazzy must be installed for doc
-	@exit 1
-endif
+	# https://apple.github.io/swift-docc-plugin/documentation/swiftdoccplugin/publishing-to-github-pages/
+	rm -rf $(DOCS_PATH)
+	mkdir -p $(DOCS_PATH)
+	GRDB_DOCC_PLUGIN=1 $(SWIFT) package \
+	  --allow-writing-to-directory $(DOCS_PATH) \
+	  generate-documentation \
+	  --output-path $(DOCS_PATH) \
+	  --target GRDB \
+	  --disable-indexing \
+	  --transform-for-static-hosting \
+	  --hosting-base-path GRDB.swift/docs/6.3
 
 
 # Cleanup
@@ -530,7 +521,7 @@ distclean:
 clean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
-	rm -rf Documentation/Reference
+	rm -rf $(DOCS_PATH)
 	find . -name Package.resolved | xargs rm -f
 
 .PHONY: distclean clean doc test smokeTest SQLiteCustom
