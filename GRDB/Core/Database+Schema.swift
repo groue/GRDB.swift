@@ -984,7 +984,7 @@ public struct IndexInfo {
 /// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_foreign_key_check>
-public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
+public struct ForeignKeyViolation {
     /// The name of the table that contains the foreign key.
     public var originTable: String
     
@@ -1001,35 +1001,6 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     /// This id matches the ``ForeignKeyInfo/id`` property in
     /// ``ForeignKeyInfo``. See ``Database/foreignKeys(on:)``.
     public var foreignKeyId: Int
-    
-    public init(row: Row) {
-        originTable = row[0]
-        originRowID = row[1]
-        destinationTable = row[2]
-        foreignKeyId = row[3]
-    }
-    
-    /// A description of the foreign key violation.
-    ///
-    /// For example:
-    ///
-    /// ```
-    /// FOREIGN KEY constraint violation - from player to team, in rowid 1
-    /// ```
-    ///
-    /// See also ``failureDescription(_:)``.
-    public var description: String {
-        if let originRowID = originRowID {
-            return """
-                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), \
-                in rowid \(originRowID)
-                """
-        } else {
-            return """
-                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)
-                """
-        }
-    }
     
     /// A precise description of the foreign key violation.
     ///
@@ -1080,6 +1051,39 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
         return DatabaseError(
             resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
             message: message)
+    }
+}
+
+extension ForeignKeyViolation: FetchableRecord {
+    public init(row: Row) {
+        originTable = row[0]
+        originRowID = row[1]
+        destinationTable = row[2]
+        foreignKeyId = row[3]
+    }
+}
+
+extension ForeignKeyViolation: CustomStringConvertible {
+    /// A description of the foreign key violation.
+    ///
+    /// For example:
+    ///
+    /// ```
+    /// FOREIGN KEY constraint violation - from player to team, in rowid 1
+    /// ```
+    ///
+    /// See also ``failureDescription(_:)``.
+    public var description: String {
+        if let originRowID = originRowID {
+            return """
+                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), \
+                in rowid \(originRowID)
+                """
+        } else {
+            return """
+                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)
+                """
+        }
     }
 }
 
