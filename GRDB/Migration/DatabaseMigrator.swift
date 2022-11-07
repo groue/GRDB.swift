@@ -183,7 +183,7 @@ public struct DatabaseMigrator {
     /// Registers a migration.
     ///
     /// The registered migration is appended to the list of migrations to run:
-    /// it will execute after previously registered migrations, after before
+    /// it will execute after previously registered migrations, and before
     /// migrations that are registered later.
     ///
     /// For example:
