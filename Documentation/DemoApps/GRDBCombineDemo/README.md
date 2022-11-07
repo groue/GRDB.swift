@@ -25,7 +25,7 @@ The topics covered in this demo are:
 
 - [AppDatabase.swift](GRDBCombineDemo/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator) in order to setup the database schema.
 
 - [Persistence.swift](GRDBCombineDemo/Persistence.swift)
     

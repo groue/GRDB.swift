@@ -947,6 +947,42 @@ public struct IndexInfo {
 /// ``Database/foreignKeyViolations()`` and
 /// ``Database/foreignKeyViolations(in:)`` methods.
 ///
+/// For example:
+///
+/// ```swift
+/// try dbQueue.read {
+///     let violations = try db.foreignKeyViolations()
+///     while let violation = try violations.next() {
+///         // The name of the table that contains the `REFERENCES` clause
+///         violation.originTable
+///
+///         // The rowid of the row that contains the invalid `REFERENCES` clause, or
+///         // nil if the origin table is a `WITHOUT ROWID` table.
+///         violation.originRowID
+///
+///         // The name of the table that is referred to.
+///         violation.destinationTable
+///
+///         // The id of the specific foreign key constraint that failed. This id
+///         // matches `ForeignKeyInfo.id`. See `Database.foreignKeys(on:)` for more
+///         // information.
+///         violation.foreignKeyId
+///
+///         // Plain description:
+///         // "FOREIGN KEY constraint violation - from player to team, in rowid 1"
+///         String(describing: violation)
+///
+///         // Rich description:
+///         // "FOREIGN KEY constraint violation - from player(teamId) to team(id),
+///         //  in [id:1 teamId:2 name:"O'Brien" score:1000]"
+///         try violation.failureDescription(db)
+///
+///         // Turn violation into a DatabaseError
+///         throw violation.databaseError(db)
+///     }
+/// }
+/// ```
+///
 /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_foreign_key_check>
 public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     /// The name of the table that contains the foreign key.

@@ -4687,7 +4687,7 @@ try db.alter(table: "player") { t in
 }
 ```
 
-> **Note**: SQLite restricts the possible table alterations, and may require you to recreate dependent triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details. See [Advanced Database Schema Changes](Documentation/Migrations.md#advanced-database-schema-changes) for a way to lift restrictions.
+> **Note**: SQLite restricts the possible table alterations, and may require you to recreate dependent triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details.
 
 
 ### Drop Tables
@@ -8713,7 +8713,7 @@ This chapter has [moved](Documentation/FullTextSearch.md).
 
 #### Migrations
 
-This chapter has [moved](Documentation/Migrations.md).
+This chapter has [moved](http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations).
 
 #### NSNumber and NSDecimalNumber
 
@@ -8792,7 +8792,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Fetching from Requests]: #fetching-from-requests
 [Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
-[Migrations]: Documentation/Migrations.md
+[Migrations]: http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns

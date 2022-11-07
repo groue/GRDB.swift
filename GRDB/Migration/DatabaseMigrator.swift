@@ -6,62 +6,24 @@ import Foundation
 // TODO: provide concurrent apis for migrations that run @Sendable closures.
 /// A `DatabaseMigrator` registers and applies database migrations.
 ///
-/// Migrations are named blocks of database operations that are guaranteed to be
-/// applied in order, once and only once.
-///
-/// When a migrator migrates a database, only non-applied migration are run.
-///
-/// Usage:
-///
-/// ```swift
-/// // Define a DatabaseMigrator
-/// var migrator = DatabaseMigrator()
-///
-/// // 1st migration
-/// migrator.registerMigration("createLibrary") { db in
-///     try db.create(table: "author") { t in
-///         t.autoIncrementedPrimaryKey("id")
-///         t.column("creationDate", .datetime)
-///         t.column("name", .text).notNull()
-///     }
-///
-///     try db.create(table: "book") { t in
-///         t.autoIncrementedPrimaryKey("id")
-///         t.column("authorId", .integer)
-///             .notNull()
-///             .references("author", onDelete: .cascade)
-///         t.column("title", .text).notNull()
-///     }
-/// }
-///
-/// // 2nd migration
-/// migrator.registerMigration("AddBirthYearToAuthors") { db in
-///     try db.alter(table: "author") { t
-///         t.add(column: "birthYear", .integer)
-///     }
-/// }
-///
-/// // Migrations for future versions will be inserted here:
-/// //
-/// // // 3rd migration
-/// // migrator.registerMigration("...") { db in
-/// //     ...
-/// // }
-///
-/// // Connect and migrate a database
-/// let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-/// try migrator.migrate(dbQueue)
-/// ```
+/// For an overview of database migrations and `DatabaseMigrator` usage,
+/// see <doc:Migrations>.
 ///
 /// ## Topics
 ///
-/// ### Creating and Configuring a DatabaseMigrator
+/// ### Creating a DatabaseMigrator
 ///
 /// - ``init()``
-/// - ``eraseDatabaseOnSchemaChange``
-/// - ``disablingDeferredForeignKeyChecks()``
+///
+/// ### Registering Migrations
+///
 /// - ``registerMigration(_:foreignKeyChecks:migrate:)``
 /// - ``ForeignKeyChecks``
+///
+/// ### Configuring a DatabaseMigrator
+///
+/// - ``eraseDatabaseOnSchemaChange``
+/// - ``disablingDeferredForeignKeyChecks()``
 ///
 /// ### Migrating a Database
 ///
@@ -81,22 +43,33 @@ import Foundation
 public struct DatabaseMigrator {
     /// Controls how a migration handle foreign keys constraints.
     public enum ForeignKeyChecks {
-        /// The migration runs with disabled foreign keys, until foreign keys
-        /// are checked right before changes are committed on disk.
+        /// The migration runs with disabled foreign keys.
         ///
-        /// These deferred checks are not executed if the migrator is the
-        /// result of ``DatabaseMigrator/disablingDeferredForeignKeyChecks()``.
+        /// Foreign keys are checked right before changes are committed on disk,
+        /// unless the `DatabaseMigrator` is the result of
+        /// ``DatabaseMigrator/disablingDeferredForeignKeyChecks()``.
         ///
-        /// Deferred foreign key checks are necessary for migrations that
-        /// perform schema changes as described in
-        /// <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
+        /// In this case, you can perform your own deferred foreign key checks
+        /// with ``Database/checkForeignKeys(in:)`` or
+        /// ``Database/checkForeignKeys()``:
+        /// 
+        /// ```swift
+        /// migrator = migrator.disablingDeferredForeignKeyChecks()
+        /// migrator.registerMigration("Partially checked migration") { db in
+        ///     ...
+        ///
+        ///     // Throws an error and stops migrations if there exists a
+        ///     // foreign key violation in the 'book' table.
+        ///     try db.checkForeignKeys(in: "book")
+        /// }
+        /// ```
         case deferred
         
         /// The migration runs with enabled foreign keys.
         ///
-        /// Immediate foreign key checks are not compatible with migrations that
-        /// perform schema changes as described in
-        /// <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
+        /// Immediate foreign key checks are NOT compatible with migrations that
+        /// recreate tables as described
+        /// in <doc:Migrations#Advanced-Database-Schema-Changes>.
         case immediate
     }
     

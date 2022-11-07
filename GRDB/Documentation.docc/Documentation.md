@@ -17,7 +17,7 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 ### Migrations
 
-- ``DatabaseMigrator``
+- <doc:Migrations>
 
 ### Record Types and the Query Interface
 
