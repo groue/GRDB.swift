@@ -14,13 +14,16 @@ You setup migrations in a ``DatabaseMigrator`` instance. For example:
 var migrator = DatabaseMigrator()
 
 // 1st migration
-migrator.registerMigration("createLibrary") { db in
+migrator.registerMigration("Create authors") { db in
     try db.create(table: "author") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("creationDate", .datetime)
         t.column("name", .text)
     }
+}
 
+// 2nd migration
+migrator.registerMigration("Add books and author.birthYear") { db in
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("authorId", .integer)
@@ -29,10 +32,7 @@ migrator.registerMigration("createLibrary") { db in
             .references("author", onDelete: .cascade)
         t.column("title", .text).notNull()
     }
-}
 
-// 2nd migration
-migrator.registerMigration("AddBirthYearToAuthors") { db in
     try db.alter(table: "author") { t
         t.add(column: "birthYear", .integer)
     }
@@ -83,60 +83,13 @@ try dbQueue.read { db in
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
-## Good Practices for Defining Migrations
+## Defining the Database Schema
 
-**A good migration is a migration that is never modified once it has shipped.**
+SQLite directly supports a [limited set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as `Database` methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, etc.
 
-It is must easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
+> Tip: When you use a Swift API instead of a raw SQL query, GRDB can check its availability on the SQLite version that ships on the target operating system.
 
-```swift
-migrator.registerMigration("createLibrary") { db in
-    // 👍 RECOMMENDED
-    try db.create(table: "author") { t in
-        t.autoIncrementedPrimaryKey("id")
-        ...
-    }
-
-    // 👎 NOT RECOMMENDED
-    try db.create(table: Author.databaseTableName) { t in
-        t.autoIncrementedPrimaryKey(Author.Columns.id.name)
-        ...
-    }
-}
-```
-
-In other words, migrations should talk to the database, only to the database, and use the database language. This makes sure the Swift code of any given migrations will never have to change in the future.
-
-Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one only. This difference is the reason why migrations should not depend on application types.
-
-## The eraseDatabaseOnSchemaChange Option
-
-A `DatabaseMigrator` can automatically wipe out the full database content, and recreate the whole database from scratch, if it detects that migrations have changed their definition.
-
-Setting ``DatabaseMigrator/eraseDatabaseOnSchemaChange`` is useful during application development, as you are still designing migrations, and the schema changes often:
-
-- A migration is removed, or renamed.
-- A schema change is detected: any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
-
-> Warning: This option can destroy your precious users' data!
-
-It is recommended that this option does not ship in the released application. Hide it behind `#if DEBUG`:
-
-```swift
-var migrator = DatabaseMigrator()
-#if DEBUG
-// Speed up development by nuking the database when migrations change
-migrator.eraseDatabaseOnSchemaChange = true
-#endif
-```
-
-## Advanced Database Schema Changes
-
-SQLite directly supports a [limited set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as `Database` methods such as ``Database/create(table:options:body:)``, etc.
-
-> You should prefer the Swift API, because GRDB only enables apis that are available on SQLite version that ships on the target operating system.
-
-Arbitrary changes to the schema design of any table are still possible, by recreating the table. For example:
+Other changes to the schema are still possible, by recreating tables. For example:
 
 ```swift
 migrator.registerMigration("Add NOT NULL check on author.name") { db in
@@ -169,12 +122,58 @@ The detailed sequence of operations for recreating a database table is:
 
 6. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
 
-> Warning: Be sure to follow the above procedure exactly, in the given order, or you might corrupt triggers, views, and foreign key constraints.
+> Important: When recreating a table, be sure to follow the above procedure exactly, in the given order, or you might corrupt triggers, views, and foreign key constraints.
+
+## Good Practices for Defining Migrations
+
+**A good migration is a migration that is never modified once it has shipped.**
+
+It is must easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
+
+```swift
+migrator.registerMigration("Create authors") { db in
+    // 👍 RECOMMENDED
+    try db.create(table: "author") { t in
+        t.autoIncrementedPrimaryKey("id")
+        ...
+    }
+
+    // 👎 NOT RECOMMENDED
+    try db.create(table: Author.databaseTableName) { t in
+        t.autoIncrementedPrimaryKey(Author.Columns.id.name)
+        ...
+    }
+}
+```
+
+In other words, migrations should talk to the database, only to the database, and use the database language. This makes sure the Swift code of any given migrations will never have to change in the future.
+
+Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one only. This difference is the reason why migrations should not depend on application types.
+
+## The eraseDatabaseOnSchemaChange Option
+
+A `DatabaseMigrator` can automatically wipe out the full database content, and recreate the whole database from scratch, if it detects that migrations have changed their definition.
+
+Setting ``DatabaseMigrator/eraseDatabaseOnSchemaChange`` is useful during application development, as you are still designing migrations, and the schema changes often:
+
+- A migration is removed, or renamed.
+- A schema change is detected: any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
+
+> Warning: This option can destroy your precious users' data!
+
+It is recommended that this option does not ship in the released application: hide it behind `#if DEBUG` as below.
+
+```swift
+var migrator = DatabaseMigrator()
+#if DEBUG
+// Speed up development by nuking the database when migrations change
+migrator.eraseDatabaseOnSchemaChange = true
+#endif
+```
 
 ## Foreign Key Checks
 
-The technique described in the previous <doc:Migrations#Advanced-Database-Schema-Changes> chapter creates very undesired churn w.r.t. foreign keys:
-by default, each migration temporarily disables foreign keys, and performs a full check of all foreign keys in the database before it is committed on disk.
+By default, each migration temporarily disables foreign keys, and performs a full check of all foreign keys in the database before it is committed on disk.
 
 When the database becomes very big, those checks may have a noticeable impact on migration performances. You'll know this by profiling migrations, and looking for the time spent in the `checkForeignKeys` method.
 
@@ -188,7 +187,7 @@ When you register a migration with `.immediate` foreign key checks, the migratio
 migrator.registerMigration("Faster migration", foreignKeyChecks: .immediate) { db in ... }
 ```
 
-Such a migration is much faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Advanced-Database-Schema-Changes> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
+Such a migration is much faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
 
 **Your second mitigation technique is to disable deferred foreign key checks.**
 
@@ -202,14 +201,14 @@ migrator = migrator.disablingDeferredForeignKeyChecks()
 
 In order to prevent foreign key violations from being committed to disk, you can:
 
-- Register migrations with immediate foreign key checks, as long as they do not recreate tables as described in <doc:Migrations#Advanced-Database-Schema-Changes>:
+- Register migrations with immediate foreign key checks, as long as they do not recreate tables as described in <doc:Migrations#Defining-the-Database-Schema>:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
-    migrator.registerMigration("Checked migration ✅", foreignKeyChecks: .immediate) { db in ... }
+    migrator.registerMigration("Checked migration", foreignKeyChecks: .immediate) { db in ... }
     ```
 
-- Perform foreign key checks on some tables only, at the end of a migration:
+- Perform foreign key checks on some tables only, before the migration is committed on disk:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
@@ -230,7 +229,7 @@ As in the above example, check for foreign key violations with the ``Database/ch
 try db.checkForeignKeys(in: "book")
 ```
 
-Alternatively, you can iterate a cursor of ``ForeignKeyViolation``.
+Alternatively, you can deal with each individual violation by iterating a cursor of ``ForeignKeyViolation``.
 
 ## Topics
 
