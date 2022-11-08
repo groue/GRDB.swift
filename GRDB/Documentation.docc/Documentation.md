@@ -15,8 +15,9 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 - <doc:SQLSupport>
 - <doc:Errors>
 
-### Migrations
+### Migrations and The Database Schema
 
+- <doc:DatabaseSchema>
 - <doc:Migrations>
 
 ### Record Types and the Query Interface

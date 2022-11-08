@@ -24,6 +24,9 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// }
 /// ```
 ///
+/// `Database` methods that modify or query the database schema are listed
+/// in <doc:DatabaseSchema>.
+///
 /// ## Topics
 ///
 /// ### Database Information
@@ -71,44 +74,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``TransactionObserver``
 /// - ``TransactionObservationExtent``
 ///
-/// ### Defining the Database Schema
-///
-/// - ``alter(table:body:)``
-/// - ``clearSchemaCache()``
-/// - ``create(index:on:columns:options:condition:)``
-/// - ``create(table:options:body:)``
-/// - ``create(virtualTable:ifNotExists:using:)``
-/// - ``create(virtualTable:ifNotExists:using:_:)``
-/// - ``drop(index:)``
-/// - ``drop(table:)``
-/// - ``dropFTS4SynchronizationTriggers(forTable:)``
-/// - ``rename(table:to:)``
-/// - ``ColumnType``
-/// - ``ConflictResolution``
-/// - ``ForeignKeyAction``
-/// - ``IndexOptions``
-/// - ``TableAlteration``
-/// - ``TableDefinition``
-/// - ``TableOptions``
-/// - ``VirtualTableModule``
-///
-/// ### Querying the Database Schema
-///
-/// - ``columns(in:)``
-/// - ``foreignKeys(on:)``
-/// - ``indexes(on:)``
-/// - ``isGRDBInternalTable(_:)``
-/// - ``isSQLiteInternalTable(_:)``
-/// - ``primaryKey(_:)``
-/// - ``table(_:hasUniqueKey:)``
-/// - ``tableExists(_:)``
-/// - ``triggerExists(_:)``
-/// - ``viewExists(_:)``
-/// - ``ColumnInfo``
-/// - ``ForeignKeyInfo``
-/// - ``IndexInfo``
-/// - ``PrimaryKeyInfo``
-///
 /// ### Collations
 ///
 /// - ``add(collation:)``
@@ -124,23 +89,16 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``remove(function:)``
 /// - ``DatabaseFunction``
 ///
-/// ### Integrity Checks
-///
-/// - ``checkForeignKeys()``
-/// - ``checkForeignKeys(in:)``
-/// - ``foreignKeyViolations()``
-/// - ``foreignKeyViolations(in:)``
-/// - ``ForeignKeyViolation``
-///
 /// ### Notifications
 ///
 /// - ``resumeNotification``
 /// - ``suspendNotification``
 ///
-/// ### Other Operations
+/// ### Other Database Operations
 ///
 /// - ``backup(to:pagesPerStep:progress:)``
 /// - ``checkpoint(_:on:)``
+/// - ``clearSchemaCache()``
 /// - ``logError``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``

@@ -69,7 +69,7 @@ public struct DatabaseMigrator {
         ///
         /// Immediate foreign key checks are NOT compatible with migrations that
         /// recreate tables as described
-        /// in <doc:Migrations#Defining-the-Database-Schema>.
+        /// in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration>.
         case immediate
     }
     
