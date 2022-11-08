@@ -128,7 +128,7 @@ The detailed sequence of operations for recreating a database table is:
 
 **A good migration is a migration that is never modified once it has shipped.**
 
-It is must easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
+It is much easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
 
 ```swift
 migrator.registerMigration("Create authors") { db in
