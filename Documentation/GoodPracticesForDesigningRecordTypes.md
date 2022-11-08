@@ -804,8 +804,8 @@ Instead, have a look at [Database Observation]:
 [Divide and Conquer]: https://en.wikipedia.org/wiki/Divide_and_rule
 [Why Adopt GRDB?]: WhyAdoptGRDB.md
 [isolation]: https://en.wikipedia.org/wiki/Isolation_(database_systems)
-[migrations]: http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
-[migration]: http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
+[migrations]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
+[migration]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Concurrency Guide]: Concurrency.md
 [GRDB concurrency rules]: Concurrency.md#concurrency-rules

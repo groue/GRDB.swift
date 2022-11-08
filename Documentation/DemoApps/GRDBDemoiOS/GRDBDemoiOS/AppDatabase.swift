@@ -21,13 +21,13 @@ final class AppDatabase {
     
     /// The DatabaseMigrator that defines the database schema.
     ///
-    /// See <http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations>
+    /// See <https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations>
     private var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         
         #if DEBUG
         // Speed up development by nuking the database when migrations change
-        // See <http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations>
+        // See <https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations>
         migrator.eraseDatabaseOnSchemaChange = true
         #endif
         

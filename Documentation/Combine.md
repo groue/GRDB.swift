@@ -398,7 +398,7 @@ let cancellable = hallOfFamePublisher.sink(
 [`readPublisher(receiveOn:value:)`]: #databasereaderreadpublisherreceiveonvalue
 [`writePublisher(receiveOn:updates:)`]: #databasewriterwritepublisherreceiveonupdates
 [`writePublisher(receiveOn:updates:thenRead:)`]: #databasewriterwritepublisherreceiveonupdatesthenread
-[`migratePublisher(_:receiveOn:)`]: http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator/migratepublisher(_:receiveon:)
+[`migratePublisher(_:receiveOn:)`]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator/migratepublisher(_:receiveon:)
 [configured]: ../README.md#databasepool-configuration
 [database pool]: ../README.md#database-pools
 [database queue]: ../README.md#database-queues

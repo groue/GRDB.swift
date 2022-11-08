@@ -230,7 +230,7 @@ extension AppConfiguration: FetchableRecord, PersistableRecord {
 ```
 
 
-[migrations]: http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
+[migrations]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
 [record]: ../README.md#records
 [The Single-Row Table]: #the-single-row-table
 [The Single-Row Record]: #the-single-row-record

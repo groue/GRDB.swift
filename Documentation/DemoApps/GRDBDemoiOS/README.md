@@ -20,7 +20,7 @@ The topics covered in this demo are:
 
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](http://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasemigrator) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
 
 - [Persistence.swift](GRDBDemoiOS/Persistence.swift)
     
