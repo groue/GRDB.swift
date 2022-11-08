@@ -85,9 +85,9 @@ try dbQueue.read { db in
 
 ## Good Practices for Defining Migrations
 
-**A good migration is a migration that you never modify once it has shipped.**
+**A good migration is a migration that is never modified once it has shipped.**
 
-It is must easier to control the schema of all databases deployed on your users' devices when migrations define a stable timeline of schema versions. For this reason, make sure your the definition of your migrations define tables and columns with **strings**:
+It is must easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
 
 ```swift
 migrator.registerMigration("createLibrary") { db in
@@ -105,11 +105,9 @@ migrator.registerMigration("createLibrary") { db in
 }
 ```
 
-Migrations should talk to the database, only to the database, and use the database language: **strings**. This makes sure you will never have to change the Swift code of your migrations in the future.
+In other words, migrations should talk to the database, only to the database, and use the database language. This makes sure the Swift code of any given migrations will never have to change in the future.
 
-Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one. This difference is the reason why repeating a column name in a migration and in a Swift struct or class is a good practice. It is not a violation of the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
-
-
+Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one only. This difference is the reason why migrations should not depend on application types.
 
 ## The eraseDatabaseOnSchemaChange Option
 
@@ -136,7 +134,7 @@ migrator.eraseDatabaseOnSchemaChange = true
 
 SQLite directly supports a [limited set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as `Database` methods such as ``Database/create(table:options:body:)``, etc.
 
-> You should prefer the Swift API, because GRDB only enables apis that are available on SQLite version that ships on your target operating system.
+> You should prefer the Swift API, because GRDB only enables apis that are available on SQLite version that ships on the target operating system.
 
 Arbitrary changes to the schema design of any table are still possible, by recreating the table. For example:
 
@@ -176,15 +174,15 @@ The detailed sequence of operations for recreating a database table is:
 ## Foreign Key Checks
 
 The technique described in the previous <doc:Migrations#Advanced-Database-Schema-Changes> chapter creates very undesired churn w.r.t. foreign keys:
-by default, each migration temporarily disables foreign keys, and performs a full check of all foreign keys in your database before it is committed on disk.
+by default, each migration temporarily disables foreign keys, and performs a full check of all foreign keys in the database before it is committed on disk.
 
-When your database becomes very big, those checks may have a noticeable impact on migration performances. You'll know this by instrumenting your migrations, and looking for the time spent in the `checkForeignKeys` method.
+When the database becomes very big, those checks may have a noticeable impact on migration performances. You'll know this by profiling migrations, and looking for the time spent in the `checkForeignKeys` method.
 
 You can make those migrations faster, but this requires a little care.
 
 **Your first mitigation technique is immediate foreign key checks.**
 
-When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in your database:
+When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in ther database:
 
 ```swift
 migrator.registerMigration("Faster migration", foreignKeyChecks: .immediate) { db in ... }
