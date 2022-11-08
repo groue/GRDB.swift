@@ -4,29 +4,26 @@ SQL is the fundamental language for accessing SQLite databases.
 
 ## Topics
 
-### Prepared Statements
+### Fundamental Database Types
 
 - ``Statement``
-
-### Database Rows
-
 - ``Row``
-
-### Database Values
-
-- ``DatabaseDateComponents``
 - ``DatabaseValue``
-- ``DatabaseValueConvertible``
-- ``StatementColumnConvertible``
+- ``DatabaseCursor``
 
 ### SQL Literals and Requests
 
 - ``databaseQuestionMarks(count:)``
 - ``SQL``
 - ``SQLRequest``
-- ``FetchRequest``
 
-### Cursors
+### Database Values
+
+- ``DatabaseDateComponents``
+- ``DatabaseValueConvertible``
+- ``StatementColumnConvertible``
+
+### Supporting Types
 
 - ``Cursor``
-- ``DatabaseCursor``
+- ``FetchRequest``

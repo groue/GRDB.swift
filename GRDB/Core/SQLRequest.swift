@@ -4,14 +4,19 @@
 /// without any risk of syntax errors or SQL injection:
 ///
 /// ```swift
-/// extension Player {
+/// extension Player: FetchableRecord {
 ///     static func filter(name: String) -> SQLRequest<Player> {
 ///         "SELECT * FROM player WHERE name = \(name)"
+///     }
+///
+///     static func maximumScore() -> SQLRequest<Int> {
+///         "SELECT MAX(score) FROM player"
 ///     }
 /// }
 ///
 /// try dbQueue.read { db in
-///     let players = try Player.filter(name: "O'Brien").fetchAll(db)
+///     let players = try Player.filter(name: "O'Brien").fetchAll(db) // [Player]
+///     let maxScore = Player.maximumScore().fetchOne(db)             // Int?
 /// }
 /// ```
 ///
