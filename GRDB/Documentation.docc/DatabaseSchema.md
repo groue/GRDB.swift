@@ -4,7 +4,7 @@ Learn how to define the database schema.
 
 ## Overview
 
-SQLite directly supports a [set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as `Database` methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, listed below.
+SQLite directly supports a [set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as Swift methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, listed below.
 
 You can directly create tables when you open a database, as below:
 

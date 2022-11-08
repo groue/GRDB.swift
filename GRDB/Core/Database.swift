@@ -878,13 +878,15 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Database Suspension
     
     /// When this notification is posted, databases which were opened with the
-    /// `Configuration.observesSuspensionNotifications` flag are suspended.
+    /// ``Configuration/observesSuspensionNotifications`` configuration flag
+    /// are suspended.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
-    /// `Configuration.observesSuspensionNotifications` flag are resumed.
+    /// ``Configuration/observesSuspensionNotifications`` configuration flag
+    /// are resumed.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let resumeNotification = Notification.Name("GRDB.Database.Resume")

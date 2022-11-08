@@ -570,10 +570,6 @@ extension DatabaseWriter {
     /// execution of the closure. Do not store or return the database connection
     /// for later use.
     ///
-    /// It is a programmer error to call this method from another database
-    /// access method. Doing so raises a "Database methods are not reentrant"
-    /// fatal error at runtime.
-    ///
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access or committing
@@ -607,10 +603,6 @@ extension DatabaseWriter {
     /// The ``Database`` argument to `updates` is valid only during the
     /// execution of the closure. Do not store or return the database connection
     /// for later use.
-    ///
-    /// It is a programmer error to call this method from another database
-    /// access method. Doing so raises a "Database methods are not reentrant"
-    /// fatal error at runtime.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
     ///   can see changes performed by concurrent writes or writes performed by

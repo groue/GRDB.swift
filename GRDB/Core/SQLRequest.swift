@@ -20,8 +20,8 @@
 /// }
 /// ```
 ///
-/// An `SQLRequest` can be created from a string literal, as in the above
-/// example, or from one of the initializers documented below.
+/// An `SQLRequest` can be created from a string literal or interpolation, as in
+/// the above examples, and from the initializers documented below.
 ///
 /// ## Topics
 ///
