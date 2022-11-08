@@ -85,6 +85,9 @@ extension Database {
     /// same database file, your application may need to call this method in
     /// order to avoid undesired consequences.
     public func clearSchemaCache() {
+        // TODO: can't we automatically clear the cache for writer connection,
+        // just as we do for DatabasePool reader connections?
+        
         SchedulingWatchdog.preconditionValidQueue(self)
         schemaCache.clear()
         
