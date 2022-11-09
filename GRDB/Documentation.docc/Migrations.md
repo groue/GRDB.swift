@@ -85,9 +85,19 @@ try dbQueue.read { db in
 
 ## Defining the Database Schema from a Migration
 
-See <doc:DatabaseSchema> for the methods that define the database schema.
+See <doc:DatabaseSchema> for the methods that define the database schema. For example:
 
-When you need to perform a schema change that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate database tables.
+```swift
+migrator.registerMigration("Create authors") { db in
+    try db.create(table: "author") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("creationDate", .datetime)
+        t.column("name", .text)
+    }
+}
+```
+
+When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table.
 
 For example:
 
@@ -181,13 +191,13 @@ You can make those migrations faster, but this requires a little care.
 
 **Your first mitigation technique is immediate foreign key checks.**
 
-When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in ther database:
+When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in the database:
 
 ```swift
-migrator.registerMigration("Faster migration", foreignKeyChecks: .immediate) { db in ... }
+migrator.registerMigration("Fast migration", foreignKeyChecks: .immediate) { db in ... }
 ```
 
-Such a migration is much faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
+Such a migration is faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
 
 **Your second mitigation technique is to disable deferred foreign key checks.**
 
@@ -197,22 +207,27 @@ You can ask the migrator to stop performing foreign key checks for all newly reg
 migrator = migrator.disablingDeferredForeignKeyChecks()
 ```
 
-> Warning: When deferred foreign key checks are disabled, your app becomes responsible for preventing foreign key violations from being committed to disk!
+Migrations become unchecked by default, and run faster. But your app becomes responsible for preventing foreign key violations from being committed to disk:
 
-In order to prevent foreign key violations from being committed to disk, you can:
+```swift
+migrator = migrator.disablingDeferredForeignKeyChecks()
+migrator.registerMigration("Fast but unchecked migration") { db in ... }
+```
 
-- Register migrations with immediate foreign key checks, as long as they do not recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration>:
+To prevent a migration from committing foreign key violations on disk, you can:
+
+- Register the migration with immediate foreign key checks, as long as it does not recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration>:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
-    migrator.registerMigration("Checked migration", foreignKeyChecks: .immediate) { db in ... }
+    migrator.registerMigration("Fast and checked migration", foreignKeyChecks: .immediate) { db in ... }
     ```
 
 - Perform foreign key checks on some tables only, before the migration is committed on disk:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
-    migrator.registerMigration("Partially checked migration") { db in
+    migrator.registerMigration("Partially checked") { db in
         ...
         
         // Throws an error and stops migrations if there exists a

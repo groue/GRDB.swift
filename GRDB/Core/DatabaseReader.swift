@@ -3,7 +3,7 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for types that read from an SQLite database.
+/// A type that reads from an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseReader`. Only the
 /// ``DatabaseQueue``, ``DatabasePool``, and ``DatabaseSnapshot`` types are

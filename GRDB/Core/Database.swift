@@ -10,16 +10,14 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 
 /// An SQLite connection.
 ///
-/// You don't create `Database` instances directly. Instead, you use a database
-/// access method from ``DatabaseQueue``, ``DatabasePool``.
-/// ``DatabaseSnapshot``, ``DatabaseMigrator`` or ``ValueObservation``.
-/// For example:
+/// You don't create `Database` instances directly. Instead, you connect to a
+/// database with one of the <doc:DatabaseConnections>, and you use a database
+/// access method. For example:
 ///
 /// ```swift
 /// let dbQueue = try DatabaseQueue()
 ///
-/// // The Database is the `db` in the closure:
-/// try dbQueue.write { db in
+/// try dbQueue.write { (db: Database) in
 ///     try Player(name: "Arthur").insert(db)
 /// }
 /// ```
@@ -71,7 +69,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``add(transactionObserver:extent:)``
 /// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``remove(transactionObserver:)``
-/// - ``TransactionObserver``
 /// - ``TransactionObservationExtent``
 ///
 /// ### Collations

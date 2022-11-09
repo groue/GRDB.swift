@@ -1,21 +1,24 @@
 import Dispatch
 import Foundation
 
-/// The configuration of a ``Database``, ``DatabaseQueue``, or ``DatabasePool``.
+/// The configuration of a database connection.
 ///
-/// Usage:
+/// You create a `Configuration` before opening a database connection:
 ///
 /// ```swift
 /// var config = Configuration()
 /// config.readonly = true
-/// config.foreignKeysEnabled = true // Default is already true
-/// config.label = "MyDatabase"      // Useful when your app opens multiple databases
-/// config.maximumReaderCount = 10   // (DatabasePool only) The default is 5
+/// config.maximumReaderCount = 2  // (DatabasePool only) The default is 5
+/// config.prepareDatabase { db in // A function to run on connection
+///     db.trace { print("SQL >", $0) }
+/// }
 ///
 /// let dbQueue = try DatabaseQueue( // or DatabasePool
 ///     path: "/path/to/database.sqlite",
 ///     configuration: config)
 /// ```
+///
+/// See <doc:DatabaseConnections>.
 public struct Configuration {
     
     // MARK: - Misc options

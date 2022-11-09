@@ -27,7 +27,7 @@ But you should prefer wrapping your schema changes in <doc:Migrations> when you 
 > - Dropping a table column requires SQLite 3.35+ (iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0).
 > - [Strict tables](https://www.sqlite.org/stricttables.html) require SQLite 3.37+ (iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5).
 >
-> When you need to perform a schema change that is not directly supported, or not available, you will sometimes need to recreate database tables. See <doc:Migrations> for the detailed procedure. 
+> When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table. See <doc:Migrations> for the detailed procedure.  
 
 ## Topics
 

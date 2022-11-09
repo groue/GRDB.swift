@@ -515,7 +515,7 @@ extension Statement {
 /// try dbQueue.read { db in
 ///     // A cursor of database rows,
 ///     // built from a prepared statement
-///     let statement = db.makeStatement(sql: "SELECT * FROM player")
+///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
 ///     let rows = try Row.fetchCursor(statement)
 ///     while let row = try rows.next() {
 ///         let id: Int64 = row["id"]
@@ -603,15 +603,17 @@ extension DatabaseCursor {
 }
 
 /// A cursor that iterates a database statement without producing any value.
-/// Each call to the next() cursor method calls the sqlite3_step() C function.
+/// Each call to the `next()` method calls the `sqlite3_step()` C function.
 ///
 /// For example:
 ///
-///     try dbQueue.read { db in
-///         let statement = db.makeStatement(sql: "SELECT performSideEffect()")
-///         let cursor = statement.makeCursor()
-///         try cursor.next()
-///     }
+/// ```swift
+/// try dbQueue.read { db in
+///     let statement = try db.makeStatement(sql: "SELECT performSideEffect()")
+///     let cursor = statement.makeCursor()
+///     try cursor.next()
+/// }
+/// ```
 final class StatementCursor: DatabaseCursor {
     typealias Element = Void
     let _statement: Statement

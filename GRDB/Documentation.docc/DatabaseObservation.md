@@ -6,13 +6,16 @@ Observe database changes and transactions.
 
 ### Observing Database Values
 
-- ``AsyncValueObservation``
-- ``SharedValueObservation``
 - ``ValueObservation``
+- ``SharedValueObservation``
+- ``AsyncValueObservation``
 
 ### Observing Database Transactions
 
-- ``DatabaseRegion``
 - ``DatabaseRegionObservation``
-- ``DatabaseRegionConvertible``
 - ``TransactionObserver``
+
+### Database Regions
+
+- ``DatabaseRegion``
+- ``DatabaseRegionConvertible``

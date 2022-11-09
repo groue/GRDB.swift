@@ -31,6 +31,9 @@ import UIKit
 ///
 /// ### Accessing the Database
 ///
+/// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
+/// access methods.
+///
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
 ///

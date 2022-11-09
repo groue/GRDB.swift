@@ -22,6 +22,9 @@ import UIKit
 ///
 /// ### Accessing the Database
 ///
+/// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
+/// access methods.
+///
 /// - ``inDatabase(_:)``
 /// - ``inTransaction(_:_:)``
 ///

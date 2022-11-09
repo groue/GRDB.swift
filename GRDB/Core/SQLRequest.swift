@@ -16,7 +16,7 @@
 ///
 /// try dbQueue.read { db in
 ///     let players = try Player.filter(name: "O'Brien").fetchAll(db) // [Player]
-///     let maxScore = Player.maximumScore().fetchOne(db)             // Int?
+///     let maxScore = try Player.maximumScore().fetchOne(db)         // Int?
 /// }
 /// ```
 ///

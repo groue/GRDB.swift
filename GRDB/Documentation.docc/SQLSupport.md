@@ -2,6 +2,64 @@
 
 SQL is the fundamental language for accessing SQLite databases.
 
+## Overview
+
+This section of the documentation focuses on low-level SQLite concepts: the SQL language, prepared statements, database rows and values.
+
+If SQL is not your cup of tea, jump to <doc:QueryInterface>.
+
+## SQL Support
+
+GRDB has a wide support for SQL. You can execute raw SQL statements:
+
+```swift
+try dbQueue.write { db in
+    try db.execute(sql: """
+        INSERT INTO player (name, score) VALUES (?, ?);
+        INSERT INTO player (name, score) VALUES (?, ?);
+        """, arguments: ["Arthur", 500, "Barbara", 1000])
+}
+```
+
+You can build prepared statements and lazily iterate fetched rows with great performances:
+
+```swift
+try dbQueue.read { db in
+    let sql = "SELECT id, score FROM player WHERE name = ?"  
+    let statement = try db.makeStatement(sql: sql)
+    let rows = try Row.fetchCursor(statement, arguments: ["O'Brien"])
+    while let row = try rows.next() {
+        let id: Int64 = row[0]
+        let score: Int = row[1]
+    }
+}
+```
+
+And you can leverage ``SQLRequest`` and ``FetchableRecord`` for defining streamlined apis with powerful SQL interpolation features:
+
+```swift
+struct Player: Decodable {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
+extension Player: FetchableRecord {
+    static func filter(name: String) -> SQLRequest<Player> {
+        "SELECT * FROM player WHERE name = \(name)"
+    }
+
+    static func maximumScore() -> SQLRequest<Int> {
+        "SELECT MAX(score) FROM player"
+    }
+}
+
+try dbQueue.read { db in
+    let players = try Player.filter(name: "O'Reilly").fetchAll(db) // [Player]
+    let maxScore = try Player.maximumScore().fetchOne(db)          // Int?
+}
+```
+
 ## Topics
 
 ### Fundamental Database Types
@@ -13,9 +71,9 @@ SQL is the fundamental language for accessing SQLite databases.
 
 ### SQL Literals and Requests
 
-- ``databaseQuestionMarks(count:)``
 - ``SQL``
 - ``SQLRequest``
+- ``databaseQuestionMarks(count:)``
 
 ### Database Values
 
