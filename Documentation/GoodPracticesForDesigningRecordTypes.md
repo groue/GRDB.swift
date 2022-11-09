@@ -807,8 +807,8 @@ Instead, have a look at [Database Observation]:
 [migrations]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
 [migration]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
-[Concurrency Guide]: Concurrency.md
-[GRDB concurrency rules]: Concurrency.md#concurrency-rules
+[Concurrency Guide]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
+[GRDB concurrency rules]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation

@@ -10,7 +10,8 @@ import Dispatch
 /// valid conforming types.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
-/// adopting types in a multithreaded application.
+/// conforming types in a multithreaded application. See <doc:Concurrency> for
+/// more information.
 ///
 /// ## Topics
 ///

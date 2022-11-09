@@ -13,6 +13,7 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 - <doc:DatabaseConnections>
 - <doc:SQLSupport>
+- <doc:Concurrency>
 
 ### Migrations and The Database Schema
 
@@ -31,6 +32,10 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 
 - ``FTS3``
 - ``FTS4``
+
+### Database Techniques
+
+- <doc:DatabaseSharing>
 
 ### Combine Publishers
 

@@ -191,7 +191,7 @@ let newPlayerCount = dbQueue.writePublisher { db -> Int in
 
 The difference is that the last fetches are performed in the `thenRead` function. This function accepts two arguments: a readonly database connection, and the result of the `updates` function. This allows you to pass information from a function to the other (it is ignored in the sample code above).
 
-When you use a [database pool], this method applies a scheduling optimization: the `thenRead` function sees the database in the state left by the `updates` function, and yet does not block any concurrent writes. This can reduce database write contention. See [Advanced DatabasePool](Concurrency.md#advanced-databasepool) for more information.
+When you use a [database pool], this method applies a scheduling optimization: the `thenRead` function sees the database in the state left by the `updates` function, and yet does not block any concurrent writes. This can reduce database write contention.
 
 When you use a [database queue], the results are guaranteed to be identical, but no scheduling optimization is applied.
 
@@ -402,5 +402,5 @@ let cancellable = hallOfFamePublisher.sink(
 [configured]: ../README.md#databasepool-configuration
 [database pool]: ../README.md#database-pools
 [database queue]: ../README.md#database-queues
-[database snapshot]: Concurrency.md#database-snapshots
+[database snapshot]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasesnapshot
 [scheduler]: https://developer.apple.com/documentation/combine/scheduler

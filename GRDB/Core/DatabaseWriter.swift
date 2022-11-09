@@ -14,6 +14,9 @@ import Dispatch
 /// Read accesses are defined by ``DatabaseReader``, the protocol all database
 /// writers conform to.
 ///
+/// See <doc:Concurrency> for more information about the behavior of conforming
+/// types in a multithreaded application.
+///
 /// ## Topics
 ///
 /// ### Writing into the Database

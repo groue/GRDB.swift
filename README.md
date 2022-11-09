@@ -79,7 +79,7 @@ Programming tools for both database beginners and SQLite experts:
 
 In-depth integration with our programming environment:
 
-- [Swift Concurrency]: `try await` your database.
+- [Swift Concurrency](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency): `try await` your database.
 - [SwiftUI](http://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
 - [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
 - [RxSwift](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
@@ -567,7 +567,7 @@ See the [Concurrency] guide for asynchronous database accesses.
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
-- Database pools can take [snapshots](Documentation/Concurrency.md#database-snapshots) of the database.
+- Database pools can take [snapshots](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasesnapshot) of the database.
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency] guide for more details about database pools, how they differ from database queues, and advanced use cases.
 
@@ -1677,7 +1677,7 @@ In order to customize the JSON format, provide a custom implementation of the `D
 
 **A transaction** is a fundamental tool of SQLite that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
 
-GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](Documentation/Concurrency.md#safe-and-unsafe-database-accesses), and provide maximal security for both your application data and application logic:
+GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency), and provide maximal security for both your application data and application logic:
 
 ```swift
 // BEGIN TRANSACTION
@@ -7433,7 +7433,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > }
 > ```
 
-> **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](Documentation/Concurrency.md#database-snapshots) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
+> **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasesnapshot) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
 
 > **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
 
@@ -8745,23 +8745,23 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 
 #### Concurrency
 
-This chapter has [moved](Documentation/Concurrency.md).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### Guarantees and Rules
 
-This chapter is now split into [Concurrency Rules](Documentation/Concurrency.md#concurrency-rules) and [Safe and Unsafe Database Accesses](Documentation/Concurrency.md#safe-and-unsafe-database-accesses).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### Differences between Database Queues and Pools
 
-This chapter has [moved](Documentation/Concurrency.md#differences-between-database-queues-and-pools).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### Advanced DatabasePool
 
-This chapter has [moved](Documentation/Concurrency.md#advanced-databasepool).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### Database Snapshots
 
-This chapter has [moved](Documentation/Concurrency.md#database-snapshots).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### DatabaseWriter and DatabaseReader Protocols
 
@@ -8769,11 +8769,11 @@ This chapter was removed. See the references of [DatabaseReader](https://groue.g
 
 #### Asynchronous APIs
 
-This chapter has [moved](Documentation/Concurrency.md#synchronous-and-asynchronous-database-accesses).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 #### Unsafe Concurrency APIs
 
-This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-accesses).
+This chapter has [moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency).
 
 ### Adding support for missing SQL functions or operators
 
@@ -8813,8 +8813,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
-[Swift Concurrency]: Documentation/Concurrency.md
-[Concurrency]: Documentation/Concurrency.md
+[Concurrency]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
 [Demo Applications]: Documentation/DemoApps
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq

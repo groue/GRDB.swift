@@ -15,6 +15,9 @@ import UIKit
 /// read accesses are executed in **reader dispatch queues** (one per read-only
 /// SQLite connection).
 ///
+/// See <doc:Concurrency> for more information about concurrent
+/// database accesses.
+///
 /// A database pool inherits most of its database access methods from the
 /// ``DatabaseReader`` and ``DatabaseWriter`` protocols. It defines a few
 /// specific database access methods as well.

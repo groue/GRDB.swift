@@ -33,8 +33,6 @@ The differences are:
 - ``DatabaseQueue``
 - ``DatabasePool``
 - ``DatabaseSnapshot``
-- ``DatabaseReader``
-- ``DatabaseWriter``
 
 ### Using Database Connections
 
