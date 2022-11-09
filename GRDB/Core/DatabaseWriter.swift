@@ -21,26 +21,26 @@ import Dispatch
 ///
 /// ### Writing into the Database
 ///
-/// - ``asyncWrite(_:completion:)``
-/// - ``asyncWriteWithoutTransaction(_:)``
 /// - ``write(_:)-76inz``
 /// - ``write(_:)-88g7e``
 /// - ``writePublisher(receiveOn:updates:)``
 /// - ``writePublisher(receiveOn:updates:thenRead:)``
 /// - ``writeWithoutTransaction(_:)-4qh1w``
 /// - ``writeWithoutTransaction(_:)-tckw``
+/// - ``asyncWrite(_:completion:)``
+/// - ``asyncWriteWithoutTransaction(_:)``
 ///
-/// ### Reading from the Database
+/// ### Exclusive Access to the Database
+///
+/// - ``barrierWriteWithoutTransaction(_:)-280j1``
+/// - ``barrierWriteWithoutTransaction(_:)-7u4xw``
+/// - ``asyncBarrierWriteWithoutTransaction(_:)``
+///
+/// ### Reading from the Latest Committed Database State
 ///
 /// - ``concurrentRead(_:)``
 /// - ``spawnConcurrentRead(_:)``
 /// - ``DatabaseFuture``
-///
-/// ### Exclusive Access to the Database
-///
-/// - ``asyncBarrierWriteWithoutTransaction(_:)``
-/// - ``barrierWriteWithoutTransaction(_:)-280j1``
-/// - ``barrierWriteWithoutTransaction(_:)-7u4xw``
 ///
 /// ### Observing Database Transactions
 ///

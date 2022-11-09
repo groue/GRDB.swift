@@ -3,16 +3,64 @@ import Dispatch
 /// A database connection that sees an unchanging database content, as it
 /// existed at the moment it was created.
 ///
+/// ## Overview
+///
+/// A `DatabaseSnapshot` creates one single SQLite connection. All database
+/// accesses are executed in a serial **reader dispatch queue**. The SQLite
+/// connection is closed when the `DatabaseSnapshot` is deallocated.
+///
+/// `DatabaseSnapshot` never sees any database modification during all its
+/// lifetime, and yet it doesn't prevent database updates. This "magic" is made
+/// possible by SQLite's WAL mode. See
+/// [Isolation In SQLite](https://sqlite.org/isolation.html) for
+/// more information.
+///
+/// ## Usage
+///
 /// You create instances of `DatabaseSnapshot` from a ``DatabasePool``, with
-/// ``DatabasePool/makeSnapshot()``.
+/// ``DatabasePool/makeSnapshot()``. The number of snapshots is unlimited,
+/// regardless of the ``Configuration/maximumReaderCount`` configuration:
 ///
-/// A database snapshot creates one single SQLite connection. All database
-/// accesses are executed in a serial dispatch queue.
+/// ```swift
+/// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+/// let snapshot = try dbPool.makeSnapshot()
+/// let playerCount = try snapshot.read { db in
+///     try Player.fetchCount(db)
+/// }
+/// ```
 ///
-/// A database snapshot inherits all of its database access methods from the
-/// ``DatabaseReader`` protocol.
+/// When you want to control the database state seen by a snapshot,
+/// create the snapshot from within a write access, outside of any transaction.
 ///
-/// Related SQLite documentation: <https://sqlite.org/isolation.html>
+/// For example, compare the two snapshots below. The first one is guaranteed to
+/// see an empty table of players, because is is created after all players have
+/// been deleted, and from the serialized writer dispatch queue which prevents
+/// any concurrent write. The second is created without this concurrency
+/// protection, which means that some other threads may already have created
+/// some players:
+///
+/// ```swift
+/// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
+///     try db.inTransaction {
+///         try Player.deleteAll()
+///         return .commit
+///     }
+///
+///     return dbPool.makeSnapshot()
+/// }
+///
+/// // <- Other threads may have created some players here
+/// let snapshot2 = try dbPool.makeSnapshot()
+///
+/// // Guaranteed to be zero
+/// let count1 = try snapshot1.read(Player.fetchCount)
+///
+/// // Could be anything
+/// let count2 = try snapshot2.read(Player.fetchCount)
+/// ```
+///
+/// `DatabaseSnapshot` inherits its database access methods from the
+/// ``DatabaseReader`` protocols.
 public final class DatabaseSnapshot {
     private let serializedDatabase: SerializedDatabase
     

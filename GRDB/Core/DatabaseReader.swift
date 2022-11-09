@@ -21,17 +21,17 @@ import Dispatch
 ///
 /// ### Reading from the Database
 ///
-/// - ``asyncRead(_:)``
 /// - ``read(_:)-3806d``
 /// - ``read(_:)-4w6gy``
 /// - ``readPublisher(receiveOn:value:)``
+/// - ``asyncRead(_:)``
 ///
 /// ### Unsafe Methods
 ///
-/// - ``asyncUnsafeRead(_:)``
 /// - ``unsafeRead(_:)-5i7tf``
 /// - ``unsafeRead(_:)-11mk0``
 /// - ``unsafeReentrantRead(_:)``
+/// - ``asyncUnsafeRead(_:)``
 ///
 /// ### Other Database Operations
 ///

@@ -6,19 +6,37 @@ import UIKit
 
 /// A database connection that allows concurrent accesses to an SQLite database.
 ///
-/// Unless ``Configuration/readonly``, a database pool opens an SQLite database
+/// ## Overview
+///
+/// Unless ``Configuration/readonly``, a `DatabasePool` opens an SQLite database
 /// in the [WAL mode](https://sqlite.org/wal.html).
 ///
 /// It creates one writer SQLite connection, and a pool of up to
 /// ``Configuration/maximumReaderCount`` read-only SQLite connections. All
 /// write accesses are executed in a serial **writer dispatch queue**. All
 /// read accesses are executed in **reader dispatch queues** (one per read-only
-/// SQLite connection).
+/// SQLite connection). SQLite connections are closed when the `DatabasePool`
+/// is deallocated.
 ///
 /// See <doc:Concurrency> for more information about concurrent
 /// database accesses.
 ///
-/// A database pool inherits most of its database access methods from the
+/// ## Usage
+///
+/// ```swift
+/// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+///
+/// let playerCount = try dbPool.read { db in
+///     try Player.fetchCount(db)
+/// }
+///
+/// let newPlayerCount = try dbPool.write { db -> Int in
+///     try Player(name: "Arthur").insert(db)
+///     return try Player.fetchCount(db)
+/// }
+/// ```
+///
+/// `DatabasePool` inherits most of its database access methods from the
 /// ``DatabaseReader`` and ``DatabaseWriter`` protocols. It defines a few
 /// specific database access methods as well.
 ///
@@ -817,37 +835,15 @@ extension DatabasePool {
     /// The returned snapshot sees an unchanging database content, as it existed
     /// at the moment it was created.
     ///
-    /// When you want to control the latest committed changes seen by a
-    /// snapshot, create it from the pool's writer dispatch queue. Compare:
+    /// It is a programmer error to create a snapshot from the writer dispatch
+    /// queue when a transaction is opened:
     ///
     /// ```swift
-    /// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
+    /// try dbPool.write { db in
     ///     try Player.deleteAll()
-    ///     return try dbPool.makeSnapshot()
-    /// }
-    /// // <- Other threads may modify the database here
-    /// let snapshot2 = try dbPool.makeSnapshot()
     ///
-    /// try snapshot1.read { db in
-    ///     // Guaranteed to be zero
-    ///     try Player.fetchCount(db)
-    /// }
-    ///
-    /// try snapshot2.read { db in
-    ///     // Could be anything
-    ///     try Player.fetchCount(db)
-    /// }
-    /// ```
-    ///
-    /// It is forbidden to create a snapshot from the writer dispatch queue when
-    /// a transaction is opened, because it is likely a programmer error:
-    ///
-    /// ```swift
-    /// try dbPool.writeInTransaction { db in
-    ///     try Player.deleteAll()
     ///     // fatal error: makeSnapshot() must not be called from inside a transaction
     ///     let snapshot = try dbPool.makeSnapshot()
-    ///     return .commit
     /// }
     /// ```
     ///
@@ -868,11 +864,6 @@ extension DatabasePool {
     ///     let snapshot = try dbPool.makeSnapshot()
     /// }
     /// ```
-    ///
-    /// You can create as many snapshots as you need, regardless of the maximum
-    /// number of reader connections in the pool.
-    ///
-    /// Related SQLite documentation: <https://sqlite.org/isolation.html>
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check
         if writer.onValidQueue {

@@ -334,53 +334,6 @@ In the illustration below, the striped band shows the delay needed for the readi
 
 Types that conform to ``TransactionObserver`` can also use those methods in their ``TransactionObserver/databaseDidCommit(_:)`` method, in order to process database changes without blocking other threads that want to write into the database.
 
-## Database Snapshots
-
-**``DatabasePool`` can take snapshots.** A database snapshot sees an unchanging database content, as it existed at the moment it was created.
-
-"Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
-
-```swift
-let snapshot = try dbPool.makeSnapshot()
-```
-
-You can create as many snapshots as you need, regardless of the maximum number of readers defined by the ``Configuration/maximumReaderCount`` configuration. A snapshot connection is closed when the snapshot is deallocated.
-
-**A snapshot can be used from any thread.** It has the same database access methods as database queues and pools, defined by the ``DatabaseReader`` protocol:
-
-```swift
-let playerCount = try snapshot.read { db in
-    try Player.fetchCount(db)
-}
-```
-
-When you want to control the latest committed changes seen by a snapshot, create the snapshot from within a write, outside of any transaction:
-
-```swift
-let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
-    try db.inTransaction {
-        // delete all players
-        try Player.deleteAll()
-        return .commit
-    }
-    
-    // <- not in a transaction here
-    return dbPool.makeSnapshot()
-}
-// <- Other threads may modify the database here
-let snapshot2 = try dbPool.makeSnapshot()
-
-try snapshot1.read { db in
-    // Guaranteed to be zero
-    try Player.fetchCount(db)
-}
-
-try snapshot2.read { db in
-    // Could be anything
-    try Player.fetchCount(db)
-}
-```
-
 ## Topics
 
 ### Database Connections with Concurrency Guarantees
