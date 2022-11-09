@@ -195,7 +195,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     
     To help you update your applications with persistence callbacks, let's look at two examples.
     
-    First, check the updated [Single-Row Tables](SingleRowTables.md) guide, if your application defines a "singleton record".
+    First, check the updated [Single-Row Tables](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/singlerowtables) guide, if your application defines a "singleton record".
     
     Next, let's consider a record that performs some validation before insertion and updates. In GRDB 5, this would look like:
     

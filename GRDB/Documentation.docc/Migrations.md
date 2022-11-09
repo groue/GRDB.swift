@@ -142,13 +142,13 @@ It is much easier to control the schema of all databases deployed on users' devi
 
 ```swift
 migrator.registerMigration("Create authors") { db in
-    // 👍 RECOMMENDED
+    // RECOMMENDED
     try db.create(table: "author") { t in
         t.autoIncrementedPrimaryKey("id")
         ...
     }
 
-    // 👎 NOT RECOMMENDED
+    // NOT RECOMMENDED
     try db.create(table: Author.databaseTableName) { t in
         t.autoIncrementedPrimaryKey(Author.Columns.id.name)
         ...

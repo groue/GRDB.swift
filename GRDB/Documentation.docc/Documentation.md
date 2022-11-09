@@ -36,6 +36,7 @@ GRDB provides raw access to SQL and advanced SQLite features, because one someti
 ### Database Techniques
 
 - <doc:DatabaseSharing>
+- <doc:SingleRowTables>
 
 ### Combine Publishers
 

@@ -245,7 +245,7 @@ Let's look at three examples:
 
 **Singleton Records** are records that store configuration values, user preferences, and generally some global application state. They are backed by a database table that contains a single row.
 
-The recommended setup for such records is described in the [Single-Row Tables](SingleRowTables.md) guide. Go check it, and come back when you're done!
+The recommended setup for such records is described in the [Single-Row Tables](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/singlerowtables) guide. Go check it, and come back when you're done!
 
 
 ## Define Record Requests
