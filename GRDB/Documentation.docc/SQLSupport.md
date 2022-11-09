@@ -6,11 +6,13 @@ SQL is the fundamental language for accessing SQLite databases.
 
 This section of the documentation focuses on low-level SQLite concepts: the SQL language, prepared statements, database rows and values.
 
-If SQL is not your cup of tea, jump to <doc:QueryInterface>.
+If SQL is not your cup of tea, jump to <doc:QueryInterface> 🙂
 
 ## SQL Support
 
-GRDB has a wide support for SQL. You can execute raw SQL statements:
+GRDB has a wide support for SQL.
+
+Once connected with one of the <doc:DatabaseConnections>, you can execute raw SQL statements:
 
 ```swift
 try dbQueue.write { db in
@@ -21,7 +23,7 @@ try dbQueue.write { db in
 }
 ```
 
-You can build prepared statements and lazily iterate fetched rows with great performances:
+Build prepared ``Statement`` and lazily iterate fetched rows with an efficient and fast ``DatabaseCursor``:
 
 ```swift
 try dbQueue.read { db in
@@ -35,7 +37,7 @@ try dbQueue.read { db in
 }
 ```
 
-And you can leverage ``SQLRequest`` and ``FetchableRecord`` for defining streamlined apis with powerful SQL interpolation features:
+Leverage ``SQLRequest`` and ``FetchableRecord`` for defining streamlined apis with powerful SQL interpolation features:
 
 ```swift
 struct Player: Decodable {

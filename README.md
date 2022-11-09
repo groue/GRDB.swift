@@ -8815,7 +8815,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Combine Support]: Documentation/Combine.md
 [Concurrency]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
 [Demo Applications]: Documentation/DemoApps
-[Sharing a Database]: Documentation/SharingADatabase.md
+[Sharing a Database]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasesharing
 [FAQ]: #faq
 [Database Observation]: #database-changes-observation
 [SQLRequest]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/sqlrequest

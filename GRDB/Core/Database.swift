@@ -22,8 +22,8 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// }
 /// ```
 ///
-/// `Database` methods that modify or query the database schema are listed
-/// in <doc:DatabaseSchema>.
+/// `Database` methods that modify, query, or validate the database schema are
+/// listed in <doc:DatabaseSchema>.
 ///
 /// ## Topics
 ///

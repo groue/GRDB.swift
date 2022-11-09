@@ -343,6 +343,5 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [`SQLITE_BUSY`]: https://www.sqlite.org/rescode.html#busy
-[Sharing a Database]: SharingADatabase.md
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [demo applications]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
