@@ -222,11 +222,11 @@ Despite the common guarantees and rules shared by database queues and pools, tho
 
 ``DatabaseQueue`` opens a single database connection, and serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
 
-![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabaseQueueScheduling.svg)
+![DatabaseQueue Scheduling](DatabaseQueueScheduling.png)
 
 ``DatabasePool`` manages a pool of several database connections, and allows concurrent reads and writes thanks to the [WAL mode](https://www.sqlite.org/wal.html). A database pool serializes all writes (the <doc:Concurrency#Serialized-Writes> guarantee). Reads are isolated so that they don't see changes performed by other threads (the <doc:Concurrency#Isolated-Reads> guarantee). This gives a very different picture:
 
-![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolScheduling.svg)
+![DatabasePool Scheduling](DatabasePoolScheduling.png)
 
 See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next chapter below for a relief.
 
@@ -330,7 +330,8 @@ Both ``DatabaseWriter/concurrentRead(_:)`` and ``DatabasePool/asyncConcurrentRea
 
 In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
 
-![DatabasePoolConcurrentRead](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolConcurrentRead.svg)
+
+![DatabasePool Concurrent Read](DatabasePoolConcurrentRead.png)
 
 Types that conform to ``TransactionObserver`` can also use those methods in their ``TransactionObserver/databaseDidCommit(_:)`` method, in order to process database changes without blocking other threads that want to write into the database.
 
