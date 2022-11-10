@@ -277,7 +277,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///
     /// This method can be called from other database access methods. Reentrant
     /// database accesses are discouraged, though, because they muddle
-    /// transaction boundaries.
+    /// transaction boundaries
+    /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
+    /// more information).
     ///
     /// For example:
     ///
