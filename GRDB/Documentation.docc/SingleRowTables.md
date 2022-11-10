@@ -65,7 +65,7 @@ It is not a good idea to populate the table in a migration, for two reasons:
 
 1. This migration is not a hard guarantee that the table will never be empty. As a consequence, this won't prevent the application code from dealing with the possibility of a missing row. On top of that, this application code may not use the same default values as the SQLite schema, with unclear consequences.
 
-2. Migrations that have been release on the users' devices should never change (see <doc:Migrations#Good-Practices-for-Defining-Migrations>). Inserting an initial row in a migration, makes it difficult for the application to adjust the sensible default values in a future version.
+2. Migrations that have been deployed on the users' devices should never change (see <doc:Migrations#Good-Practices-for-Defining-Migrations>). Inserting an initial row in a migration makes it difficult for the application to adjust the sensible default values in a future version.
 
 The recommended migration creates the table, nothing more:
 
@@ -150,24 +150,19 @@ if config.flag {
 
 // WRITE
 try dbQueue.write { db in
+    // Saves a new config in the database
     var config = try AppConfiguration.fetch(db)
-    
-    // Update some config values
     try config.updateChanges(db) {
         $0.flag = true
     }
     
-    // Other possible ways to write config:
-    try config.update(db)
+    // Other possible ways to save the config:
     try config.save(db)
+    try config.update(db)
     try config.insert(db)
     try config.upsert(db)
 }
 ```
-
-The ``MutablePersistableRecord/updateChanges(_:onConflict:modify:)`` method only updates the values changed by its closure argument (and performs an initial insert of default configuration if the database table is empty).
-
-The four `update`, `save`, `insert` and `upsert` methods can be used interchangeably. They all make sure the configuration is fully stored in the database.
 
 See ``MutablePersistableRecord`` for more information about persistence methods.
 

@@ -1,6 +1,6 @@
 # Database Observation
 
-Observe database changes and transactions. 
+Observe database changes and transactions.
 
 ## Topics
 
@@ -13,7 +13,11 @@ Observe database changes and transactions.
 ### Observing Database Transactions
 
 - ``DatabaseRegionObservation``
+
+### Low-Level Transaction Observers
+
 - ``TransactionObserver``
+- ``Database/TransactionObservationExtent``
 
 ### Database Regions
 

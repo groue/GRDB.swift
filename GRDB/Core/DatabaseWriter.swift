@@ -3,7 +3,7 @@ import Combine
 #endif
 import Dispatch
 
-/// A type that write into an SQLite database.
+/// A type that writes into an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseWriter`. Only the
 /// ``DatabaseQueue`` and ``DatabasePool`` types are valid conforming types.

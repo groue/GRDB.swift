@@ -342,6 +342,11 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 - ``DatabaseReader``
 - ``DatabaseWriter``
 
+### Advanced Concurrency
+
+- <doc:DatabaseSharing>
+
+
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [`SQLITE_BUSY`]: https://www.sqlite.org/rescode.html#busy
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
