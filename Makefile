@@ -486,7 +486,7 @@ doc-localhost:
 	# Generates documentation in ~/Sites/GRDB
 	# See https://discussions.apple.com/docs/DOC-3083 for Apache setup on the mac
 	mkdir -p ~/Sites/GRDB
-	GRDB_DOCC_PLUGIN=1 $(SWIFT) package \
+	SPI_BUILDER=1 $(SWIFT) package \
 	  --allow-writing-to-directory ~/Sites/GRDB \
 	  generate-documentation \
 	  --output-path ~/Sites/GRDB \
@@ -500,7 +500,7 @@ doc:
 	# https://apple.github.io/swift-docc-plugin/documentation/swiftdoccplugin/publishing-to-github-pages/
 	rm -rf $(DOCS_PATH)
 	mkdir -p $(DOCS_PATH)
-	GRDB_DOCC_PLUGIN=1 $(SWIFT) package \
+	SPI_BUILDER=1 $(SWIFT) package \
 	  --allow-writing-to-directory $(DOCS_PATH) \
 	  generate-documentation \
 	  --output-path $(DOCS_PATH) \

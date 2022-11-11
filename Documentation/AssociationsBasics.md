@@ -2963,7 +2963,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Further Refinements to Associations]: #further-refinements-to-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
-[migration]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
+[migration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema

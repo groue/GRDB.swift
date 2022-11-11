@@ -130,7 +130,7 @@ extension MutablePersistableRecord {
     
     /// If the record has any difference from the other record, executes an
     /// `UPDATE` statement so that those differences and only those differences
-    /// are saved in the database.
+    /// are updated in the database.
     ///
     /// For example:
     ///
@@ -174,7 +174,7 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE` statement that updates the modified columns, if and
-    /// only the record was modified.
+    /// only if the record was modified.
     ///
     /// For example:
     ///
@@ -273,8 +273,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -300,8 +300,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -484,8 +484,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -571,8 +571,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -599,8 +599,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -787,8 +787,8 @@ extension MutablePersistableRecord {
     
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
-    /// columns, if and only the record was modified. The method returns a new
-    /// record built from the updated row.
+    /// columns, if and only if the record was modified. The method returns a
+    /// new record built from the updated row.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If

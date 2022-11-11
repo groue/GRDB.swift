@@ -304,7 +304,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/statementarguments):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -587,7 +587,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/statementarguments):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,

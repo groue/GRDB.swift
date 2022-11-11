@@ -3,14 +3,15 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for types that read from an SQLite database.
+/// A type that reads from an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseReader`. Only the
 /// ``DatabaseQueue``, ``DatabasePool``, and ``DatabaseSnapshot`` types are
 /// valid conforming types.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
-/// adopting types in a multithreaded application.
+/// conforming types in a multithreaded application. See <doc:Concurrency> for
+/// more information.
 ///
 /// ## Topics
 ///
@@ -20,17 +21,17 @@ import Dispatch
 ///
 /// ### Reading from the Database
 ///
-/// - ``asyncRead(_:)``
 /// - ``read(_:)-3806d``
 /// - ``read(_:)-4w6gy``
 /// - ``readPublisher(receiveOn:value:)``
+/// - ``asyncRead(_:)``
 ///
 /// ### Unsafe Methods
 ///
-/// - ``asyncUnsafeRead(_:)``
 /// - ``unsafeRead(_:)-5i7tf``
 /// - ``unsafeRead(_:)-11mk0``
 /// - ``unsafeReentrantRead(_:)``
+/// - ``asyncUnsafeRead(_:)``
 ///
 /// ### Other Database Operations
 ///
@@ -276,7 +277,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///
     /// This method can be called from other database access methods. Reentrant
     /// database accesses are discouraged, though, because they muddle
-    /// transaction boundaries.
+    /// transaction boundaries
+    /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
+    /// more information).
     ///
     /// For example:
     ///

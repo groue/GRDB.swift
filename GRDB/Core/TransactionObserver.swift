@@ -93,9 +93,7 @@ extension Database {
             extent: .nextTransaction)
     }
     
-    /// The extent of a transaction observation.
-    ///
-    /// See ``Database/add(transactionObserver:extent:)``.
+    /// The extent of the observation performed by a ``TransactionObserver``.
     public enum TransactionObservationExtent {
         /// Observation lasts until observer is deallocated.
         case observerLifetime
@@ -723,10 +721,10 @@ class DatabaseObservationBroker {
 ///
 /// An observer starts receiving change notifications after it has been added to
 /// a database connection with the
-/// ``DatabaseWriter/add(transactionObserver:extent:)`` or
-/// ``Database/add(transactionObserver:extent:)`` methods.
+/// ``DatabaseWriter/add(transactionObserver:extent:)`` `DatabaseWriter` method,
+/// or the ``Database/add(transactionObserver:extent:)`` `Database` method.
 ///
-/// All observer methods are called in a the writer dispatch queue, serialized
+/// All observer methods are called in the writer dispatch queue, serialized
 /// with all database updates (see ``DatabaseWriter``).
 ///
 /// Some changes and transactions are not notified:

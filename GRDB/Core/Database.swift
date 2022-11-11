@@ -10,19 +10,20 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 
 /// An SQLite connection.
 ///
-/// You don't create `Database` instances directly. Instead, you use a database
-/// access method from ``DatabaseQueue``, ``DatabasePool``.
-/// ``DatabaseSnapshot``, ``DatabaseMigrator`` or ``ValueObservation``.
-/// For example:
+/// You don't create `Database` instances directly. Instead, you connect to a
+/// database with one of the <doc:DatabaseConnections>, and you use a database
+/// access method. For example:
 ///
 /// ```swift
 /// let dbQueue = try DatabaseQueue()
 ///
-/// // The Database is the `db` in the closure:
-/// try dbQueue.write { db in
+/// try dbQueue.write { (db: Database) in
 ///     try Player(name: "Arthur").insert(db)
 /// }
 /// ```
+///
+/// `Database` methods that modify, query, or validate the database schema are
+/// listed in <doc:DatabaseSchema>.
 ///
 /// ## Topics
 ///
@@ -68,46 +69,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``add(transactionObserver:extent:)``
 /// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``remove(transactionObserver:)``
-/// - ``TransactionObserver``
-/// - ``TransactionObservationExtent``
-///
-/// ### Defining the Database Schema
-///
-/// - ``alter(table:body:)``
-/// - ``clearSchemaCache()``
-/// - ``create(index:on:columns:options:condition:)``
-/// - ``create(table:options:body:)``
-/// - ``create(virtualTable:ifNotExists:using:)``
-/// - ``create(virtualTable:ifNotExists:using:_:)``
-/// - ``drop(index:)``
-/// - ``drop(table:)``
-/// - ``dropFTS4SynchronizationTriggers(forTable:)``
-/// - ``rename(table:to:)``
-/// - ``ColumnType``
-/// - ``ConflictResolution``
-/// - ``ForeignKeyAction``
-/// - ``IndexOptions``
-/// - ``TableAlteration``
-/// - ``TableDefinition``
-/// - ``TableOptions``
-/// - ``VirtualTableModule``
-///
-/// ### Querying the Database Schema
-///
-/// - ``columns(in:)``
-/// - ``foreignKeys(on:)``
-/// - ``indexes(on:)``
-/// - ``isGRDBInternalTable(_:)``
-/// - ``isSQLiteInternalTable(_:)``
-/// - ``primaryKey(_:)``
-/// - ``table(_:hasUniqueKey:)``
-/// - ``tableExists(_:)``
-/// - ``triggerExists(_:)``
-/// - ``viewExists(_:)``
-/// - ``ColumnInfo``
-/// - ``ForeignKeyInfo``
-/// - ``IndexInfo``
-/// - ``PrimaryKeyInfo``
 ///
 /// ### Collations
 ///
@@ -124,23 +85,16 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``remove(function:)``
 /// - ``DatabaseFunction``
 ///
-/// ### Integrity Checks
-///
-/// - ``checkForeignKeys()``
-/// - ``checkForeignKeys(in:)``
-/// - ``foreignKeyViolations()``
-/// - ``foreignKeyViolations(in:)``
-/// - ``ForeignKeyViolation``
-///
 /// ### Notifications
 ///
 /// - ``resumeNotification``
 /// - ``suspendNotification``
 ///
-/// ### Other Operations
+/// ### Other Database Operations
 ///
 /// - ``backup(to:pagesPerStep:progress:)``
 /// - ``checkpoint(_:on:)``
+/// - ``clearSchemaCache()``
 /// - ``logError``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``
@@ -920,13 +874,15 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Database Suspension
     
     /// When this notification is posted, databases which were opened with the
-    /// `Configuration.observesSuspensionNotifications` flag are suspended.
+    /// ``Configuration/observesSuspensionNotifications`` configuration flag
+    /// are suspended.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
-    /// `Configuration.observesSuspensionNotifications` flag are resumed.
+    /// ``Configuration/observesSuspensionNotifications`` configuration flag
+    /// are resumed.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public static let resumeNotification = Notification.Name("GRDB.Database.Resume")

@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.3.x` Releases - [6.3.0](#630)
+- `6.3.x` Releases - [6.3.0](#630) - [6.3.1](#631)
 - `6.2.x` Releases - [6.2.0](#620)
 - `6.1.x` Releases - [6.1.0](#610)
 - `6.0.x` Releases - [6.0.0](#600)
@@ -100,6 +100,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.3.1
+
+Released November 11, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.3.0...v6.3.1)
+
+- **New**: DocC documentation is hosted at https://swiftpackageindex.com/groue/GRDB.swift/documentation
 
 ## 6.3.0
 

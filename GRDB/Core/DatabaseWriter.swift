@@ -3,7 +3,7 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for types that write into an SQLite database.
+/// A type that writes into an SQLite database.
 ///
 /// Do not declare new conformances to `DatabaseWriter`. Only the
 /// ``DatabaseQueue`` and ``DatabasePool`` types are valid conforming types.
@@ -14,30 +14,33 @@ import Dispatch
 /// Read accesses are defined by ``DatabaseReader``, the protocol all database
 /// writers conform to.
 ///
+/// See <doc:Concurrency> for more information about the behavior of conforming
+/// types in a multithreaded application.
+///
 /// ## Topics
 ///
 /// ### Writing into the Database
 ///
-/// - ``asyncWrite(_:completion:)``
-/// - ``asyncWriteWithoutTransaction(_:)``
 /// - ``write(_:)-76inz``
 /// - ``write(_:)-88g7e``
 /// - ``writePublisher(receiveOn:updates:)``
 /// - ``writePublisher(receiveOn:updates:thenRead:)``
 /// - ``writeWithoutTransaction(_:)-4qh1w``
 /// - ``writeWithoutTransaction(_:)-tckw``
+/// - ``asyncWrite(_:completion:)``
+/// - ``asyncWriteWithoutTransaction(_:)``
 ///
-/// ### Reading from the Database
+/// ### Exclusive Access to the Database
+///
+/// - ``barrierWriteWithoutTransaction(_:)-280j1``
+/// - ``barrierWriteWithoutTransaction(_:)-7u4xw``
+/// - ``asyncBarrierWriteWithoutTransaction(_:)``
+///
+/// ### Reading from the Latest Committed Database State
 ///
 /// - ``concurrentRead(_:)``
 /// - ``spawnConcurrentRead(_:)``
 /// - ``DatabaseFuture``
-///
-/// ### Exclusive Access to the Database
-///
-/// - ``asyncBarrierWriteWithoutTransaction(_:)``
-/// - ``barrierWriteWithoutTransaction(_:)-280j1``
-/// - ``barrierWriteWithoutTransaction(_:)-7u4xw``
 ///
 /// ### Observing Database Transactions
 ///
@@ -214,6 +217,8 @@ public protocol DatabaseWriter: DatabaseReader {
     /// This method can be called from other database access methods. Reentrant
     /// database accesses are discouraged, though, because they muddle
     /// transaction boundaries.
+    /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
+    /// more information). 
     ///
     /// For example:
     ///
@@ -570,10 +575,6 @@ extension DatabaseWriter {
     /// execution of the closure. Do not store or return the database connection
     /// for later use.
     ///
-    /// It is a programmer error to call this method from another database
-    /// access method. Doing so raises a "Database methods are not reentrant"
-    /// fatal error at runtime.
-    ///
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access or committing
@@ -607,10 +608,6 @@ extension DatabaseWriter {
     /// The ``Database`` argument to `updates` is valid only during the
     /// execution of the closure. Do not store or return the database connection
     /// for later use.
-    ///
-    /// It is a programmer error to call this method from another database
-    /// access method. Doing so raises a "Database methods are not reentrant"
-    /// fatal error at runtime.
     ///
     /// - warning: Database operations are not wrapped in a transaction. They
     ///   can see changes performed by concurrent writes or writes performed by

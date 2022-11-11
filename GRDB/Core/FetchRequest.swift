@@ -2,6 +2,26 @@
 
 /// A type that fetches and decodes database rows.
 ///
+/// The main kinds of fetch requests are ``SQLRequest``
+/// and ``QueryInterfaceRequest``:
+///
+/// ```swift
+/// let lastName = "O'Reilly"
+///
+/// // SQLRequest
+/// let request: SQLRequest<Player> = """
+///     SELECT * FROM player WHERE lastName = \(lastName)
+///     """
+///
+/// // QueryInterfaceRequest
+/// let request = Player.filter(Column("lastName") == lastName)
+///
+/// // Use the request
+/// try dbQueue.read { db in
+///     let players = try request.fetchAll(db) // [Player]
+/// }
+/// ```
+///
 /// ## Topics
 ///
 /// ### Counting the Results

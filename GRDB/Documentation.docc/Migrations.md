@@ -83,13 +83,23 @@ try dbQueue.read { db in
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
-## Defining the Database Schema
+## Defining the Database Schema from a Migration
 
-SQLite directly supports a [limited set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as `Database` methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, etc.
+See <doc:DatabaseSchema> for the methods that define the database schema. For example:
 
-> Tip: When you use a Swift API instead of a raw SQL query, GRDB can check its availability on the SQLite version that ships on the target operating system.
+```swift
+migrator.registerMigration("Create authors") { db in
+    try db.create(table: "author") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("creationDate", .datetime)
+        t.column("name", .text)
+    }
+}
+```
 
-Other changes to the schema are still possible, by recreating tables. For example:
+When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table.
+
+For example:
 
 ```swift
 migrator.registerMigration("Add NOT NULL check on author.name") { db in
@@ -104,41 +114,41 @@ migrator.registerMigration("Add NOT NULL check on author.name") { db in
 }
 ```
 
-This technique is described in the [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) section of the SQLite documentation. 
+The detailed sequence of operations for recreating a database table from a migration is:
 
-The detailed sequence of operations for recreating a database table is:
-
-1. Remember the format of all indexes, triggers, and views associated with table X. This information will be needed in step 5 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
+1. When relevant, remember the format of all indexes, triggers, and views associated with table X. This information will be needed in steps 6 and 7 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
 
 2. Use `CREATE TABLE` to construct a new table "new_X" that is in the desired revised format of table X. Make sure that the name "new_X" does not collide with any existing table name, of course.
 
-2. Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
+3. Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
 
-3. Drop the old table X: `DROP TABLE X`.
+4. Drop the old table X: `DROP TABLE X`.
 
-4. Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
+5. Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
 
-5. Use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to reconstruct indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
+6. When relevant, use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to reconstruct indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
 
-6. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
+7. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
 
 > Important: When recreating a table, be sure to follow the above procedure exactly, in the given order, or you might corrupt triggers, views, and foreign key constraints.
+>
+> When you want to recreate a table _outside of a migration_, check the full procedure detailed in the [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) section of the SQLite documentation.
 
 ## Good Practices for Defining Migrations
 
 **A good migration is a migration that is never modified once it has shipped.**
 
-It is must easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
+It is much easier to control the schema of all databases deployed on users' devices when migrations define a stable timeline of schema versions. For this reason, it is recommended that migrations define the database schema with **strings**:
 
 ```swift
 migrator.registerMigration("Create authors") { db in
-    // 👍 RECOMMENDED
+    // RECOMMENDED
     try db.create(table: "author") { t in
         t.autoIncrementedPrimaryKey("id")
         ...
     }
 
-    // 👎 NOT RECOMMENDED
+    // NOT RECOMMENDED
     try db.create(table: Author.databaseTableName) { t in
         t.autoIncrementedPrimaryKey(Author.Columns.id.name)
         ...
@@ -148,7 +158,7 @@ migrator.registerMigration("Create authors") { db in
 
 In other words, migrations should talk to the database, only to the database, and use the database language. This makes sure the Swift code of any given migrations will never have to change in the future.
 
-Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one only. This difference is the reason why migrations should not depend on application types.
+Migrations and the rest of the application code do not live at the same "moment". Migrations describe the past states of the database, while the rest of the application code targets the latest one only. This difference is the reason why **migrations should not depend on application types.**
 
 ## The eraseDatabaseOnSchemaChange Option
 
@@ -181,13 +191,13 @@ You can make those migrations faster, but this requires a little care.
 
 **Your first mitigation technique is immediate foreign key checks.**
 
-When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in ther database:
+When you register a migration with `.immediate` foreign key checks, the migration does not temporarily disable foreign keys, and does not need to perform a deferred full check of all foreign keys in the database:
 
 ```swift
-migrator.registerMigration("Faster migration", foreignKeyChecks: .immediate) { db in ... }
+migrator.registerMigration("Fast migration", foreignKeyChecks: .immediate) { db in ... }
 ```
 
-Such a migration is much faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
+Such a migration is faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
 
 **Your second mitigation technique is to disable deferred foreign key checks.**
 
@@ -197,22 +207,27 @@ You can ask the migrator to stop performing foreign key checks for all newly reg
 migrator = migrator.disablingDeferredForeignKeyChecks()
 ```
 
-> Warning: When deferred foreign key checks are disabled, your app becomes responsible for preventing foreign key violations from being committed to disk!
+Migrations become unchecked by default, and run faster. But your app becomes responsible for preventing foreign key violations from being committed to disk:
 
-In order to prevent foreign key violations from being committed to disk, you can:
+```swift
+migrator = migrator.disablingDeferredForeignKeyChecks()
+migrator.registerMigration("Fast but unchecked migration") { db in ... }
+```
 
-- Register migrations with immediate foreign key checks, as long as they do not recreate tables as described in <doc:Migrations#Defining-the-Database-Schema>:
+To prevent a migration from committing foreign key violations on disk, you can:
+
+- Register the migration with immediate foreign key checks, as long as it does not recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration>:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
-    migrator.registerMigration("Checked migration", foreignKeyChecks: .immediate) { db in ... }
+    migrator.registerMigration("Fast and checked migration", foreignKeyChecks: .immediate) { db in ... }
     ```
 
 - Perform foreign key checks on some tables only, before the migration is committed on disk:
 
     ```swift
     migrator = migrator.disablingDeferredForeignKeyChecks()
-    migrator.registerMigration("Partially checked migration") { db in
+    migrator.registerMigration("Partially checked") { db in
         ...
         
         // Throws an error and stops migrations if there exists a

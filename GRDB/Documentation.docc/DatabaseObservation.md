@@ -1,18 +1,25 @@
 # Database Observation
 
-Observe database changes and transactions. 
+Observe database changes and transactions.
 
 ## Topics
 
 ### Observing Database Values
 
-- ``AsyncValueObservation``
-- ``SharedValueObservation``
 - ``ValueObservation``
+- ``SharedValueObservation``
+- ``AsyncValueObservation``
 
 ### Observing Database Transactions
 
-- ``DatabaseRegion``
 - ``DatabaseRegionObservation``
-- ``DatabaseRegionConvertible``
+
+### Low-Level Transaction Observers
+
 - ``TransactionObserver``
+- ``Database/TransactionObservationExtent``
+
+### Database Regions
+
+- ``DatabaseRegion``
+- ``DatabaseRegionConvertible``

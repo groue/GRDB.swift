@@ -19,7 +19,7 @@ if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
 // Don't rely on this environment variable. It is only a convenience:
 // $ make docs-localhost
 var dependencies: [PackageDescription.Package.Dependency] = []
-if ProcessInfo.processInfo.environment["GRDB_DOCC_PLUGIN"] == "1" {
+if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 

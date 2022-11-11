@@ -505,7 +505,47 @@ extension Statement {
 
 // MARK: - Cursors
 
-/// A cursor that iterates the result of a prepared ``Statement``.
+/// A cursor that lazily iterates the results of a prepared ``Statement``.
+///
+/// To get a `DatabaseCursor` instance, use a fetching method of
+/// ``Row``, ``DatabaseValueConvertible``, ``FetchableRecord``,
+/// or ``FetchRequest``. For example:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     // A cursor of database rows,
+///     // built from a prepared statement
+///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
+///     let rows = try Row.fetchCursor(statement)
+///     while let row = try rows.next() {
+///         let id: Int64 = row["id"]
+///         let name: String = row["name"]
+///     }
+///
+///     // A cursor of values,
+///     // built from an SQL string
+///     let scores = try Int.fetchCursor(db, sql: "SELECT score FROM player")
+///     while let score = try scores.next() {
+///         print(score)
+///     }
+///
+///     // A cursor of players,
+///     // built from a QueryInterfaceRequest:
+///     let request = Player.all()
+///     let players = try request.fetchCursor(db)
+///     while let player = try players.next() {
+///         print(player.name, player.score)
+///     }
+/// }
+/// ```
+///
+/// A database cursor is valid only during the current database access (read or
+/// write). Do not store or escape a cursor for later use.
+///
+/// A database cursor resets its underlying prepared statement with
+/// [`sqlite3_reset`](https://www.sqlite.org/c3ref/reset.html) when the cursor
+/// is created, and when it is deallocated. Don't share the same prepared
+/// statement between two cursors!
 public protocol DatabaseCursor: Cursor {
     /// Must be initialized to false.
     var _isDone: Bool { get set }
@@ -563,15 +603,17 @@ extension DatabaseCursor {
 }
 
 /// A cursor that iterates a database statement without producing any value.
-/// Each call to the next() cursor method calls the sqlite3_step() C function.
+/// Each call to the `next()` method calls the `sqlite3_step()` C function.
 ///
 /// For example:
 ///
-///     try dbQueue.read { db in
-///         let statement = db.makeStatement(sql: "SELECT performSideEffect()")
-///         let cursor = statement.makeCursor()
-///         try cursor.next()
-///     }
+/// ```swift
+/// try dbQueue.read { db in
+///     let statement = try db.makeStatement(sql: "SELECT performSideEffect()")
+///     let cursor = statement.makeCursor()
+///     try cursor.next()
+/// }
+/// ```
 final class StatementCursor: DatabaseCursor {
     typealias Element = Void
     let _statement: Statement

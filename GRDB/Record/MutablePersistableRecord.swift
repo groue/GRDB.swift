@@ -73,6 +73,7 @@
 /// - ``update(_:onConflict:columns:)-5hxyx``
 /// - ``updateChanges(_:onConflict:from:)``
 /// - ``updateChanges(_:onConflict:modify:)``
+/// - ``PersistenceError``
 ///
 /// ### Updating a Record and Fetching the Updated Row
 ///
