@@ -1,4 +1,4 @@
 Sharing a Database
 ==================
 
-This guide [has moved](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/databasesharing).
+This guide [has moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing).

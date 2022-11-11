@@ -245,7 +245,7 @@ Let's look at three examples:
 
 **Singleton Records** are records that store configuration values, user preferences, and generally some global application state. They are backed by a database table that contains a single row.
 
-The recommended setup for such records is described in the [Single-Row Tables](https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/singlerowtables) guide. Go check it, and come back when you're done!
+The recommended setup for such records is described in the [Single-Row Tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/singlerowtables) guide. Go check it, and come back when you're done!
 
 
 ## Define Record Requests
@@ -804,11 +804,11 @@ Instead, have a look at [Database Observation]:
 [Divide and Conquer]: https://en.wikipedia.org/wiki/Divide_and_rule
 [Why Adopt GRDB?]: WhyAdoptGRDB.md
 [isolation]: https://en.wikipedia.org/wiki/Isolation_(database_systems)
-[migrations]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
-[migration]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/migrations
+[migrations]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
+[migration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
-[Concurrency Guide]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
-[GRDB concurrency rules]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
+[Concurrency Guide]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
+[GRDB concurrency rules]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation

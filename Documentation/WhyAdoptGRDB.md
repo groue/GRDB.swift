@@ -285,7 +285,7 @@ If this little tour of GRDB has convinced you, the real trip starts here: [GRDB]
 
 Happy GRDB! :gift:
 
-[Concurrency Guide]: https://groue.github.io/GRDB.swift/docs/6.3/documentation/grdb/concurrency
+[Concurrency Guide]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [Core Data]: https://developer.apple.com/documentation/coredata
 [DatabasePool]: ../README.md#database-pools
 [Diesel]: http://diesel.rs
