@@ -1603,7 +1603,7 @@ public final class ColumnDefinition {
     }
 }
 
-/// Table creation options
+/// Index creation options
 public struct IndexOptions: OptionSet {
     public let rawValue: Int
     
