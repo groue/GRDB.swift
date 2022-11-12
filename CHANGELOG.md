@@ -101,6 +101,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Version
+
+- **New**: The `Configuration.readQoS` and `writeQoS` properties return the effective quality of service of read-only and write database accesses. This helps application code avoid priority inversion and similar scheduling misuses when needed.
+- **New**: `DatabaseReader.configuration.maximumReaderCount` returns the effective capacity for concurrent reads, so that application code can adapt when needed.
+- **New**: `DatabasePool.makeSnapshot()` no longer throws an error when the database is not in the WAL mode. In such case, the returned snapshot prevents all database modifications during its lifetime.
+- **New**: `Database.registerAccess(to:)` has `ValueObservation` track a region. This helps building optimized observations of a constant database region with `ValueObservation.trackingConstantRegion(_:)`.
+
 ## 6.3.1
 
 Released November 11, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.3.0...v6.3.1)
