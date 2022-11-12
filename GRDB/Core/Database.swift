@@ -878,6 +878,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// are suspended.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// A suspended database makes everything to avoid acquiring a lock on the
+    /// database. All database operations may throw a ``DatabaseError`` of code
+    /// `SQLITE_INTERRUPT` or `SQLITE_ABORT`, except reads in WAL mode.
+    ///
+    /// See <doc:DatabaseSharing#How-to-limit-the-0xDEAD10CC-exception> for
+    /// more information.
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
