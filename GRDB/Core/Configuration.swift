@@ -46,6 +46,8 @@ import Foundation
 /// ### Configuring the Quality of Service
 ///
 /// - ``qos``
+/// - ``readQoS``
+/// - ``writeQoS``
 /// - ``targetQueue``
 /// - ``writeTargetQueue``
 public struct Configuration {
@@ -337,9 +339,14 @@ public struct Configuration {
     /// The default is `userInitiated`.
     public var qos: DispatchQoS = .userInitiated
     
-    /// The quality of service of read accesses
-    var readQoS: DispatchQoS {
+    /// The effective quality of service of read-only database accesses.
+    public var readQoS: DispatchQoS {
         targetQueue?.qos ?? self.qos
+    }
+    
+    /// The effective quality of service of write database accesses.
+    public var writeQoS: DispatchQoS {
+        writeTargetQueue?.qos ?? targetQueue?.qos ?? self.qos
     }
     
     /// The target dispatch queue for database accesses.
