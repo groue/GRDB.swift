@@ -405,7 +405,13 @@ public struct Configuration {
     
     // MARK: - Not Public
     
-    var threadingMode: Database.ThreadingMode = .`default`
+    /// The SQLite [threading mode](https://www.sqlite.org/threadsafe.html).
+    ///
+    /// - Note: Only the multi-thread mode (`SQLITE_OPEN_NOMUTEX`) is currently
+    /// supported, since all <doc:DatabaseConnections> access SQLite connections
+    /// through a `SerializedDatabase`.
+    var threadingMode = Database.ThreadingMode.default
+    
     var SQLiteConnectionDidOpen: (() -> Void)?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
     var SQLiteConnectionDidClose: (() -> Void)?

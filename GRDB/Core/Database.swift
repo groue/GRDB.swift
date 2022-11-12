@@ -2016,6 +2016,10 @@ extension Database {
     }
     
     /// An SQLite threading mode. See <https://www.sqlite.org/threadsafe.html>.
+    ///
+    /// - Note: Only the multi-thread mode (`SQLITE_OPEN_NOMUTEX`) is currently
+    /// supported, since all <doc:DatabaseConnections> access SQLite connections
+    /// through a `SerializedDatabase`.
     enum ThreadingMode {
         case `default`
         case multiThread
