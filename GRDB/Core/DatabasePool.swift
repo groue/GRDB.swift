@@ -876,7 +876,7 @@ extension DatabasePool {
         
         return try DatabaseSnapshot(
             path: path,
-            configuration: writer.configuration,
+            configuration: DatabasePool.readerConfiguration(writer.configuration),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "snapshot.\($databaseSnapshotCount.increment())")
     }
