@@ -32,7 +32,7 @@ extension ValueReducers {
     }
 }
 
-extension ValueReducers.Map: _DatabaseValueReducer where Base: _DatabaseValueReducer {
+extension ValueReducers.Map: ValueReducer where Base: ValueReducer {
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         try base._fetch(db)
     }

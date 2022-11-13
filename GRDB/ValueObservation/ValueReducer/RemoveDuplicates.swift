@@ -50,7 +50,7 @@ extension ValueReducers {
     }
 }
 
-extension ValueReducers.RemoveDuplicates: _DatabaseValueReducer where Base: _DatabaseValueReducer {
+extension ValueReducers.RemoveDuplicates: ValueReducer where Base: ValueReducer {
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         try base._fetch(db)
     }
