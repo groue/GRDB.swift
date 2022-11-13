@@ -20,39 +20,45 @@
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot {
-    // Xcode 14 RC ships with a macOS SDK that misses snapshot support.
-    // TODO: when Xcode ships with a macOS SDK that exposes snapshots, replace
-    // the `os(macOS) || targetEnvironment(macCatalyst)` check with a compiler
-    // version check.
+    // Xcode 14 ships with a macOS SDK that misses snapshot support.
+    // Xcode 14.1 ships with a macOS SDK that has snapshot support.
+    // This is the meaning of (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst)))
     //
-    // We can't enable snapshots for SQLCipher, since we don't know if they
-    // are enabled.
-#if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-    init?(_ db: Database) {
-        return nil
+    // We can't provide snapshots api for SQLCipher, since we'd have linker
+    // errors if they are not enabled.
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+    static let available = false
+
+    init(_ db: Database) throws {
+        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "snapshots are not available")
     }
-    
+
     func compare(_ other: WALSnapshot) -> CInt {
         preconditionFailure("snapshots are not available")
     }
 #else
-    private let snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
+    static let available = true
+    
+    let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
     
     /// Returns nil if `SQLITE_ENABLE_SNAPSHOT` is not enabled, or if an
     /// error occurs.
-    init?(_ db: Database) {
-        var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
-        let code = withUnsafeMutablePointer(to: &snapshot) {
+    init(_ db: Database) throws {
+        var sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>?
+        let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {
             return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
         }
-        guard code == SQLITE_OK, let snapshot else {
-            return nil
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code)
         }
-        self.snapshot = snapshot
+        guard let sqliteSnapshot else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        }
+        self.sqliteSnapshot = sqliteSnapshot
     }
     
     deinit {
-        sqlite3_snapshot_free(snapshot)
+        sqlite3_snapshot_free(sqliteSnapshot)
     }
     
     /// Compares two WAL snapshots.
@@ -61,7 +67,7 @@ final class WALSnapshot {
     ///
     /// See <https://www.sqlite.org/c3ref/snapshot_cmp.html>.
     func compare(_ other: WALSnapshot) -> CInt {
-        return sqlite3_snapshot_cmp(snapshot, other.snapshot)
+        return sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
     }
-#endif // os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#endif // (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 }

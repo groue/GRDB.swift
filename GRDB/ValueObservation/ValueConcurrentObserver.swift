@@ -286,12 +286,12 @@ extension ValueConcurrentObserver {
                 let fetchedValue = try databaseAccess.fetch(db)
                 let region = try DatabaseRegion.union(regions)(db)
                 let initialRegion = try region.observableRegion(db)
-                return (fetchedValue, initialRegion, WALSnapshot(db))
+                return (fetchedValue, initialRegion, try? WALSnapshot(db))
                 
             case .constantRegionRecordedFromSelection,
                     .nonConstantRegionRecordedFromSelection:
                 let (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
-                return (fetchedValue, initialRegion, WALSnapshot(db))
+                return (fetchedValue, initialRegion, try? WALSnapshot(db))
             }
         }
         
@@ -377,7 +377,7 @@ extension ValueConcurrentObserver {
                     self.asyncStartObservation(
                         from: databaseAccess,
                         initialSnapshot: initialSnapshot,
-                        initialWALSnapshot: WALSnapshot(db),
+                        initialWALSnapshot: try? WALSnapshot(db),
                         initialRegion: initialRegion)
                 } catch {
                     self.notifyError(error)
@@ -403,13 +403,13 @@ extension ValueConcurrentObserver {
                 
                 // Transaction is needed for comparing version snapshots
                 try writerDB.isolated(readOnly: true) {
-                    // Keep DatabaseSnaphot alive until we have compared
+                    // Keep initialSnapshot alive until we have compared
                     // database versions. It prevents database checkpointing,
                     // and keeps WAL snapshots (`sqlite3_snapshot`) valid
                     // and comparable.
                     let isModified = withExtendedLifetime(initialSnapshot) {
                         guard let initialWALSnapshot,
-                              let currentWALSnapshot = WALSnapshot(writerDB)
+                              let currentWALSnapshot = try? WALSnapshot(writerDB)
                         else {
                             return true
                         }
