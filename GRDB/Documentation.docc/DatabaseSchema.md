@@ -62,6 +62,7 @@ But you should prefer wrapping your schema changes in <doc:Migrations> when you 
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``
 - ``Database/primaryKey(_:)``
+- ``Database/schemaVersion()``
 - ``Database/table(_:hasUniqueKey:)``
 - ``Database/tableExists(_:)``
 - ``Database/triggerExists(_:)``

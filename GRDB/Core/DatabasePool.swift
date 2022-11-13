@@ -46,10 +46,6 @@ import UIKit
 ///
 /// - ``init(path:configuration:)``
 ///
-/// ### Creating a DatabaseSnapshot
-///
-/// - ``makeSnapshot()``
-///
 /// ### Accessing the Database
 ///
 /// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
@@ -57,6 +53,16 @@ import UIKit
 ///
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
+///
+/// ### Creating and Reading WAL Snapshots
+///
+/// - ``makeSnapshot()``
+/// - ``currentSnapshotToken()``
+/// - ``read(from:_:)-7wtr2``
+/// - ``read(from:_:)-8bwfe``
+/// - ``readPublisher(from:receiveOn:value:)``
+/// - ``asyncRead(from:_:)``
+/// - ``WALSnapshotToken``
 ///
 /// ### Managing SQLite Connections
 ///
@@ -851,9 +857,10 @@ extension DatabasePool {
     /// the transaction:
     ///
     /// ```swift
+    /// let snapshot = try dbPool.makeSnapshot() // OK
+    ///
     /// try dbPool.writeWithoutTransaction { db in
-    ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     ///
     ///     try db.inTransaction {
     ///         try Player.deleteAll()
@@ -861,8 +868,10 @@ extension DatabasePool {
     ///     }
     ///
     ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     /// }
+    ///
+    /// let snapshot = try dbPool.makeSnapshot() // OK
     /// ```
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check

@@ -33,8 +33,8 @@ import Dispatch
 /// }
 /// ```
 ///
-/// When you want to control the database state seen by a snapshot,
-/// create the snapshot from within a write access, outside of any transaction.
+/// When you want to control the database state seen by a snapshot, create the
+/// snapshot from within a write access, outside of any transaction.
 ///
 /// For example, compare the two snapshots below. The first one is guaranteed to
 /// see an empty table of players, because is is created after all players have
@@ -65,6 +65,9 @@ import Dispatch
 ///
 /// `DatabaseSnapshot` inherits its database access methods from the
 /// ``DatabaseReader`` protocols.
+///
+/// `DatabaseSnapshot` serializes database accesses and can't perform concurrent
+/// reads. For concurrent reads, see ``WALSnapshotToken``.
 public final class DatabaseSnapshot {
     private let reader: SerializedDatabase
     

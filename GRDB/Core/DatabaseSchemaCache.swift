@@ -36,6 +36,26 @@ struct DatabaseSchemaCache {
         schemaInfo = nil
     }
     
+    func union(_ other: DatabaseSchemaCache) -> DatabaseSchemaCache {
+        let mergedSchemaInfo: SchemaInfo?
+        switch (schemaInfo, other.schemaInfo) {
+        case (nil, nil):
+            mergedSchemaInfo = nil
+        case let (nil, info?), let (info?, nil):
+            mergedSchemaInfo = info
+        case let (lhs?, rhs?):
+            mergedSchemaInfo = lhs.union(rhs)
+        }
+        
+        return DatabaseSchemaCache(
+            schemaInfo: mergedSchemaInfo,
+            tables: tables.merging(other.tables) { (current, _) in current },
+            primaryKeys: primaryKeys.merging(other.primaryKeys) { (current, _) in current },
+            columns: columns.merging(other.columns) { (current, _) in current },
+            indexes: indexes.merging(other.indexes) { (current, _) in current },
+            foreignKeys: foreignKeys.merging(other.foreignKeys) { (current, _) in current })
+    }
+    
     func table(_ table: String) -> Presence<TableInfo>? {
         tables[table]
     }
