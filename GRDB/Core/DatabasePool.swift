@@ -54,15 +54,10 @@ import UIKit
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
 ///
-/// ### Accessing WAL Snapshots
+/// ### Creating Database Snapshots
 ///
 /// - ``makeSnapshot()``
-/// - ``currentSnapshotToken()``
-/// - ``read(from:_:)-7wtr2``
-/// - ``read(from:_:)-8bwfe``
-/// - ``readPublisher(from:receiveOn:value:)``
-/// - ``asyncRead(from:_:)``
-/// - ``WALSnapshotToken``
+/// - ``makeSnapshotPool()``
 ///
 /// ### Managing SQLite Connections
 ///
@@ -483,7 +478,6 @@ extension DatabasePool: DatabaseReader {
                         releaseReader()
                     }
                     do {
-                        // The block isolation comes from the DEFERRED transaction.
                         try db.clearSchemaCacheIfNeeded()
                         value(.success(db))
                     } catch {
@@ -836,7 +830,7 @@ extension DatabasePool {
     
     // MARK: - Snapshots
     
-    /// Creates a database snapshot.
+    /// Creates an independent database snapshot.
     ///
     /// The returned snapshot sees an unchanging database content, as it existed
     /// at the moment it was created.

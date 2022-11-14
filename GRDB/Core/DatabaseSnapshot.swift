@@ -1,23 +1,25 @@
 import Dispatch
 
-/// A database connection that sees an unchanging database content, as it
-/// existed at the moment it was created.
+/// A database connection that serializes accesses to an unchanging
+/// database content, as it existed at the moment the snapshot was created.
 ///
 /// ## Overview
 ///
-/// A `DatabaseSnapshot` creates one single SQLite connection. All database
+/// A `DatabaseSnapshot` never sees any database modification during all its
+/// lifetime. All database accesses performed from a snapshot always see the
+/// same identical database content.
+///
+/// A snapshot creates one single SQLite connection. All database
 /// accesses are executed in a serial **reader dispatch queue**. The SQLite
 /// connection is closed when the `DatabaseSnapshot` is deallocated.
 ///
-/// A snapshot never sees any database modification during all its lifetime. All
-/// database accesses performed from a snapshot always see the same identical
-/// database content.
+/// A snapshot created on a [WAL](https://sqlite.org/wal.html) database doesn't
+/// prevent database modifications performed by other connections (but it won't
+/// see them). Refer to [Isolation In SQLite](https://sqlite.org/isolation.html)
+/// for more information.
 ///
-/// In the [WAL mode](https://sqlite.org/wal.html), a snapshot doesn't prevent
-/// database modifications performed by other connections (but it won't see
-/// them). Refer to [Isolation In SQLite](https://sqlite.org/isolation.html) for
-/// more information. Otherwise, a snapshot prevents all writes to the database
-/// as long as it exists, due to the
+/// On non-WAL databases, a snapshot prevents all database modifications as long
+/// as it exists, because of the
 /// [SHARED lock](https://www.sqlite.org/lockingv3.html) it holds.
 ///
 /// ## Usage
@@ -67,7 +69,7 @@ import Dispatch
 /// ``DatabaseReader`` protocols.
 ///
 /// `DatabaseSnapshot` serializes database accesses and can't perform concurrent
-/// reads. For concurrent reads, see ``WALSnapshotToken``.
+/// reads. For concurrent reads, see ``DatabaseSnapshotPool``.
 public final class DatabaseSnapshot {
     private let reader: SerializedDatabase
     

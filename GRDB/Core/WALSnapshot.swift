@@ -19,7 +19,7 @@
 /// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
-final class WALSnapshot {
+final class WALSnapshot: Sendable {
     // Xcode 14 ships with a macOS SDK that misses snapshot support.
     // Xcode 14.1 ships with a macOS SDK that has snapshot support.
     // This is the meaning of (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst)))

@@ -4,7 +4,7 @@ import XCTest
 import GRDB
 
 // test create from non-wal (read-only) snapshot
-final class WALSnapshotTokenTests: GRDBTestCase {
+final class DatabaseSnapshotPoolTests: GRDBTestCase {
     /// A helper type
     private struct Counter {
         init(dbPool: DatabasePool) throws {
@@ -22,11 +22,11 @@ final class WALSnapshotTokenTests: GRDBTestCase {
         }
     }
     
-    func testWALSnapshotTokenCreationFromNewDatabase() throws {
-        _ = try makeDatabasePool().currentSnapshotToken()
+    func testSnapshotPoolCreationFromNewDatabase() throws {
+        _ = try makeDatabasePool().makeSnapshotPool()
     }
     
-    func testWALSnapshotTokenCreationFromNonWALDatabase() throws {
+    func testSnapshotPoolCreationFromNonWALDatabase() throws {
         let dbQueue = try makeDatabaseQueue()
         
         var config = Configuration()
@@ -34,70 +34,70 @@ final class WALSnapshotTokenTests: GRDBTestCase {
         let dbPool = try DatabasePool(path: dbQueue.path, configuration: config)
         
         do {
-            _ = try dbPool.currentSnapshotToken()
+            _ = try dbPool.makeSnapshotPool()
             XCTFail("Expected error")
         } catch DatabaseError.SQLITE_ERROR { }
     }
     
-    func testWALSnapshotToken() throws {
+    func testSnapshotPool() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         
         try dbPool.write(counter.increment)
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         try dbPool.write(counter.increment)
         
         try XCTAssertEqual(dbPool.read(counter.value), 2)
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
         // Reuse the last connection
         try XCTAssertEqual(dbPool.read(counter.value), 2)
     }
     
-    func testPassiveCheckpointDoesNotInvalidateWALSnapshotToken() throws {
+    func testPassiveCheckpointDoesNotInvalidateSnapshotPool() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.passive) } // ignore if error or not, that's not the point
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testFullCheckpointDoesNotInvalidateWALSnapshotToken() throws {
+    func testFullCheckpointDoesNotInvalidateSnapshotPool() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.full) } // ignore if error or not, that's not the point
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testRestartCheckpointDoesNotInvalidateWALSnapshotToken() throws {
+    func testRestartCheckpointDoesNotInvalidateSnapshotPool() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.restart) } // ignore if error or not, that's not the point
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testTruncateCheckpointDoesNotInvalidateWALSnapshotToken() throws {
+    func testTruncateCheckpointDoesNotInvalidateSnapshotPool() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.truncate) } // ignore if error or not, that's not the point
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
-        try XCTAssertEqual(dbPool.read(from: token, counter.value), 1)
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testWALSnapshotTokenAndSchemaCache() throws {
+    func testSnapshotPoolAndSchemaCache() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: """
@@ -105,7 +105,7 @@ final class WALSnapshotTokenTests: GRDBTestCase {
                 """)
         }
         
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         
         try dbPool.write { db in
             try db.execute(sql: """
@@ -119,7 +119,7 @@ final class WALSnapshotTokenTests: GRDBTestCase {
         }
         
         do {
-            let exists = try dbPool.read(from: token) { try $0.tableExists("team") }
+            let exists = try snapshot.read { try $0.tableExists("team") }
             XCTAssertFalse(exists)
         }
         
@@ -129,7 +129,7 @@ final class WALSnapshotTokenTests: GRDBTestCase {
         }
     }
     
-    func testWALSnapshotTokenAndStatementCache() throws {
+    func testSnapshotPoolAndStatementCache() throws {
         let dbPool = try makeDatabasePool()
         let request = SQLRequest<Int>(sql: "SELECT COUNT(*) FROM player", cached: true)
         try dbPool.write { db in
@@ -138,14 +138,14 @@ final class WALSnapshotTokenTests: GRDBTestCase {
                 """)
         }
         
-        let token = try dbPool.currentSnapshotToken()
+        let snapshot = try dbPool.makeSnapshotPool()
         
         try dbPool.write { db in
             try db.execute(sql: "DROP TABLE player")
         }
         
         do {
-            let count = try dbPool.read(from: token) { try request.fetchOne($0) }
+            let count = try snapshot.read { try request.fetchOne($0) }
             XCTAssertEqual(count, 0)
         }
         
@@ -155,7 +155,7 @@ final class WALSnapshotTokenTests: GRDBTestCase {
         } catch DatabaseError.SQLITE_ERROR { }
         
         do {
-            let count = try dbPool.read(from: token) { try request.fetchOne($0) }
+            let count = try snapshot.read { try request.fetchOne($0) }
             XCTAssertEqual(count, 0)
         }
     }

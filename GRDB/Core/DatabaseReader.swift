@@ -224,8 +224,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// access method. Doing so raises a "Database methods are not reentrant"
     /// fatal error at runtime.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -256,8 +256,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// }
     /// ```
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -293,8 +293,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -467,8 +467,8 @@ extension DatabaseReader {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
