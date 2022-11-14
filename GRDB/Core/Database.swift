@@ -67,8 +67,8 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// ### Database Observation
 ///
 /// - ``add(transactionObserver:extent:)``
-/// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``remove(transactionObserver:)``
+/// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``registerAccess(to:)``
 ///
 /// ### Collations
@@ -689,7 +689,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Database Observation
     
-    /// Reports the region to ``ValueObservation``.
+    /// Reports the database region to ``ValueObservation``.
     ///
     /// For example:
     ///
@@ -697,24 +697,23 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let observation = ValueObservation.tracking { db in
     ///     // All changes to the 'player' and 'team' tables
     ///     // will trigger the observation.
-    ///     try db.registerAccess(to: Table("player"))
-    ///     try db.registerAccess(to: Table("team"))
+    ///     try db.registerAccess(to: Player.all())
+    ///     try db.registerAccess(to: Team.all())
     /// }
     /// ```
     ///
     /// See ``ValueObservation/trackingConstantRegion(_:)`` for some examples
-    /// of such explicit region tracking.
+    /// of region reporting.
     ///
-    /// This method only has an effect if and only if the ``ValueObservation``
-    /// is inferring the observed region from the database access. In the
-    /// example below, the observation explicitly tracks the `player` table
-    /// only. All calls to the `registerAccess` method are ignored:
+    /// This method has no effect on a ``ValueObservation`` created with an
+    /// explicit list of tracked regions. In the example below, only the
+    /// `player` table is tracked:
     ///
     /// ```swift
     /// // Observes the 'player' table only
-    /// let observation = ValueObservation.tracking(region: Table("player")) { db in
+    /// let observation = ValueObservation.tracking(region: Player.all()) { db in
     ///     // Ignored
-    ///     try db.registerAccess(to: Table("team"))
+    ///     try db.registerAccess(to: Team.all())
     /// }
     /// ```
     public func registerAccess(to region: @autoclosure () -> some DatabaseRegionConvertible) throws {
