@@ -19,13 +19,14 @@
 /// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
-final class WALSnapshot {
+final class WALSnapshot: Sendable {
     // Xcode 14 ships with a macOS SDK that misses snapshot support.
     // Xcode 14.1 ships with a macOS SDK that has snapshot support.
     // This is the meaning of (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst)))
     //
     // We can't provide snapshots api for SQLCipher, since we'd have linker
     // errors if they are not enabled.
+    // swiftlint:disable:next line_length
 #if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
     static let available = false
 
@@ -69,5 +70,7 @@ final class WALSnapshot {
     func compare(_ other: WALSnapshot) -> CInt {
         return sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
     }
+    
+    // swiftlint:disable:next line_length
 #endif // (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 }

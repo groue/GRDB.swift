@@ -42,14 +42,14 @@ import Dispatch
 /// - ``spawnConcurrentRead(_:)``
 /// - ``DatabaseFuture``
 ///
+/// ### Unsafe Methods
+///
+/// - ``unsafeReentrantWrite(_:)``
+///
 /// ### Observing Database Transactions
 ///
 /// - ``add(transactionObserver:extent:)``
 /// - ``remove(transactionObserver:)``
-///
-/// ### Unsafe Methods
-///
-/// - ``unsafeReentrantWrite(_:)``
 ///
 /// ### Other Database Operations
 ///
@@ -94,7 +94,8 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `updates`
     ///   closure may not return the same value. Concurrent database accesses
-    ///   can see partial updates performed by the `updates` closure.
+    ///   can see partial updates performed by the `updates` closure. See
+    ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
@@ -133,7 +134,8 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `updates`
     ///   closure may not return the same value. Concurrent database accesses
-    ///   can see partial updates performed by the `updates` closure.
+    ///   can see partial updates performed by the `updates` closure. See
+    ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
@@ -173,7 +175,8 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `updates`
     ///   closure may not return the same value. Concurrent database accesses
-    ///   can see partial updates performed by the `updates` closure.
+    ///   can see partial updates performed by the `updates` closure. See
+    ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
@@ -206,7 +209,8 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `updates`
     ///   closure may not return the same value. Concurrent database accesses
-    ///   can see partial updates performed by the `updates` closure.
+    ///   can see partial updates performed by the `updates` closure. See
+    ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database.
     func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
@@ -215,10 +219,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// finished executing.
     ///
     /// This method can be called from other database access methods. Reentrant
-    /// database accesses are discouraged, though, because they muddle
-    /// transaction boundaries.
-    /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
-    /// more information). 
+    /// database accesses are discouraged because they muddle transaction
+    /// boundaries. See <doc:Concurrency#Rule-2:-Mind-your-transactions> for
+    /// more information. 
     ///
     /// For example:
     ///

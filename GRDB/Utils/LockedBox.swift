@@ -66,3 +66,5 @@ extension LockedBox where T: Numeric {
         }
     }
 }
+
+extension LockedBox: @unchecked Sendable where T: Sendable { }

@@ -46,10 +46,6 @@ import UIKit
 ///
 /// - ``init(path:configuration:)``
 ///
-/// ### Creating a DatabaseSnapshot
-///
-/// - ``makeSnapshot()``
-///
 /// ### Accessing the Database
 ///
 /// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
@@ -57,6 +53,11 @@ import UIKit
 ///
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
+///
+/// ### Creating Database Snapshots
+///
+/// - ``makeSnapshot()``
+/// - ``makeSnapshotPool()``
 ///
 /// ### Managing SQLite Connections
 ///
@@ -477,7 +478,6 @@ extension DatabasePool: DatabaseReader {
                         releaseReader()
                     }
                     do {
-                        // The block isolation comes from the DEFERRED transaction.
                         try db.clearSchemaCacheIfNeeded()
                         value(.success(db))
                     } catch {
@@ -493,6 +493,8 @@ extension DatabasePool: DatabaseReader {
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
             return try reader.reentrantSync(value)
+        } else if writer.onValidQueue {
+            return try writer.execute(value)
         } else {
             guard let readerPool else {
                 throw DatabaseError.connectionIsClosed()
@@ -830,7 +832,7 @@ extension DatabasePool {
     
     // MARK: - Snapshots
     
-    /// Creates a database snapshot.
+    /// Creates an independent database snapshot.
     ///
     /// The returned snapshot sees an unchanging database content, as it existed
     /// at the moment it was created.
@@ -851,9 +853,10 @@ extension DatabasePool {
     /// the transaction:
     ///
     /// ```swift
+    /// let snapshot = try dbPool.makeSnapshot() // OK
+    ///
     /// try dbPool.writeWithoutTransaction { db in
-    ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     ///
     ///     try db.inTransaction {
     ///         try Player.deleteAll()
@@ -861,8 +864,10 @@ extension DatabasePool {
     ///     }
     ///
     ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     /// }
+    ///
+    /// let snapshot = try dbPool.makeSnapshot() // OK
     /// ```
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check

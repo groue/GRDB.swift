@@ -206,7 +206,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -224,8 +226,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// access method. Doing so raises a "Database methods are not reentrant"
     /// fatal error at runtime.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -241,7 +243,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -256,8 +260,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// }
     /// ```
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -273,10 +277,16 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
-    /// This method can be called from other database access methods. Reentrant
-    /// database accesses are discouraged, though, because they muddle
+    /// This method can be called from other database access methods. If called
+    /// from the dispatch queue of a current database access (read or write),
+    /// the `Database` argument to `value` is the same as the current
+    /// database access.
+    ///
+    /// Reentrant database accesses are discouraged because they muddle
     /// transaction boundaries
     /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
     /// more information).
@@ -293,8 +303,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -453,7 +463,9 @@ extension DatabaseReader {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -467,8 +479,8 @@ extension DatabaseReader {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.

@@ -28,6 +28,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
+#endif
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -48,6 +52,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try await test(setup(makeDatabasePool()).makeSnapshotPool())
+#endif
     }
     
     func testReadPreventsDatabaseModification() throws {
@@ -64,6 +72,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -81,6 +93,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
         try await test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     // MARK: - UnsafeRead
@@ -102,6 +118,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
+#endif
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -122,6 +142,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try await test(setup(makeDatabasePool()).makeSnapshotPool())
+#endif
     }
     
     // MARK: - UnsafeReentrantRead
@@ -143,6 +167,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
+#endif
     }
     
     func testUnsafeReentrantReadIsReentrant() throws {
@@ -160,6 +188,26 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+    
+    func testUnsafeReentrantReadIsReentrantFromWrite() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { db1 in
+                try dbWriter.unsafeReentrantRead { db2 in
+                    try dbWriter.unsafeReentrantRead { db3 in
+                        XCTAssertTrue(db1 === db2)
+                        XCTAssertTrue(db2 === db3)
+                    }
+                }
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
     }
     
     // MARK: - AsyncRead
@@ -188,6 +236,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     func testAsyncReadPreventsDatabaseModification() throws {
@@ -214,6 +266,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     // MARK: - Function
@@ -231,6 +287,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     // MARK: - Collation
@@ -248,6 +308,10 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     // MARK: - Backup
@@ -272,5 +336,9 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshotPool())
+#endif
     }
 }
