@@ -117,6 +117,7 @@ extension DatabaseSnapshotPool: DatabaseReader {
         dbPool.interrupt()
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         try dbPool.read { db in
             try db.read(from: self) {
@@ -145,7 +146,7 @@ extension DatabaseSnapshotPool: DatabaseReader {
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         /// There is no unsafe access to a snapshot.
-        dbPool.asyncRead(value)
+        asyncRead(value)
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {

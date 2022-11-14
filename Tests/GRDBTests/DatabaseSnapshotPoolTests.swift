@@ -39,7 +39,7 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         } catch DatabaseError.SQLITE_ERROR { }
     }
     
-    func testSnapshotPool() throws {
+    func testSnapshotPool_read() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         
@@ -51,6 +51,58 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         // Reuse the last connection
         try XCTAssertEqual(dbPool.read(counter.value), 2)
+    }
+    
+    func testSnapshotPool_unsafeRead() throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        
+        try dbPool.write(counter.increment)
+        let snapshot = try dbPool.makeSnapshotPool()
+        try dbPool.write(counter.increment)
+        
+        try XCTAssertEqual(dbPool.read(counter.value), 2)
+        try XCTAssertEqual(snapshot.unsafeRead(counter.value), 1)
+        // Reuse the last connection
+        try XCTAssertEqual(dbPool.read(counter.value), 2)
+    }
+    
+    func testSnapshotPool_unsafeReentrantRead() throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        
+        try dbPool.write(counter.increment)
+        let snapshot = try dbPool.makeSnapshotPool()
+        try dbPool.write(counter.increment)
+        
+        try XCTAssertEqual(dbPool.read(counter.value), 2)
+        try XCTAssertEqual(snapshot.unsafeReentrantRead { _ in try snapshot.unsafeReentrantRead(counter.value) }, 1)
+        // Reuse the last connection
+        try XCTAssertEqual(dbPool.read(counter.value), 2)
+    }
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testSnapshotPool_read_async() async throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        
+        try await dbPool.write { try counter.increment($0) }
+        let snapshot = try dbPool.makeSnapshotPool()
+        try await dbPool.write { try counter.increment($0) }
+        
+        do {
+            let count = try await dbPool.read { try counter.value($0) }
+            XCTAssertEqual(count, 2)
+        }
+        do {
+            let count = try await snapshot.read { try counter.value($0) }
+            XCTAssertEqual(count, 1)
+        }
+        do {
+            // Reuse the last connection
+            let count = try await dbPool.read { try counter.value($0) }
+            XCTAssertEqual(count, 2)
+        }
     }
     
     func testPassiveCheckpointDoesNotInvalidateSnapshotPool() throws {
