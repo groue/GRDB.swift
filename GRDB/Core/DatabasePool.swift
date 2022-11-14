@@ -54,7 +54,7 @@ import UIKit
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
 ///
-/// ### Creating and Reading WAL Snapshots
+/// ### Accessing WAL Snapshots
 ///
 /// - ``makeSnapshot()``
 /// - ``currentSnapshotToken()``

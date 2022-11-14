@@ -75,20 +75,6 @@ public struct WALSnapshotToken {
     @LockedBox var schemaCache: Database.SchemaCache
 }
 
-extension DatabaseSnapshot {
-    func currentSnapshotToken() throws -> WALSnapshotToken {
-        try unsafeReentrantRead { db in
-            let walSnapshot = try WALSnapshot(db)
-            let schemaVersion = try db.schemaVersion()
-            return WALSnapshotToken(
-                walSnapshot: walSnapshot,
-                snapshot: self,
-                schemaVersion: schemaVersion,
-                schemaCache: db.schemaCache)
-        }
-    }
-}
-
 extension DatabasePool {
     /// Returns a token associated with the WAL snapshot of the current state of
     /// the database.
@@ -130,7 +116,14 @@ extension DatabasePool {
     /// let token = try dbPool.currentSnapshotToken() // OK
     /// ```
     public func currentSnapshotToken() throws -> WALSnapshotToken {
-        try makeSnapshot().currentSnapshotToken()
+        let snapshot = try makeSnapshot()
+        return try snapshot.read { db in
+            try WALSnapshotToken(
+                walSnapshot: WALSnapshot(db),
+                snapshot: snapshot,
+                schemaVersion: db.schemaVersion(),
+                schemaCache: db.schemaCache)
+        }
     }
     
     /// Executes read-only database operations from the given WAL snapshot, and
