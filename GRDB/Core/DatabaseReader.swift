@@ -206,7 +206,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -241,7 +243,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -273,7 +277,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// This method can be called from other database access methods. If called
     /// from the dispatch queue of a current database access (read or write),
@@ -457,7 +463,9 @@ extension DatabaseReader {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
