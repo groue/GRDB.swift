@@ -275,8 +275,12 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// become responsible for the thread-safety of your application, and
     /// responsible for database accesses performed by other processes.
     ///
-    /// This method can be called from other database access methods. Reentrant
-    /// database accesses are discouraged, though, because they muddle
+    /// This method can be called from other database access methods. If called
+    /// from the dispatch queue of a current database access (read or write),
+    /// the `Database` argument to `value` is the same as the current
+    /// database access.
+    ///
+    /// Reentrant database accesses are discouraged because they muddle
     /// transaction boundaries
     /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
     /// more information).

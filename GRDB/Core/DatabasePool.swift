@@ -493,6 +493,8 @@ extension DatabasePool: DatabaseReader {
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
             return try reader.reentrantSync(value)
+        } else if writer.onValidQueue {
+            return try writer.execute(value)
         } else {
             guard let readerPool else {
                 throw DatabaseError.connectionIsClosed()

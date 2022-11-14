@@ -28,6 +28,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -48,6 +49,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
+        try await test(setup(makeDatabasePool()).makeSnapshotPool())
     }
     
     func testReadPreventsDatabaseModification() throws {
@@ -64,6 +66,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -81,6 +84,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
         try await test(makeDatabasePool().makeSnapshot())
+        try await test(makeDatabasePool().makeSnapshotPool())
     }
     
     // MARK: - UnsafeRead
@@ -102,6 +106,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
     }
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -122,6 +127,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
+        try await test(setup(makeDatabasePool()).makeSnapshotPool())
     }
     
     // MARK: - UnsafeReentrantRead
@@ -143,6 +149,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
+        try test(setup(makeDatabasePool()).makeSnapshotPool())
     }
     
     func testUnsafeReentrantReadIsReentrant() throws {
@@ -160,6 +167,23 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
+    }
+    
+    func testUnsafeReentrantReadIsReentrantFromWrite() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { db1 in
+                try dbWriter.unsafeReentrantRead { db2 in
+                    try dbWriter.unsafeReentrantRead { db3 in
+                        XCTAssertTrue(db1 === db2)
+                        XCTAssertTrue(db2 === db3)
+                    }
+                }
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
     }
     
     // MARK: - AsyncRead
@@ -188,6 +212,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
     }
     
     func testAsyncReadPreventsDatabaseModification() throws {
@@ -214,6 +239,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
     }
     
     // MARK: - Function
@@ -231,6 +257,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
     }
     
     // MARK: - Collation
@@ -248,6 +275,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        try test(makeDatabasePool().makeSnapshotPool())
     }
     
     // MARK: - Backup
@@ -272,5 +300,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshotPool())
     }
 }
