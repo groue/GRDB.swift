@@ -59,6 +59,8 @@ import Dispatch
 /// let count2 = try dbPool.read(from: token2, Player.fetchCount)
 /// ```
 ///
+/// Related SQLite documentation:
+///
 /// - <https://www.sqlite.org/c3ref/snapshot_get.html>
 /// - <https://www.sqlite.org/c3ref/snapshot_open.html>
 public struct WALSnapshotToken {
