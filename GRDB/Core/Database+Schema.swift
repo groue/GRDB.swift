@@ -22,20 +22,6 @@ extension Database {
             schemaIdentifiers = nil
             schemas.removeAll()
         }
-        
-        mutating func formUnion(_ other: SchemaCache) {
-            let schemaIdentifiers = Set(schemas.keys).union(other.schemas.keys)
-            for schemaIdentifier in schemaIdentifiers {
-                switch (schemas[schemaIdentifier], other.schemas[schemaIdentifier]) {
-                case let (nil, schema):
-                    schemas[schemaIdentifier] = schema
-                case let (lhs?, rhs?):
-                    schemas[schemaIdentifier] = lhs.union(rhs)
-                default:
-                    break
-                }
-            }
-        }
     }
     
     /// An SQLite schema. See <https://sqlite.org/lang_naming.html>
@@ -1337,10 +1323,6 @@ enum SchemaObjectType: String {
 /// All objects in a database schema (tables, views, indexes, triggers).
 struct SchemaInfo: Equatable {
     private var objects: Set<SchemaObject>
-    
-    func union(_ other: SchemaInfo) -> SchemaInfo {
-        SchemaInfo(objects: objects.union(other.objects))
-    }
     
     /// Returns whether there exists a object of given type with this name
     /// (case-insensitive).

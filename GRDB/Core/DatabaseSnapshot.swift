@@ -100,7 +100,7 @@ public final class DatabaseSnapshot {
             try db.beginTransaction(.deferred)
             
             // Acquire snapshot isolation
-            try db.makeStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
+            try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
         }
     }
     

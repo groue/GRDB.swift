@@ -885,4 +885,64 @@ extension DatabasePool {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "snapshot.\($databaseSnapshotCount.increment())")
     }
+    
+    // swiftlint:disable:next line_length
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+    /// Creates a database snapshot that uses the reader connections of
+    /// the pool.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// The returned snapshot sees an unchanging database content, as it existed
+    /// at the moment it was created.
+    ///
+    /// An error is thrown unless the SQLite database is in the
+    /// [WAL mode](https://www.sqlite.org/wal.html).
+    ///
+    /// It is a programmer error to create a snapshot from the writer dispatch
+    /// queue when a transaction is opened:
+    ///
+    /// ```swift
+    /// try dbPool.write { db in
+    ///     try Player.deleteAll()
+    ///
+    ///     // fatal error: makeSnapshot() must not be called from inside a transaction
+    ///     let snapshot = try dbPool.makeSnapshot()
+    /// }
+    /// ```
+    ///
+    /// To avoid this fatal error, create the snapshot *before* or *after*
+    /// the transaction:
+    ///
+    /// ```swift
+    /// let snapshot = try dbPool.makeSnapshot() // OK
+    ///
+    /// try dbPool.writeWithoutTransaction { db in
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
+    ///
+    ///     try db.inTransaction {
+    ///         try Player.deleteAll()
+    ///         return .commit
+    ///     }
+    ///
+    ///     // OK
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
+    /// }
+    ///
+    /// let snapshot = try dbPool.makeSnapshot() // OK
+    /// ```
+    public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
+        // Sanity check
+        if writer.onValidQueue {
+            writer.execute { db in
+                GRDBPrecondition(
+                    !db.isInsideTransaction,
+                    "makeSnapshotPool() must not be called from inside a transaction.")
+            }
+        }
+        
+        return try DatabaseSnapshotPool(path: path, configuration: configuration)
+    }
+#endif
 }
