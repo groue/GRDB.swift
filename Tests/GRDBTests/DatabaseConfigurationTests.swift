@@ -26,6 +26,12 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         try pool.makeSnapshot().read { _ in }
         XCTAssertEqual(connectionCount, 5)
+        
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try pool.makeSnapshotPool().read { _ in }
+        XCTAssertEqual(connectionCount, 6)
+#endif
     }
     
     func testPrepareDatabaseError() throws {
@@ -68,6 +74,15 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
+            
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+            do {
+                error = TestError()
+                _ = try pool.makeSnapshotPool()
+                XCTFail("Expected TestError")
+            } catch is TestError { }
+#endif
         }
     }
     

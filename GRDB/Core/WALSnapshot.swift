@@ -42,8 +42,6 @@ final class WALSnapshot: Sendable {
     
     let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
     
-    /// Returns nil if `SQLITE_ENABLE_SNAPSHOT` is not enabled, or if an
-    /// error occurs.
     init(_ db: Database) throws {
         var sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>?
         let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {

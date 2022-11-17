@@ -40,6 +40,10 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     func testReadTransactionAbortedByInterruptDoesNotPreventFurtherRead() throws {
@@ -82,6 +86,10 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+        try test(makeDatabasePool().makeSnapshotPool())
+#endif
     }
     
     func testWriteTransactionAbortedByInterrupt() throws {

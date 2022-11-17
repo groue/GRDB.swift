@@ -162,7 +162,9 @@ public final class DatabaseSnapshotPool {
             })
         
         // Get WAL snapshot
-        walSnapshot = try db.isolated(readOnly: true) { try WALSnapshot(db) }
+        walSnapshot = try db.isolated(readOnly: true) {
+            try WALSnapshot(db)
+        }
         
         // Create first connection that will keep the WALSnapshot alive.
         try readerPool!.get { _ in }
