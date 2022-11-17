@@ -217,6 +217,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Internal properties
     
+    let path: String
+    
     /// Support for schema changes performed with ``DatabasePool``: each read
     /// access needs to clear the schema cache if the schema has been modified
     /// by the writer connection since the previous read. This property is reset
@@ -306,6 +308,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        self.path = path
         
         // We do not report read-only transactions to transaction observers, so
         // don't bother installing the observation broker for read-only connections.

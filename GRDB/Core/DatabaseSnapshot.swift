@@ -52,7 +52,7 @@ import Dispatch
 ///         return .commit
 ///     }
 ///
-///     return dbPool.makeSnapshot()
+///     return try dbPool.makeSnapshot()
 /// }
 ///
 /// // <- Other threads may have created some players here

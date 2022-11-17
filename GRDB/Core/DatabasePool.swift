@@ -832,10 +832,8 @@ extension DatabasePool {
     
     // MARK: - Snapshots
     
-    /// Creates an independent database snapshot.
-    ///
-    /// The returned snapshot sees an unchanging database content, as it existed
-    /// at the moment it was created.
+    /// Creates a database snapshot that serializes accesses to an unchanging
+    /// database content, as it exists at the moment the snapshot is created.
     ///
     /// It is a programmer error to create a snapshot from the writer dispatch
     /// queue when a transaction is opened:
@@ -889,60 +887,20 @@ extension DatabasePool {
     // swiftlint:disable:next line_length
 #if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 #else
-    /// Creates a database snapshot that uses the reader connections of
-    /// the pool.
+    /// Creates a database snapshot that allows concurrent accesses to an
+    /// unchanging database content, as it exists at the moment the snapshot
+    /// is created.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
-    /// The returned snapshot sees an unchanging database content, as it existed
-    /// at the moment it was created.
-    ///
-    /// An error is thrown unless the SQLite database is in the
-    /// [WAL mode](https://www.sqlite.org/wal.html).
-    ///
-    /// It is a programmer error to create a snapshot from the writer dispatch
-    /// queue when a transaction is opened:
-    ///
-    /// ```swift
-    /// try dbPool.write { db in
-    ///     try Player.deleteAll()
-    ///
-    ///     // fatal error: makeSnapshot() must not be called from inside a transaction
-    ///     let snapshot = try dbPool.makeSnapshot()
-    /// }
-    /// ```
-    ///
-    /// To avoid this fatal error, create the snapshot *before* or *after*
-    /// the transaction:
-    ///
-    /// ```swift
-    /// let snapshot = try dbPool.makeSnapshot() // OK
-    ///
-    /// try dbPool.writeWithoutTransaction { db in
-    ///     let snapshot = try dbPool.makeSnapshot() // OK
-    ///
-    ///     try db.inTransaction {
-    ///         try Player.deleteAll()
-    ///         return .commit
-    ///     }
-    ///
-    ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot() // OK
-    /// }
-    ///
-    /// let snapshot = try dbPool.makeSnapshot() // OK
-    /// ```
+    /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html), or
+    /// if this method is called from a database access where a write
+    /// transaction is open.
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
-        // Sanity check
-        if writer.onValidQueue {
-            writer.execute { db in
-                GRDBPrecondition(
-                    !db.isInsideTransaction,
-                    "makeSnapshotPool() must not be called from inside a transaction.")
-            }
+        try unsafeReentrantRead { db in
+            try DatabaseSnapshotPool(db)
         }
-        
-        return try DatabaseSnapshotPool(path: path, configuration: configuration)
     }
 #endif
 }

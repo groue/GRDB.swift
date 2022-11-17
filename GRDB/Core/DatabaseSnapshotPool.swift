@@ -26,8 +26,9 @@
 ///
 /// ## Usage
 ///
-/// You create a `DatabaseSnapshotPool` from a ``DatabasePool``,
-/// with ``DatabasePool/makeSnapshotPool()``:
+/// You create a `DatabaseSnapshotPool` from a
+/// [WAL mode](https://www.sqlite.org/wal.html) database, such as databases
+/// created from a ``DatabasePool``:
 ///
 /// ```swift
 /// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
@@ -48,13 +49,15 @@
 /// some players:
 ///
 /// ```swift
-/// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
+/// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshotPool in
 ///     try db.inTransaction {
 ///         try Player.deleteAll()
 ///         return .commit
 ///     }
 ///
-///     return dbPool.makeSnapshotPool()
+///     return try dbPool.makeSnapshotPool()
+///     // OR (this is equivalent)
+///     return try DatabaseSnapshotPool(db)
 /// }
 ///
 /// // <- Other threads may have created some players here
@@ -74,19 +77,120 @@
 ///
 /// - <https://www.sqlite.org/c3ref/snapshot_get.html>
 /// - <https://www.sqlite.org/c3ref/snapshot_open.html>
+///
+/// ## Topics
+///
+/// ### Creating a DatabaseSnapshotPool
+///
+/// See also ``DatabasePool/makeSnapshotPool()``.
+///
+/// - ``init(_:)``
+/// - ``init(path:configuration:)``
 public final class DatabaseSnapshotPool {
     public let configuration: Configuration
+    
+    /// The path to the database file.
+    public let path: String
     
     /// The pool of reader connections.
     /// It is constant, until close() sets it to nil.
     private var readerPool: Pool<SerializedDatabase>?
     
+    /// Creates a snapshot of the database.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+    /// let snapshot = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshotPool in
+    ///     try db.inTransaction {
+    ///         try Player.deleteAll()
+    ///         return .commit
+    ///     }
+    ///
+    ///     return DatabaseSnapshotPool(db)
+    /// }
+    /// ```
+    ///
+    /// If any of the following statements are false when the snapshot is
+    /// created, a ``DatabaseError`` of code `SQLITE_ERROR` is thrown:
+    ///
+    /// - The database connection must be in the
+    ///   [WAL mode](https://www.sqlite.org/wal.html).
+    /// - There must not be a write transaction open.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public init(_ db: Database) throws {
+        // Snapshot keeps a long-lived transaction
+        var configuration = DatabasePool.readerConfiguration(db.configuration)
+        configuration.allowsUnsafeTransactions = true
+        
+        GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
+        
+        var walSnapshot: WALSnapshot?
+        configuration.prepareDatabase { db in
+            // Open transaction
+            try db.beginTransaction(.deferred)
+            
+            // Acquire snapshot isolation
+            try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
+            
+            // Open snapshot
+            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot!.sqliteSnapshot)
+            guard code == SQLITE_OK else {
+                throw DatabaseError(resultCode: code)
+            }
+        }
+        
+        self.configuration = configuration
+        self.path = db.path
+        
+        var readerCount = 0
+        readerPool = Pool(
+            maximumCount: configuration.maximumReaderCount,
+            qos: configuration.readQoS,
+            makeElement: {
+                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+                return try SerializedDatabase(
+                    path: db.path,
+                    configuration: configuration,
+                    defaultLabel: "GRDB.DatabaseSnapshotPool",
+                    purpose: "snapshot.\(readerCount)")
+            })
+        
+        // Get WAL snapshot
+        walSnapshot = try db.isolated(readOnly: true) { try WALSnapshot(db) }
+        
+        // Create first connection that will keep the WALSnapshot alive.
+        try readerPool!.get { _ in }
+    }
+    
+    /// Creates a snapshot of the database.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let snapshot = try DatabaseSnapshotPool(path: "/path/to/database.sqlite")
+    /// ```
+    ///
+    /// If the database at `path` is not in the
+    /// [WAL mode](https://www.sqlite.org/wal.html), a ``DatabaseError`` of code
+    /// `SQLITE_ERROR` is thrown.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
+    ///
+    /// - parameters:
+    ///     - path: The path to the database file.
+    ///     - configuration: A configuration.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
-        var configuration = DatabasePool.readerConfiguration(configuration)
-        
         // Snapshot keeps a long-lived transaction
+        var configuration = DatabasePool.readerConfiguration(configuration)
         configuration.allowsUnsafeTransactions = true
         
         var walSnapshot: WALSnapshot?
@@ -98,7 +202,7 @@ public final class DatabaseSnapshotPool {
             try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
             
             // Open snapshot
-            if let walSnapshot {
+            if let walSnapshot { // nil on first connection created below
                 let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot.sqliteSnapshot)
                 guard code == SQLITE_OK else {
                     throw DatabaseError(resultCode: code)
@@ -107,6 +211,7 @@ public final class DatabaseSnapshotPool {
         }
         
         self.configuration = configuration
+        self.path = path
         
         var readerCount = 0
         readerPool = Pool(
