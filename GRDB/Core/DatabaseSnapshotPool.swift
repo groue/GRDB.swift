@@ -5,6 +5,7 @@
 // If we create a new pool of connections, we avoid this problem. And we can
 // simplify the management of shared cache (drop all cache-merging code)
 
+#warning("TODO: restore or don't reuse connections that have lost their transaction")
 /// A database connection that allows concurrent accesses to an unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
@@ -33,41 +34,29 @@
 /// ```swift
 /// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 /// let snapshot = try dbPool.makeSnapshotPool()
-/// let playerCount = try snapshot.read { db in
-///     try Player.fetchCount(db)
-/// }
 /// ```
 ///
 /// When you want to control the database state seen by a snapshot, create the
-/// snapshot from within a write access, outside of any transaction.
-///
-/// For example, compare the two snapshots below. The first one is guaranteed to
-/// see an empty table of players, because is is created after all players have
-/// been deleted, and from the serialized writer dispatch queue which prevents
-/// any concurrent write. The second is created without this concurrency
-/// protection, which means that some other threads may already have created
-/// some players:
+/// snapshot from a database connection, outside of a write transaction. You can
+/// for example take snapshots from a ``ValueObservation``:
 ///
 /// ```swift
-/// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshotPool in
-///     try db.inTransaction {
-///         try Player.deleteAll()
-///         return .commit
-///     }
-///
-///     return try dbPool.makeSnapshotPool()
-///     // OR (this is equivalent)
+/// // An observation of the 'player' table
+/// // that notifies fresh database snapshots:
+/// let observation = ValueObservation.tracking { db in
+///     // Don't fetch players now, and return a snapshot instead.
+///     // Register an access to the player table so that the
+///     // observation tracks changes to this table.
+///     try db.registerAccess(to: Player.all())
 ///     return try DatabaseSnapshotPool(db)
 /// }
 ///
-/// // <- Other threads may have created some players here
-/// let snapshot2 = try dbPool.makeSnapshotPool()
-///
-/// // Guaranteed to be zero
-/// let count1 = try snapshot1.read(Player.fetchCount)
-///
-/// // Could be anything
-/// let count2 = try snapshot2.read(Player.fetchCount)
+/// // Start observing the 'player' table
+/// let cancellable = try observation.start(in: dbPool) { error in
+///     // Handle error
+/// } onChange: { (snapshot: DatabaseSnapshotPool) in
+///     // Handle a fresh snapshot
+/// }
 /// ```
 ///
 /// `DatabaseSnapshotPool` inherits its database access methods from the
@@ -84,7 +73,7 @@
 ///
 /// See also ``DatabasePool/makeSnapshotPool()``.
 ///
-/// - ``init(_:)``
+/// - ``init(_:configuration:)``
 /// - ``init(path:configuration:)``
 public final class DatabaseSnapshotPool {
     public let configuration: Configuration
@@ -108,8 +97,14 @@ public final class DatabaseSnapshotPool {
     ///         return .commit
     ///     }
     ///
+    ///     // Create the snapshot after all players have been deleted.
     ///     return DatabaseSnapshotPool(db)
     /// }
+    ///
+    /// // Later... Maybe some players have been created.
+    /// // The snapshot is guaranteed to see an empty table of players, though:
+    /// let count = try snapshot.read(Player.fetchCount)
+    /// assert(count == 0)
     /// ```
     ///
     /// If any of the following statements are false when the snapshot is
@@ -122,10 +117,13 @@ public final class DatabaseSnapshotPool {
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     ///
     /// - parameter db: A database connection.
+    /// - parameter configuration: A configuration. If nil, the configuration of
+    ///   `db` is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public init(_ db: Database) throws {
+    public init(_ db: Database, configuration: Configuration? = nil) throws {
+        var configuration = DatabasePool.readerConfiguration(configuration ?? db.configuration)
+        
         // Snapshot keeps a long-lived transaction
-        var configuration = DatabasePool.readerConfiguration(db.configuration)
         configuration.allowsUnsafeTransactions = true
         
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
@@ -189,10 +187,10 @@ public final class DatabaseSnapshotPool {
     ///     - configuration: A configuration.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
+        var configuration = DatabasePool.readerConfiguration(configuration)
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
         // Snapshot keeps a long-lived transaction
-        var configuration = DatabasePool.readerConfiguration(configuration)
         configuration.allowsUnsafeTransactions = true
         
         var walSnapshot: WALSnapshot?
