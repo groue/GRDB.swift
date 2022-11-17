@@ -236,7 +236,7 @@ public final class DatabaseSnapshotPool {
 
 extension DatabaseSnapshotPool: @unchecked Sendable { }
 
-extension DatabaseSnapshotPool: DatabaseReader {
+extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     public func close() throws {
         try readerPool?.barrier {
             defer { readerPool = nil }

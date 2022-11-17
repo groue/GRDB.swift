@@ -337,8 +337,9 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 
 ### Database Connections with Concurrency Guarantees
 
-- ``DatabaseReader``
 - ``DatabaseWriter``
+- ``DatabaseReader``
+- ``DatabaseSnapshotReader``
 
 ### Advanced Concurrency
 

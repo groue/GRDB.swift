@@ -5,9 +5,8 @@ import Dispatch
 
 /// A type that reads from an SQLite database.
 ///
-/// Do not declare new conformances to `DatabaseReader`. Only the
-/// ``DatabaseQueue``, ``DatabasePool``, and ``DatabaseSnapshot`` types are
-/// valid conforming types.
+/// Do not declare new conformances to `DatabaseReader`. Only the built-in
+/// conforming types are valid.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// conforming types in a multithreaded application. See <doc:Concurrency> for
@@ -687,3 +686,13 @@ extension AnyDatabaseReader: DatabaseReader {
             onChange: onChange)
     }
 }
+
+/// A type that sees an unchanging database content.
+///
+/// Do not declare new conformances to `DatabaseSnapshotReader`. Only the
+/// built-in conforming types are valid.
+///
+/// The protocol comes with the same features and guarantees as
+/// ``DatabaseReader``. On top of them, a `DatabaseSnapshotReader` always sees
+/// the same state of the database.
+public protocol DatabaseSnapshotReader: DatabaseReader { }

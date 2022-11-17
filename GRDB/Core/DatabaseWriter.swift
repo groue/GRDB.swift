@@ -5,8 +5,8 @@ import Dispatch
 
 /// A type that writes into an SQLite database.
 ///
-/// Do not declare new conformances to `DatabaseWriter`. Only the
-/// ``DatabaseQueue`` and ``DatabasePool`` types are valid conforming types.
+/// Do not declare new conformances to `DatabaseWriter`. Only the built-in
+/// conforming types are valid.
 ///
 /// A database writer creates one single SQLite connection dedicated to database
 /// updates. All updates are executed in a serial **writer dispatch queue**.

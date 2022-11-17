@@ -112,7 +112,7 @@ public final class DatabaseSnapshot {
     }
 }
 
-extension DatabaseSnapshot: DatabaseReader {
+extension DatabaseSnapshot: DatabaseSnapshotReader {
     public func close() throws {
         try reader.sync { try $0.close() }
     }

@@ -28,7 +28,7 @@ The differences are:
 
 - ``Configuration``
 
-### Opening Database Connections
+### Database Connections
 
 - ``DatabaseQueue``
 - ``DatabasePool``
