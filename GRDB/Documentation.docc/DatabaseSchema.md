@@ -4,9 +4,7 @@ Learn how to define the database schema.
 
 ## Overview
 
-SQLite directly supports a [set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as Swift methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, listed below.
-
-You can directly create tables when you open a database, as below:
+You can directly define the database schema when you open a database, as below:
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
@@ -20,14 +18,22 @@ try dbQueue.write { db in
 }
 ```
 
-But you should prefer wrapping your schema changes in <doc:Migrations> when you plan to upgrade the database schema in future versions of your app.
+But you should prefer wrapping all your schema changes in <doc:Migrations>, when you plan to upgrade the database schema in future versions of your app.
 
-> Tip: When modifying the database schema, prefer Swift APIs over raw SQL queries. This helps the compiler check if features are available on the SQLite version that ships on the target operating system. For example:
+## Schema Alterations
+
+SQLite directly supports a [set of schema alterations](https://www.sqlite.org/lang.html).
+
+Many of them are available as Swift methods such as ``Database/create(table:options:body:)``, listed below.
+
+When the schema alteration you need is not available as a Swift method, use a raw SQL query (for creating views or triggers, for example).
+
+When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table. See <doc:Migrations> for the detailed procedure.
+
+> Tip: Prefer Swift methods over raw SQL queries. This helps the compiler check if features are available on the SQLite version that ships on the target operating system. For example:
 >
-> - Dropping a table column requires SQLite 3.35+ (iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0).
-> - [Strict tables](https://www.sqlite.org/stricttables.html) require SQLite 3.37+ (iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5).
->
-> When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table. See <doc:Migrations> for the detailed procedure.  
+> - Dropping a table column requires SQLite 3.35+ (iOS 15.0, macOS 12.0).
+> - [Strict tables](https://www.sqlite.org/stricttables.html) require SQLite 3.37+ (iOS 15.4, macOS 12.4).
 
 ## Topics
 
