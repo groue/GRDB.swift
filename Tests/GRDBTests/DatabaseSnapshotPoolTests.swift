@@ -115,6 +115,47 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         try XCTAssertEqual(dbPool.read(counter.value), 2)
     }
     
+    func test_discarded_transaction() throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)    // 0
+        try dbPool.write(counter.increment)          // 1
+        let snapshot = try dbPool.makeSnapshotPool() // locked at 1
+        try dbPool.write(counter.increment)          // 2
+        
+        try snapshot.read { db in
+            try XCTAssertEqual(counter.value(db), 1)
+            try db.commit() // lose snapshot
+            try XCTAssertEqual(counter.value(db), 2)
+        }
+        
+        // Try to invalidate the snapshot
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.truncate) }
+        
+        // Snapshot is not lost, and previous connection is not reused.
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
+    }
+    
+    func test_replaced_transaction() throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)    // 0
+        try dbPool.write(counter.increment)          // 1
+        let snapshot = try dbPool.makeSnapshotPool() // locked at 1
+        try dbPool.write(counter.increment)          // 2
+        
+        try snapshot.read { db in
+            try XCTAssertEqual(counter.value(db), 1)
+            try db.commit() // lose snapshot
+            try db.beginTransaction()
+            try XCTAssertEqual(counter.value(db), 2)
+        }
+        
+        // Try to invalidate the snapshot
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.truncate) }
+        
+        // Snapshot is not lost, and previous connection is not reused.
+        try XCTAssertEqual(snapshot.read(counter.value), 1)
+    }
+    
     func test_concurrent_read() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)    // 0

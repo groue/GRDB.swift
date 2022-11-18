@@ -5,7 +5,6 @@
 // If we create a new pool of connections, we avoid this problem. And we can
 // simplify the management of shared cache (drop all cache-merging code)
 
-#warning("TODO: restore or don't reuse connections that have lost their transaction")
 /// A database connection that allows concurrent accesses to an unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
@@ -85,6 +84,13 @@ public final class DatabaseSnapshotPool {
     /// It is constant, until close() sets it to nil.
     private var readerPool: Pool<SerializedDatabase>?
     
+    /// The WAL snapshot
+    private let walSnapshot: WALSnapshot
+    
+    /// A connection that prevents checkpoints and keeps the WAL snapshot valid.
+    /// It is never used.
+    private let snapshotHolder: DatabaseQueue
+    
     /// Creates a snapshot of the database.
     ///
     /// For example:
@@ -128,16 +134,26 @@ public final class DatabaseSnapshotPool {
         
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
-        var walSnapshot: WALSnapshot?
-        configuration.prepareDatabase { db in
-            // Open transaction
+        // Acquire and hold WAL snapshot
+        let walSnapshot = try db.isolated(readOnly: true) {
+            try WALSnapshot(db)
+        }
+        var holderConfig = Configuration()
+        holderConfig.allowsUnsafeTransactions = true
+        snapshotHolder = try DatabaseQueue(path: db.path, configuration: holderConfig)
+        try snapshotHolder.inDatabase { db in
             try db.beginTransaction(.deferred)
-            
-            // Acquire snapshot isolation
             try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
-            
-            // Open snapshot
-            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot!.sqliteSnapshot)
+            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot.sqliteSnapshot)
+            guard code == SQLITE_OK else {
+                throw DatabaseError(resultCode: code)
+            }
+        }
+        
+        configuration.prepareDatabase { db in
+            try db.beginTransaction(.deferred)
+            try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
+            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot.sqliteSnapshot)
             guard code == SQLITE_OK else {
                 throw DatabaseError(resultCode: code)
             }
@@ -145,6 +161,7 @@ public final class DatabaseSnapshotPool {
         
         self.configuration = configuration
         self.path = db.path
+        self.walSnapshot = walSnapshot
         
         var readerCount = 0
         readerPool = Pool(
@@ -158,14 +175,6 @@ public final class DatabaseSnapshotPool {
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
                     purpose: "snapshot.\(readerCount)")
             })
-        
-        // Get WAL snapshot
-        walSnapshot = try db.isolated(readOnly: true) {
-            try WALSnapshot(db)
-        }
-        
-        // Create first connection that will keep the WALSnapshot alive.
-        try readerPool!.get { _ in }
     }
     
     /// Creates a snapshot of the database.
@@ -193,25 +202,28 @@ public final class DatabaseSnapshotPool {
         // Snapshot keeps a long-lived transaction
         configuration.allowsUnsafeTransactions = true
         
-        var walSnapshot: WALSnapshot?
-        configuration.prepareDatabase { db in
-            // Open transaction
+        // Acquire and hold WAL snapshot
+        var holderConfig = Configuration()
+        holderConfig.allowsUnsafeTransactions = true
+        snapshotHolder = try DatabaseQueue(path: path, configuration: holderConfig)
+        let walSnapshot = try snapshotHolder.inDatabase { db in
             try db.beginTransaction(.deferred)
-            
-            // Acquire snapshot isolation
             try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
-            
-            // Open snapshot
-            if let walSnapshot { // nil on first connection created below
-                let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot.sqliteSnapshot)
-                guard code == SQLITE_OK else {
-                    throw DatabaseError(resultCode: code)
-                }
+            return try WALSnapshot(db)
+        }
+        
+        configuration.prepareDatabase { db in
+            try db.beginTransaction(.deferred)
+            try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
+            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", walSnapshot.sqliteSnapshot)
+            guard code == SQLITE_OK else {
+                throw DatabaseError(resultCode: code)
             }
         }
         
         self.configuration = configuration
         self.path = path
+        self.walSnapshot = walSnapshot
         
         var readerCount = 0
         readerPool = Pool(
@@ -225,12 +237,6 @@ public final class DatabaseSnapshotPool {
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
                     purpose: "snapshot.\(readerCount)")
             })
-        
-        walSnapshot = try readerPool!.get { reader in
-            try reader.sync { db in
-                try WALSnapshot(db)
-            }
-        }
     }
 }
 
@@ -257,9 +263,20 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
-        return try readerPool.get { reader in
-            try reader.sync { db in
-                return try value(db)
+        
+        let (reader, releaseReader) = try readerPool.get()
+        var completion: PoolCompletion!
+        defer {
+            releaseReader(completion)
+        }
+        return try reader.sync { db in
+            do {
+                let value = try value(db)
+                completion = poolCompletion(db)
+                return value
+            } catch {
+                completion = poolCompletion(db)
+                throw error
             }
         }
     }
@@ -281,7 +298,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     value(.success(db))
-                    releaseReader(.reuse)
+                    releaseReader(self.poolCompletion(db))
                 }
             } catch {
                 value(.failure(error))
@@ -296,16 +313,16 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
-            return try reader.reentrantSync(value)
-        } else {
-            guard let readerPool else {
-                throw DatabaseError.connectionIsClosed()
-            }
-            return try readerPool.get { reader in
-                try reader.sync { db in
-                    return try value(db)
+            return try reader.reentrantSync { db in
+                let result = try value(db)
+                if snapshotIsLost(db) {
+                    throw DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
                 }
+                return result
             }
+        } else {
+            /// There is no unsafe access to a snapshot.
+            return try read(value)
         }
     }
     
@@ -342,6 +359,23 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         // its own dispatch queue. If it exists, is still in use, thus still
         // in the pool, and thus still relevant for our check:
         return readers.first { $0.onValidQueue }
+    }
+    
+    private func poolCompletion(_ db: Database) -> PoolCompletion {
+        snapshotIsLost(db) ? .discard : .reuse
+    }
+    
+    private func snapshotIsLost(_ db: Database) -> Bool {
+        do {
+            let currentSnapshot = try WALSnapshot(db)
+            if currentSnapshot.compare(walSnapshot) == 0 {
+                return false
+            } else {
+                return true
+            }
+        } catch {
+            return true
+        }
     }
 }
 #endif
