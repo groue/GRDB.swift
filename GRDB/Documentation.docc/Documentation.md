@@ -28,11 +28,11 @@ Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB
 - <doc:Migrations>
 - <doc:SingleRowTables>
 
-### Record Types and the Query Interface
+### Records and the Query Interface
 
 - <doc:QueryInterface>
 
-### Database Observation
+### Responding to Database Changes
 
 - <doc:DatabaseObservation>
 
