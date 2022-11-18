@@ -432,7 +432,7 @@ extension DatabasePool: DatabaseReader {
                 reader.async { db in
                     defer {
                         try? db.commit() // Ignore commit error
-                        releaseReader()
+                        releaseReader(.reuse)
                     }
                     do {
                         // The block isolation comes from the DEFERRED transaction.
@@ -475,7 +475,7 @@ extension DatabasePool: DatabaseReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     defer {
-                        releaseReader()
+                        releaseReader(.reuse)
                     }
                     do {
                         try db.clearSchemaCacheIfNeeded()
@@ -591,7 +591,7 @@ extension DatabasePool: DatabaseReader {
             reader.async { db in
                 defer {
                     try? db.commit() // Ignore commit error
-                    releaseReader()
+                    releaseReader(.reuse)
                 }
                 do {
                     // https://www.sqlite.org/isolation.html

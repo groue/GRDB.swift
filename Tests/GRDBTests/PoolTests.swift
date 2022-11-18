@@ -14,7 +14,7 @@ class PoolTests: XCTestCase {
         // Get and release element
         let first = try pool.get()
         XCTAssertEqual(first.element, 1)
-        first.release()
+        first.release(.reuse)
         
         // Get recycled element
         let second = try pool.get()
@@ -24,17 +24,46 @@ class PoolTests: XCTestCase {
         let third = try pool.get()
         XCTAssertEqual(third.element, 2)
         
-        // Release elements
-        second.release()
-        third.release()
+        // Reuse elements
+        second.release(.reuse)
+        third.release(.reuse)
         
         // Get and release recycled elements
         let fourth = try pool.get()
         XCTAssertEqual(fourth.element, 1)
         let fifth = try pool.get()
         XCTAssertEqual(fifth.element, 2)
-        fourth.release()
-        fifth.release()
+        fourth.release(.reuse)
+        fifth.release(.reuse)
+    }
+    
+    func testElementsCanBeDiscarded() throws {
+        let pool = makeCounterPool(maximumCount: 2)
+        
+        // Get and release element
+        let first = try pool.get()
+        XCTAssertEqual(first.element, 1)
+        first.release(.reuse)
+        
+        // Get recycled element
+        let second = try pool.get()
+        XCTAssertEqual(second.element, 1)
+        
+        // Get new element
+        let third = try pool.get()
+        XCTAssertEqual(third.element, 2)
+        
+        // Reuse second, discard third
+        second.release(.reuse)
+        third.release(.discard)
+        
+        // Get and release recycled elements
+        let fourth = try pool.get()
+        XCTAssertEqual(fourth.element, 1)
+        let fifth = try pool.get()
+        XCTAssertEqual(fifth.element, 3)
+        fourth.release(.reuse)
+        fifth.release(.reuse)
     }
     
     func testRemoveAll() throws {
@@ -49,17 +78,17 @@ class PoolTests: XCTestCase {
         // removeAll is not locked by used elements
         pool.removeAll()
         
-        // Release elements
-        first.release()
-        second.release()
+        // Reuse elements
+        first.release(.reuse)
+        second.release(.reuse)
         
         // Get and release new elements
         let third = try pool.get()
         XCTAssertEqual(third.element, 3)
         let fourth = try pool.get()
         XCTAssertEqual(fourth.element, 4)
-        third.release()
-        fourth.release()
+        third.release(.reuse)
+        fourth.release(.reuse)
     }
     
     func testBarrierLocksElements() throws {
@@ -85,7 +114,7 @@ class PoolTests: XCTestCase {
             
             let first = try! pool.get()
             element = first.element
-            first.release()
+            first.release(.reuse)
             expectation.fulfill()
             s3.signal()
         }
@@ -93,7 +122,7 @@ class PoolTests: XCTestCase {
         // Assert that get() is blocked
         waitForExpectations(timeout: 1)
         
-        // Release barrier
+        // Reuse barrier
         s2.signal()
         
         // Wait for get() to complete
@@ -121,8 +150,8 @@ class PoolTests: XCTestCase {
         // Assert that barrier is blocked
         waitForExpectations(timeout: 1)
         
-        // Release element
-        first.release()
+        // Reuse element
+        first.release(.reuse)
         
         // Wait for barrier to complete
         s.wait()
@@ -130,7 +159,7 @@ class PoolTests: XCTestCase {
         // Get and release recycled element
         let second = try pool.get()
         XCTAssertEqual(second.element, 1)
-        second.release()
+        second.release(.reuse)
     }
     
     func testBarrierIsLockedByOneUsedElementOutOfTwo() throws {
@@ -145,8 +174,8 @@ class PoolTests: XCTestCase {
         let second = try pool.get()
         XCTAssertEqual(second.element, 2)
         
-        // Release first element
-        first.release()
+        // Reuse first element
+        first.release(.reuse)
         
         let s = DispatchSemaphore(value: 0)
         DispatchQueue.global().async {
@@ -158,8 +187,8 @@ class PoolTests: XCTestCase {
         // Assert that barrier is blocked
         waitForExpectations(timeout: 1)
         
-        // Release second element
-        second.release()
+        // Reuse second element
+        second.release(.reuse)
         
         // Wait for barrier to complete
         s.wait()
@@ -167,7 +196,7 @@ class PoolTests: XCTestCase {
         // Get and release recycled element
         let third = try pool.get()
         XCTAssertEqual(third.element, 1)
-        third.release()
+        third.release(.reuse)
     }
     
     func testBarrierIsLockedByTwoUsedElementsOutOfTwo() throws {
@@ -192,9 +221,9 @@ class PoolTests: XCTestCase {
         // Assert that barrier is blocked
         waitForExpectations(timeout: 1)
         
-        // Release elements
-        first.release()
-        second.release()
+        // Reuse elements
+        first.release(.reuse)
+        second.release(.reuse)
         
         // Wait for barrier to complete
         s.wait()
@@ -202,7 +231,7 @@ class PoolTests: XCTestCase {
         // Get and release recycled element
         let third = try pool.get()
         XCTAssertEqual(third.element, 1)
-        third.release()
+        third.release(.reuse)
     }
 
     func testBarrierRemoveAll() throws {
@@ -226,8 +255,8 @@ class PoolTests: XCTestCase {
         // Assert that barrier is blocked
         waitForExpectations(timeout: 1)
         
-        // Release element
-        first.release()
+        // Reuse element
+        first.release(.reuse)
         
         // Wait for barrier to complete
         s.wait()
@@ -235,6 +264,6 @@ class PoolTests: XCTestCase {
         // Get and release new element
         let second = try pool.get()
         XCTAssertEqual(second.element, 2)
-        second.release()
+        second.release(.reuse)
     }
 }

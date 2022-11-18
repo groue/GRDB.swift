@@ -281,7 +281,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     value(.success(db))
-                    releaseReader()
+                    releaseReader(.reuse)
                 }
             } catch {
                 value(.failure(error))
