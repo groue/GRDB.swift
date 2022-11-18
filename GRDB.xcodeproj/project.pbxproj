@@ -910,11 +910,10 @@
 			children = (
 				563082E32430B6BE00C14A05 /* DatabaseCancellable.swift */,
 				560233C32724234F00529DF3 /* SharedValueObservation.swift */,
-				564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */,
 				563B06AA217EF0CC00B38F35 /* ValueObservation.swift */,
 				56848972242DE36F002F9702 /* ValueObservationScheduler.swift */,
-				5679533227E0A2FB004D18BD /* ValueWriteOnlyObserver.swift */,
-				56AACAA022ACEC9700A40F2A /* ValueReducer */,
+				566BD72F2927AFC300595649 /* Observers */,
+				56AACAA022ACEC9700A40F2A /* Reducers */,
 			);
 			path = ValueObservation;
 			sourceTree = "<group>";
@@ -1236,6 +1235,15 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		566BD72F2927AFC300595649 /* Observers */ = {
+			isa = PBXGroup;
+			children = (
+				564CE43021AA901800652B19 /* ValueConcurrentObserver.swift */,
+				5679533227E0A2FB004D18BD /* ValueWriteOnlyObserver.swift */,
+			);
+			path = Observers;
+			sourceTree = "<group>";
+		};
 		5674A7251F30A8EF0095F066 /* FetchableRecord */ = {
 			isa = PBXGroup;
 			children = (
@@ -1500,7 +1508,7 @@
 			path = Record;
 			sourceTree = "<group>";
 		};
-		56AACAA022ACEC9700A40F2A /* ValueReducer */ = {
+		56AACAA022ACEC9700A40F2A /* Reducers */ = {
 			isa = PBXGroup;
 			children = (
 				56AACAA722ACED7100A40F2A /* Fetch.swift */,
@@ -1509,7 +1517,7 @@
 				563B8F91249E6171007A48C9 /* Trace.swift */,
 				5613ED4321A95B2C00DC7A68 /* ValueReducer.swift */,
 			);
-			path = ValueReducer;
+			path = Reducers;
 			sourceTree = "<group>";
 		};
 		56DAA2C41DE99D8D006E10C8 /* Cursor */ = {
