@@ -1,10 +1,6 @@
 // swiftlint:disable:next line_length
 #if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 #else
-// Sharing connections with DatabasePool creates a problem with reentrant access.
-// If we create a new pool of connections, we avoid this problem. And we can
-// simplify the management of shared cache (drop all cache-merging code)
-
 /// A database connection that allows concurrent accesses to an unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
