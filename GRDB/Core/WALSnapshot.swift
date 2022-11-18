@@ -20,24 +20,11 @@
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot: Sendable {
-    // Xcode 14 ships with a macOS SDK that misses snapshot support.
-    // Xcode 14.1 ships with a macOS SDK that has snapshot support.
-    // This is the meaning of (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst)))
-    //
-    // We can't provide snapshots api for SQLCipher, since we'd have linker
-    // errors if they are not enabled.
+    // Xcode 14 (Swift 5.7) ships with a macOS SDK that misses snapshot support.
+    // Xcode 14.1 (Swift 5.7.1) ships with a macOS SDK that has snapshot support.
+    // This is the meaning of (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst)))
     // swiftlint:disable:next line_length
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-    static let available = false
-
-    init(_ db: Database) throws {
-        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "snapshots are not available")
-    }
-
-    func compare(_ other: WALSnapshot) -> CInt {
-        preconditionFailure("snapshots are not available")
-    }
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
     static let available = true
     
     let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
@@ -70,5 +57,15 @@ final class WALSnapshot: Sendable {
     }
     
     // swiftlint:disable:next line_length
-#endif // (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
+#else
+    static let available = false
+
+    init(_ db: Database) throws {
+        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "snapshots are not available")
+    }
+
+    func compare(_ other: WALSnapshot) -> CInt {
+        preconditionFailure("snapshots are not available")
+    }
+#endif
 }

@@ -421,13 +421,13 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-        // Optimization not available
-        expectedCounts = [0, 0, 1]
-        #else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         // Optimization available
         expectedCounts = [0, 1]
-        #endif
+#else
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+#endif
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
@@ -471,13 +471,13 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-        // Optimization not available
-        expectedCounts = [0, 0, 1]
-        #else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         // Optimization available
         expectedCounts = [0, 1]
-        #endif
+#else
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+#endif
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
@@ -498,8 +498,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Snapshot Observation
     
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
     func testDatabaseSnapshotPoolObservation() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }

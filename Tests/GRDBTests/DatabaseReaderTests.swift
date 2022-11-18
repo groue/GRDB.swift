@@ -28,8 +28,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(setup(makeDatabasePool()).makeSnapshotPool())
 #endif
     }
@@ -52,8 +51,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try await test(setup(makeDatabasePool()).makeSnapshotPool())
 #endif
     }
@@ -72,8 +70,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -93,8 +90,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
         try await test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -118,8 +114,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(setup(makeDatabasePool()).makeSnapshotPool())
 #endif
     }
@@ -142,8 +137,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
         try await test(setup(makeDatabasePool()).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try await test(setup(makeDatabasePool()).makeSnapshotPool())
 #endif
     }
@@ -167,8 +161,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue()))
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(setup(makeDatabasePool()).makeSnapshotPool())
 #endif
     }
@@ -188,8 +181,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -236,8 +228,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -266,8 +257,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -287,8 +277,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -308,8 +297,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -336,8 +324,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabaseQueue(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshotPool())
 #endif
     }

@@ -885,8 +885,7 @@ extension DatabasePool {
     }
     
     // swiftlint:disable:next line_length
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
     /// Creates a database snapshot that allows concurrent accesses to an
     /// unchanging database content, as it exists at the moment the snapshot
     /// is created.

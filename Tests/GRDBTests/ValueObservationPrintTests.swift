@@ -54,8 +54,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -92,8 +91,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -131,8 +129,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -170,8 +167,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if (compiler(<5.7.1) && (os(macOS) || targetEnvironment(macCatalyst))) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-#else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
