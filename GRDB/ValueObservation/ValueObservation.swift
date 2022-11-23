@@ -616,7 +616,7 @@ extension DatabasePublishers {
 }
 #endif
 
-extension ValueObservation where Reducer == ValueReducers.Auto {
+extension ValueObservation {
     
     // MARK: - Creating ValueObservation
     
@@ -733,7 +733,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     /// - parameter fetch: The closure that fetches the observed value.
     public static func trackingConstantRegion<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> Self
+    where Reducer == ValueReducers.Fetch<Value>
     {
         .init(
             trackingMode: .constantRegionRecordedFromSelection,
@@ -790,7 +791,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     public static func tracking<Value>(
         region: any DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> Self
+    where Reducer == ValueReducers.Fetch<Value>
     {
         tracking(regions: region, fetch: fetch)
     }
@@ -845,7 +847,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> Self
+    where Reducer == ValueReducers.Fetch<Value>
     {
         .init(
             trackingMode: .constantRegion(regions),
@@ -872,7 +875,8 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> Self
+    where Reducer == ValueReducers.Fetch<Value>
     {
         .init(
             trackingMode: .nonConstantRegionRecordedFromSelection,

@@ -39,15 +39,4 @@ public protocol ValueReducer: _ValueReducer {
 }
 
 /// A namespace for concrete types that adopt the ``ValueReducer`` protocol.
-public enum ValueReducers {
-    // ValueReducers.Auto allows us to define ValueObservation factory methods.
-    //
-    // For example, ValueObservation.tracking(_:) is, practically,
-    // ValueObservation<ValueReducers.Auto>.tracking(_:).
-    /// `Auto` supports ``ValueObservation`` factory methods.
-    ///
-    /// Do not use this type.
-    public enum Auto: _ValueReducer {
-        public mutating func _value(_ fetched: Never) -> Never? { }
-    }
-}
+public enum ValueReducers { }
