@@ -107,7 +107,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: `DatabaseReader.configuration.maximumReaderCount` returns the effective capacity for concurrent reads, so that application code can adapt when needed.
 - **New**: `DatabasePool.makeSnapshot()` no longer throws an error when the database is not in the WAL mode. In such case, the returned snapshot prevents all database modifications during its lifetime.
 - **New**: `Database.registerAccess(to:)` has `ValueObservation` track a region. This helps building optimized observations of a constant database region with `ValueObservation.trackingConstantRegion(_:)`.
-- **New**: [#1293](https://github.com/groue/GRDB.swift/pull/1293) by [@groue](https://github.com/groue): Enable concurrent reads from a WAL snapshot;
+- **New**: Open several connections to the same in-memory databases with `DatabaseQueue(named:)`.
+- **New**: [#1293](https://github.com/groue/GRDB.swift/pull/1293) by [@groue](https://github.com/groue): Enable concurrent reads from a WAL snapshot.
 
 ## 6.3.1
 

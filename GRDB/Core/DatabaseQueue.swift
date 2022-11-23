@@ -35,7 +35,7 @@ import UIKit
 /// 
 /// ### Creating a DatabaseQueue
 ///
-/// - ``init(configuration:)``
+/// - ``init(named:configuration:)``
 /// - ``init(path:configuration:)``
 ///
 /// ### Accessing the Database
@@ -105,13 +105,41 @@ public final class DatabaseQueue {
     
     /// Opens an in-memory SQLite database.
     ///
-    /// The database memory is released when the database queue
-    /// gets deallocated.
+    /// To create an independent in-memory database, don't pass any name. The
+    /// database memory is released when the database queue is deallocated:
     ///
+    /// ```swift
+    /// // An independent in-memory database
+    /// let dbQueue = try DatabaseQueue()
+    /// ```
+    ///
+    /// When you need to open several connections to the same in-memory
+    /// database, give it a name:
+    ///
+    /// ```swift
+    /// // A shared in-memory database
+    /// let dbQueue = try DatabaseQueue(named: "myDatabase")
+    /// ```
+    ///
+    /// In this case, the database is automatically deleted and memory is
+    /// reclaimed when the last connection to the database of the given
+    /// name closes.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/inmemorydb.html>
+    ///
+    /// - parameter name: When nil, an independent in-memory database opens.
+    ///   Otherwise, the shared in-memory database of the given name opens.
     /// - parameter configuration: A configuration.
-    public init(configuration: Configuration = Configuration()) throws {
+    public init(named name: String? = nil, configuration: Configuration = Configuration()) throws {
+        let path: String
+        if let name {
+            path = "file:\(name)?mode=memory&cache=shared"
+        } else {
+            path = ":memory:"
+        }
+        
         writer = try SerializedDatabase(
-            path: ":memory:",
+            path: path,
             configuration: configuration,
             defaultLabel: "GRDB.DatabaseQueue")
     }
