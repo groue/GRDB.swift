@@ -100,6 +100,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @discardableResult
     func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
     
     /// Executes database operations, and returns their result after they have
@@ -140,6 +141,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @discardableResult
     func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T
     
     /// Schedules database operations for execution, and returns immediately.
@@ -247,6 +249,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
+    @discardableResult
     func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T
     
     // MARK: - Reading from Database
@@ -375,6 +378,7 @@ extension DatabaseWriter {
     ///   would happen while establishing the database access or committing
     ///   the transaction.
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @discardableResult
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
         try writeWithoutTransaction { db in
             var result: T?
@@ -583,6 +587,7 @@ extension DatabaseWriter {
     ///   would happen while establishing the database access or committing
     ///   the transaction.
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @discardableResult
     public func write<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWrite(updates, completion: { _, result in
@@ -621,6 +626,7 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @discardableResult
     public func writeWithoutTransaction<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWriteWithoutTransaction { db in
@@ -673,6 +679,7 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @discardableResult
     public func barrierWriteWithoutTransaction<T>(
         _ updates: @Sendable @escaping (Database) throws -> T)
     async throws -> T
@@ -1006,11 +1013,13 @@ extension AnyDatabaseWriter: DatabaseReader {
 
 extension AnyDatabaseWriter: DatabaseWriter {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @discardableResult
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.writeWithoutTransaction(updates)
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @discardableResult
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try base.barrierWriteWithoutTransaction(updates)
     }
@@ -1022,7 +1031,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
-    
+    @discardableResult
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.unsafeReentrantWrite(updates)
     }
