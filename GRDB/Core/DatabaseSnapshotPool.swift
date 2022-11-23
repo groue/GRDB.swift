@@ -122,12 +122,7 @@ public final class DatabaseSnapshotPool {
     ///   `db` is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(_ db: Database, configuration: Configuration? = nil) throws {
-        var configuration = DatabasePool.readerConfiguration(configuration ?? db.configuration)
-        
-        // Snapshot keeps a long-lived transaction
-        configuration.allowsUnsafeTransactions = true
-        
-        GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
+        var configuration = Self.configure(configuration ?? db.configuration)
         
         // Acquire and hold WAL snapshot
         let walSnapshot = try db.isolated(readOnly: true) {
@@ -191,11 +186,7 @@ public final class DatabaseSnapshotPool {
     ///     - configuration: A configuration.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
-        var configuration = DatabasePool.readerConfiguration(configuration)
-        GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
-        
-        // Snapshot keeps a long-lived transaction
-        configuration.allowsUnsafeTransactions = true
+        var configuration = Self.configure(configuration)
         
         // Acquire and hold WAL snapshot
         var holderConfig = Configuration()
@@ -232,6 +223,31 @@ public final class DatabaseSnapshotPool {
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
                     purpose: "snapshot.\(readerCount)")
             })
+    }
+    
+    private static func configure(_ configuration: Configuration) -> Configuration {
+        var configuration = configuration
+        
+        // DatabaseSnapshotPool needs a non-empty pool of connections.
+        GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
+        
+        // DatabaseSnapshotPool is read-only.
+        configuration.readonly = true
+        
+        // DatabaseSnapshotPool uses deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        configuration.defaultTransactionKind = .deferred
+        
+        // DatabaseSnapshotPool keeps a long-lived transaction.
+        configuration.allowsUnsafeTransactions = true
+        
+        // DatabaseSnapshotPool requires the WAL mode.
+        // See <https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode>
+        if configuration.readonlyBusyMode == nil {
+            configuration.readonlyBusyMode = .timeout(10)
+        }
+        
+        return configuration
     }
 }
 

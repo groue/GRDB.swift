@@ -82,12 +82,14 @@ public final class DatabaseSnapshot {
         reader.path
     }
     
-    init(path: String, configuration: Configuration, defaultLabel: String, purpose: String? = nil) throws {
-        var configuration = configuration
-        // DatabaseSnapshot can't perform parallel reads
-        configuration.maximumReaderCount = 1
-        // Snapshot keeps a long-lived transaction
-        configuration.allowsUnsafeTransactions = true
+    init(
+        path: String,
+        configuration: Configuration,
+        defaultLabel: String = "GRDB.DatabaseSnapshot",
+        purpose: String? = nil)
+    throws
+    {
+        let configuration = Self.configure(configuration)
         
         reader = try SerializedDatabase(
             path: path,
@@ -109,6 +111,25 @@ public final class DatabaseSnapshot {
         reader.reentrantSync { db in
             try? db.commit()
         }
+    }
+    
+    private static func configure(_ configuration: Configuration) -> Configuration {
+        var configuration = configuration
+        
+        // DatabaseSnapshot can't perform parallel reads.
+        configuration.maximumReaderCount = 1
+
+        // DatabaseSnapshot is read-only.
+        configuration.readonly = true
+        
+        // DatabaseSnapshot uses deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        configuration.defaultTransactionKind = .deferred
+        
+        // DatabaseSnapshot keeps a long-lived transaction.
+        configuration.allowsUnsafeTransactions = true
+        
+        return configuration
     }
 }
 

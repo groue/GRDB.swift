@@ -186,7 +186,7 @@ public final class DatabasePool {
     
     /// Returns a Configuration suitable for readonly connections on a
     /// WAL database.
-    static func readerConfiguration(_ configuration: Configuration) -> Configuration {
+    private static func readerConfiguration(_ configuration: Configuration) -> Configuration {
         var configuration = configuration
         
         configuration.readonly = true
@@ -195,7 +195,7 @@ public final class DatabasePool {
         // Other transaction kinds are forbidden by SQLite in read-only connections.
         configuration.defaultTransactionKind = .deferred
         
-        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
+        // <https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode>
         // > But there are some obscure cases where a query against a WAL-mode
         // > database can return SQLITE_BUSY, so applications should be prepared
         // > for that happenstance.
