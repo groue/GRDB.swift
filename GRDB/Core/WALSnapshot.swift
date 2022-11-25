@@ -35,6 +35,14 @@ final class WALSnapshot: Sendable {
             return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
         }
         guard code == SQLITE_OK else {
+            if sqlite3_get_autocommit(db.sqliteConnection) != 0 {
+                throw DatabaseError(resultCode: code, message: "Can't create snapshot because database is in autocommit mode.")
+            }
+            if let journalMode = try? String.fetchOne(db, sql: "PRAGMA journal_mode"),
+               journalMode != "wal"
+            {
+                throw DatabaseError(resultCode: code, message: "Can't create snapshot because database is not in WAL mode.")
+            }
             throw DatabaseError(resultCode: code)
         }
         guard let sqliteSnapshot else {
