@@ -695,4 +695,49 @@ extension AnyDatabaseReader: DatabaseReader {
 /// The protocol comes with the same features and guarantees as
 /// ``DatabaseReader``. On top of them, a `DatabaseSnapshotReader` always sees
 /// the same state of the database.
+///
+/// ## Topics
+///
+/// ### Reading from the Database
+///
+/// - ``reentrantRead(_:)``
 public protocol DatabaseSnapshotReader: DatabaseReader { }
+
+extension DatabaseSnapshotReader {
+    /// Executes database operations, and returns their result after they have
+    /// finished executing.
+    ///
+    /// This method can be called from other database access methods. If called
+    /// from the dispatch queue of a current database access, the `Database`
+    /// argument to `value` is the same as the current database access.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let count = try snapshot.reentrantRead { db in
+    ///     try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
+    /// later use.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
+    ///   would happen while establishing the database access.
+    public func reentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
+        // Reentrant reads are safe in a snapshot
+        try unsafeReentrantRead(value)
+    }
+    
+    // There is no such thing as an unsafe access to a snapshot.
+    public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
+        try read(value)
+    }
+    
+    // There is no such thing as an unsafe access to a snapshot.
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        asyncRead(value)
+    }
+}

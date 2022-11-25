@@ -292,11 +292,6 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         }
     }
     
-    public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
-        /// There is no unsafe access to a snapshot.
-        try read(value)
-    }
-    
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
@@ -315,11 +310,6 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
                 value(.failure(error))
             }
         }
-    }
-    
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        /// There is no unsafe access to a snapshot.
-        asyncRead(value)
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
