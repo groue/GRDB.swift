@@ -362,7 +362,7 @@ extension TableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A unique key.
+    ///     - key: A key dictionary.
     /// - returns: Whether a record exists for this key.
     public static func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
@@ -552,7 +552,7 @@ extension TableRecord {
         return try filter(keys: keys).deleteAll(db)
     }
     
-    /// Deletes the record identified by its primary or unique keys, and returns
+    /// Deletes the record identified by its primary or unique key, and returns
     /// whether a record was deleted.
     ///
     /// For example:
@@ -580,7 +580,7 @@ extension TableRecord {
     /// key columns.
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A key dictionary.
     /// - returns: Whether a record was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {

@@ -498,7 +498,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter key: A unique key.
+    /// - parameter key: A key dictionary.
     public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> Self {
         guard let key else {
             return none()
@@ -526,7 +526,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter keys: A collection of unique keys
+    /// - parameter keys: An array of key dictionaries.
     public func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> Self {
         if keys.isEmpty {
             return none()

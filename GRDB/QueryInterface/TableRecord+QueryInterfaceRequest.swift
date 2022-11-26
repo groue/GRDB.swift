@@ -374,7 +374,7 @@ extension TableRecord {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter key: A unique key.
+    /// - parameter key: A key dictionary.
     public static func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<Self> {
         all().filter(key: key)
     }
@@ -402,7 +402,7 @@ extension TableRecord {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter keys: A collection of unique keys
+    /// - parameter keys: An array of key dictionaries.
     public static func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<Self> {
         all().filter(keys: keys)
     }

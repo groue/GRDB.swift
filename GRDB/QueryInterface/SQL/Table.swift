@@ -538,7 +538,7 @@ extension Table {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter key: A unique key.
+    /// - parameter key: A key dictionary.
     public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(key: key)
     }
@@ -566,7 +566,7 @@ extension Table {
     /// When executed, this request raises a fatal error if no unique index
     /// exists on a subset of the key columns.
     ///
-    /// - parameter keys: A collection of unique keys
+    /// - parameter keys: An array of key dictionaries.
     public func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(keys: keys)
     }
@@ -1611,7 +1611,7 @@ extension Table {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A unique key.
+    ///     - key: A key dictionary.
     /// - returns: Whether a row exists for this key.
     public func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
@@ -1842,7 +1842,7 @@ extension Table {
     /// key columns.
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A key dictionary.
     /// - returns: Whether a row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {

@@ -467,14 +467,32 @@ public final class TableDefinition {
     ///
     /// ```swift
     /// // CREATE TABLE citizenship (
-    /// //   citizenID INTEGER NOT NULL,
+    /// //   citizenId INTEGER NOT NULL,
     /// //   countryCode TEXT NOT NULL,
-    /// //   PRIMARY KEY (citizenID, countryCode)
+    /// //   PRIMARY KEY (citizenId, countryCode)
     /// // )
     /// try db.create(table: "citizenship") { t in
-    ///     t.column("citizenID", .integer).notNull()
+    ///     t.column("citizenId", .integer).notNull()
     ///     t.column("countryCode", .text).notNull()
-    ///     t.primaryKey(["citizenID", "countryCode"])
+    ///     t.primaryKey(["citizenId", "countryCode"])
+    /// }
+    /// ```
+    ///
+    /// - important: Make sure you add not null constraints on your primary key
+    ///   columns, as in the above example, or SQLite will allow null values.
+    ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
+    ///   for more information.
+    ///
+    /// When defining a primary key on a single column, you can use the
+    /// ``ColumnDefinition/primaryKey(onConflict:autoincrement:)``
+    /// shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   id TEXT NOT NULL PRIMARY KEY
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("id", .text).notNull().primaryKey()
     /// }
     /// ```
     ///
@@ -510,6 +528,18 @@ public final class TableDefinition {
     /// }
     /// ```
     ///
+    /// When defining a unique constraint on a single column, you can use the
+    /// ``ColumnDefinition/unique(onConflict:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   email TEXT UNIQUE
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("email", .text).unique()
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - parameter columns: The unique key columns.
@@ -526,17 +556,27 @@ public final class TableDefinition {
     /// ```swift
     /// // CREATE TABLE passport (
     /// //   issueDate DATE NOT NULL,
-    /// //   citizenID INTEGER NOT NULL,
+    /// //   citizenId INTEGER NOT NULL,
     /// //   countryCode INTEGER NOT NULL,
-    /// //   FOREIGN KEY (citizenID, countryCode)
-    /// //     REFERENCES citizenship(citizenID, countryCode)
+    /// //   FOREIGN KEY (citizenId, countryCode)
+    /// //     REFERENCES citizenship(citizenId, countryCode)
     /// //     ON DELETE CASCADE
     /// // )
     /// try db.create(table: "passport") { t in
     ///     t.column("issueDate", .date).notNull()
-    ///     t.column("citizenID", .integer).notNull()
+    ///     t.column("citizenId", .integer).notNull()
     ///     t.column("countryCode", .text).notNull()
-    ///     t.foreignKey(["citizenID", "countryCode"], references: "citizenship", onDelete: .cascade)
+    ///     t.foreignKey(["citizenId", "countryCode"], references: "citizenship", onDelete: .cascade)
+    /// }
+    /// ```
+    ///
+    /// When defining a foreign key on a single column, you can use the
+    /// ``ColumnDefinition/references(_:column:onDelete:onUpdate:deferred:)``
+    /// shortcut:
+    ///
+    /// ```swift
+    /// try db.create(table: "player") { t in
+    ///     t.column("teamId", .integer).references("team", onDelete: .cascade)
     /// }
     /// ```
     ///
@@ -588,6 +628,18 @@ public final class TableDefinition {
     /// }
     /// ```
     ///
+    /// When defining a check constraint on a single column, you can use the
+    /// ``ColumnDefinition/check(_:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   name TEXT CHECK (LENGTH(name) > 0)
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("name", .text).check { length($0) > 0 }
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: The checked condition.
@@ -609,6 +661,18 @@ public final class TableDefinition {
     ///     t.column("personalPhone", .text)
     ///     t.column("workPhone", .text)
     ///     t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
+    /// }
+    /// ```
+    ///
+    /// When defining a check constraint on a single column, you can use the
+    /// ``ColumnDefinition/check(sql:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   name TEXT CHECK (LENGTH(name) > 0)
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("name", .text).check(sql: "LENGTH(name) > 0")
     /// }
     /// ```
     ///
@@ -642,8 +706,8 @@ public final class TableDefinition {
     /// ``SQL`` literals allow you to safely embed raw values in your SQL,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // CREATE TABLE player (
     /// ```swift
+    /// // CREATE TABLE player (
     /// //   score INTEGER,
     /// //   CHECK (score >= 0)
     /// // )
@@ -1126,7 +1190,7 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
-    /// - warning: Make sure you add a not null constraint on your primary key
+    /// - important: Make sure you add a not null constraint on your primary key
     ///   column, as in the above example, or SQLite will allow null values.
     ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
     ///   for more information.

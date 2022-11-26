@@ -266,7 +266,7 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     /// ```swift
     /// try dbQueue.read { db in
     ///     let player = try Player.fetchOne(db, id: 123)
-    ///     let country = try Country.fetchOne(db, key: "FR")
+    ///     let country = try Country.fetchOne(db, id: "FR")
     /// }
     /// ```
     ///
@@ -421,7 +421,7 @@ extension FetchableRecord where Self: TableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A key dictionary.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]?) throws -> Self? {
