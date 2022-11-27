@@ -107,7 +107,7 @@ struct Player: Decodable, FetchableRecord {
     var creationDate: Date
 
     // Required CodingKeys customization because 
-    // column are not named like Swift properties
+    // columns are not named like Swift properties
     enum CodingKeys: String, CodingKey {
         case id, fullName = "full_name", score, creationDate = "creation_date"
     }
@@ -221,15 +221,26 @@ try db.create(table: "player") { t in
     t.column("name", .text).notNull()
 }
 ```
-☝️ **If the primary key follows a different naming convention**, `Identifiable` record types will need an extra property:
+☝️ **If the primary key follows a different naming convention**, `Identifiable` record types will need a custom `CodingKeys` enum, or an extra property:
 
 ```swift
-struct Player {
-    var uuid: String
+// Custom coding keys
+struct Player: Codable, Identifiable {
+    var id: String
     var name: String
+
+    // Required CodingKeys customization because 
+    // columns are not named like Swift properties
+    enum CodingKeys: String, CodingKey {
+        case id = "uuid", name
+    }
 }
 
-extension Player: Identifiable {
+// Extra property
+struct Player: Identifiable {
+    var uuid: String
+    var name: String
+    
     // Required because the primary key column is not 'id'
     var id: String { uuid }
 }
@@ -275,6 +286,8 @@ try db.create(
 >     on: "team", columns: ["name"],
 >     options: .unique)
 > ```
+>
+> If you want to turn an undroppable constraint into a droppable index, you'll need to recreate the database table. See <doc:Migrations> for the detailed procedure.
 
 ☝️ **If a table misses unique indexes**, some record methods such as ``FetchableRecord/fetchOne(_:key:)-92b9m`` and ``TableRecord/deleteOne(_:key:)-5pdh5`` will raise a fatal error:
 
