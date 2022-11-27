@@ -609,9 +609,13 @@ public final class TableDefinition {
         onConflict conflictResolution: Database.ConflictResolution? = nil)
     -> ColumnDefinition
     {
-        column(name, type)
-            .notNull()
-            .primaryKey(onConflict: conflictResolution)
+        let pk = column(name, type).primaryKey(onConflict: conflictResolution)
+        if type == .integer {
+            // INTEGER PRIMARY KEY is always NOT NULL
+            return pk
+        } else {
+            return pk.notNull()
+        }
     }
     
     /// Defines the primary key on multiple columns.
