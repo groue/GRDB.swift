@@ -608,7 +608,7 @@ myRequest(Player.select(...).filter(...))
 [Column]: #column
 [ColumnExpression]: #columnexpression
 [DatabaseRegionConvertible]: #databaseregionconvertible
-[DatabaseRegionObservation]: ../README.md#databaseregionobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
 [DatabaseValue]: #databasevalue
 [DatabaseValueConvertible]: #databasevalueconvertible
 [DerivableRequest]: #derivablerequest

@@ -5908,123 +5908,14 @@ Database Changes Observation
 
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
+- [ValueObservation]: Get notified when database values change.
+- [DatabaseRegionObservation]: Get notified when a transaction impacts a database region.
 - [Transaction Hook](#transaction-hook): Handle transactions commits or rollbacks, one by one.
-- [ValueObservation]: Track changes of database values.
-- [DatabaseRegionObservation]: Tracking transactions that impact a database region.
-- [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
+- [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol that supports all database observation features.
 - :blue_book: [Combine Support]: Automated tracking of database changes, with [Combine].
 - :blue_book: [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
-
-
-## DatabaseRegionObservation
-
-**DatabaseRegionObservation notifies all [transactions](#transactions-and-savepoints) that impact the tracked [requests](#requests).**
-
-Tracked changes are insertions, updates, and deletions that impact the tracked requests, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
-
-DatabaseRegionObservation calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check [ValueObservation] before using DatabaseRegionObservation.
-
-
-### DatabaseRegionObservation Usage
-
-Define an observation by providing one or several requests to track:
-
-```swift
-// Track the full player table
-let observation = DatabaseRegionObservation(tracking: Player.all())
-```
-
-Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
-
-```swift
-let cancellable = try observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (db: Database) in
-        print("Players were changed")
-    })
-}
-```
-
-Enjoy the changes notifications:
-
-```swift
-try dbQueue.write { db in
-    try Player(name: "Arthur").insert(db)
-}
-// Prints "Players were changed"
-```
-
-If the `start` method is called from a writing database access method, the observation of impactful transactions starts immediately. Otherwise, it blocks the current thread until a write access can be established.
-
-**You stop the observation** by calling the `cancel()` method on the object returned by the `start` method. Cancellation is automatic when the cancellable is deinitialized:
-    
-```swift
-cancellable.cancel()
-```
-
-**You can feed DatabaseRegionObservation** with any type that conforms to the [DatabaseRegionConvertible] protocol: requests, [DatabaseRegion], `Table`, etc. For example:
-
-```swift
-// Observe the score column of the player table
-let observation = DatabaseRegionObservation(tracking: Player.select(Column("score")))
-
-// Observe the score column of the player table
-let observation = DatabaseRegionObservation(tracking: SQLRequest("SELECT score FROM player"))
-
-// Observe both the player and team tables
-let observation = DatabaseRegionObservation(tracking: Table("player"), Table("team"))
-
-// Observe the full database
-let observation = DatabaseRegionObservation(tracking: .fullDatabase)
-```
-
-**As a convenience**, DatabaseRegionObservation can be turned into a Combine publisher, or an RxSwift observable:
-
-<details open>
-    <summary>Combine example</summary>
-    
-```swift
-import Combine
-import GRDB
-
-let observation = DatabaseRegionObservation.tracking(Player.all())
-
-let cancellable = observation.publisher(in: dbQueue).sink(
-    receiveCompletion: { completion in ... },
-    receiveValue: { (db: Database) in
-        print("Players were changed")
-    })
-```
-
-See [Combine Support] for more information.
-
-</details>
-
-<details>
-    <summary>RxSwift example</summary>
-    
-```swift
-import GRDB
-import RxGRDB
-import RxSwift
-
-let observation = DatabaseRegionObservation.tracking(Player.all())
-
-let disposable = observation.rx.changes(in: dbQueue).subscribe(
-    onNext: { (db: Database) in
-        print("Players were changed")
-    },
-    onError: { error in ... })
-```
-
-See the companion library [RxGRDB] for more information.
-
-</details>
 
 
 ## TransactionObserver Protocol
@@ -7849,7 +7740,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [persistence callbacks]: #persistence-callbacks
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
-[DatabaseRegionObservation]: #databaseregionobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [DatabaseRegion]: #databaseregion

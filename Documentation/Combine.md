@@ -385,7 +385,7 @@ let cancellable = hallOfFamePublisher.sink(
 [Database Changes Observation]: ../README.md#database-changes-observation
 [Database Observation]: #database-observation
 [Combine and Data Consistency]: #combine-and-data-consistency
-[DatabaseRegionObservation]: ../README.md#databaseregionobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
 [Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [SQLite]: http://sqlite.org
 [ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation

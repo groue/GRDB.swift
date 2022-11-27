@@ -500,7 +500,7 @@ let publisher = observation
 
 
 [ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
-[DatabaseRegionObservation]: ../README.md#databaseregionobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [removeDuplicates]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/removeduplicates()
 [Custom SQL functions]: ../README.md#custom-sql-functions
