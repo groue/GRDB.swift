@@ -2952,7 +2952,7 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 - `delete` and `deleteOne` returns whether a database row was deleted or not. `deleteAll` returns the number of deleted rows. `updateAll` returns the number of updated rows. `updateChanges` returns whether a database row was updated or not.
 
-**All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
+**All primary keys are supported**, including composite primary keys that span several columns, and the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html).
 
 **To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt at overriding the ready-made persistence methods.
 
@@ -3773,7 +3773,6 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 
 - [Persistence Callbacks]: define what happens when you call a persistence method such as `player.insert(db)`
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
-- [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
 - [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
 
@@ -3866,125 +3865,6 @@ try player.insert(db)
 > ```
 >
 > **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
-
-
-### The Implicit RowID Primary Key
-
-**All SQLite tables have a primary key.** Even when the primary key is not explicit:
-
-```swift
-// No explicit primary key
-try db.create(table: "event") { t in
-    t.column("message", .text)
-    t.column("date", .datetime)
-}
-
-// No way to define an explicit primary key
-try db.create(virtualTable: "book", using: FTS4()) { t in
-    t.column("title")
-    t.column("author")
-    t.column("body")
-}
-```
-
-The implicit primary key is stored in the hidden column `rowid`. Hidden means that `SELECT *` does not select it, and yet it can be selected and queried: `SELECT *, rowid ... WHERE rowid = 1`.
-
-Some GRDB methods will automatically use this hidden column when a table has no explicit primary key:
-
-```swift
-// SELECT * FROM event WHERE rowid = 1
-let event = try Event.fetchOne(db, id: 1)
-
-// DELETE FROM book WHERE rowid = 1
-try Book.deleteOne(db, id: 1)
-```
-
-
-#### Exposing the RowID Column
-
-**By default, a record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
-
-Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update()` throws errors, `save()` always performs insertions and may break constraints, `exists()` is always false.
-
-When SQLite won't let you provide an explicit primary key (as in [full-text](Documentation/FullTextSearch.md) tables, for example), you may want to make your record type fully aware of the hidden rowid column:
-
-1. Have the `databaseSelection` static property (from the [TableRecord] protocol) return the hidden rowid column:
-    
-    ```swift
-    struct Event : TableRecord {
-        static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
-    }
-    
-    // When you subclass Record, you need an override:
-    class Book : Record {
-        override class var databaseSelection: [any SQLSelectable] {
-            [AllColumns(), Column.rowID]
-        }
-    }
-    ```
-    
-    GRDB will then select the `rowid` column by default:
-    
-    ```swift
-    // SELECT *, rowid FROM event
-    let events = try Event.fetchAll(db)
-    ```
-
-2. Have `init(row:)` from the [FetchableRecord] protocol consume the "rowid" column:
-    
-    ```swift
-    struct Event : FetchableRecord {
-        var id: Int64?
-        
-        init(row: Row) {
-            id = row[Column.rowID] // or `row[.rowID]` with Swift 5.5+
-        }
-    }
-    ```
-    
-    Your fetched records will then know their ids:
-    
-    ```swift
-    let event = try Event.fetchOne(db)!
-    event.id // some value
-    ```
-
-3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(_:)` callback (both from the [PersistableRecord and MutablePersistableRecord](#persistablerecord-protocol) protocols):
-    
-    ```swift
-    struct Event : MutablePersistableRecord {
-        var id: Int64?
-        
-        func encode(to container: inout PersistenceContainer) {
-            container[Column.rowID] = id // or `container[.rowID]` with Swift 5.5+
-            container["message"] = message
-            container["date"] = date
-        }
-        
-        // Update auto-incremented id upon successful insertion
-        mutating func didInsert(_ inserted: InsertionSuccess) {
-            id = inserted.rowID
-        }
-    }
-    ```
-    
-    You will then be able to track your record ids, update them, or check for their existence:
-    
-    ```swift
-    let event = Event(message: "foo", date: Date())
-    
-    // Insertion sets the record id:
-    try event.insert(db)
-    event.id // some value
-    
-    // Record can be updated:
-    event.message = "bar"
-    try event.update(db)
-    
-    // Record knows if it exists:
-    event.exists(db) // true
-    ```
-
 
 ### Beyond FetchableRecord
 
@@ -4401,7 +4281,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.databaseChanges` | [Record](#record-class) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
 
-<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
+<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [`rowid`](https://www.sqlite.org/rowidtable.html)) and unique indexes:
 
 ```swift
 try Player.fetchOne(db, id: 1)                                // Player?
@@ -5429,7 +5309,7 @@ try Player.fetchOne(db, key: ["email": "arthur@example.com"])            // Play
 try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
 ```
 
-When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+When the table has no explicit primary key, GRDB uses the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
 
 ```swift
 // SELECT * FROM document WHERE rowid = 1
@@ -5573,7 +5453,7 @@ try Player.deleteOne(db, key: ["email": "arthur@example.com"])
 try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
 ```
 
-When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+When the table has no explicit primary key, GRDB uses the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
 
 ```swift
 // DELETE FROM document WHERE rowid = 1
@@ -8588,7 +8468,6 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
 [Migrations]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
-[The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
 [FetchableRecord]: #fetchablerecord-protocol

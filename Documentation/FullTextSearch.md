@@ -726,10 +726,7 @@ let books = Book.fetchAll(db, sql: sql, arguments: [pattern])
 
 **You can define [record](../README.md#records) types around the full-text virtual tables.**
 
-However these tables don't have any explicit primary key. Instead, they use the [implicit rowid primary key](../README.md#the-implicit-rowid-primary-key): a special hidden column named `rowid`.
-
-You will have to [expose this hidden column](../README.md#exposing-the-rowid-column) in order to fetch, delete, and update full-text records by primary key.
-
+The primary key of those tables is the hidden `rowid` column. If you need to fetch, delete, and update full-text records by primary key, you will have to expose this column to the record type. See [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) for more information.
 
 ## Unicode Full-Text Gotchas
 
