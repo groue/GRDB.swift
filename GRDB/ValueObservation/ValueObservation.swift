@@ -7,20 +7,297 @@ import Foundation
 /// `ValueObservation` tracks changes in the results of database requests, and
 /// notifies fresh values whenever the database changes.
 ///
-/// For example:
+/// ## Overview
+///
+/// Tracked changes are insertions, updates, and deletions that impact the
+/// tracked value, whether performed with raw SQL, or <doc:QueryInterface>.
+/// This includes indirect changes triggered by
+/// [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions)
+/// or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+///
+/// Changes to internal system tables (such as `sqlite_master`) and changes to
+/// [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables are
+/// not notified.
+///
+/// ## ValueObservation Usage
+///
+/// 1. Make sure that a unique database connection, ``DatabaseQueue`` or
+/// ``DatabasePool``, is kept open during the whole duration of
+/// the observation.
+///
+///     `ValueObservation` does not notify changes performed by
+///     external connections.
+///     See <doc:DatabaseSharing#How-to-perform-cross-process-database-observation>
+///     for more information.
+///
+/// 2. Create a `ValueObservation` with a closure that fetches the
+/// observed value:
+///
+///     ```swift
+///     let observation = ValueObservation.tracking { db in
+///         // Fetch and return the observed value
+///     }
+///
+///     // For example, an observation of [Player], which tracks all players:
+///     let observation = ValueObservation.tracking { db in
+///         try Player.fetchAll(db)
+///     }
+///
+///     // The same observation, using shorthand notation:
+///     let observation = ValueObservation.tracking(Player.fetchAll)
+///     ```
+///
+///     There is no limit on the values that can be observed. An observation
+///     can perform multiple requests, from multiple database tables, and use
+///     raw SQL. See ``tracking(_:)`` for some examples.
+///
+/// 3. Start the observation in order to be notified of changes:
+///
+///     ```swift
+///     let cancellable = observation.start(in: dbQueue) { error in
+///         // Handle error
+///     } onChange: { (players: [Player]) in
+///         print("Fresh players", players)
+///     }
+///     ```
+///
+/// 4. Stop the observation by calling the ``DatabaseCancellable/cancel()``
+/// method on the object returned by the `start` method. Cancellation is
+/// automatic when the cancellable is deallocated:
+///
+///     ```swift
+///     cancellable.cancel()
+///     ```
+///
+/// `ValueObservation` can also be turned into an async sequence, a Combine
+/// publisher, or an RxSwift observable (see the companion library
+/// [RxGRDB](https://github.com/RxSwiftCommunity/RxGRDB)):
+///
+/// - Async sequence:
+///
+///     ```swift
+///     do {
+///         for try await players in observation.values(in: dbQueue) {
+///             print("Fresh players", players)
+///         }
+///     } catch {
+///         // Handle error
+///     }
+///     ```
+///
+/// - Combine Publisher:
+///
+///     ```swift
+///     let cancellable = observation.publisher(in: dbQueue).sink { completion in
+///         // Handle completion
+///     } receiveValue: { (players: [Player]) in
+///         print("Fresh players", players)
+///     }
+///     ```
+///
+/// ## ValueObservation Behavior
+///
+/// `ValueObservation` notifies an initial value before the eventual changes.
+///
+/// `ValueObservation` only notifies changes committed to disk.
+///
+/// By default, `ValueObservation` notifies a fresh value whenever any component
+/// of its fetched value is modified (any fetched column, row, etc.). This can
+/// be configured:
+/// see <doc:ValueObservation#Specifying-the-Tracked-Region>.
+///
+/// By default, `ValueObservation` notifies the initial value, as well as
+/// eventual changes and errors, on the main dispatch queue, asynchronously.
+/// This can be configured:
+/// see <doc:ValueObservation#ValueObservation-Scheduling>.
+///
+/// `ValueObservation` may coalesce subsequent changes into a
+/// single notification.
+///
+/// `ValueObservation` may notify consecutive identical values. You can filter
+/// out the undesired duplicates with the ``removeDuplicates()`` method.
+///
+/// Starting an observation retains the database connection, until it is
+/// stopped. As long as the observation is active, the database connection
+/// won't be deallocated.
+///
+/// The database observation stops when the cancellable returned by the `start`
+/// method is cancelled or deallocated, or if an error occurs.
+///
+/// Take care that there are use cases that `ValueObservation` is unfit for.
+/// For example, an application may need to process absolutely all changes,
+/// and avoid any coalescing. An application may also need to process changes
+/// before any further modifications could be performed in the database file. In
+/// those cases, the application needs to track *individual transactions*, not
+/// values: use ``DatabaseRegionObservation``. If you need to process
+/// changes before they are committed to disk, use ``TransactionObserver``.
+///
+/// ## ValueObservation Scheduling
+///
+/// By default, `ValueObservation` notifies the initial value, as well as
+/// eventual changes and errors, on the main dispatch queue, asynchronously:
 ///
 /// ```swift
-/// // Track all players
-/// let observation = ValueObservation.tracking { db in
-///     try Player.fetchAll(db)
-/// }
-///
-/// let cancellable = try observation.start(in: dbQueue) { error in
-///     // handle error
-/// } onChange: { (players: [Player]) in
-///     print("Fresh players: \(players)")
+/// // The default scheduling
+/// let cancellable = observation.start(in: dbQueue) { error in
+///     // Called asynchronously on the main dispatch queue
+/// } onChange: { value in
+///     // Called asynchronously on the main dispatch queue
+///     print("Fresh value", value)
 /// }
 /// ```
+///
+/// You can change this behavior by adding a `scheduling` argument to the
+/// `start()` method.
+///
+/// For example, the ``ValueObservationScheduler/immediate`` scheduler
+/// notifies all values on the main dispatch queue, and notifies the first
+/// one immediately when the observation starts.
+///
+/// It is very useful in graphic applications, because you can configure views
+/// right away, without waiting for the initial value to be fetched eventually.
+/// You don't have to implement any empty or loading screen, or to prevent some
+/// undesired initial animation.
+///
+/// The `immediate` scheduling requires that the observation starts from the
+/// main dispatch queue (a fatal error is raised otherwise):
+///
+/// ```swift
+/// let cancellable = observation.start(in: dbQueue, scheduling: .immediate) { error in
+///     // Called on the main dispatch queue
+/// } onChange: { value in
+///     // Called on the main dispatch queue
+///     print("Fresh value", value)
+/// }
+/// // <- Here "Fresh value" has already been printed.
+/// ```
+///
+/// The other built-in scheduler ``ValueObservationScheduler/async(onQueue:)``
+/// asynchronously schedules values and errors on the dispatch queue of
+/// your choice.
+///
+/// ## ValueObservation Sharing
+///
+/// Sharing a `ValueObservation` spares database resources. When a database
+/// change happens, a fresh value is fetched only once, and then notified to
+/// all clients of the shared observation.
+///
+/// You build a shared observation with ``shared(in:scheduling:extent:)``:
+///
+/// ```swift
+/// // SharedValueObservation<[Player]>
+/// let sharedObservation = ValueObservation
+///     .tracking { db in try Player.fetchAll(db) }
+///     .shared(in: dbQueue)
+/// ```
+///
+/// `ValueObservation` and `SharedValueObservation` are nearly identical, but
+/// the latter has no operator such as `map`. As a replacement, you may
+/// for example use Combine apis:
+///
+/// ```swift
+/// let cancellable = try sharedObservation
+///     .publisher() // Turn shared observation into a Combine Publisher
+///     .map { ... } // The map operator from Combine
+///     .sink(...)
+/// ```
+///
+///
+/// ## Specifying the Tracked Region
+///
+/// While the standard ``tracking(_:)`` method lets you track changes to a
+/// fetched value and receive any changes to it, sometimes your use case might
+/// require more granular control.
+///
+/// Consider a scenario where you'd like to get a specific Player's row, but
+/// only when their `score` column changes. You can use
+/// ``tracking(region:fetch:)`` to do just that:
+///
+/// ```swift
+/// let observation = ValueObservation.tracking(
+///     // Define what database region constitutes a "change"
+///     region: Player.select(Column("score")).filter(id: 1),
+///     // Define what to fetch upon such change
+///     fetch: { db in try Player.fetchOne(db, id: 1) }
+/// )
+/// ```
+///
+/// This overload of `ValueObservation` lets you entirely separate the
+/// **observed region** from the **fetched value** itself, providing utmost
+/// flexibility. See ``DatabaseRegionConvertible`` for more information about
+/// the regions that can be tracked.
+///
+/// ## ValueObservation Performance
+///
+/// This section further describes runtime aspects of `ValueObservation`, and
+/// provides some optimization tips for demanding applications.
+///
+/// **`ValueObservation` is triggered by database transactions that may modify
+/// the tracked value.**
+///
+/// Precisely speaking, `ValueObservation` tracks changes in a
+/// ``DatabaseRegion``, not changes in values.
+///
+/// For example, if you track the maximum score of players, all transactions
+/// that impact the `score` column of the `player` database table (any update,
+/// insertion, or deletion) trigger the observation, even if the maximum score
+/// itself is not changed.
+///
+/// You can filter out undesired duplicate notifications with the
+/// ``removeDuplicates()`` method.
+///
+/// **ValueObservation can create database contention.** In other words, active
+/// observations take a toll on the constrained database resources. When
+/// triggered by impactful transactions, observations fetch fresh values, and
+/// can delay read and write database accesses of other application components.
+///
+/// When needed, you can help GRDB optimize observations and reduce
+/// database contention:
+///
+/// > Tip: Stop observations when possible.
+/// >
+/// > For example, if a `UIViewController` needs to display database values, it
+/// > can start the observation in `viewWillAppear`, and stop it in
+/// > `viewWillDisappear`.
+/// >
+/// > In a SwiftUI application, you can profit from the
+/// > [GRDBQuery](https://github.com/groue/GRDBQuery) companion library, and its
+/// > [`View.queryObservation(_:)`](https://swiftpackageindex.com/groue/grdbquery/documentation/grdbquery/queryobservation)
+/// > method.
+///
+/// > Tip: Share observations when possible.
+/// >
+/// > Each call to `ValueObservation.start` method triggers independent values
+/// > refreshes. When several components of your app are interested in the same
+/// > value, consider sharing the observation
+/// > with ``shared(in:scheduling:extent:)``.
+///
+/// > Tip: Use a ``DatabasePool``, because it can perform multi-threaded
+/// > database accesses.
+///
+/// > Tip: When the observation processes some raw fetched values, use the
+/// > ``map(_:)`` operator:
+/// >
+/// > ```swift
+/// > // Plain observation
+/// > let observation = ValueObservation.tracking { db -> MyValue in
+/// >     let players = try Player.fetchAll(db)
+/// >     return computeMyValue(players)
+/// > }
+/// >
+/// > // Optimized observation
+/// > let observation = ValueObservation
+/// >     .tracking { db try Player.fetchAll(db) }
+/// >     .map { players in computeMyValue(players) }
+/// > ```
+/// >
+/// > The `map` operator helps reducing database contention because it performs
+/// > its job without blocking database accesses.
+///
+/// > Tip: When the observation tracks a constant database region, create an
+/// > optimized observation with the ``trackingConstantRegion(_:)`` method. See
+/// > the documentation of this method for more information about what
+/// > constitutes a "constant region", and the nature of the optimization.
 ///
 /// ## Topics
 ///
@@ -69,11 +346,22 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
-    /// when it fetch fresh values.
+    /// when it fetches fresh values.
     ///
-    /// The default is false. Setting it to true can disable scheduling
-    /// optimizations when the observation is started in
-    /// a ``DatabasePool``.
+    /// The `requiresWriteAccess` property is false by default. When true, a
+    /// `ValueObservation` has a write access to the database, and its fetches
+    /// are automatically wrapped in a savepoint:
+    ///
+    /// ```swift
+    /// var observation = ValueObservation.tracking { db in
+    ///     // write access allowed
+    ///     ...
+    /// }
+    /// observation.requiresWriteAccess = true
+    /// ```
+    ///
+    /// Setting the `requiresWriteAccess` flag can disable scheduling
+    /// optimizations when the observation is started in a ``DatabasePool``.
     public var requiresWriteAccess = false
     
     var trackingMode: ValueObservationTrackingMode
@@ -155,7 +443,7 @@ extension ValueObservation: Refinable {
     /// let cancellable = try observation.start(in: dbQueue) { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
-    ///     print("fresh players: \(players)")
+    ///     print("Fresh players: \(players)")
     /// }
     /// ```
     ///
@@ -165,20 +453,18 @@ extension ValueObservation: Refinable {
     ///
     /// For example, the ``ValueObservationScheduler/immediate`` scheduler
     /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the  ``start(in:scheduling:onError:onChange:)``
-    /// method is called:
+    /// one immediately when the observation starts. The `immediate` scheduling
+    /// requires that the observation starts from the main dispatch queue (a
+    /// fatal error is raised otherwise):
     ///
     /// ```swift
     /// let cancellable = try observation.start(in: dbQueue, scheduling: .immediate) { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
-    ///     print("fresh players: \(players)")
+    ///     print("Fresh players: \(players)")
     /// }
-    /// // <- here "fresh players" is already printed.
+    /// // <- here "Fresh players" is already printed.
     /// ```
-    ///
-    /// Note that the `.immediate` scheduler requires that the observation is
-    /// subscribed from the main thread. It raises a fatal error otherwise.
     ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
@@ -209,7 +495,7 @@ extension ValueObservation: Refinable {
     
     /// Performs the specified closures when observation events occur.
     ///
-    /// All closures run on unspecified dispatch queues - don't make
+    /// All closures run on unspecified dispatch queues: don't make
     /// any assumption.
     ///
     /// - parameters:
@@ -257,6 +543,30 @@ extension ValueObservation: Refinable {
     }
     
     /// Prints log messages for all observation events.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let cancellable = ValueObservation
+    ///     .tracking(Player.fetchCount)
+    ///     .print("Observe player count")
+    ///     .start(in: dbQueue, onError: { _ in }, onChange: { _ in })
+    ///
+    /// // Prints:
+    /// // Observe player count: start
+    /// // Observe player count: fetch
+    /// // Observe player count: tracked region: player(*)
+    /// // Observe player count: value: 0
+    /// // Observe player count: database did change
+    /// // Observe player count: fetch
+    /// // Observe player count: value: 1
+    /// ```
+    ///
+    /// - parameter prefix: A string —- which defaults to empty -— with which to
+    ///   prefix all log messages.
+    /// - parameter stream: A stream for text output that receives messages, and
+    ///   which directs output to the console by default. A custom stream can be
+    ///   used to log messages to other destinations.
     public func print(
         _ prefix: String = "",
         to stream: TextOutputStream? = nil)
@@ -432,7 +742,7 @@ extension ValueObservation {
     /// let cancellable = publisher.sink { completion in
     ///     // handle completion
     /// } receiveValue: { (players: [Player]) in
-    ///     print("fresh players: \(players)")
+    ///     print("Fresh players: \(players)")
     /// }
     /// ```
     ///
@@ -442,7 +752,9 @@ extension ValueObservation {
     ///
     /// For example, the ``ValueObservationScheduler/immediate`` scheduler
     /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the publisher is subscribed:
+    /// one immediately when the observation starts. The `immediate` scheduling
+    /// requires that the observation starts from the main dispatch queue (a
+    /// fatal error is raised otherwise):
     ///
     /// ```swift
     /// let publisher = observation.publisher(in: dbQueue, scheduling: .immediate)
@@ -450,13 +762,10 @@ extension ValueObservation {
     /// let cancellable = publisher.sink { completion in
     ///     // handle completion
     /// } receiveValue: { (players: [Player]) in
-    ///     print("fresh players: \(players)")
+    ///     print("Fresh players: \(players)")
     /// }
-    /// // <- here "fresh players" is already printed.
+    /// // <- here "Fresh players" is already printed.
     /// ```
-    ///
-    /// Note that the `.immediate` scheduler requires that the publisher is
-    /// subscribed from the main thread. It raises a fatal error otherwise.
     ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
@@ -869,6 +1178,35 @@ extension ValueObservation {
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Players have changed")
+    /// }
+    /// ```
+    ///
+    /// An observation can perform multiple requests, from multiple database
+    /// tables, and even use raw SQL:
+    ///
+    /// ```swift
+    /// struct HallOfFame {
+    ///     var totalPlayerCount: Int
+    ///     var bestPlayers: [Player]
+    /// }
+    ///
+    /// // An observation of HallOfFame
+    /// let observation = ValueObservation.tracking { db -> HallOfFame in
+    ///     let totalPlayerCount = try Player.fetchCount(db)
+    ///
+    ///     let bestPlayers = try Player
+    ///         .order(Column("score").desc)
+    ///         .limit(10)
+    ///         .fetchAll(db)
+    ///
+    ///     return HallOfFame(
+    ///         totalPlayerCount: totalPlayerCount,
+    ///         bestPlayers: bestPlayers)
+    /// }
+    ///
+    /// // An observation of the maximum score
+    /// let observation = ValueObservation.tracking { db in
+    ///     try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player")
     /// }
     /// ```
     ///

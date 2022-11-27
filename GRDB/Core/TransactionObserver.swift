@@ -42,19 +42,42 @@ extension Database {
     /// Registers closures to be executed after the next or current
     /// transaction completes.
     ///
-    /// For example:
+    /// This method helps synchronizing the database with other resources,
+    /// such as files, or system services.
+    ///
+    /// In the example below, a `CLLocationManager` starts monitoring a
+    /// `CLRegion` if and only if it has successfully been stored in
+    /// the database:
     ///
     /// ```swift
-    /// try dbQueue.write { db in
-    ///     db.afterNextTransaction { _ in
-    ///         print("success")
+    /// /// Inserts a region in the database, and start monitoring upon
+    /// /// successful insertion.
+    /// func startMonitoring(_ db: Database, region: CLRegion) throws {
+    ///     // Make sure database is inside a transaction
+    ///     try db.inSavepoint {
+    ///
+    ///         // Save the region in the database
+    ///         try insert(...)
+    ///
+    ///         // Start monitoring if and only if the insertion is
+    ///         // eventually committed to disk
+    ///         db.afterNextTransaction { _ in
+    ///             // locationManager prefers the main queue:
+    ///             DispatchQueue.main.async {
+    ///                 locationManager.startMonitoring(for: region)
+    ///             }
+    ///         }
+    ///
+    ///         return .commit
     ///     }
-    ///     ...
-    /// } // prints "success"
+    /// }
     /// ```
     ///
-    /// Closure are executed in a protected dispatch queue, serialized will all
-    /// database updates.
+    /// The method above won't trigger the location manager if the transaction
+    /// is eventually rollbacked (explicitly, or because of an error).
+    ///
+    /// The `onCommit` and `onRollback` closures are executed in the writer
+    /// dispatch queue, serialized will all database updates.
     ///
     /// - precondition: Database connection is not read-only.
     /// - parameter onCommit: A closure executed on transaction commit.

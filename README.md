@@ -5918,640 +5918,6 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
 
-## Transaction Hook
-
-When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransaction(onCommit:onRollback:)` method.
-
-```swift
-try dbQueue.write { db in
-    db.afterNextTransaction { db in
-        print("successful commit")
-    }
-    ...
-} // prints "successful commit"
-```
-
-**This hook helps synchronizing the database with other resources, such as files, or system sensors.**
-
-In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
-
-```swift
-/// Inserts a region in the database, and start monitoring upon
-/// successful insertion.
-func startMonitoring(_ db: Database, region: CLRegion) throws {
-    // Make sure database is inside a transaction
-    try db.inSavepoint {
-        
-        // Save the region in the database
-        try insert(...)
-        
-        // Start monitoring if and only if the insertion is
-        // eventually committed
-        db.afterNextTransaction { _ in
-            // locationManager prefers the main queue:
-            DispatchQueue.main.async {
-                locationManager.startMonitoring(for: region)
-            }
-        }
-        
-        return .commit
-    }
-}
-```
-
-The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitly, or because of an error), as in the sample code below:
-
-```swift
-try dbQueue.write { db in
-    // success
-    try startMonitoring(db, region)
-    
-    // On error, the transaction is rollbacked, the region is not inserted, and
-    // the location manager is not invoked.
-    try failableMethod(db)
-}
-```
-
-
-## ValueObservation
-
-**ValueObservation tracks changes in database values**. It automatically notifies your application with fresh values whenever changes are committed in the database.
-
-Tracked changes are insertions, updates, and deletions that impact the tracked value, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite\_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
-
-**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
-
-- [ValueObservation Usage](#valueobservation-usage)
-- [ValueObservation Scheduling](#valueobservation-scheduling)
-- [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
-- [ValueObservation Sharing](#valueobservation-sharing)
-- [Specifying the Region Tracked by ValueObservation](#specifying-the-region-tracked-by-valueobservation)
-- [ValueObservation Performance](#valueobservation-performance)
-- :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
-
-### ValueObservation Usage
-
-1. Make sure that a unique [database connection](#database-connections) is kept open during the whole duration of the observation.
-    
-    ValueObservation does not notify changes performed by external connections.
-
-2. Define a ValueObservation by providing a function that fetches the observed value.
-    
-    ```swift
-    let observation = ValueObservation.tracking { db in
-        /* fetch and return the observed value */
-    }
-    
-    // For example, an observation of [Player], which tracks all players:
-    let observation = ValueObservation.tracking { db in
-        try Player.fetchAll(db)
-    }
-    
-    // The same observation, using shorthand notation:
-    let observation = ValueObservation.tracking(Player.fetchAll)
-    ```
-    
-    The observation can perform multiple requests, from multiple database tables, and even use raw SQL.
-    
-    <details>
-        <summary>Example of a more complex ValueObservation</summary>
-        
-    ```swift
-    struct HallOfFame {
-        var totalPlayerCount: Int
-        var bestPlayers: [Player]
-    }
-    
-    // An observation of HallOfFame
-    let observation = ValueObservation.tracking { db -> HallOfFame in
-        let totalPlayerCount = try Player.fetchCount(db)
-        
-        let bestPlayers = try Player
-            .order(Column("score").desc)
-            .limit(10)
-            .fetchAll(db)
-        
-        return HallOfFame(
-            totalPlayerCount: totalPlayerCount,
-            bestPlayers: bestPlayers)
-    }
-    ```
-    
-    </details>
-    
-    <details>
-        <summary>Example of a SQL ValueObservation</summary>
-        
-    ```swift
-    // An observation of the maximum score
-    let observation = ValueObservation.tracking { db in
-        try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player")
-    }
-    ```
-    
-    </details>
-    
-3. Start the observation in order to be notified of changes:
-    
-    ```swift
-    // Start observing the database
-    let cancellable: DatabaseCancellable = observation.start(
-        in: dbQueue, // or dbPool
-        onError: { error in print("players could not be fetched") },
-        onChange: { (players: [Player]) in print("fresh players", players) })
-    ```
-
-4. Stop the observation by calling the `cancel()` method on the object returned by the `start` method. Cancellation is automatic when the cancellable is deinitialized:
-    
-    ```swift
-    cancellable.cancel()
-    ```
-
-**As a convenience**, ValueObservation can be turned into an async sequence, a Combine publisher, or an RxSwift observable:
-
-<details open>
-    <summary>Async sequence example</summary>
-    
-[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
-
-```swift
-let observation = ValueObservation.tracking(Player.fetchAll)
-for try await players in observation.values(in: dbQueue) {
-    print("fresh players", players)
-}
-```
-
-</details>
-
-<details>
-    <summary>Combine example</summary>
-    
-```swift
-import Combine
-import GRDB
-
-let observation = ValueObservation.tracking(Player.fetchAll)
-
-let cancellable = observation.publisher(in: dbQueue).sink(
-    receiveCompletion: { completion in ... },
-    receiveValue: { (players: [Player]) in
-        print("fresh players", players)
-    })
-```
-
-See [Combine Support] for more information.
-
-</details>
-
-<details>
-    <summary>RxSwift example</summary>
-    
-```swift
-import GRDB
-import RxGRDB
-import RxSwift
-
-let observation = ValueObservation.tracking(Player.fetchAll)
-
-let disposable = observation.rx.observe(in: dbQueue).subscribe(
-    onNext: { (players: [Player]) in
-        print("fresh players", players)
-    },
-    onError: { error in ... })
-```
-
-See the companion library [RxGRDB] for more information.
-
-</details>
-
-**Generally speaking**:
-
-- ValueObservation notifies an initial value before the eventual changes.
-- ValueObservation only notifies changes committed to disk.
-- By default, ValueObservation notifies a fresh value whenever any of its component is modified (any fetched column, row, etc.). This can be [configured](#specifying-the-region-tracked-by-valueobservation).
-- By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
-- ValueObservation may coalesce subsequent changes into a single notification.
-- ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates](#valueobservationremoveduplicates) method.
-- Starting an observation retains the database connection, until it is stopped. As long as the observation is active, the database connection won't be deallocated.
-- The database observation stops when any of those conditions is met:
-    - The cancellable returned by the `start` method is cancelled or deinitialized.
-    - An error occurs.
-
-Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation]. If you need to process uncommitted changes, see [TransactionObserver](#transactionobserver-protocol).
-
-
-### ValueObservation Scheduling
-
-By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously:
-
-```swift
-// The default scheduling
-let cancellable = observation.start(
-    in: dbQueue,
-    onError: { error in ... },                   // called asynchronously on the main thread
-    onChange: { value in print("fresh value") }) // called asynchronously on the main thread
-```
-
-You can change this behavior by adding a `scheduling` argument to the `start()` method.
-
-For example, `scheduling: .immediate` makes sure the initial value is notified immediately when the observation starts. It helps your application update the user interface without having to wait for any asynchronous notifications:
-
-```swift
-class PlayersViewController: UIViewController {
-    private var cancellable: DatabaseCancellable?
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Start observing the database
-        let observation = ValueObservation.tracking(Player.fetchAll)
-        cancellable = observation.start(
-            in: dbQueue,
-            scheduling: .immediate, // <- immediate scheduler
-            onError: { error in ... },
-            onChange: { [weak self] (players: [Player]) in
-                guard let self else { return }
-                self.updateView(players)
-            })
-        // <- Here the view has already been updated.
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-    
-        // Stop observing the database
-        cancellable?.cancel()
-    }
-    
-    private func updateView(_ players: [Player]) { ... }
-}
-```
-
-Note that the `.immediate` scheduling requires that the observation starts from the main thread. A fatal error is raised otherwise.
-
-The other built-in scheduler `.async(onQueue:)` asynchronously schedules values and errors on the dispatch queue of your choice:
-
-```swift
-let queue: DispatchQueue = ...
-let cancellable = observation.start(
-    in: dbQueue,
-    scheduling: .async(onQueue: queue)
-    onError: { error in ... },                   // called asynchronously on queue
-    onChange: { value in print("fresh value") }) // called asynchronously on queue
-```
-
-
-### ValueObservation Operators
-
-**Operators** are methods that transform and configure value observations so that they better fit the needs of your application.
-
-- [ValueObservation.map](#valueobservationmap)
-- [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
-- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess)
-
-**Debugging Operators**
-
-- [ValueObservation.handleEvents](#valueobservationhandleevents)
-- [ValueObservation.print](#valueobservationprint)
-
-
-#### ValueObservation.map
-
-The `map` operator transforms the values notified by a ValueObservation.
-
-For example:
-
-```swift
-// Turn an observation of Player? into an observation of UIImage?
-let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, id: 42) }
-    .map { player in player?.image }
-```
-
-The transformation function does not block any database access. This makes the `map` operator a tool which helps reducing [database contention](#valueobservation-performance).
-
-
-#### ValueObservation.removeDuplicates
-
-The `removeDuplicates()` and `removeDuplicates(by:)` operators filter out consecutive equal values:
-
-For example:
-
-```swift
-// An observation of distinct Player?
-let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, id: 42) }
-    .removeDuplicates()
-```
-
-:bulb: **Tip**: When the observed value does not adopt Equatable, and it is impractical to provide a custom comparison function, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
-
-```swift
-// An observation of distinct Player?
-let request = Player.filter(id: 42)
-let observation = ValueObservation
-    .tracking { db in try Row.fetchOne(db, request) }
-    .removeDuplicates() // Row adopts Equatable
-    .map { row in try row.map(Player.init(row:) }
-```
-
-This technique is also available for requests that involve [Associations]:
-
-```swift
-struct TeamInfo: Decodable, FetchableRecord {
-    var team: Team
-    var players: [Player]
-}
-
-// An observation of distinct [TeamInfo]
-let request = Team.including(all: Team.players)
-let observation = ValueObservation
-    .tracking { db in try Row.fetchAll(db, request) }
-    .removeDuplicates() // Row adopts Equatable
-    .map { rows in try rows.map(TeamInfo.init(row:) }
-```
-
-
-#### ValueObservation.requiresWriteAccess
-
-The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
-
-```swift
-var observation = ValueObservation.tracking { db in
-    // write access allowed
-    ...
-}
-observation.requiresWriteAccess = true
-```
-
-When you use a [database pool](#database-pools), this flag has a performance hit.
-
-
-#### ValueObservation.handleEvents
-
-The `handleEvents` operator lets your application observe the lifetime of a ValueObservation:
-
-```swift
-let observation = ValueObservation
-    .tracking { db in ... }
-    .handleEvents(
-        willStart: {
-            // The observation starts.
-        },
-        willFetch: {
-            // The observation will perform a database fetch.
-        },
-        willTrackRegion: { databaseRegion in
-            // The observation starts tracking a database region.
-        },
-        databaseDidChange: {
-            // The observation was impacted by a database change.
-        },
-        didReceiveValue: { value in
-            // A fresh value was observed.
-            // NOTE: This closure runs on an unspecified DispatchQueue.
-        },
-        didFail: { error in
-            // The observation completes with an error.
-        },
-        didCancel: {
-            // The observation was cancelled.
-        })
-```
-
-See also [ValueObservation.print](#valueobservationprint).
-
-
-#### ValueObservation.print
-
-The `print` operator logs messages for all ValueObservation events.
-
-```swift
-let observation = ValueObservation
-    .tracking { db in ... }
-    .print()
-```
-
-See also [ValueObservation.handleEvents](#valueobservationhandleevents).
-
-
-### ValueObservation Sharing
-
-[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
-
-**Sharing a ValueObservation allows several components of your app to be notified of database changes, in an efficient way.**
-
-A shared observation spares database resources. For example, when a database change happens, a fresh value is fetched only once, and then notified to all subscriptions.
-
-Usage:
-
-```swift
-// SharedValueObservation<[Player]>
-let sharedObservation = ValueObservation
-    .tracking { db in try Player.fetchAll(db) }
-    .shared(in: dbQueue)
-//  ~~~~~~~~~~~~~~~~~~~~
-    
-let cancellable = try sharedObservation.start(
-    onError: { error in ... },
-    onChange: { players: [Player] in
-        print("fresh players: \(players)")
-    })
-```
-
-The sharing only applies if you start observing the database from the same `SharedValueObservation` instance:
-
-```swift
-// NOT shared
-let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
-let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
-
-// Shared
-let sharedObservation = ValueObservation.tracking { db in ... }.shared(in: dbQueue)
-let cancellable1 = sharedObservation.start(...)
-let cancellable2 = sharedObservation.start(...)
-```
-
-By default, fresh values are dispatched asynchronously on the main queue. You can change this behavior (see [ValueObservation Scheduling](#valueobservation-scheduling) for more information):
-
-```swift
-let sharedObservation = ValueObservation
-    .tracking { db in try Player.fetchAll(db) }
-    .shared(in: dbQueue, scheduling: .immediate)
-//                       ~~~~~~~~~~~~~~~~~~~~~~
-```
-
-A shared observation starts observing the database as soon as it is subscribed. You can choose if database observation should stop, or not, when its number of subscriptions drops down to zero, with the `extent` parameter:
-
-```swift
-// The default: stops observing the database when the number of subscriptions 
-// drops down to zero, and restart database observation on the next subscription.
-//
-// Database errors can be recovered by resubscribing to the shared observation.
-let sharedObservation = ValueObservation
-    .tracking { db in try Player.fetchAll(db) }
-    .shared(in: dbQueue, extent: .whileObserved)
-//                       ~~~~~~~~~~~~~~~~~~~~~~
-
-// Only stops observing the database when the shared observation is deinitialized,
-// and all subscriptions are cancelled.
-//
-// This extent prevents the shared observation from recovering from database
-// errors. To recover from database errors, create a new shared
-// SharedValueObservation instance.
-let sharedObservation = ValueObservation
-    .tracking { db in try Player.fetchAll(db) }
-    .shared(in: dbQueue, extent: .observationLifetime)
-//                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-```
-
-> **Note**: `ValueObservation` and `SharedValueObservation` are nearly identical, but there is a difference you should be aware of. `SharedValueObservation` has no [operator](#valueobservation-operators) such as `map`. As a replacement, you may, for example, use Combine apis:
-> 
-> ```swift
-> let sharedObservation = ValueObservation.tracking { ... }.shared(in: dbQueue)
-> let cancellable = try sharedObservation
->     .publisher() // Turn shared observation into a Combine Publisher
->     .map { ... } // The map operator from Combine
->     .sink(...)
-> ```
-
-
-### Specifying the Region Tracked by ValueObservation
-
-While the standard `ValueObservation.tracking { db in ... }` method lets you track changes to a fetched value and receive any changes to it, sometimes your use case might require more granular control. 
-
-Consider a scenario where you'd like to get a specific Player's row, but only when their `score` column changes. You can use `tracking(region:fetch:)` to do just that:
-
-```swift
-let observation = ValueObservation.tracking(
-    // Define what database region constitutes a "change"
-    region: Player.select(Column("score")).filter(id: 1),
-    // Define what to fetch upon such change
-    fetch: { db in try Player.fetchOne(db, id: 1) }
-)
-```
-
-This overload of `ValueObservation` lets you entirely separate the **observed region** from the **fetched value** itself, providing utmost flexibility. See [DatabaseRegionConvertible] for more information.
-
-### ValueObservation Performance
-
-This chapter further describes runtime aspects of ValueObservation, and provides some optimization tips for demanding applications.
-
-
-**ValueObservation is triggered by database transactions that may modify the tracked value.**
-
-For example, if you track the maximum score of players, all transactions that impact the `score` column of the `player` database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed.
-
-You can filter out undesired duplicate notifications with the [removeDuplicates](#valueobservationremoveduplicates) method.
-
-
-**ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
-
-When needed, you can help GRDB optimize observations and reduce database contention:
-
-1. :bulb: **Tip**: Stop observations when possible.
-    
-    For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`. Check the sample code [above](#valueobservation-scheduling).
-    
-2. :bulb: **Tip**: Share observations when possible.
-    
-    Each call to `ValueObservation.start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider [sharing the observation](#valueobservation-sharing).
-
-3. :bulb: **Tip**: Use a [database pool](#database-pools), because it can perform multi-threaded database accesses.
-
-4. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
-
-    ```swift
-    // Plain observation
-    let observation = ValueObservation.tracking { db -> MyValue in
-        let players = try Player.fetchAll(db)
-        return computeMyValue(players)
-    }
-    
-    // Optimized observation
-    let observation = ValueObservation
-        .tracking { db try Player.fetchAll(db) }
-        .map { players in computeMyValue(players) }
-    ```
-    
-    The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
-
-4. :bulb: **Tip**: When the observation tracks a constant database region, create an optimized observation with the `ValueObservation.trackingConstantRegion(_:)` method.
-    
-    The optimization only kicks in when the observation is started from a [database pool](#database-pools): fresh values are fetched concurrently, and do not block database writes.
-    
-    The `ValueObservation.trackingConstantRegion(_:)` has a precondition: the observed requests must fetch from a single and constant database region. The tracked region is made of tables, columns, and, when possible, rowids of individual rows. All changes that happen outside of this region do not impact the observation.
-    
-    For example:
-    
-    ```swift
-    // Tracks the full 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> [Player] in
-        try Player.fetchAll(db)
-    }
-    
-    // Tracks the row with id 42 in the 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> Player? in
-        try Player.fetchOne(db, id: 42)
-    }
-    
-    // Tracks the 'score' column in the 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> Int? in
-        try Player.select(max(Column("score"))).fetchOne(db)
-    }
-    
-    // Tracks both the 'player' and 'team' tables (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> ([Team], [Player]) in
-        let teams = try Team.fetchAll(db)
-        let players = try Player.fetchAll(db)
-        return (teams, players)
-    }
-    ```
-    
-    When you want to observe a varying database region, make sure you use the plain `ValueObservation.tracking(_:)` method instead, or else some changes will not be notified.
-    
-    For example, consider those three observations below that depend on some user preference. They all track a varying region, and must use `ValueObservation.tracking(_:)`:
-    
-    ```swift
-    // Does not always track the same row in the player table.
-    let observation = ValueObservation.tracking { db -> Player? in
-        let pref = try Preference.fetchOne(db) ?? .default
-        return try Player.fetchOne(db, id: pref.favoritePlayerId)
-    }
-    
-    // Only tracks the 'user' table if there are some blocked emails.
-    let observation = ValueObservation.tracking { db -> [User] in
-        let pref = try Preference.fetchOne(db) ?? .default
-        let blockedEmails = pref.blockedEmails
-        return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
-    }
-    
-    // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
-    let observation = ValueObservation.tracking { db -> Int in
-        let pref = try Preference.fetchOne(db) ?? .default
-        switch pref.selection {
-        case .food: return try Food.fetchCount(db)
-        case .beverage: return try Beverage.fetchCount(db)
-        }
-    }
-    ```
-    
-    When you are in doubt, add the [`print()` method](#valueobservationprint) to your observation before starting it, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
-    
-    <details>
-        <summary>Examples of tracked regions</summary>
-    
-    - `empty`: The empty region, which tracks nothing and never triggers the observation.
-    - `player(*)`: The full `player` table
-    - `player(id,name)`: The `id` and `name` columns of the `player` table
-    - `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
-    - `player(*),preference(*)`: Both the full `player` and `preference` tables
-    
-    </details>
-
-
 ## DatabaseRegionObservation
 
 **DatabaseRegionObservation notifies all [transactions](#transactions-and-savepoints) that impact the tracked [requests](#requests).**
@@ -8360,17 +7726,53 @@ Sample Code
 
 [URIs don't change: people change them.](https://www.w3.org/Provider/Style/URI)
 
+#### Adding support for missing SQL functions or operators
+
+This chapter was renamed to [Embedding SQL in Query Interface Requests].
+
+#### Advanced DatabasePool
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### After Commit Hook
+
+This chapter was replaced with [Transaction Hook].
+
+#### Asynchronous APIs
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
 #### Changes Tracking
 
 This chapter has been renamed [Record Comparison].
+
+#### Concurrency
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
 #### Customized Decoding of Database Rows
 
 This chapter has been renamed [Beyond FetchableRecord].
 
+#### Customizing the Persistence Methods
+
+This chapter was replaced with [Persistence Callbacks].
+
+#### Database Snapshots
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### DatabaseWriter and DatabaseReader Protocols
+
+This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasewriter).
+
 #### Dealing with External Connections
 
 This chapter has been superseded by the [Sharing a Database] guide.
+
+#### Differences between Database Queues and Pools
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
 #### Enabling FTS5 Support
 
@@ -8385,6 +7787,10 @@ The [Database Observation] chapter describes the other ways to observe the datab
 #### Full-Text Search
 
 This chapter has [moved](Documentation/FullTextSearch.md).
+
+#### Guarantees and Rules
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
 #### Migrations
 
@@ -8406,53 +7812,17 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
-#### Customizing the Persistence Methods
-
-This chapter was replaced with [Persistence Callbacks].
-
-#### After Commit Hook
-
-This chapter was replaced with [Transaction Hook].
-
-#### ValueObservation and DatabaseRegionObservation
-
-This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
-
-#### Concurrency
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
-#### Guarantees and Rules
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
-#### Differences between Database Queues and Pools
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
-#### Advanced DatabasePool
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
-#### Database Snapshots
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
-#### DatabaseWriter and DatabaseReader Protocols
-
-This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasewriter).
-
-#### Asynchronous APIs
-
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
-
 #### Unsafe Concurrency APIs
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
-### Adding support for missing SQL functions or operators
+#### ValueObservation
 
-This chapter was renamed to [Embedding SQL in Query Interface Requests].
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
+
+#### ValueObservation and DatabaseRegionObservation
+
+This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
@@ -8478,7 +7848,7 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Persistence Callbacks]: #persistence-callbacks
 [persistence callbacks]: #persistence-callbacks
 [TableRecord]: #tablerecord-protocol
-[ValueObservation]: #valueobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
 [DatabaseRegionObservation]: #databaseregionobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol

@@ -811,7 +811,7 @@ Instead, have a look at [Database Observation]:
 [GRDB concurrency rules]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
-[ValueObservation]: ../README.md#valueobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself

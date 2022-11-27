@@ -3009,7 +3009,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Codable Records]: ../README.md#codable-records
 [persistence methods]: ../README.md#persistence-methods
 [database observation tools]: ../README.md#database-changes-observation
-[ValueObservation]: ../README.md#valueobservation
 [FAQ]: ../README.md#faq-associations
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md

@@ -290,7 +290,7 @@ Happy GRDB! :gift:
 [DatabasePool]: ../README.md#database-pools
 [Diesel]: http://diesel.rs
 [FCModel]: https://github.com/marcoarment/FCModel
-[ValueObservation]: ../README.md#valueobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
 [Fluent]: https://github.com/vapor/fluent
 [FMDB]: https://github.com/ccgus/fmdb
 [GRDB]: https://github.com/groue/GRDB.swift

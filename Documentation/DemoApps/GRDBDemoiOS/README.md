@@ -13,14 +13,14 @@ The topics covered in this demo are:
 
 - How to setup a database in an iOS app.
 - How to define a simple [Codable Record](../../../README.md#codable-records).
-- How to track database changes and animate a table view with [ValueObservation](../../../README.md#valueobservation).
+- How to track database changes and animate a table view with [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
 - How to apply the recommendations of [Good Practices for Designing Record Types](../../GoodPracticesForDesigningRecordTypes.md).
 
 **Files of interest:**
 
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation) in order to let the application observe database changes.
 
 - [Persistence.swift](GRDBDemoiOS/Persistence.swift)
     
