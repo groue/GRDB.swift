@@ -292,14 +292,14 @@ Happy GRDB! :gift:
 [FCModel]: https://github.com/marcoarment/FCModel
 [ValueObservation]: ../README.md#valueobservation
 [Fluent]: https://github.com/vapor/fluent
-[FMDB]: http://github.com/ccgus/fmdb
-[GRDB]: http://github.com/groue/GRDB.swift
+[FMDB]: https://github.com/ccgus/fmdb
+[GRDB]: https://github.com/groue/GRDB.swift
 [PersistableRecord]: ../README.md#records
 [Realm]: http://realm.io
 [FetchableRecord]: ../README.md#records
-[SQLite.swift]: http://github.com/stephencelis/SQLite.swift
+[SQLite.swift]: https://github.com/stephencelis/SQLite.swift
 [StORM]: https://www.perfect.org/docs/StORM.html
-[Swift-Kuery]: http://github.com/IBM-Swift/Swift-Kuery
+[Swift-Kuery]: https://github.com/IBM-Swift/Swift-Kuery
 [TableRecord]: ../README.md#records
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [query interface]: ../README.md#the-query-interface

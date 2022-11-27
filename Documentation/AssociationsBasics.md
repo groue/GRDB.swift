@@ -511,7 +511,7 @@ When using class names composed of two or more words, the table name should use 
 | Mouse      | mouse      | `mouse`, `mice`, `maxMouseSize` |
 | Person     | person     | `person`, `people`, `personCount` |
 
-If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](http://github.com/groue/GRDB.swift/issues).
+If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](https://github.com/groue/GRDB.swift/issues).
 
 See [The Structure of a Joined Request] for more information.
 

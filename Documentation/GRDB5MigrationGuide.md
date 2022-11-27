@@ -501,7 +501,7 @@ let publisher = observation
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests

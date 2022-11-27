@@ -812,7 +812,7 @@ Instead, have a look at [Database Observation]:
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
