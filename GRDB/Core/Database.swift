@@ -103,11 +103,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``DatabaseBackupProgress``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
-///
-/// ### Sunsetted Methods
-///
-/// - ``create(index:on:columns:unique:ifNotExists:condition:)``
-/// - ``create(table:temporary:ifNotExists:withoutRowID:body:)``
 public final class Database: CustomStringConvertible, CustomDebugStringConvertible {
     // The Database class is not thread-safe. An instance should always be
     // used through a SerializedDatabase.
@@ -1729,26 +1724,23 @@ extension Database {
     
     /// An SQL column type.
     ///
-    /// You use column types when you modify the database schema. For example,
-    /// the code below create a `player` table with a `name` column whose type
-    /// is ``text`` (`TEXT` in SQL):
+    /// You use column types when you modify the database schema. For example:
     ///
     /// ```swift
     /// // CREATE TABLE player(
-    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
-    /// //   name TEXT
+    /// //   id INTEGER PRIMARY KEY,
+    /// //   name TEXT,
+    /// //   creationDate DATETIME,
     /// // )
     /// try db.create(table: "player") { t in
-    ///     t.autoIncrementedPrimaryKey("id")
+    ///     t.column("id", .integer).primaryKey()
     ///     t.column("name", .text)
+    ///     t.column("creationDate", .datetime)
     /// }
     /// ```
     ///
-    /// A `ColumnType` is an element of the SQL language, as is `TEXT` in the
-    /// example above. The type comes with many built-in constants for
-    /// frequently used types: ``text``, ``integer``, etc.
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/datatype3.html>
+    /// For more information, see
+    /// [Datatypes In SQLite](https://www.sqlite.org/datatype3.html).
     public struct ColumnType: RawRepresentable, Hashable {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
@@ -1758,34 +1750,34 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        /// The `TEXT` SQL column type.
+        /// The `TEXT` column type.
         public static let text = ColumnType(rawValue: "TEXT")
         
-        /// The `INTEGER` SQL column type.
+        /// The `INTEGER` column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
         
-        /// The `DOUBLE` SQL column type.
+        /// The `DOUBLE` column type.
         public static let double = ColumnType(rawValue: "DOUBLE")
         
-        /// The `REAL` SQL column type.
+        /// The `REAL` column type.
         public static let real = ColumnType(rawValue: "REAL")
 
-        /// The `NUMERIC` SQL column type.
+        /// The `NUMERIC` column type.
         public static let numeric = ColumnType(rawValue: "NUMERIC")
         
-        /// The `BOOLEAN` SQL column type.
+        /// The `BOOLEAN` column type.
         public static let boolean = ColumnType(rawValue: "BOOLEAN")
         
-        /// The `BLOB` SQL column type.
+        /// The `BLOB` column type.
         public static let blob = ColumnType(rawValue: "BLOB")
         
-        /// The `DATE` SQL column type.
+        /// The `DATE` column type.
         public static let date = ColumnType(rawValue: "DATE")
         
-        /// The `DATETIME` SQL column type.
+        /// The `DATETIME` column type.
         public static let datetime = ColumnType(rawValue: "DATETIME")
         
-        /// The `ANY` SQL column type.
+        /// The `ANY` column type.
         public static let any = ColumnType(rawValue: "ANY")
     }
     

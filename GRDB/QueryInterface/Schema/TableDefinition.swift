@@ -21,7 +21,8 @@ extension Database {
     /// - <https://www.sqlite.org/lang_createtable.html>
     /// - <https://www.sqlite.org/withoutrowid.html>
     ///
-    /// - warning: This method is sunsetted. You should prefer
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
     ///   ``create(table:options:body:)`` instead.
     ///
     /// - parameters:
@@ -51,21 +52,190 @@ extension Database {
     
     /// Creates a database table.
     ///
-    /// For example:
+    /// ### Reference documentation
+    ///
+    /// SQLite has many reference documents about table creation. They are a
+    /// great learning material:
+    ///
+    /// - [CREATE TABLE](https://www.sqlite.org/lang_createtable.html)
+    /// - [Datatypes In SQLite](https://www.sqlite.org/datatype3.html)
+    /// - [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)
+    /// - [The ON CONFLICT Clause](https://www.sqlite.org/lang_conflict.html)
+    /// - [Rowid Tables](https://www.sqlite.org/rowidtable.html)
+    /// - [The WITHOUT ROWID Optimization](https://www.sqlite.org/withoutrowid.html)
+    /// - [STRICT Tables](https://www.sqlite.org/stricttables.html)
+    ///
+    /// ### Usage
     ///
     /// ```swift
+    /// // CREATE TABLE place (
+    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// //   title TEXT,
+    /// //   isFavorite BOOLEAN NOT NULL DEFAULT 0,
+    /// //   latitude DOUBLE NOT NULL,
+    /// //   longitude DOUBLE NOT NULL
+    /// // )
     /// try db.create(table: "place") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("title", .text)
-    ///     t.column("favorite", .boolean).notNull().default(false)
+    ///     t.column("isFavorite", .boolean).notNull().default(false)
     ///     t.column("longitude", .double).notNull()
     ///     t.column("latitude", .double).notNull()
     /// }
     /// ```
     ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html>
-    /// - <https://www.sqlite.org/withoutrowid.html>
+    /// ### Configure table creation
+    ///
+    /// Use the `options` parameter to configure table creation
+    /// (see ``TableOptions``):
+    ///
+    /// ```swift
+    /// // CREATE TABLE player ( ... )
+    /// try db.create(table: "player") { t in ... }
+    ///
+    /// // CREATE TEMPORARY TABLE player IF NOT EXISTS (
+    /// try db.create(table: "player", options: [.temporary, .ifNotExists]) { t in ... }
+    /// ```
+    ///
+    /// ### Add columns
+    ///
+    /// Add columns with their name and eventual type (`text`, `integer`,
+    /// `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime`
+    /// and `any`) - see ``Database/ColumnType``:
+    ///
+    /// ```swift
+    /// // CREATE TABLE example (
+    /// //   a,
+    /// //   name TEXT,
+    /// //   creationDate DATETIME,
+    /// try db.create(table: "example") { t in
+    ///     t.column("a")
+    ///     t.column("name", .text)
+    ///     t.column("creationDate", .datetime)
+    /// ```
+    ///
+    /// The `column()` method returns a ``ColumnDefinition`` that you can
+    /// further configure:
+    ///
+    /// ### NOT NULL constraints, DEFAULT values
+    ///
+    /// ```swift
+    /// // email TEXT NOT NULL,
+    /// t.column("email", .text).notNull()
+    ///
+    /// // flag BOOLEAN NOT NULL DEFAULT 0,
+    /// t.column("flag", .boolean).notNull().defaults(to: false)
+    /// ```
+    ///
+    /// ### Primary, unique, and foreign keys
+    ///
+    /// Use an individual column as **primary**, **unique**, or **foreign key**.
+    /// When defining a foreign key, the referenced column is the primary key of
+    /// the referenced table (unless you specify otherwise):
+    ///
+    /// ```swift
+    /// // id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// t.autoIncrementedPrimaryKey("id")
+    ///
+    /// // uuid TEXT NOT NULL PRIMARY KEY,
+    /// t.column("uuid", .text)
+    ///     .notNull()
+    ///     .primaryKey()
+    ///
+    /// // email TEXT UNIQUE,
+    /// t.column("email", .text)
+    ///     .unique()
+    ///
+    /// // countryCode TEXT REFERENCES country(code) ON DELETE CASCADE,
+    /// t.column("countryCode", .text)
+    ///     .references("country", onDelete: .cascade)
+    /// ```
+    ///
+    /// Primary, unique and foreign keys can also be added on several columns:
+    ///
+    /// ```swift
+    /// // PRIMARY KEY (a, b),
+    /// t.primaryKey(["a", "b"])
+    ///
+    /// // UNIQUE (a, b) ON CONFLICT REPLACE,
+    /// t.uniqueKey(["a", "b"], onConflict: .replace)
+    ///
+    /// // FOREIGN KEY (a, b) REFERENCES parents(c, d),
+    /// t.foreignKey(["a", "b"], references: "parents")
+    /// ```
+    ///
+    /// > Tip: when you need an integer primary key that automatically generates
+    /// unique values, it is recommended that you use the
+    /// ``TableDefinition/autoIncrementedPrimaryKey(_:onConflict:)`` method:
+    /// >
+    /// > ```swift
+    /// > try db.create(table: "example") { t in
+    /// >     t.autoIncrementedPrimaryKey("id")
+    /// >     ...
+    /// > }
+    /// > ```
+    /// >
+    /// > The reason for this recommendation is that auto-incremented primary
+    /// > keys forbid the reuse of ids. This prevents your app or
+    /// > <doc:DatabaseObservation> to think that a row was updated, when it was
+    /// > actually deleted and replaced. Depending on your application needs,
+    /// > this may be acceptable. But usually it is not.
+    ///
+    /// ### Indexed columns
+    ///
+    /// ```swift
+    /// t.column("score", .integer).indexed()
+    /// ```
+    ///
+    /// For extra index options, see ``create(index:on:columns:options:condition:)``.
+    ///
+    /// ### Integrity checks
+    ///
+    /// SQLite will only let conforming rows in:
+    ///
+    /// ```swift
+    /// // name TEXT CHECK (LENGTH(name) > 0)
+    /// t.column("name", .text).check { length($0) > 0 }
+    ///
+    /// // score INTEGER CHECK (score > 0)
+    /// t.column("score", .integer).check(sql: "score > 0")
+    ///
+    /// // CHECK (a + b < 10),
+    /// t.check(Column("a") + Column("b") < 10)
+    ///
+    /// // CHECK (a + b < 10)
+    /// t.check(sql: "a + b < 10")
+    /// ```
+    ///
+    /// ### Generated columns
+    ///
+    /// [Generated columns](https://sqlite.org/gencol.html) are available with a
+    /// [custom SQLite build](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md):
+    ///
+    /// ```swift
+    /// t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+    /// t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// ```
+    ///
+    /// ### Raw SQL columns and constraints
+    ///
+    /// Columns and constraints can be defined with raw sql:
+    ///
+    /// ```swift
+    /// t.column(sql: "name TEXT")
+    /// t.constraint(sql: "CHECK (a + b < 10)")
+    /// ```
+    ///
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    /// ```swift
+    /// let defaultName = "O'Reilly"
+    /// t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///
+    /// let forbiddenName = "admin"
+    /// t.constraint(literal: "CHECK (name <> \(forbiddenName))")
+    /// ```
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -146,7 +316,8 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createindex.html>
     ///
-    /// - warning: This method is sunsetted. You should prefer
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
     ///   ``create(index:on:columns:options:condition:)`` instead.
     ///
     /// - parameters:
@@ -252,7 +423,7 @@ extension Database {
     }
 }
 
-/// Table creation options
+/// Table creation options.
 public struct TableOptions: OptionSet {
     public let rawValue: Int
     
@@ -264,18 +435,16 @@ public struct TableOptions: OptionSet {
     /// Creates a temporary table.
     public static let temporary = TableOptions(rawValue: 1 << 1)
     
-    /// Creates a without rowid table. See <https://www.sqlite.org/withoutrowid.html>
+    /// Creates a [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) table.
+    ///
+    /// Such tables can not be tracked with <doc:DatabaseObservation> tools.
     public static let withoutRowID = TableOptions(rawValue: 1 << 2)
     
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Creates a STRICT table
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/stricttables.html>
+    /// Creates a [STRICT](https://www.sqlite.org/stricttables.html) table.
     public static let strict = TableOptions(rawValue: 1 << 3)
 #else
-    /// Creates a STRICT table
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/stricttables.html>
+    /// Creates a [STRICT](https://www.sqlite.org/stricttables.html) table.
     @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     public static let strict = TableOptions(rawValue: 1 << 3)
 #endif

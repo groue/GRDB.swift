@@ -1,33 +1,28 @@
 # The Database Schema
 
-The database schema is the structure of the database content.
-
 ## Overview
 
-The database schema is made of tables that contain data, as well as views, indexes, and triggers.
+**GRDB supports all database schemas, and has no requirement.** Any existing SQLite database can be opened, and you are free to structure your new databases as you wish.
 
-**GRDB supports all database schemas, and has no requirement.** Any existing SQLite database can be opened, and you are free to structure your new databases as you wish. We'll see below some recommendations that will make your life easier, though.
+You perform modifications to the database schema with methods such as ``Database/create(table:options:body:)``, listed at the end of this page. For example:
 
-It is recommended to wrap all schema changes in <doc:Migrations> when the database schema will need to be upgraded in future versions of an application.
+```swift
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("name", .text).notNull()
+    t.column("score", .integer).notNull()
+}
+```
 
-## Schema Alterations
+When you plan to evolve the schema as new versions of your application ship, wrap all schema changes in <doc:Migrations>.
 
-SQLite supports a [predefined set of schema alterations](https://www.sqlite.org/lang.html): creating or altering tables, creating indexes, etc.
+Prefer Swift methods over raw SQL queries. They allow the compiler to check if a schema change is available on the target operating system. Only use a raw SQL query when no Swift method exist (when creating views or triggers, for example).
 
-Many of them are available as Swift methods such as ``Database/create(table:options:body:)``, listed at the end of this page.
-
-When a schema alteration is not available as a Swift method, use a raw SQL query (for creating views or triggers, for example).
-
-When a schema alteration is not directly supported by SQLite, or not available on the target operating system, database tables have to be recreated. See <doc:Migrations> for the detailed procedure.
-
-> Tip: Prefer Swift methods over raw SQL queries. This helps the compiler check if features are available on the target operating system. For example:
->
-> - Dropping a table column requires SQLite 3.35+ (iOS 15.0, macOS 12.0).
-> - [Strict tables](https://www.sqlite.org/stricttables.html) require SQLite 3.37+ (iOS 15.4, macOS 12.4).
+When a schema change is not directly supported by SQLite, or not available on the target operating system, database tables have to be recreated. See <doc:Migrations> for the detailed procedure.
 
 ## Database Schema Recommendations
 
-Some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
+Even though all schema are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
 
 When those conventions are not applied, or not applicable, you will have to perform extra configurations.  
 
@@ -409,3 +404,10 @@ extension Team: TableRecord {
 - ``Database/foreignKeyViolations()``
 - ``Database/foreignKeyViolations(in:)``
 - ``ForeignKeyViolation``
+
+### Sunsetted Methods
+
+Those are legacy interfaces that are preserved for backwards compatibility. Their use is not recommended.
+
+- ``Database/create(index:on:columns:unique:ifNotExists:condition:)``
+- ``Database/create(table:temporary:ifNotExists:withoutRowID:body:)``

@@ -336,7 +336,7 @@ Documentation
 #### Records and the Query Interface
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
 
 #### Application Tools
 
@@ -2449,7 +2449,7 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create database tables](#database-schema) first.
+Of course, you need to open a [database connection](#database-connections), and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
 
 To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
 
@@ -4495,7 +4495,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
-- [Database Schema](#database-schema)
+- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
@@ -4511,211 +4511,6 @@ So don't miss the [SQL API](#sqlite-api).
 - :blue_book: [Associations and Joins](Documentation/AssociationsBasics.md)
 - :blue_book: [Common Table Expressions]
 - :blue_book: [Query Interface Organization]
-
-
-## Database Schema
-
-Once granted with a [database connection](#database-connections), you can setup your database schema without writing SQL:
-
-- [Create Tables](#create-tables)
-- [Modify Tables](#modify-tables)
-- [Drop Tables](#drop-tables)
-- [Create Indexes](#create-indexes)
-
-
-### Create Tables
-
-```swift
-// CREATE TABLE place (
-//   id INTEGER PRIMARY KEY AUTOINCREMENT,
-//   title TEXT,
-//   favorite BOOLEAN NOT NULL DEFAULT 0,
-//   latitude DOUBLE NOT NULL,
-//   longitude DOUBLE NOT NULL
-// )
-try db.create(table: "place") { t in
-    t.autoIncrementedPrimaryKey("id")
-    t.column("title", .text)
-    t.column("favorite", .boolean).notNull().defaults(to: false)
-    t.column("longitude", .double).notNull()
-    t.column("latitude", .double).notNull()
-}
-```
-
-The `create(table:)` method covers nearly all SQLite table creation features. For virtual tables, see [Full-Text Search], or use raw SQL.
-
-SQLite itself has many reference documents about table creation: [CREATE TABLE](https://www.sqlite.org/lang_createtable.html), [Datatypes In SQLite Version 3](https://www.sqlite.org/datatype3.html), [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html), [ON CONFLICT](https://www.sqlite.org/lang_conflict.html), [The WITHOUT ROWID Optimization](https://www.sqlite.org/withoutrowid.html).
-
-**Configure table creation**:
-
-```swift
-// CREATE TABLE example ( ... )
-try db.create(table: "example") { t in ... }
-    
-// CREATE TEMPORARY TABLE example IF NOT EXISTS (
-try db.create(table: "example", options: [.temporary, .ifNotExists]) { t in ... }
-```
-
-> :bulb: **Tip**: database table names should be singular, and camelCased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, `httpRequest`.
->
-> This will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
->
-> **Note**: [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables can not be tracked with [Database Observation] tools.
-
-**Add regular columns** with their name and eventual type (`text`, `integer`, `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime` and `any`) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
-
-```swift
-// CREATE TABLE example (
-//   a,
-//   name TEXT,
-//   creationDate DATETIME,
-try db.create(table: "example") { t in
-    t.column("a")
-    t.column("name", .text)
-    t.column("creationDate", .datetime)
-```
-
-Define **not null** columns, and set **default** values:
-
-```swift
-    // email TEXT NOT NULL,
-    t.column("email", .text).notNull()
-    
-    // name TEXT NOT NULL DEFAULT 'Anonymous',
-    t.column("name", .text).notNull().defaults(to: "Anonymous")
-```
-    
-Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
-
-```swift
-    // id INTEGER PRIMARY KEY AUTOINCREMENT,
-    t.autoIncrementedPrimaryKey("id")
-    
-    // uuid TEXT PRIMARY KEY,
-    t.column("uuid", .text).primaryKey()
-    
-    // email TEXT UNIQUE,
-    t.column("email", .text).unique()
-    
-    // countryCode TEXT REFERENCES country(code) ON DELETE CASCADE,
-    t.column("countryCode", .text).references("country", onDelete: .cascade)
-```
-
-> :bulb: **Tip**: when you need an integer primary key that automatically generates unique values, it is highly recommended that you use the `autoIncrementedPrimaryKey` method:
->
-> ```swift
-> try db.create(table: "example") { t in
->     t.autoIncrementedPrimaryKey("id")
->     ...
-> }
-> ```
->
-> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be acceptable. But usually it is not.
-
-**Create an index** on the column:
-
-```swift
-    t.column("score", .integer).indexed()
-```
-
-For extra index options, see [Create Indexes](#create-indexes) below.
-
-**Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
-
-```swift
-    // name TEXT CHECK (LENGTH(name) > 0)
-    // score INTEGER CHECK (score > 0)
-    t.column("name", .text).check { length($0) > 0 }
-    t.column("score", .integer).check(sql: "score > 0")
-```
-
-Columns can also be defined with a raw sql String, or an [SQL literal] in which you can safely embed raw values without any risk of syntax errors or SQL injection:
-
-```swift
-    t.column(sql: "name TEXT")
-    
-    let defaultName: String = ...
-    t.column(literal: "name TEXT DEFAULT \(defaultName)")
-```
-
-Other **table constraints** can involve several columns:
-
-```swift
-    // PRIMARY KEY (a, b),
-    t.primaryKey(["a", "b"])
-    
-    // UNIQUE (a, b) ON CONFLICT REPLACE,
-    t.uniqueKey(["a", "b"], onConflict: .replace)
-    
-    // FOREIGN KEY (a, b) REFERENCES parents(c, d),
-    t.foreignKey(["a", "b"], references: "parents")
-    
-    // CHECK (a + b < 10),
-    t.check(Column("a") + Column("b") < 10)
-    
-    // CHECK (a + b < 10)
-    t.check(sql: "a + b < 10")
-    
-    // Raw SQL constraints
-    t.constraint(sql: "CHECK (a + b < 10)")
-    t.constraint(literal: "CHECK (a + b < \(10))")
-```
-
-[Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
-
-```swift
-    t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
-    t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
-}
-```
-
-### Modify Tables
-
-SQLite lets you modify existing tables:
-
-```swift
-// ALTER TABLE referer RENAME TO referrer
-try db.rename(table: "referer", to: "referrer")
-
-// ALTER TABLE player ADD COLUMN hasBonus BOOLEAN
-// ALTER TABLE player RENAME COLUMN url TO homeURL
-// ALTER TABLE player DROP COLUMN score
-try db.alter(table: "player") { t in
-    t.add(column: "hasBonus", .boolean)
-    t.rename(column: "url", to: "homeURL") // SQLite 3.25+
-    t.drop(column: "score") // SQLite 3.35+
-}
-```
-
-> **Note**: SQLite restricts the possible table alterations, and may require you to recreate dependent triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details.
-
-
-### Drop Tables
-
-Drop tables with the `drop(table:)` method:
-
-```swift
-try db.drop(table: "obsolete")
-```
-
-### Create Indexes
-
-Create indexes with the `create(index:)` method:
-
-```swift
-// CREATE INDEX byName ON users(lastName, firstName)
-try db.create(index: "byName", on: "users", columns: ["lastName, "firstName"])
-
-// CREATE UNIQUE INDEX byEmail IF NOT EXISTS ON users(email)
-try db.create(index: "byEmail", on: "users", columns: ["email"], options: [.unique, .ifNotExists])
-```
-
-Relevant SQLite documentation:
-
-- [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
-- [Indexes On Expressions](https://www.sqlite.org/expridx.html)
-- [Partial Indexes](https://www.sqlite.org/partialindex.html)
-
 
 ## Requests
 
@@ -7846,7 +7641,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String = row["name"]
     ```
     
-    Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
+    Solution: fix the contents of the database, use [NOT NULL constraints](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/columndefinition/notnull(onconflict:)), or load an optional:
     
     ```swift
     let name: String? = row["name"]
