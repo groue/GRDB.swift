@@ -161,9 +161,9 @@ extension Database {
     /// // a INTEGER NOT NULL,
     /// // b TEXT NOT NULL,
     /// // PRIMARY KEY (a, b),
-    /// t.primaryKey { pk in
-    ///     pk.column("a", .integer)
-    ///     pk.column("b", .text)
+    /// t.primaryKey {
+    ///     t.column("a", .integer)
+    ///     t.column("b", .text)
     /// }
     ///
     /// // a INTEGER,
@@ -493,7 +493,6 @@ public struct TableOptions: OptionSet {
 /// - ``autoIncrementedPrimaryKey(_:onConflict:)``
 /// - ``primaryKey(_:_:onConflict:)``
 /// - ``primaryKey(onConflict:body:)``
-/// - ``PrimaryKeyDefinition``
 ///
 /// ### Define a Foreign Key
 ///
@@ -517,9 +516,10 @@ public struct TableOptions: OptionSet {
 ///
 /// - ``primaryKey(_:onConflict:)``
 public final class TableDefinition {
-    private typealias KeyConstraint = (
-        columns: [String],
-        conflictResolution: Database.ConflictResolution?)
+    struct KeyConstraint {
+        var columns: [String]
+        var conflictResolution: Database.ConflictResolution?
+    }
     
     private struct ForeignKeyConstraint {
         var columns: [String]
@@ -555,6 +555,7 @@ public final class TableDefinition {
     private let name: String
     private let options: TableOptions
     private var columns: [ColumnItem] = []
+    private var inPrimaryKeyBody = false
     private var primaryKeyConstraint: KeyConstraint?
     private var uniqueKeyConstraints: [KeyConstraint] = []
     private var foreignKeyConstraints: [ForeignKeyConstraint] = []
@@ -647,9 +648,9 @@ public final class TableDefinition {
     /// //   PRIMARY KEY (citizenId, countryCode)
     /// // )
     /// try db.create(table: "passport") { t in
-    ///     t.primaryKey { pk in
-    ///         pk.column("citizenId", .integer)
-    ///         pk.column("countryCode", .text)
+    ///     t.primaryKey {
+    ///         t.column("citizenId", .integer)
+    ///         t.column("countryCode", .text)
     ///     }
     ///     t.column("issueDate", .date).notNull()
     /// }
@@ -658,12 +659,19 @@ public final class TableDefinition {
     /// A NOT NULL constraint is always added to the primary key columns.
     public func primaryKey(
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        body: (PrimaryKeyDefinition) throws -> Void)
+        body: () throws -> Void)
     rethrows
     {
-        let pk = PrimaryKeyDefinition(tableDefinition: self)
-        try body(pk)
-        primaryKey(pk.columns, onConflict: conflictResolution)
+        guard primaryKeyConstraint == nil else {
+            // Programmer error
+            fatalError("can't define several primary keys")
+        }
+        primaryKeyConstraint = KeyConstraint(columns: [], conflictResolution: conflictResolution)
+        
+        let oldValue = inPrimaryKeyBody
+        inPrimaryKeyBody = true
+        defer { inPrimaryKeyBody = oldValue }
+        try body()
     }
     
     /// Appends a table column.
@@ -689,6 +697,14 @@ public final class TableDefinition {
     public func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         columns.append(.definition(column))
+        
+        if inPrimaryKeyBody {
+            // Add a not null constraint in order to fix an SQLite bug:
+            // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
+            column.notNull()
+            primaryKeyConstraint!.columns.append(name)
+        }
+        
         return column
     }
     
@@ -705,6 +721,7 @@ public final class TableDefinition {
     /// }
     /// ```
     public func column(sql: String) {
+        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns can not be defined with raw SQL")
         columns.append(.literal(SQL(sql: sql)))
     }
     
@@ -723,6 +740,7 @@ public final class TableDefinition {
     /// }
     /// ```
     public func column(literal: SQL) {
+        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns can not be defined with raw SQL")
         columns.append(.literal(literal))
     }
     
@@ -760,7 +778,7 @@ public final class TableDefinition {
             // Programmer error
             fatalError("can't define several primary keys")
         }
-        primaryKeyConstraint = (columns: columns, conflictResolution: conflictResolution)
+        primaryKeyConstraint = KeyConstraint(columns: columns, conflictResolution: conflictResolution)
     }
     
     /// Adds a unique constraint.
@@ -798,7 +816,7 @@ public final class TableDefinition {
     /// - parameter conflictResolution: An optional conflict resolution
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
-        uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
+        uniqueKeyConstraints.append(KeyConstraint(columns: columns, conflictResolution: conflictResolution))
     }
     
     /// Adds a foreign key.
@@ -989,8 +1007,8 @@ public final class TableDefinition {
             chunks.append(name.quotedDatabaseIdentifier)
             
             let primaryKeyColumns: [String]
-            if let (columns, _) = primaryKeyConstraint {
-                primaryKeyColumns = columns
+            if let primaryKeyConstraint {
+                primaryKeyColumns = primaryKeyConstraint.columns
             } else if let column = columns.lazy.compactMap(\.columnDefinition).first(where: { $0.primaryKey != nil }) {
                 primaryKeyColumns = [column.name]
             } else {
@@ -1009,22 +1027,22 @@ public final class TableDefinition {
                     try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns)
                 })
                 
-                if let (columns, conflictResolution) = primaryKeyConstraint {
+                if let constraint = primaryKeyConstraint {
                     var chunks: [String] = []
                     chunks.append("PRIMARY KEY")
-                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
-                    if let conflictResolution = conflictResolution {
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
+                    if let conflictResolution = constraint.conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
                     }
                     items.append(chunks.joined(separator: " "))
                 }
                 
-                for (columns, conflictResolution) in uniqueKeyConstraints {
+                for constraint in uniqueKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("UNIQUE")
-                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
-                    if let conflictResolution = conflictResolution {
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
+                    if let conflictResolution = constraint.conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
                     }
@@ -1332,54 +1350,6 @@ public final class TableAlteration {
         }
         
         return statements.joined(separator: "; ")
-    }
-}
-
-/// Describes the primary key of a table.
-///
-/// See ``TableDefinition/primaryKey(onConflict:body:)``.
-public final class PrimaryKeyDefinition {
-    let tableDefinition: TableDefinition
-    var columns: [String]
-    
-    init(tableDefinition: TableDefinition) {
-        self.tableDefinition = tableDefinition
-        self.columns = []
-    }
-    
-    /// Appends a column to the primary key.
-    ///
-    /// For example:
-    ///
-    /// ```swift
-    /// // CREATE TABLE passport (
-    /// //   citizenId INTEGER NOT NULL,
-    /// //   countryCode TEXT NOT NULL,
-    /// //   issueDate DATE NOT NULL,
-    /// //   PRIMARY KEY (citizenId, countryCode)
-    /// // )
-    /// try db.create(table: "passport") { t in
-    ///     t.primaryKey { pk in
-    ///         pk.column("citizenId", .integer)
-    ///         pk.column("countryCode", .text)
-    ///     }
-    ///     t.column("issueDate", .date).notNull()
-    /// }
-    /// ```
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#tablecoldef>
-    ///
-    /// - parameter name: the column name.
-    /// - parameter type: the column type.
-    /// - returns: A ``ColumnDefinition`` that allows you to refine the
-    ///   column definition.
-    @discardableResult
-    public func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition {
-        columns.append(name)
-        
-        // Add a not null constraint in order to fix an SQLite bug:
-        // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
-        return tableDefinition.column(name, type).notNull()
     }
 }
 

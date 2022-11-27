@@ -134,9 +134,9 @@ try db.create(table: "team") { t in
 
 try db.create(table: "membership") { t in
     // Composite primary key
-    t.primaryKey { pk in
-        pk.column("playerId", .integer).references("player")
-        pk.column("teamId", .text).references("team")
+    t.primaryKey {
+        t.column("playerId", .integer).references("player")
+        t.column("teamId", .text).references("team")
     }
     t.column("role", .text).notNull()
 }

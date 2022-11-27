@@ -410,15 +410,19 @@ class TableDefinitionTests: GRDBTestCase {
         }
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
-                t.primaryKey { pk in
-                    pk.column("a", .text)
-                    pk.column("b", .text)
+                t.column("regular1")
+                t.primaryKey {
+                    t.column("a", .text)
+                    t.column("b", .text)
                 }
+                t.column("regular2")
             }
             assertEqualSQL(lastSQLQuery!, """
                 CREATE TABLE "test" (\
+                "regular1", \
                 "a" TEXT NOT NULL, \
                 "b" TEXT NOT NULL, \
+                "regular2", \
                 PRIMARY KEY ("a", "b")\
                 )
                 """)
@@ -442,14 +446,14 @@ class TableDefinitionTests: GRDBTestCase {
         }
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
-                t.primaryKey(onConflict: .fail) { pk in
-                    pk.column("a", .text)
-                    pk.column("b", .text)
+                t.primaryKey(onConflict: .fail) {
+                    t.column("a", .text).defaults(to: "O'Reilly")
+                    t.column("b", .text)
                 }
             }
             assertEqualSQL(lastSQLQuery!, """
                 CREATE TABLE "test" (\
-                "a" TEXT NOT NULL, \
+                "a" TEXT NOT NULL DEFAULT 'O''Reilly', \
                 "b" TEXT NOT NULL, \
                 PRIMARY KEY ("a", "b") ON CONFLICT FAIL\
                 )
@@ -484,9 +488,9 @@ class TableDefinitionTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parent") { t in
-                t.primaryKey { pk in
-                    pk.column("a", .text)
-                    pk.column("b", .text)
+                t.primaryKey {
+                    t.column("a", .text)
+                    t.column("b", .text)
                 }
             }
             try db.create(table: "child") { t in
@@ -588,8 +592,8 @@ class TableDefinitionTests: GRDBTestCase {
             
             try db.create(table: "test2") { t in
                 t.column("id2", .integer).references("test2")
-                t.primaryKey { pk in
-                    pk.column("id", .integer)
+                t.primaryKey {
+                    t.column("id", .integer)
                 }
             }
             assertEqualSQL(lastSQLQuery!, """
@@ -623,9 +627,9 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("c", .integer)
                 t.column("d", .integer)
                 t.foreignKey(["c", "d"], references: "test3")
-                t.primaryKey { pk in
-                    pk.column("a", .integer)
-                    pk.column("b", .integer)
+                t.primaryKey {
+                    t.column("a", .integer)
+                    t.column("b", .integer)
                 }
             }
             assertEqualSQL(lastSQLQuery!, """
