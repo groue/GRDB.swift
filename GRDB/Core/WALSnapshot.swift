@@ -36,12 +36,16 @@ final class WALSnapshot: Sendable {
         }
         guard code == SQLITE_OK else {
             if sqlite3_get_autocommit(db.sqliteConnection) != 0 {
-                throw DatabaseError(resultCode: code, message: "Can't create snapshot because database is in autocommit mode.")
+                throw DatabaseError(resultCode: code, message: """
+                    Can't create snapshot because database is in autocommit mode.
+                    """)
             }
             if let journalMode = try? String.fetchOne(db, sql: "PRAGMA journal_mode"),
                journalMode != "wal"
             {
-                throw DatabaseError(resultCode: code, message: "Can't create snapshot because database is not in WAL mode.")
+                throw DatabaseError(resultCode: code, message: """
+                    Can't create snapshot because database is not in WAL mode.
+                    """)
             }
             throw DatabaseError(resultCode: code)
         }
@@ -63,8 +67,6 @@ final class WALSnapshot: Sendable {
     func compare(_ other: WALSnapshot) -> CInt {
         return sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
     }
-    
-    // swiftlint:disable:next line_length
 #else
     static let available = false
 
