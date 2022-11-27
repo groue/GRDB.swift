@@ -138,9 +138,7 @@ extension Database {
     /// t.autoIncrementedPrimaryKey("id")
     ///
     /// // uuid TEXT NOT NULL PRIMARY KEY,
-    /// t.column("uuid", .text)
-    ///     .notNull()
-    ///     .primaryKey()
+    /// t.primaryKey("uuid", .text)
     ///
     /// // email TEXT UNIQUE,
     /// t.column("email", .text)
@@ -154,13 +152,26 @@ extension Database {
     /// Primary, unique and foreign keys can also be added on several columns:
     ///
     /// ```swift
+    /// // a INTEGER NOT NULL,
+    /// // b TEXT NOT NULL,
     /// // PRIMARY KEY (a, b),
-    /// t.primaryKey(["a", "b"])
+    /// t.primaryKey { pk in
+    ///     pk.column("a", .integer)
+    ///     pk.column("b", .text)
+    /// }
     ///
+    /// // a INTEGER,
+    /// // b TEXT,
     /// // UNIQUE (a, b) ON CONFLICT REPLACE,
+    /// t.column("a", .integer)
+    /// t.column("b", .text)
     /// t.uniqueKey(["a", "b"], onConflict: .replace)
     ///
+    /// // a INTEGER,
+    /// // b TEXT,
     /// // FOREIGN KEY (a, b) REFERENCES parents(c, d),
+    /// t.column("a", .integer)
+    /// t.column("b", .text)
     /// t.foreignKey(["a", "b"], references: "parents")
     /// ```
     ///
@@ -588,15 +599,13 @@ public final class TableDefinition {
     /// For example:
     ///
     /// ```swift
-    /// // CREATE TABLE player (
-    /// //   id INTEGER NOT NULL PRIMARY KEY
+    /// // CREATE TABLE country (
+    /// //   isoCode TEXT NOT NULL PRIMARY KEY
     /// // )
-    /// try db.create(table: "player") { t in
-    ///     t.primaryKey("id", .integer)
+    /// try db.create(table: "country") { t in
+    ///     t.primaryKey("isoCode", .text)
     /// }
     /// ```
-    ///
-    /// A NOT NULL constraint is always added to the primary key column.
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
@@ -614,6 +623,8 @@ public final class TableDefinition {
             // INTEGER PRIMARY KEY is always NOT NULL
             return pk
         } else {
+            // Add a not null constraint in order to fix an SQLite bug:
+            // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
             return pk.notNull()
         }
     }
@@ -1359,6 +1370,9 @@ public final class PrimaryKeyDefinition {
     @discardableResult
     public func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition {
         columns.append(name)
+        
+        // Add a not null constraint in order to fix an SQLite bug:
+        // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
         return tableDefinition.column(name, type).notNull()
     }
 }
@@ -1472,7 +1486,7 @@ public final class ColumnDefinition {
     /// //   id TEXT NOT NULL PRIMARY KEY
     /// // )
     /// try db.create(table: "player") { t in
-    ///     t.column("id", .text).notNull().primaryKey()
+    ///     t.primaryKey("id", .text)
     /// }
     /// ```
     ///

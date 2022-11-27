@@ -128,15 +128,16 @@ try db.create(table: "player") { t in
 
 try db.create(table: "team") { t in
     // Single-column primary key
-    t.column("id", .text).notNull().primaryKey()
+    t.primaryKey("id", .text)
     t.column("name", .text).notNull()
 }
 
 try db.create(table: "membership") { t in
     // Composite primary key
-    t.primaryKey(["playerId", "teamId"])
-    t.column("playerId", .integer).notNull().references("player")
-    t.column("teamId", .text).notNull().references("team")
+    t.primaryKey { pk in
+        pk.column("playerId", .integer).references("player")
+        pk.column("teamId", .text).references("team")
+    }
     t.column("role", .text).notNull()
 }
 
@@ -210,13 +211,13 @@ This helps record types play well with the standard `Identifiable` protocol.
 ```swift
 // RECOMMENDED
 try db.create(table: "player") { t in
-    t.column("id", .text).notNull().primaryKey()
+    t.primaryKey("id", .text)
     t.column("name", .text).notNull()
 }
 
 // REQUIRES EXTRA CONFIGURATION
 try db.create(table: "player") { t in
-    t.column("uuid", .text).notNull().primaryKey()
+    t.primaryKey("uuid", .text)
     t.column("name", .text).notNull()
 }
 ```

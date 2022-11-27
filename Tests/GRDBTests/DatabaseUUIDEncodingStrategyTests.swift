@@ -129,7 +129,7 @@ extension DatabaseUUIDEncodingStrategyTests {
 extension DatabaseUUIDEncodingStrategyTests {
     func testFilterKey() throws {
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .blob) }
             let uuids = [
                 UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
                 UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
@@ -185,7 +185,7 @@ extension DatabaseUUIDEncodingStrategyTests {
         }
         
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .blob) }
             let uuids = [
                 UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
                 UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
@@ -304,7 +304,7 @@ extension DatabaseUUIDEncodingStrategyTests {
         }
         
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .blob) }
             let uuids = [
                 UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
                 UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,

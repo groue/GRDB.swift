@@ -7,7 +7,7 @@ class DatabaseWriterTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.unsafeReentrantWrite { db1 in
             try db1.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try dbQueue.unsafeReentrantWrite { db2 in
                 try db2.execute(sql: "INSERT INTO table1 (id) VALUES (NULL)")
@@ -25,7 +25,7 @@ class DatabaseWriterTests : GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.unsafeReentrantWrite { db1 in
             try db1.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try dbPool.unsafeReentrantWrite { db2 in
                 try db2.execute(sql: "INSERT INTO table1 (id) VALUES (NULL)")

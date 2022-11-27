@@ -3309,7 +3309,7 @@ Some database tables have a single-column primary key which is not called "id":
 
 ```swift
 try db.create(table: "country") { t in
-    t.column("isoCode", .text).notNull().primaryKey()
+    t.primaryKey("isoCode", .text)
     t.column("name", .text).notNull()
     t.column("population", .integer).notNull()
 }

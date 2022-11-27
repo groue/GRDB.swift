@@ -24,7 +24,7 @@
 ///
 /// ```swift
 /// try db.create(table: "country") { t in
-///     t.column("code", .text).primaryKey()           // (1)
+///     t.primaryKey("code", .text)                    // (1)
 ///     t.column("name", .text)
 /// }
 /// try db.create(table: "demographics") { t in

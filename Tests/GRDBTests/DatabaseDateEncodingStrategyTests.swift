@@ -222,7 +222,7 @@ extension DatabaseDateEncodingStrategyTests {
 extension DatabaseDateEncodingStrategyTests {
     func testFilterKey() throws {
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
             do {
                 let request = Table<RecordWithDate<StrategyDeferredToDate>>("t").filter(key: testedDates[0])
@@ -260,7 +260,7 @@ extension DatabaseDateEncodingStrategyTests {
         }
         
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
             do {
                 let request = Table<RecordWithDate<StrategyDeferredToDate>>("t").filter(id: testedDates[0])
@@ -340,7 +340,7 @@ extension DatabaseDateEncodingStrategyTests {
         }
         
         try makeDatabaseQueue().write { db in
-            try db.create(table: "t") { $0.column("id").primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
             do {
                 try Table<RecordWithDate<StrategyDeferredToDate>>("t").deleteOne(db, id: testedDates[0])

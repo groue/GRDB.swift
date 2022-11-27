@@ -312,25 +312,25 @@ class SelectStatementTests : GRDBTestCase {
             }
             
             try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("id3", .integer).references("table3", column: "id", onDelete: .cascade, onUpdate: .cascade)
                 t.column("id4", .integer).references("table4", column: "id", onDelete: .setNull, onUpdate: .cascade)
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
             try db.create(table: "table2") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
             try db.create(table: "table3") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.create(table: "table4") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.create(table: "table5") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.execute(sql: "CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
             

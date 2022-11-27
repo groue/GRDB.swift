@@ -8,7 +8,7 @@ class FetchRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
@@ -25,7 +25,7 @@ class FetchRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             let derivedExpression = request > 0
@@ -41,7 +41,7 @@ class FetchRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             do {
@@ -66,7 +66,7 @@ class FetchRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             let sqlRequest: SQLRequest<Row> = "SELECT * FROM (\(request))"

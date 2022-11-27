@@ -728,7 +728,7 @@ class TableTests: GRDBTestCase {
                 t.uniqueKey(["b", "c"])
             }
             try db.create(table: "country") { t in
-                t.column("code", .text).notNull().primaryKey()
+                t.primaryKey("code", .text)
             }
             try db.create(table: "document") { t in
                 t.column("a")
@@ -883,7 +883,7 @@ class TableTests: GRDBTestCase {
                 t.uniqueKey(["b", "c"])
             }
             try db.create(table: "country") { t in
-                t.column("code", .text).notNull().primaryKey()
+                t.primaryKey("code", .text)
             }
             try db.create(table: "document") { t in
                 t.column("a")

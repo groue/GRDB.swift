@@ -119,7 +119,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -139,7 +139,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -158,7 +158,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -202,7 +202,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         
         try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("email", .text).unique()
             }
             
@@ -254,7 +254,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -274,7 +274,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -294,7 +294,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert
@@ -314,7 +314,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             
             // Insert

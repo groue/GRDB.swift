@@ -118,7 +118,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
                 t.column("parentId", .integer)
@@ -214,7 +214,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
                 t.column("parentId", .integer).references("parents")
@@ -343,7 +343,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
                 t.column("parent1Id", .integer).references("parents")

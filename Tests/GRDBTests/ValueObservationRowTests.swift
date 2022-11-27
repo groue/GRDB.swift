@@ -126,7 +126,7 @@ class ValueObservationRowTests: GRDBTestCase {
                 [["content":"foo"]]],
             setup: { db in
                 try db.create(table: "documents") { t in
-                    t.column("id", .integer).primaryKey()
+                    t.primaryKey("id", .integer)
                     t.column("content", .text)
                 }
                 try db.create(virtualTable: "ft_documents", using: FTS4()) { t in

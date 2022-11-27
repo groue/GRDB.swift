@@ -1733,7 +1733,7 @@ extension Database {
     /// //   creationDate DATETIME,
     /// // )
     /// try db.create(table: "player") { t in
-    ///     t.column("id", .integer).primaryKey()
+    ///     t.primaryKey("id", .integer)
     ///     t.column("name", .text)
     ///     t.column("creationDate", .datetime)
     /// }

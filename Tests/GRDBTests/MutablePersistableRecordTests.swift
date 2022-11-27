@@ -1122,7 +1122,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("a", .text)
                 t.column("b", .text)
                 t.column("c", .integer).notNull().defaults(to: 123)
@@ -1157,7 +1157,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
             // Expect database errors when missing columns must have a value
             try db.drop(table: "records")
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("a", .text)
                 t.column("b", .text).notNull()
             }

@@ -827,7 +827,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue(filename: dbName)
         
         try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.create(table: "t") { $0.primaryKey("id", .integer) }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
@@ -1095,7 +1095,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.create(table: "persons") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
         }
         
@@ -1172,7 +1172,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.create(table: "persons") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
             }
         }
         
