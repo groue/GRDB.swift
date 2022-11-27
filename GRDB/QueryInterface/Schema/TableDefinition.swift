@@ -117,14 +117,20 @@ extension Database {
     /// The `column()` method returns a ``ColumnDefinition`` that you can
     /// further configure:
     ///
-    /// ### NOT NULL constraints, DEFAULT values
+    /// ### Not null constraints, default values
     ///
     /// ```swift
     /// // email TEXT NOT NULL,
     /// t.column("email", .text).notNull()
     ///
+    /// // name TEXT DEFAULT 'O''Reilly',
+    /// t.column("name", .text).defaults(to: "O'Reilly")
+    ///
     /// // flag BOOLEAN NOT NULL DEFAULT 0,
     /// t.column("flag", .boolean).notNull().defaults(to: false)
+    ///
+    /// // creationDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    /// t.column("creationDate", .datetime).defaults(sql: "CURRENT_TIMESTAMP")
     /// ```
     ///
     /// ### Primary, unique, and foreign keys
