@@ -471,11 +471,19 @@ public struct TableOptions: OptionSet {
 /// - ``column(sql:)``
 /// - ``ColumnDefinition``
 ///
-/// ### Define Keys
+/// ### Define the Primary Key
 ///
 /// - ``autoIncrementedPrimaryKey(_:onConflict:)``
+/// - ``primaryKey(_:_:onConflict:)``
+/// - ``primaryKey(onConflict:body:)``
+/// - ``PrimaryKeyDefinition``
+///
+/// ### Define a Foreign Key
+///
 /// - ``foreignKey(_:references:columns:onDelete:onUpdate:deferred:)``
-/// - ``primaryKey(_:onConflict:)``
+///
+/// ### Define a Unique Key
+///
 /// - ``uniqueKey(_:onConflict:)``
 ///
 /// ### Define Others Constraints
@@ -485,7 +493,12 @@ public struct TableOptions: OptionSet {
 /// - ``constraint(literal:)``
 /// - ``constraint(sql:)``
 ///
-/// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html>
+/// ### Sunsetted Methods
+///
+/// Those are legacy interfaces that are preserved for backwards compatibility.
+/// Their use is not recommended.
+///
+/// - ``primaryKey(_:onConflict:)``
 public final class TableDefinition {
     private typealias KeyConstraint = (
         columns: [String],
@@ -570,6 +583,68 @@ public final class TableDefinition {
         column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
     
+    /// Defines the primary key on a single column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player (
+    /// //   id INTEGER NOT NULL PRIMARY KEY
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.primaryKey("id", .integer)
+    /// }
+    /// ```
+    ///
+    /// A NOT NULL constraint is always added to the primary key column.
+    ///
+    /// - parameter name: the column name.
+    /// - parameter type: the column type.
+    /// - returns: A ``ColumnDefinition`` that allows you to refine the
+    ///   column definition.
+    @discardableResult
+    public func primaryKey(
+        _ name: String,
+        _ type: Database.ColumnType,
+        onConflict conflictResolution: Database.ConflictResolution? = nil)
+    -> ColumnDefinition
+    {
+        column(name, type)
+            .notNull()
+            .primaryKey(onConflict: conflictResolution)
+    }
+    
+    /// Defines the primary key on multiple columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE passport (
+    /// //   citizenId INTEGER NOT NULL,
+    /// //   countryCode TEXT NOT NULL,
+    /// //   issueDate DATE NOT NULL,
+    /// //   PRIMARY KEY (citizenId, countryCode)
+    /// // )
+    /// try db.create(table: "passport") { t in
+    ///     t.primaryKey { pk in
+    ///         pk.column("citizenId", .integer)
+    ///         pk.column("countryCode", .text)
+    ///     }
+    ///     t.column("issueDate", .date).notNull()
+    /// }
+    /// ```
+    ///
+    /// A NOT NULL constraint is always added to the primary key columns.
+    public func primaryKey(
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        body: (PrimaryKeyDefinition) throws -> Void)
+    rethrows
+    {
+        let pk = PrimaryKeyDefinition(tableDefinition: self)
+        try body(pk)
+        primaryKey(pk.columns, onConflict: conflictResolution)
+    }
+    
     /// Appends a table column.
     ///
     /// For example:
@@ -587,7 +662,7 @@ public final class TableDefinition {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the eventual column type.
-    /// - returns: An ``ColumnDefinition`` that allows you to refine the
+    /// - returns: A ``ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult
     public func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
@@ -652,22 +727,9 @@ public final class TableDefinition {
     ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
     ///   for more information.
     ///
-    /// When defining a primary key on a single column, you can use the
-    /// ``ColumnDefinition/primaryKey(onConflict:autoincrement:)``
-    /// shortcut:
-    ///
-    /// ```swift
-    /// // CREATE TABLE player(
-    /// //   id TEXT NOT NULL PRIMARY KEY
-    /// // )
-    /// try db.create(table: "player") { t in
-    ///     t.column("id", .text).notNull().primaryKey()
-    /// }
-    /// ```
-    ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
-    /// - <https://www.sqlite.org/lang_createtable.html#rowid>
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
+    ///   ``TableDefinition/primaryKey(onConflict:body:)`` instead.
     ///
     /// - parameter columns: The primary key columns.
     /// - parameter conflictResolution: An optional conflict resolution
@@ -1252,6 +1314,51 @@ public final class TableAlteration {
     }
 }
 
+/// Describes the primary key of a table.
+///
+/// See ``TableDefinition/primaryKey(onConflict:body:)``.
+public final class PrimaryKeyDefinition {
+    let tableDefinition: TableDefinition
+    var columns: [String]
+    
+    init(tableDefinition: TableDefinition) {
+        self.tableDefinition = tableDefinition
+        self.columns = []
+    }
+    
+    /// Appends a column to the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE passport (
+    /// //   citizenId INTEGER NOT NULL,
+    /// //   countryCode TEXT NOT NULL,
+    /// //   issueDate DATE NOT NULL,
+    /// //   PRIMARY KEY (citizenId, countryCode)
+    /// // )
+    /// try db.create(table: "passport") { t in
+    ///     t.primaryKey { pk in
+    ///         pk.column("citizenId", .integer)
+    ///         pk.column("countryCode", .text)
+    ///     }
+    ///     t.column("issueDate", .date).notNull()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#tablecoldef>
+    ///
+    /// - parameter name: the column name.
+    /// - parameter type: the column type.
+    /// - returns: A ``ColumnDefinition`` that allows you to refine the
+    ///   column definition.
+    @discardableResult
+    public func column(_ name: String, _ type: Database.ColumnType) -> ColumnDefinition {
+        columns.append(name)
+        return tableDefinition.column(name, type).notNull()
+    }
+}
+
 /// Describes a database column.
 ///
 /// You get instances of `ColumnDefinition` when you create or alter a database
@@ -1276,9 +1383,8 @@ public final class TableAlteration {
 ///
 /// ## Topics
 ///
-/// ### Keys
+/// ### Foreign Keys
 ///
-/// - ``primaryKey(onConflict:autoincrement:)``
 /// - ``references(_:column:onDelete:onUpdate:deferred:)``
 ///
 /// ### Indexes
@@ -1301,6 +1407,13 @@ public final class TableAlteration {
 /// - ``check(_:)``
 /// - ``check(sql:)``
 /// - ``notNull(onConflict:)``
+///
+/// ### Sunsetted Methods
+///
+/// Those are legacy interfaces that are preserved for backwards compatibility.
+/// Their use is not recommended.
+///
+/// - ``primaryKey(onConflict:autoincrement:)``
 public final class ColumnDefinition {
     enum Index {
         case none
@@ -1364,12 +1477,10 @@ public final class ColumnDefinition {
     ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
     ///   for more information.
     ///
-    /// When you want to define a primary key on multiple columns, do not use
-    /// this method. Use ``TableDefinition/primaryKey(_:onConflict:)`` instead.
-    ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
-    /// - <https://www.sqlite.org/lang_createtable.html#rowid>
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
+    ///   ``TableDefinition/primaryKey(_:_:onConflict:)``
+    ///   instead.
     ///
     /// - parameters:
     ///     - conflictResolution: An optional ``Database/ConflictResolution``.
