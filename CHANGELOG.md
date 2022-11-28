@@ -103,13 +103,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Version
 
+- **New**: [#1293](https://github.com/groue/GRDB.swift/pull/1293) by [@groue](https://github.com/groue): Enable concurrent reads from a WAL snapshot.
+- **New**: [#1297](https://github.com/groue/GRDB.swift/pull/1297) by [@groue](https://github.com/groue): SPM: expose the CSQLite product.
 - **New**: `DatabaseReader.configuration.readQoS` and `writeQoS` return the effective quality of service of read-only and write database accesses. This helps application code avoid priority inversion and similar scheduling misuses when needed.
 - **New**: `DatabaseReader.configuration.maximumReaderCount` returns the effective capacity for concurrent reads, so that application code can adapt when needed.
 - **New**: `DatabasePool.makeSnapshot()` no longer throws an error when the database is not in the WAL mode. In such case, the returned snapshot prevents all database modifications during its lifetime.
 - **New**: `Database.registerAccess(to:)` has `ValueObservation` track a region. This helps building optimized observations of a constant database region with `ValueObservation.trackingConstantRegion(_:)`.
 - **New**: Open several connections to the same in-memory database with `DatabaseQueue(named:)`.
-- **New**: `TableDefinition` has new methods for defining primary keys, with automatic NOT NULL constraints. They workaround [an SQLite bug](https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls). Previous techniques for defining primary keys are preserved for backwards compatibility, but their use is not recommended.
-- **New**: [#1293](https://github.com/groue/GRDB.swift/pull/1293) by [@groue](https://github.com/groue): Enable concurrent reads from a WAL snapshot.
+- **New**: [`TableDefinition`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tabledefinition)) has new methods for defining primary keys, with automatic NOT NULL constraints. They workaround [an SQLite bug](https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls). Previous techniques for defining primary keys are preserved for backwards compatibility, but their use is not recommended.
 
 ## 6.3.1
 
