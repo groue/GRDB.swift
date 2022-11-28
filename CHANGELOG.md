@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.4.x` Releases - [6.4.0](#640)
 - `6.3.x` Releases - [6.3.0](#630) - [6.3.1](#631)
 - `6.2.x` Releases - [6.2.0](#620)
 - `6.1.x` Releases - [6.1.0](#610)
@@ -101,7 +102,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Version
+## 6.4.0
+
+Released November 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.3.1...v6.4.0)
 
 - **New**: [#1293](https://github.com/groue/GRDB.swift/pull/1293) by [@groue](https://github.com/groue): Enable concurrent reads from a WAL snapshot.
 - **New**: [#1297](https://github.com/groue/GRDB.swift/pull/1297) by [@groue](https://github.com/groue): SPM: expose the CSQLite product.
