@@ -73,9 +73,9 @@ import Foundation
 /// }
 /// ```
 ///
-/// You can feed DatabaseRegionObservation with any type that conforms to
-/// the ``DatabaseRegionConvertible`` protocol: requests, ``DatabaseRegion``,
-/// ``Table``, etc. For example:
+/// You can feed `DatabaseRegionObservation` with any type that conforms to
+/// the ``DatabaseRegionConvertible`` protocol: ``FetchRequest``,
+/// ``DatabaseRegion``, ``Table``, etc. For example:
 ///
 /// ```swift
 /// // Observe the score column of the 'player' table
