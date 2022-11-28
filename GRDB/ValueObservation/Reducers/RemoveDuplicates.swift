@@ -14,6 +14,47 @@ extension ValueObservation {
 
 extension ValueObservation where Reducer.Value: Equatable {
     /// Notifies only values that don’t match the previously observed value.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // An observation of distinct Player?
+    /// let observation = ValueObservation
+    ///     .tracking { db in try Player.fetchOne(db, id: 42) }
+    ///     .removeDuplicates()
+    /// ```
+    ///
+    /// > Tip: When the observed value does not adopt `Equatable`, and it is
+    /// > impractical to provide a custom comparison function, you can observe
+    /// > distinct raw database values such as ``Row`` or ``DatabaseValue``,
+    /// > before converting them to the desired type. For example, the previous
+    /// > observation can be rewritten as below:
+    /// >
+    /// > ```swift
+    /// > // An observation of distinct `Player?`
+    /// > let request = Player.filter(id: 42)
+    /// > let observation = ValueObservation
+    /// >     .tracking { db in try Row.fetchOne(db, request) }
+    /// >     .removeDuplicates()
+    /// >     .map { row in try row.map(Player.init(row:)) }
+    /// > ```
+    /// >
+    /// > This technique is also available for requests that
+    /// > involve associations:
+    /// >
+    /// > ```swift
+    /// > struct TeamInfo: Decodable, FetchableRecord {
+    /// >     var team: Team
+    /// >     var players: [Player]
+    /// > }
+    /// >
+    /// > // An observation of distinct `[TeamInfo]`
+    /// > let request = Team.including(all: Team.players)
+    /// > let observation = ValueObservation
+    /// >     .tracking { db in try Row.fetchAll(db, request) }
+    /// >     .removeDuplicates() // Row adopts Equatable
+    /// >     .map { rows in try rows.map(TeamInfo.init(row:)) }
+    /// > ```
     public func removeDuplicates()
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
@@ -50,7 +91,7 @@ extension ValueReducers {
     }
 }
 
-extension ValueReducers.RemoveDuplicates: _DatabaseValueReducer where Base: _DatabaseValueReducer {
+extension ValueReducers.RemoveDuplicates: ValueReducer where Base: ValueReducer {
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         try base._fetch(db)
     }

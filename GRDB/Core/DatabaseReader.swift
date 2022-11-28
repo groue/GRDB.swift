@@ -5,9 +5,8 @@ import Dispatch
 
 /// A type that reads from an SQLite database.
 ///
-/// Do not declare new conformances to `DatabaseReader`. Only the
-/// ``DatabaseQueue``, ``DatabasePool``, and ``DatabaseSnapshot`` types are
-/// valid conforming types.
+/// Do not declare new conformances to `DatabaseReader`. Only the built-in
+/// conforming types are valid.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// conforming types in a multithreaded application. See <doc:Concurrency> for
@@ -206,7 +205,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -224,8 +225,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// access method. Doing so raises a "Database methods are not reentrant"
     /// fatal error at runtime.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -241,7 +242,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -256,8 +259,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// }
     /// ```
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -273,10 +276,16 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
-    /// This method can be called from other database access methods. Reentrant
-    /// database accesses are discouraged, though, because they muddle
+    /// This method can be called from other database access methods. If called
+    /// from the dispatch queue of a current database access (read or write),
+    /// the `Database` argument to `value` is the same as the current
+    /// database access.
+    ///
+    /// Reentrant database accesses are discouraged because they muddle
     /// transaction boundaries
     /// (see <doc:Concurrency#Rule-2:-Mind-your-transactions> for
     /// more information).
@@ -293,8 +302,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -453,7 +462,9 @@ extension DatabaseReader {
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you
     /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes.
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
     ///
     /// For example:
     ///
@@ -467,8 +478,8 @@ extension DatabaseReader {
     /// of the closure. Do not store or return the database connection for
     /// later use.
     ///
-    /// - warning: Database operations are not wrapped in a transaction. They
-    ///   can see changes performed by concurrent writes or writes performed by
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
     ///   other processes: two identical requests performed by the `value`
     ///   closure may not return the same value.
     /// - warning: Attempts to write in the database may succeed.
@@ -673,5 +684,60 @@ extension AnyDatabaseReader: DatabaseReader {
             observation: observation,
             scheduling: scheduler,
             onChange: onChange)
+    }
+}
+
+/// A type that sees an unchanging database content.
+///
+/// Do not declare new conformances to `DatabaseSnapshotReader`. Only the
+/// built-in conforming types are valid.
+///
+/// The protocol comes with the same features and guarantees as
+/// ``DatabaseReader``. On top of them, a `DatabaseSnapshotReader` always sees
+/// the same state of the database.
+///
+/// ## Topics
+///
+/// ### Reading from the Database
+///
+/// - ``reentrantRead(_:)``
+public protocol DatabaseSnapshotReader: DatabaseReader { }
+
+extension DatabaseSnapshotReader {
+    /// Executes database operations, and returns their result after they have
+    /// finished executing.
+    ///
+    /// This method can be called from other database access methods. If called
+    /// from the dispatch queue of a current database access, the `Database`
+    /// argument to `value` is the same as the current database access.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let count = try snapshot.reentrantRead { db in
+    ///     try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
+    /// later use.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
+    ///   would happen while establishing the database access.
+    public func reentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
+        // Reentrant reads are safe in a snapshot
+        try unsafeReentrantRead(value)
+    }
+    
+    // There is no such thing as an unsafe access to a snapshot.
+    public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
+        try read(value)
+    }
+    
+    // There is no such thing as an unsafe access to a snapshot.
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        asyncRead(value)
     }
 }

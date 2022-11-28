@@ -222,7 +222,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "documents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("content", .text)
             }
             try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
@@ -256,7 +256,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "documents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("content", .text)
             }
             assertDidExecute(sql: "CREATE TABLE \"documents\" (\"id\" INTEGER PRIMARY KEY, \"content\" TEXT)")
@@ -280,7 +280,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "documents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("content", .text)
             }
             try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
@@ -309,7 +309,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "documents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("content", .text)
             }
             try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])

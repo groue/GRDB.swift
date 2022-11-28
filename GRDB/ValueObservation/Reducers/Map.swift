@@ -2,6 +2,20 @@ extension ValueObservation {
     /// Transforms all values from the upstream observation with a
     /// provided closure.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // Turn an observation of Player? into an observation of UIImage?
+    /// let observation = ValueObservation
+    ///     .tracking { db in try Player.fetchOne(db, id: 42) }
+    ///     .map { player in player?.image }
+    /// ```
+    ///
+    /// The `transform` closure does not run on the main thread, and does not
+    /// block any database access This makes the `map` operator a tool that
+    /// helps reducing database contention
+    /// (see <doc:ValueObservation#ValueObservation-Performance>).
+    ///
     /// - parameter transform: A closure that takes one value as its parameter
     ///   and returns a new value.
     public func map<T>(_ transform: @escaping (Reducer.Value) throws -> T)
@@ -32,7 +46,7 @@ extension ValueReducers {
     }
 }
 
-extension ValueReducers.Map: _DatabaseValueReducer where Base: _DatabaseValueReducer {
+extension ValueReducers.Map: ValueReducer where Base: ValueReducer {
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         try base._fetch(db)
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// A class that serializes accesses to a database.
+/// A class that serializes accesses to an SQLite connection.
 final class SerializedDatabase {
     /// The database connection
     private let db: Database

@@ -349,6 +349,49 @@ class MutablePersistableRecordTests: GRDBTestCase {
         }
     }
     
+    func testUpdateWithoutExplicitPrimaryKeyButWithExplicitRowIDSupport() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE record(name)")
+            
+            struct Record: Codable, MutablePersistableRecord {
+                var rowID: Int64?
+                var name: String
+                mutating func didInsert(_ inserted: InsertionSuccess) {
+                    rowID = inserted.rowID
+                }
+            }
+            
+            var record1 = Record(name: "Arthur")
+            var record2 = Record(name: "Barbara")
+            try record1.insert(db)
+            try record2.insert(db)
+            record1.name = "Craig"
+            try record1.update(db)
+            
+            let names = try String.fetchAll(db, sql: "SELECT name FROM record ORDER BY rowid")
+            XCTAssertEqual(names, ["Craig", "Barbara"])
+        }
+    }
+    
+    func testUpdateWithoutExplicitPrimaryKeyAndWithoutExplicitRowIDSupport() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE record(name)")
+            
+            struct Record: Codable, PersistableRecord {
+                var name: String
+            }
+            
+            let record = Record(name: "Arthur")
+            try record.insert(db)
+            do {
+                try record.update(db)
+                XCTFail("Expected PersistenceError")
+            } catch is PersistenceError { }
+        }
+    }
+    
     func testUpdateMutablePersistableRecordPerson() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -498,6 +541,48 @@ class MutablePersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(rows[0]["name"] as String, "Craig")
             XCTAssertEqual(rows[1]["id"] as Int64, person2.id!)
             XCTAssertEqual(rows[1]["name"] as String, "Barbara")
+        }
+    }
+    
+    func testDeleteWithoutExplicitPrimaryKeyButWithExplicitRowIDSupport() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE record(name)")
+            
+            struct Record: Codable, MutablePersistableRecord {
+                var rowID: Int64?
+                var name: String
+                mutating func didInsert(_ inserted: InsertionSuccess) {
+                    rowID = inserted.rowID
+                }
+            }
+            
+            var record1 = Record(name: "Arthur")
+            var record2 = Record(name: "Barbara")
+            try record1.insert(db)
+            try record2.insert(db)
+            try record1.delete(db)
+            
+            let names = try String.fetchAll(db, sql: "SELECT name FROM record ORDER BY rowid")
+            XCTAssertEqual(names, ["Barbara"])
+        }
+    }
+    
+    func testDeleteWithoutExplicitPrimaryKeyAndWithoutExplicitRowIDSupport() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE record(name)")
+            
+            struct Record: Codable, PersistableRecord {
+                var name: String
+            }
+            
+            let record = Record(name: "Arthur")
+            try record.insert(db)
+            try XCTAssertFalse(record.delete(db))
+            
+            let names = try String.fetchAll(db, sql: "SELECT name FROM record ORDER BY rowid")
+            XCTAssertEqual(names, ["Arthur"])
         }
     }
     
@@ -1037,7 +1122,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("a", .text)
                 t.column("b", .text)
                 t.column("c", .integer).notNull().defaults(to: 123)
@@ -1072,7 +1157,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
             // Expect database errors when missing columns must have a value
             try db.drop(table: "records")
             try db.create(table: "records") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("a", .text)
                 t.column("b", .text).notNull()
             }

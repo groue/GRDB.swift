@@ -41,7 +41,7 @@ class SingletonRecordTest: GRDBTestCase {
         // Table creation
         try db.create(table: "appConfiguration") { t in
             // Single row guarantee
-            t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
+            t.primaryKey("id", .integer, onConflict: .replace).check { $0 == 1 }
             
             // The configuration columns
             t.column("text", .text).notNull()

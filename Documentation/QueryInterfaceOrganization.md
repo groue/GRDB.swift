@@ -607,8 +607,8 @@ myRequest(Player.select(...).filter(...))
 [association aggregates]: AssociationsBasics.md#association-aggregates
 [Column]: #column
 [ColumnExpression]: #columnexpression
-[DatabaseRegionConvertible]: #databaseregionconvertible
-[DatabaseRegionObservation]: ../README.md#databaseregionobservation
+[DatabaseRegionConvertible]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionconvertible
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
 [DatabaseValue]: #databasevalue
 [DatabaseValueConvertible]: #databasevalueconvertible
 [DerivableRequest]: #derivablerequest

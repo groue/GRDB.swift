@@ -19,6 +19,37 @@ import Foundation
 /// ```
 ///
 /// See <doc:DatabaseConnections>.
+///
+/// ## Topics
+///
+/// ### Creating a Configuration
+///
+/// - ``init()``
+///
+/// ### Configuring SQLite Connections
+///
+/// - ``acceptsDoubleQuotedStringLiterals``
+/// - ``busyMode``
+/// - ``foreignKeysEnabled``
+/// - ``readonly``
+///
+/// ### Configuring GRDB Connections
+///
+/// - ``allowsUnsafeTransactions``
+/// - ``defaultTransactionKind``
+/// - ``label``
+/// - ``maximumReaderCount``
+/// - ``observesSuspensionNotifications``
+/// - ``prepareDatabase(_:)``
+/// - ``publicStatementArguments``
+///
+/// ### Configuring the Quality of Service
+///
+/// - ``qos``
+/// - ``readQoS``
+/// - ``writeQoS``
+/// - ``targetQueue``
+/// - ``writeTargetQueue``
 public struct Configuration {
     
     // MARK: - Misc options
@@ -40,9 +71,9 @@ public struct Configuration {
     /// You can query this label at runtime:
     ///
     /// ```swift
-    /// var configuration = Configuration()
-    /// configuration.label = "MyDatabase"
-    /// let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
+    /// var config = Configuration()
+    /// config.label = "MyDatabase"
+    /// let dbQueue = try DatabaseQueue(configuration: config)
     ///
     /// try dbQueue.read { db in
     ///     print(db.configuration.label) // Prints "MyDatabase"
@@ -90,25 +121,24 @@ public struct Configuration {
     /// double-quoted strings as string literals when they does not match any
     /// valid identifier.
     ///
-    /// The default and recommended value is false.
-    ///
-    /// For example:
+    /// The default and recommended value is false:
     ///
     /// ```swift
-    /// // Error: no such column: foo
+    /// // Error: no such column: missingColumn
     /// let name = try String.fetchOne(db, sql: """
-    ///     SELECT "foo" FROM "player"
+    ///     SELECT "missingColumn" FROM "player"
     ///     """)
     /// ```
     ///
-    /// When true, or before SQLite version 3.29.0, such strings are interpreted
-    /// as string literals, as in the example below. This is a well known SQLite
-    /// [misfeature](https://sqlite.org/quirks.html#dblquote):
+    /// When true, or before SQLite version 3.29.0, double-quoted strings that
+    /// do not match any valid identifier are interpreted as string literals,
+    /// as in the example below. This is an SQLite
+    /// [misfeature](https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted):
     ///
     /// ```swift
-    /// // Success: "foo"
+    /// // MISFEATURE: This query succeeds with result "missingColumn"
     /// let name = try String.fetchOne(db, sql: """
-    ///     SELECT "foo" FROM "player"
+    ///     SELECT "missingColumn" FROM "player"
     ///     """)
     /// ```
     public var acceptsDoubleQuotedStringLiterals = false
@@ -119,13 +149,10 @@ public struct Configuration {
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
-    /// Database suspension helps avoiding the
-    /// [`0xdead10cc` exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
-    ///
-    /// During suspension, all database accesses but reads in WAL mode may throw
-    /// a ``DatabaseError`` of code `SQLITE_INTERRUPT` or `SQLITE_ABORT`. You
-    /// can check for those error codes with the
-    /// ``DatabaseError/isInterruptionError`` property.
+    /// Set this flag to true when you apply the technique described in
+    /// <doc:DatabaseSharing#How-to-limit-the-0xDEAD10CC-exception>. See
+    /// ``Database/suspendNotification`` for more informations about
+    /// suspended databases.
     public var observesSuspensionNotifications = false
     
     /// A boolean value indicating whether statement arguments are visible in
@@ -133,25 +160,24 @@ public struct Configuration {
     ///
     /// The default and recommended value is false: statement arguments are not
     /// visible in database errors and trace events, preventing sensitive
-    /// information from leaking in unexpected places.
-    ///
-    /// For example:
+    /// information from leaking in unexpected places. For example:
     ///
     /// ```swift
-    /// // Error: sensitive information is not printed when an error occurs:
-    /// do {
-    ///     let email = "..." // sensitive information
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
-    /// } catch {
-    ///     print(error)
-    /// }
-    ///
-    /// // Trace: sensitive information is not printed when a statement is traced:
     /// db.trace { event in
+    ///     // By default, sensitive information is NOT printed
+    ///     // when a statement is traced:
     ///     print(event)
     /// }
-    /// let email = "..." // sensitive information
-    /// let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///
+    /// do {
+    ///     // The sensitive information to protect
+    ///     let email = "..."
+    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    /// } catch {
+    ///     // By default, sensitive information is NOT printed
+    ///     // when an error occurs:
+    ///     print(error)
+    /// }
     /// ```
     ///
     /// For debugging purpose, you can set this flag to true, and get more
@@ -163,19 +189,21 @@ public struct Configuration {
     /// ```swift
     /// var config = Configuration()
     /// #if DEBUG
-    /// // Protect sensitive information by enabling verbose debugging in DEBUG builds only
+    /// // Enable verbose debugging in DEBUG builds only
     /// config.publicStatementArguments = true
     /// #endif
     ///
-    /// // The descriptions of trace events and errors now contain the
-    /// // sensitive information:
     /// db.trace { event in
+    ///     // Sensitive information is printed in DEBUG builds:
     ///     print(event)
     /// }
+    ///
     /// do {
+    ///     // The sensitive information to protect
     ///     let email = "..."
     ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
     /// } catch {
+    ///     // Sensitive information is printed in DEBUG builds:
     ///     print(error)
     /// }
     /// ```
@@ -198,7 +226,8 @@ public struct Configuration {
     /// ```swift
     /// var config = Configuration()
     /// config.prepareDatabase { db in
-    ///     try db.execute(sql: "PRAGMA kdf_iter = 10000")
+    ///     // Prints all SQL statements
+    ///     db.trace { print("SQL >", $0) }
     /// }
     /// ```
     ///
@@ -225,9 +254,24 @@ public struct Configuration {
     
     // MARK: - Transactions
     
-    /// The default kind of transaction.
+    /// The default kind of write transactions.
     ///
     /// The default is ``Database/TransactionKind/deferred``.
+    ///
+    /// You can change the default transaction kind. For example, you can force
+    /// all write transactions to be `IMMEDIATE`:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.defaultTransactionKind = .immediate
+    /// let dbQueue = try DatabaseQueue(configuration: config)
+    ///
+    /// // BEGIN IMMEDIATE TRANSACTION; ...; COMMIT TRANSACTION;
+    /// try dbQueue.write { db in ... }
+    /// ```
+    ///
+    /// This property is ignored for read-only transactions. Those always open
+    /// `DEFERRED` SQLite transactions.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
     public var defaultTransactionKind: Database.TransactionKind = .deferred
@@ -286,18 +330,39 @@ public struct Configuration {
     ///
     /// This configuration applies to ``DatabasePool`` only. The default value
     /// is 5.
+    ///
+    /// You can query this value at runtime in order to get the actual capacity
+    /// for concurrent reads of any ``DatabaseReader``. For example:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.maximumReaderCount = 5
+    ///
+    /// let path = "/path/to/database.sqlite"
+    /// let dbQueue = try DatabaseQueue(path: path, configuration: config)
+    /// let dbPool = try DatabasePool(path: path, configuration: config)
+    /// let dbSnapshot = try dbPool.makeSnapshot()
+    ///
+    /// print(dbQueue.configuration.maximumReaderCount)    // 1
+    /// print(dbPool.configuration.maximumReaderCount)     // 5
+    /// print(dbSnapshot.configuration.maximumReaderCount) // 1
     public var maximumReaderCount: Int = 5
     
-    /// The quality of service, or the execution priority, or database accesses.
+    /// The quality of service of database accesses.
     ///
     /// The quality of service is ignored if you supply a ``targetQueue``.
     ///
     /// The default is `userInitiated`.
     public var qos: DispatchQoS = .userInitiated
     
-    /// The quality of service of read accesses
-    var readQoS: DispatchQoS {
+    /// The effective quality of service of read-only database accesses.
+    public var readQoS: DispatchQoS {
         targetQueue?.qos ?? self.qos
+    }
+    
+    /// The effective quality of service of write database accesses.
+    public var writeQoS: DispatchQoS {
+        writeTargetQueue?.qos ?? targetQueue?.qos ?? self.qos
     }
     
     /// The target dispatch queue for database accesses.
@@ -316,7 +381,7 @@ public struct Configuration {
     /// The default is nil.
     public var targetQueue: DispatchQueue? = nil
     
-    /// The target dispatch queue for database accesses which are not read-only.
+    /// The target dispatch queue for write database accesses.
     ///
     /// If this queue is nil, writer connections are controlled
     /// by ``targetQueue``.
@@ -340,7 +405,13 @@ public struct Configuration {
     
     // MARK: - Not Public
     
-    var threadingMode: Database.ThreadingMode = .`default`
+    /// The SQLite [threading mode](https://www.sqlite.org/threadsafe.html).
+    ///
+    /// - Note: Only the multi-thread mode (`SQLITE_OPEN_NOMUTEX`) is currently
+    /// supported, since all <doc:DatabaseConnections> access SQLite connections
+    /// through a `SerializedDatabase`.
+    var threadingMode = Database.ThreadingMode.default
+    
     var SQLiteConnectionDidOpen: (() -> Void)?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
     var SQLiteConnectionDidClose: (() -> Void)?

@@ -44,6 +44,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshotPool() }
+#endif
     }
     
     // MARK: -
@@ -146,6 +149,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshotPool() }
+#endif
     }
     
     // MARK: -
@@ -183,6 +189,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshotPool() }
+#endif
     }
     
     // MARK: -
@@ -220,6 +229,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshotPool() }
+#endif
     }
     
     // MARK: -
@@ -258,6 +270,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)).makeSnapshotPool() }
+#endif
     }
     
     // MARK: -
@@ -283,6 +298,9 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshotPool() }
+#endif
     }
 }
 #endif

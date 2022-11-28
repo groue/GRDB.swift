@@ -2,12 +2,9 @@ import XCTest
 @testable import GRDB
 
 class DatabaseSnapshotTests: GRDBTestCase {
-    
-    /// A helper class
-    private class Counter {
-        let dbPool: DatabasePool
+    /// A helper type
+    private struct Counter {
         init(dbPool: DatabasePool) throws {
-            self.dbPool = dbPool
             try dbPool.write { db in
                 try db.execute(sql: "CREATE TABLE counter(id INTEGER PRIMARY KEY)")
             }

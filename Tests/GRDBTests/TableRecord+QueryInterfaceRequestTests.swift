@@ -328,7 +328,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         try dbQueue.inTransaction { db in
             struct Player: TableRecord { }
             try db.create(table: "player") { t in
-                t.column("a", .integer).notNull().primaryKey()
+                t.primaryKey("a", .integer)
             }
             
             try XCTAssertFalse(Player.exists(db, key: 1))
@@ -343,7 +343,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         try dbQueue.inTransaction { db in
             struct Player: TableRecord { }
             try db.create(table: "player") { t in
-                t.column("id", .text).notNull().primaryKey()
+                t.primaryKey("id", .text)
             }
             
             try XCTAssertFalse(Player.exists(db, key: "foo"))
@@ -397,7 +397,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
                 var id: String
             }
             try db.create(table: "player") { t in
-                t.column("id", .text).notNull().primaryKey()
+                t.primaryKey("id", .text)
             }
             
             try XCTAssertFalse(Player.exists(db, id: "foo"))

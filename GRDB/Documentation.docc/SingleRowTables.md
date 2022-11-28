@@ -28,10 +28,8 @@ Those two cases can create a nagging question for the application. By default, i
 //   flag BOOLEAN NOT NULL,
 //   ...)
 try db.create(table: "appConfiguration") { t in
-    // Single row guarantee
-    t.column("id", .integer)
-        // Have inserts replace the existing row
-        .primaryKey(onConflict: .replace)
+    // Single row guarantee: have inserts replace the existing row
+    t.primaryKey("id", .integer, onConflict: .replace)
         // Make sure the id column is always 1
         .check { $0 == 1 }
     
@@ -48,7 +46,7 @@ When you use <doc:Migrations>, you may wonder if it is a good idea or not to per
 migrator.registerMigration("appConfiguration") { db in
     try db.create(table: "appConfiguration") { t in
         // The single row guarantee
-        t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
+        t.primaryKey("id", .integer, onConflict: .replace).check { $0 == 1 }
         
         // Define sensible defaults for each column
         t.column("flag", .boolean).notNull()
@@ -74,7 +72,7 @@ The recommended migration creates the table, nothing more:
 migrator.registerMigration("appConfiguration") { db in
     try db.create(table: "appConfiguration") { t in
         // The single row guarantee
-        t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
+        t.primaryKey("id", .integer, onConflict: .replace).check { $0 == 1 }
         
         // The configuration columns
         t.column("flag", .boolean).notNull()
@@ -175,7 +173,7 @@ We all love to copy and paste, don't we? Just customize the template code below:
 // Table creation
 try db.create(table: "appConfiguration") { t in
     // The single row guarantee
-    t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
+    t.primaryKey("id", .integer, onConflict: .replace).check { $0 == 1 }
     
     // The configuration columns
     t.column("flag", .boolean).notNull()

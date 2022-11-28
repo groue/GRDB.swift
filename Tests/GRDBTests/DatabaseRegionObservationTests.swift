@@ -234,7 +234,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
 //        let dbQueue = try makeDatabaseQueue()
 //        try dbQueue.write { db in
 //            try db.create(table: "gallery") { t in
-//                t.column("id", .integer).primaryKey()
+//                t.primaryKey("id", .integer)
 //                t.column("status", .integer)
 //            }
 //        }

@@ -43,13 +43,11 @@ try dbQueue.write { db in
 try dbQueue.read { db
     // Inside a transaction
 }
-
-let observation = ValueObservation.tracking { db
-    // Inside a transaction
-}
 ```
 
-- *Why does this rule exist?* - Because GRDB and SQLite can not guess where to insert the transaction boundaries that protect the invariants of your database. This is your task.
+Alternatively, you can open an explicit transaction or savepoint with ``Database/inTransaction(_:_:)`` and ``Database/inSavepoint(_:)``.
+
+- *Why does this rule exist?* - Because GRDB and SQLite can not guess where to insert the transaction boundaries that protect the invariants of your database. This is your task. Transactions also avoid concurrency problems, as described in the <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> section below. 
 
 - *Practical advice* - Take the time to identify the invariants of your database. Some of them can be enforced in the database schema itself, such as "all books must have a non-empty title", or "all books must have an author" (see <doc:DatabaseSchema>). Some invariants can only be enforced by transactions, such as "all account credits must have a matching debit", or "all authors must have at least one book".
 
@@ -339,8 +337,9 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 
 ### Database Connections with Concurrency Guarantees
 
-- ``DatabaseReader``
 - ``DatabaseWriter``
+- ``DatabaseReader``
+- ``DatabaseSnapshotReader``
 
 ### Advanced Concurrency
 

@@ -310,10 +310,10 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "muscleGroup") { table in
-                table.column("id", .text).notNull().primaryKey()
+                table.primaryKey("id", .text)
             }
             try db.create(table: "exercise") { table in
-                table.column("id", .text).notNull().primaryKey()
+                table.primaryKey("id", .text)
             }
             try db.create(table: "primaryMuscleGroup") { table in
                 table.column("muscleGroupId", .text).notNull().references("muscleGroup", onDelete: .cascade)

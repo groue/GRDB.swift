@@ -159,10 +159,11 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
 @available(*, unavailable, renamed: "Statement")
 public typealias UpdateStatement = Statement
 
-extension ValueObservation<ValueReducers.Auto> {
+extension ValueObservation {
     @available(*, unavailable, renamed: "tracking(_:)")
     public static func trackingVaryingRegion<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> Self
+    where Reducer == ValueReducers.Fetch<Value>
     { preconditionFailure() }
 }

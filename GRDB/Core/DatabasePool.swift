@@ -46,10 +46,6 @@ import UIKit
 ///
 /// - ``init(path:configuration:)``
 ///
-/// ### Creating a DatabaseSnapshot
-///
-/// - ``makeSnapshot()``
-///
 /// ### Accessing the Database
 ///
 /// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
@@ -57,6 +53,11 @@ import UIKit
 ///
 /// - ``asyncConcurrentRead(_:)``
 /// - ``writeInTransaction(_:_:)``
+///
+/// ### Creating Database Snapshots
+///
+/// - ``makeSnapshot()``
+/// - ``makeSnapshotPool()``
 ///
 /// ### Managing SQLite Connections
 ///
@@ -185,7 +186,7 @@ public final class DatabasePool {
     
     /// Returns a Configuration suitable for readonly connections on a
     /// WAL database.
-    static func readerConfiguration(_ configuration: Configuration) -> Configuration {
+    private static func readerConfiguration(_ configuration: Configuration) -> Configuration {
         var configuration = configuration
         
         configuration.readonly = true
@@ -194,7 +195,7 @@ public final class DatabasePool {
         // Other transaction kinds are forbidden by SQLite in read-only connections.
         configuration.defaultTransactionKind = .deferred
         
-        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
+        // <https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode>
         // > But there are some obscure cases where a query against a WAL-mode
         // > database can return SQLITE_BUSY, so applications should be prepared
         // > for that happenstance.
@@ -431,7 +432,7 @@ extension DatabasePool: DatabaseReader {
                 reader.async { db in
                     defer {
                         try? db.commit() // Ignore commit error
-                        releaseReader()
+                        releaseReader(.reuse)
                     }
                     do {
                         // The block isolation comes from the DEFERRED transaction.
@@ -474,10 +475,9 @@ extension DatabasePool: DatabaseReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     defer {
-                        releaseReader()
+                        releaseReader(.reuse)
                     }
                     do {
-                        // The block isolation comes from the DEFERRED transaction.
                         try db.clearSchemaCacheIfNeeded()
                         value(.success(db))
                     } catch {
@@ -493,6 +493,8 @@ extension DatabasePool: DatabaseReader {
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
             return try reader.reentrantSync(value)
+        } else if writer.onValidQueue {
+            return try writer.execute(value)
         } else {
             guard let readerPool else {
                 throw DatabaseError.connectionIsClosed()
@@ -589,7 +591,7 @@ extension DatabasePool: DatabaseReader {
             reader.async { db in
                 defer {
                     try? db.commit() // Ignore commit error
-                    releaseReader()
+                    releaseReader(.reuse)
                 }
                 do {
                     // https://www.sqlite.org/isolation.html
@@ -830,10 +832,8 @@ extension DatabasePool {
     
     // MARK: - Snapshots
     
-    /// Creates a database snapshot.
-    ///
-    /// The returned snapshot sees an unchanging database content, as it existed
-    /// at the moment it was created.
+    /// Creates a database snapshot that serializes accesses to an unchanging
+    /// database content, as it exists at the moment the snapshot is created.
     ///
     /// It is a programmer error to create a snapshot from the writer dispatch
     /// queue when a transaction is opened:
@@ -851,9 +851,10 @@ extension DatabasePool {
     /// the transaction:
     ///
     /// ```swift
+    /// let snapshot = try dbPool.makeSnapshot() // OK
+    ///
     /// try dbPool.writeWithoutTransaction { db in
-    ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     ///
     ///     try db.inTransaction {
     ///         try Player.deleteAll()
@@ -861,8 +862,10 @@ extension DatabasePool {
     ///     }
     ///
     ///     // OK
-    ///     let snapshot = try dbPool.makeSnapshot()
+    ///     let snapshot = try dbPool.makeSnapshot() // OK
     /// }
+    ///
+    /// let snapshot = try dbPool.makeSnapshot() // OK
     /// ```
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check
@@ -876,8 +879,27 @@ extension DatabasePool {
         
         return try DatabaseSnapshot(
             path: path,
-            configuration: writer.configuration,
+            configuration: DatabasePool.readerConfiguration(writer.configuration),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "snapshot.\($databaseSnapshotCount.increment())")
     }
+    
+    // swiftlint:disable:next line_length
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+    /// Creates a database snapshot that allows concurrent accesses to an
+    /// unchanging database content, as it exists at the moment the snapshot
+    /// is created.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html), or
+    /// if this method is called from a database access where a write
+    /// transaction is open.
+    public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
+        try unsafeReentrantRead { db in
+            try DatabaseSnapshotPool(db)
+        }
+    }
+#endif
 }

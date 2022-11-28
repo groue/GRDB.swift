@@ -173,7 +173,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
@@ -326,7 +326,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
@@ -542,7 +542,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
@@ -1767,7 +1767,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
-                t.column("id", .integer).primaryKey()
+                t.primaryKey("id", .integer)
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
@@ -2033,7 +2033,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
                 try db.create(table: "author") { t in
-                    t.column("id", .text).primaryKey()
+                    t.primaryKey("id", .text)
                 }
                 try db.create(table: "book") { t in
                     t.autoIncrementedPrimaryKey("id")

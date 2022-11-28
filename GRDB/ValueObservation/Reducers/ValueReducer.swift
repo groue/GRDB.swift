@@ -21,15 +21,6 @@ public protocol _ValueReducer {
     mutating func _value(_ fetched: Fetched) throws -> Value?
 }
 
-/// Implementation details of `ValueReducer`, able to observe from any database
-/// reader (``DatabaseQueue``, ``DatabasePool``).
-public protocol _DatabaseValueReducer: _ValueReducer {
-    /// Fetches database values upon changes in an observed database region.
-    ///
-    /// This method must does not depend on the state of the reducer.
-    func _fetch(_ db: Database) throws -> Fetched
-}
-
 /// `ValueReducer` supports ``ValueObservation``.
 ///
 /// A `ValueReducer` fetches and transforms the database values
@@ -40,18 +31,12 @@ public protocol _DatabaseValueReducer: _ValueReducer {
 /// ### Support
 ///
 /// - ``ValueReducers``
-public typealias ValueReducer = _ValueReducer & _DatabaseValueReducer
+public protocol ValueReducer: _ValueReducer {
+    /// Fetches database values upon changes in an observed database region.
+    ///
+    /// This method must does not depend on the state of the reducer.
+    func _fetch(_ db: Database) throws -> Fetched
+}
 
 /// A namespace for concrete types that adopt the ``ValueReducer`` protocol.
-public enum ValueReducers {
-    // ValueReducers.Auto allows us to define ValueObservation factory methods.
-    //
-    // For example, ValueObservation.tracking(_:) is, practically,
-    // ValueObservation<ValueReducers.Auto>.tracking(_:).
-    /// `Auto` supports ``ValueObservation`` factory methods.
-    ///
-    /// Do not use this type.
-    public enum Auto: _ValueReducer {
-        public mutating func _value(_ fetched: Never) -> Never? { }
-    }
-}
+public enum ValueReducers { }

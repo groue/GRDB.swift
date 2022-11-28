@@ -1,33 +1,372 @@
 # The Database Schema
 
-Learn how to define the database schema.
-
 ## Overview
 
-SQLite directly supports a [set of schema alterations](https://www.sqlite.org/lang.html). Many of them are available as Swift methods such as ``Database/create(table:options:body:)``, ``Database/alter(table:body:)``, listed below.
+**GRDB supports all database schemas, and has no requirement.** Any existing SQLite database can be opened, and you are free to structure your new databases as you wish.
 
-You can directly create tables when you open a database, as below:
+You perform modifications to the database schema with methods such as ``Database/create(table:options:body:)``, listed at the end of this page. For example:
 
 ```swift
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("name", .text).notNull()
+    t.column("score", .integer).notNull()
+}
+```
 
-try dbQueue.write { db in
-    try db.create(table: "player", options: .ifNotExists) { t in
-        t.autoIncrementedPrimaryKey("id")
-        t.column("name", .text).notNull()
-        t.column("score", .integer).notNull()
+When you plan to evolve the schema as new versions of your application ship, wrap all schema changes in <doc:Migrations>.
+
+Prefer Swift methods over raw SQL queries. They allow the compiler to check if a schema change is available on the target operating system. Only use a raw SQL query when no Swift method exist (when creating views or triggers, for example).
+
+When a schema change is not directly supported by SQLite, or not available on the target operating system, database tables have to be recreated. See <doc:Migrations> for the detailed procedure.
+
+## Database Schema Recommendations
+
+Even though all schema are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
+
+When those conventions are not applied, or not applicable, you will have to perform extra configurations.  
+
+### Table names should be English, singular, and camelCased
+
+Make them look like singular Swift identifiers: `player`, `team`, `postalAddress`:
+
+```swift
+// RECOMMENDED
+try db.create(table: "player") { t in
+    // table columns and constraints
+}
+
+// REQUIRES EXTRA CONFIGURATION
+try db.create(table: "players") { t in
+    // table columns and constraints
+}
+```
+
+☝️ **If table names follow a different naming convention**, record types (see <doc:QueryInterface>) will need explicit table names:
+
+```swift
+extension Player: TableRecord {
+    // Required because table name is not 'player'
+    static let databaseTableName = "players"
+}
+
+extension PostalAddress: TableRecord {
+    // Required because table name is not 'postalAddress'
+    static let databaseTableName = "postal_address"
+}
+
+extension Award: TableRecord {
+    // Required because table name is not 'award'
+    static let databaseTableName = "Auszeichnung"
+}
+```
+
+[Associations](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md) will need explicit keys as well:
+
+```swift
+extension Player: TableRecord {
+    // Explicit association key because the table name is not 'postalAddress'   
+    static let postalAddress = belongsTo(PostalAddress.self, key: "postalAddress")
+
+    // Explicit association key because the table name is not 'award'
+    static let awards = hasMany(Award.self, key: "awards")
+}
+```
+
+As in the above example, make sure to-one associations use singular keys, and to-many associations use plural keys.
+
+### Column names should be camelCased
+
+Again, make them look like Swift identifiers: `fullName`, `score`, `creationDate`:
+
+```swift
+// RECOMMENDED
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("fullName", .text).notNull()
+    t.column("score", .integer).notNull()
+    t.column("creationDate", .datetime).notNull()
+}
+
+// REQUIRES EXTRA CONFIGURATION
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("full_name", .text).notNull()
+    t.column("score", .integer).notNull()
+    t.column("creation_date", .datetime).notNull()
+}
+```
+
+☝️ **If the column names follow a different naming convention**, `Codable` record types will need an explicit `CodingKeys` enum:
+
+```swift
+struct Player: Decodable, FetchableRecord {
+    var id: Int64
+    var fullName: String
+    var score: Int
+    var creationDate: Date
+
+    // Required CodingKeys customization because 
+    // columns are not named like Swift properties
+    enum CodingKeys: String, CodingKey {
+        case id, fullName = "full_name", score, creationDate = "creation_date"
     }
 }
 ```
 
-But you should prefer wrapping your schema changes in <doc:Migrations> when you plan to upgrade the database schema in future versions of your app.
+### Tables should have explicit primary keys
 
-> Tip: When modifying the database schema, prefer Swift APIs over raw SQL queries. This helps the compiler check if features are available on the SQLite version that ships on the target operating system. For example:
+A primary key uniquely identifies a row in a table. It is defined on one or several columns:
+
+```swift
+// RECOMMENDED
+try db.create(table: "player") { t in
+    // Auto-incremented primary key
+    t.autoIncrementedPrimaryKey("id")
+    t.column("name", .text).notNull()
+}
+
+try db.create(table: "team") { t in
+    // Single-column primary key
+    t.primaryKey("id", .text)
+    t.column("name", .text).notNull()
+}
+
+try db.create(table: "membership") { t in
+    // Composite primary key
+    t.primaryKey {
+        t.column("playerId", .integer).references("player")
+        t.column("teamId", .text).references("team")
+    }
+    t.column("role", .text).notNull()
+}
+
+// REQUIRES EXTRA CONFIGURATION
+try db.create(table: "player") { t in
+    t.column("name", .text).notNull()
+}
+
+try db.create(table: "team") { t in
+    t.column("id", .text).notNull().unique()
+    t.column("name", .text).notNull()
+}
+
+try db.create(table: "membership") { t in
+    t.column("playerId", .integer).notNull()
+    t.column("teamId", .text).notNull()
+    t.column("role", .text).notNull()
+}
+```
+
+Primary keys support record fetching methods such as ``FetchableRecord/fetchOne(_:id:)``, and persistence methods such as ``MutablePersistableRecord/update(_:onConflict:)`` or ``MutablePersistableRecord/delete(_:)``.
+
+See <doc:SingleRowTables> when you need to define a table that contains a single row.
+
+> Important: Add not null constraints on primary key columns, as in the above recommended examples, or SQLite will allow null values. See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls> for more information.
+
+☝️ **If the database table does not define any explicit primary key**, the record type for this table needs explicit support for the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
+
+```swift
+// A table without any explicit primary key
+try db.create(table: "player") { t in
+    t.column("name", .text).notNull()
+    t.column("score", .integer).notNull()
+}
+
+// The record type for the 'player' table'
+struct Player: Codable {
+    // Uniquely identifies a player.
+    var rowid: Int64?
+    var name: String
+    var score: Int
+}
+
+extension Player: Identifiable {
+    // Required because the primary key column is not 'id'
+    var id: Int64? { rowid }
+}
+
+extension Player: FetchableRecord, MutablePersistableRecord {
+    // Required because the primary key
+    // is the hidden rowid column.
+    static let databaseSelection: [any SQLSelectable] = [
+        AllColumns(),
+        Column.rowID]
+
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        rowid = inserted.rowID
+    }
+}
+
+try dbQueue.read { db in
+    // SELECT *, rowid FROM player WHERE rowid = 1
+    let player = try Player.fetchOne(db, id: 1)
+}
+```
+
+### Single-column primary keys should be named 'id'
+
+This helps record types play well with the standard `Identifiable` protocol.
+
+```swift
+// RECOMMENDED
+try db.create(table: "player") { t in
+    t.primaryKey("id", .text)
+    t.column("name", .text).notNull()
+}
+
+// REQUIRES EXTRA CONFIGURATION
+try db.create(table: "player") { t in
+    t.primaryKey("uuid", .text)
+    t.column("name", .text).notNull()
+}
+```
+☝️ **If the primary key follows a different naming convention**, `Identifiable` record types will need a custom `CodingKeys` enum, or an extra property:
+
+```swift
+// Custom coding keys
+struct Player: Codable, Identifiable {
+    var id: String
+    var name: String
+
+    // Required CodingKeys customization because 
+    // columns are not named like Swift properties
+    enum CodingKeys: String, CodingKey {
+        case id = "uuid", name
+    }
+}
+
+// Extra property
+struct Player: Identifiable {
+    var uuid: String
+    var name: String
+    
+    // Required because the primary key column is not 'id'
+    var id: String { uuid }
+}
+```
+
+### Unique keys should be supported by unique indexes
+
+Unique indexes makes sure SQLite prevents the insertion of conflicting rows:
+
+```swift
+// RECOMMENDED
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    // Players must have distinct names
+    t.column("name", .text).unique()
+    t.column("teamId", .integer).notNull().references("team")
+    t.column("position", .integer).notNull()
+}
+
+// One single player at any given position in a team
+try db.create(
+    index: "playerTeamPosition",
+    on: "player", columns: ["teamId", "position"],
+    options: .unique)
+```
+
+> Tip: SQLite does not support deferred unique indexes, and this creates undesired churn when you need to temporarily break them. This may happen, for example, when you want to reorder player positions in our above example.
 >
-> - Dropping a table column requires SQLite 3.35+ (iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0).
-> - [Strict tables](https://www.sqlite.org/stricttables.html) require SQLite 3.37+ (iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5).
+> There exist several workarounds; one of them involves dropping and recreating the unique index after the temporary violations have been fixed. If you plan to use this technique, take care that only actual indexes can be dropped. Unique constraints created inside the table body can not:
 >
-> When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table. See <doc:Migrations> for the detailed procedure.  
+> ```swift
+> // Unique constraint on player(name) can not be dropped.
+> try db.create(table: "player") { t in
+>     t.column("name", .text).unique()
+> }
+>
+> // Unique index on team(name) can be dropped.
+> try db.create(table: "team") { t in
+>     t.column("name", .text)
+> }
+> try db.create(
+>     index: "teamName",
+>     on: "team", columns: ["name"],
+>     options: .unique)
+> ```
+>
+> If you want to turn an undroppable constraint into a droppable index, you'll need to recreate the database table. See <doc:Migrations> for the detailed procedure.
+
+☝️ **If a table misses unique indexes**, some record methods such as ``FetchableRecord/fetchOne(_:key:)-92b9m`` and ``TableRecord/deleteOne(_:key:)-5pdh5`` will raise a fatal error:
+
+```swift
+try dbQueue.write { db in
+    // Fatal error: table player has no unique index on columns ...
+    let player = try Player.fetchOne(db, key: ["teamId": 42, "position": 1])
+    try Player.deleteOne(db, key: ["name": "Arthur"])
+    
+    // Use instead:
+    let player = try Player
+        .filter(Column("teamId") == 42 && Column("position") == 1)
+        .fetchOne(db)
+
+    try Player
+        .filter(Column("name") == "Arthur")
+        .deleteAll(db)
+}
+```
+
+### Relations between tables should be supported by foreign keys
+
+[Foreign Keys](https://www.sqlite.org/foreignkeys.html) have SQLite enforce valid relationships between tables:
+
+```swift
+try db.create(table: "team") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("color", .text).notNull()
+}
+
+// RECOMMENDED
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("name", .text).notNull()
+    // A player must refer to an existing team
+    t.column("teamId", .integer).notNull().references("team")
+}
+
+// REQUIRES EXTRA CONFIGURATION
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("name", .text).notNull()
+    // No foreign key
+    t.column("teamId", .integer).notNull()
+}
+```
+
+GRDB [Associations](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md) are automatically configured from foreign keys declared in the database schema:
+
+```swift
+extension Player: TableRecord {
+    static let team = belongsTo(Team.self)
+}
+
+extension Team: TableRecord {
+    static let players = hasMany(Player.self)
+}
+```
+
+See [Associations and the Database Schema](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#associations-and-the-database-schema) for more precise recommendations.
+
+☝️ **If a foreign key is not declared in the schema**, you will need to explicitly configure related associations:
+
+```swift
+extension Player: TableRecord {
+    // Required configuration because the database does
+    // not declare any foreign key from players to their team.
+    static let teamForeignKey = ForeignKey(["teamId"])
+    static let team = belongsTo(Team.self,
+                                using: teamForeignKey)
+}
+
+extension Team: TableRecord {
+    // Required configuration because the database does
+    // not declare any foreign key from players to their team.
+    static let players = hasMany(Player.self,
+                                 using: Player.teamForeignKey)
+}
+```
 
 ## Topics
 
@@ -62,6 +401,7 @@ But you should prefer wrapping your schema changes in <doc:Migrations> when you 
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``
 - ``Database/primaryKey(_:)``
+- ``Database/schemaVersion()``
 - ``Database/table(_:hasUniqueKey:)``
 - ``Database/tableExists(_:)``
 - ``Database/triggerExists(_:)``
@@ -78,3 +418,10 @@ But you should prefer wrapping your schema changes in <doc:Migrations> when you 
 - ``Database/foreignKeyViolations()``
 - ``Database/foreignKeyViolations(in:)``
 - ``ForeignKeyViolation``
+
+### Sunsetted Methods
+
+Those are legacy interfaces that are preserved for backwards compatibility. Their use is not recommended.
+
+- ``Database/create(index:on:columns:unique:ifNotExists:condition:)``
+- ``Database/create(table:temporary:ifNotExists:withoutRowID:body:)``

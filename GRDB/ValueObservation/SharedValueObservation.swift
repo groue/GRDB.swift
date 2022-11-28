@@ -59,7 +59,29 @@ extension ValueObservation {
     /// A shared observation starts observing the database as soon as it is
     /// subscribed. You can choose if database observation should stop, or not,
     /// when its number of subscriptions drops down to zero, with the `extent`
-    /// parameter.
+    /// parameter:
+    ///
+    /// ```swift
+    /// // The default: stops observing the database when the number of
+    /// // subscriptions drops down to zero, and restart database observation
+    /// // on the next subscription.
+    /// //
+    /// // Database errors can be recovered by resubscribing to the
+    /// // shared observation.
+    /// let sharedObservation = ValueObservation
+    ///     .tracking { db in try Player.fetchAll(db) }
+    ///     .shared(in: dbQueue, extent: .whileObserved)
+    ///
+    /// // Only stops observing the database when the shared observation
+    /// // is deinitialized, and all subscriptions are cancelled.
+    /// //
+    /// // This extent prevents the shared observation from recovering
+    /// // from database errors. To recover from database errors, create a new
+    /// // shared SharedValueObservation instance.
+    /// let sharedObservation = ValueObservation
+    ///     .tracking { db in try Player.fetchAll(db) }
+    ///     .shared(in: dbQueue, extent: .observationLifetime)
+    /// ```
     ///
     /// By default, fresh values are dispatched asynchronously on the
     /// main dispatch queue. You can change this behavior by providing a
@@ -68,7 +90,9 @@ extension ValueObservation {
     /// For example, the ``ValueObservationScheduler/immediate`` scheduler
     /// notifies all values on the main dispatch queue, and notifies the first
     /// one immediately when the
-    /// ``SharedValueObservation/start(onError:onChange:)`` method is called:
+    /// ``SharedValueObservation/start(onError:onChange:)`` method is called.
+    /// The `immediate` scheduling requires that the observation starts from the
+    /// main thread (a fatal error is raised otherwise):
     ///
     /// ```swift
     /// let observation = ValueObservation.tracking { db in
@@ -82,9 +106,9 @@ extension ValueObservation {
     /// let cancellable = try sharedObservation.start { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
-    ///     print("fresh players: \(players)")
+    ///     print("Fresh players: \(players)")
     /// }
-    /// // <- here "fresh players" is already printed.
+    /// // <- here "Fresh players" is already printed.
     /// ```
     ///
     /// Note that the `.immediate` scheduler requires that the observation is

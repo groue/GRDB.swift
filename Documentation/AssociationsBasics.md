@@ -511,7 +511,7 @@ When using class names composed of two or more words, the table name should use 
 | Mouse      | mouse      | `mouse`, `mice`, `maxMouseSize` |
 | Person     | person     | `person`, `people`, `personCount` |
 
-If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](http://github.com/groue/GRDB.swift/issues).
+If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](https://github.com/groue/GRDB.swift/issues).
 
 See [The Structure of a Joined Request] for more information.
 
@@ -649,7 +649,7 @@ Here is the recommended [migration] for the **[HasOne]** association:
 ```swift
 migrator.registerMigration("Countries") { db in
     try db.create(table: "country") { t in
-        t.column("code", .text).primaryKey()           // (1)
+        t.primaryKey("code", .text)                    // (1)
         t.column("name", .text)
     }
     try db.create(table: "demographics") { t in
@@ -3008,8 +3008,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records
 [persistence methods]: ../README.md#persistence-methods
-[database observation tools]: ../README.md#database-changes-observation
-[ValueObservation]: ../README.md#valueobservation
+[database observation tools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
 [FAQ]: ../README.md#faq-associations
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md

@@ -313,7 +313,7 @@ class ValueObservationTests: GRDBTestCase {
             }
         }
     }
-
+    
     // MARK: - Snapshot Optimization
     
     func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {
@@ -421,13 +421,13 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-        // Optimization not available
-        expectedCounts = [0, 0, 1]
-        #else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         // Optimization available
         expectedCounts = [0, 1]
-        #endif
+#else
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+#endif
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
@@ -471,13 +471,13 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if os(macOS) || targetEnvironment(macCatalyst) || GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
-        // Optimization not available
-        expectedCounts = [0, 0, 1]
-        #else
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         // Optimization available
         expectedCounts = [0, 1]
-        #endif
+#else
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+#endif
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
@@ -495,6 +495,33 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(observedCounts, expectedCounts)
         }
     }
+    
+    // MARK: - Snapshot Observation
+    
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+    func testDatabaseSnapshotPoolObservation() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        let expectation = XCTestExpectation()
+        expectation.assertForOverFulfill = false
+        
+        let observation = ValueObservation.trackingConstantRegion { db in
+            try db.registerAccess(to: Table("t"))
+            expectation.fulfill()
+            return try DatabaseSnapshotPool(db)
+        }
+        
+        let recorder = observation.record(in: dbPool)
+        wait(for: [expectation], timeout: 5)
+        try dbPool.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
+        
+        let results = try wait(for: recorder.next(2), timeout: 5)
+        XCTAssertEqual(results.count, 2)
+        try XCTAssertEqual(results[0].read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }, 0)
+        try XCTAssertEqual(results[1].read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }, 1)
+    }
+#endif
     
     // MARK: - Cancellation
     

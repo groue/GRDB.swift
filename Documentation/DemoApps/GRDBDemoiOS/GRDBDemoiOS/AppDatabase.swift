@@ -33,7 +33,7 @@ final class AppDatabase {
         
         migrator.registerMigration("createPlayer") { db in
             // Create a table
-            // See https://github.com/groue/GRDB.swift#create-tables
+            // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema>
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("name", .text).notNull()

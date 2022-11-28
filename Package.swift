@@ -16,8 +16,12 @@ if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
     cSettings.append(.define("GRDB_SQLITE_ENABLE_PREUPDATE_HOOK"))
 }
 
-// Don't rely on this environment variable. It is only a convenience:
-// $ make docs-localhost
+// The SPI_BUILDER environment variable enables documentation building
+// on <https://swiftpackageindex.com/groue/GRDB.swift>. See
+// <https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/2122>
+// for more information.
+//
+// SPI_BUILDER also enables the `make docs-localhost` command.
 var dependencies: [PackageDescription.Package.Dependency] = []
 if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
@@ -33,6 +37,7 @@ let package = Package(
         .watchOS(.v4),
     ],
     products: [
+        .library(name: "CSQLite", targets: ["CSQLite"]),
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],

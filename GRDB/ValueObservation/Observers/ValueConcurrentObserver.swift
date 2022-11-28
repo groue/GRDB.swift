@@ -250,16 +250,6 @@ extension ValueConcurrentObserver {
         return AnyDatabaseCancellable(self)
     }
     
-    private func startObservation(_ writerDB: Database, observedRegion: DatabaseRegion) {
-        observationState.region = observedRegion
-        assert(observationState.isModified == false)
-        writerDB.add(transactionObserver: self, extent: .observerLifetime)
-    }
-}
-
-// MARK: - Starting the Observation (with SQLITE_ENABLE_SNAPSHOT)
-
-extension ValueConcurrentObserver {
     /// Synchronously starts the observation, and returns the initial value.
     ///
     /// Unlike `asyncStart()`, this method does not notify the initial value or error.
@@ -271,11 +261,9 @@ extension ValueConcurrentObserver {
         //
         // Fetch value & tracked region in a synchronous way.
         //
-        // TODO: we currently perform the initial read from a snapshot, because
+        // We perform the initial read from a DatabaseSnapshot, because
         // it is a handy way to keep a read transaction open until we grab a
-        // write access, and compare the database versions. The problem is that
-        // we do not control the number of created shapshots: we should instead
-        // use a reader from the pool.
+        // write access, and compare the database versions.
         let initialSnapshot = try databaseAccess.dbPool.makeSnapshot()
         let (fetchedValue, initialRegion, initialWALSnapshot) = try initialSnapshot.read {
             db -> (Reducer.Fetched, DatabaseRegion, WALSnapshot?) in
@@ -286,12 +274,12 @@ extension ValueConcurrentObserver {
                 let fetchedValue = try databaseAccess.fetch(db)
                 let region = try DatabaseRegion.union(regions)(db)
                 let initialRegion = try region.observableRegion(db)
-                return (fetchedValue, initialRegion, WALSnapshot(db))
+                return (fetchedValue, initialRegion, try? WALSnapshot(db))
                 
             case .constantRegionRecordedFromSelection,
                     .nonConstantRegionRecordedFromSelection:
                 let (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
-                return (fetchedValue, initialRegion, WALSnapshot(db))
+                return (fetchedValue, initialRegion, try? WALSnapshot(db))
             }
         }
         
@@ -322,11 +310,9 @@ extension ValueConcurrentObserver {
         // without having to wait for an eventual long-running write
         // transaction to complete.
         //
-        // TODO: we currently perform the initial read from a snapshot, because
+        // We perform the initial read from a DatabaseSnapshot, because
         // it is a handy way to keep a read transaction open until we grab a
-        // write access, and compare the database versions. The problem is that
-        // we do not control the number of created shapshots: we should instead
-        // use a reader from the pool.
+        // write access, and compare the database versions.
         do {
             let initialSnapshot = try databaseAccess.dbPool.makeSnapshot()
             initialSnapshot.asyncRead { dbResult in
@@ -377,7 +363,7 @@ extension ValueConcurrentObserver {
                     self.asyncStartObservation(
                         from: databaseAccess,
                         initialSnapshot: initialSnapshot,
-                        initialWALSnapshot: WALSnapshot(db),
+                        initialWALSnapshot: try? WALSnapshot(db),
                         initialRegion: initialRegion)
                 } catch {
                     self.notifyError(error)
@@ -403,13 +389,13 @@ extension ValueConcurrentObserver {
                 
                 // Transaction is needed for comparing version snapshots
                 try writerDB.isolated(readOnly: true) {
-                    // Keep DatabaseSnaphot alive until we have compared
+                    // Keep initialSnapshot alive until we have compared
                     // database versions. It prevents database checkpointing,
                     // and keeps WAL snapshots (`sqlite3_snapshot`) valid
                     // and comparable.
                     let isModified = withExtendedLifetime(initialSnapshot) {
                         guard let initialWALSnapshot,
-                              let currentWALSnapshot = WALSnapshot(writerDB)
+                              let currentWALSnapshot = try? WALSnapshot(writerDB)
                         else {
                             return true
                         }
@@ -476,6 +462,12 @@ extension ValueConcurrentObserver {
                 self.notifyError(error)
             }
         }
+    }
+    
+    private func startObservation(_ writerDB: Database, observedRegion: DatabaseRegion) {
+        observationState.region = observedRegion
+        assert(observationState.isModified == false)
+        writerDB.add(transactionObserver: self, extent: .observerLifetime)
     }
 }
 

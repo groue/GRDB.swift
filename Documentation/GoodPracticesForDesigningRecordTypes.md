@@ -810,10 +810,10 @@ Instead, have a look at [Database Observation]:
 [Concurrency Guide]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [GRDB concurrency rules]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
-[Database Observation]: ../README.md#database-changes-observation
-[ValueObservation]: ../README.md#valueobservation
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[TransactionObserver]: ../README.md#transactionobserver-protocol
+[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
+[TransactionObserver]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
 [Record Types Hide Intimate Database Details]: #record-types-hide-intimate-database-details
@@ -823,7 +823,7 @@ Instead, have a look at [Database Observation]:
 [How to Design Database Managers]: #how-to-design-database-managers
 [Observe the Database and Refetch when Needed]: #observe-the-database-and-refetch-when-needed
 [query interface]: ../README.md#the-query-interface
-[observe database changes]: ../README.md#database-changes-observation
+[observe database changes]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
 [data protection]: ../README.md#data-protection
 [Embrace Errors]: #embrace-errors
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern

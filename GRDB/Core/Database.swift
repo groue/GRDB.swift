@@ -64,11 +64,12 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
-/// ### Observing Database Transactions
+/// ### Database Observation
 ///
 /// - ``add(transactionObserver:extent:)``
-/// - ``afterNextTransaction(onCommit:onRollback:)``
 /// - ``remove(transactionObserver:)``
+/// - ``afterNextTransaction(onCommit:onRollback:)``
+/// - ``registerAccess(to:)``
 ///
 /// ### Collations
 ///
@@ -102,11 +103,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``DatabaseBackupProgress``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
-///
-/// ### Sunsetted Methods
-///
-/// - ``create(index:on:columns:unique:ifNotExists:condition:)``
-/// - ``create(table:temporary:ifNotExists:withoutRowID:body:)``
 public final class Database: CustomStringConvertible, CustomDebugStringConvertible {
     // The Database class is not thread-safe. An instance should always be
     // used through a SerializedDatabase.
@@ -216,6 +212,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Internal properties
     
+    let path: String
+    
     /// Support for schema changes performed with ``DatabasePool``: each read
     /// access needs to clear the schema cache if the schema has been modified
     /// by the writer connection since the previous read. This property is reset
@@ -259,9 +257,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Whether the database region selected by statement execution is
-    /// recorded into `selectedRegion`.
+    /// recorded into `selectedRegion` by `track(_:)`.
     ///
-    /// To record the selected region, use `recordingSelection(_:_:)`.
+    /// To start recording the selected region, use `recordingSelection(_:_:)`.
     private(set) var isRecordingSelectedRegion = false
     
     /// The database region selected by statement execution, when
@@ -305,6 +303,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        self.path = path
         
         // We do not report read-only transactions to transaction observers, so
         // don't bother installing the observation broker for read-only connections.
@@ -686,27 +685,66 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         readOnlyDepth > 0 || configuration.readonly
     }
     
-    // MARK: - Recording of the selected region
+    // MARK: - Database Observation
     
-    /// Extends the `region` argument with the database region selected by all
-    /// statements executed by the closure.
+    /// Reports the database region to ``ValueObservation``.
     ///
     /// For example:
     ///
-    ///     var region = DatabaseRegion()
-    ///     try db.recordingSelection(&region) {
-    ///         let players = try Player.fetchAll(db)
-    ///         let team = try Team.fetchOne(db, id: 42)
-    ///     }
-    ///     print(region) // player(*),team(*)[42]
+    /// ```swift
+    /// let observation = ValueObservation.tracking { db in
+    ///     // All changes to the 'player' and 'team' tables
+    ///     // will trigger the observation.
+    ///     try db.registerAccess(to: Player.all())
+    ///     try db.registerAccess(to: Team.all())
+    /// }
+    /// ```
+    ///
+    /// See ``ValueObservation/trackingConstantRegion(_:)`` for some examples
+    /// of region reporting.
+    ///
+    /// This method has no effect on a ``ValueObservation`` created with an
+    /// explicit list of tracked regions. In the example below, only the
+    /// `player` table is tracked:
+    ///
+    /// ```swift
+    /// // Observes the 'player' table only
+    /// let observation = ValueObservation.tracking(region: Player.all()) { db in
+    ///     // Ignored
+    ///     try db.registerAccess(to: Team.all())
+    /// }
+    /// ```
+    public func registerAccess(to region: @autoclosure () -> some DatabaseRegionConvertible) throws {
+        if isRecordingSelectedRegion {
+            try selectedRegion.formUnion(region().databaseRegion(self))
+        }
+    }
+    
+    /// Extends the `region` argument with the database region selected by all
+    /// statements executed by the closure, and all regions explicitly tracked
+    /// with the ``registerAccess(to:)`` method.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var region = DatabaseRegion()
+    /// try db.recordingSelection(&region) {
+    ///     let players = try Player.fetchAll(db)
+    ///     let team = try Team.fetchOne(db, id: 42)
+    ///     try db.registerAccess(to: Table("awards"))
+    /// }
+    /// print(region) // awards,player(*),team(*)[42]
+    /// ```
     ///
     /// This method is used by ``ValueObservation``:
     ///
-    ///     let playersObservation = ValueObservation.tracking { db in
-    ///         // Here all fetches are recorded, so that we know what is the
-    ///         // database region that must be observed.
-    ///         try Player.fetchAll(db)
-    ///     }
+    /// ```swift
+    /// let playersObservation = ValueObservation.tracking { db in
+    ///     // Here all fetches are recorded, so that we know what is the
+    ///     // database region that must be observed.
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
     func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
         if region.isFullDatabase {
             return try block()
@@ -878,6 +916,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// are suspended.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// A suspended database makes everything to avoid acquiring a lock on the
+    /// database. All database operations may throw a ``DatabaseError`` of code
+    /// `SQLITE_INTERRUPT` or `SQLITE_ABORT`, except reads in WAL mode.
+    ///
+    /// See <doc:DatabaseSharing#How-to-limit-the-0xDEAD10CC-exception> for
+    /// more information.
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
@@ -1679,26 +1724,23 @@ extension Database {
     
     /// An SQL column type.
     ///
-    /// You use column types when you modify the database schema. For example,
-    /// the code below create a `player` table with a `name` column whose type
-    /// is ``text`` (`TEXT` in SQL):
+    /// You use column types when you modify the database schema. For example:
     ///
     /// ```swift
     /// // CREATE TABLE player(
-    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
-    /// //   name TEXT
+    /// //   id INTEGER PRIMARY KEY,
+    /// //   name TEXT,
+    /// //   creationDate DATETIME,
     /// // )
     /// try db.create(table: "player") { t in
-    ///     t.autoIncrementedPrimaryKey("id")
+    ///     t.primaryKey("id", .integer)
     ///     t.column("name", .text)
+    ///     t.column("creationDate", .datetime)
     /// }
     /// ```
     ///
-    /// A `ColumnType` is an element of the SQL language, as is `TEXT` in the
-    /// example above. The type comes with many built-in constants for
-    /// frequently used types: ``text``, ``integer``, etc.
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/datatype3.html>
+    /// For more information, see
+    /// [Datatypes In SQLite](https://www.sqlite.org/datatype3.html).
     public struct ColumnType: RawRepresentable, Hashable {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
@@ -1708,34 +1750,34 @@ extension Database {
             self.rawValue = rawValue
         }
         
-        /// The `TEXT` SQL column type.
+        /// The `TEXT` column type.
         public static let text = ColumnType(rawValue: "TEXT")
         
-        /// The `INTEGER` SQL column type.
+        /// The `INTEGER` column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
         
-        /// The `DOUBLE` SQL column type.
+        /// The `DOUBLE` column type.
         public static let double = ColumnType(rawValue: "DOUBLE")
         
-        /// The `REAL` SQL column type.
+        /// The `REAL` column type.
         public static let real = ColumnType(rawValue: "REAL")
 
-        /// The `NUMERIC` SQL column type.
+        /// The `NUMERIC` column type.
         public static let numeric = ColumnType(rawValue: "NUMERIC")
         
-        /// The `BOOLEAN` SQL column type.
+        /// The `BOOLEAN` column type.
         public static let boolean = ColumnType(rawValue: "BOOLEAN")
         
-        /// The `BLOB` SQL column type.
+        /// The `BLOB` column type.
         public static let blob = ColumnType(rawValue: "BLOB")
         
-        /// The `DATE` SQL column type.
+        /// The `DATE` column type.
         public static let date = ColumnType(rawValue: "DATE")
         
-        /// The `DATETIME` SQL column type.
+        /// The `DATETIME` column type.
         public static let datetime = ColumnType(rawValue: "DATETIME")
         
-        /// The `ANY` SQL column type.
+        /// The `ANY` column type.
         public static let any = ColumnType(rawValue: "ANY")
     }
     
@@ -1968,6 +2010,10 @@ extension Database {
     }
     
     /// An SQLite threading mode. See <https://www.sqlite.org/threadsafe.html>.
+    ///
+    /// - Note: Only the multi-thread mode (`SQLITE_OPEN_NOMUTEX`) is currently
+    /// supported, since all <doc:DatabaseConnections> access SQLite connections
+    /// through a `SerializedDatabase`.
     enum ThreadingMode {
         case `default`
         case multiThread

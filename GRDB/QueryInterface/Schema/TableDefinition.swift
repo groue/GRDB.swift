@@ -21,7 +21,8 @@ extension Database {
     /// - <https://www.sqlite.org/lang_createtable.html>
     /// - <https://www.sqlite.org/withoutrowid.html>
     ///
-    /// - warning: This method is sunsetted. You should prefer
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
     ///   ``create(table:options:body:)`` instead.
     ///
     /// - parameters:
@@ -51,21 +52,207 @@ extension Database {
     
     /// Creates a database table.
     ///
-    /// For example:
+    /// ### Reference documentation
+    ///
+    /// SQLite has many reference documents about table creation. They are a
+    /// great learning material:
+    ///
+    /// - [CREATE TABLE](https://www.sqlite.org/lang_createtable.html)
+    /// - [Datatypes In SQLite](https://www.sqlite.org/datatype3.html)
+    /// - [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)
+    /// - [The ON CONFLICT Clause](https://www.sqlite.org/lang_conflict.html)
+    /// - [Rowid Tables](https://www.sqlite.org/rowidtable.html)
+    /// - [The WITHOUT ROWID Optimization](https://www.sqlite.org/withoutrowid.html)
+    /// - [STRICT Tables](https://www.sqlite.org/stricttables.html)
+    ///
+    /// ### Usage
     ///
     /// ```swift
+    /// // CREATE TABLE place (
+    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// //   title TEXT,
+    /// //   isFavorite BOOLEAN NOT NULL DEFAULT 0,
+    /// //   latitude DOUBLE NOT NULL,
+    /// //   longitude DOUBLE NOT NULL
+    /// // )
     /// try db.create(table: "place") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("title", .text)
-    ///     t.column("favorite", .boolean).notNull().default(false)
+    ///     t.column("isFavorite", .boolean).notNull().default(false)
     ///     t.column("longitude", .double).notNull()
     ///     t.column("latitude", .double).notNull()
     /// }
     /// ```
     ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html>
-    /// - <https://www.sqlite.org/withoutrowid.html>
+    /// ### Configure table creation
+    ///
+    /// Use the `options` parameter to configure table creation
+    /// (see ``TableOptions``):
+    ///
+    /// ```swift
+    /// // CREATE TABLE player ( ... )
+    /// try db.create(table: "player") { t in ... }
+    ///
+    /// // CREATE TEMPORARY TABLE player IF NOT EXISTS (
+    /// try db.create(table: "player", options: [.temporary, .ifNotExists]) { t in ... }
+    /// ```
+    ///
+    /// ### Add columns
+    ///
+    /// Add columns with their name and eventual type (`text`, `integer`,
+    /// `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime`
+    /// and `any`) - see ``Database/ColumnType``:
+    ///
+    /// ```swift
+    /// // CREATE TABLE example (
+    /// //   a,
+    /// //   name TEXT,
+    /// //   creationDate DATETIME,
+    /// try db.create(table: "example") { t in
+    ///     t.column("a")
+    ///     t.column("name", .text)
+    ///     t.column("creationDate", .datetime)
+    /// ```
+    ///
+    /// The `column()` method returns a ``ColumnDefinition`` that you can
+    /// further configure:
+    ///
+    /// ### Not null constraints, default values
+    ///
+    /// ```swift
+    /// // email TEXT NOT NULL,
+    /// t.column("email", .text).notNull()
+    ///
+    /// // name TEXT DEFAULT 'O''Reilly',
+    /// t.column("name", .text).defaults(to: "O'Reilly")
+    ///
+    /// // flag BOOLEAN NOT NULL DEFAULT 0,
+    /// t.column("flag", .boolean).notNull().defaults(to: false)
+    ///
+    /// // creationDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    /// t.column("creationDate", .datetime).defaults(sql: "CURRENT_TIMESTAMP")
+    /// ```
+    ///
+    /// ### Primary, unique, and foreign keys
+    ///
+    /// Use an individual column as **primary**, **unique**, or **foreign key**.
+    /// When defining a foreign key, the referenced column is the primary key of
+    /// the referenced table (unless you specify otherwise):
+    ///
+    /// ```swift
+    /// // id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// t.autoIncrementedPrimaryKey("id")
+    ///
+    /// // uuid TEXT NOT NULL PRIMARY KEY,
+    /// t.primaryKey("uuid", .text)
+    ///
+    /// // email TEXT UNIQUE,
+    /// t.column("email", .text)
+    ///     .unique()
+    ///
+    /// // countryCode TEXT REFERENCES country(code) ON DELETE CASCADE,
+    /// t.column("countryCode", .text)
+    ///     .references("country", onDelete: .cascade)
+    /// ```
+    ///
+    /// Primary, unique and foreign keys can also be added on several columns:
+    ///
+    /// ```swift
+    /// // a INTEGER NOT NULL,
+    /// // b TEXT NOT NULL,
+    /// // PRIMARY KEY (a, b),
+    /// t.primaryKey {
+    ///     t.column("a", .integer)
+    ///     t.column("b", .text)
+    /// }
+    ///
+    /// // a INTEGER,
+    /// // b TEXT,
+    /// // UNIQUE (a, b) ON CONFLICT REPLACE,
+    /// t.column("a", .integer)
+    /// t.column("b", .text)
+    /// t.uniqueKey(["a", "b"], onConflict: .replace)
+    ///
+    /// // a INTEGER,
+    /// // b TEXT,
+    /// // FOREIGN KEY (a, b) REFERENCES parents(c, d),
+    /// t.column("a", .integer)
+    /// t.column("b", .text)
+    /// t.foreignKey(["a", "b"], references: "parents")
+    /// ```
+    ///
+    /// > Tip: when you need an integer primary key that automatically generates
+    /// unique values, it is recommended that you use the
+    /// ``TableDefinition/autoIncrementedPrimaryKey(_:onConflict:)`` method:
+    /// >
+    /// > ```swift
+    /// > try db.create(table: "example") { t in
+    /// >     t.autoIncrementedPrimaryKey("id")
+    /// >     ...
+    /// > }
+    /// > ```
+    /// >
+    /// > The reason for this recommendation is that auto-incremented primary
+    /// > keys forbid the reuse of ids. This prevents your app or
+    /// > <doc:DatabaseObservation> to think that a row was updated, when it was
+    /// > actually deleted and replaced. Depending on your application needs,
+    /// > this may be acceptable. But usually it is not.
+    ///
+    /// ### Indexed columns
+    ///
+    /// ```swift
+    /// t.column("score", .integer).indexed()
+    /// ```
+    ///
+    /// For extra index options, see ``create(index:on:columns:options:condition:)``.
+    ///
+    /// ### Integrity checks
+    ///
+    /// SQLite will only let conforming rows in:
+    ///
+    /// ```swift
+    /// // name TEXT CHECK (LENGTH(name) > 0)
+    /// t.column("name", .text).check { length($0) > 0 }
+    ///
+    /// // score INTEGER CHECK (score > 0)
+    /// t.column("score", .integer).check(sql: "score > 0")
+    ///
+    /// // CHECK (a + b < 10),
+    /// t.check(Column("a") + Column("b") < 10)
+    ///
+    /// // CHECK (a + b < 10)
+    /// t.check(sql: "a + b < 10")
+    /// ```
+    ///
+    /// ### Generated columns
+    ///
+    /// [Generated columns](https://sqlite.org/gencol.html) are available with a
+    /// [custom SQLite build](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md):
+    ///
+    /// ```swift
+    /// t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+    /// t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// ```
+    ///
+    /// ### Raw SQL columns and constraints
+    ///
+    /// Columns and constraints can be defined with raw sql:
+    ///
+    /// ```swift
+    /// t.column(sql: "name TEXT")
+    /// t.constraint(sql: "CHECK (a + b < 10)")
+    /// ```
+    ///
+    /// ``SQL`` literals allow you to safely embed raw values in your SQL,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    /// ```swift
+    /// let defaultName = "O'Reilly"
+    /// t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///
+    /// let forbiddenName = "admin"
+    /// t.constraint(literal: "CHECK (name <> \(forbiddenName))")
+    /// ```
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -146,7 +333,8 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createindex.html>
     ///
-    /// - warning: This method is sunsetted. You should prefer
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
     ///   ``create(index:on:columns:options:condition:)`` instead.
     ///
     /// - parameters:
@@ -252,7 +440,7 @@ extension Database {
     }
 }
 
-/// Table creation options
+/// Table creation options.
 public struct TableOptions: OptionSet {
     public let rawValue: Int
     
@@ -264,18 +452,16 @@ public struct TableOptions: OptionSet {
     /// Creates a temporary table.
     public static let temporary = TableOptions(rawValue: 1 << 1)
     
-    /// Creates a without rowid table. See <https://www.sqlite.org/withoutrowid.html>
+    /// Creates a [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) table.
+    ///
+    /// Such tables can not be tracked with <doc:DatabaseObservation> tools.
     public static let withoutRowID = TableOptions(rawValue: 1 << 2)
     
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Creates a STRICT table
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/stricttables.html>
+    /// Creates a [STRICT](https://www.sqlite.org/stricttables.html) table.
     public static let strict = TableOptions(rawValue: 1 << 3)
 #else
-    /// Creates a STRICT table
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/stricttables.html>
+    /// Creates a [STRICT](https://www.sqlite.org/stricttables.html) table.
     @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     public static let strict = TableOptions(rawValue: 1 << 3)
 #endif
@@ -302,11 +488,18 @@ public struct TableOptions: OptionSet {
 /// - ``column(sql:)``
 /// - ``ColumnDefinition``
 ///
-/// ### Define Keys
+/// ### Define the Primary Key
 ///
 /// - ``autoIncrementedPrimaryKey(_:onConflict:)``
+/// - ``primaryKey(_:_:onConflict:)``
+/// - ``primaryKey(onConflict:body:)``
+///
+/// ### Define a Foreign Key
+///
 /// - ``foreignKey(_:references:columns:onDelete:onUpdate:deferred:)``
-/// - ``primaryKey(_:onConflict:)``
+///
+/// ### Define a Unique Key
+///
 /// - ``uniqueKey(_:onConflict:)``
 ///
 /// ### Define Others Constraints
@@ -316,11 +509,17 @@ public struct TableOptions: OptionSet {
 /// - ``constraint(literal:)``
 /// - ``constraint(sql:)``
 ///
-/// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html>
+/// ### Sunsetted Methods
+///
+/// Those are legacy interfaces that are preserved for backwards compatibility.
+/// Their use is not recommended.
+///
+/// - ``primaryKey(_:onConflict:)``
 public final class TableDefinition {
-    private typealias KeyConstraint = (
-        columns: [String],
-        conflictResolution: Database.ConflictResolution?)
+    struct KeyConstraint {
+        var columns: [String]
+        var conflictResolution: Database.ConflictResolution?
+    }
     
     private struct ForeignKeyConstraint {
         var columns: [String]
@@ -356,6 +555,7 @@ public final class TableDefinition {
     private let name: String
     private let options: TableOptions
     private var columns: [ColumnItem] = []
+    private var inPrimaryKeyBody = false
     private var primaryKeyConstraint: KeyConstraint?
     private var uniqueKeyConstraints: [KeyConstraint] = []
     private var foreignKeyConstraints: [ForeignKeyConstraint] = []
@@ -401,6 +601,79 @@ public final class TableDefinition {
         column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
     
+    /// Defines the primary key on a single column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE country (
+    /// //   isoCode TEXT NOT NULL PRIMARY KEY
+    /// // )
+    /// try db.create(table: "country") { t in
+    ///     t.primaryKey("isoCode", .text)
+    /// }
+    /// ```
+    ///
+    /// - parameter name: the column name.
+    /// - parameter type: the column type.
+    /// - returns: A ``ColumnDefinition`` that allows you to refine the
+    ///   column definition.
+    @discardableResult
+    public func primaryKey(
+        _ name: String,
+        _ type: Database.ColumnType,
+        onConflict conflictResolution: Database.ConflictResolution? = nil)
+    -> ColumnDefinition
+    {
+        let pk = column(name, type).primaryKey(onConflict: conflictResolution)
+        if type == .integer {
+            // INTEGER PRIMARY KEY is always NOT NULL
+            return pk
+        } else {
+            // Add a not null constraint in order to fix an SQLite bug:
+            // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
+            return pk.notNull()
+        }
+    }
+    
+    /// Defines the primary key on multiple columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE passport (
+    /// //   citizenId INTEGER NOT NULL,
+    /// //   countryCode TEXT NOT NULL,
+    /// //   issueDate DATE NOT NULL,
+    /// //   PRIMARY KEY (citizenId, countryCode)
+    /// // )
+    /// try db.create(table: "passport") { t in
+    ///     t.primaryKey {
+    ///         t.column("citizenId", .integer)
+    ///         t.column("countryCode", .text)
+    ///     }
+    ///     t.column("issueDate", .date).notNull()
+    /// }
+    /// ```
+    ///
+    /// A NOT NULL constraint is always added to the primary key columns.
+    public func primaryKey(
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        body: () throws -> Void)
+    rethrows
+    {
+        guard primaryKeyConstraint == nil else {
+            // Programmer error
+            fatalError("can't define several primary keys")
+        }
+        primaryKeyConstraint = KeyConstraint(columns: [], conflictResolution: conflictResolution)
+        
+        let oldValue = inPrimaryKeyBody
+        inPrimaryKeyBody = true
+        defer { inPrimaryKeyBody = oldValue }
+        try body()
+    }
+    
     /// Appends a table column.
     ///
     /// For example:
@@ -418,12 +691,20 @@ public final class TableDefinition {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the eventual column type.
-    /// - returns: An ``ColumnDefinition`` that allows you to refine the
+    /// - returns: A ``ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult
     public func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
         columns.append(.definition(column))
+        
+        if inPrimaryKeyBody {
+            // Add a not null constraint in order to fix an SQLite bug:
+            // <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
+            column.notNull()
+            primaryKeyConstraint!.columns.append(name)
+        }
+        
         return column
     }
     
@@ -440,6 +721,7 @@ public final class TableDefinition {
     /// }
     /// ```
     public func column(sql: String) {
+        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns can not be defined with raw SQL")
         columns.append(.literal(SQL(sql: sql)))
     }
     
@@ -458,6 +740,7 @@ public final class TableDefinition {
     /// }
     /// ```
     public func column(literal: SQL) {
+        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns can not be defined with raw SQL")
         columns.append(.literal(literal))
     }
     
@@ -467,20 +750,25 @@ public final class TableDefinition {
     ///
     /// ```swift
     /// // CREATE TABLE citizenship (
-    /// //   citizenID INTEGER NOT NULL,
+    /// //   citizenId INTEGER NOT NULL,
     /// //   countryCode TEXT NOT NULL,
-    /// //   PRIMARY KEY (citizenID, countryCode)
+    /// //   PRIMARY KEY (citizenId, countryCode)
     /// // )
     /// try db.create(table: "citizenship") { t in
-    ///     t.column("citizenID", .integer).notNull()
+    ///     t.column("citizenId", .integer).notNull()
     ///     t.column("countryCode", .text).notNull()
-    ///     t.primaryKey(["citizenID", "countryCode"])
+    ///     t.primaryKey(["citizenId", "countryCode"])
     /// }
     /// ```
     ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
-    /// - <https://www.sqlite.org/lang_createtable.html#rowid>
+    /// - important: Make sure you add not null constraints on your primary key
+    ///   columns, as in the above example, or SQLite will allow null values.
+    ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
+    ///   for more information.
+    ///
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
+    ///   ``TableDefinition/primaryKey(onConflict:body:)`` instead.
     ///
     /// - parameter columns: The primary key columns.
     /// - parameter conflictResolution: An optional conflict resolution
@@ -490,7 +778,7 @@ public final class TableDefinition {
             // Programmer error
             fatalError("can't define several primary keys")
         }
-        primaryKeyConstraint = (columns: columns, conflictResolution: conflictResolution)
+        primaryKeyConstraint = KeyConstraint(columns: columns, conflictResolution: conflictResolution)
     }
     
     /// Adds a unique constraint.
@@ -510,13 +798,25 @@ public final class TableDefinition {
     /// }
     /// ```
     ///
+    /// When defining a unique constraint on a single column, you can use the
+    /// ``ColumnDefinition/unique(onConflict:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   email TEXT UNIQUE
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("email", .text).unique()
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - parameter columns: The unique key columns.
     /// - parameter conflictResolution: An optional conflict resolution
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
-        uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
+        uniqueKeyConstraints.append(KeyConstraint(columns: columns, conflictResolution: conflictResolution))
     }
     
     /// Adds a foreign key.
@@ -526,17 +826,27 @@ public final class TableDefinition {
     /// ```swift
     /// // CREATE TABLE passport (
     /// //   issueDate DATE NOT NULL,
-    /// //   citizenID INTEGER NOT NULL,
+    /// //   citizenId INTEGER NOT NULL,
     /// //   countryCode INTEGER NOT NULL,
-    /// //   FOREIGN KEY (citizenID, countryCode)
-    /// //     REFERENCES citizenship(citizenID, countryCode)
+    /// //   FOREIGN KEY (citizenId, countryCode)
+    /// //     REFERENCES citizenship(citizenId, countryCode)
     /// //     ON DELETE CASCADE
     /// // )
     /// try db.create(table: "passport") { t in
     ///     t.column("issueDate", .date).notNull()
-    ///     t.column("citizenID", .integer).notNull()
+    ///     t.column("citizenId", .integer).notNull()
     ///     t.column("countryCode", .text).notNull()
-    ///     t.foreignKey(["citizenID", "countryCode"], references: "citizenship", onDelete: .cascade)
+    ///     t.foreignKey(["citizenId", "countryCode"], references: "citizenship", onDelete: .cascade)
+    /// }
+    /// ```
+    ///
+    /// When defining a foreign key on a single column, you can use the
+    /// ``ColumnDefinition/references(_:column:onDelete:onUpdate:deferred:)``
+    /// shortcut:
+    ///
+    /// ```swift
+    /// try db.create(table: "player") { t in
+    ///     t.column("teamId", .integer).references("team", onDelete: .cascade)
     /// }
     /// ```
     ///
@@ -588,6 +898,18 @@ public final class TableDefinition {
     /// }
     /// ```
     ///
+    /// When defining a check constraint on a single column, you can use the
+    /// ``ColumnDefinition/check(_:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   name TEXT CHECK (LENGTH(name) > 0)
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("name", .text).check { length($0) > 0 }
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: The checked condition.
@@ -609,6 +931,18 @@ public final class TableDefinition {
     ///     t.column("personalPhone", .text)
     ///     t.column("workPhone", .text)
     ///     t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
+    /// }
+    /// ```
+    ///
+    /// When defining a check constraint on a single column, you can use the
+    /// ``ColumnDefinition/check(sql:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   name TEXT CHECK (LENGTH(name) > 0)
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("name", .text).check(sql: "LENGTH(name) > 0")
     /// }
     /// ```
     ///
@@ -642,8 +976,8 @@ public final class TableDefinition {
     /// ``SQL`` literals allow you to safely embed raw values in your SQL,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // CREATE TABLE player (
     /// ```swift
+    /// // CREATE TABLE player (
     /// //   score INTEGER,
     /// //   CHECK (score >= 0)
     /// // )
@@ -673,8 +1007,8 @@ public final class TableDefinition {
             chunks.append(name.quotedDatabaseIdentifier)
             
             let primaryKeyColumns: [String]
-            if let (columns, _) = primaryKeyConstraint {
-                primaryKeyColumns = columns
+            if let primaryKeyConstraint {
+                primaryKeyColumns = primaryKeyConstraint.columns
             } else if let column = columns.lazy.compactMap(\.columnDefinition).first(where: { $0.primaryKey != nil }) {
                 primaryKeyColumns = [column.name]
             } else {
@@ -693,22 +1027,22 @@ public final class TableDefinition {
                     try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns)
                 })
                 
-                if let (columns, conflictResolution) = primaryKeyConstraint {
+                if let constraint = primaryKeyConstraint {
                     var chunks: [String] = []
                     chunks.append("PRIMARY KEY")
-                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
-                    if let conflictResolution = conflictResolution {
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
+                    if let conflictResolution = constraint.conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
                     }
                     items.append(chunks.joined(separator: " "))
                 }
                 
-                for (columns, conflictResolution) in uniqueKeyConstraints {
+                for constraint in uniqueKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("UNIQUE")
-                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
-                    if let conflictResolution = conflictResolution {
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
+                    if let conflictResolution = constraint.conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
                     }
@@ -1043,9 +1377,8 @@ public final class TableAlteration {
 ///
 /// ## Topics
 ///
-/// ### Keys
+/// ### Foreign Keys
 ///
-/// - ``primaryKey(onConflict:autoincrement:)``
 /// - ``references(_:column:onDelete:onUpdate:deferred:)``
 ///
 /// ### Indexes
@@ -1068,6 +1401,13 @@ public final class TableAlteration {
 /// - ``check(_:)``
 /// - ``check(sql:)``
 /// - ``notNull(onConflict:)``
+///
+/// ### Sunsetted Methods
+///
+/// Those are legacy interfaces that are preserved for backwards compatibility.
+/// Their use is not recommended.
+///
+/// - ``primaryKey(onConflict:autoincrement:)``
 public final class ColumnDefinition {
     enum Index {
         case none
@@ -1122,21 +1462,19 @@ public final class ColumnDefinition {
     /// //   id TEXT NOT NULL PRIMARY KEY
     /// // )
     /// try db.create(table: "player") { t in
-    ///     t.column("id", .text).notNull().primaryKey()
+    ///     t.primaryKey("id", .text)
     /// }
     /// ```
     ///
-    /// - warning: Make sure you add a not null constraint on your primary key
+    /// - important: Make sure you add a not null constraint on your primary key
     ///   column, as in the above example, or SQLite will allow null values.
     ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
     ///   for more information.
     ///
-    /// When you want to define a primary key on multiple columns, do not use
-    /// this method. Use ``TableDefinition/primaryKey(_:onConflict:)`` instead.
-    ///
-    /// Related SQLite documentation:
-    /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
-    /// - <https://www.sqlite.org/lang_createtable.html#rowid>
+    /// - warning: This is a legacy interface that is preserved for backwards
+    ///   compatibility. Use of this interface is not recommended: prefer
+    ///   ``TableDefinition/primaryKey(_:_:onConflict:)``
+    ///   instead.
     ///
     /// - parameters:
     ///     - conflictResolution: An optional ``Database/ConflictResolution``.
@@ -1603,7 +1941,7 @@ public final class ColumnDefinition {
     }
 }
 
-/// Table creation options
+/// Index creation options
 public struct IndexOptions: OptionSet {
     public let rawValue: Int
     

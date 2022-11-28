@@ -79,6 +79,13 @@ extension Database {
     
     // MARK: - Database Schema
     
+    /// Returns the current schema version.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_schema_version>
+    public func schemaVersion() throws -> Int32 {
+        try Int32.fetchOne(internalCachedStatement(sql: "PRAGMA schema_version"))!
+    }
+    
     /// Clears the database schema cache.
     ///
     /// If the database schema is modified by another SQLite connection to the
@@ -106,7 +113,7 @@ extension Database {
         // at offset 40 of the database header:
         // <https://sqlite.org/pragma.html#pragma_schema_version>
         // <https://sqlite.org/fileformat2.html#database_header>
-        let schemaVersion = try Int32.fetchOne(internalCachedStatement(sql: "PRAGMA schema_version"))
+        let schemaVersion = try self.schemaVersion()
         if lastSchemaVersion != schemaVersion {
             lastSchemaVersion = schemaVersion
             clearSchemaCache()
@@ -1317,13 +1324,6 @@ enum SchemaObjectType: String {
 struct SchemaInfo: Equatable {
     private var objects: Set<SchemaObject>
     
-    /// - parameter masterTable: "sqlite_master" or "sqlite_temp_master"
-    init(_ db: Database, masterTableName: String) throws { // swiftlint:disable:this inclusive_language
-        objects = try SchemaObject.fetchSet(db, sql: """
-            SELECT type, name, tbl_name, sql FROM \(masterTableName)
-            """)
-    }
-    
     /// Returns whether there exists a object of given type with this name
     /// (case-insensitive).
     func containsObjectNamed(_ name: String, ofType type: SchemaObjectType) -> Bool {
@@ -1350,5 +1350,14 @@ struct SchemaInfo: Equatable {
         var name: String
         var tbl_name: String?
         var sql: String?
+    }
+}
+
+extension SchemaInfo {
+    /// - parameter masterTable: "sqlite_master" or "sqlite_temp_master"
+    init(_ db: Database, masterTableName: String) throws { // swiftlint:disable:this inclusive_language
+        objects = try SchemaObject.fetchSet(db, sql: """
+                SELECT type, name, tbl_name, sql FROM \(masterTableName)
+                """)
     }
 }

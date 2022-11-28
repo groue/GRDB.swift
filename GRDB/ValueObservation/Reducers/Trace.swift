@@ -20,7 +20,7 @@ extension ValueReducers {
     // swiftlint:enable line_length
 }
 
-extension ValueReducers.Trace: _DatabaseValueReducer where Base: _DatabaseValueReducer {
+extension ValueReducers.Trace: ValueReducer where Base: ValueReducer {
     public func _fetch(_ db: Database) throws -> Base.Fetched {
         willFetch()
         return try base._fetch(db)

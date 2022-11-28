@@ -28,11 +28,12 @@ The differences are:
 
 - ``Configuration``
 
-### Opening Database Connections
+### Database Connections
 
 - ``DatabaseQueue``
 - ``DatabasePool``
 - ``DatabaseSnapshot``
+- ``DatabaseSnapshotPool``
 
 ### Using Database Connections
 
