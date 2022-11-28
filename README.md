@@ -3248,7 +3248,7 @@ In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mut
 >
 > **Warning**: Callbacks are only invoked from persistence methods called on record instances. Callbacks are not invoked when you call a type method, perform a batch operations, or execute raw SQL.
 >
-> **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [Transaction Hook](#transaction-hook). For example:
+> **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [afterNextTransaction(onCommit:onRollback:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)). For example:
 >
 > ```swift
 > struct PictureFile: PersistableRecord {
@@ -7266,7 +7266,7 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 #### After Commit Hook
 
-This chapter was replaced with [Transaction Hook].
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
 
 #### Asynchronous APIs
 
@@ -7345,6 +7345,10 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 #### TableMapping Protocol
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
+
+#### Transaction Hook
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
 
 #### TransactionObserver Protocol
 
