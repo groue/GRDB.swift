@@ -382,7 +382,7 @@ let cancellable = hallOfFamePublisher.sink(
 [Usage]: #usage
 [Asynchronous Database Access]: #asynchronous-database-access
 [Combine]: https://developer.apple.com/documentation/combine
-[Database Changes Observation]: ../README.md#database-changes-observation
+[Database Changes Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
 [Database Observation]: #database-observation
 [Combine and Data Consistency]: #combine-and-data-consistency
 [DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation

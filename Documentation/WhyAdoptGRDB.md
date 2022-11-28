@@ -149,7 +149,7 @@ Next, you choose the dispatch queue on which notifications happen (generally the
 
 Finally, all changes are notified, no matter how they are performed: record methods, raw SQL statements, foreign key cascades, or SQL triggers. GRDB roots its notification system in the rock-solid SQLite itself, so that high-level requests and raw SQL queries are equally supported.
 
-See [Database Observation](../README.md#database-changes-observation) for further information.
+See [Database Observation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation) for further information.
 
 
 ### Non-blocking database reads
@@ -301,7 +301,6 @@ Happy GRDB! :gift:
 [StORM]: https://www.perfect.org/docs/StORM.html
 [Swift-Kuery]: https://github.com/IBM-Swift/Swift-Kuery
 [TableRecord]: ../README.md#records
-[TransactionObserver]: ../README.md#transactionobserver-protocol
 [query interface]: ../README.md#the-query-interface
 [associations]: AssociationsBasics.md
 [Codable records]: ../README.md#codable-records

@@ -344,7 +344,36 @@ private struct TableRegion: Equatable {
 
 /// A type that operates on a specific ``DatabaseRegion``.
 ///
+/// A `DatabaseRegionConvertible` instance feeds database observation tools such
+/// as ``DatabaseRegionObservation`` and ``ValueObservation``:
+///
+/// ```swift
+/// // An observation triggered by all changes to the database
+/// DatabaseRegionObservation(tracking: .fullDatabase)
+///
+/// // An observation triggered by all changes to the 'player' table
+/// DatabaseRegionObservation(tracking: Table("player"))
+///
+/// // An observation triggered by all changes to the row
+/// // with rowid 1 in the 'player' table
+/// DatabaseRegionObservation(tracking: Player.filter(id: 1))
+///
+/// // An observation triggered by all changes to the 'score' column
+/// // of the 'player' table
+/// DatabaseRegionObservation(tracking: SQLRequest("SELECT score FROM player"))
+/// ```
+///
+/// Specifying a region from a ``FetchRequest`` does not execute the request.
+/// In the above example, `Player.filter(id: 1)` and `SELECT score FROM player`
+/// are only compiled by SQLite, so that GRDB can understand the tables, rows,
+/// and columns that constitute the database region.
+///
 /// ## Topics
+///
+/// ### Creating a DatabaseRegion
+///
+/// - ``fullDatabase``
+/// - ``databaseRegion(_:)``
 ///
 /// ### Supporting Types
 ///

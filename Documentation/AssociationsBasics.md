@@ -3008,7 +3008,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records
 [persistence methods]: ../README.md#persistence-methods
-[database observation tools]: ../README.md#database-changes-observation
+[database observation tools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
 [FAQ]: ../README.md#faq-associations
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md

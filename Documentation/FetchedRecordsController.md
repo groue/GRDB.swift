@@ -2,4 +2,4 @@
 
 FetchedRecordsController has been removed in GRDB 5.
 
-The [Database Observation](../README.md#database-changes-observation) chapter describes the other ways to observe the database.
+See [Database Observation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation) for other ways to observe the database.

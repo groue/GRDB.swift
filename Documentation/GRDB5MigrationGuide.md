@@ -510,4 +510,4 @@ let publisher = observation
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
 [Combine publishers]: Combine.md
-[Database Observation]: ../README.md#database-changes-observation
+[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
