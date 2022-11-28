@@ -162,8 +162,6 @@ Primary keys support record fetching methods such as ``FetchableRecord/fetchOne(
 
 See <doc:SingleRowTables> when you need to define a table that contains a single row.
 
-> Important: Add not null constraints on primary key columns, as in the above recommended examples, or SQLite will allow null values. See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls> for more information.
-
 ☝️ **If the database table does not define any explicit primary key**, the record type for this table needs explicit support for the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
 
 ```swift
