@@ -250,8 +250,8 @@ See [Records](#records)
 
 ```swift
 try dbQueue.read { db in
-    // Place?
-    let paris = try Place.fetchOne(db, id: 1)
+    // Place
+    let paris = try Place.find(db, id: 1)
     
     // Place?
     let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
@@ -2517,6 +2517,7 @@ let bestPlayers = try Player                    // [Player]
     .fetchAll(db)
     
 let spain = try Country.fetchOne(db, id: "ES")  // Country?
+let italy = try Country.find(db, id: "IT")      // Country
 ```
 
 :point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
@@ -3278,9 +3279,10 @@ struct Player: Identifiable, FetchableRecord, PersistableRecord {
 When `id` has a [database-compatible type](#values) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
 
 ```swift
-let player = try Player.fetchOne(db, id: 1)
-let players = try Player.fetchAll(db, ids: [1, 2, 3])
-let players = try Player.fetchSet(db, ids: [1, 2, 3])
+let player = try Player.find(db, id: 1)               // Player
+let player = try Player.fetchOne(db, id: 1)           // Player?
+let players = try Player.fetchAll(db, ids: [1, 2, 3]) // [Player]
+let players = try Player.fetchSet(db, ids: [1, 2, 3]) // Set<Player>
 
 let request = Player.filter(id: 1)
 let request = Player.filter(ids: [1, 2, 3])
@@ -4234,6 +4236,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.find(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.find(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | **[Codable Records]** | | |
 | `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
@@ -5293,16 +5297,18 @@ You can also change the request so that it knows the type it has to fetch:
 
 **Fetching records according to their primary key** is a common task.
 
-[Identifiable Records] can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
+[Identifiable Records] can use the type-safe methods `find(_:id:)`, `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
 
 ```swift
+try Player.find(db, id: 1)                   // Player
 try Player.fetchOne(db, id: 1)               // Player?
 try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
 ```
 
-All record types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
+All record types can use `find(_:key:)`, `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
+try Player.find(db, key: 1)                  // Player
 try Player.fetchOne(db, key: 1)              // Player?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 try Player.fetchOne(db, key: ["email": "arthur@example.com"])            // Player?
@@ -6393,11 +6399,21 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 
 ### RecordError
 
-**RecordError** is thrown by the [PersistableRecord] protocol, in a single case: when the `update` method could not find any row to update:
+**RecordError** is thrown by the [PersistableRecord] protocol when the `update` method could not find any row to update:
 
 ```swift
 do {
     try player.update(db)
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+    print("Key \(key) was not found in table \(table).")
+}
+```
+
+**RecordError** is also thrown by the [FetchableRecord] protocol when the `find` method does not find any record:
+
+```swift
+do {
+    let player = try Player.find(db, id: 42)
 } catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
     print("Key \(key) was not found in table \(table).")
 }
