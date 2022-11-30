@@ -7338,6 +7338,10 @@ This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
 
 This protocol has been renamed [PersistableRecord] in GRDB 3.0.
 
+#### PersistenceError
+
+This error was renamed to [RecordError].
+
 #### RowConvertible Protocol
 
 This protocol has been renamed [FetchableRecord] in GRDB 3.0.
