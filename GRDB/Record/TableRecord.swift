@@ -30,6 +30,12 @@ import Foundation
 /// - ``exists(_:key:)-60hf2``
 /// - ``exists(_:key:)-6ha6``
 ///
+/// ### Throwing Record Not Found Errors
+///
+/// - ``recordNotFound(_:id:)``
+/// - ``recordNotFound(_:key:)``
+/// - ``recordNotFound(key:)``
+///
 /// ### Deleting Records
 ///
 /// - ``deleteAll(_:)``
@@ -670,6 +676,31 @@ extension RecordError: CustomStringConvertible {
             let row = Row(key) // For nice output
             return "Key not found in table \(databaseTableName): \(row.description)"
         }
+    }
+}
+
+extension TableRecord {
+    /// Throws a `RecordError.recordNotFound` error.
+    public static func recordNotFound(_ db: Database, key: some DatabaseValueConvertible) throws -> Never {
+        let primaryKey = try db.primaryKey(databaseTableName)
+        throw RecordError.recordNotFound(
+            databaseTableName: databaseTableName,
+            key: [primaryKey.columns[0]: key.databaseValue])
+    }
+    
+    /// Throws a `RecordError.recordNotFound` error.
+    public static func recordNotFound(key: [String: (any DatabaseValueConvertible)?]) throws -> Never {
+        throw RecordError.recordNotFound(
+            databaseTableName: databaseTableName,
+            key: key.mapValues { $0?.databaseValue ?? .null })
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
+    /// Throws a `RecordError.recordNotFound` error.
+    public static func recordNotFound(_ db: Database, id: Self.ID) throws -> Never {
+        try recordNotFound(db, key: id)
     }
 }
 
