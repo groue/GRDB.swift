@@ -178,9 +178,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             let record = Person(id: nil, name: "Arthur")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["rowid": .null])
             }
@@ -193,9 +193,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             let record = Person(id: 123456, name: "Arthur")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["rowid": record.id!.databaseValue])
             }
@@ -223,9 +223,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["rowid": record.id!.databaseValue])
             }

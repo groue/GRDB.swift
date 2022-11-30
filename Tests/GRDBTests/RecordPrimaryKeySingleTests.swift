@@ -119,9 +119,9 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: nil, name: "Bobby")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "pets")
                 XCTAssertEqual(key, ["UUID": .null])
             }
@@ -134,9 +134,9 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: "BobbyUUID", name: "Bobby")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "pets")
                 XCTAssertEqual(key, ["UUID": "BobbyUUID".databaseValue])
             }
@@ -164,9 +164,9 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "pets")
                 XCTAssertEqual(key, ["UUID": "BobbyUUID".databaseValue])
             }

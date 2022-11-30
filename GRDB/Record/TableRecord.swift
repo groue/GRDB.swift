@@ -651,6 +651,31 @@ extension TableRecord {
     }
 }
 
+// MARK: - RecordError
+
+/// A record error.
+public enum RecordError: Error {
+    /// A record does not exist in the database.
+    ///
+    /// - parameters:
+    ///     - databaseTableName: The table of the missing record.
+    ///     - key: The key of the missing record (column and values).
+    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
+}
+
+extension RecordError: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case let .recordNotFound(databaseTableName: databaseTableName, key: key):
+            let row = Row(key) // For nice output
+            return "Key not found in table \(databaseTableName): \(row.description)"
+        }
+    }
+}
+
+@available(*, deprecated, renamed: "RecordError")
+public typealias PersistenceError = RecordError
+
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval

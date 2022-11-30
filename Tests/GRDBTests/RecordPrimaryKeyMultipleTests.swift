@@ -129,9 +129,9 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             let record = Citizenship(personName: nil, countryName: nil, native: true)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "citizenships")
                 XCTAssertEqual(key, ["countryName": .null, "personName": .null])
             }
@@ -144,9 +144,9 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "citizenships")
                 XCTAssertEqual(key, ["countryName": "France".databaseValue, "personName": "Arthur".databaseValue])
             }
@@ -174,9 +174,9 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "citizenships")
                 XCTAssertEqual(key, ["countryName": "France".databaseValue, "personName": "Arthur".databaseValue])
             }

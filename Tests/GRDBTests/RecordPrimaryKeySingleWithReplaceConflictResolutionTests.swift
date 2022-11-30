@@ -123,9 +123,9 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             record.email = "me@domain.com"
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "emails")
                 XCTAssertEqual(key, ["email": record.email.databaseValue])
             }
@@ -154,9 +154,9 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "emails")
                 XCTAssertEqual(key, ["email": record.email.databaseValue])
             }

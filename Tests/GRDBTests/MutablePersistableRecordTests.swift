@@ -387,8 +387,8 @@ class MutablePersistableRecordTests: GRDBTestCase {
             try record.insert(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError")
-            } catch is PersistenceError { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound { }
         }
     }
     
@@ -860,7 +860,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
         }
     }
     
-    func testPersistenceErrorMutablePersistableRecordCustomizedCountry() throws {
+    func testRecordErrorMutablePersistableRecordCustomizedCountry() throws {
         let country = MutablePersistableRecordCustomizedCountry(
             rowID: nil,
             isoCode: "FR",
@@ -871,8 +871,8 @@ class MutablePersistableRecordTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try country.update(db)
             }
-            XCTFail("Expected PersistenceError")
-        } catch PersistenceError.recordNotFound(databaseTableName: "countries", key: ["isoCode": "FR".databaseValue]) { }
+            XCTFail("Expected RecordError")
+        } catch RecordError.recordNotFound(databaseTableName: "countries", key: ["isoCode": "FR".databaseValue]) { }
         
         XCTAssertEqual(country.callbacks.willInsertCount, 0)
         XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 0)
@@ -1173,9 +1173,9 @@ class MutablePersistableRecordTests: GRDBTestCase {
         }
     }
     
-    func testPersistenceErrorRecordNotFoundDescription() {
+    func testRecordErrorRecordNotFoundDescription() {
         do {
-            let error = PersistenceError.recordNotFound(
+            let error = RecordError.recordNotFound(
                 databaseTableName: "place",
                 key: ["id": .null])
             XCTAssertEqual(
@@ -1183,7 +1183,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
                 "Key not found in table place: [id:NULL]")
         }
         do {
-            let error = PersistenceError.recordNotFound(
+            let error = RecordError.recordNotFound(
                 databaseTableName: "user",
                 key: ["uuid": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".databaseValue])
             XCTAssertEqual(
@@ -1702,8 +1702,8 @@ extension MutablePersistableRecordTests {
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
                 _ = try player.updateAndFetch(db)
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             player.name = "Barbara"
@@ -1753,8 +1753,8 @@ extension MutablePersistableRecordTests {
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
                 _ = try player.updateAndFetch(db, as: PartialPlayer.self)
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             player.name = "Barbara"
@@ -1805,8 +1805,8 @@ extension MutablePersistableRecordTests {
                 _ = try player.updateAndFetch(db, selection: [AllColumns()]) { statement in
                     try Row.fetchOne(statement)
                 }
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             player.name = "Barbara"
@@ -1859,8 +1859,8 @@ extension MutablePersistableRecordTests {
                 _ = try player.updateAndFetch(db, columns: [Column("score")], selection: [AllColumns()]) { statement in
                     try Row.fetchOne(statement)
                 }
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             player.name = "Barbara"
@@ -1913,8 +1913,8 @@ extension MutablePersistableRecordTests {
                 _ = try player.updateChangesAndFetch(db) {
                     $0.name = "Barbara"
                 }
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             
@@ -1974,8 +1974,8 @@ extension MutablePersistableRecordTests {
                 _ = try player.updateChangesAndFetch(db, as: PartialPlayer.self) {
                     $0.name = "Barbara"
                 }
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             
@@ -2035,8 +2035,8 @@ extension MutablePersistableRecordTests {
                     db, selection: [AllColumns()],
                     fetch: { statement in try Row.fetchOne(statement) },
                     modify: { $0.name = "Barbara" })
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "player", key: ["id": 1.databaseValue]) { }
             
             try player.insert(db)
             

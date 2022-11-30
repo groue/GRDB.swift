@@ -745,7 +745,7 @@ class PersistableRecordTests: GRDBTestCase {
         }
     }
     
-    func testPersistenceErrorPersistableRecordCustomizedCountry() throws {
+    func testRecordErrorPersistableRecordCustomizedCountry() throws {
         let country = PersistableRecordCustomizedCountry(
             isoCode: "FR",
             name: "France")
@@ -755,8 +755,8 @@ class PersistableRecordTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try country.update(db)
             }
-            XCTFail("Expected PersistenceError")
-        } catch PersistenceError.recordNotFound(databaseTableName: "countries", key: ["isoCode": "FR".databaseValue]) { }
+            XCTFail("Expected RecordError")
+        } catch RecordError.recordNotFound(databaseTableName: "countries", key: ["isoCode": "FR".databaseValue]) { }
         
         XCTAssertEqual(country.callbacks.willInsertCount, 0)
         XCTAssertEqual(country.callbacks.aroundInsertEnterCount, 0)

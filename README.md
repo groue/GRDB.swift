@@ -2946,7 +2946,7 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 - All persistence methods can throw a [DatabaseError](#error-handling).
 
-- `update` and `updateChanges` throw [PersistenceError](#persistenceerror) if the database does not contain any row for the primary key of the record.
+- `update` and `updateChanges` throw [RecordError] if the database does not contain any row for the primary key of the record.
 
 - `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
 
@@ -6308,12 +6308,12 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError](#databaseerror), [RecordError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
 - [DatabaseError](#databaseerror)
-- [PersistenceError](#persistenceerror)
+- [RecordError]
 - [Fatal Errors](#fatal-errors)
 - [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
@@ -6391,14 +6391,14 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 > **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 
 
-### PersistenceError
+### RecordError
 
-**PersistenceError** is thrown by the [PersistableRecord] protocol, in a single case: when the `update` method could not find any row to update:
+**RecordError** is thrown by the [PersistableRecord] protocol, in a single case: when the `update` method could not find any row to update:
 
 ```swift
 do {
     try player.update(db)
-} catch let PersistenceError.recordNotFound(databaseTableName: table, key: key) {
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
     print("Key \(key) was not found in table \(table).")
 }
 ```
@@ -7410,3 +7410,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database Configuration]: #database-configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
+[RecordError]: #recorderror

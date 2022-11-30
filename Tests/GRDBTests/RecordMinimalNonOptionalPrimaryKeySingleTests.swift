@@ -102,9 +102,9 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
             let record = MinimalNonOptionalPrimaryKeySingle(id: "theUUID")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalSingles")
                 XCTAssertEqual(key, ["id": "theUUID".databaseValue])
             }
@@ -131,9 +131,9 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalSingles")
                 XCTAssertEqual(key, ["id": "theUUID".databaseValue])
             }
