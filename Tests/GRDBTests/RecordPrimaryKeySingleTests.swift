@@ -373,6 +373,19 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+            try record.insert(db)
+            
+            let fetchedRecord = try Pet.find(db, key: ["UUID": record.UUID])
+            XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+            XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE \"UUID\" = '\(record.UUID!)'")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     
@@ -577,6 +590,27 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func testFindWithPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+            try record.insert(db)
+            
+            do {
+                let id: String? = nil
+                _ = try Pet.find(db, key: id)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "pets", key: ["UUID": .null]) { }
+
+            do {
+                let fetchedRecord = try Pet.find(db, key: record.UUID)
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE \"UUID\" = '\(record.UUID!)'")
+            }
+        }
+    }
+
     
     // MARK: - Fetch With Primary Key Request
     

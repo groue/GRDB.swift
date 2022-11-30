@@ -384,6 +384,20 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record.insert(db)
+            
+            let fetchedRecord = try Citizenship.find(db, key: ["personName": record.personName, "countryName": record.countryName])
+            XCTAssertTrue(fetchedRecord.personName == record.personName)
+            XCTAssertTrue(fetchedRecord.countryName == record.countryName)
+            XCTAssertTrue(fetchedRecord.native == record.native)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE (\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)')")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     

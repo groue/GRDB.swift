@@ -434,6 +434,21 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            let fetchedRecord = try Person.find(db, key: ["rowid": record.id])
+            XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertTrue(fetchedRecord.age == record.age)
+            XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     
@@ -702,6 +717,48 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         }
     }
     
+    func testFindWithPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            do {
+                let id: Int64? = nil
+                _ = try Person.find(db, key: id)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["rowid": .null]) { }
+
+            do {
+                let fetchedRecord = try Person.find(db, key: record.id)
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    _ = try Person.find(db, id: -1)
+                    XCTFail("Expected RecordError")
+                } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["rowid": (-1).databaseValue]) { }
+                
+                do {
+                    let fetchedRecord = try Person.find(db, id: record.id!)
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+                }
+                do {
+                    try XCTAssertNil(Person.fetchOne(db, id: nil))
+                }
+            }
+        }
+    }
+
     
     // MARK: - Fetch With Primary Key Request
     
@@ -915,6 +972,8 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(try Person.fetchOne(db)!.id != nil)
             XCTAssertTrue(try Person.fetchOne(db, key: 1)!.id != nil)
             XCTAssertTrue(try Person.fetchOne(db, key: ["rowid": 1])!.id != nil)
+            XCTAssertTrue(try Person.find(db, key: 1).id != nil)
+            XCTAssertTrue(try Person.find(db, key: ["rowid": 1]).id != nil)
             XCTAssertTrue(try Person.fetchAll(db).first!.id != nil)
             XCTAssertTrue(try Person.fetchAll(db, keys: [1]).first!.id != nil)
             XCTAssertTrue(try Person.fetchAll(db, keys: [["rowid": 1]]).first!.id != nil)
