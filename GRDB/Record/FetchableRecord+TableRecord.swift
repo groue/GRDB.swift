@@ -189,6 +189,32 @@ extension FetchableRecord where Self: TableRecord {
         }
         return try filter(key: key).fetchOne(db)
     }
+    
+    /// Returns the record identified by a primary key, or throws an error if
+    /// the record does not exist.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, key: 123)
+    ///     let country = try Country.find(db, key: "FR")
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, key: some DatabaseValueConvertible) throws -> Self {
+        guard let record = try fetchOne(db, key: key) else {
+            try recordNotFound(db, key: key)
+        }
+        return record
+    }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
@@ -277,6 +303,29 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, id: ID) throws -> Self? {
         try filter(id: id).fetchOne(db)
+    }
+    
+    /// Returns the record identified by a primary key, or throws an error if
+    /// the record does not exist.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, id: 123)
+    ///     let country = try Country.find(db, id: "FR")
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, id: ID) throws -> Self {
+        try find(db, key: id)
     }
 }
 
@@ -430,6 +479,32 @@ extension FetchableRecord where Self: TableRecord {
             return nil
         }
         return try filter(key: key).fetchOne(db)
+    }
+    
+    /// Returns the record identified by a unique key (the primary key or
+    /// any key with a unique index on it), or throws an error if the record
+    /// does not exist.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, key: ["name": "Arthur"])
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A key dictionary.
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Self {
+        guard let record = try filter(key: key).fetchOne(db) else {
+            try recordNotFound(key: key)
+        }
+        return record
     }
 }
 
