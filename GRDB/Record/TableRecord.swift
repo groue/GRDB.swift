@@ -680,17 +680,27 @@ extension RecordError: CustomStringConvertible {
 }
 
 extension TableRecord {
-    /// Throws a `RecordError.recordNotFound` error.
-    public static func recordNotFound(_ db: Database, key: some DatabaseValueConvertible) throws -> Never {
-        let primaryKey = try db.primaryKey(databaseTableName)
-        throw RecordError.recordNotFound(
-            databaseTableName: databaseTableName,
-            key: [primaryKey.columns[0]: key.databaseValue])
+    /// Returns an error for a record that does not exist in the database.
+    ///
+    /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
+    ///   any error that prevented the `RecordError` from being constructed.
+    public static func recordNotFound(_ db: Database, key: some DatabaseValueConvertible) -> any Error {
+        do {
+            let primaryKey = try db.primaryKey(databaseTableName)
+            GRDBPrecondition(
+                primaryKey.columns.count == 1,
+                "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+            return RecordError.recordNotFound(
+                databaseTableName: databaseTableName,
+                key: [primaryKey.columns[0]: key.databaseValue])
+        } catch {
+            return error
+        }
     }
     
-    /// Throws a `RecordError.recordNotFound` error.
-    public static func recordNotFound(key: [String: (any DatabaseValueConvertible)?]) throws -> Never {
-        throw RecordError.recordNotFound(
+    /// Returns an error for a record that does not exist in the database.
+    public static func recordNotFound(key: [String: (any DatabaseValueConvertible)?]) -> RecordError {
+        return RecordError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key.mapValues { $0?.databaseValue ?? .null })
     }
@@ -698,9 +708,12 @@ extension TableRecord {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
-    /// Throws a `RecordError.recordNotFound` error.
-    public static func recordNotFound(_ db: Database, id: Self.ID) throws -> Never {
-        try recordNotFound(db, key: id)
+    /// Returns an error for a record that does not exist in the database.
+    ///
+    /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
+    ///   any error that prevented the `RecordError` from being constructed.
+    public static func recordNotFound(_ db: Database, id: Self.ID) -> any Error {
+        return recordNotFound(db, key: id)
     }
 }
 

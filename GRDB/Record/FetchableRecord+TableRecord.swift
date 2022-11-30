@@ -211,7 +211,7 @@ extension FetchableRecord where Self: TableRecord {
     ///   does not exist in the database.
     public static func find(_ db: Database, key: some DatabaseValueConvertible) throws -> Self {
         guard let record = try fetchOne(db, key: key) else {
-            try recordNotFound(db, key: key)
+            throw recordNotFound(db, key: key)
         }
         return record
     }
@@ -502,7 +502,7 @@ extension FetchableRecord where Self: TableRecord {
     ///   does not exist in the database.
     public static func find(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Self {
         guard let record = try filter(key: key).fetchOne(db) else {
-            try recordNotFound(key: key)
+            throw recordNotFound(key: key)
         }
         return record
     }
