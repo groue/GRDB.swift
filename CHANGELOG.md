@@ -102,6 +102,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1299](https://github.com/groue/GRDB.swift/pull/1299) by [@groue](https://github.com/groue): Record.find() convenience methods
+
 ## 6.4.0
 
 Released November 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.3.1...v6.4.0)
