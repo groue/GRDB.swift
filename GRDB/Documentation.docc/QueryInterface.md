@@ -23,6 +23,11 @@ Record types and the query interface build SQL queries for you.
 - ``QueryInterfaceRequest``
 - ``Table``
 
+### Errors
+
+- ``RecordError``
+- ``PersistenceError``
+
 ### Supporting Types
 
 - ``DerivableRequest``

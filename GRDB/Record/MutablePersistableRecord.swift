@@ -73,7 +73,6 @@
 /// - ``update(_:onConflict:columns:)-5hxyx``
 /// - ``updateChanges(_:onConflict:from:)``
 /// - ``updateChanges(_:onConflict:modify:)``
-/// - ``PersistenceError``
 ///
 /// ### Updating a Record and Fetching the Updated Row
 ///
@@ -340,28 +339,6 @@ extension MutablePersistableRecord {
             return false
         }
         return try Bool.fetchOne(statement)!
-    }
-}
-
-/// An error thrown by persistence methods of the
-/// ``MutablePersistableRecord`` protocol.
-public enum PersistenceError: Error {
-    /// Thrown by ``MutablePersistableRecord`` updating methods, when no
-    /// matching row could be found and updated.
-    ///
-    /// - parameters:
-    ///     - databaseTableName: The table of the unfound record.
-    ///     - key: The key of the unfound record (column and values).
-    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
-}
-
-extension PersistenceError: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case let .recordNotFound(databaseTableName: databaseTableName, key: key):
-            let row = Row(key) // For nice output
-            return "Key not found in table \(databaseTableName): \(row.description)"
-        }
     }
 }
 

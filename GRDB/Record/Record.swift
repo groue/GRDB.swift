@@ -413,7 +413,7 @@ open class Record {
     /// - parameter db: A database connection.
     /// - returns: Whether the record had changes.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    ///   ``PersistenceError/recordNotFound(databaseTableName:key:)`` is thrown
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` is thrown
     ///   if the primary key does not match any row in the database and record
     ///   could not be updated.
     @discardableResult

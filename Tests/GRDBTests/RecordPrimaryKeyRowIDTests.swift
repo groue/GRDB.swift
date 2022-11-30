@@ -172,9 +172,9 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             let record = Person(id: nil, name: "Arthur")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["id": .null])
             }
@@ -187,9 +187,9 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             let record = Person(id: 123456, name: "Arthur")
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
@@ -217,9 +217,9 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "persons")
                 XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
@@ -427,6 +427,21 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            let fetchedRecord = try Person.find(db, key: ["id": record.id])
+            XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertTrue(fetchedRecord.age == record.age)
+            XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE \"id\" = \(record.id!)")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     
@@ -635,6 +650,29 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
+    func testFindWithPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = Person(name: "Arthur")
+            try record.insert(db)
+            
+            do {
+                let id: Int64? = nil
+                _ = try Person.find(db, key: id)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["id": .null]) { }
+
+            do {
+                let fetchedRecord = try Person.find(db, key: record.id)
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE \"id\" = \(record.id!)")
+            }
+        }
+    }
+
     
     // MARK: - Fetch With Primary Key Request
     

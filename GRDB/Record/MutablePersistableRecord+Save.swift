@@ -377,7 +377,7 @@ extension MutablePersistableRecord {
                     columns: columns,
                     selection: selection,
                     fetch: fetch)
-            } catch PersistenceError.recordNotFound(databaseTableName: type(of: self).databaseTableName, key: key) {
+            } catch RecordError.recordNotFound(databaseTableName: type(of: self).databaseTableName, key: key) {
                 // No row was updated: fallback on insert.
             }
         }

@@ -226,12 +226,12 @@ final class DAO<Record: MutablePersistableRecord> {
         return statement
     }
     
-    /// Throws a PersistenceError.recordNotFound error
-    func makeRecordNotFoundError() -> Error {
+    /// Throws a RecordError.recordNotFound error
+    func recordNotFound() throws -> Never {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
             ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
         })
-        return PersistenceError.recordNotFound(
+        throw RecordError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key)
     }

@@ -121,9 +121,9 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             record.UUID = "theUUID"
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalSingles")
                 XCTAssertEqual(key, ["UUID": "theUUID".databaseValue])
             }
@@ -152,9 +152,9 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalSingles")
                 XCTAssertEqual(key, ["UUID": "theUUID".databaseValue])
             }
@@ -362,6 +362,19 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            
+            let fetchedRecord = try MinimalSingle.find(db, key: ["UUID": record.UUID])
+            XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     
@@ -632,6 +645,40 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func testFindWithPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            
+            do {
+                let id: String? = nil
+                _ = try MinimalSingle.find(db, key: id)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "minimalSingles", key: ["UUID": .null]) { }
+
+            do {
+                let fetchedRecord = try MinimalSingle.find(db, key: record.UUID)
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    _ = try MinimalSingle.find(db, id: "missing")
+                    XCTFail("Expected RecordError")
+                } catch RecordError.recordNotFound(databaseTableName: "minimalSingles", key: ["UUID": "missing".databaseValue]) { }
+                
+                do {
+                    let fetchedRecord = try MinimalSingle.find(db, id: record.UUID!)
+                    XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+                }
+            }
+        }
+    }
+
     
     // MARK: - Fetch With Primary Key Request
     
