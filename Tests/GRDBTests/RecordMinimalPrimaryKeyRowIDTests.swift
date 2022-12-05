@@ -121,9 +121,9 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             record.id = 123456
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalRowIDs")
                 XCTAssertEqual(key, ["id": record.id!.databaseValue])
             }
@@ -150,9 +150,9 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.delete(db)
             do {
                 try record.update(db)
-                XCTFail("Expected PersistenceError.recordNotFound")
-            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
-                // Expected PersistenceError.recordNotFound
+                XCTFail("Expected RecordError.recordNotFound")
+            } catch let RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected RecordError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalRowIDs")
                 XCTAssertEqual(key, ["id": record.id!.databaseValue])
             }
@@ -348,6 +348,18 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
         }
     }
     
+    func testFindWithKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            
+            let fetchedRecord = try MinimalRowID.find(db, key: ["id": record.id])
+            XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+        }
+    }
+
     
     // MARK: - Fetch With Key Request
     
@@ -607,6 +619,42 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
         }
     }
     
+    func testFindWithPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            
+            do {
+                let id: Int64? = nil
+                _ = try MinimalRowID.find(db, key: id)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "minimalRowIDs", key: ["id": .null]) { }
+
+            do {
+                let fetchedRecord = try MinimalRowID.find(db, key: record.id)
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    _ = try MinimalRowID.find(db, id: -1)
+                    XCTFail("Expected RecordError")
+                } catch RecordError.recordNotFound(databaseTableName: "minimalRowIDs", key: ["id": (-1).databaseValue]) { }
+                
+                do {
+                    let fetchedRecord = try MinimalRowID.find(db, id: record.id!)
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+                }
+                do {
+                    try XCTAssertNil(MinimalRowID.fetchOne(db, id: nil))
+                }
+            }
+        }
+    }
+
     
     // MARK: - Fetch With Primary Key Request
     

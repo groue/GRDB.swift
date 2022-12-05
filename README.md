@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: November 28, 2022 • [version 6.4.0](https://github.com/groue/GRDB.swift/tree/v6.4.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: December 5, 2022 • [version 6.5.0](https://github.com/groue/GRDB.swift/tree/v6.5.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.4.0**                                                  |
+| **Swift 5.7+** | **v6.5.0**                                                  |
 | Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
 | Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
@@ -250,8 +250,8 @@ See [Records](#records)
 
 ```swift
 try dbQueue.read { db in
-    // Place?
-    let paris = try Place.fetchOne(db, id: 1)
+    // Place
+    let paris = try Place.find(db, id: 1)
     
     // Place?
     let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
@@ -2517,6 +2517,7 @@ let bestPlayers = try Player                    // [Player]
     .fetchAll(db)
     
 let spain = try Country.fetchOne(db, id: "ES")  // Country?
+let italy = try Country.find(db, id: "IT")      // Country
 ```
 
 :point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
@@ -2946,7 +2947,7 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 - All persistence methods can throw a [DatabaseError](#error-handling).
 
-- `update` and `updateChanges` throw [PersistenceError](#persistenceerror) if the database does not contain any row for the primary key of the record.
+- `update` and `updateChanges` throw [RecordError] if the database does not contain any row for the primary key of the record.
 
 - `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
 
@@ -3278,9 +3279,10 @@ struct Player: Identifiable, FetchableRecord, PersistableRecord {
 When `id` has a [database-compatible type](#values) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
 
 ```swift
-let player = try Player.fetchOne(db, id: 1)
-let players = try Player.fetchAll(db, ids: [1, 2, 3])
-let players = try Player.fetchSet(db, ids: [1, 2, 3])
+let player = try Player.find(db, id: 1)               // Player
+let player = try Player.fetchOne(db, id: 1)           // Player?
+let players = try Player.fetchAll(db, ids: [1, 2, 3]) // [Player]
+let players = try Player.fetchSet(db, ids: [1, 2, 3]) // Set<Player>
 
 let request = Player.filter(id: 1)
 let request = Player.filter(ids: [1, 2, 3])
@@ -4234,6 +4236,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.find(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.find(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | **[Codable Records]** | | |
 | `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
@@ -5293,16 +5297,18 @@ You can also change the request so that it knows the type it has to fetch:
 
 **Fetching records according to their primary key** is a common task.
 
-[Identifiable Records] can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
+[Identifiable Records] can use the type-safe methods `find(_:id:)`, `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
 
 ```swift
+try Player.find(db, id: 1)                   // Player
 try Player.fetchOne(db, id: 1)               // Player?
 try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
 ```
 
-All record types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
+All record types can use `find(_:key:)`, `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
+try Player.find(db, key: 1)                  // Player
 try Player.fetchOne(db, key: 1)              // Player?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 try Player.fetchOne(db, key: ["email": "arthur@example.com"])            // Player?
@@ -6308,12 +6314,12 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError](#databaseerror), [RecordError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
 - [DatabaseError](#databaseerror)
-- [PersistenceError](#persistenceerror)
+- [RecordError]
 - [Fatal Errors](#fatal-errors)
 - [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
@@ -6391,14 +6397,24 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 > **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 
 
-### PersistenceError
+### RecordError
 
-**PersistenceError** is thrown by the [PersistableRecord] protocol, in a single case: when the `update` method could not find any row to update:
+**RecordError** is thrown by the [PersistableRecord] protocol when the `update` method could not find any row to update:
 
 ```swift
 do {
     try player.update(db)
-} catch let PersistenceError.recordNotFound(databaseTableName: table, key: key) {
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+    print("Key \(key) was not found in table \(table).")
+}
+```
+
+**RecordError** is also thrown by the [FetchableRecord] protocol when the `find` method does not find any record:
+
+```swift
+do {
+    let player = try Player.find(db, id: 42)
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
     print("Key \(key) was not found in table \(table).")
 }
 ```
@@ -7338,6 +7354,10 @@ This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
 
 This protocol has been renamed [PersistableRecord] in GRDB 3.0.
 
+#### PersistenceError
+
+This error was renamed to [RecordError].
+
 #### RowConvertible Protocol
 
 This protocol has been renamed [FetchableRecord] in GRDB 3.0.
@@ -7410,3 +7430,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database Configuration]: #database-configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
+[RecordError]: #recorderror

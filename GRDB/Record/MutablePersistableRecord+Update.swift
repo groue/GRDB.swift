@@ -39,7 +39,7 @@ extension MutablePersistableRecord {
     /// - parameter columns: The columns to update.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update<Columns>(
@@ -83,7 +83,7 @@ extension MutablePersistableRecord {
     /// - parameter columns: The columns to update.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update<Columns>(
@@ -115,7 +115,7 @@ extension MutablePersistableRecord {
     ///   is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func update(
@@ -158,7 +158,7 @@ extension MutablePersistableRecord {
     /// - returns: Whether the record had changes.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
@@ -202,7 +202,7 @@ extension MutablePersistableRecord {
     /// - returns: Whether the record had changes.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @discardableResult
     @inlinable // allow specialization so that empty callbacks are removed
@@ -233,7 +233,7 @@ extension MutablePersistableRecord {
     ///   conflict policy is `IGNORE`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch(
@@ -257,7 +257,7 @@ extension MutablePersistableRecord {
     ///   the conflict policy is `IGNORE`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public func updateAndFetch<T: FetchableRecord & TableRecord>(
@@ -285,7 +285,7 @@ extension MutablePersistableRecord {
     ///   in case of a failed update due to the `IGNORE` conflict policy.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChangesAndFetch(
@@ -314,7 +314,7 @@ extension MutablePersistableRecord {
     ///   conflict policy.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func updateChangesAndFetch<T: FetchableRecord & TableRecord>(
@@ -358,7 +358,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -419,7 +419,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -462,7 +462,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -497,7 +497,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -529,7 +529,7 @@ extension MutablePersistableRecord {
     ///   conflict policy is `IGNORE`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -554,7 +554,7 @@ extension MutablePersistableRecord {
     ///   the conflict policy is `IGNORE`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -583,7 +583,7 @@ extension MutablePersistableRecord {
     ///   in case of a failed update due to the `IGNORE` conflict policy.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -613,7 +613,7 @@ extension MutablePersistableRecord {
     ///   conflict policy.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
@@ -658,7 +658,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -720,7 +720,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -764,7 +764,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -800,7 +800,7 @@ extension MutablePersistableRecord {
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
-    ///   or ``PersistenceError/recordNotFound(databaseTableName:key:)`` if the
+    ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
@@ -942,12 +942,12 @@ extension MutablePersistableRecord {
             returning: selection)
         else {
             // Nil primary key
-            throw dao.makeRecordNotFoundError()
+            try dao.recordNotFound()
         }
         let returned = try fetch(statement)
         if db.changesCount == 0 {
             // No row was updated
-            throw dao.makeRecordNotFoundError()
+            try dao.recordNotFound()
         }
         let updated = PersistenceSuccess(persistenceContainer: dao.persistenceContainer)
         return (updated, returned)

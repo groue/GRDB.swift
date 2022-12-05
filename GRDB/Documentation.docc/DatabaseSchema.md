@@ -191,6 +191,7 @@ extension Player: FetchableRecord, MutablePersistableRecord {
         AllColumns(),
         Column.rowID]
 
+    // Update id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {
         rowid = inserted.rowID
     }
@@ -198,7 +199,11 @@ extension Player: FetchableRecord, MutablePersistableRecord {
 
 try dbQueue.read { db in
     // SELECT *, rowid FROM player WHERE rowid = 1
-    let player = try Player.fetchOne(db, id: 1)
+    if let player = try Player.fetchOne(db, id: 1) {
+        // DELETE FROM player WHERE rowid = 1
+        let deleted = try player.delete(db)
+        print(deleted) // true
+    }
 }
 ```
 

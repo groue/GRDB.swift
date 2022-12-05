@@ -75,6 +75,9 @@ import Foundation
 /// - ``fetchAll(_:keys:)-4c8no``
 /// - ``fetchSet(_:keys:)-e6uy``
 /// - ``fetchOne(_:key:)-3f3hc``
+/// - ``find(_:id:)``
+/// - ``find(_:key:)-4kry5``
+/// - ``find(_:key:)-1dfbe``
 ///
 /// ### Fetching Record by Key
 ///

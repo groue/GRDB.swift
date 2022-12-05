@@ -675,8 +675,8 @@ class RecordEditedTests: GRDBTestCase {
             do {
                 XCTAssertTrue(person.hasDatabaseChanges)
                 try person.updateChanges(db)
-                XCTFail("Expected PersistenceError")
-            } catch PersistenceError.recordNotFound(databaseTableName: "persons", key: ["id": .null]) { }
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["id": .null]) { }
             
             try person.insert(db)
 
