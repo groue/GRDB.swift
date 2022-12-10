@@ -26,8 +26,8 @@ permissions:
   contents: read
 
 jobs:
-  macOS:
-    name: macOS
+  Framework:
+    name: Framework
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 60
     strategy:
@@ -36,14 +36,28 @@ jobs:
         include:
           - xcode: "Xcode_14.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 14.1, Swift 5.7.1"
+            destination: "platform=macOS"
+            name: "macOS"
+          - xcode: "Xcode_14.1.app"
+            runsOn: macOS-12
+            destination: "OS=16.1,name=iPhone 14"
+            name: "iOS"
+          - xcode: "Xcode_14.1.app"
+            runsOn: macOS-12
+            destination: "OS=16.1,name=Apple TV"
+            name: "tvOS"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 14.0.1, Swift 5.7.0"
+            destination: "platform=macOS"
+            name: "macOS"
+          - xcode: "Xcode_14.0.1.app"
+            runsOn: macOS-12
+            destination: "OS=16.0,name=iPhone 14"
+            name: "iOS"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project GRDB.xcodeproj -scheme GRDB -destination "platform=macOS" OTHER_SWIFT_FLAGS='$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' clean test
+        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project GRDB.xcodeproj -scheme GRDB -destination "${{ matrix.destination }}" OTHER_SWIFT_FLAGS='$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' clean test
   iOS:
     name: iOS
     runs-on: ${{ matrix.runsOn }}
