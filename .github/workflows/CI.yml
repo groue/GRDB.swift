@@ -9,12 +9,14 @@ on:
       - 'GRDB/**'
       - 'Tests/**'
       - '.github/workflows/**'
+      - 'Makefile'
       - 'Package.swift'
   pull_request:
     paths:
       - 'GRDB/**'
       - 'Tests/**'
       - '.github/workflows/**'
+      - 'Makefile'
       - 'Package.swift'
 
 concurrency: 
