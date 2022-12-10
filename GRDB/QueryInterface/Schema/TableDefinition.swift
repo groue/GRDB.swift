@@ -206,6 +206,16 @@ extension Database {
     ///
     /// For extra index options, see ``create(index:on:columns:options:condition:)``.
     ///
+    /// ### Generated columns
+    ///
+    /// See [Generated columns](https://sqlite.org/gencol.html) for
+    /// more information:
+    ///
+    /// ```swift
+    /// t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+    /// t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// ```
+    ///
     /// ### Integrity checks
     ///
     /// SQLite will only let conforming rows in:
@@ -222,16 +232,6 @@ extension Database {
     ///
     /// // CHECK (a + b < 10)
     /// t.check(sql: "a + b < 10")
-    /// ```
-    ///
-    /// ### Generated columns
-    ///
-    /// [Generated columns](https://sqlite.org/gencol.html) are available with a
-    /// [custom SQLite build](https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md):
-    ///
-    /// ```swift
-    /// t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
-    /// t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
     /// ```
     ///
     /// ### Raw SQL columns and constraints
@@ -1396,6 +1396,11 @@ public final class TableAlteration {
 /// - ``collate(_:)-4dljx``
 /// - ``collate(_:)-9ywza``
 ///
+/// ### Generated Columns
+///
+/// - ``generatedAs(_:_:)``
+/// - ``generatedAs(sql:_:)``
+///
 /// ### Other Constraints
 ///
 /// - ``check(_:)``
@@ -1699,7 +1704,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    #if GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Defines the column as a generated column.
     ///
     /// For example:
@@ -1765,6 +1770,85 @@ public final class ColumnDefinition {
     ///     - qualification: The generated column's qualification, which
     ///       defaults to ``GeneratedColumnQualification/virtual``.
     /// - returns: `self` so that you can further refine the column definition.
+    @discardableResult
+    public func generatedAs(
+        _ expression: some SQLExpressible,
+        _ qualification: GeneratedColumnQualification = .virtual)
+    -> Self
+    {
+        generatedColumnConstraint = GeneratedColumnConstraint(
+            expression: expression.sqlExpression,
+            qualification: qualification)
+        return self
+    }
+    #else
+    /// Defines the column as a generated column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// //   score INTEGER NOT NULL,
+    /// //   bonus INTEGER NOT NULL,
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.autoIncrementedPrimaryKey("id")
+    ///     t.column("score", .integer).notNull()
+    ///     t.column("bonus", .integer).notNull()
+    ///     t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/gencol.html>
+    ///
+    /// - parameters:
+    ///     - sql: An SQL expression.
+    ///     - qualification: The generated column's qualification, which
+    ///       defaults to ``GeneratedColumnQualification/virtual``.
+    /// - returns: `self` so that you can further refine the column definition.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+ (3.31 actually)
+    @discardableResult
+    public func generatedAs(
+        sql: String,
+        _ qualification: GeneratedColumnQualification = .virtual)
+    -> Self
+    {
+        let expression = SQL(sql: sql).sqlExpression
+        generatedColumnConstraint = GeneratedColumnConstraint(
+            expression: expression,
+            qualification: qualification)
+        return self
+    }
+    
+    /// Defines the column as a generated column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+    /// //   score INTEGER NOT NULL,
+    /// //   bonus INTEGER NOT NULL,
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.autoIncrementedPrimaryKey("id")
+    ///     t.column("score", .integer).notNull()
+    ///     t.column("bonus", .integer).notNull()
+    ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"), .stored)
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/gencol.html>
+    ///
+    /// - parameters:
+    ///     - expression: The generated expression.
+    ///     - qualification: The generated column's qualification, which
+    ///       defaults to ``GeneratedColumnQualification/virtual``.
+    /// - returns: `self` so that you can further refine the column definition.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+ (3.31 actually)
     @discardableResult
     public func generatedAs(
         _ expression: some SQLExpressible,
