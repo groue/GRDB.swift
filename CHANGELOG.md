@@ -103,6 +103,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1304](https://github.com/groue/GRDB.swift/pull/1304) by [@groue](https://github.com/groue): Expose generated columns with availability checks
+
 ## 6.5.0
 
 Released December 5, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.4.0...v6.5.0)
