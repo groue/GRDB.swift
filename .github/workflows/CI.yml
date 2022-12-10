@@ -34,14 +34,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - xcode: "Xcode_14.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 14.1, Swift 5.7.1"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "macOS 12, Xcode 14.0.1, Swift 5.7"
-            shell: "/bin/zsh {0}"
+            name: "macOS 12, Xcode 14.0.1, Swift 5.7.0"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
-        run: make test_framework_GRDBOSX_maxSwift
+        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project GRDB.xcodeproj -scheme GRDB -destination "platform=macOS" OTHER_SWIFT_FLAGS='$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' clean test
   iOS:
     name: iOS
     runs-on: ${{ matrix.runsOn }}
