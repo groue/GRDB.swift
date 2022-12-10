@@ -357,9 +357,15 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testColumnGeneratedAs() throws {
-        #if !GRDBCUSTOMSQLITE
-        throw XCTSkip("Generated columns are not available")
-        #else
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3031000 else {
+            throw XCTSkip("Generated columns are not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("Generated columns are not available")
+        }
+#endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
@@ -387,7 +393,6 @@ class TableDefinitionTests: GRDBTestCase {
                 """)
             return .rollback
         }
-        #endif
     }
     
     func testTablePrimaryKey() throws {
@@ -767,9 +772,15 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableAddGeneratedVirtualColumn() throws {
-        #if !GRDBCUSTOMSQLITE
-        throw XCTSkip("Generated columns are not available")
-        #else
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3031000 else {
+            throw XCTSkip("Generated columns are not available")
+        }
+#else
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("Generated columns are not available")
+        }
+#endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -794,7 +805,6 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(latestQueries[3], "ALTER TABLE \"test\" ADD COLUMN \"g\" GENERATED ALWAYS AS (\"a\" * 2) VIRTUAL")
             assertEqualSQL(latestQueries[4], "ALTER TABLE \"test\" ADD COLUMN \"h\" GENERATED ALWAYS AS ('O''Brien') VIRTUAL")
         }
-        #endif
     }
     
     func testAlterTableDropColumn() throws {
