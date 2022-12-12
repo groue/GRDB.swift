@@ -1400,6 +1400,7 @@ public final class TableAlteration {
 ///
 /// - ``generatedAs(_:_:)``
 /// - ``generatedAs(sql:_:)``
+/// - ``GeneratedColumnQualification``
 ///
 /// ### Other Constraints
 ///
@@ -1428,12 +1429,13 @@ public final class ColumnDefinition {
         var deferred: Bool
     }
     
-    /// The `GeneratedColumnQualification` enum defines whether a generated
-    /// column sis virtual or stored.
+    /// The kind of a generated column.
     ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html#virtual_versus_stored_columns>
     public enum GeneratedColumnQualification {
+        /// A `VIRTUAL` generated column.
         case virtual
+        /// A `STORED` generated column.
         case stored
     }
     
@@ -1714,13 +1716,13 @@ public final class ColumnDefinition {
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
     /// //   score INTEGER NOT NULL,
     /// //   bonus INTEGER NOT NULL,
-    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) VIRTUAL
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
-    ///     t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
+    ///     t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
     /// }
     /// ```
     ///
@@ -1753,13 +1755,13 @@ public final class ColumnDefinition {
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
     /// //   score INTEGER NOT NULL,
     /// //   bonus INTEGER NOT NULL,
-    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) VIRTUAL
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
-    ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"), .stored)
+    ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
     /// }
     /// ```
     ///
@@ -1791,13 +1793,13 @@ public final class ColumnDefinition {
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
     /// //   score INTEGER NOT NULL,
     /// //   bonus INTEGER NOT NULL,
-    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) VIRTUAL
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
-    ///     t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
+    ///     t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
     /// }
     /// ```
     ///
@@ -1831,13 +1833,13 @@ public final class ColumnDefinition {
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
     /// //   score INTEGER NOT NULL,
     /// //   bonus INTEGER NOT NULL,
-    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) STORED
+    /// //   totalScore INTEGER GENERATED ALWAYS AS (score + bonus) VIRTUAL
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
-    ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"), .stored)
+    ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
     /// }
     /// ```
     ///
