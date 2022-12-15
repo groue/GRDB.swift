@@ -64,6 +64,15 @@ public struct Configuration {
     /// A boolean value indicating whether an SQLite connection is read-only.
     ///
     /// The default is false.
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.readonly = true
+    ///
+    /// let dbQueue = try DatabaseQueue( // or DatabasePool
+    ///     path: "/path/to/database.sqlite",
+    ///     configuration: config)
+    /// ```
     public var readonly = false
     
     /// A label that describes a database connection.

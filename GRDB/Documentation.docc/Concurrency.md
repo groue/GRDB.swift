@@ -45,7 +45,7 @@ try dbQueue.read { db
 }
 ```
 
-Alternatively, you can open an explicit transaction or savepoint with ``Database/inTransaction(_:_:)`` and ``Database/inSavepoint(_:)``.
+Alternatively, you can open an explicit transaction or savepoint: see <doc:Transactions>.
 
 - *Why does this rule exist?* - Because GRDB and SQLite can not guess where to insert the transaction boundaries that protect the invariants of your database. This is your task. Transactions also avoid concurrency problems, as described in the <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> section below. 
 
