@@ -17,16 +17,10 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 The differences are:
 
 - `DatabasePool` allows concurrent database accesses (this can improve the performance of multithreaded applications).
-- `DatabasePool` opens your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless ``Configuration/readonly``).
+- `DatabasePool` opens your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
 - `DatabaseQueue` supports <doc:DatabaseQueue#In-Memory-Databases>.
 
 **If you are not sure, choose `DatabaseQueue`.** You will always be able to switch to `DatabasePool` later.
-
-Once connected, you can define the database schema, and access the database with raw SQL or high-level Swift apis:
-
-- <doc:DatabaseSchema>
-- <doc:SQLSupport>
-- <doc:QueryInterface> 
 
 ## Topics
 

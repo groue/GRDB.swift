@@ -4,7 +4,7 @@ A database connection that allows concurrent accesses to an SQLite database.
 
 ## Usage
 
-**Open a `DatabasePool`** with the path to a database file:
+Open a `DatabasePool` with the path to a database file:
 
 ```swift
 import GRDB

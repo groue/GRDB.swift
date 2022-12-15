@@ -398,7 +398,7 @@ let cancellable = hallOfFamePublisher.sink(
 [`writePublisher(receiveOn:updates:thenRead:)`]: #databasewriterwritepublisherreceiveonupdatesthenread
 [`migratePublisher(_:receiveOn:)`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator/migratepublisher(_:receiveon:)
 [configured]: ../README.md#databasepool-configuration
-[database pool]: ../README.md#database-pools
-[database queue]: ../README.md#database-queues
+[database pool]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[database queue]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
 [database snapshot]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshot
 [scheduler]: https://developer.apple.com/documentation/combine/scheduler

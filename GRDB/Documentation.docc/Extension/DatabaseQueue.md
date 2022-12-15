@@ -4,7 +4,7 @@ A database connection that serializes accesses to an SQLite database.
 
 ## Usage
 
-**Open a `DatabaseQueue`** with the path to a database file:
+Open a `DatabaseQueue` with the path to a database file:
 
 ```swift
 import GRDB
