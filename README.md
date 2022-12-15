@@ -557,7 +557,7 @@ See the [Concurrency] guide for asynchronous database accesses.
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
     
-    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#database-configuration).
+    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration).
 
 - Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called [snapshot isolation](https://sqlite.org/isolation.html).
 
@@ -575,48 +575,6 @@ See [Database Configuration] for DatabasePool options.
 
 > :bulb: **Tip**: see the [Demo Applications] for sample code.
 
-
-## Database Configuration
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // Default is already true
-config.label = "MyDatabase"      // Useful when your app opens multiple databases
-config.maximumReaderCount = 10   // (DatabasePool only) The default is 5
-
-let dbQueue = try DatabaseQueue( // or DatabasePool
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-In debug builds, you can increase the verbosity of [error descriptions](#databaseerror) and [trace events](#how-do-i-print-a-request-as-sql) if you opt in for public statement arguments:
-
-```swift
-#if DEBUG
-// Protect sensitive information by enabling verbose debugging in DEBUG builds only
-config.publicStatementArguments = true
-#endif
-
-let dbQueue = try DatabaseQueue(path: ..., configuration: config)
-
-do {
-    try dbQueue.write { db in
-        user.name = ...
-        user.location = ...
-        user.address = ...
-        user.phoneNumber = ...
-        try user.save(db)
-    }
-} catch {
-    // Prints sensitive information in debug builds only
-    print(error)
-}
-```
-
-> **Warning**: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set the `publicStatementArguments` flag in release builds (think about GDPR and other privacy-related rules).
-
-See [Configuration](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration) for more details and configuration options.
 
 
 SQLite API
@@ -6133,7 +6091,7 @@ do {
 }
 ```
 
-If you want to see statement arguments in the error description, [make statement arguments public](#database-configuration).
+If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -6637,7 +6595,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
@@ -6674,7 +6632,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 ### What Are Experimental Features?
 
@@ -7084,6 +7042,10 @@ This chapter was replaced with [Persistence Callbacks].
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation).
 
+#### Database Configuration
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration).
+
 #### Database Snapshots
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
@@ -7207,7 +7169,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
-[Database Configuration]: #database-configuration
+[Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
 [RecordError]: #recorderror

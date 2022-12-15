@@ -1,55 +1,6 @@
 import Dispatch
 import Foundation
 
-/// The configuration of a database connection.
-///
-/// You create a `Configuration` before opening a database connection:
-///
-/// ```swift
-/// var config = Configuration()
-/// config.readonly = true
-/// config.maximumReaderCount = 2  // (DatabasePool only) The default is 5
-/// config.prepareDatabase { db in // A function to run on connection
-///     db.trace { print("SQL >", $0) }
-/// }
-///
-/// let dbQueue = try DatabaseQueue( // or DatabasePool
-///     path: "/path/to/database.sqlite",
-///     configuration: config)
-/// ```
-///
-/// See <doc:DatabaseConnections>.
-///
-/// ## Topics
-///
-/// ### Creating a Configuration
-///
-/// - ``init()``
-///
-/// ### Configuring SQLite Connections
-///
-/// - ``acceptsDoubleQuotedStringLiterals``
-/// - ``busyMode``
-/// - ``foreignKeysEnabled``
-/// - ``readonly``
-///
-/// ### Configuring GRDB Connections
-///
-/// - ``allowsUnsafeTransactions``
-/// - ``defaultTransactionKind``
-/// - ``label``
-/// - ``maximumReaderCount``
-/// - ``observesSuspensionNotifications``
-/// - ``prepareDatabase(_:)``
-/// - ``publicStatementArguments``
-///
-/// ### Configuring the Quality of Service
-///
-/// - ``qos``
-/// - ``readQoS``
-/// - ``writeQoS``
-/// - ``targetQueue``
-/// - ``writeTargetQueue``
 public struct Configuration {
     
     // MARK: - Misc options
