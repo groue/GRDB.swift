@@ -644,7 +644,7 @@ extension DatabasePool: DatabaseReader {
     
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
@@ -675,7 +675,7 @@ extension DatabasePool: DatabaseReader {
     /// the writer.
     private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {

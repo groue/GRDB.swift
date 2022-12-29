@@ -219,7 +219,7 @@ extension ValueObservationRecorder {
 extension ValueObservation {
     public func record(
         in reader: some DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         onError: ((Error) -> Void)? = nil,
         onChange: ((Reducer.Value) -> Void)? = nil)
     -> ValueObservationRecorder<Reducer.Value>
@@ -365,7 +365,7 @@ extension GRDBTestCase {
     {
         func test(
             observation: ValueObservation<Reducer>,
-            scheduling scheduler: ValueObservationScheduler,
+            scheduling scheduler: some ValueObservationScheduler,
             testValueDispatching: @escaping () -> Void) throws
         {
             func testRecordingEqualWhenWriteAfterStart(writer: some DatabaseWriter) throws {
@@ -575,7 +575,7 @@ extension GRDBTestCase {
     {
         func test(
             observation: ValueObservation<Reducer>,
-            scheduling scheduler: ValueObservationScheduler,
+            scheduling scheduler: some ValueObservationScheduler,
             testErrorDispatching: @escaping () -> Void) throws
         {
             func test(writer: some DatabaseWriter) throws {
