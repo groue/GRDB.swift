@@ -16,7 +16,7 @@ final class AppDatabase {
     /// Application can use a `DatabasePool`, and tests can use a fast
     /// in-memory `DatabaseQueue`.
     ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections>
+    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
     private let dbWriter: any DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
