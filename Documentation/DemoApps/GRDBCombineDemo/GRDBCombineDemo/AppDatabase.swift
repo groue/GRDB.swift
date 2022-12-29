@@ -163,7 +163,7 @@ extension AppDatabase {
 // reading methods.
 extension AppDatabase {
     /// Provides a read-only access to the database
-    var databaseReader: DatabaseReader {
+    var reader: DatabaseReader {
         dbWriter
     }
 }

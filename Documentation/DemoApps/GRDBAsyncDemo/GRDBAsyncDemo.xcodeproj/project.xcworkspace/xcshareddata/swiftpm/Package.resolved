@@ -1,16 +1,14 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "GRDBQuery",
-        "repositoryURL": "https://github.com/groue/GRDBQuery",
-        "state": {
-          "branch": null,
-          "revision": "4301166cd2aee9ce37b4057c9a58f5cc3bbeae06",
-          "version": "0.1.0"
-        }
+  "pins" : [
+    {
+      "identity" : "grdbquery",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDBQuery",
+      "state" : {
+        "revision" : "df514f2bd74548f94e082f3233022190e594fce4",
+        "version" : "0.5.1"
       }
-    ]
-  },
-  "version": 1
+    }
+  ],
+  "version" : 2
 }
