@@ -24,7 +24,7 @@ extension AppDatabase {
             try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
             
             // Connect to a database on disk
-            // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
+            // See https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections
             let dbURL = folderURL.appendingPathComponent("db.sqlite")
             let dbPool = try DatabasePool(path: dbURL.path)
             
@@ -58,7 +58,7 @@ extension AppDatabase {
     /// Creates an empty database for SwiftUI previews
     static func empty() -> AppDatabase {
         // Connect to an in-memory database
-        // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
+        // See https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections
         let dbQueue = try! DatabaseQueue()
         return try! AppDatabase(dbQueue)
     }

@@ -21,6 +21,7 @@ Compared to [SQLite.swift](https://github.com/stephencelis/SQLite.swift) or [FMD
 - <doc:DatabaseConnections>
 - <doc:SQLSupport>
 - <doc:Concurrency>
+- <doc:Transactions>
 
 ### Migrations and The Database Schema
 

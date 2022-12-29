@@ -4,66 +4,6 @@ import Foundation
 import UIKit
 #endif
 
-/// A database connection that allows concurrent accesses to an SQLite database.
-///
-/// ## Overview
-///
-/// Unless ``Configuration/readonly``, a `DatabasePool` opens an SQLite database
-/// in the [WAL mode](https://sqlite.org/wal.html).
-///
-/// It creates one writer SQLite connection, and a pool of up to
-/// ``Configuration/maximumReaderCount`` read-only SQLite connections. All
-/// write accesses are executed in a serial **writer dispatch queue**. All
-/// read accesses are executed in **reader dispatch queues** (one per read-only
-/// SQLite connection). SQLite connections are closed when the `DatabasePool`
-/// is deallocated.
-///
-/// See <doc:Concurrency> for more information about concurrent
-/// database accesses.
-///
-/// ## Usage
-///
-/// ```swift
-/// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-///
-/// let playerCount = try dbPool.read { db in
-///     try Player.fetchCount(db)
-/// }
-///
-/// let newPlayerCount = try dbPool.write { db -> Int in
-///     try Player(name: "Arthur").insert(db)
-///     return try Player.fetchCount(db)
-/// }
-/// ```
-///
-/// `DatabasePool` inherits most of its database access methods from the
-/// ``DatabaseReader`` and ``DatabaseWriter`` protocols. It defines a few
-/// specific database access methods as well.
-///
-/// ## Topics
-///
-/// ### Creating a DatabasePool
-///
-/// - ``init(path:configuration:)``
-///
-/// ### Accessing the Database
-///
-/// See ``DatabaseReader`` and ``DatabaseWriter`` for more database
-/// access methods.
-///
-/// - ``asyncConcurrentRead(_:)``
-/// - ``writeInTransaction(_:_:)``
-///
-/// ### Creating Database Snapshots
-///
-/// - ``makeSnapshot()``
-/// - ``makeSnapshotPool()``
-///
-/// ### Managing SQLite Connections
-///
-/// - ``invalidateReadOnlyConnections()``
-/// - ``releaseMemory()``
-/// - ``releaseMemoryEventually()``
 public final class DatabasePool {
     private let writer: SerializedDatabase
     
@@ -704,7 +644,7 @@ extension DatabasePool: DatabaseReader {
     
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
@@ -735,7 +675,7 @@ extension DatabasePool: DatabaseReader {
     /// the writer.
     private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {

@@ -18,7 +18,7 @@ struct AppDatabase {
     /// Application can use a `DatabasePool`, while SwiftUI previews and tests
     /// can use a fast in-memory `DatabaseQueue`.
     ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections>
+    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
     private let dbWriter: any DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
@@ -163,7 +163,7 @@ extension AppDatabase {
 // reading methods.
 extension AppDatabase {
     /// Provides a read-only access to the database
-    var databaseReader: DatabaseReader {
+    var reader: DatabaseReader {
         dbWriter
     }
 }

@@ -475,7 +475,7 @@ extension ValueObservation: Refinable {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         in reader: some DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
@@ -637,7 +637,7 @@ extension ValueObservation {
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func values(
         in reader: some DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
     where Reducer: ValueReducer
@@ -774,7 +774,7 @@ extension ValueObservation {
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func publisher(
         in reader: some DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
+        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     where Reducer: ValueReducer
     {

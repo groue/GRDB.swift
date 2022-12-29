@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: December 5, 2022 • [version 6.5.0](https://github.com/groue/GRDB.swift/tree/v6.5.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: December 29, 2022 • [version 6.6.0](https://github.com/groue/GRDB.swift/tree/v6.6.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.5.0**                                                  |
+| **Swift 5.7+** | **v6.6.0**                                                  |
 | Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
 | Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
@@ -70,7 +70,7 @@ Programming tools for both database beginners and SQLite experts:
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
 - [Associations]: Relations and joins between record types.
-- [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
+- [WAL Mode Support](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation]: Observe database changes and transactions.
 - [Full-Text Search]
@@ -428,7 +428,7 @@ GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in dou
 Database Connections
 ====================
 
-GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`:
+GRDB provides two classes for accessing SQLite databases: [`DatabaseQueue`] and [`DatabasePool`]:
 
 ```swift
 import GRDB
@@ -444,179 +444,7 @@ The differences are:
 - Database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless read-only).
 - Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
-**If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
-
-- [Database Queues](#database-queues)
-- [Database Pools](#database-pools)
-
-
-## Database Queues
-
-**Open a database queue** with the path to a database file:
-
-```swift
-import GRDB
-
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let inMemoryDBQueue = try DatabaseQueue()
-```
-
-SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deinitialized.
-
-**A database queue can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
-
-```swift
-// Modify the database:
-try dbQueue.write { db in
-    try db.create(table: "place") { ... }
-    try Place(...).insert(db)
-}
-
-// Read values:
-try dbQueue.read { db in
-    let places = try Place.fetchAll(db)
-    let placeCount = try Place.fetchCount(db)
-}
-```
-
-Database access methods can return values:
-
-```swift
-let placeCount = try dbQueue.read { db in
-    try Place.fetchCount(db)
-}
-
-let newPlaceCount = try dbQueue.write { db -> Int in
-    try Place(...).insert(db)
-    return try Place.fetchCount(db)
-}
-```
-
-See the [Concurrency] guide for asynchronous database accesses.
-
-**A database queue serializes accesses to the database**, which means that there is never more than one thread that uses the database.
-
-- When you don't need to modify the database, prefer the `read` method. It prevents any modification to the database.
-
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
-    
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
-
-**A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency] guide.
-
-See [Database Configuration] for DatabaseQueue options.
-
-> :bulb: **Tip**: see the [Demo Applications] for sample code.
-
-
-## Database Pools
-
-**A database pool allows concurrent database accesses.**
-
-```swift
-import GRDB
-let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-```
-
-SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deinitialized.
-
-> **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
-
-**A database pool can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
-
-```swift
-// Modify the database:
-try dbPool.write { db in
-    try db.create(table: "place") { ... }
-    try Place(...).insert(db)
-}
-
-// Read values:
-try dbPool.read { db in
-    let places = try Place.fetchAll(db)
-    let placeCount = try Place.fetchCount(db)
-}
-```
-
-Database access methods can return values:
-
-```swift
-let placeCount = try dbPool.read { db in
-    try Place.fetchCount(db)
-}
-
-let newPlaceCount = try dbPool.write { db -> Int in
-    try Place(...).insert(db)
-    return try Place.fetchCount(db)
-}
-```
-
-See the [Concurrency] guide for asynchronous database accesses.
-
-**Database pools allow several threads to access the database at the same time:**
-
-- When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
-    
-    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#database-configuration).
-
-- Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called [snapshot isolation](https://sqlite.org/isolation.html).
-
-- Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
-
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
-    
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
-
-- Database pools can take [snapshots](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshot) of the database.
-
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency] guide for more details about database pools, how they differ from database queues, and advanced use cases.
-
-See [Database Configuration] for DatabasePool options.
-
-> :bulb: **Tip**: see the [Demo Applications] for sample code.
-
-
-## Database Configuration
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // Default is already true
-config.label = "MyDatabase"      // Useful when your app opens multiple databases
-config.maximumReaderCount = 10   // (DatabasePool only) The default is 5
-
-let dbQueue = try DatabaseQueue( // or DatabasePool
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-In debug builds, you can increase the verbosity of [error descriptions](#databaseerror) and [trace events](#how-do-i-print-a-request-as-sql) if you opt in for public statement arguments:
-
-```swift
-#if DEBUG
-// Protect sensitive information by enabling verbose debugging in DEBUG builds only
-config.publicStatementArguments = true
-#endif
-
-let dbQueue = try DatabaseQueue(path: ..., configuration: config)
-
-do {
-    try dbQueue.write { db in
-        user.name = ...
-        user.location = ...
-        user.address = ...
-        user.phoneNumber = ...
-        try user.save(db)
-    }
-} catch {
-    // Prints sensitive information in debug builds only
-    print(error)
-}
-```
-
-> **Warning**: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set the `publicStatementArguments` flag in release builds (think about GDPR and other privacy-related rules).
-
-See [Configuration](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration) for more details and configuration options.
+**If you are not sure, choose `DatabaseQueue`.** You will always be able to switch to `DatabasePool` later.
 
 
 SQLite API
@@ -635,7 +463,7 @@ SQLite API
     - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
     - [Custom Value Types](#custom-value-types)
-- [Transactions and Savepoints](#transactions-and-savepoints)
+- [Transactions and Savepoints]
 - [SQL Interpolation]
 
 Advanced topics:
@@ -1665,230 +1493,6 @@ In order to customize the JSON format, provide a custom implementation of the `D
 > **Note**: standard sequences such as `Array`, `Set`, or `Dictionary` do not conform to `DatabaseValueConvertible`, even conditionally. You won't be able to directly fetch or store arrays, sets, or dictionaries as JSON database values. You can get free JSON support from these standard types when they are embedded as properties of [Codable Records], though.
 
 
-## Transactions and Savepoints
-
-- [Transactions and Safety](#transactions-and-safety)
-- [Explicit Transactions](#explicit-transactions)
-- [Savepoints](#savepoints)
-- [Transaction Kinds](#transaction-kinds)
-
-
-### Transactions and Safety
-
-**A transaction** is a fundamental tool of SQLite that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
-
-GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency), and provide maximal security for both your application data and application logic:
-
-```swift
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.write { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbPool.write { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-```
-
-Yet you may need to exactly control when transactions take place:
-
-
-### Explicit Transactions
-
-`DatabaseQueue.inDatabase()` and `DatabasePool.writeWithoutTransaction()` execute your database statements outside of any transaction:
-
-```swift
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-try dbQueue.inDatabase { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-try dbPool.writeWithoutTransaction { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-```
-
-**Writing outside of any transaction is dangerous,** for two reasons:
-
-- In our credit/debit example, you may successfully insert a credit, but fail inserting the debit, and end up with unbalanced accounts (oops).
-
-    ```swift
-    // UNSAFE DATABASE INTEGRITY
-    try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
-        try Credit(destinationAccount, amount).insert(db) // may succeed
-        try Debit(sourceAccount, amount).insert(db)      // may fail
-    }
-    ```
-    
-    Transactions avoid this kind of bug.
-    
-- [Database pool](#database-pools) concurrent reads can see an inconsistent state of the database:
-    
-    ```swift
-    // UNSAFE CONCURRENCY
-    try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccount, amount).insert(db)
-        // <- Concurrent dbPool.read sees a partial db update here
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    ```
-    
-    Transactions avoid this kind of bug, too.
-
-To open explicit transactions, use one of the `Database.inTransaction`, `DatabaseQueue.inTransaction`, or `DatabasePool.writeInTransaction` methods:
-
-```swift
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
-    try db.inTransaction {
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-}
-
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-    return .commit
-}
-```
-
-If an error is thrown from the transaction block, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` instead of `.commit`, the transaction is also rollbacked, but no error is thrown.
-
-You can also perform manual transaction management:
-
-```swift
-try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
-    try db.beginTransaction()
-    ...
-    try db.commit()
-    
-    try db.execute(sql: "BEGIN TRANSACTION")
-    ...
-    try db.execute(sql: "ROLLBACK")
-}
-```
-
-Transactions can't be left opened unless you set the [allowsUnsafeTransactions](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/allowsunsafetransactions) configuration flag:
-
-```swift
-// fatal error: A transaction has been left opened at the end of a database access
-try dbQueue.inDatabase { db in
-    try db.execute(sql: "BEGIN TRANSACTION")
-    // <- no commit or rollback
-}
-```
-
-You can ask if a transaction is currently opened:
-
-```swift
-func myCriticalMethod(_ db: Database) throws {
-    precondition(db.isInsideTransaction, "This method requires a transaction")
-    try ...
-}
-```
-
-Yet, you have a better option than checking for transactions: critical database sections should use savepoints, described below:
-
-```swift
-func myCriticalMethod(_ db: Database) throws {
-    try db.inSavepoint {
-        // Here the database is guaranteed to be inside a transaction.
-        try ...
-    }
-}
-```
-
-
-### Savepoints
-
-**Statements grouped in a savepoint can be rollbacked without invalidating a whole transaction:**
-
-```swift
-try dbQueue.write { db in
-    // Makes sure both inserts succeed, or none:
-    try db.inSavepoint {
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-    
-    // Other savepoints, etc...
-}
-```
-
-If an error is thrown from the savepoint block, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.rollback` instead of `.commit`, the savepoint is also rollbacked, but no error is thrown.
-
-**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.inSavepoint {
-        ...
-        try db.inSavepoint {
-            ...
-            return .commit
-        }
-        ...
-        return .commit  // writes changes to disk
-    }
-}
-```
-
-SQLite savepoints are more than nested transactions, though. For advanced uses, use [SQLite savepoint documentation](https://www.sqlite.org/lang_savepoint.html).
-
-
-### Transaction Kinds
-
-SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred (the default), immediate, and exclusive.
-
-The transaction kind can be changed in the database configuration, or for each transaction:
-
-```swift
-// 1) Default configuration:
-let dbQueue = try DatabaseQueue(path: "...")
-
-// BEGIN DEFERRED TRANSACTION ...
-dbQueue.write { db in ... }
-
-// BEGIN EXCLUSIVE TRANSACTION ...
-dbQueue.inTransaction(.exclusive) { db in ... }
-
-// 2) Customized default transaction kind:
-var config = Configuration()
-config.defaultTransactionKind = .immediate
-let dbQueue = try DatabaseQueue(path: "...", configuration: config)
-
-// BEGIN IMMEDIATE TRANSACTION ...
-dbQueue.write { db in ... }
-
-// BEGIN EXCLUSIVE TRANSACTION ...
-dbQueue.inTransaction(.exclusive) { db in ... }
-```
-
-
 ## Prepared Statements
 
 **Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
@@ -1995,7 +1599,7 @@ When the same query will be used several times in the lifetime of your applicati
 
 **Don't cache statements yourself.**
 
-> **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
+> **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools]. A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
 
 Instead, use the `cachedStatement` method. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
@@ -5975,7 +5579,7 @@ See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-
 
 **You can change the passphrase** of an already encrypted database.
 
-When you use a [database queue](#database-queues), open the database with the old passphrase, and then apply the new passphrase:
+When you use a [database queue](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue), open the database with the old passphrase, and then apply the new passphrase:
 
 ```swift
 try dbQueue.write { db in
@@ -5983,7 +5587,7 @@ try dbQueue.write { db in
 }
 ```
 
-When you use a [database pool](#database-pools), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
+When you use a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
 
 ```swift
 try dbPool.barrierWriteWithoutTransaction { db in
@@ -6131,7 +5735,7 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-For the same reason, [database pools](#database-pools), which open SQLite connections on demand, may fail at any time as soon as the passphrase becomes unavailable:
+For the same reason, [database pools], which open SQLite connections on demand, may fail at any time as soon as the passphrase becomes unavailable:
 
 ```swift
 // Success if and only if the passphrase is available
@@ -6165,7 +5769,7 @@ try source.backup(to: destination)
 
 The `backup` method blocks the current thread until the destination database contains the same contents as the source database.
 
-When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
+When the source is a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
 
 `Database` has an analogous `backup` method.
 
@@ -6357,7 +5961,7 @@ do {
 }
 ```
 
-If you want to see statement arguments in the error description, [make statement arguments public](#database-configuration).
+If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -6678,7 +6282,7 @@ dbPool.releaseMemoryEventually()
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues](#database-queues) and [pools](#database-pools) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
+[Database queues] and [pools](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
 
 You can opt out of this automatic memory management:
 
@@ -6695,7 +6299,7 @@ let dbQueue = try DatabaseQueue(path: dbPath, configuration: config) // or Datab
 
 Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
 
-You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools](#database-pools)).
+You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools]).
 
 For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
 
@@ -6861,7 +6465,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
@@ -6898,7 +6502,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 ### What Are Experimental Features?
 
@@ -7308,6 +6912,18 @@ This chapter was replaced with [Persistence Callbacks].
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation).
 
+#### Database Configuration
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration).
+
+#### Database Queues
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue).
+
+#### Database Pools
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool).
+
 #### Database Snapshots
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
@@ -7365,6 +6981,10 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 #### TableMapping Protocol
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
+
+#### Transactions and Savepoints
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions).
 
 #### Transaction Hook
 
@@ -7427,7 +7047,12 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
-[Database Configuration]: #database-configuration
+[Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
 [RecordError]: #recorderror
+[Transactions and Savepoints]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions
+[`DatabaseQueue`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
+[Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
+[`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool

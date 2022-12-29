@@ -17,7 +17,7 @@ extension AppDatabase {
             try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
             
             // Connect to a database on disk
-            // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
+            // See https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections
             let dbURL = folderURL.appendingPathComponent("db.sqlite")
             let dbPool = try DatabasePool(path: dbURL.path)
             

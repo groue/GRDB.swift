@@ -531,7 +531,7 @@ extension DatabaseWriter {
     /// was modified.
     func _addWriteOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
@@ -993,7 +993,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {

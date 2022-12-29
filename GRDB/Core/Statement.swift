@@ -507,37 +507,47 @@ extension Statement {
 
 /// A cursor that lazily iterates the results of a prepared ``Statement``.
 ///
-/// To get a `DatabaseCursor` instance, use a fetching method of
-/// ``Row``, ``DatabaseValueConvertible``, ``FetchableRecord``,
-/// or ``FetchRequest``. For example:
+/// ## Overview
 ///
-/// ```swift
-/// try dbQueue.read { db in
-///     // A cursor of database rows,
-///     // built from a prepared statement
-///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
-///     let rows = try Row.fetchCursor(statement)
-///     while let row = try rows.next() {
-///         let id: Int64 = row["id"]
-///         let name: String = row["name"]
-///     }
+/// To get a `DatabaseCursor` instance, use one of the `fetchCursor` methods.
+/// For example:
 ///
-///     // A cursor of values,
-///     // built from an SQL string
-///     let scores = try Int.fetchCursor(db, sql: "SELECT score FROM player")
-///     while let score = try scores.next() {
-///         print(score)
-///     }
+/// - A cursor of ``Row`` built from a prepared ``Statement``:
 ///
-///     // A cursor of players,
-///     // built from a QueryInterfaceRequest:
-///     let request = Player.all()
-///     let players = try request.fetchCursor(db)
-///     while let player = try players.next() {
-///         print(player.name, player.score)
+///     ```swift
+///     try dbQueue.read { db in
+///         let statement = try db.makeStatement(sql: "SELECT * FROM player")
+///         let rows = try Row.fetchCursor(statement)
+///         while let row = try rows.next() {
+///             let id: Int64 = row["id"]
+///             let name: String = row["name"]
+///         }
 ///     }
-/// }
-/// ```
+///     ```
+///
+/// - A cursor of `Int` built from an SQL string (see ``DatabaseValueConvertible``):
+///
+///     ```swift
+///     try dbQueue.read { db in
+///         let sql = "SELECT score FROM player"
+///         let scores = try Int.fetchCursor(db, sql: sql)
+///         while let score = try scores.next() {
+///             print(score)
+///         }
+///     }
+///     ```
+///
+/// - A cursor of `Player` records built from a request (see ``FetchableRecord`` and ``FetchRequest``):
+///
+///     ```swift
+///     try dbQueue.read { db in
+///         let request = Player.all()
+///         let players = try request.fetchCursor(db)
+///         while let player = try players.next() {
+///             print(player.name, player.score)
+///         }
+///     }
+///     ```
 ///
 /// A database cursor is valid only during the current database access (read or
 /// write). Do not store or escape a cursor for later use.

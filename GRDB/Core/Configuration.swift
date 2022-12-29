@@ -1,55 +1,6 @@
 import Dispatch
 import Foundation
 
-/// The configuration of a database connection.
-///
-/// You create a `Configuration` before opening a database connection:
-///
-/// ```swift
-/// var config = Configuration()
-/// config.readonly = true
-/// config.maximumReaderCount = 2  // (DatabasePool only) The default is 5
-/// config.prepareDatabase { db in // A function to run on connection
-///     db.trace { print("SQL >", $0) }
-/// }
-///
-/// let dbQueue = try DatabaseQueue( // or DatabasePool
-///     path: "/path/to/database.sqlite",
-///     configuration: config)
-/// ```
-///
-/// See <doc:DatabaseConnections>.
-///
-/// ## Topics
-///
-/// ### Creating a Configuration
-///
-/// - ``init()``
-///
-/// ### Configuring SQLite Connections
-///
-/// - ``acceptsDoubleQuotedStringLiterals``
-/// - ``busyMode``
-/// - ``foreignKeysEnabled``
-/// - ``readonly``
-///
-/// ### Configuring GRDB Connections
-///
-/// - ``allowsUnsafeTransactions``
-/// - ``defaultTransactionKind``
-/// - ``label``
-/// - ``maximumReaderCount``
-/// - ``observesSuspensionNotifications``
-/// - ``prepareDatabase(_:)``
-/// - ``publicStatementArguments``
-///
-/// ### Configuring the Quality of Service
-///
-/// - ``qos``
-/// - ``readQoS``
-/// - ``writeQoS``
-/// - ``targetQueue``
-/// - ``writeTargetQueue``
 public struct Configuration {
     
     // MARK: - Misc options
@@ -64,6 +15,15 @@ public struct Configuration {
     /// A boolean value indicating whether an SQLite connection is read-only.
     ///
     /// The default is false.
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.readonly = true
+    ///
+    /// let dbQueue = try DatabaseQueue( // or DatabasePool
+    ///     path: "/path/to/database.sqlite",
+    ///     configuration: config)
+    /// ```
     public var readonly = false
     
     /// A label that describes a database connection.

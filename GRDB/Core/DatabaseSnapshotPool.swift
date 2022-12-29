@@ -329,7 +329,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     
     public func _add<Reducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable where Reducer: ValueReducer
     {

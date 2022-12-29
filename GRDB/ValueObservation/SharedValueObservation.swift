@@ -121,7 +121,7 @@ extension ValueObservation {
     /// - returns: A `SharedValueObservation`
     public func shared(
         in reader: some DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>
     where Reducer: ValueReducer
@@ -168,7 +168,7 @@ extension ValueObservation {
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
 public final class SharedValueObservation<Element> {
-    private let scheduler: ValueObservationScheduler
+    private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
     private let startObservation: ValueObservationStart<Element>
     private let lock = NSRecursiveLock() // support synchronous observation events
@@ -190,7 +190,7 @@ public final class SharedValueObservation<Element> {
     }
     
     fileprivate init(
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         extent: SharedValueObservationExtent,
         startObservation: @escaping ValueObservationStart<Element>)
     {

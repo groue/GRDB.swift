@@ -23,7 +23,7 @@ try dbQueue.write { db in
 }
 ```
 
-Build prepared ``Statement`` and lazily iterate fetched rows with an efficient and fast ``DatabaseCursor``:
+Build a prepared ``Statement`` and lazily iterate a ``DatabaseCursor`` of ``Row``:
 
 ```swift
 try dbQueue.read { db in

@@ -325,7 +325,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - returns: A DatabaseCancellable that can stop the observation.
     func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
 }
@@ -584,7 +584,7 @@ extension DatabaseReader {
     /// initial value.
     func _addReadOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
@@ -676,7 +676,7 @@ extension AnyDatabaseReader: DatabaseReader {
     
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduling scheduler: some ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {

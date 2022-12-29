@@ -29,12 +29,12 @@ struct PlayerRequest: Queryable {
     
     func publisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
         // Build the publisher from the general-purpose read-only access
-        // granted by `appDatabase.databaseReader`.
+        // granted by `appDatabase.reader`.
         // Some apps will prefer to call a dedicated method of `appDatabase`.
         ValueObservation
             .tracking(fetchValue(_:))
             .publisher(
-                in: appDatabase.databaseReader,
+                in: appDatabase.reader,
                 // The `.immediate` scheduling feeds the view right on
                 // subscription, and avoids an undesired animation when the
                 // application starts.
