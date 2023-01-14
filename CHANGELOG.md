@@ -3654,7 +3654,7 @@ It comes with breaking changes, but the good news is that they are the last (unt
     
     As a matter of fact, GRDB 1.0 still supports Xcode 8.1 and Swift 3.0. But future versions are free to use Swift 3.1 features, and will require Xcode 8.3+.
     
-    The targetted operating systems are unchanged: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+
+    The targetted operating systems are unchanged: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+
 
 - **[Record types](https://github.com/groue/GRDB.swift#records) have their `persistentDictionary` property replaced with the `encode(to:)` method:**
     
@@ -5522,7 +5522,7 @@ Released May 10, 2016
 
 **New**
 
-- `FetchedRecordsController` is now exposed in OSX CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller))
+- `FetchedRecordsController` is now exposed in macOS CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller))
 
 **Fixed**
 
@@ -5698,7 +5698,7 @@ Released March 31, 2016
 
 Released March 29, 2016
 
-This release restores CocoaPods support for iOS 9.0+ and OSX 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or OSX 10.9+ in a further release.
+This release restores CocoaPods support for iOS 9.0+ and macOS 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or OSX 10.9+ in a further release.
 
 
 ## 0.54.0
@@ -6597,7 +6597,7 @@ Released August 25, 2015
 
 **Fixed**
 
-- Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
+- Reduced iOS Deployment Target to 8.0, and macOS Deployment Target to 10.9.
 - `DatabaseQueue.inTransaction()` is now declared as `rethrows`.
 
 **Breaking changes**
