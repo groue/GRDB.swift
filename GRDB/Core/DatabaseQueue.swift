@@ -103,7 +103,7 @@ public final class DatabaseQueue {
         // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
-        // Explicit unregistration is required before OS X 10.11.
+        // Explicit unregistration is required before macOS 10.11.
         NotificationCenter.default.removeObserver(self)
     }
 }

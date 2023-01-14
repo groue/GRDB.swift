@@ -5462,11 +5462,11 @@ Released May 17, 2016
 
 **Fixed**
 
-- Restored support for iOS before 8.2 and OS X before 10.10. Fixes [#51](https://github.com/groue/GRDB.swift/issues/51).
+- Restored support for iOS before 8.2 and macOS before 10.10. Fixes [#51](https://github.com/groue/GRDB.swift/issues/51).
 
 **Breaking Changes**
 
-- Support for advanced migrations is not available until iOS 8.2 and OS X 10.10:
+- Support for advanced migrations is not available until iOS 8.2 and macOS 10.10:
     
     ```diff
      struct DatabaseMigrator {
@@ -5655,7 +5655,7 @@ Released April 5, 2016
 
 **Fixed**
 
-- Restored CocoaPods support for iOS 8+ and OS X 10.9+
+- Restored CocoaPods support for iOS 8+ and macOS 10.9+
 
 
 ## 0.56.0
@@ -5698,7 +5698,7 @@ Released March 31, 2016
 
 Released March 29, 2016
 
-This release restores CocoaPods support for iOS 9.0+ and macOS 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or OSX 10.9+ in a further release.
+This release restores CocoaPods support for iOS 9.0+ and macOS 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or macOS 10.9+ in a further release.
 
 
 ## 0.54.0
