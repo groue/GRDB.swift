@@ -194,6 +194,19 @@ extension OrderedDictionary: Equatable where Value: Equatable {
     }
 }
 
+extension OrderedDictionary: CustomStringConvertible {
+    var description: String {
+        let chunks = map { (key, value) in
+            "\(String(reflecting: key)): \(String(reflecting: value))"
+        }
+        if chunks.isEmpty {
+            return "[:]"
+        } else {
+            return "[\(chunks.joined(separator: ", "))]"
+        }
+    }
+}
+
 extension Dictionary {
     init(_ orderedDictionary: OrderedDictionary<Key, Value>) {
         self = orderedDictionary.dictionary
