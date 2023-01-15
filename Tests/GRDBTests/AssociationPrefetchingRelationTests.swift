@@ -690,4 +690,47 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
             }
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1315>
+    func testIssue1315() throws {
+        struct A: TableRecord {
+            static let b = belongsTo(B.self)
+        }
+        struct B: TableRecord {
+            static let c = hasOne(C.self)
+            static let e = hasOne(E.self)
+        }
+        struct C: TableRecord {
+            static let ds = hasMany(D.self)
+        }
+        struct D: TableRecord { }
+        struct E: TableRecord {
+            static let fs = hasMany(F.self)
+        }
+        struct F: TableRecord { }
+        
+        try DatabaseQueue().write { db in
+            try db.execute(sql: """
+                CREATE TABLE b (id INTEGER PRIMARY KEY);
+                CREATE TABLE a (id INTEGER PRIMARY KEY, bId INTEGER REFERENCES b(id));
+                CREATE TABLE c (id INTEGER PRIMARY KEY, bId INTEGER REFERENCES b(id));
+                CREATE TABLE d (id INTEGER PRIMARY KEY, cId INTEGER REFERENCES c(id));
+                CREATE TABLE e (id INTEGER PRIMARY KEY, bId INTEGER REFERENCES b(id));
+                CREATE TABLE f (id INTEGER PRIMARY KEY, eId INTEGER REFERENCES e(id));
+                """)
+            
+            let region = try A
+                .including(required: A.b
+                    .including(optional: B.c.including(all: C.ds))
+                    .including(optional: B.e.including(all: E.fs)))
+                .databaseRegion(db)
+            
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "a")))
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "b")))
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "c")))
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "d")))
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "e")))
+            XCTAssertTrue(region.isModified(byEventsOfKind: .insert(tableName: "f")))
+        }
+    }
 }

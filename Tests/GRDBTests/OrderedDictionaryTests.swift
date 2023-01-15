@@ -57,4 +57,33 @@ class OrderedDictionaryTests: GRDBTestCase {
             }
         }
     }
+    
+    func testDescription() {
+        do {
+            // One key/value pair
+            let dict: OrderedDictionary = ["toto": "foo"]
+            XCTAssertEqual(dict.description, #"["toto": "foo"]"#)
+        }
+        do {
+            // Two key/value pairs
+            let dict: OrderedDictionary = ["toto": "foo", "titi": "bar"]
+            XCTAssertEqual(dict.description, #"["toto": "foo", "titi": "bar"]"#)
+        }
+    }
+    
+    func testOrderedDictionaryDescriptionEqualsDictionaryDescription() {
+        struct Key: Hashable, CustomStringConvertible, CustomDebugStringConvertible {
+            var description: String { "Key description" }
+            var debugDescription: String { "Key debugDescription" }
+        }
+        struct Value: CustomStringConvertible, CustomDebugStringConvertible {
+            var description: String { "Value description" }
+            var debugDescription: String { "Value debugDescription" }
+        }
+        do {
+            let dict = [Key(): Value()]
+            let orderedDict: OrderedDictionary = [Key(): Value()]
+            XCTAssertEqual(String(describing: orderedDict), String(describing: dict))
+        }
+    }
 }
