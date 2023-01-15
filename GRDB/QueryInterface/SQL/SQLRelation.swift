@@ -530,11 +530,18 @@ extension SQLRelation {
         }
     }
     
-    func removingChildrenForPrefetchedAssociations() -> Self {
-        filteringChildren {
-            switch $0.kind {
-            case .all, .bridge: return false
-            case .oneRequired, .oneOptional: return true
+    /// Return a relation without any `.all` and `.bridge` children, recursively.
+    func removingPrefetchedAssociations() -> Self {
+        with {
+            $0.children = $0.children.compactMapValues { child in
+                switch child.kind {
+                case .all, .bridge:
+                    return nil
+                case .oneRequired, .oneOptional:
+                    return child.with {
+                        $0.relation = $0.relation.removingPrefetchedAssociations()
+                    }
+                }
             }
         }
     }

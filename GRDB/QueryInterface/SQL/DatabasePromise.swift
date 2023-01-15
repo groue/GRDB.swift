@@ -42,3 +42,9 @@ struct DatabasePromise<T> {
         }
     }
 }
+
+extension DatabasePromise: CustomStringConvertible {
+    var description: String {
+        "DatabasePromise<\(T.self)>"
+    }
+}

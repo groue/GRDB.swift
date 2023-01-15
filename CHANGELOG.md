@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.6.x` Releases - [6.6.0](#660)
+- `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
 - `6.5.x` Releases - [6.5.0](#650)
 - `6.4.x` Releases - [6.4.0](#640)
 - `6.3.x` Releases - [6.3.0](#630) - [6.3.1](#631)
@@ -103,6 +103,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.6.1
+
+Released January 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.6.0...v6.6.1)
+
+- **Fixed**: [#1317](https://github.com/groue/GRDB.swift/pull/1317) by [@groue](https://github.com/groue): Fix handling of multiple deep prefetched associations
 
 ## 6.6.0
 

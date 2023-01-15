@@ -2907,8 +2907,6 @@ See [Good Practices for Designing Record Types] for more information.
             .including(required: Passport.citizen))
     ```
 
-Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
-
 ---
 
 This documentation owns a lot to the [Active Record Associations](http://guides.rubyonrails.org/association_basics.html) guide, which is an immensely well-written introduction to database relations. Many thanks to the Rails team and contributors.
@@ -2919,7 +2917,7 @@ This documentation owns a lot to the [Active Record Associations](http://guides.
 
 **GRDB**
 
-Copyright (C) 2015-2020 Gwendal Roué
+Copyright (C) 2015-2023 Gwendal Roué
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
