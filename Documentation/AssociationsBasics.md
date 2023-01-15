@@ -2907,8 +2907,6 @@ See [Good Practices for Designing Record Types] for more information.
             .including(required: Passport.citizen))
     ```
 
-Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
-
 ---
 
 This documentation owns a lot to the [Active Record Associations](http://guides.rubyonrails.org/association_basics.html) guide, which is an immensely well-written introduction to database relations. Many thanks to the Rails team and contributors.
