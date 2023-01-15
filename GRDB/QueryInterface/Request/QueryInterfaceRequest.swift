@@ -1355,7 +1355,7 @@ private func prefetch(
                 // useless, and we only need to select pivot columns:
                 let originRelation = originRelation
                     .unorderedUnlessLimited() // only preserve ordering in the CTE if limited
-                    .removingChildrenForPrefetchedAssociations()
+                    .removingPrefetchedAssociations()
                     .selectOnly(leftColumns.map { SQLExpression.column($0).sqlSelection })
                 let originCTE = CommonTableExpression(
                     named: "grdb_base",
