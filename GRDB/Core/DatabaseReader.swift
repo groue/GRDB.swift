@@ -532,7 +532,7 @@ extension DatabaseReader {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter value: A closure which accesses the database.
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         value: @escaping (Database) throws -> Output)
@@ -550,7 +550,7 @@ extension DatabaseReader {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that reads from the database.
     ///
@@ -569,7 +569,7 @@ extension DatabasePublishers {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
         .init(upstream: eraseToAnyPublisher())

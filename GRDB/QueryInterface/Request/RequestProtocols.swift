@@ -570,7 +570,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
       Self: TypedRequest,

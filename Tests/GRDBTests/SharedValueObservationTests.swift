@@ -104,7 +104,7 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_immediate_publisher() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -381,7 +381,7 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_async_publisher() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -511,7 +511,7 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_error_recovery_observationLifetime() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -567,7 +567,7 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_error_recovery_whileObserved() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         

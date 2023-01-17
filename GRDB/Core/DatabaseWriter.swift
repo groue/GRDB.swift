@@ -516,7 +516,7 @@ extension DatabaseWriter {
     ///
     /// - Parameter filePath: file path for new database
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public func vacuum(into filePath: String) throws {
         try writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
@@ -775,7 +775,7 @@ extension DatabaseWriter {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter updates: A closure which accesses the database.
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         updates: @escaping (Database) throws -> Output)
@@ -840,7 +840,7 @@ extension DatabaseWriter {
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter updates: A closure which writes in the database.
     /// - parameter value: A closure which reads from the database.
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func writePublisher<S, T, Output>(
         receiveOn scheduler: S = DispatchQueue.main,
         updates: @escaping (Database) throws -> T,
@@ -872,7 +872,7 @@ extension DatabaseWriter {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that writes into the database.
     ///
@@ -891,7 +891,7 @@ extension DatabasePublishers {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToWritePublisher() -> DatabasePublishers.Write<Output> {
         .init(upstream: self.eraseToAnyPublisher())

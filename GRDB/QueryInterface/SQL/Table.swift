@@ -723,7 +723,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
@@ -1546,7 +1546,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
@@ -1688,7 +1688,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible

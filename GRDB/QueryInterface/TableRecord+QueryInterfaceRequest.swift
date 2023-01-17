@@ -605,7 +605,7 @@ extension TableRecord {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
