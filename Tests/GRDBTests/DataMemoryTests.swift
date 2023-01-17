@@ -37,10 +37,11 @@ class DataMemoryTests: GRDBTestCase {
                     
                     do {
                         // This data should not be copied
-                        let nonCopiedData = row.dataNoCopy(atIndex: 0)!
-                        XCTAssertEqual(nonCopiedData, data)
-                        nonCopiedData.withUnsafeBytes {
-                            XCTAssertEqual($0.baseAddress, blobPointer)
+                        try row.withUnsafeData(atIndex: 0) { nonCopiedData in
+                            XCTAssertEqual(nonCopiedData, data)
+                            nonCopiedData!.withUnsafeBytes {
+                                XCTAssertEqual($0.baseAddress, blobPointer)
+                            }
                         }
                     }
                 }
@@ -74,10 +75,11 @@ class DataMemoryTests: GRDBTestCase {
 
                     do {
                         // This data should not be copied
-                        let nonCopiedData = nestedRow.dataNoCopy(atIndex: 0)!
-                        XCTAssertEqual(nonCopiedData, data)
-                        nonCopiedData.withUnsafeBytes {
-                            XCTAssertEqual($0.baseAddress, blobPointer)
+                        try nestedRow.withUnsafeData(atIndex: 0) { nonCopiedData in
+                            XCTAssertEqual(nonCopiedData, data)
+                            nonCopiedData!.withUnsafeBytes {
+                                XCTAssertEqual($0.baseAddress, blobPointer)
+                            }
                         }
                     }
                 }
@@ -109,10 +111,11 @@ class DataMemoryTests: GRDBTestCase {
                         }
                         do {
                             // This data should not be copied:
-                            let nonCopiedData = row.dataNoCopy(atIndex: 0)!
-                            XCTAssertEqual(nonCopiedData, data)
-                            nonCopiedData.withUnsafeBytes { nonCopiedBuffer in
-                                XCTAssertEqual(nonCopiedBuffer.baseAddress, buffer.baseAddress)
+                            try row.withUnsafeData(atIndex: 0) { nonCopiedData in
+                                XCTAssertEqual(nonCopiedData, data)
+                                nonCopiedData!.withUnsafeBytes { nonCopiedBuffer in
+                                    XCTAssertEqual(nonCopiedBuffer.baseAddress, buffer.baseAddress)
+                                }
                             }
                         }
                     }
