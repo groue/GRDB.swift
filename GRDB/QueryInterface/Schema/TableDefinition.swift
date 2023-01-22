@@ -1109,7 +1109,7 @@ public final class TableDefinition {
                 tableOptions.append("STRICT")
             }
 #else
-            if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+            if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
                 if options.contains(.strict) {
                     tableOptions.append("STRICT")
                 }
@@ -1267,7 +1267,7 @@ public final class TableAlteration {
     ///
     /// - parameter name: the old name of the column.
     /// - parameter newName: the new name of the column.
-    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    @available(iOS 13, tvOS 13, watchOS 6, *) // SQLite 3.25+
     public func rename(column name: String, to newName: String) {
         _rename(column: name, to: newName)
     }
@@ -1285,7 +1285,7 @@ public final class TableAlteration {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - Parameter name: the name of the column to drop.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func drop(column name: String) {
         _drop(column: name)
     }
@@ -1810,7 +1810,7 @@ public final class ColumnDefinition {
     ///     - qualification: The generated column's qualification, which
     ///       defaults to ``GeneratedColumnQualification/virtual``.
     /// - returns: `self` so that you can further refine the column definition.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+ (3.31 actually)
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.31 actually)
     @discardableResult
     public func generatedAs(
         sql: String,
@@ -1850,7 +1850,7 @@ public final class ColumnDefinition {
     ///     - qualification: The generated column's qualification, which
     ///       defaults to ``GeneratedColumnQualification/virtual``.
     /// - returns: `self` so that you can further refine the column definition.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+ (3.31 actually)
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.31 actually)
     @discardableResult
     public func generatedAs(
         _ expression: some SQLExpressible,

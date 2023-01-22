@@ -30,7 +30,7 @@ public struct FTS5: VirtualTableModule {
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
-        @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *)
+        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
         case remove
         #endif
     }
@@ -218,13 +218,9 @@ public struct FTS5: VirtualTableModule {
         return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         #else
         // GRDB is linked against the system SQLite.
-        //
-        // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
-        if #available(iOS 12.0, macOS 10.14, tvOS 12.0, watchOS 5.0, *) {
-            // SQLite 3.24.0 or more
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
             return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         } else {
-            // SQLite 3.19.3 or less
             return api_v1(db)
         }
         #endif

@@ -636,7 +636,7 @@ extension QueryInterfaceRequest {
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     /// - precondition: `selection` is not empty.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchStatement(
         _ db: Database,
         selection: [any SQLSelectable])
@@ -668,7 +668,7 @@ extension QueryInterfaceRequest {
     /// - parameter db: A database connection.
     /// - returns: A ``RecordCursor`` over deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchCursor(_ db: Database)
     throws -> RecordCursor<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord
@@ -696,7 +696,7 @@ extension QueryInterfaceRequest {
     /// - parameter db: A database connection.
     /// - returns: An array of deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchAll(_ db: Database)
     throws -> [RowDecoder]
     where RowDecoder: FetchableRecord & TableRecord
@@ -723,7 +723,7 @@ extension QueryInterfaceRequest {
     /// - parameter db: A database connection.
     /// - returns: A set of deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchSet(_ db: Database)
     throws -> Set<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord & Hashable
@@ -995,7 +995,7 @@ extension QueryInterfaceRequest {
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     /// - precondition: `selection` and `assignments` are not empty.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetchStatement(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -1043,7 +1043,7 @@ extension QueryInterfaceRequest {
     /// - returns: A cursor over the updated records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     /// - precondition: `assignments` is not empty.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetchCursor(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -1081,7 +1081,7 @@ extension QueryInterfaceRequest {
     /// - returns: An array of updated records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     /// - precondition: `assignments` is not empty.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetchAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -1114,7 +1114,7 @@ extension QueryInterfaceRequest {
     /// - returns: A set of updated records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     /// - precondition: `assignments` is not empty.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetchSet(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,

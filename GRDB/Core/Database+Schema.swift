@@ -387,7 +387,7 @@ extension Database {
             return try self.table(for: table)!.hasRowID
         }
 #else
-        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
             return try self.table(for: table)!.hasRowID
         }
 #endif
