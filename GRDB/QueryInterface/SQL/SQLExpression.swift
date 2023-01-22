@@ -1893,13 +1893,13 @@ extension SQLSpecificExpressible {
     }
     #elseif !GRDBCIPHER
     /// An ordering term for ascending order (nulls last).
-    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
     /// An ordering term for descending order (nulls first).
-    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }

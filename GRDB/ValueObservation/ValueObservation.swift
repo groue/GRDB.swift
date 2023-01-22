@@ -771,7 +771,7 @@ extension ValueObservation {
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
     /// - returns: A Combine publisher
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func publisher(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
@@ -788,7 +788,7 @@ extension ValueObservation {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that publishes the values of a ``ValueObservation``.
     ///

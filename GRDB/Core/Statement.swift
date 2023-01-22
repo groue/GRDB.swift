@@ -175,7 +175,7 @@ public final class Statement {
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
 #else
-        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
+        if #available(iOS 12.0, macOS 10.14, tvOS 12.0, watchOS 5.0, *) {
             code = sqlite3_prepare_v3(
                 database.sqliteConnection, statementStart, -1, prepFlags,
                 &sqliteStatement, statementEnd)

@@ -195,7 +195,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 
     func testVacuumInto() throws {
-        guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
+        guard #available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
             throw XCTSkip("VACUUM INTO is not available")
         }
         // Prevent SQLCipher failures
