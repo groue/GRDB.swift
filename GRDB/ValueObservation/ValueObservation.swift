@@ -704,7 +704,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         }
         
         let iterator = stream.makeAsyncIterator()
-        if let cancellable = cancellable {
+        if let cancellable {
             return Iterator(
                 iterator: iterator,
                 cancellable: cancellable)

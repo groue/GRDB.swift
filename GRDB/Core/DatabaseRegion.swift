@@ -287,8 +287,8 @@ private struct TableRegion: Equatable {
     var rowIds: Set<Int64>? // nil means "all rowids"
     
     var isEmpty: Bool {
-        if let columns = columns, columns.isEmpty { return true }
-        if let rowIds = rowIds, rowIds.isEmpty { return true }
+        if let columns, columns.isEmpty { return true }
+        if let rowIds, rowIds.isEmpty { return true }
         return false
     }
     

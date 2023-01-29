@@ -39,7 +39,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            if let error = error {
+            if let error {
                 throw error
             }
         }

@@ -112,7 +112,7 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
             firstError = error
         }
     }
-    if let firstError = firstError {
+    if let firstError {
         throw firstError
     }
     return result!

@@ -203,7 +203,7 @@ open class Record {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
                 let newDbValue = newValue?.databaseValue ?? .null
-                guard let oldRow = oldRow, let oldDbValue: DatabaseValue = oldRow[column] else {
+                guard let oldRow, let oldDbValue: DatabaseValue = oldRow[column] else {
                     return (column, nil)
                 }
                 if newDbValue != oldDbValue {

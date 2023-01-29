@@ -62,7 +62,7 @@ extension FTS4: VirtualTableModule {
         
         switch definition.contentMode {
         case .raw(let content):
-            if let content = content {
+            if let content {
                 arguments.append("content=\"\(content)\"")
             }
         case .synchronized(let contentTable):

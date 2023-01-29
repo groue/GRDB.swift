@@ -403,7 +403,7 @@ extension ValueWriteOnlyObserver: TransactionObserver {
                     let value = try self.reducer._value(fetchedValue)
                     
                     // Notify value
-                    if let value = value {
+                    if let value {
                         self.scheduler.schedule {
                             let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                             guard let onChange else { return /* Cancelled */ }

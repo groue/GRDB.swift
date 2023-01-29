@@ -77,7 +77,7 @@ public struct BelongsToAssociation<Origin, Destination> {
             originIsLeft: true)
         
         let associationKey: SQLAssociationKey
-        if let key = key {
+        if let key {
             associationKey = .fixedSingular(key)
         } else {
             associationKey = .inflected(destinationTable)

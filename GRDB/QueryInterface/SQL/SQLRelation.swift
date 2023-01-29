@@ -635,7 +635,7 @@ struct SQLLimit {
     let offset: Int?
     
     var sql: String {
-        if let offset = offset {
+        if let offset {
             return "\(limit) OFFSET \(offset)"
         } else {
             return "\(limit)"

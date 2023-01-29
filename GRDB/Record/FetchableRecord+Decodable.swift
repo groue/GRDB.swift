@@ -98,7 +98,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func contains(_ key: Key) -> Bool {
             let row = decoder.row
-            if let _columnForKey = _columnForKey {
+            if let _columnForKey {
                 if let column = _columnForKey[key.stringValue] {
                     assert(row.hasColumn(column))
                     return true
@@ -299,7 +299,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             // "book", which is not the name of a column, and not the name of a
             // scope) has to be decoded right from the base row. But this can
             // happen only once.
-            if let decodedRootKey = decodedRootKey {
+            if let decodedRootKey {
                 let keys = [decodedRootKey.stringValue, key.stringValue].sorted()
                 throw DecodingError.keyNotFound(key, DecodingError.Context(
                                                     codingPath: codingPath,
@@ -369,7 +369,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             } catch is JSONRequiredError {
                 // Decode from JSON
                 return try row.withUnsafeData(atIndex: index) { data in
-                    guard let data = data else {
+                    guard let data else {
                         throw DecodingError.valueNotFound(Data.self, DecodingError.Context(
                             codingPath: codingPath + [key],
                             debugDescription: "Missing Data"))

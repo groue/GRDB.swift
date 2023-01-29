@@ -406,8 +406,8 @@ extension SQLStatementCursor: Cursor {
     /// Check that all arguments were consumed: it is a programmer error to
     /// provide arguments that do not match the statements.
     private func checkArgumentsAreEmpty() throws {
-        if let arguments = arguments,
-           let initialArgumentCount = initialArgumentCount,
+        if let arguments,
+           let initialArgumentCount,
            arguments.values.isEmpty == false
         {
             throw DatabaseError(

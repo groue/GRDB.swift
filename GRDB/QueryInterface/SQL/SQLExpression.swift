@@ -979,7 +979,7 @@ extension SQLExpression {
                 \(op.sql) \
                 \(rhs.sql(context, wrappedInParenthesis: true))
                 """
-            if let escape = escape {
+            if let escape {
                 resultSQL += try " ESCAPE \(escape.sql(context, wrappedInParenthesis: true))"
             }
             if wrappedInParenthesis {

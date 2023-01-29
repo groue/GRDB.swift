@@ -1909,13 +1909,13 @@ public final class ColumnDefinition {
     fileprivate func sql(_ db: Database, tableName: String, primaryKeyColumns: [String]?) throws -> String {
         var chunks: [String] = []
         chunks.append(name.quotedDatabaseIdentifier)
-        if let type = type {
+        if let type {
             chunks.append(type.rawValue)
         }
         
         if let (conflictResolution, autoincrement) = primaryKey {
             chunks.append("PRIMARY KEY")
-            if let conflictResolution = conflictResolution {
+            if let conflictResolution {
                 chunks.append("ON CONFLICT")
                 chunks.append(conflictResolution.rawValue)
             }
@@ -1953,11 +1953,11 @@ public final class ColumnDefinition {
             try chunks.append("CHECK (\(checkConstraint.quotedSQL(db)))")
         }
         
-        if let defaultExpression = defaultExpression {
+        if let defaultExpression {
             try chunks.append("DEFAULT \(defaultExpression.quotedSQL(db))")
         }
         
-        if let collationName = collationName {
+        if let collationName {
             chunks.append("COLLATE")
             chunks.append(collationName)
         }
@@ -2064,7 +2064,7 @@ private struct IndexDefinition {
             \(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
             )
             """)
-        if let condition = condition {
+        if let condition {
             try chunks.append("WHERE \(condition.quotedSQL(db))")
         }
         return chunks.joined(separator: " ")

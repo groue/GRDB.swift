@@ -5,7 +5,7 @@ import GRDB
 class FoundationUUIDTests: GRDBTestCase {
     private func assert(_ value: DatabaseValueConvertible?, isDecodedAs expectedUUID: UUID?) throws {
         try makeDatabaseQueue().read { db in
-            if let expectedUUID = expectedUUID {
+            if let expectedUUID {
                 let decodedUUID = try UUID.fetchOne(db, sql: "SELECT ?", arguments: [value])
                 XCTAssertEqual(decodedUUID, expectedUUID)
             } else if value == nil {

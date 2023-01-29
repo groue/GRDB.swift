@@ -238,7 +238,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 s2.signal()
             }
             let block2 = { [weak dbPool] () in
-                if let dbPool = dbPool {
+                if let dbPool {
                     try! dbPool.read { db in
                         s1.signal()
                         _ = s2.wait(timeout: .distantFuture)
@@ -282,7 +282,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             let block2 = { [weak dbPool] () in
                 var statement: Statement? = nil
                 do {
-                    if let dbPool = dbPool {
+                    if let dbPool {
                         do {
                             try dbPool.write { db in
                                 statement = try db.makeStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")

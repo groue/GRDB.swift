@@ -1699,7 +1699,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     {
         var value: SQLiteValue? = nil
         guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
-        if let value = value {
+        if let value {
             return DatabaseValue(sqliteValue: value)
         }
         return nil

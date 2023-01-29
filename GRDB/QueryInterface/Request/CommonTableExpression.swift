@@ -334,7 +334,7 @@ struct SQLCTE {
     
     /// The number of columns in the common table expression.
     func columnCount(_ db: Database) throws -> Int {
-        if let columns = columns {
+        if let columns {
             // No need to hit the database
             return columns.count
         }

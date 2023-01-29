@@ -108,7 +108,7 @@ extension Database {
             }
             let constructor = Unmanaged<FTS5TokenizerConstructor>.fromOpaque(constructorPointer).takeUnretainedValue()
             var arguments: [String] = []
-            if let azArg = azArg {
+            if let azArg {
                 for i in 0..<Int(nArg) {
                     if let cstr = azArg[i] {
                         arguments.append(String(cString: cstr))

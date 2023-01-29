@@ -406,7 +406,7 @@ public struct Configuration {
     /// Creates a DispatchQueue which has the quality of service and target
     /// queue of read accesses.
     func makeReaderDispatchQueue(label: String) -> DispatchQueue {
-        if let targetQueue = targetQueue {
+        if let targetQueue {
             return DispatchQueue(label: label, target: targetQueue)
         } else {
             return DispatchQueue(label: label, qos: qos)

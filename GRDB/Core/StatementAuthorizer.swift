@@ -107,7 +107,7 @@ final class StatementAuthorizer {
             
         case SQLITE_DELETE:
             if isDropStatement { return SQLITE_OK }
-            guard let cString1 = cString1 else { return SQLITE_OK }
+            guard let cString1 else { return SQLITE_OK }
             
             // Deletions from sqlite_master and sqlite_temp_master are not like
             // other deletions: `sqlite3_update_hook` does not notify them, and
@@ -137,7 +137,7 @@ final class StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_TRANSACTION:
-            guard let cString1 = cString1 else { return SQLITE_OK }
+            guard let cString1 else { return SQLITE_OK }
             if strcmp(cString1, "BEGIN") == 0 {
                 transactionEffect = .beginTransaction
             } else if strcmp(cString1, "COMMIT") == 0 {
@@ -148,7 +148,7 @@ final class StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_SAVEPOINT:
-            guard let cString1 = cString1 else { return SQLITE_OK }
+            guard let cString1 else { return SQLITE_OK }
             guard let name = cString2.map(String.init) else { return SQLITE_OK }
             if strcmp(cString1, "BEGIN") == 0 {
                 transactionEffect = .beginSavepoint(name)

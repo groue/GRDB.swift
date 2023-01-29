@@ -1346,7 +1346,7 @@ extension Table {
     {
         let association = HasManyThroughAssociation(through: pivot, using: target)
 
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association
@@ -1378,7 +1378,7 @@ extension Table {
     {
         let association = HasOneThroughAssociation(through: pivot, using: target)
 
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association

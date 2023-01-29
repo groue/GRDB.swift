@@ -210,7 +210,7 @@ extension Database {
                 throw DatabaseError(resultCode: code, message: "failed fts5_tokenizer.xCreate")
             }
             
-            if let tokenizerPointer = tokenizerPointer {
+            if let tokenizerPointer {
                 self.tokenizerPointer = tokenizerPointer
             } else {
                 throw DatabaseError(resultCode: code, message: "nil tokenizer")

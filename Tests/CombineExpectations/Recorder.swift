@@ -253,7 +253,7 @@ public class Recorder<Input, Failure: Error>: Subscriber {
         synchronized {
             switch state {
             case let .subscribed(_, exp, elements):
-                if let exp = exp {
+                if let exp {
                     switch exp {
                     case let .onCompletion(expectation):
                         expectation.fulfill()

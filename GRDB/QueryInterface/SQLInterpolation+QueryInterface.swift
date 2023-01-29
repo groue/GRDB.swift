@@ -74,7 +74,7 @@ extension SQLInterpolation {
     ///         """
     @_disfavoredOverload
     public mutating func appendInterpolation(_ selection: (any SQLSelectable)?) {
-        if let selection = selection {
+        if let selection {
             elements.append(.selection(selection.sqlSelection))
         } else {
             appendLiteral("NULL")
@@ -127,7 +127,7 @@ extension SQLInterpolation {
     ///         """
     @_disfavoredOverload
     public mutating func appendInterpolation(_ expressible: (any SQLExpressible)?) {
-        if let expressible = expressible {
+        if let expressible {
             elements.append(.expression(expressible.sqlExpression))
         } else {
             appendLiteral("NULL")

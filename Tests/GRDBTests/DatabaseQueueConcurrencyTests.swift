@@ -103,7 +103,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError = concurrencyError {
+        if let concurrencyError {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
         } else {
@@ -159,7 +159,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError = concurrencyError {
+        if let concurrencyError {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
         } else {
@@ -215,7 +215,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError = concurrencyError {
+        if let concurrencyError {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
         } else {

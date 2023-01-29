@@ -114,11 +114,11 @@ public struct FTS5: VirtualTableModule {
         
         switch definition.contentMode {
         case let .raw(content, contentRowID):
-            if let content = content {
+            if let content {
                 let quotedContent = try content.sqlExpression.quotedSQL(db)
                 arguments.append("content=\(quotedContent)")
             }
-            if let contentRowID = contentRowID {
+            if let contentRowID {
                 let quotedContentRowID = try contentRowID.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedContentRowID)")
             }

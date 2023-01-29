@@ -159,7 +159,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self._statement = statement
-        if let adapter = adapter {
+        if let adapter {
             // adapter may redefine the index of the leftmost column
             columnIndex = try CInt(adapter.baseColumnIndex(atIndex: 0, layout: statement))
         } else {

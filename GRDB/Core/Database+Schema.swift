@@ -1032,7 +1032,7 @@ public struct ForeignKeyViolation {
         })
         
         var description: String
-        if let foreignKey = foreignKey {
+        if let foreignKey {
             description = """
                 FOREIGN KEY constraint violation - \
                 from \(originTable)(\(foreignKey.originColumns.joined(separator: ", "))) \
@@ -1042,9 +1042,9 @@ public struct ForeignKeyViolation {
             description = "FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)"
         }
         
-        if let originRow = originRow {
+        if let originRow {
             description += ", in \(String(describing: originRow))"
-        } else if let originRowID = originRowID {
+        } else if let originRowID {
             description += ", in rowid \(originRowID)"
         }
         
@@ -1084,7 +1084,7 @@ extension ForeignKeyViolation: CustomStringConvertible {
     ///
     /// See also ``failureDescription(_:)``.
     public var description: String {
-        if let originRowID = originRowID {
+        if let originRowID {
             return """
                 FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), \
                 in rowid \(originRowID)

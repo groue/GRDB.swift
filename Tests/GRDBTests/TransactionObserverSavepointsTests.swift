@@ -40,16 +40,16 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
     private func match(preUpdateEvent event: DatabasePreUpdateEvent, kind: DatabasePreUpdateEvent.Kind, tableName: String, initialRowID: Int64?, finalRowID: Int64?, initialValues: [DatabaseValue]?, finalValues: [DatabaseValue]?, depth: CInt = 0) -> Bool {
         
         func check(_ dbValues: [DatabaseValue]?, expected: [DatabaseValue]?) -> Bool {
-            if let dbValues = dbValues {
-                guard let expected = expected else { return false }
+            if let dbValues {
+                guard let expected else { return false }
                 return dbValues == expected
             }
             else { return expected == nil }
         }
         
         var count : Int = 0
-        if let initialValues = initialValues { count = initialValues.count }
-        if let finalValues = finalValues { count = max(count, finalValues.count) }
+        if let initialValues { count = initialValues.count }
+        if let finalValues { count = max(count, finalValues.count) }
         
         guard (event.kind == kind) else { return false }
         guard (event.tableName == tableName) else { return false }

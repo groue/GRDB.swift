@@ -198,7 +198,7 @@ extension ResultCode: CustomStringConvertible {
     }
     
     public var description: String {
-        if let errorString = errorString {
+        if let errorString {
             return "\(rawValue) (\(errorString))"
         } else {
             return "\(rawValue)"
@@ -543,13 +543,13 @@ extension DatabaseError: CustomStringConvertible {
     /// without notice: don't have your application rely on any specific format.
     public var description: String {
         var description = "SQLite error \(resultCode.rawValue)"
-        if let message = message {
+        if let message {
             description += ": \(message)"
         }
-        if let sql = sql {
+        if let sql {
             description += " - while executing `\(sql)`"
         }
-        if publicStatementArguments, let arguments = arguments, !arguments.isEmpty {
+        if publicStatementArguments, let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"
         }
         return description
@@ -571,13 +571,13 @@ extension DatabaseError: CustomStringConvertible {
     ///   property with care.
     public var expandedDescription: String {
         var description = "SQLite error \(resultCode.rawValue)"
-        if let message = message {
+        if let message {
             description += ": \(message)"
         }
-        if let sql = sql {
+        if let sql {
             description += " - while executing `\(sql)`"
         }
-        if let arguments = arguments, !arguments.isEmpty {
+        if let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"
         }
         return description
@@ -598,7 +598,7 @@ extension DatabaseError: CustomNSError {
     /// Part of the `CustomNSError` conformance.
     public var errorUserInfo: [String: Any] {
         var userInfo = [NSLocalizedDescriptionKey: description]
-        if let message = message {
+        if let message {
             userInfo[NSLocalizedFailureReasonErrorKey] = message
         }
         return userInfo

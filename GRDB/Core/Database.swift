@@ -335,10 +335,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             _ = sqlite3_close(sqliteConnection) // ignore result code
             throw DatabaseError(resultCode: code)
         }
-        if let sqliteConnection = sqliteConnection {
-            return sqliteConnection
+        guard let sqliteConnection else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
         }
-        throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        return sqliteConnection
     }
     
     // MARK: - Database Setup
@@ -1163,7 +1163,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             }
         }
         
-        if let firstError = firstError {
+        if let firstError {
             throw firstError
         }
     }
@@ -1312,7 +1312,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             }
         }
         
-        if let firstError = firstError {
+        if let firstError {
             throw firstError
         }
     }
@@ -1886,7 +1886,7 @@ extension Database {
                     fatalError("Unavailable statement SQL")
                     
                 case let .trace_v2(sqliteStatement, unexpandedSQL, _, _):
-                    if let unexpandedSQL = unexpandedSQL {
+                    if let unexpandedSQL {
                         return String(cString: unexpandedSQL).trimmedSQLStatement
                     } else {
                         return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement

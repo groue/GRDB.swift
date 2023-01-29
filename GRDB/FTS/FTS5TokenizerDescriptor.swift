@@ -90,7 +90,7 @@ public struct FTS5TokenizerDescriptor {
     ///
     /// See <https://www.sqlite.org/fts5.html#porter_tokenizer>
     public static func porter(wrapping base: FTS5TokenizerDescriptor? = nil) -> FTS5TokenizerDescriptor {
-        if let base = base {
+        if let base {
             return FTS5TokenizerDescriptor(components: ["porter"] + base.components)
         } else {
             return FTS5TokenizerDescriptor(components: ["porter"])

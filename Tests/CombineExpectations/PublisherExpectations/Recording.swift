@@ -49,7 +49,7 @@ extension PublisherExpectations {
         ///     }
         public func get() throws -> Record<Input, Failure>.Recording {
             try recorder.value { (elements, completion, remainingElements, consume) in
-                if let completion = completion {
+                if let completion {
                     consume(remainingElements.count)
                     return Record<Input, Failure>.Recording(output: elements, completion: completion)
                 } else {

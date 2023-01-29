@@ -443,7 +443,7 @@ extension TableRecord {
     {
         let association = HasManyThroughAssociation(through: pivot, using: target)
         
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association
@@ -529,7 +529,7 @@ extension TableRecord {
     {
         let association = HasOneThroughAssociation(through: pivot, using: target)
         
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association
