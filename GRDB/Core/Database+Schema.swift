@@ -912,7 +912,7 @@ public struct ColumnInfo: FetchableRecord {
 
 /// Information about an index.
 ///
-/// You get `ForeignKeyInfo` instances with the ``Database/indexes(on:)``
+/// You get `IndexInfo` instances with the ``Database/indexes(on:)``
 /// `Database` method.
 ///
 /// Related SQLite documentation:
