@@ -682,7 +682,7 @@ extension Row {
     /// ``JoinableRequest/including(optional:)`` request methods define scopes
     /// named after the key of included associations between record types.
     ///
-    /// A depth-first search is performed in all available scopes in the row,
+    /// A breadth-first search is performed in all available scopes in the row,
     /// recursively.
     ///
     /// A fatal error is raised if the scope is not available, or contains only
@@ -726,7 +726,7 @@ extension Row {
     /// ``JoinableRequest/including(optional:)`` request methods define scopes
     /// named after the key of included associations between record types.
     ///
-    /// A depth-first search is performed in all available scopes in the row,
+    /// A breadth-first search is performed in all available scopes in the row,
     /// recursively.
     ///
     /// The result is nil if the scope is not available, or contains only
@@ -879,7 +879,7 @@ extension Row {
     /// A view on the scopes tree defined by row adapters.
     ///
     /// The returned object provides an access to all available scopes in
-    /// the row, recursively. For any given scope identifier, a depth-first
+    /// the row, recursively. For any given scope identifier, a breadth-first
     /// search is performed.
     ///
     /// Row scopes can be defined manually, with ``ScopeAdapter``.
