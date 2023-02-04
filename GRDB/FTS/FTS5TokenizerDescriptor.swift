@@ -86,7 +86,7 @@ public struct FTS5TokenizerDescriptor {
     ///
     /// - parameters:
     ///     - base: An eventual wrapping tokenizer which replaces the
-    //        default unicode61() base tokenizer.
+    ///       default unicode61() base tokenizer.
     ///
     /// See <https://www.sqlite.org/fts5.html#porter_tokenizer>
     public static func porter(wrapping base: FTS5TokenizerDescriptor? = nil) -> FTS5TokenizerDescriptor {

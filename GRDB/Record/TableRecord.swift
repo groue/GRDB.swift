@@ -700,7 +700,7 @@ extension TableRecord {
     
     /// Returns an error for a record that does not exist in the database.
     public static func recordNotFound(key: [String: (any DatabaseValueConvertible)?]) -> RecordError {
-        return RecordError.recordNotFound(
+        RecordError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key.mapValues { $0?.databaseValue ?? .null })
     }
@@ -713,7 +713,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
     ///   any error that prevented the `RecordError` from being constructed.
     public static func recordNotFound(_ db: Database, id: Self.ID) -> any Error {
-        return recordNotFound(db, key: id)
+        recordNotFound(db, key: id)
     }
 }
 

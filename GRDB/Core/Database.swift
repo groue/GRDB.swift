@@ -1861,10 +1861,10 @@ extension Database {
             enum Impl {
                 case trace_v1(String)
                 case trace_v2(
-                        sqliteStatement: SQLiteStatement,
-                        unexpandedSQL: UnsafePointer<CChar>?,
-                        sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
-                        publicStatementArguments: Bool) // See Configuration.publicStatementArguments
+                    sqliteStatement: SQLiteStatement,
+                    unexpandedSQL: UnsafePointer<CChar>?,
+                    sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
+                    publicStatementArguments: Bool) // See Configuration.publicStatementArguments
             }
             var impl: Impl
             

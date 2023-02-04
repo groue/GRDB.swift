@@ -18,7 +18,11 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer, Scheduler: ValueObservationScheduler> {
+final class ValueWriteOnlyObserver<
+    Writer: DatabaseWriter,
+    Reducer: ValueReducer,
+    Scheduler: ValueObservationScheduler>
+{
     // MARK: - Configuration
     //
     // Configuration is not mutable.

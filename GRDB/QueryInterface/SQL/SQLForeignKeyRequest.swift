@@ -22,7 +22,7 @@ struct SQLForeignKeyRequest {
     
     /// The (origin, destination) column pairs that join a left table to a right table.
     func fetchForeignKeyMapping(_ db: Database) throws -> ForeignKeyMapping {
-        if let originColumns, let destinationColumns = destinationColumns {
+        if let originColumns, let destinationColumns {
             // Total information: no need to query the database schema.
             GRDBPrecondition(originColumns.count == destinationColumns.count, "Number of columns don't match")
             let mapping = zip(originColumns, destinationColumns).map {

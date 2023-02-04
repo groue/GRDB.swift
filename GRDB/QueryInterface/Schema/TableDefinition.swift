@@ -1927,7 +1927,7 @@ public final class ColumnDefinition {
         switch notNullConflictResolution {
         case .none:
             break
-        case .abort?:
+        case .abort:
             chunks.append("NOT NULL")
         case let conflictResolution?:
             chunks.append("NOT NULL ON CONFLICT")

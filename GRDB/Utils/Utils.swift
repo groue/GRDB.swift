@@ -31,9 +31,9 @@ func GRDBPrecondition(
     file: StaticString = #file,
     line: UInt = #line)
 {
-    /// Custom precondition function which aims at solving
-    /// <https://bugs.swift.org/browse/SR-905> and
-    /// <https://github.com/groue/GRDB.swift/issues/37>
+    // Custom precondition function which aims at solving
+    // <https://bugs.swift.org/browse/SR-905> and
+    // <https://github.com/groue/GRDB.swift/issues/37>
     if !condition() {
         fatalError(message(), file: file, line: line)
     }
