@@ -5684,11 +5684,11 @@ For even better control over the lifetime of the passphrase in memory, use a Dat
 // RECOMMENDED: only load the passphrase when it is needed and reset its content immediately after use
 var config = Configuration()
 config.prepareDatabase { db in
-    let passphrase = try getPassphraseData() // Data
+    var passphraseData = try getPassphraseData() // Data
     defer {
-        passphrase.resetBytes(in: 0..<data.count)
+        passphraseData.resetBytes(in: 0..<passphraseData.count)
     }
-    try db.usePassphrase(passphrase)
+    try db.usePassphrase(passphraseData)
 }
 ```
 
