@@ -160,22 +160,29 @@ extension Database {
     /// ```swift
     /// // a INTEGER NOT NULL,
     /// // b TEXT NOT NULL,
-    /// // PRIMARY KEY (a, b),
+    /// // PRIMARY KEY (a, b)
     /// t.primaryKey {
     ///     t.column("a", .integer)
     ///     t.column("b", .text)
     /// }
     ///
+    /// // a INTEGER NOT NULL,
+    /// // b TEXT NOT NULL,
+    /// // PRIMARY KEY (a, b)
+    /// t.column("a", .integer).notNull()
+    /// t.column("b", .text).notNull()
+    /// t.primaryKey(["a", "b"])
+    ///
     /// // a INTEGER,
     /// // b TEXT,
-    /// // UNIQUE (a, b) ON CONFLICT REPLACE,
+    /// // UNIQUE (a, b) ON CONFLICT REPLACE
     /// t.column("a", .integer)
     /// t.column("b", .text)
     /// t.uniqueKey(["a", "b"], onConflict: .replace)
     ///
     /// // a INTEGER,
     /// // b TEXT,
-    /// // FOREIGN KEY (a, b) REFERENCES parents(c, d),
+    /// // FOREIGN KEY (a, b) REFERENCES parents(c, d)
     /// t.column("a", .integer)
     /// t.column("b", .text)
     /// t.foreignKey(["a", "b"], references: "parents")
@@ -469,8 +476,8 @@ public struct TableOptions: OptionSet {
 
 /// A `TableDefinition` lets you define the components of a database table.
 ///
-/// You don't create instances of this class. Instead, you use the `Database`
-/// ``Database/create(table:options:body:)`` method:
+/// See the documentation of the `Database`
+/// ``Database/create(table:options:body:)`` method for usage information:
 ///
 /// ```swift
 /// try db.create(table: "player") { t in // t is TableDefinition
@@ -493,6 +500,7 @@ public struct TableOptions: OptionSet {
 /// - ``autoIncrementedPrimaryKey(_:onConflict:)``
 /// - ``primaryKey(_:_:onConflict:)``
 /// - ``primaryKey(onConflict:body:)``
+/// - ``primaryKey(_:onConflict:)``
 ///
 /// ### Define a Foreign Key
 ///
@@ -508,13 +516,6 @@ public struct TableOptions: OptionSet {
 /// - ``check(sql:)``
 /// - ``constraint(literal:)``
 /// - ``constraint(sql:)``
-///
-/// ### Sunsetted Methods
-///
-/// Those are legacy interfaces that are preserved for backwards compatibility.
-/// Their use is not recommended.
-///
-/// - ``primaryKey(_:onConflict:)``
 public final class TableDefinition {
     struct KeyConstraint {
         var columns: [String]
@@ -567,7 +568,7 @@ public final class TableDefinition {
         self.options = options
     }
     
-    /// Defines the auto-incremented primary key.
+    /// Appends an auto-incremented primary key column.
     ///
     /// For example:
     ///
@@ -601,7 +602,7 @@ public final class TableDefinition {
         column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
     
-    /// Defines the primary key on a single column.
+    /// Appends a primary key column.
     ///
     /// For example:
     ///
@@ -636,7 +637,7 @@ public final class TableDefinition {
         }
     }
     
-    /// Defines the primary key on multiple columns.
+    /// Defines the primary key on wrapped columns.
     ///
     /// For example:
     ///
@@ -656,7 +657,7 @@ public final class TableDefinition {
     /// }
     /// ```
     ///
-    /// A NOT NULL constraint is always added to the primary key columns.
+    /// A NOT NULL constraint is always added to the wrapped primary key columns.
     public func primaryKey(
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         body: () throws -> Void)
@@ -744,7 +745,7 @@ public final class TableDefinition {
         columns.append(.literal(literal))
     }
     
-    /// Defines the primary key.
+    /// Adds a primary key constraint.
     ///
     /// For example:
     ///
@@ -765,10 +766,6 @@ public final class TableDefinition {
     ///   columns, as in the above example, or SQLite will allow null values.
     ///   See <https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls>
     ///   for more information.
-    ///
-    /// - warning: This is a legacy interface that is preserved for backwards
-    ///   compatibility. Use of this interface is not recommended: prefer
-    ///   ``TableDefinition/primaryKey(onConflict:body:)`` instead.
     ///
     /// - parameter columns: The primary key columns.
     /// - parameter conflictResolution: An optional conflict resolution
