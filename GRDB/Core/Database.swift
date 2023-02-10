@@ -304,6 +304,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// returned on each call.
     public var transactionDate: Date {
         get throws {
+            SchedulingWatchdog.preconditionValidQueue(self)
+            
             // Check invariant: `transactionDateResult` is nil iff connection
             // is not inside a transaction.
             assert(isInsideTransaction || transactionDateResult == nil)
