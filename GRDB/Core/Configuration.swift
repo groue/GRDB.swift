@@ -171,6 +171,8 @@ public struct Configuration {
     
     /// The clock that feeds ``Database/transactionDate``.
     ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
     /// The default clock is ``DefaultTransactionClock`` (which returns the
     /// current date with `Date()`).
     ///
