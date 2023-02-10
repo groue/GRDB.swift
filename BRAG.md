@@ -4,6 +4,46 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/DamienPetrilli/status/1623922310976786433
+
+> I can't overstate how much more productive I am since I ditched the obsolete Core Data framework and started to use GRDB instead.
+>
+> The hard stuff is doable, and the simple stuff is even simpler, as it should be.
+
+---
+
+https://twitter.com/fullqueuedev/status/1603350969357684736
+
+> Yes, I much prefer GRDB. I’ve tested many SQLite wrappers over the years 💜
+
+---
+
+https://twitter.com/cassiuspacheco/status/1574948903857770497
+
+> SQLite using @groue’s GRDB, no brainer! Awesome documentation, support and beautifully designed.
+
+---
+
+https://twitter.com/simrandotdev/status/1552004471122587649
+
+> We get Core Data from Apple which is the worst library to deal with.
+> Then there is Realm which is nice but again you do not get the RAW SQL power as it is its own type of Db.
+> Then comes the most beautiful library every written which is very close to Room called GRDB.
+
+---
+
+https://twitter.com/bellebcooper/status/1534070340850094080
+
+> When I first started using GRDB I didn't know SQL or much at all about databases 😬 So I've always really liked the query API. But these days I really appreciate that you support raw SQL too, because it gives me more control and freedom when I need it. 👍👍👍
+
+---
+
+https://twitter.com/mikeash/status/1504810545429499909
+
+> Another cool library using SQL interpolation!
+
+---
+
 https://twitter.com/swiftkarim/status/1354753451377483781
 
 > I cannot recommend GRDB enough. It works well with Swift and eliminates whole classes of potential programming errors that can be made with Core Data. Also being able to use raw SQL queries if needed can be extremely useful!
