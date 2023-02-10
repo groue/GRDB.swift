@@ -61,6 +61,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``inTransaction(_:_:)``
 /// - ``isInsideTransaction``
 /// - ``rollback()``
+/// - ``transactionDate``
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
@@ -275,6 +276,45 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
+    
+    // MARK: - Transaction Date
+    
+    enum AutocommitState {
+        case off
+        case on
+    }
+    
+    /// Whether the last executed statement left the database is the auto-commit
+    /// mode or not.
+    var autocommitState = AutocommitState.on
+    
+    /// The date of the current transaction, wrapped in a result that is an
+    /// error if there was an error grabbing this date when the transaction has
+    /// started.
+    ///
+    /// Invariant: `transactionDateResult` is nil iff connection is not
+    /// inside a transaction.
+    var transactionDateResult: Result<Date, Error>?
+    
+    /// The date of the current transaction.
+    ///
+    /// It is constant at any point during a transaction.
+    ///
+    /// When the database is not currently in a transaction, a new date is
+    /// returned on each call.
+    public var transactionDate: Date {
+        get throws {
+            // Check invariant: `transactionDateResult` is nil iff connection
+            // is not inside a transaction.
+            assert(isInsideTransaction || transactionDateResult == nil)
+            
+            if let transactionDateResult {
+                return try transactionDateResult.get()
+            } else {
+                return try configuration.transactionClock.now(self)
+            }
+        }
+    }
     
     // MARK: - Private properties
     

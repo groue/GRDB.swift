@@ -94,6 +94,8 @@ do {
 - ``observesSuspensionNotifications``
 - ``prepareDatabase(_:)``
 - ``publicStatementArguments``
+- ``transactionClock``
+- ``TransactionClock``
 
 ### Configuring the Quality of Service
 

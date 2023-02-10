@@ -169,6 +169,19 @@ public struct Configuration {
     /// ```
     public var publicStatementArguments = false
     
+    /// The clock that feeds ``Database/transactionDate``.
+    ///
+    /// The default clock is ``DefaultTransactionClock`` (which returns the
+    /// current date with `Date()`).
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.transactionClock = .custom { db in /* return some Date */ }
+    /// ```
+    public var transactionClock: TransactionClock = .default
+    
     // MARK: - Managing SQLite Connections
     
     private var setups: [(Database) throws -> Void] = []
