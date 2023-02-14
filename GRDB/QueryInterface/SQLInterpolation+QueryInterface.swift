@@ -19,6 +19,16 @@ extension SQLInterpolation {
         appendLiteral(table.databaseTableName.quotedDatabaseIdentifier)
     }
     
+    /// Appends the table name.
+    ///
+    ///     // SELECT * FROM player
+    ///     let playerTable = Table("player")
+    ///     let request: SQLRequest<Player> = "SELECT * FROM \(playerTable)"
+    @_disfavoredOverload
+    public mutating func appendInterpolation<T>(_ table: Table<T>) {
+        appendLiteral(table.tableName.quotedDatabaseIdentifier)
+    }
+    
     /// Appends the table name of the record.
     ///
     ///     // INSERT INTO player ...

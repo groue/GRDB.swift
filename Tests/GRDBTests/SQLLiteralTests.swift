@@ -250,6 +250,21 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             do {
+                // Table
+                let table = Table("player")
+                let query: SQL = """
+                    SELECT *
+                    FROM \(table)
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT *
+                    FROM "player"
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
                 // Non-existential
                 let query: SQL = """
                     SELECT *

@@ -363,7 +363,7 @@ Let's extend Player with database methods.
 
 This chapter lists all kinds of supported interpolations.
 
-- Types adopting the [TableRecord] protocol:
+- Types adopting the [TableRecord] protocol and [Table](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table) instances:
 
     ```swift
     struct Player: TableRecord { ... }
@@ -371,9 +371,13 @@ This chapter lists all kinds of supported interpolations.
     // SELECT * FROM player
     "SELECT * FROM \(Player.self)"
     
-    // INSERT INTO player ...
+    // SELECT * FROM player
     let player: Player = ...
-    "INSERT INTO \(tableOf: player) ..."
+    "SELECT * FROM \(tableOf: player) ..."
+
+    // SELECT * FROM player
+    let playerTable = Table("player")
+    "SELECT * FROM \(playerTable)"
     ```
 
 - Columns selected by [TableRecord]:
