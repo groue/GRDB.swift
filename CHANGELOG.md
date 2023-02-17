@@ -104,6 +104,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: [#1316](https://github.com/groue/GRDB.swift/pull/1316) and [#1320](https://github.com/groue/GRDB.swift/pull/1320) by [@baekteun](https://github.com/baekteun): Replace "OSX" with "macOS".
+- **Fixed**: [#1328](https://github.com/groue/GRDB.swift/pull/1328) by [@ytti](https://github.com/ytti): Fix documentation about Data passphrases.
+- Added support for `Table` in SQL interpolation.
+
 ## 6.6.1
 
 Released January 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.6.0...v6.6.1)
