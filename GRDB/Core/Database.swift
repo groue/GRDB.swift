@@ -284,8 +284,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         case on
     }
     
-    /// Whether the last executed statement left the database is the auto-commit
-    /// mode or not.
+    /// The state of the auto-commit mode, as left by the last
+    /// executed statement.
+    ///
+    /// The goal of this property is to detect changes in the auto-commit mode.
+    /// When you need to know if the database is currently in the auto-commit
+    /// mode, always prefer ``isInsideTransaction``.
     var autocommitState = AutocommitState.on
     
     /// The date of the current transaction, wrapped in a result that is an
