@@ -169,6 +169,21 @@ public struct Configuration {
     /// ```
     public var publicStatementArguments = false
     
+    /// The clock that feeds ``Database/transactionDate``.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// The default clock is ``DefaultTransactionClock`` (which returns the
+    /// current date with `Date()`).
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.transactionClock = .custom { db in /* return some Date */ }
+    /// ```
+    public var transactionClock: TransactionClock = .default
+    
     // MARK: - Managing SQLite Connections
     
     private var setups: [(Database) throws -> Void] = []

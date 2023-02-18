@@ -445,6 +445,8 @@ extension Database {
             clearSchemaCache()
         }
         
+        checkForAutocommitTransition()
+        
         // Database observation: cleanup
         try observationBroker?.statementDidExecute(statement)
     }
@@ -459,6 +461,8 @@ extension Database {
         // So make sure we clear this statement from the cache.
         internalStatementCache.remove(statement)
         publicStatementCache.remove(statement)
+        
+        checkForAutocommitTransition()
         
         // Extract values that may be modified by the user in their
         // `TransactionObserver.databaseDidRollback(_:)` implementation
@@ -480,6 +484,25 @@ extension Database {
             sql: statement.sql,
             arguments: arguments,
             publicStatementArguments: configuration.publicStatementArguments)
+    }
+    
+    private func checkForAutocommitTransition() {
+        if sqlite3_get_autocommit(sqliteConnection) == 0 {
+            if autocommitState == .on {
+                // Record transaction date as soon as the connection leaves
+                // auto-commit mode.
+                // We grab a result, so that this failure is later reported
+                // whenever the user calls `Database.transactionDate`.
+                transactionDateResult = Result { try configuration.transactionClock.now(self) }
+            }
+            autocommitState = .off
+        } else {
+            if autocommitState == .off {
+                // Reset transaction date
+                transactionDateResult = nil
+            }
+            autocommitState = .on
+        }
     }
 }
 

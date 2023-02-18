@@ -61,6 +61,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``inTransaction(_:_:)``
 /// - ``isInsideTransaction``
 /// - ``rollback()``
+/// - ``transactionDate``
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
@@ -275,6 +276,60 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
+    
+    // MARK: - Transaction Date
+    
+    enum AutocommitState {
+        case off
+        case on
+    }
+    
+    /// The state of the auto-commit mode, as left by the last
+    /// executed statement.
+    ///
+    /// The goal of this property is to detect changes in the auto-commit mode.
+    /// When you need to know if the database is currently in the auto-commit
+    /// mode, always prefer ``isInsideTransaction``.
+    var autocommitState = AutocommitState.on
+    
+    /// The date of the current transaction, wrapped in a result that is an
+    /// error if there was an error grabbing this date when the transaction has
+    /// started.
+    ///
+    /// Invariant: `transactionDateResult` is nil iff connection is not
+    /// inside a transaction.
+    var transactionDateResult: Result<Date, Error>?
+    
+    /// The date of the current transaction.
+    ///
+    /// The returned date is constant at any point during a transaction. It is
+    /// set when the database leaves the
+    /// [autocommit mode](https://www.sqlite.org/c3ref/get_autocommit.html) with
+    /// a `BEGIN` statement.
+    ///
+    /// When the database is not currently in a transaction, a new date is
+    /// returned on each call.
+    ///
+    /// See <doc:RecordTimestamps> for an example of usage.
+    ///
+    /// Transaction dates, by default, are built from a new `Date()` instance.
+    /// You can override this default behavior by configuring
+    /// ``Configuration/transactionClock``.
+    public var transactionDate: Date {
+        get throws {
+            SchedulingWatchdog.preconditionValidQueue(self)
+            
+            // Check invariant: `transactionDateResult` is nil iff connection
+            // is not inside a transaction.
+            assert(isInsideTransaction || transactionDateResult == nil)
+            
+            if let transactionDateResult {
+                return try transactionDateResult.get()
+            } else {
+                return try configuration.transactionClock.now(self)
+            }
+        }
+    }
     
     // MARK: - Private properties
     
