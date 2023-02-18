@@ -108,6 +108,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Fixed**: [#1316](https://github.com/groue/GRDB.swift/pull/1316) and [#1320](https://github.com/groue/GRDB.swift/pull/1320) by [@baekteun](https://github.com/baekteun): Replace "OSX" with "macOS".
 - **Fixed**: [#1328](https://github.com/groue/GRDB.swift/pull/1328) by [@ytti](https://github.com/ytti): Fix documentation about Data passphrases.
+- **Fixed**: [#1327](https://github.com/groue/GRDB.swift/pull/1327): Remove dependency on any specific SwiftLint version.
 - **New**: [#1331](https://github.com/groue/GRDB.swift/pull/1331) by [@groue](https://github.com/groue): Transaction Date
 - **Documentation Update**: The new [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article explains how applications can save the creation and modification date of records.
 - Added support for `Table` in SQL interpolation.
