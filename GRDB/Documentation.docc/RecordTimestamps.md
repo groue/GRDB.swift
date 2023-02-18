@@ -4,11 +4,11 @@ Learn how applications can save creation and modification dates of records.
 
 ## Overview
 
-GRDB does not provide any ready-made apis that automatically update record timestamps: this is the responsibility of your application. This article provides some sample code that you can adapt for your specific needs.
+Record timestamps are the responsibility of your application. This article provides some sample code that you can adapt for your specific needs.
 
-> Note: Creation and modification timestamps can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). This is not the technique explored here.
+> Note: Creation and modification timestamps can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique.
 >
-> This is not an advice against triggers! It just happens that this article aims at letting you in control. Consider:
+> This is not an advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
 >
 > - A trigger does not suffer any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
 > - The "current time" according to SQLite can't be controlled in tests and previews.
