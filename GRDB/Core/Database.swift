@@ -306,6 +306,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// When the database is not currently in a transaction, a new date is
     /// returned on each call.
     ///
+    /// See <doc:RecordTimestamps> for an example of usage.
+    ///
     /// Transaction dates, by default, are built from a new `Date()` instance.
     /// You can override this default behavior by configuring
     /// ``Configuration/transactionClock``.

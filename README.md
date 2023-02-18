@@ -2080,13 +2080,14 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods]
-    - [Persistence Methods and the `RETURNING` clause](#persistence-methods-and-the-returning-clause)
+    - [Persistence Methods and the `RETURNING` clause]
     - [Persistence Callbacks]
 - [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
+- [Record Timestamps and Transaction Date]
 
 **Records in a Glance**
 
@@ -7029,6 +7030,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Record Customization Options]: #record-customization-options
 [Persistence Callbacks]: #persistence-callbacks
 [persistence callbacks]: #persistence-callbacks
+[Record Timestamps and Transaction Date]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
 [DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
@@ -7050,6 +7052,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
+[Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
 [RecordError]: #recorderror
 [Transactions and Savepoints]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions
 [`DatabaseQueue`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue

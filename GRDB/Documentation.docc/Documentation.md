@@ -32,6 +32,7 @@ Compared to [SQLite.swift](https://github.com/stephencelis/SQLite.swift) or [FMD
 ### Records and the Query Interface
 
 - <doc:QueryInterface>
+- <doc:RecordTimestamps>
 
 ### Responding to Database Changes
 

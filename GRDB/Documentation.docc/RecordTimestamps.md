@@ -1,0 +1,187 @@
+# Record Timestamps and Transaction Date
+
+Learn how applications can save creation and modification dates of records.
+
+## Overview
+
+GRDB does not provide any ready-made apis that automatically update record timestamps: this is the responsibility of your application. This article provides some sample code that you can adapt for your specific needs.
+
+> Note: Creation and modification timestamps can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). This is not the technique explored here.
+>
+> This is not an advice against triggers! It just happens that this article aims at letting you in control. Consider:
+>
+> - A trigger does not suffer any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
+> - The "current time" according to SQLite can't be controlled in tests and previews.
+> - The "current time" according to SQLite is not guaranteed to be constant in a given transaction, and this may create undesired timestamp variations.
+
+We'll start from this table and record type:
+
+```swift
+try db.create(table: "player") { t in
+    t.autoIncrementedPrimaryKey("id")
+    t.column("creationDate", .datetime).notNull()
+    t.column("modificationDate", .datetime).notNull()
+    t.column("name", .text).notNull()
+    t.column("score", .integer).notNull()
+}
+
+struct Player: Identifiable {
+    var id: Int64?
+    var creationDate: Date?
+    var modificationDate: Date?
+    var name: String
+    var score: Int
+}
+```
+
+Note that the table has non-null dates, while the record has optional dates.
+
+This is because we intend, in this article, to timestamp actual database operations. The `creationDate` property is the date of database insertion, and `modificationDate` is the date of last modification in the database. A new `Player` instance has no meaningful timestamp until it is saved, and this absence of information is represented with `nil`:
+
+```swift
+// A new player has no timestamps.
+var player = Player(id: nil, name: "Arthur", score: 1000)
+player.id               // nil, because never saved
+player.creationDate     // nil, because never saved
+player.modificationDate // nil, because never saved
+
+// After insertion, the player has timestamps.
+try dbQueue.write { db in
+    try player.insert(db)
+}
+player.id               // not nil
+player.creationDate     // not nil
+player.modificationDate // not nil
+```
+
+In the rest of the article, we'll address insertion first, then updates, and finally we'll see a way to avoid those optional timestamps.
+
+## Insertion Timestamp
+
+On insertion, the record should get fresh `creationDate` and `modificationDate`. The ``MutablePersistableRecord`` protocol provides the necessary tooling:
+
+```swift
+extension Player: Encodable, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+    
+    // Update timestamps before insertion
+    mutating func willInsert(_ db: Database) throws {
+        creationDate = try db.transactionDate
+        modificationDate = try db.transactionDate
+    }
+}
+```
+
+Note that we are using the ``Database/transactionDate`` instead of `Date()`. This has two advantages:
+
+- Within a write transaction, all inserted players get the same timestamp:
+    
+    ```swift
+    // All players have the same timestamp.
+    try dbQueue.write { db in
+        for var player in players {
+            try player.insert(db)
+        }
+    }
+    ```
+    
+- The transaction date can be configured with ``Configuration/transactionClock``, so that your tests and previews can control the date.
+
+## Modification Timestamp
+
+Let's now deal with updates. The `update` persistence method won't automatically bump the timestamp as the `insert` method does. We have to explicitly deal with the modification date:
+
+```swift
+// Increment the player score.
+try dbQueue.write { db in
+    var player: Player
+    try player.updateChanges(db) {
+         $0.score += 1
+         $0.modificationDate = try db.transactionDate
+    }
+}
+```
+
+Again, we use ``Database/transactionDate``, so that all modified players get the same timestamp within a given write transaction.
+
+## Dealing with Optional Timestamps
+
+When you fetch timestamped records from the database, it may be inconvenient to deal with optional dates, even though the database columns are guaranteed to be not null:
+
+```swift
+let player = try dbQueue.read { db 
+    try Player.find(db, id: 1)
+}
+player.creationDate     // optional 😕
+player.modificationDate // optional 😕
+```
+
+A possible technique is to define two record types.
+
+One record can deal with unsaved players:
+
+```swift
+struct Player: Identifiable {
+    var id: Int64?
+    var creationDate: Date?
+    var modificationDate: Date?
+    var name: String
+    var score: Int
+}
+
+extension Player: Encodable, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+    
+    // Update timestamps before insertion
+    mutating func willInsert(_ db: Database) throws {
+        creationDate = try db.transactionDate
+        modificationDate = try db.transactionDate
+    }
+}
+```
+
+The other record only deals with saved players:
+
+```swift
+struct TimestampedPlayer: Identifiable {
+    let id: Int64
+    let creationDate: Date
+    var modificationDate: Date
+    var name: String
+    var score: Int
+}
+
+extension TimestampedPlayer: Codable, FetchableRecord, PersistableRecord {
+    static var databaseTableName: String { Player.databaseTableName }
+}
+```
+
+Usage:
+
+```swift
+// Fetch
+let timestampedPlayer = try dbQueue.read { db 
+    try TimestampedPlayer.find(db, id: 1)
+}
+timestampedPlayer.creationDate     // not optional
+timestampedPlayer.modificationDate // not optional
+
+// Insert
+try dbQueue.write { db in
+    var player = Player(id: nil, name: "Arthur", score: 1000)
+    
+    let timestampedPlayer = try player.insertAndFetch(db, as: TimestampedPlayer.self)
+    
+    timestampedPlayer.id               // not optional
+    timestampedPlayer.creationDate     // not optional
+    timestampedPlayer.modificationDate // not optional
+}
+```
+
+See ``MutablePersistableRecord/insertAndFetch(_:onConflict:as:)`` and related methods for more information.
