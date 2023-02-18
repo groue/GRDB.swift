@@ -298,10 +298,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The date of the current transaction.
     ///
-    /// It is constant at any point during a transaction.
+    /// The returned date is constant at any point during a transaction. It is
+    /// set when the database leaves the
+    /// [autocommit mode](https://www.sqlite.org/c3ref/get_autocommit.html) with
+    /// a `BEGIN` statement.
     ///
     /// When the database is not currently in a transaction, a new date is
     /// returned on each call.
+    ///
+    /// Transaction dates, by default, are built from a new `Date()` instance.
+    /// You can override this default behavior by configuring
+    /// ``Configuration/transactionClock``.
     public var transactionDate: Date {
         get throws {
             SchedulingWatchdog.preconditionValidQueue(self)
