@@ -12,3 +12,4 @@ Please refer to the [Full-Text Search](https://github.com/groue/GRDB.swift/blob/
 
 - ``FTS3``
 - ``FTS4``
+- ``FTS5``
