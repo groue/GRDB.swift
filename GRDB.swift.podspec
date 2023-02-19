@@ -20,6 +20,9 @@ Pod::Spec.new do |s|
     ss.source_files = 'GRDB/**/*.swift', 'Support/grdb_config.h'
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
+    ss.xcconfig = {
+      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5',
+    }
   end
   
   s.subspec 'SQLCipher' do |ss|
