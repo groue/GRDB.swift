@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
 - `6.5.x` Releases - [6.5.0](#650)
 - `6.4.x` Releases - [6.4.0](#640)
@@ -104,7 +105,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.7.0
+
+Released February 19, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.6.1...v6.7.0)
 
 - **Fixed**: [#1316](https://github.com/groue/GRDB.swift/pull/1316) and [#1320](https://github.com/groue/GRDB.swift/pull/1320) by [@baekteun](https://github.com/baekteun): Replace "OSX" with "macOS".
 - **Fixed**: [#1328](https://github.com/groue/GRDB.swift/pull/1328) by [@ytti](https://github.com/ytti): Fix documentation about Data passphrases.
