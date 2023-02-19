@@ -384,8 +384,6 @@ See [Encryption](#encryption) for the installation procedure of GRDB with SQLCip
 
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite.
 
-See [Enabling FTS5 Support](Documentation/FullTextSearch.md#enabling-fts5-support) for the installation procedure of GRDB with support for the FTS5 full-text engine.
-
 
 ## CocoaPods
 
@@ -6943,7 +6941,7 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 #### Enabling FTS5 Support
 
-This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
+FTS5 is enabled by default since GRDB 6.7.0.
 
 #### FetchedRecordsController
 
