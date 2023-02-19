@@ -130,7 +130,7 @@ extension Database {
         // Define virtual table
         let configuration = VirtualTableConfiguration(ifNotExists: ifNotExists)
         let definition = module.makeTableDefinition(configuration: configuration)
-        if let body = body {
+        if let body {
             try body(definition)
         }
         

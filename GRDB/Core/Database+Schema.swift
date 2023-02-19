@@ -387,7 +387,7 @@ extension Database {
             return try self.table(for: table)!.hasRowID
         }
 #else
-        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) {
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
             return try self.table(for: table)!.hasRowID
         }
 #endif
@@ -912,7 +912,7 @@ public struct ColumnInfo: FetchableRecord {
 
 /// Information about an index.
 ///
-/// You get `ForeignKeyInfo` instances with the ``Database/indexes(on:)``
+/// You get `IndexInfo` instances with the ``Database/indexes(on:)``
 /// `Database` method.
 ///
 /// Related SQLite documentation:
@@ -1032,7 +1032,7 @@ public struct ForeignKeyViolation {
         })
         
         var description: String
-        if let foreignKey = foreignKey {
+        if let foreignKey {
             description = """
                 FOREIGN KEY constraint violation - \
                 from \(originTable)(\(foreignKey.originColumns.joined(separator: ", "))) \
@@ -1042,9 +1042,9 @@ public struct ForeignKeyViolation {
             description = "FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)"
         }
         
-        if let originRow = originRow {
+        if let originRow {
             description += ", in \(String(describing: originRow))"
-        } else if let originRowID = originRowID {
+        } else if let originRowID {
             description += ", in rowid \(originRowID)"
         }
         
@@ -1084,7 +1084,7 @@ extension ForeignKeyViolation: CustomStringConvertible {
     ///
     /// See also ``failureDescription(_:)``.
     public var description: String {
-        if let originRowID = originRowID {
+        if let originRowID {
             return """
                 FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), \
                 in rowid \(originRowID)

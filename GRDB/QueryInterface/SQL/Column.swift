@@ -9,7 +9,8 @@
 /// ### Deriving SQL Expressions
 ///
 /// - ``detached``
-/// - ``match(_:)``
+/// - ``match(_:)-727nk``
+/// - ``match(_:)-1vvo8``
 ///
 /// ### Creating Column Assignments
 ///

@@ -1,61 +1,109 @@
 #if SQLITE_ENABLE_FTS5
-/// An FTS5 tokenizer, suitable for FTS5 table definitions:
+/// The descriptor for an ``FTS5`` tokenizer.
 ///
-///     db.create(virtualTable: "book", using: FTS5()) { t in
-///         t.tokenizer = .unicode61() // FTS5TokenizerDescriptor
-///     }
+/// For example:
 ///
-/// See <https://www.sqlite.org/fts5.html#tokenizers>
+/// ```swift
+/// try db.create(virtualTable: "book", using: FTS5()) { t in
+///     t.tokenizer = .unicode61() // FTS5TokenizerDescriptor
+/// }
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/fts5.html#tokenizers>
+///
+/// ## Topics
+///
+/// ### Creating Tokenizer Descriptors
+///
+/// - ``init(components:)``
+/// - ``ascii(separators:tokenCharacters:)``
+/// - ``porter(wrapping:)``
+/// - ``unicode61(diacritics:categories:separators:tokenCharacters:)``
+/// - ``FTS5/Diacritics``
+///
+/// ### Instantiating Tokenizers
+///
+/// - ``Database/makeTokenizer(_:)``
 public struct FTS5TokenizerDescriptor {
-    /// The tokenizer components
+    /// The tokenizer components.
     ///
-    ///     // ["unicode61"]
-    ///     FTS5TokenizerDescriptor.unicode61().components
+    /// For example:
     ///
-    ///     // ["unicode61", "remove_diacritics", "0"]
-    ///     FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).components
+    /// ```swift
+    /// // ["unicode61"]
+    /// FTS5TokenizerDescriptor.unicode61().components
+    ///
+    /// // ["unicode61", "remove_diacritics", "0"]
+    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).components
+    /// ```
     public let components: [String]
     
-    /// The tokenizer name
+    /// The tokenizer name.
     ///
-    ///     // "unicode61"
-    ///     FTS5TokenizerDescriptor.unicode61().name
+    /// For example:
     ///
-    ///     // "unicode61"
-    ///     FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).name
+    /// ```swift
+    /// // "unicode61"
+    /// FTS5TokenizerDescriptor.unicode61().name
+    ///
+    /// // "unicode61"
+    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).name
+    /// ```
     var name: String { components[0] }
     
+    /// The tokenizer arguments.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // []
+    /// FTS5TokenizerDescriptor.unicode61().components
+    ///
+    /// // ["remove_diacritics", "0"]
+    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).components
+    /// ```
     var arguments: [String] {
         Array(components.suffix(from: 1))
     }
     
     /// Creates an FTS5 tokenizer descriptor.
     ///
-    ///     db.create(virtualTable: "book", using: FTS5()) { t in
-    ///         let tokenizer = FTS5TokenizerDescriptor(components: ["porter", "unicode61", "remove_diacritics", "0"])
-    ///         t.tokenizer = tokenizer
-    ///     }
+    /// For example:
     ///
-    /// - precondition: Components is not empty
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = FTS5TokenizerDescriptor(components: [
+    ///         "porter",
+    ///         "unicode61",
+    ///         "remove_diacritics",
+    ///         "0"])
+    /// }
+    /// ```
+    ///
+    /// - precondition: Components is not empty.
     public init(components: [String]) {
         GRDBPrecondition(!components.isEmpty, "FTS5TokenizerDescriptor requires at least one component")
         assert(!components.isEmpty)
         self.components = components
     }
     
-    /// The "ascii" tokenizer
+    /// The "ascii" tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS5()) { t in
-    ///         t.tokenizer = .ascii()
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .ascii()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#ascii_tokenizer>
     ///
     /// - parameters:
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will
     ///       consider these characters as token characters.
-    ///
-    /// See <https://www.sqlite.org/fts5.html#ascii_tokenizer>
     public static func ascii(
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
@@ -78,30 +126,39 @@ public struct FTS5TokenizerDescriptor {
         return FTS5TokenizerDescriptor(components: components)
     }
     
-    /// The "porter" tokenizer
+    /// The "porter" tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS5()) { t in
-    ///         t.tokenizer = .porter()
-    ///     }
+    /// For example:
     ///
-    /// - parameters:
-    ///     - base: An eventual wrapping tokenizer which replaces the
-    //        default unicode61() base tokenizer.
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .porter()
+    /// }
+    /// ```
     ///
-    /// See <https://www.sqlite.org/fts5.html#porter_tokenizer>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#porter_tokenizer>
+    ///
+    /// - parameter base: An eventual wrapping tokenizer which replaces the
+    ///   default unicode61() base tokenizer.
     public static func porter(wrapping base: FTS5TokenizerDescriptor? = nil) -> FTS5TokenizerDescriptor {
-        if let base = base {
+        if let base {
             return FTS5TokenizerDescriptor(components: ["porter"] + base.components)
         } else {
             return FTS5TokenizerDescriptor(components: ["porter"])
         }
     }
     
-    /// An "unicode61" tokenizer
+    /// The "unicode61" tokenizer.
     ///
-    ///     db.create(virtualTable: "book", using: FTS5()) { t in
-    ///         t.tokenizer = .unicode61()
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .unicode61()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
     ///
     /// - parameters:
     ///     - diacritics: By default SQLite will strip diacritics from
@@ -112,8 +169,6 @@ public struct FTS5TokenizerDescriptor {
     ///       these characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will
     ///       consider these characters as token characters.
-    ///
-    /// See <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
     public static func unicode61(
         diacritics: FTS5.Diacritics = .removeLegacy,
         categories: String = "",

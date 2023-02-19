@@ -362,7 +362,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("Generated columns are not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("Generated columns are not available")
         }
 #endif
@@ -725,7 +725,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13.0, tvOS 13.0, watchOS 6.0, *) else {
+        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #endif
@@ -753,7 +753,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13.0, tvOS 13.0, watchOS 6.0, *) else {
+        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #endif
@@ -777,7 +777,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("Generated columns are not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("Generated columns are not available")
         }
 #endif
@@ -812,7 +812,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #endif
@@ -836,7 +836,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #endif

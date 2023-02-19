@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: January 15, 2023 • [version 6.6.1](https://github.com/groue/GRDB.swift/tree/v6.6.1) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: February 19, 2023 • [version 6.7.0](https://github.com/groue/GRDB.swift/tree/v6.7.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.6.1**                                                  |
+| **Swift 5.7+** | **v6.7.0**                                                  |
 | Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
 | Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
@@ -2080,13 +2080,14 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods]
-    - [Persistence Methods and the `RETURNING` clause](#persistence-methods-and-the-returning-clause)
+    - [Persistence Methods and the `RETURNING` clause]
     - [Persistence Callbacks]
 - [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
+- [Record Timestamps and Transaction Date]
 
 **Records in a Glance**
 
@@ -5684,11 +5685,11 @@ For even better control over the lifetime of the passphrase in memory, use a Dat
 // RECOMMENDED: only load the passphrase when it is needed and reset its content immediately after use
 var config = Configuration()
 config.prepareDatabase { db in
-    let passphrase = try getPassphraseData() // Data
+    var passphraseData = try getPassphraseData() // Data
     defer {
-        passphrase.resetBytes(in: 0..<data.count)
+        passphraseData.resetBytes(in: 0..<passphraseData.count)
     }
-    try db.usePassphrase(passphrase)
+    try db.usePassphrase(passphraseData)
 }
 ```
 
@@ -7029,6 +7030,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Record Customization Options]: #record-customization-options
 [Persistence Callbacks]: #persistence-callbacks
 [persistence callbacks]: #persistence-callbacks
+[Record Timestamps and Transaction Date]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
 [DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
@@ -7050,6 +7052,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
+[Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
 [RecordError]: #recorderror
 [Transactions and Savepoints]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions
 [`DatabaseQueue`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue

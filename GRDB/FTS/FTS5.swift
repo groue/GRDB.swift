@@ -1,19 +1,45 @@
 #if SQLITE_ENABLE_FTS5
 import Foundation
 
-/// FTS5 lets you define "fts5" virtual tables.
+/// The virtual table module for the FTS5 full-text engine.
 ///
-///     // CREATE VIRTUAL TABLE document USING fts5(content)
-///     try db.create(virtualTable: "document", using: FTS5()) { t in
-///         t.column("content")
-///     }
+/// To create FTS5 tables, use the ``Database`` method
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
 ///
-/// See <https://www.sqlite.org/fts5.html>
-public struct FTS5: VirtualTableModule {
+/// ```swift
+/// // CREATE VIRTUAL TABLE document USING fts5(content)
+/// try db.create(virtualTable: "document", using: FTS5()) { t in
+///     t.column("content")
+/// }
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/fts5.html>
+///
+/// ## Topics
+///
+/// ### The FTS5 Module
+///
+/// - ``init()``
+/// - ``FTS5TableDefinition``
+/// - ``FTS5ColumnDefinition``
+/// - ``FTS5TokenizerDescriptor``
+///
+/// ### Full-Text Search Pattern
+///
+/// - ``FTS5Pattern``
+///
+/// ### FTS5 Tokenizers
+///
+/// - ``FTS5Tokenizer``
+/// - ``FTS5CustomTokenizer``
+/// - ``FTS5WrapperTokenizer``
+/// - ``FTS5TokenFlags``
+/// - ``FTS5Tokenization``
+public struct FTS5 {
     /// Options for Latin script characters. Matches the raw "remove_diacritics"
     /// tokenizer argument.
     ///
-    /// See <https://www.sqlite.org/fts5.html>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
     public enum Diacritics {
         /// Do not remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=0" tokenizer argument.
@@ -30,20 +56,23 @@ public struct FTS5: VirtualTableModule {
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
-        @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
         case remove
         #endif
     }
     
-    /// Creates a FTS5 module suitable for the Database
-    /// `create(virtualTable:using:)` method.
+    /// Creates an FTS5 module.
     ///
-    ///     // CREATE VIRTUAL TABLE document USING fts5(content)
-    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
-    ///         t.column("content")
-    ///     }
+    /// For example:
     ///
-    /// See <https://www.sqlite.org/fts5.html>
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE document USING fts5(content)
+    /// try db.create(virtualTable: "document", using: FTS5()) { t in
+    ///     t.column("content")
+    /// }
+    /// ```
+    ///
+    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
     public init() { }
     
     // Support for FTS5Pattern initializers. Don't make public. Users tokenize
@@ -71,10 +100,70 @@ public struct FTS5: VirtualTableModule {
         }
     }
     
-    // MARK: - VirtualTableModule Adoption
+    static func api(_ db: Database) -> UnsafePointer<fts5_api> {
+        // Access to FTS5 is one of the rare SQLite api which was broken in
+        // SQLite 3.20.0+, for security reasons:
+        //
+        // Starting SQLite 3.20.0+, we need to use the new sqlite3_bind_pointer api.
+        // The previous way to access FTS5 does not work any longer.
+        //
+        // So let's see which SQLite version we are linked against:
+        
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
+        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+        #else
+        // GRDB is linked against the system SQLite.
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
+            return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+        } else {
+            return api_v1(db)
+        }
+        #endif
+    }
     
+    private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
+        guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
+            fatalError("FTS5 is not available")
+        }
+        return data.withUnsafeBytes {
+            $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
+        }
+    }
+    
+    // Technique given by Jordan Rose:
+    // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
+    private static func api_v2(
+        _ db: Database,
+        // swiftlint:disable:next line_length
+        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> CInt,
+        // swiftlint:disable:next line_length
+        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
+    -> UnsafePointer<fts5_api>
+    {
+        var statement: SQLiteStatement? = nil
+        var api: UnsafePointer<fts5_api>? = nil
+        let type: StaticString = "fts5_api_ptr"
+        
+        let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
+        guard code == SQLITE_OK else {
+            fatalError("FTS5 is not available")
+        }
+        defer { sqlite3_finalize(statement) }
+        type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
+            _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
+        }
+        sqlite3_step(statement)
+        guard let api else {
+            fatalError("FTS5 is not available")
+        }
+        return api
+    }
+}
+
+extension FTS5: VirtualTableModule {
     /// The virtual table module name
-    public let moduleName = "fts5"
+    public var moduleName: String { "fts5" }
     
     /// Reserved; part of the VirtualTableModule protocol.
     ///
@@ -114,11 +203,11 @@ public struct FTS5: VirtualTableModule {
         
         switch definition.contentMode {
         case let .raw(content, contentRowID):
-            if let content = content {
+            if let content {
                 let quotedContent = try content.sqlExpression.quotedSQL(db)
                 arguments.append("content=\(quotedContent)")
             }
-            if let contentRowID = contentRowID {
+            if let contentRowID {
                 let quotedContentRowID = try contentRowID.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedContentRowID)")
             }
@@ -203,82 +292,38 @@ public struct FTS5: VirtualTableModule {
             try db.execute(sql: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
         }
     }
-    
-    static func api(_ db: Database) -> UnsafePointer<fts5_api> {
-        // Access to FTS5 is one of the rare SQLite api which was broken in
-        // SQLite 3.20.0+, for security reasons:
-        //
-        // Starting SQLite 3.20.0+, we need to use the new sqlite3_bind_pointer api.
-        // The previous way to access FTS5 does not work any longer.
-        //
-        // So let's see which SQLite version we are linked against:
-        
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
-        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        #else
-        // GRDB is linked against the system SQLite.
-        //
-        // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
-        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
-            // SQLite 3.24.0 or more
-            return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        } else {
-            // SQLite 3.19.3 or less
-            return api_v1(db)
-        }
-        #endif
-    }
-    
-    private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-        guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
-            fatalError("FTS5 is not available")
-        }
-        return data.withUnsafeBytes {
-            $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
-        }
-    }
-    
-    // Technique given by Jordan Rose:
-    // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
-    private static func api_v2(
-        _ db: Database,
-        // swiftlint:disable:next line_length
-        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> CInt,
-        // swiftlint:disable:next line_length
-        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
-    -> UnsafePointer<fts5_api>
-    {
-        var statement: SQLiteStatement? = nil
-        var api: UnsafePointer<fts5_api>? = nil
-        let type: StaticString = "fts5_api_ptr"
-        
-        let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
-        guard code == SQLITE_OK else {
-            fatalError("FTS5 is not available")
-        }
-        defer { sqlite3_finalize(statement) }
-        type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
-            _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
-        }
-        sqlite3_step(statement)
-        guard let api else {
-            fatalError("FTS5 is not available")
-        }
-        return api
-    }
 }
 
-/// The FTS5TableDefinition class lets you define columns of a FTS5 virtual table.
+/// A `FTS5TableDefinition` lets you define the components of an FTS5
+/// virtual table.
 ///
-/// You don't create instances of this class. Instead, you use the Database
-/// `create(virtualTable:using:)` method:
+/// You don't create instances of this class. Instead, you use the `Database`
+/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
 ///
-///     try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition
-///         t.column("content")
-///     }
+/// ```swift
+/// try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition
+///     t.column("content")
+/// }
+/// ```
 ///
-/// See <https://www.sqlite.org/fts5.html>
+/// ## Topics
+///
+/// ### Define Columns
+///
+/// - ``column(_:)``
+///
+/// ### External Content Tables
+///
+/// - ``synchronize(withTable:)``
+///
+/// ### FTS5 Options
+///
+/// - ``columnSize``
+/// - ``content``
+/// - ``contentRowID``
+/// - ``detail``
+/// - ``prefixes``
+/// - ``tokenizer``
 public final class FTS5TableDefinition {
     enum ContentMode {
         case raw(content: String?, contentRowID: String?)
@@ -289,25 +334,30 @@ public final class FTS5TableDefinition {
     fileprivate var columns: [FTS5ColumnDefinition] = []
     fileprivate var contentMode: ContentMode = .raw(content: nil, contentRowID: nil)
     
-    /// The virtual table tokenizer
+    /// The virtual table tokenizer.
     ///
-    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
-    ///         t.tokenizer = .porter()
-    ///     }
+    /// For example:
     ///
-    /// See <https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization>
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE "documents" USING fts5(tokenize=porter)
+    /// try db.create(virtualTable: "document", using: FTS5()) { t in
+    ///     t.tokenizer = .porter()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#fts5_table_creation_and_initialization>
     public var tokenizer: FTS5TokenizerDescriptor?
     
-    /// The FTS5 `content` option
+    /// The FTS5 `content` option.
     ///
     /// When you want the full-text table to be synchronized with the
-    /// content of an external table, prefer the `synchronize(withTable:)`
-    /// method.
+    /// content of an external table, prefer the
+    /// ``synchronize(withTable:)`` method.
     ///
     /// Setting this property invalidates any synchronization previously
-    /// established with the `synchronize(withTable:)` method.
+    /// established with the ``synchronize(withTable:)`` method.
     ///
-    /// See <https://www.sqlite.org/fts5.html#external_content_and_contentless_tables>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#external_content_and_contentless_tables>
     public var content: String? {
         get {
             switch contentMode {
@@ -330,13 +380,13 @@ public final class FTS5TableDefinition {
     /// The FTS5 `content_rowid` option
     ///
     /// When you want the full-text table to be synchronized with the
-    /// content of an external table, prefer the `synchronize(withTable:)`
-    /// method.
+    /// content of an external table, prefer the
+    /// ``synchronize(withTable:)`` method.
     ///
     /// Setting this property invalidates any synchronization previously
-    /// established with the `synchronize(withTable:)` method.
+    /// established with the ``synchronize(withTable:)`` method.
     ///
-    /// See <https://sqlite.org/fts5.html#external_content_tables>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#external_content_tables>
     public var contentRowID: String? {
         get {
             switch contentMode {
@@ -356,19 +406,19 @@ public final class FTS5TableDefinition {
         }
     }
     
-    /// Support for the FTS5 `prefix` option
+    /// The FTS5 `prefix` option.
     ///
-    /// See <https://www.sqlite.org/fts5.html#prefix_indexes>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#prefix_indexes>
     public var prefixes: Set<Int>?
     
-    /// Support for the FTS5 `columnsize` option
+    /// The FTS5 `columnsize` option.
     ///
-    /// <https://www.sqlite.org/fts5.html#the_columnsize_option>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_columnsize_option>
     public var columnSize: Int?
     
-    /// Support for the FTS5 `detail` option
+    /// The FTS5 `detail` option.
     ///
-    /// <https://www.sqlite.org/fts5.html#the_detail_option>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_detail_option>
     public var detail: String?
     
     init(configuration: VirtualTableConfiguration) {
@@ -377,11 +427,18 @@ public final class FTS5TableDefinition {
     
     /// Appends a table column.
     ///
-    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
-    ///         t.column("content")
-    ///     }
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE VIRTUAL TABLE document USING fts5(content)
+    /// try db.create(virtualTable: "document", using: FTS5()) { t in
+    ///     t.column("content")
+    /// }
+    /// ```
     ///
     /// - parameter name: the column name.
+    /// - returns: A ``FTS5ColumnDefinition`` that allows you to refine the
+    ///   column definition.
     @discardableResult
     public func column(_ name: String) -> FTS5ColumnDefinition {
         let column = FTS5ColumnDefinition(name: name)
@@ -396,22 +453,50 @@ public final class FTS5TableDefinition {
     /// content in the external table. SQL triggers make sure that the
     /// full-text table is kept up to date with the external table.
     ///
-    /// See <https://sqlite.org/fts5.html#external_content_tables>
+    /// SQLite automatically deletes those triggers when the content
+    /// (not full-text) table is dropped.
+    ///
+    /// However, those triggers remain after the full-text table has been
+    /// dropped. Unless they are dropped too, they will prevent future
+    /// insertion, updates, and deletions in the content table, and the creation
+    /// of a new full-text table.
+    ///
+    /// To drop those triggers, call the `Database`
+    /// ``Database/dropFTS5SynchronizationTriggers(forTable:)`` method:
+    ///
+    /// ```swift
+    /// // Create tables
+    /// try db.create(table: "book") { t in
+    ///     ...
+    /// }
+    /// try db.create(virtualTable: "book_ft", using: FTS5()) { t in
+    ///     t.synchronize(withTable: "book")
+    ///     ...
+    /// }
+    ///
+    /// // Drop full-text table
+    /// try db.drop(table: "book_ft")
+    /// try db.dropFTS5SynchronizationTriggers(forTable: "book_ft")
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#external_content_tables>
     public func synchronize(withTable tableName: String) {
         contentMode = .synchronized(contentTable: tableName)
     }
 }
 
-/// The FTS5ColumnDefinition class lets you refine a column of an FTS5
-/// virtual table.
+/// Describes a column in an ``FTS5`` virtual table.
 ///
-/// You get instances of this class when you create an FTS5 table:
+/// You get instances of `FTS5ColumnDefinition` when you create an ``FTS5``
+/// virtual table. For example:
 ///
-///     try db.create(virtualTable: "document", using: FTS5()) { t in
-///         t.column("content")      // FTS5ColumnDefinition
-///     }
+/// ```swift
+/// try db.create(virtualTable: "document", using: FTS5()) { t in
+///     t.column("content")      // FTS5ColumnDefinition
+/// }
+/// ```
 ///
-/// See <https://www.sqlite.org/fts5.html>
+/// Related SQLite documentation: <https://www.sqlite.org/fts5.html>
 public final class FTS5ColumnDefinition {
     fileprivate let name: String
     fileprivate var isIndexed: Bool
@@ -423,14 +508,18 @@ public final class FTS5ColumnDefinition {
     
     /// Excludes the column from the full-text index.
     ///
-    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
-    ///         t.column("a")
-    ///         t.column("b").notIndexed()
-    ///     }
+    /// For example:
     ///
-    /// See <https://www.sqlite.org/fts5.html#the_unindexed_column_option>
+    /// ```swift
+    /// try db.create(virtualTable: "document", using: FTS5()) { t in
+    ///     t.column("a")
+    ///     t.column("b").notIndexed()
+    /// }
+    /// ```
     ///
-    /// - returns: Self so that you can further refine the column definition.
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_unindexed_column_option>
+    ///
+    /// - returns: `self` so that you can further refine the column definition.
     @discardableResult
     public func notIndexed() -> Self {
         self.isIndexed = false
@@ -439,7 +528,7 @@ public final class FTS5ColumnDefinition {
 }
 
 extension Column {
-    /// The FTS5 rank column
+    /// The ``FTS5`` rank column.
     public static let rank = Column("rank")
 }
 

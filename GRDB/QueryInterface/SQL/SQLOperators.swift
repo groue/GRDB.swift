@@ -126,7 +126,7 @@ extension SQLSpecificExpressible {
     
     /// The `IS` SQL operator.
     public static func === (lhs: (any SQLExpressible)?, rhs: Self) -> SQLExpression {
-        if let lhs = lhs {
+        if let lhs {
             return .compare(.is, lhs.sqlExpression, rhs.sqlExpression)
         } else {
             return .compare(.is, rhs.sqlExpression, .null)

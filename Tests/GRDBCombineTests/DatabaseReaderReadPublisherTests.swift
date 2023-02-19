@@ -22,7 +22,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisher() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -128,7 +128,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     //     frame #71: 0x00007fff72311cc9 libdyld.dylib`start + 1
     //     frame #72: 0x00007fff72311cc9 libdyld.dylib`start + 1
     func testReadPublisherError() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -157,7 +157,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherIsAsynchronous() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -197,7 +197,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherDefaultScheduler() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -237,7 +237,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherCustomScheduler() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -278,7 +278,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherIsReadonly() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         

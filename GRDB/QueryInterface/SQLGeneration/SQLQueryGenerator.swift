@@ -47,7 +47,7 @@ struct SQLQueryGenerator: Refinable {
         }
         
         let filter = try relation.filterPromise?.resolve(context.db)
-        if let filter = filter {
+        if let filter {
             sql += " WHERE "
             sql += try filter.sql(context)
         }
@@ -83,7 +83,7 @@ struct SQLQueryGenerator: Refinable {
             limit = SQLLimit(limit: 1, offset: limit?.offset)
         }
         
-        if let limit = limit {
+        if let limit {
             sql += " LIMIT "
             sql += limit.sql
         }

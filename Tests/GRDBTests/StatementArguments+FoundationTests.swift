@@ -47,14 +47,14 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
     }
 
-    func testStatementArgumentsNSArrayInitializerFromInvalidNSArray() {
-        let persons = [ // NSArray, because of the heterogeneous values
-            ["Arthur", NonDatabaseConvertibleObject()],
-            ["Barbara", NonDatabaseConvertibleObject()],
-            ]
-        
-        for person in persons {
-            XCTAssertNil(StatementArguments(person))
+    func testStatementArgumentsInitializerFromInvalidArray() {
+        do {
+            let array: [Any] = ["Arthur", NonDatabaseConvertibleObject()]
+            XCTAssertNil(StatementArguments(array))
+        }
+        do {
+            let array: NSArray = ["Arthur", NonDatabaseConvertibleObject()]
+            XCTAssertNil(StatementArguments(array as! [Any]))
         }
     }
     

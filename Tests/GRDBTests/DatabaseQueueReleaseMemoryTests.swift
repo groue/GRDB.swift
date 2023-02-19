@@ -73,7 +73,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
                 s2.signal()
             }
             let block2 = { [weak dbQueue] () in
-                if let dbQueue = dbQueue {
+                if let dbQueue {
                     try! dbQueue.write { db in
                         s1.signal()
                         _ = s2.wait(timeout: .distantFuture)
@@ -118,7 +118,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
             let block2 = { [weak dbQueue] () in
                 var statement: Statement? = nil
                 do {
-                    if let dbQueue = dbQueue {
+                    if let dbQueue {
                         do {
                             try dbQueue.write { db in
                                 statement = try db.makeStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")

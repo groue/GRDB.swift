@@ -206,9 +206,9 @@ extension SQLRequest: FetchRequest {
         switch cache {
         case .none:
             statement = try db.makeStatement(sql: sql)
-        case .public?:
+        case .public:
             statement = try db.cachedStatement(sql: sql)
-        case .internal?:
+        case .internal:
             statement = try db.internalCachedStatement(sql: sql)
         }
         try statement.setArguments(context.arguments)

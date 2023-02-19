@@ -22,7 +22,7 @@ class ValueObservationPublisherTests : XCTestCase {
     // MARK: - Default Scheduler
     
     func testDefaultSchedulerChangesNotifications() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -64,7 +64,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDefaultSchedulerFirstValueIsEmittedAsynchronously() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -97,7 +97,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDefaultSchedulerError() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -123,7 +123,7 @@ class ValueObservationPublisherTests : XCTestCase {
     // MARK: - Immediate Scheduler
     
     func testImmediateSchedulerChangesNotifications() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -165,7 +165,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testImmediateSchedulerEmitsFirstValueSynchronously() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -201,7 +201,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testImmediateSchedulerError() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -226,7 +226,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     // MARK: - Demand
     
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     private class DemandSubscriber<Input, Failure: Error>: Subscriber {
         private var subscription: Subscription?
         let subject = PassthroughSubject<Input, Failure>()
@@ -257,7 +257,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandNoneReceivesNoElement() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -292,7 +292,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandOneReceivesOneElement() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -330,7 +330,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandOneDoesNotReceiveTwoElements() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -372,7 +372,7 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandTwoReceivesTwoElements() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -418,7 +418,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     /// Regression test for https://github.com/groue/GRDB.swift/issues/1194
     func testIssue1194() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         

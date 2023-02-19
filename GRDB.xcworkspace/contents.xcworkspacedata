@@ -18,6 +18,9 @@
       </FileRef>
    </Group>
    <FileRef
+      location = "group:BRAG.md">
+   </FileRef>
+   <FileRef
       location = "group:CHANGELOG.md">
    </FileRef>
    <FileRef

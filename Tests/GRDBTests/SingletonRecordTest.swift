@@ -192,7 +192,7 @@ class SingletonRecordTest: GRDBTestCase {
             throw XCTSkip("UPSERT is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("UPSERT is not available")
         }
 #endif
@@ -215,7 +215,7 @@ class SingletonRecordTest: GRDBTestCase {
             throw XCTSkip("UPSERT is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("UPSERT is not available")
         }
 #endif

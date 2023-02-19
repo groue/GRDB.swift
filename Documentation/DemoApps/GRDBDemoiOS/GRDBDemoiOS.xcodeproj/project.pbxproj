@@ -40,6 +40,20 @@
 			remoteGlobalIDString = 56B036021E8D9EBE003B6DA4;
 			remoteInfo = GRDBDemoiOS;
 		};
+		5642252F29A2390800D714BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDB;
+		};
+		5642253329A2391900D714BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDB;
+		};
 		56606D092355931F00185962 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
@@ -328,6 +342,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5642253429A2391900D714BF /* PBXTargetDependency */,
 			);
 			name = "GRDBDemoWatchOS Extension";
 			productName = "GRDBDemoWatchOS Extension";
@@ -347,6 +362,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5642253029A2390800D714BF /* PBXTargetDependency */,
 				568E5FD81E926430002582E0 /* PBXTargetDependency */,
 			);
 			name = GRDBDemoiOS;
@@ -510,6 +526,16 @@
 			isa = PBXTargetDependency;
 			target = 56B036021E8D9EBE003B6DA4 /* GRDBDemoiOS */;
 			targetProxy = 56185BF525B80B8900B9C30F /* PBXContainerItemProxy */;
+		};
+		5642253029A2390800D714BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDB;
+			targetProxy = 5642252F29A2390800D714BF /* PBXContainerItemProxy */;
+		};
+		5642253429A2391900D714BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDB;
+			targetProxy = 5642253329A2391900D714BF /* PBXContainerItemProxy */;
 		};
 		568E5FCE1E926430002582E0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

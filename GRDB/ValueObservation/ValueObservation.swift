@@ -634,7 +634,7 @@ extension ValueObservation {
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func values(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
@@ -669,7 +669,7 @@ extension ValueObservation {
 ///
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
-@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 public struct AsyncValueObservation<Element>: AsyncSequence {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
@@ -704,7 +704,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         }
         
         let iterator = stream.makeAsyncIterator()
-        if let cancellable = cancellable {
+        if let cancellable {
             return Iterator(
                 iterator: iterator,
                 cancellable: cancellable)
@@ -771,7 +771,7 @@ extension ValueObservation {
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
     /// - returns: A Combine publisher
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func publisher(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
@@ -788,7 +788,7 @@ extension ValueObservation {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that publishes the values of a ``ValueObservation``.
     ///

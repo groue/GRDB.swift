@@ -2,7 +2,7 @@
 import Combine
 import XCTest
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
     /// A publisher expectation which waits for the recorded publisher
     /// to complete.
@@ -49,7 +49,7 @@ extension PublisherExpectations {
         ///     }
         public func get() throws -> Record<Input, Failure>.Recording {
             try recorder.value { (elements, completion, remainingElements, consume) in
-                if let completion = completion {
+                if let completion {
                     consume(remainingElements.count)
                     return Record<Input, Failure>.Recording(output: elements, completion: completion)
                 } else {

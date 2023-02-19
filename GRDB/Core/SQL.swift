@@ -121,8 +121,8 @@ public struct SQL {
         fileprivate func qualified(with alias: TableAlias) -> Element {
             switch self {
             case .sql:
-                /// A raw SQL string can't be qualified with a table alias,
-                /// because we can't parse it.
+                // A raw SQL string can't be qualified with a table alias,
+                // because we can't parse it.
                 return self
             case .subquery:
                 // Subqueries don't need table alias

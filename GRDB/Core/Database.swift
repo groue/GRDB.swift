@@ -61,6 +61,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``inTransaction(_:_:)``
 /// - ``isInsideTransaction``
 /// - ``rollback()``
+/// - ``transactionDate``
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
@@ -276,6 +277,60 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
+    // MARK: - Transaction Date
+    
+    enum AutocommitState {
+        case off
+        case on
+    }
+    
+    /// The state of the auto-commit mode, as left by the last
+    /// executed statement.
+    ///
+    /// The goal of this property is to detect changes in the auto-commit mode.
+    /// When you need to know if the database is currently in the auto-commit
+    /// mode, always prefer ``isInsideTransaction``.
+    var autocommitState = AutocommitState.on
+    
+    /// The date of the current transaction, wrapped in a result that is an
+    /// error if there was an error grabbing this date when the transaction has
+    /// started.
+    ///
+    /// Invariant: `transactionDateResult` is nil iff connection is not
+    /// inside a transaction.
+    var transactionDateResult: Result<Date, Error>?
+    
+    /// The date of the current transaction.
+    ///
+    /// The returned date is constant at any point during a transaction. It is
+    /// set when the database leaves the
+    /// [autocommit mode](https://www.sqlite.org/c3ref/get_autocommit.html) with
+    /// a `BEGIN` statement.
+    ///
+    /// When the database is not currently in a transaction, a new date is
+    /// returned on each call.
+    ///
+    /// See <doc:RecordTimestamps> for an example of usage.
+    ///
+    /// Transaction dates, by default, are built from a new `Date()` instance.
+    /// You can override this default behavior by configuring
+    /// ``Configuration/transactionClock``.
+    public var transactionDate: Date {
+        get throws {
+            SchedulingWatchdog.preconditionValidQueue(self)
+            
+            // Check invariant: `transactionDateResult` is nil iff connection
+            // is not inside a transaction.
+            assert(isInsideTransaction || transactionDateResult == nil)
+            
+            if let transactionDateResult {
+                return try transactionDateResult.get()
+            } else {
+                return try configuration.transactionClock.now(self)
+            }
+        }
+    }
+    
     // MARK: - Private properties
     
     /// Support for ``Configuration/busyMode``.
@@ -335,10 +390,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             _ = sqlite3_close(sqliteConnection) // ignore result code
             throw DatabaseError(resultCode: code)
         }
-        if let sqliteConnection = sqliteConnection {
-            return sqliteConnection
+        guard let sqliteConnection else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
         }
-        throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        return sqliteConnection
     }
     
     // MARK: - Database Setup
@@ -1163,7 +1218,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             }
         }
         
-        if let firstError = firstError {
+        if let firstError {
             throw firstError
         }
     }
@@ -1312,7 +1367,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             }
         }
         
-        if let firstError = firstError {
+        if let firstError {
             throw firstError
         }
     }
@@ -1861,10 +1916,10 @@ extension Database {
             enum Impl {
                 case trace_v1(String)
                 case trace_v2(
-                        sqliteStatement: SQLiteStatement,
-                        unexpandedSQL: UnsafePointer<CChar>?,
-                        sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
-                        publicStatementArguments: Bool) // See Configuration.publicStatementArguments
+                    sqliteStatement: SQLiteStatement,
+                    unexpandedSQL: UnsafePointer<CChar>?,
+                    sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
+                    publicStatementArguments: Bool) // See Configuration.publicStatementArguments
             }
             var impl: Impl
             
@@ -1886,7 +1941,7 @@ extension Database {
                     fatalError("Unavailable statement SQL")
                     
                 case let .trace_v2(sqliteStatement, unexpandedSQL, _, _):
-                    if let unexpandedSQL = unexpandedSQL {
+                    if let unexpandedSQL {
                         return String(cString: unexpandedSQL).trimmedSQLStatement
                     } else {
                         return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement

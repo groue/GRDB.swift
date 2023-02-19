@@ -169,6 +169,21 @@ public struct Configuration {
     /// ```
     public var publicStatementArguments = false
     
+    /// The clock that feeds ``Database/transactionDate``.
+    ///
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+    ///
+    /// The default clock is ``DefaultTransactionClock`` (which returns the
+    /// current date with `Date()`).
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var config = Configuration()
+    /// config.transactionClock = .custom { db in /* return some Date */ }
+    /// ```
+    public var transactionClock: TransactionClock = .default
+    
     // MARK: - Managing SQLite Connections
     
     private var setups: [(Database) throws -> Void] = []
@@ -406,7 +421,7 @@ public struct Configuration {
     /// Creates a DispatchQueue which has the quality of service and target
     /// queue of read accesses.
     func makeReaderDispatchQueue(label: String) -> DispatchQueue {
-        if let targetQueue = targetQueue {
+        if let targetQueue {
             return DispatchQueue(label: label, target: targetQueue)
         } else {
             return DispatchQueue(label: label, qos: qos)

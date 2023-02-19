@@ -6,7 +6,7 @@ private struct Hacker : TableRecord {
     var id: Int64? // Optional
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Hacker: Identifiable { }
 
 private struct Person : Codable, PersistableRecord, FetchableRecord, Hashable {
@@ -16,7 +16,7 @@ private struct Person : Codable, PersistableRecord, FetchableRecord, Hashable {
     var email: String
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Person: Identifiable { }
 
 private struct Citizenship : TableRecord {
@@ -46,7 +46,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             XCTAssertTrue(deleted)
             XCTAssertEqual(try Hacker.fetchCount(db), 0)
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
                 try XCTAssertFalse(Hacker.deleteOne(db, id: nil))
                 deleted = try Hacker.deleteOne(db, id: 1)
@@ -62,7 +62,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Hacker.fetchCount(db), 1)
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [2, "Barbara"])
                 try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [3, "Craig"])
                 let deletedCount = try Hacker.deleteAll(db, ids: [2, 3, 4])
@@ -85,7 +85,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             XCTAssertTrue(deleted)
             XCTAssertEqual(try Person.fetchCount(db), 0)
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [1, "Arthur", "arthur@example.com"])
                 deleted = try Person.deleteOne(db, id: 1)
                 XCTAssertTrue(deleted)
@@ -100,7 +100,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Person.fetchCount(db), 1)
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [2, "Barbara", "barbara@example.com"])
                 try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [3, "Craig", "craig@example.com"])
                 let deletedCount = try Person.deleteAll(db, ids: [2, 3, 4])
@@ -190,7 +190,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person.filter(keys: [1, 2]).deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2)")
 
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 try Person.filter(id: 1).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1")
                 
@@ -235,7 +235,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif
@@ -255,7 +255,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif
@@ -278,7 +278,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             _ = try Person.filter(keys: [1, 2]).deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
 
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 _ = try Person.filter(id: 1).deleteAndFetchCursor(db).next()
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1 RETURNING *")
                 
@@ -308,7 +308,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif
@@ -336,7 +336,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif
@@ -422,7 +422,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif
@@ -589,7 +589,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
-        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #endif

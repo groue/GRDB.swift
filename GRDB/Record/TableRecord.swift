@@ -80,7 +80,8 @@ import Foundation
 /// - ``joining(optional:)``
 /// - ``joining(required:)``
 /// - ``limit(_:offset:)``
-/// - ``matching(_:)``
+/// - ``matching(_:)-22m4o``
+/// - ``matching(_:)-1t8ph``
 /// - ``none()``
 /// - ``order(_:)-9rc11``
 /// - ``order(_:)-2033k``
@@ -309,7 +310,7 @@ extension TableRecord {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
@@ -445,7 +446,7 @@ extension TableRecord {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
@@ -700,20 +701,20 @@ extension TableRecord {
     
     /// Returns an error for a record that does not exist in the database.
     public static func recordNotFound(key: [String: (any DatabaseValueConvertible)?]) -> RecordError {
-        return RecordError.recordNotFound(
+        RecordError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key.mapValues { $0?.databaseValue ?? .null })
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns an error for a record that does not exist in the database.
     ///
     /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
     ///   any error that prevented the `RecordError` from being constructed.
     public static func recordNotFound(_ db: Database, id: Self.ID) -> any Error {
-        return recordNotFound(db, key: id)
+        recordNotFound(db, key: id)
     }
 }
 

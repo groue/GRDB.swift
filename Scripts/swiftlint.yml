@@ -6,13 +6,14 @@ disabled_rules:
   - cyclomatic_complexity
   - duplicate_enum_cases
   - file_length
+  - for_where
   - force_cast
   - force_try
-  - for_where
   - function_body_length
   - function_parameter_count
   - identifier_name
   - is_disjoint
+  - large_tuple
   - nesting
   - opening_brace
   - redundant_optional_initialization
@@ -25,11 +26,10 @@ disabled_rules:
   - unused_setter_value
 
 opt_in_rules:
-  - anyobject_protocol
   - array_init
-  - capture_variable
   - closure_spacing
   - collection_alignment
+  - comma_inheritance
   - contains_over_filter_count
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
@@ -48,20 +48,29 @@ opt_in_rules:
   - last_where
   - legacy_multiple
   - legacy_random
+  - local_doc_comment
   - lower_acl_than_parent
   - modifier_order
   - no_extension_access_modifier
+  - optional_enum_case_matching
   - overridden_super_call
   - pattern_matching_keywords
   - prohibited_super_call
   - reduce_into
   - redundant_type_annotation
+  - shorthand_optional_binding
   - sorted_first_last
   - sorted_imports
   - toggle_bool
+  - unused_capture_list
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+analyzer_rules:
+  - capture_variable
+  - typesafe_array_init
   - unused_declaration
   - unused_import
-  - yoda_condition
 
 vertical_whitespace:
   max_empty_lines: 2

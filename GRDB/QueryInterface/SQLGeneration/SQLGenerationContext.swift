@@ -324,7 +324,7 @@ public class TableAlias {
         
         switch impl {
         case let .undefined(userName):
-            if let userName = userName {
+            if let userName {
                 // rename
                 assert(base.userName == nil || base.userName == userName)
                 base.setUserName(userName)
@@ -332,7 +332,7 @@ public class TableAlias {
             self.impl = .proxy(base)
         case let .table(tableName: tableName, userName: userName):
             assert(tableName == base.tableName)
-            if let userName = userName {
+            if let userName {
                 // rename
                 assert(base.userName == nil || base.userName == userName)
                 base.setUserName(userName)
@@ -358,7 +358,7 @@ public class TableAlias {
                 // can't merge
                 return nil
             }
-            if let userName = userName, let otherUserName = otherUserName, userName != otherUserName {
+            if let userName, let otherUserName, userName != otherUserName {
                 // can't merge
                 return nil
             }

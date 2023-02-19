@@ -322,7 +322,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
                 return result
             }
         } else {
-            /// There is no unsafe access to a snapshot.
+            // There is no unsafe access to a snapshot.
             return try read(value)
         }
     }

@@ -80,7 +80,7 @@ public struct HasOneAssociation<Origin, Destination> {
             originIsLeft: false)
         
         let associationKey: SQLAssociationKey
-        if let key = key {
+        if let key {
             associationKey = .fixedSingular(key)
         } else {
             associationKey = .inflected(destinationTable)

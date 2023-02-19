@@ -8,7 +8,9 @@ if test -d "/opt/homebrew/bin/"; then
 fi
 
 if which swiftlint >/dev/null; then
-  swiftlint --config "${SRCROOT}/Scripts/swiftlint.yml"
+  # Ignore swiftlint error, because GRBD has no dependency on any Swiftlint version.
+  # See https://github.com/groue/GRDB.swift/issues/1327
+  swiftlint --config "${SRCROOT}/Scripts/swiftlint.yml" || true
 else
   echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
 fi

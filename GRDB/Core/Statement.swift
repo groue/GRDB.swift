@@ -175,7 +175,7 @@ public final class Statement {
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
 #else
-        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
             code = sqlite3_prepare_v3(
                 database.sqliteConnection, statementStart, -1, prepFlags,
                 &sqliteStatement, statementEnd)
@@ -294,7 +294,7 @@ public final class Statement {
         
         var valuesIterator = arguments.values.makeIterator()
         for (index, argumentName) in zip(CInt(1)..., sqliteArgumentNames) {
-            if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
+            if let argumentName, let value = arguments.namedValues[argumentName] {
                 bind(value, at: index)
             } else if let value = valuesIterator.next() {
                 bind(value, at: index)
@@ -372,7 +372,7 @@ public final class Statement {
     func reset(withArguments arguments: StatementArguments?) throws {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
-        if let arguments = arguments {
+        if let arguments {
             try setArguments(arguments)
         } else if argumentsNeedValidation {
             try reset()
@@ -1122,7 +1122,7 @@ public struct StatementArguments: Hashable {
     {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
-            if let argumentName = argumentName {
+            if let argumentName {
                 if let dbValue = namedValues[argumentName] {
                     return dbValue
                 } else if values.isEmpty {

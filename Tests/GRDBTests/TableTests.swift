@@ -117,7 +117,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 struct Player: Identifiable { var id: Int64 }
                 let t = Table<Player>("player")
                 
@@ -129,7 +129,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 struct Player: Identifiable { var id: Int64? }
                 let t = Table<Player>("player")
                 
@@ -806,7 +806,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -821,7 +821,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -920,7 +920,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
 
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -930,7 +930,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 

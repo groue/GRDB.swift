@@ -207,7 +207,7 @@ extension PersistableRecord {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func upsert(_ db: Database) throws {
         try willSave(db)
         
@@ -302,7 +302,7 @@ extension PersistableRecord {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func upsertAndFetch(
         _ db: Database,
         onConflict conflictTarget: [String] = [],
@@ -330,7 +330,7 @@ extension PersistableRecord {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func upsertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         as returnedType: T.Type,

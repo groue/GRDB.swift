@@ -81,7 +81,7 @@ extension ValueReducers {
             guard let value = try base._value(fetched) else {
                 return nil
             }
-            if let previousValue = previousValue, predicate(previousValue, value) {
+            if let previousValue, predicate(previousValue, value) {
                 // Don't notify consecutive identical values
                 return nil
             }

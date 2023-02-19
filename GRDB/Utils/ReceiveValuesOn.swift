@@ -11,7 +11,7 @@ import Foundation
 /// This scheduling guarantee is used by GRDB in order to be able
 /// to make promises on the scheduling of database values without surprising
 /// the users as in <https://forums.swift.org/t/28631>.
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 struct ReceiveValuesOn<Upstream: Publisher, Context: Scheduler>: Publisher {
     typealias Output = Upstream.Output
     typealias Failure = Upstream.Failure
@@ -30,7 +30,7 @@ struct ReceiveValuesOn<Upstream: Publisher, Context: Scheduler>: Publisher {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscription, Subscriber
 where
     Upstream: Publisher,
@@ -211,7 +211,7 @@ where
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Publisher {
     /// Specifies the scheduler on which to receive values from the publisher
     ///

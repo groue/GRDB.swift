@@ -1125,7 +1125,7 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// Requires SQLite compiled with option SQLITE_ENABLE_PREUPDATE_HOOK.
     ///
-    /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
+    /// As of macOS 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
     /// version of SQLite:
     /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md>
@@ -1482,7 +1482,7 @@ public struct DatabasePreUpdateEvent {
     /// The triggering depth of the row update
     /// Returns:
     ///     0  if the preupdate callback was invoked as a result of a direct insert,
-    //         update, or delete operation;
+    ///        update, or delete operation;
     ///     1  for inserts, updates, or deletes invoked by top-level triggers;
     ///     2  for changes resulting from triggers called by top-level triggers;
     ///     ... and so forth
@@ -1699,7 +1699,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     {
         var value: SQLiteValue? = nil
         guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
-        if let value = value {
+        if let value {
             return DatabaseValue(sqliteValue: value)
         }
         return nil

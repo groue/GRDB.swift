@@ -65,7 +65,7 @@ final class WALSnapshot: Sendable {
     ///
     /// See <https://www.sqlite.org/c3ref/snapshot_cmp.html>.
     func compare(_ other: WALSnapshot) -> CInt {
-        return sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
+        sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
     }
 #else
     static let available = false

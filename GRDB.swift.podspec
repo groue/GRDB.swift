@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'GRDB.swift'
-  s.version  = '6.6.1'
+  s.version  = '6.7.0'
   
   s.license  = { :type => 'MIT', :file => 'LICENSE' }
   s.summary  = 'A toolkit for SQLite databases, with a focus on application development.'
@@ -20,6 +20,9 @@ Pod::Spec.new do |s|
     ss.source_files = 'GRDB/**/*.swift', 'Support/grdb_config.h'
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
+    ss.xcconfig = {
+      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5',
+    }
   end
   
   s.subspec 'SQLCipher' do |ss|

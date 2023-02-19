@@ -77,7 +77,7 @@ private class Person : Record, Hashable {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Person: Identifiable { }
 
 class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
@@ -586,7 +586,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let cursor = try Person.fetchCursor(db, ids: ids)
@@ -625,7 +625,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let fetchedRecords = try Person.fetchAll(db, ids: ids)
@@ -663,7 +663,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let fetchedRecords = try Person.fetchSet(db, ids: ids)
@@ -701,7 +701,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let fetchedRecord = try Person.fetchOne(db, id: record.id!)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
@@ -738,7 +738,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     _ = try Person.find(db, id: -1)
                     XCTFail("Expected RecordError")
@@ -784,7 +784,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let cursor = try Person.filter(ids: ids).fetchCursor(db)
@@ -823,7 +823,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let fetchedRecords = try Person.filter(ids: ids).fetchAll(db)
@@ -861,7 +861,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let ids: [Int64] = []
                     let fetchedRecords = try Person.filter(ids: ids).fetchSet(db)
@@ -899,7 +899,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 do {
                     let fetchedRecord = try Person.filter(id: record.id!).fetchOne(db)!
                     XCTAssertTrue(fetchedRecord.id == record.id)

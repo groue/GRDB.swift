@@ -259,7 +259,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
-        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
             XCTAssertEqual(
                 sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
@@ -357,7 +357,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     func testExistsIdentifiable() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Identifiable is not available")
         }
         

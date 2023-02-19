@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
 - `6.5.x` Releases - [6.5.0](#650)
 - `6.4.x` Releases - [6.4.0](#640)
@@ -103,6 +104,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.7.0
+
+Released February 19, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.6.1...v6.7.0)
+
+- **Fixed**: [#1316](https://github.com/groue/GRDB.swift/pull/1316) and [#1320](https://github.com/groue/GRDB.swift/pull/1320) by [@baekteun](https://github.com/baekteun): Replace "OSX" with "macOS".
+- **Fixed**: [#1328](https://github.com/groue/GRDB.swift/pull/1328) by [@ytti](https://github.com/ytti): Fix documentation about Data passphrases.
+- **Fixed**: [#1327](https://github.com/groue/GRDB.swift/pull/1327) by [@groue](https://github.com/groue): Remove dependency on any specific SwiftLint version.
+- **New**: [#1331](https://github.com/groue/GRDB.swift/pull/1331) by [@groue](https://github.com/groue): Transaction Date
+- **New**: [#1336](https://github.com/groue/GRDB.swift/pull/1336) by [@groue](https://github.com/groue): Enable FTS5 by default
+- **Documentation Update**: The new [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article explains how applications can save the creation and modification date of records.
+- Added support for `Table` in SQL interpolation.
 
 ## 6.6.1
 
@@ -3660,7 +3673,7 @@ It comes with breaking changes, but the good news is that they are the last (unt
     
     As a matter of fact, GRDB 1.0 still supports Xcode 8.1 and Swift 3.0. But future versions are free to use Swift 3.1 features, and will require Xcode 8.3+.
     
-    The targetted operating systems are unchanged: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+
+    The targetted operating systems are unchanged: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+
 
 - **[Record types](https://github.com/groue/GRDB.swift#records) have their `persistentDictionary` property replaced with the `encode(to:)` method:**
     
@@ -5468,11 +5481,11 @@ Released May 17, 2016
 
 **Fixed**
 
-- Restored support for iOS before 8.2 and OS X before 10.10. Fixes [#51](https://github.com/groue/GRDB.swift/issues/51).
+- Restored support for iOS before 8.2 and macOS before 10.10. Fixes [#51](https://github.com/groue/GRDB.swift/issues/51).
 
 **Breaking Changes**
 
-- Support for advanced migrations is not available until iOS 8.2 and OS X 10.10:
+- Support for advanced migrations is not available until iOS 8.2 and macOS 10.10:
     
     ```diff
      struct DatabaseMigrator {
@@ -5528,7 +5541,7 @@ Released May 10, 2016
 
 **New**
 
-- `FetchedRecordsController` is now exposed in OSX CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller))
+- `FetchedRecordsController` is now exposed in macOS CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller))
 
 **Fixed**
 
@@ -5661,7 +5674,7 @@ Released April 5, 2016
 
 **Fixed**
 
-- Restored CocoaPods support for iOS 8+ and OS X 10.9+
+- Restored CocoaPods support for iOS 8+ and macOS 10.9+
 
 
 ## 0.56.0
@@ -5704,7 +5717,7 @@ Released March 31, 2016
 
 Released March 29, 2016
 
-This release restores CocoaPods support for iOS 9.0+ and OSX 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or OSX 10.9+ in a further release.
+This release restores CocoaPods support for iOS 9.0+ and macOS 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or macOS 10.9+ in a further release.
 
 
 ## 0.54.0
@@ -6603,7 +6616,7 @@ Released August 25, 2015
 
 **Fixed**
 
-- Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
+- Reduced iOS Deployment Target to 8.0, and macOS Deployment Target to 10.9.
 - `DatabaseQueue.inTransaction()` is now declared as `rethrows`.
 
 **Breaking changes**

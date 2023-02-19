@@ -76,7 +76,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
     }
     #elseif !GRDBCIPHER
     func testUnicode61TokenizerDiacriticsRemove() throws {
-        guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
             throw XCTSkip()
         }
         let dbQueue = try makeDatabaseQueue()

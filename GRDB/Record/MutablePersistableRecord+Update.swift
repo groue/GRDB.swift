@@ -532,7 +532,7 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetch(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil)
@@ -557,7 +557,7 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -586,7 +586,7 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public mutating func updateChangesAndFetch(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -616,7 +616,7 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public mutating func updateChangesAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -662,7 +662,7 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -724,7 +724,7 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetch<T, Columns>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -768,7 +768,7 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -804,7 +804,7 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public mutating func updateChangesAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
@@ -850,7 +850,7 @@ extension MutablePersistableRecord {
     }
 #else
     @inlinable // allow specialization so that empty callbacks are removed
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     func updateChangesAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution?,

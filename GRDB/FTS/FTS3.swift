@@ -1,7 +1,14 @@
 /// The virtual table module for the FTS3 full-text engine.
 ///
 /// To create FTS3 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``.
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+///
+/// ```swift
+/// // CREATE VIRTUAL TABLE document USING fts3(content)
+/// try db.create(virtualTable: "document", using: FTS3()) { t in
+///     t.column("content")
+/// }
+/// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/fts3.html>
 ///
@@ -23,26 +30,24 @@
 public struct FTS3 {
     /// Options for Latin script characters.
     public enum Diacritics {
-        /// Do not remove diacritics from Latin script characters.
+        /// Do not remove diacritics from Latin script characters. This option
+        /// matches the `remove_diacritics=0` tokenizer argument.
         ///
-        /// This option matches the `remove_diacritics=0` tokenizer argument.
+        /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#tokenizer>
         case keep
         
-        /// Remove diacritics from Latin script characters.
-        ///
-        /// This option matches the `remove_diacritics=1` tokenizer argument.
+        /// Remove diacritics from Latin script characters. This option matches
+        /// the `remove_diacritics=1` tokenizer argument.
         case removeLegacy
         
         #if GRDBCUSTOMSQLITE
-        /// Remove diacritics from Latin script characters.
-        ///
-        /// This option matches the `remove_diacritics=2` tokenizer argument.
+        /// Remove diacritics from Latin script characters. This option matches
+        /// the `remove_diacritics=2` tokenizer argument.
         case remove
         #elseif !GRDBCIPHER
-        /// Remove diacritics from Latin script characters.
-        ///
-        /// This option matches the `remove_diacritics=2` tokenizer argument.
-        @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) // SQLite 3.27+
+        /// Remove diacritics from Latin script characters. This option matches
+        /// the `remove_diacritics=2` tokenizer argument.
+        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
         case remove
         #endif
     }

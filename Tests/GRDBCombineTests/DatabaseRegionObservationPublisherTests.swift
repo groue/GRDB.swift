@@ -20,7 +20,7 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
 class DatabaseRegionObservationPublisherTests : XCTestCase {
     
     func testChangesNotifications() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -61,7 +61,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
     // TODO: do the same, but asynchronously. If this is too hard, update the
     // public API so that users can easily do it.
     func testPrependInitialDatabaseSync() throws {
-        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
         

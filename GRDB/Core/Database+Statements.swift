@@ -406,8 +406,8 @@ extension SQLStatementCursor: Cursor {
     /// Check that all arguments were consumed: it is a programmer error to
     /// provide arguments that do not match the statements.
     private func checkArgumentsAreEmpty() throws {
-        if let arguments = arguments,
-           let initialArgumentCount = initialArgumentCount,
+        if let arguments,
+           let initialArgumentCount,
            arguments.values.isEmpty == false
         {
             throw DatabaseError(
@@ -445,6 +445,8 @@ extension Database {
             clearSchemaCache()
         }
         
+        checkForAutocommitTransition()
+        
         // Database observation: cleanup
         try observationBroker?.statementDidExecute(statement)
     }
@@ -459,6 +461,8 @@ extension Database {
         // So make sure we clear this statement from the cache.
         internalStatementCache.remove(statement)
         publicStatementCache.remove(statement)
+        
+        checkForAutocommitTransition()
         
         // Extract values that may be modified by the user in their
         // `TransactionObserver.databaseDidRollback(_:)` implementation
@@ -480,6 +484,25 @@ extension Database {
             sql: statement.sql,
             arguments: arguments,
             publicStatementArguments: configuration.publicStatementArguments)
+    }
+    
+    private func checkForAutocommitTransition() {
+        if sqlite3_get_autocommit(sqliteConnection) == 0 {
+            if autocommitState == .on {
+                // Record transaction date as soon as the connection leaves
+                // auto-commit mode.
+                // We grab a result, so that this failure is later reported
+                // whenever the user calls `Database.transactionDate`.
+                transactionDateResult = Result { try configuration.transactionClock.now(self) }
+            }
+            autocommitState = .off
+        } else {
+            if autocommitState == .off {
+                // Reset transaction date
+                transactionDateResult = nil
+            }
+            autocommitState = .on
+        }
     }
 }
 
@@ -510,7 +533,7 @@ struct StatementCache {
         let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         #else
         let statement: Statement
-        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+        if #available(iOS 12, macOS 10.14, watchOS 5, *) { // SQLite 3.20+
             statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         } else {
             statement = try db.makeStatement(sql: sql)

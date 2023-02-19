@@ -77,7 +77,7 @@ public struct HasManyAssociation<Origin, Destination> {
             originIsLeft: false)
         
         let associationKey: SQLAssociationKey
-        if let key = key {
+        if let key {
             associationKey = .fixedPlural(key)
         } else {
             associationKey = .inflected(destinationTable)

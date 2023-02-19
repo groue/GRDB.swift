@@ -94,7 +94,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
         // swiftlint:enable comma
         
         func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws where T: Encodable {
-            if let value = value {
+            if let value {
                 try recordEncoder.encode(value, forKey: key)
             } else {
                 recordEncoder.persist(nil, forKey: key)

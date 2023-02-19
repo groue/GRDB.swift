@@ -668,7 +668,7 @@ extension ValueObservationExpectations {
                     consume(1)
                     return next
                 }
-                if let error = error {
+                if let error {
                     throw error
                 } else {
                     throw ValueRecordingError.notEnoughValues
@@ -696,7 +696,7 @@ extension ValueObservationExpectations {
                 if remainingValues.isEmpty == false {
                     return
                 }
-                if let error = error {
+                if let error {
                     throw error
                 }
             }
@@ -732,7 +732,7 @@ extension ValueObservationExpectations {
                     consume(count)
                     return Array(remainingValues.prefix(count))
                 }
-                if let error = error {
+                if let error {
                     throw error
                 } else {
                     throw ValueRecordingError.notEnoughValues
@@ -783,7 +783,7 @@ extension ValueObservationExpectations {
                     consume(extraCount)
                     return Array(values.prefix(matchedCount))
                 }
-                if let error = error {
+                if let error {
                     throw error
                 }
                 consume(remainingValues.count)
@@ -807,7 +807,7 @@ extension ValueObservationExpectations {
         
         public func get() throws -> (values: [Value], error: Error) {
             try recorder.value { (values, error, remainingValues, consume) in
-                if let error = error {
+                if let error {
                     consume(remainingValues.count)
                     return (values: values, error: error)
                 } else {

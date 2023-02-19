@@ -1,7 +1,14 @@
 /// The virtual table module for the FTS4 full-text engine.
 ///
 /// To create FTS4 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``.
+/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+///
+/// ```swift
+/// // CREATE VIRTUAL TABLE document USING fts4(content)
+/// try db.create(virtualTable: "document", using: FTS4()) { t in
+///     t.column("content")
+/// }
+/// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/fts3.html>
 ///
@@ -62,7 +69,7 @@ extension FTS4: VirtualTableModule {
         
         switch definition.contentMode {
         case .raw(let content):
-            if let content = content {
+            if let content {
                 arguments.append("content=\"\(content)\"")
             }
         case .synchronized(let contentTable):
@@ -234,7 +241,7 @@ public final class FTS4TableDefinition {
     /// The FTS4 `prefix` option.
     ///
     ///     // CREATE VIRTUAL TABLE document USING FTS4(content, prefix='2 4');
-    ///     db.create(virtualTable: "document", using:FTS4()) { t in
+    ///     try db.create(virtualTable: "document", using:FTS4()) { t in
     ///         t.prefixes = [2, 4]
     ///         t.column("content")
     ///     }
@@ -300,7 +307,7 @@ public final class FTS4TableDefinition {
     /// try db.dropFTS4SynchronizationTriggers(forTable: "book_ft")
     /// ```
     ///
-    /// Related SQLite documentation: <https://sqlite.org/fts5.html#external_content_tables>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts3.html#_external_content_fts4_tables_>
     public func synchronize(withTable tableName: String) {
         contentMode = .synchronized(contentTable: tableName)
     }

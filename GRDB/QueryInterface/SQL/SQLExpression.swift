@@ -979,7 +979,7 @@ extension SQLExpression {
                 \(op.sql) \
                 \(rhs.sql(context, wrappedInParenthesis: true))
                 """
-            if let escape = escape {
+            if let escape {
                 resultSQL += try " ESCAPE \(escape.sql(context, wrappedInParenthesis: true))"
             }
             if wrappedInParenthesis {
@@ -1893,13 +1893,13 @@ extension SQLSpecificExpressible {
     }
     #elseif !GRDBCIPHER
     /// An ordering term for ascending order (nulls last).
-    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
     /// An ordering term for descending order (nulls first).
-    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }

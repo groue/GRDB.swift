@@ -631,7 +631,7 @@ class AdapterRowTests : RowTestCase {
                 copiedRow = baseRow.copy()
             }
             
-            if let copiedRow = copiedRow {
+            if let copiedRow {
                 XCTAssertEqual(copiedRow.count, 3)
                 XCTAssertEqual(copiedRow["a"] as Int, 0)
                 XCTAssertEqual(copiedRow["b"] as Int, 1)
@@ -668,7 +668,7 @@ class AdapterRowTests : RowTestCase {
                 row = baseRow.copy()
                 XCTAssertEqual(row, baseRow)
             }
-            if let row = row {
+            if let row {
                 let copiedRow = row.copy()
                 XCTAssertEqual(row, copiedRow)
             } else {

@@ -197,7 +197,7 @@ The changes can quite impact your application. We'll describe them below, as wel
         scheduling: .immediate,
         onError: { error in ... },
         onChange: { [weak self] (players: [Player]) in
-            guard let self = self else { return }
+            guard let self else { return }
             self.updateView(players)
         })
     // <- Here the view has already been updated.

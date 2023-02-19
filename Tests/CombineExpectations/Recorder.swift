@@ -13,7 +13,7 @@ import XCTest
 ///
 ///     let elements = try wait(for: recorder.elements, timeout: 1)
 ///     XCTAssertEqual(elements, ["foo", "bar", "baz"])
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 public class Recorder<Input, Failure: Error>: Subscriber {
     public typealias Input = Input
     public typealias Failure = Failure
@@ -253,7 +253,7 @@ public class Recorder<Input, Failure: Error>: Subscriber {
         synchronized {
             switch state {
             case let .subscribed(_, exp, elements):
-                if let exp = exp {
+                if let exp {
                     switch exp {
                     case let .onCompletion(expectation):
                         expectation.fulfill()
@@ -275,7 +275,7 @@ public class Recorder<Input, Failure: Error>: Subscriber {
 
 // MARK: - Publisher Expectations
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
     /// The type of the publisher expectation returned by `Recorder.completion`.
     public typealias Completion<Input, Failure: Error> = Map<Recording<Input, Failure>, Subscribers.Completion<Failure>>
@@ -290,7 +290,7 @@ extension PublisherExpectations {
     public typealias Single<Input, Failure: Error> = Map<Elements<Input, Failure>, Input>
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Recorder {
     /// Returns a publisher expectation which waits for the timeout to expire,
     /// or the recorded publisher to complete.
@@ -572,7 +572,7 @@ extension Recorder {
 
 // MARK: - Publisher + Recorder
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Publisher {
     /// Returns a subscribed Recorder.
     ///

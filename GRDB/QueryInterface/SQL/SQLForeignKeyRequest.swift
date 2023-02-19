@@ -22,7 +22,7 @@ struct SQLForeignKeyRequest {
     
     /// The (origin, destination) column pairs that join a left table to a right table.
     func fetchForeignKeyMapping(_ db: Database) throws -> ForeignKeyMapping {
-        if let originColumns = originColumns, let destinationColumns = destinationColumns {
+        if let originColumns, let destinationColumns {
             // Total information: no need to query the database schema.
             GRDBPrecondition(originColumns.count == destinationColumns.count, "Number of columns don't match")
             let mapping = zip(originColumns, destinationColumns).map {
@@ -36,14 +36,14 @@ struct SQLForeignKeyRequest {
             if destinationTable.lowercased() != foreignKey.destinationTable.lowercased() {
                 return false
             }
-            if let originColumns = originColumns {
+            if let originColumns {
                 let originColumns = Set(originColumns.lazy.map { $0.lowercased() })
                 let foreignKeyColumns = Set(foreignKey.mapping.lazy.map { $0.origin.lowercased() })
                 if originColumns != foreignKeyColumns {
                     return false
                 }
             }
-            if let destinationColumns = destinationColumns {
+            if let destinationColumns {
                 // TODO: test
                 let destinationColumns = Set(destinationColumns.lazy.map { $0.lowercased() })
                 let foreignKeyColumns = Set(foreignKey.mapping.lazy.map { $0.destination.lowercased() })
@@ -66,7 +66,7 @@ struct SQLForeignKeyRequest {
         }
         
         // No matching foreign key found: use the destination primary key
-        if let originColumns = originColumns {
+        if let originColumns {
             let destinationColumns = try db.primaryKey(destinationTable).columns
             if originColumns.count == destinationColumns.count {
                 let mapping = zip(originColumns, destinationColumns).map {

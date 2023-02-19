@@ -316,7 +316,8 @@ extension FilteredRequest {
 /// - ``filter(key:)-2te6v``
 /// - ``filter(keys:)-6ggt1``
 /// - ``filter(keys:)-8fbn9``
-/// - ``matching(_:)``
+/// - ``matching(_:)-3s3zr``
+/// - ``matching(_:)-7c1e8``
 ///
 /// ### The GROUP BY and HAVING Clauses
 ///
@@ -570,7 +571,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
       Self: TypedRequest,
@@ -1337,7 +1338,8 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``FilteredRequest/filter(literal:)``
 /// - ``FilteredRequest/filter(sql:arguments:)``
 /// - ``FilteredRequest/filterWhenConnected(_:)``
-/// - ``TableRequest/matching(_:)``
+/// - ``TableRequest/matching(_:)-3s3zr``
+/// - ``TableRequest/matching(_:)-7c1e8``
 /// - ``FilteredRequest/none()``
 ///
 /// ### The GROUP BY and HAVING Clauses

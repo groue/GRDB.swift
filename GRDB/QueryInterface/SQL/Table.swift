@@ -723,7 +723,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
@@ -1346,7 +1346,7 @@ extension Table {
     {
         let association = HasManyThroughAssociation(through: pivot, using: target)
 
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association
@@ -1378,7 +1378,7 @@ extension Table {
     {
         let association = HasOneThroughAssociation(through: pivot, using: target)
 
-        if let key = key {
+        if let key {
             return association.forKey(key)
         } else {
             return association
@@ -1546,7 +1546,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
@@ -1688,7 +1688,7 @@ extension Table {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible

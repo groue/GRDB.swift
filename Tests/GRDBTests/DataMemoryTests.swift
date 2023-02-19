@@ -37,6 +37,7 @@ class DataMemoryTests: GRDBTestCase {
                     
                     do {
                         // This data should not be copied
+                        // (The deprecation warning is expected: we test a deprecated method.)
                         let nonCopiedData = row.dataNoCopy(atIndex: 0)!
                         XCTAssertEqual(nonCopiedData, data)
                         nonCopiedData.withUnsafeBytes {
@@ -74,6 +75,7 @@ class DataMemoryTests: GRDBTestCase {
 
                     do {
                         // This data should not be copied
+                        // (The deprecation warning is expected: we test a deprecated method.)
                         let nonCopiedData = nestedRow.dataNoCopy(atIndex: 0)!
                         XCTAssertEqual(nonCopiedData, data)
                         nonCopiedData.withUnsafeBytes {
@@ -109,6 +111,7 @@ class DataMemoryTests: GRDBTestCase {
                         }
                         do {
                             // This data should not be copied:
+                            // (The deprecation warning is expected: we test a deprecated method.)
                             let nonCopiedData = row.dataNoCopy(atIndex: 0)!
                             XCTAssertEqual(nonCopiedData, data)
                             nonCopiedData.withUnsafeBytes { nonCopiedBuffer in

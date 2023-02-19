@@ -14,7 +14,7 @@ import Foundation
 /// Both two extra scheduling guarantees are used by GRDB in order to be
 /// able to spawn concurrent database reads right from the database writer
 /// queue, and fulfill GRDB preconditions.
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 struct OnDemandFuture<Output, Failure: Error>: Publisher {
     typealias Promise = (Result<Output, Failure>) -> Void
     typealias Output = Output
@@ -33,7 +33,7 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription {
     typealias Promise = (Result<Downstream.Input, Downstream.Failure>) -> Void
     
