@@ -80,7 +80,8 @@ import Foundation
 /// - ``joining(optional:)``
 /// - ``joining(required:)``
 /// - ``limit(_:offset:)``
-/// - ``matching(_:)``
+/// - ``matching(_:)-22m4o``
+/// - ``matching(_:)-1t8ph``
 /// - ``none()``
 /// - ``order(_:)-9rc11``
 /// - ``order(_:)-2033k``

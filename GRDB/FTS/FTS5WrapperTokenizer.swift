@@ -3,7 +3,7 @@ import Foundation
 
 /// Flags that tell SQLite how to register a token.
 ///
-/// See the `FTS5_TOKEN_*` flags in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
+/// See the `FTS5_TOKEN_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
 public struct FTS5TokenFlags: OptionSet {
     public let rawValue: CInt
     
@@ -11,7 +11,7 @@ public struct FTS5TokenFlags: OptionSet {
         self.rawValue = rawValue
     }
     
-    /// FTS5_TOKEN_COLOCATED
+    /// `FTS5_TOKEN_COLOCATED`
     public static let colocated = FTS5TokenFlags(rawValue: FTS5_TOKEN_COLOCATED)
 }
 
@@ -20,34 +20,18 @@ public struct FTS5TokenFlags: OptionSet {
 /// See FTS5WrapperTokenizer.accept(token:flags:tokenCallback:)
 public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5TokenFlags) throws -> Void
 
-/// The protocol for custom FTS5 tokenizers that wrap another tokenizer.
+/// A type that implements a custom tokenizer for the ``FTS5`` full-text engine
+/// by wrapping another tokenizer.
 ///
-/// Types that adopt FTS5WrapperTokenizer don't have to implement the
-/// low-level FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:).
+/// See [FTS5 Tokenizers](https://github.com/groue/GRDB.swift/blob/master/Documentation/FTS5Tokenizers.md)
+/// for more information.
 ///
-/// Instead, they process regular Swift strings.
+/// ## Topics
 ///
-/// Here is the implementation for a trivial tokenizer that wraps the
-/// built-in ascii tokenizer without any custom processing:
+/// ### Tokenizing Text
 ///
-///     class TrivialAsciiTokenizer : FTS5WrapperTokenizer {
-///         static let name = "trivial"
-///         let wrappedTokenizer: FTS5Tokenizer
-///
-///         init(db: Database, arguments: [String]) throws {
-///             wrappedTokenizer = try db.makeTokenizer(.ascii())
-///         }
-///
-///         func accept(
-///             token: String,
-///             flags: FTS5TokenFlags,
-///             for tokenization: FTS5Tokenization,
-///             tokenCallback: FTS5WrapperTokenCallback)
-///             throws
-///         {
-///             try tokenCallback(token, flags)
-///         }
-///     }
+/// - ``accept(token:flags:for:tokenCallback:)``
+/// - ``FTS5WrapperTokenCallback``
 public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// The wrapped tokenizer
     var wrappedTokenizer: any FTS5Tokenizer { get }
@@ -57,16 +41,17 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     ///
     /// For example:
     ///
-    ///     func accept(
-    ///         token: String,
-    ///         flags: FTS5TokenFlags,
-    ///         for tokenization: FTS5Tokenization,
-    ///         tokenCallback: FTS5WrapperTokenCallback)
-    ///         throws
-    ///     {
-    ///         // pass through:
-    ///         try tokenCallback(token, flags)
-    ///     }
+    /// ```swift
+    /// func accept(
+    ///     token: String,
+    ///     flags: FTS5TokenFlags,
+    ///     for tokenization: FTS5Tokenization,
+    ///     tokenCallback: FTS5WrapperTokenCallback
+    /// ) throws {
+    ///     // pass through:
+    ///     try tokenCallback(token, flags)
+    /// }
+    /// ```
     ///
     /// When implementing the accept method, there are a two rules
     /// to observe:
@@ -74,8 +59,8 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// 1. Errors thrown by the tokenCallback function must not be caught.
     ///
     /// 2. The input `flags` should be given unmodified to the tokenCallback
-    /// function, unless you union it with the .colocated flag when the
-    /// tokenizer produces synonyms (see
+    /// function, unless you union it with the ``FTS5TokenFlags/colocated`` flag
+    /// when the tokenizer produces synonyms (see
     /// <https://www.sqlite.org/fts5.html#synonym_support>).
     ///
     /// - parameters:
@@ -99,7 +84,6 @@ private struct FTS5WrapperContext {
 }
 
 extension FTS5WrapperTokenizer {
-    /// Default implementation
     public func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,

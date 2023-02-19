@@ -4,13 +4,14 @@
 import Foundation
 import PackageDescription
 
-// Don't rely on those environment variables. They are ONLY testing conveniences:
-// $ SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
-var swiftSettings: [SwiftSetting] = []
+var swiftSettings: [SwiftSetting] = [
+    .define("SQLITE_ENABLE_FTS5"),
+]
 var cSettings: [CSetting] = []
-if ProcessInfo.processInfo.environment["SQLITE_ENABLE_FTS5"] == "1" {
-    swiftSettings.append(.define("SQLITE_ENABLE_FTS5"))
-}
+var dependencies: [PackageDescription.Package.Dependency] = []
+
+// Don't rely on those environment variables. They are ONLY testing conveniences:
+// $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
 if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
     swiftSettings.append(.define("SQLITE_ENABLE_PREUPDATE_HOOK"))
     cSettings.append(.define("GRDB_SQLITE_ENABLE_PREUPDATE_HOOK"))
@@ -22,7 +23,6 @@ if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {
 // for more information.
 //
 // SPI_BUILDER also enables the `make docs-localhost` command.
-var dependencies: [PackageDescription.Package.Dependency] = []
 if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
