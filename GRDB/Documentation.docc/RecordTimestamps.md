@@ -62,15 +62,15 @@ On insertion, the record should get fresh `creationDate` and `modificationDate`.
 
 ```swift
 extension Player: Encodable, MutablePersistableRecord {
-    // Update auto-incremented id upon successful insertion
-    mutating func didInsert(_ inserted: InsertionSuccess) {
-        id = inserted.rowID
-    }
-    
     // Update timestamps before insertion
     mutating func willInsert(_ db: Database) throws {
         creationDate = try db.transactionDate
         modificationDate = try db.transactionDate
+    }
+    
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -106,6 +106,55 @@ try dbQueue.write { db in
 ```
 
 Again, we use ``Database/transactionDate``, so that all modified players get the same timestamp within a given write transaction.
+
+> Note: Unlike the insertion case, where we set the timestamps in the ``MutablePersistableRecord/willInsert(_:)-1xfwo`` persistence callback, updates are not handled with ``MutablePersistableRecord/willSave(_:)-6jitc`` or ``MutablePersistableRecord/willUpdate(_:columns:)-3oko4``. Instead, the modification date is explicitly modified when needed.
+>
+> This may look like an inconvenience, but there are several reasons for this:
+>
+> 1. The first reason is purely technical: the persistence methods that perform database updates are not declared as a mutating methods. This mean that `player.update(db)` is unable to modify the player's modification date.
+> 2. The second reason is that the library indeed discourages automatic changes to the modification date from the general `update` method.
+>
+>     While convenient-looking at first sight, users eventually want to disable those automatic updates. That's because application requirements can change, and developers can overlook some corner cases. And that's totally fine.
+>
+>     How do existing libraries that provide automatic timestamps help those users? Well, this is not pretty. [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe). [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add)... I don't know how Django help users.
+>
+> 2. Not all applications need one modification timestamp. Some need one timestamp per property, or per group of property.
+>
+> All in all, by not providing this feature, all applications are treated equally: they are responsible for bumping timestamps when they need.
+>
+> Applications can help themselves, though. For example, if several records share the same timestamps, it is possible to introduce a dedicated protocol:
+>
+> ```swift
+> // The protocol for timestamps records 
+> protocol TimestampedRecord {
+>     var creationDate: Date? { get set }
+>     var modificationDate: Date? { get set }
+> }
+>
+> extension MutablePersistableRecord where Self: TimestampedRecord {
+>     // Bumps the modification date, and executes an UPDATE statement on all columns.
+>     mutating func updateWithTimestamp(_ db: Database) throws {
+>         self.modificationDate = try db.transactionDate
+>         try update(db)
+>     }
+> }
+> 
+> private struct Player: Codable, MutablePersistableRecord, TimestampedRecord {
+>     var id: Int64?
+>     var creationDate: Date?
+>     var modificationDate: Date?
+>     var name: String
+>     var score: Int
+> }
+>
+> // Increment the player score.
+> try dbQueue.write { db in
+>     var player: Player
+>     player.score += 1
+>     try player.updateWithTimestamp(db) // instead of update(db)
+> }
+> ```
+
 
 ## Dealing with Optional Timestamps
 
