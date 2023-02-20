@@ -116,7 +116,7 @@ Again, we use ``Database/transactionDate``, so that all modified players get the
 >
 >     While convenient-looking at first sight, users eventually want to disable those automatic updates. That's because application requirements can change, and developers can overlook some corner cases. And that's totally fine.
 >
->     How do existing libraries that provide automatic timestamps help those users? Well, this is not pretty. [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe). [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add)... I don't know how Django help users.
+>     How do existing libraries that provide automatic timestamps help those users? Well, this is not pretty. [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe). [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add) does not make it easy. [Fluent](https://github.com/vapor/fluent-kit/issues/355) does not allow it.
 >
 > 2. Not all applications need one modification timestamp. Some need one timestamp per property, or per group of property.
 >
