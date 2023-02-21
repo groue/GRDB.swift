@@ -4,15 +4,15 @@ Learn how applications can save creation and modification dates of records.
 
 ## Overview
 
-Record timestamps are the responsibility of your application. This article provides some sample code that you can adapt for your specific needs.
+Some applications want to record creation and modification dates of database records. This article provides some advice and sample code that you can adapt for your specific needs.
 
-> Note: Creation and modification timestamps can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique.
+> Note: Creation and modification dates can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique.
 >
 > This is not an advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
 >
 > - A trigger does not suffer any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
-> - The "current time" according to SQLite can't be controlled in tests and previews.
-> - The "current time" according to SQLite is not guaranteed to be constant in a given transaction, and this may create undesired timestamp variations.
+> - The current time, according to SQLite, is not guaranteed to be constant in a given transaction. This may create undesired timestamp variations. We'll see below how GRDB provides a date that is constant at any point during a transaction.
+> - The current time, according to SQLite, can't be controlled in tests and previews.
 
 We'll start from this table and record type:
 
@@ -62,13 +62,18 @@ On insertion, the record should get fresh `creationDate` and `modificationDate`.
 
 ```swift
 extension Player: Encodable, MutablePersistableRecord {
-    // Update timestamps before insertion
+    /// Sets both `creationDate` and `modificationDate` to the transaction date,
+    /// if they are not set yet.
     mutating func willInsert(_ db: Database) throws {
-        creationDate = try db.transactionDate
-        modificationDate = try db.transactionDate
+        if creationDate == nil {
+            creationDate = try db.transactionDate
+        }
+        if modificationDate == nil {
+            modificationDate = try db.transactionDate
+        }
     }
     
-    // Update auto-incremented id upon successful insertion
+    /// Update auto-incremented id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
     }
@@ -112,49 +117,97 @@ Again, we use ``Database/transactionDate``, so that all modified players get the
 > This may look like an inconvenience, but there are several reasons for this:
 >
 > 1. The first reason is purely technical: the persistence methods that perform database updates are not declared as a mutating methods. This mean that `player.update(db)` is unable to modify the player's modification date.
+>
 > 2. The second reason is that the library indeed discourages automatic changes to the modification date from the general `update` method.
 >
->     While convenient-looking at first sight, users eventually want to disable those automatic updates. That's because application requirements can change, and developers can overlook some corner cases. And that's totally fine.
+>     While convenient-looking at first sight, users eventually want to disable those automatic updates in specific circumstances. That's because application requirements happen to change, and developers happen to overlook some corner cases. And that's totally fine.
 >
->     How do existing libraries that provide automatic timestamps help those users? Well, this is not pretty. [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe). [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add) does not make it easy. [Fluent](https://github.com/vapor/fluent-kit/issues/355) does not allow it.
+>     Existing libraries that provide automatic modification timestamps know that users want to occasionally disable the feature. [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe). [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add) does not make it easy. [Fluent](https://github.com/vapor/fluent-kit/issues/355) does not allow it.
 >
-> 2. Not all applications need one modification timestamp. Some need one timestamp per property, or per group of property.
+>     Based on this experience, automatic modification timestamps appear as a wobbly convenience that is better avoided.
 >
-> All in all, by not providing this feature, all applications are treated equally: they are responsible for bumping timestamps when they need.
+> 3. Finally, not all applications need one modification timestamp. Some need one timestamp per property, or per group of properties.
 >
-> Applications can help themselves, though. For example, if several records share the same timestamps, it is possible to introduce a dedicated protocol:
->
-> ```swift
-> // The protocol for timestamps records 
-> protocol TimestampedRecord {
->     var creationDate: Date? { get set }
->     var modificationDate: Date? { get set }
-> }
->
-> extension MutablePersistableRecord where Self: TimestampedRecord {
->     // Bumps the modification date, and executes an UPDATE statement on all columns.
->     mutating func updateWithTimestamp(_ db: Database) throws {
->         self.modificationDate = try db.transactionDate
->         try update(db)
->     }
-> }
-> 
-> private struct Player: Codable, MutablePersistableRecord, TimestampedRecord {
->     var id: Int64?
->     var creationDate: Date?
->     var modificationDate: Date?
->     var name: String
->     var score: Int
-> }
->
-> // Increment the player score.
-> try dbQueue.write { db in
->     var player: Player
->     player.score += 1
->     try player.updateWithTimestamp(db) // instead of update(db)
-> }
-> ```
+> By not providing this feature, all applications are treated equally. They can help themselves by introducing a protocol dedicated to their particular handling of timestamps. See the `TimestampedRecord` example protocol below.
 
+## Sample code: TimestampedRecord
+
+This section provides a sample protocol for records that track their creation and modification dates.
+
+You can copy it in your application. Make sure it fits the needs of your application! Not all apps have the same needs regarding timestamps. Perform adaptations when needed.
+
+```swift
+/// A type that tracks its creation and modification dates, as described in
+/// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
+protocol TimestampedRecord {
+    var creationDate: Date? { get set }
+    var modificationDate: Date? { get set }
+}
+
+extension TimestampedRecord {
+    /// Sets `modificationDate` to the transaction date, and `creationDate` if
+    /// not set yet.
+    mutating func touch(_ db: Database) throws {
+        if creationDate == nil {
+            creationDate = try db.transactionDate
+        }
+        modificationDate = try db.transactionDate
+    }
+    
+    /// Sets both `creationDate` and `modificationDate` to the transaction date,
+    /// if they are not set yet.
+    mutating func initializeTimestamps(_ db: Database) throws {
+        if creationDate == nil {
+            creationDate = try db.transactionDate
+        }
+        if modificationDate == nil {
+            modificationDate = try db.transactionDate
+        }
+    }
+}
+
+extension TimestampedRecord where Self: MutablePersistableRecord {
+    /// By default, TimestampedRecord types initialize their timestamps
+    /// before insertion.
+    ///
+    /// Records that customize `willInsert` should call
+    /// `initializeTimestamps` from their implementation.
+    mutating func willInsert(_ db: Database) throws {
+        try initializeTimestamps(db)
+    }
+    
+    /// Sets `modificationDate` to the transaction date, and executes an
+    /// `UPDATE` statement on all columns.
+    mutating func updateWithTimestamp(_ db: Database) throws {
+        try touch(db)
+        try update(db)
+    }
+}
+```
+
+Usage:
+
+```swift
+extension Player: Codable, MutablePersistableRecord, FetchableRecord, TimestampedRecord {
+    /// Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+}
+
+try dbQueue.write { db in
+    // Insertion sets the creation and modification dates.
+    var player = Player(name: "Arthur", score: 1000)
+    try player.insert(db)
+    assert(player.creationDate != nil)
+    assert(player.modificationDate != nil)
+    
+    // Call updateWithTimestamp() instead of update() in order
+    // to bump the modification date.
+    player.score += 1
+    try player.updateWithTimestamp(db)
+}
+```
 
 ## Dealing with Optional Timestamps
 
@@ -182,15 +235,20 @@ struct Player: Identifiable {
 }
 
 extension Player: Encodable, MutablePersistableRecord {
-    // Update auto-incremented id upon successful insertion
+    /// Updates auto-incremented id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
     }
     
-    // Update timestamps before insertion
+    /// Sets both `creationDate` and `modificationDate` to the transaction date,
+    /// if they are not set yet.
     mutating func willInsert(_ db: Database) throws {
-        creationDate = try db.transactionDate
-        modificationDate = try db.transactionDate
+        if creationDate == nil {
+            creationDate = try db.transactionDate
+        }
+        if modificationDate == nil {
+            modificationDate = try db.transactionDate
+        }
     }
 }
 ```
@@ -207,7 +265,7 @@ struct TimestampedPlayer: Identifiable {
 }
 
 extension TimestampedPlayer: Codable, FetchableRecord, PersistableRecord {
-    static var databaseTableName: String { Player.databaseTableName }
+    static var databaseTableName: String { "player" }
 }
 ```
 
