@@ -25,10 +25,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db, columns: ["score"])
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db, columns: ["score"])
     /// }
     /// ```
     ///
@@ -69,10 +68,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db, columns: [Column("score")])
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db, columns: [Column("score")])
     /// }
     /// ```
     ///
@@ -102,10 +100,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db)
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db)
     /// }
     /// ```
     ///
@@ -180,16 +177,15 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         let modified = try player.updateChanges(db) {
-    ///             $0.score = 1000
-    ///             $0.hasAward = true
-    ///         }
-    ///         if modified {
-    ///             print("player was modified")
-    ///         } else {
-    ///             print("player was not modified")
-    ///         }
+    ///     var player = Player.find(db, id: 1)
+    ///     let modified = try player.updateChanges(db) {
+    ///         $0.score = 1000
+    ///         $0.hasAward = true
+    ///     }
+    ///     if modified {
+    ///         print("player was modified")
+    ///     } else {
+    ///         print("player was not modified")
     ///     }
     /// }
     /// ```
