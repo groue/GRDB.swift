@@ -143,10 +143,54 @@ class TransactionDateTests: GRDBTestCase {
         currentDate = newTransactionDate
         try dbQueue.write { db in
             var player = try Player.fetchOne(db, key: 1)!
+            
             player.name = "Barbara"
             try player.updateWithTimestamp(db)
             XCTAssertEqual(player.creationDate, .distantPast)
             XCTAssertEqual(player.modificationDate, newTransactionDate)
+            
+            try player.updateWithTimestamp(db, modificationDate: .distantFuture)
+            XCTAssertEqual(player.creationDate, .distantPast)
+            XCTAssertEqual(player.modificationDate, .distantFuture)
+        }
+    }
+    
+    func test_TimestampedRecord_touch() throws {
+        struct Player: Codable, MutablePersistableRecord, FetchableRecord, TimestampedRecord {
+            var id: Int64?
+            var creationDate: Date?
+            var modificationDate: Date?
+            var name: String
+            
+            mutating func didInsert(_ inserted: InsertionSuccess) {
+                id = inserted.rowID
+            }
+        }
+        
+        var currentDate = Date.distantPast
+        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("creationDate", .datetime).notNull()
+                t.column("modificationDate", .datetime).notNull()
+                t.column("name", .text).notNull()
+            }
+            
+            var player = Player(name: "Arthur")
+            try player.insert(db)
+        }
+        
+        let newTransactionDate = Date()
+        currentDate = newTransactionDate
+        try dbQueue.write { db in
+            var player = try Player.fetchOne(db, key: 1)!
+            try player.touch(db)
+            XCTAssertEqual(player.modificationDate, newTransactionDate)
+
+            try player.touch(db, modificationDate: .distantFuture)
+            XCTAssertEqual(player.modificationDate, .distantFuture)
         }
     }
     
@@ -195,40 +239,32 @@ class TransactionDateTests: GRDBTestCase {
             XCTAssertEqual(player.creationDate, .distantPast)
             XCTAssertEqual(player.modificationDate, .distantPast)
         }
-        
-        let newTransactionDate = Date()
-        currentDate = newTransactionDate
-        try dbQueue.write { db in
-            var player = try Player.fetchOne(db, key: 1)!
-            player.name = "Barbara"
-            try player.updateWithTimestamp(db)
-            XCTAssertEqual(player.creationDate, .distantPast)
-            XCTAssertEqual(player.modificationDate, newTransactionDate)
-        }
     }
 }
 
 // The protocol in RecordTimestamps.md
 
-/// A type that tracks its creation and modification dates, as described in
+/// A type that tracks its creation and modification dates. See
 /// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
 protocol TimestampedRecord {
     var creationDate: Date? { get set }
     var modificationDate: Date? { get set }
 }
 
-extension TimestampedRecord {
-    /// Sets `modificationDate` to the transaction date, and `creationDate` if
-    /// not set yet.
-    mutating func touch(_ db: Database) throws {
-        if creationDate == nil {
-            creationDate = try db.transactionDate
-        }
-        modificationDate = try db.transactionDate
+extension TimestampedRecord where Self: MutablePersistableRecord {
+    /// By default, `TimestampedRecord` types set `creationDate` and
+    /// `modificationDate` to the transaction date, if they are nil,
+    /// before insertion.
+    ///
+    /// `TimestampedRecord` types that customize the `willInsert`
+    /// persistence callback should call `initializeTimestamps` from
+    /// their implementation.
+    mutating func willInsert(_ db: Database) throws {
+        try initializeTimestamps(db)
     }
     
-    /// Sets both `creationDate` and `modificationDate` to the transaction date,
-    /// if they are not set yet.
+    /// Sets `creationDate` and `modificationDate` to the transaction date,
+    /// if they are nil.
     mutating func initializeTimestamps(_ db: Database) throws {
         if creationDate == nil {
             creationDate = try db.transactionDate
@@ -237,22 +273,26 @@ extension TimestampedRecord {
             modificationDate = try db.transactionDate
         }
     }
-}
-
-extension TimestampedRecord where Self: MutablePersistableRecord {
-    /// By default, TimestampedRecord types initialize their timestamps
-    /// before insertion.
+    
+    /// Sets `modificationDate`, and executes an `UPDATE` statement
+    /// on all columns.
     ///
-    /// Records that customize `willInsert` should call
-    /// `initializeTimestamps` from their implementation.
-    mutating func willInsert(_ db: Database) throws {
-        try initializeTimestamps(db)
+    /// - parameter date: The modification date. If nil, the
+    ///   transaction date is used.
+    mutating func updateWithTimestamp(_ db: Database, modificationDate: Date? = nil) throws {
+        self.modificationDate = try modificationDate ?? db.transactionDate
+        try update(db)
     }
     
-    /// Sets `modificationDate` to the transaction date, and executes an
-    /// `UPDATE` statement on all columns.
-    mutating func updateWithTimestamp(_ db: Database) throws {
-        try touch(db)
-        try update(db)
+    /// Sets `modificationDate`, and executes an `UPDATE` statement that
+    /// updates the `modificationDate` column, if and only if the record
+    /// was modified.
+    ///
+    /// - parameter date: The modification date. If nil, the
+    ///   transaction date is used.
+    mutating func touch(_ db: Database, modificationDate: Date? = nil) throws {
+        try updateChanges(db) {
+            $0.modificationDate = try modificationDate ?? db.transactionDate
+        }
     }
 }
