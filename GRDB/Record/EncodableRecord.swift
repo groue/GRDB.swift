@@ -276,7 +276,7 @@ extension EncodableRecord {
     ///
     /// ```swift
     /// var player = Player(id: 1, score: 1000, hasAward: false)
-    /// let changes = player.databaseChanges {
+    /// let changes = try player.databaseChanges {
     ///     $0.score = 1000
     ///     $0.hasAward = true
     /// }
