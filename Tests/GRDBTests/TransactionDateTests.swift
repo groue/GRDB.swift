@@ -173,7 +173,7 @@ class TransactionDateTests: GRDBTestCase {
         let newTransactionDate = Date()
         currentDate = newTransactionDate
         try dbQueue.write { db in
-            var player = try Player.fetchOne(db, key: 1)!
+            var player = try Player.find(db, key: 1)
             
             player.name = "Barbara"
             try player.updateWithTimestamp(db)
@@ -219,7 +219,7 @@ class TransactionDateTests: GRDBTestCase {
         let newTransactionDate = Date()
         currentDate = newTransactionDate
         try dbQueue.write { db in
-            var player = try Player.fetchOne(db, key: 1)!
+            var player = try Player.find(db, key: 1)
             
             let changed = try player.updateChangesWithTimestamp(db) {
                 $0.name = "Barbara"
@@ -230,7 +230,7 @@ class TransactionDateTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            var player = try Player.fetchOne(db, key: 1)!
+            var player = try Player.find(db, key: 1)
             
             let changed = try player.updateChangesWithTimestamp(db) {
                 $0.name = "Barbara"
@@ -269,7 +269,7 @@ class TransactionDateTests: GRDBTestCase {
         let newTransactionDate = Date()
         currentDate = newTransactionDate
         try dbQueue.write { db in
-            var player = try Player.fetchOne(db, key: 1)!
+            var player = try Player.find(db, key: 1)
             try player.touch(db)
             XCTAssertEqual(player.modificationDate, newTransactionDate)
 
