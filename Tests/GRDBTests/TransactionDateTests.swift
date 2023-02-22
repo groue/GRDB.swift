@@ -399,6 +399,10 @@ extension TimestampedRecord {
     
     /// Sets `creationDate` and `modificationDate` to the transaction date,
     /// if they are nil.
+    ///
+    /// It is called automatically before insertion, if your type does not
+    /// customize the `willInsert` persistence callback. If you customize
+    /// this callback, call `initializeTimestamps` from your implementation.
     mutating func initializeTimestamps(_ db: Database) throws {
         if creationDate == nil {
             creationDate = try db.transactionDate
@@ -443,7 +447,7 @@ extension TimestampedRecord {
     ///     - modificationDate: The modification date. If nil, the
     ///       transaction date is used.
     ///     - modify: A closure that modifies the record.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record was changed and updated.
     @discardableResult
     mutating func updateChangesWithTimestamp(
         _ db: Database,

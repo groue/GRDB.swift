@@ -411,7 +411,7 @@ open class Record {
     /// On success, this method sets the `hasDatabaseChanges` flag to false.
     ///
     /// - parameter db: A database connection.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record had changes and was updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     ///   ``RecordError/recordNotFound(databaseTableName:key:)`` is thrown
     ///   if the primary key does not match any row in the database and record

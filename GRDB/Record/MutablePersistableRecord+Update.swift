@@ -152,7 +152,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter record: The comparison record.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record had changes and was updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
@@ -195,7 +195,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter modify: A closure that modifies the record.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record was changed and updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
