@@ -6,7 +6,7 @@ Learn how applications can save creation and modification dates of records.
 
 Some applications want to record creation and modification dates of database records. This article provides some advice and sample code that you can adapt for your specific needs.
 
-> Note: Creation and modification dates can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique.
+> Note: Creation and modification dates can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique, though.
 >
 > This is not an advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
 >
@@ -63,7 +63,7 @@ In the rest of the article, we'll address insertion first, then updates, and see
 
 ## Insertion Timestamp
 
-On insertion, the record should get fresh `creationDate` and `modificationDate`. The ``MutablePersistableRecord`` protocol provides the necessary tooling:
+On insertion, the `Player` record should get fresh `creationDate` and `modificationDate`. The ``MutablePersistableRecord`` protocol provides the necessary tooling, with the ``MutablePersistableRecord/willInsert(_:)-1xfwo`` persistence callback. Before insertion, the record sets both its `creationDate` and `modificationDate`:
 
 ```swift
 extension Player: Encodable, MutablePersistableRecord {
@@ -83,9 +83,24 @@ extension Player: Encodable, MutablePersistableRecord {
         id = inserted.rowID
     }
 }
+
+try dbQueue.write { db in
+    // An inserted record has both a creation and a modification date.
+    var player = Player(name: "Arthur", score: 1000)
+    try player.insert(db)
+    player.creationDate     // not nil
+    player.modificationDate // not nil
+
+    // We can still customize those dates
+    let date: Date = ...
+    var player = Player(creationDate: date, modificationDate: date, name: "Barbara", score: 2000)
+    try player.insert(db)
+    player.creationDate     // date
+    player.modificationDate // date
+}
 ```
 
-Note that we are using the ``Database/transactionDate`` instead of `Date()`. This has two advantages:
+Note that the `willInsert` callback uses the ``Database/transactionDate`` instead of `Date()`. This has two advantages:
 
 - Within a write transaction, all inserted players get the same timestamp:
     
@@ -105,9 +120,16 @@ Note that we are using the ``Database/transactionDate`` instead of `Date()`. Thi
 Let's now deal with updates. The `update` persistence method won't automatically bump the timestamp as the `insert` method does. We have to explicitly deal with the modification date:
 
 ```swift
-// Increment the player score.
+// Increment the player score (two different ways).
 try dbQueue.write { db in
     var player: Player
+    
+    // Update all columns
+    player.score += 1
+    player.modificationDate = try db.transactionDate
+    try player.update(db)
+
+    // Alternatively, update only the modified columns
     try player.updateChanges(db) {
          $0.score += 1
          $0.modificationDate = try db.transactionDate
@@ -246,7 +268,7 @@ It provides the following features and methods:
     }
     ```
 
-    Note that `TimestampedRecord` types that customize their ``MutablePersistableRecord/willInsert(_:)-1xfwo`` callback should call `initializeTimestamps()` from their implementation, because the Swift language won't do it automatically. Our `Player` type doesn't customize `willInsert`, so it gets insertion timestamps "for free".
+    Note that `TimestampedRecord` types that customize their ``MutablePersistableRecord/willInsert(_:)-1xfwo`` callback should call `initializeTimestamps()` from their implementation, because the Swift language won't do it automatically. Our `Player` type doesn't customize `willInsert`, so it gets timestamps "for free".
 
 - `updateWithTimestamp()` behaves like ``MutablePersistableRecord/update(_:onConflict:)``, but it also bumps the modification date.
     
