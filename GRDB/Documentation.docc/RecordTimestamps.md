@@ -54,7 +54,12 @@ player.creationDate     // not nil
 player.modificationDate // not nil
 ```
 
-In the rest of the article, we'll address insertion first, then updates, and finally we'll see a way to avoid those optional timestamps.
+In the rest of the article, we'll address insertion first, then updates, and see a way to avoid those optional timestamps. The article ends with a sample protocol that your app may adapt and reuse.
+
+- <doc:RecordTimestamps#Insertion-Timestamp>
+- <doc:RecordTimestamps#Modification-Timestamp>
+- <doc:RecordTimestamps#Dealing-with-Optional-Timestamps>
+- <doc:RecordTimestamps#Sample-code-TimestampedRecord>
 
 ## Insertion Timestamp
 
@@ -128,162 +133,7 @@ Again, we use ``Database/transactionDate``, so that all modified players get the
 >
 > 3. Finally, not all applications need one modification timestamp. Some need one timestamp per property, or per group of properties.
 >
-> By not providing this feature, all applications are treated equally. They can help themselves by introducing a protocol dedicated to their particular handling of timestamps. See the `TimestampedRecord` example protocol below.
-
-## Sample code: TimestampedRecord
-
-This section provides a sample protocol for records that track their creation and modification dates.
-
-You can copy it in your application. Make sure it fits the needs of your application! Not all apps have the same needs regarding timestamps. Perform adaptations when needed.
-
-It provides the following methods:
-
-- `updateWithTimestamp()` behaves like ``MutablePersistableRecord/update(_:onConflict:)``, but it also bumps the modification date.
-- `updateChangesWithTimestamp()` behaves like ``MutablePersistableRecord/updateChanges(_:onConflict:modify:)``, but it also bumps the modification date if the record is modified.
-- `touch()` only updates the modification date, just like the `touch` unix command.
-- `TimestampedRecord` types that customize their `willInsert` callback should call `initializeTimestamps()` in their implementation.
-
-```swift
-/// A record type that tracks its creation and modification dates. See
-/// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
-protocol TimestampedRecord: MutablePersistableRecord {
-    var creationDate: Date? { get set }
-    var modificationDate: Date? { get set }
-}
-
-extension TimestampedRecord {
-    /// By default, `TimestampedRecord` types set `creationDate` and
-    /// `modificationDate` to the transaction date, if they are nil,
-    /// before insertion.
-    ///
-    /// `TimestampedRecord` types that customize the `willInsert`
-    /// persistence callback should call `initializeTimestamps` from
-    /// their implementation.
-    mutating func willInsert(_ db: Database) throws {
-        try initializeTimestamps(db)
-    }
-    
-    /// Sets `creationDate` and `modificationDate` to the transaction date,
-    /// if they are nil.
-    mutating func initializeTimestamps(_ db: Database) throws {
-        if creationDate == nil {
-            creationDate = try db.transactionDate
-        }
-        if modificationDate == nil {
-            modificationDate = try db.transactionDate
-        }
-    }
-    
-    /// Sets `modificationDate`, and executes an `UPDATE` statement
-    /// on all columns.
-    ///
-    /// - parameter modificationDate: The modification date. If nil, the
-    ///   transaction date is used.
-    mutating func updateWithTimestamp(_ db: Database, modificationDate: Date? = nil) throws {
-        self.modificationDate = try modificationDate ?? db.transactionDate
-        try update(db)
-    }
-    
-    /// Modifies the record according to the provided `modify` closure, and,
-    /// if and only if the record was modified, sets `modificationDate` and
-    /// executes an `UPDATE` statement that updates the modified columns.
-    ///
-    /// For example:
-    ///
-    /// ```swift
-    /// try dbQueue.write { db in
-    ///     var player = Player.find(db, id: 1)
-    ///     let modified = try player.updateChangesWithTimestamp(db) {
-    ///         $0.score = 1000
-    ///     }
-    ///     if modified {
-    ///         print("player was modified")
-    ///     } else {
-    ///         print("player was not modified")
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - modificationDate: The modification date. If nil, the
-    ///       transaction date is used.
-    ///     - modify: A closure that modifies the record.
-    /// - returns: Whether the record had changes.
-    @discardableResult
-    mutating func updateChangesWithTimestamp(
-        _ db: Database,
-        modificationDate: Date? = nil,
-        modify: (inout Self) -> Void)
-    throws -> Bool
-    {
-        let initialChanges = try databaseChanges(modify: modify)
-        if initialChanges.isEmpty {
-            return false
-        }
-        
-        let dateChanges = try databaseChanges(modify: {
-            $0.modificationDate = try modificationDate ?? db.transactionDate
-        })
-        let changedColumns = Set(initialChanges.keys).union(dateChanges.keys)
-        try update(db, columns: changedColumns)
-        return true
-    }
-    
-    /// Sets `modificationDate`, and executes an `UPDATE` statement that
-    /// updates the `modificationDate` column, if and only if the record
-    /// was modified.
-    ///
-    /// - parameter modificationDate: The modification date. If nil, the
-    ///   transaction date is used.
-    mutating func touch(_ db: Database, modificationDate: Date? = nil) throws {
-        try updateChanges(db) {
-            $0.modificationDate = try modificationDate ?? db.transactionDate
-        }
-    }
-}
-```
-
-Usage:
-
-```swift
-extension Player: Codable, TimestampedRecord, FetchableRecord {
-    /// Update auto-incremented id upon successful insertion
-    mutating func didInsert(_ inserted: InsertionSuccess) {
-        id = inserted.rowID
-    }
-}
-
-try dbQueue.write { db in
-    // An inserted record has both a creation and a modification date.
-    var player = Player(name: "Arthur", score: 1000)
-    try player.insert(db)
-    assert(player.creationDate != nil)
-    assert(player.modificationDate != nil)
-    
-    // updateWithTimestamp() bumps the modification date
-    // and updates all columns in the database.
-    player.score += 1
-    try player.updateWithTimestamp(db)
-
-    // updateChangesWithTimestamp() only bumps the modification date
-    // if record is changed, and only updates the changed columns.
-    try player.updateChangesWithTimestamp(db) {
-        $0.score = 1000
-    }
-
-    // updateChanges() is able to always bump the modification date, even if
-    // other columns are not changed.
-    try player.updateChanges(db) {
-        $0.score = 1000
-        $0.modificationDate = try db.transactionDate
-    }
-    
-    // touch() only updates the modification date in the database.
-    try player.touch(db)
-    try player.touch(db, modificationDate: Date())
-}
-```
+> By not providing this feature, all applications are treated equally. They can help themselves by introducing a protocol dedicated to their particular handling of timestamps. See <doc:RecordTimestamps#Sample-code-TimestampedRecord> below.
 
 ## Dealing with Optional Timestamps
 
@@ -368,3 +218,194 @@ try dbQueue.write { db in
 ```
 
 See ``MutablePersistableRecord/insertAndFetch(_:onConflict:as:)`` and related methods for more information.
+
+## Sample code: TimestampedRecord
+
+This section provides a sample protocol for records that track their creation and modification dates.
+
+You can copy it in your application. Make sure it fits the needs of your application! Not all apps have the same needs regarding timestamps. Perform adaptations when needed.
+
+It provides the following features and methods:
+
+- Insertion sets timestamps if not set yet:
+
+    ```swift
+    extension Player: Codable, TimestampedRecord, FetchableRecord {
+        /// Update auto-incremented id upon successful insertion
+        mutating func didInsert(_ inserted: InsertionSuccess) {
+            id = inserted.rowID
+        }
+    }
+
+    try dbQueue.write { db in
+        // An inserted record has both a creation and a modification date.
+        var player = Player(name: "Arthur", score: 1000)
+        try player.insert(db)
+        player.creationDate     // not nil
+        player.modificationDate // not nil
+    }
+    ```
+
+    Note that `TimestampedRecord` types that customize their ``MutablePersistableRecord/willInsert(_:)-1xfwo`` callback should call `initializeTimestamps()` from their implementation, because the Swift language won't do it automatically. Our `Player` type doesn't customize `willInsert`, so it gets insertion timestamps "for free".
+
+- `updateWithTimestamp()` behaves like ``MutablePersistableRecord/update(_:onConflict:)``, but it also bumps the modification date.
+    
+    ```swift
+    // updateWithTimestamp() bumps the modification date
+    // and updates all columns in the database.
+    player.score += 1
+    try player.updateWithTimestamp(db)
+    ```
+
+- `updateChangesWithTimestamp()` behaves like ``MutablePersistableRecord/updateChanges(_:onConflict:modify:)``, but it also bumps the modification date if the record is modified.
+
+    ```swift
+    // updateChangesWithTimestamp() only bumps the modification date
+    // if record is changed, and only updates the changed columns.
+    try player.updateChangesWithTimestamp(db) {
+        $0.score = 1000
+    }
+
+    // Prefer updateChanges() if the modification date should always be
+    // updated, even if other columns are not changed.
+    try player.updateChanges(db) {
+        $0.score = 1000
+        $0.modificationDate = try db.transactionDate
+    }
+    ```
+
+- `touch()` only updates the modification date in the database, just like the `touch` unix command.
+    
+    ```swift
+    // touch() only updates the modification date in the database.
+    try player.touch(db)
+    try player.touch(db, modificationDate: Date())
+    ```
+
+- Note that there is no `TimestampedRecord.saveWithTimestamp()` method that would insert or update, like ``MutablePersistableRecord/save(_:onConflict:)``. You are encouraged to write instead (and maybe extend your version of `TimestampedRecord` so that it supports this pattern):
+    
+    ```swift
+    extension Player {
+        /// If the player has a non-nil primary key and a matching row in
+        /// the database, the player is updated. Otherwise, it is inserted.
+        mutating func saveWithTimestamp(_ db: Database) throws {
+            if id == nil {
+                try insert(db)
+            } else {
+                do {
+                    try updateWithTimestamp(db)
+                } catch RecordError.recordNotFound {
+                    // No row was updated: fallback on insert.
+                    try insert(db)
+                }
+            }
+        }
+    }
+    ```
+
+The full implementation of `TimestampedRecord` follows:
+
+```swift
+/// A record type that tracks its creation and modification dates. See
+/// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
+protocol TimestampedRecord: MutablePersistableRecord {
+    var creationDate: Date? { get set }
+    var modificationDate: Date? { get set }
+}
+
+extension TimestampedRecord {
+    /// By default, `TimestampedRecord` types set `creationDate` and
+    /// `modificationDate` to the transaction date, if they are nil,
+    /// before insertion.
+    ///
+    /// `TimestampedRecord` types that customize the `willInsert`
+    /// persistence callback should call `initializeTimestamps` from
+    /// their implementation.
+    mutating func willInsert(_ db: Database) throws {
+        try initializeTimestamps(db)
+    }
+    
+    /// Sets `creationDate` and `modificationDate` to the transaction date,
+    /// if they are nil.
+    mutating func initializeTimestamps(_ db: Database) throws {
+        if creationDate == nil {
+            creationDate = try db.transactionDate
+        }
+        if modificationDate == nil {
+            modificationDate = try db.transactionDate
+        }
+    }
+    
+    /// Sets `modificationDate`, and executes an `UPDATE` statement
+    /// on all columns.
+    ///
+    /// - parameter modificationDate: The modification date. If nil, the
+    ///   transaction date is used.
+    mutating func updateWithTimestamp(_ db: Database, modificationDate: Date? = nil) throws {
+        self.modificationDate = try modificationDate ?? db.transactionDate
+        try update(db)
+    }
+    
+    /// Modifies the record according to the provided `modify` closure, and,
+    /// if and only if the record was modified, sets `modificationDate` and
+    /// executes an `UPDATE` statement that updates the modified columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     var player = Player.find(db, id: 1)
+    ///     let modified = try player.updateChangesWithTimestamp(db) {
+    ///         $0.score = 1000
+    ///     }
+    ///     if modified {
+    ///         print("player was modified")
+    ///     } else {
+    ///         print("player was not modified")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - modificationDate: The modification date. If nil, the
+    ///       transaction date is used.
+    ///     - modify: A closure that modifies the record.
+    /// - returns: Whether the record had changes.
+    @discardableResult
+    mutating func updateChangesWithTimestamp(
+        _ db: Database,
+        modificationDate: Date? = nil,
+        modify: (inout Self) -> Void)
+    throws -> Bool
+    {
+        // Grab the changes performed by `modify`
+        let initialChanges = try databaseChanges(modify: modify)
+        if initialChanges.isEmpty {
+            return false
+        }
+        
+        // Update modification date and grab its column name
+        let dateChanges = try databaseChanges(modify: {
+            $0.modificationDate = try modificationDate ?? db.transactionDate
+        })
+        
+        // Update the modified columns
+        let modifiedColumns = Set(initialChanges.keys).union(dateChanges.keys)
+        try update(db, columns: modifiedColumns)
+        return true
+    }
+    
+    /// Sets `modificationDate`, and executes an `UPDATE` statement that
+    /// updates the `modificationDate` column, if and only if the record
+    /// was modified.
+    ///
+    /// - parameter modificationDate: The modification date. If nil, the
+    ///   transaction date is used.
+    mutating func touch(_ db: Database, modificationDate: Date? = nil) throws {
+        try updateChanges(db) {
+            $0.modificationDate = try modificationDate ?? db.transactionDate
+        }
+    }
+}
+```

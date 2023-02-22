@@ -451,16 +451,20 @@ extension TimestampedRecord {
         modify: (inout Self) -> Void)
     throws -> Bool
     {
+        // Grab the changes performed by `modify`
         let initialChanges = try databaseChanges(modify: modify)
         if initialChanges.isEmpty {
             return false
         }
         
+        // Update modification date and grab its column name
         let dateChanges = try databaseChanges(modify: {
             $0.modificationDate = try modificationDate ?? db.transactionDate
         })
-        let changedColumns = Set(initialChanges.keys).union(dateChanges.keys)
-        try update(db, columns: changedColumns)
+        
+        // Update the modified columns
+        let modifiedColumns = Set(initialChanges.keys).union(dateChanges.keys)
+        try update(db, columns: modifiedColumns)
         return true
     }
     
