@@ -141,17 +141,17 @@ It provides the following methods:
 - `updateWithTimestamp()` behaves like ``MutablePersistableRecord/update(_:onConflict:)``, but it also bumps the modification date.
 - `updateChangesWithTimestamp()` behaves like ``MutablePersistableRecord/updateChanges(_:onConflict:modify:)``, but it also bumps the modification date if the record is modified.
 - `touch()` only updates the modification date, just like the `touch` unix command.
-- `initializeTimestamps()` is available for `TimestampedRecord` types that customize their `willInsert` callback.
+- `TimestampedRecord` types that customize their `willInsert` callback should call `initializeTimestamps()` in their implementation.
 
 ```swift
-/// A type that tracks its creation and modification dates. See
+/// A record type that tracks its creation and modification dates. See
 /// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
-protocol TimestampedRecord {
+protocol TimestampedRecord: MutablePersistableRecord {
     var creationDate: Date? { get set }
     var modificationDate: Date? { get set }
 }
 
-extension TimestampedRecord where Self: MutablePersistableRecord {
+extension TimestampedRecord {
     /// By default, `TimestampedRecord` types set `creationDate` and
     /// `modificationDate` to the transaction date, if they are nil,
     /// before insertion.
@@ -247,7 +247,7 @@ extension TimestampedRecord where Self: MutablePersistableRecord {
 Usage:
 
 ```swift
-extension Player: Codable, MutablePersistableRecord, FetchableRecord, TimestampedRecord {
+extension Player: Codable, TimestampedRecord, FetchableRecord {
     /// Update auto-incremented id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
@@ -272,11 +272,11 @@ try dbQueue.write { db in
         $0.score = 1000
     }
 
-    // updateChanges() is able to always bump the modification date, while
-    // only updating the changed columns.
+    // updateChanges() is able to always bump the modification date, even if
+    // other columns are not changed.
     try player.updateChanges(db) {
         $0.score = 1000
-        $0.modificationDate = db.transactionDate
+        $0.modificationDate = try db.transactionDate
     }
     
     // touch() only updates the modification date in the database.
