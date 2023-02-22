@@ -62,8 +62,8 @@ On insertion, the record should get fresh `creationDate` and `modificationDate`.
 
 ```swift
 extension Player: Encodable, MutablePersistableRecord {
-    /// Sets both `creationDate` and `modificationDate` to the transaction date,
-    /// if they are not set yet.
+    /// Sets both `creationDate` and `modificationDate` to the
+    /// transaction date, if they are not set yet.
     mutating func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = try db.transactionDate
@@ -316,8 +316,8 @@ extension Player: Encodable, MutablePersistableRecord {
         id = inserted.rowID
     }
     
-    /// Sets both `creationDate` and `modificationDate` to the transaction date,
-    /// if they are not set yet.
+    /// Sets both `creationDate` and `modificationDate` to the
+    /// transaction date, if they are not set yet.
     mutating func willInsert(_ db: Database) throws {
         if creationDate == nil {
             creationDate = try db.transactionDate
