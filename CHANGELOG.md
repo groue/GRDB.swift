@@ -105,6 +105,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1338](https://github.com/groue/GRDB.swift/pull/1338) by [@groue](https://github.com/groue): TimestampedRecord sample code
+- **New**: `EncodableRecord.databaseChanges(modify:)` modifies a record and returns a dictionary of changes.
+- **Documentation Update**: The [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article provides a sample `TimestampedRecord` protocol that application may adapt for their own use.
+
 ## 6.7.0
 
 Released February 19, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.6.1...v6.7.0)

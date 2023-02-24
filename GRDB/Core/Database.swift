@@ -312,8 +312,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See <doc:RecordTimestamps> for an example of usage.
     ///
-    /// Transaction dates, by default, are built from a new `Date()` instance.
-    /// You can override this default behavior by configuring
+    /// The transaction date, by default, is the start date of the current
+    /// transaction. You can override this default behavior by configuring
     /// ``Configuration/transactionClock``.
     public var transactionDate: Date {
         get throws {

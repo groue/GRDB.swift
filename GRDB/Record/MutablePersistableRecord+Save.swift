@@ -369,15 +369,15 @@ extension MutablePersistableRecord {
     {
         // Attempt at updating if the record has a primary key
         if let key = try primaryKey(db) {
+            let databaseTableName = type(of: self).databaseTableName
             do {
-                let databaseTableName = type(of: self).databaseTableName
                 let columns = try Set(db.columns(in: databaseTableName).map(\.name))
                 return try updateAndFetchWithCallbacks(
                     db, onConflict: conflictResolution,
                     columns: columns,
                     selection: selection,
                     fetch: fetch)
-            } catch RecordError.recordNotFound(databaseTableName: type(of: self).databaseTableName, key: key) {
+            } catch RecordError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // No row was updated: fallback on insert.
             }
         }

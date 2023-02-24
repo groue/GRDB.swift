@@ -35,6 +35,7 @@ import Foundation // For JSONEncoder
 /// ### Comparing Records
 ///
 /// - ``databaseChanges(from:)``
+/// - ``databaseChanges(modify:)``
 /// - ``databaseEquals(_:)``
 public protocol EncodableRecord {
     /// Encodes the record into the provided persistence container.
@@ -262,6 +263,37 @@ extension EncodableRecord {
     throws -> [String: DatabaseValue]
     {
         let changes = try PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
+        return Dictionary(uniqueKeysWithValues: changes)
+    }
+    
+    /// Modifies the record according to the provided `modify` closure, and
+    /// returns a dictionary of changed values.
+    ///
+    /// The keys of the dictionary are the changed column names. Values are
+    /// the database values from the initial version record.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// var player = Player(id: 1, score: 1000, hasAward: false)
+    /// let changes = try player.databaseChanges {
+    ///     $0.score = 1000
+    ///     $0.hasAward = true
+    /// }
+    ///
+    /// player.hasAward     // true (changed)
+    ///
+    /// changes["score"]    // nil (not changed)
+    /// changes["hasAward"] // false (old value)
+    /// ```
+    ///
+    /// - parameter modify: A closure that modifies the record.
+    public mutating func databaseChanges(modify: (inout Self) throws -> Void)
+    throws -> [String: DatabaseValue]
+    {
+        let container = try PersistenceContainer(self)
+        try modify(&self)
+        let changes = try PersistenceContainer(self).changesIterator(from: container)
         return Dictionary(uniqueKeysWithValues: changes)
     }
 }
