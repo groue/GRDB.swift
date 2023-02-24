@@ -41,8 +41,9 @@ extension TransactionClock where Self == CustomTransactionClock {
     }
 }
 
-/// The default clock.
+/// The default transaction clock.
 public struct DefaultTransactionClock: TransactionClock {
+    /// Returns the start date of the current transaction.
     public func now(_ db: Database) throws -> Date {
         // An opportunity to fetch transaction time from the database when
         // SQLite supports the feature.

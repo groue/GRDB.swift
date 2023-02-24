@@ -174,7 +174,7 @@ public struct Configuration {
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// The default clock is ``DefaultTransactionClock`` (which returns the
-    /// current date with `Date()`).
+    /// start date of the current transaction).
     ///
     /// For example:
     ///

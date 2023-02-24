@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
 - `6.5.x` Releases - [6.5.0](#650)
@@ -15,15 +16,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - `6.2.x` Releases - [6.2.0](#620)
 - `6.1.x` Releases - [6.1.0](#610)
 - `6.0.x` Releases - [6.0.0](#600)
-- `6.0.0` Betas - [6.0.0-beta](#600-beta) | [6.0.0-beta.2](#600-beta2) | [6.0.0-beta.3](#600-beta3) | [6.0.0-beta.4](#600-beta4)
+- `6.0.0` Betas - [6.0.0-beta](#600-beta) - [6.0.0-beta.2](#600-beta2) - [6.0.0-beta.3](#600-beta3) - [6.0.0-beta.4](#600-beta4)
 
 #### 5.x Releases
 
 - `5.26.x` Releases - [5.26.0](#5260) - [5.26.1](#5261)
 - `5.25.x` Releases - [5.25.0](#5250)
-- `5.24.x` Releases - [5.24.0](#5240) | [5.24.1](#5241)
+- `5.24.x` Releases - [5.24.0](#5240) - [5.24.1](#5241)
 - `5.23.x` Releases - [5.23.0](#5230)
-- `5.22.x` Releases - [5.22.0](#5220) | [5.22.1](#5221) | [5.22.2](#5222)
+- `5.22.x` Releases - [5.22.0](#5220) - [5.22.1](#5221) - [5.22.2](#5222)
 - `5.21.x` Releases - [5.21.0](#5210)
 - `5.20.x` Releases - [5.20.0](#5200)
 - `5.19.x` Releases - [5.19.0](#5190)
@@ -38,41 +39,41 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - `5.10.x` Releases - [5.10.0](#5100)
 - `5.9.x` Releases - [5.9.0](#590)
 - `5.8.x` Releases - [5.8.0](#580)
-- `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
+- `5.7.x` Releases - [5.7.0](#570) - [5.7.1](#571) - [5.7.2](#572) - [5.7.3](#573) - [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
-- `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502) | [5.0.3](#503)
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.8](#500-beta8) | [5.0.0-beta.9](#500-beta9) | [5.0.0-beta.10](#500-beta10) | [5.0.0-beta.11](#500-beta11)
+- `5.0.x` Releases - [5.0.0](#500) - [5.0.1](#501) - [5.0.2](#502) - [5.0.3](#503)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) - [5.0.0-beta.2](#500-beta2) - [5.0.0-beta.3](#500-beta3) - [5.0.0-beta.4](#500-beta4) - [5.0.0-beta.5](#500-beta5) - [5.0.0-beta.6](#500-beta6) - [5.0.0-beta.7](#500-beta7) - [5.0.0-beta.8](#500-beta8) - [5.0.0-beta.9](#500-beta9) - [5.0.0-beta.10](#500-beta10) - [5.0.0-beta.11](#500-beta11)
 
 #### 4.x Releases
 
 - `4.14.x` Releases - [4.14.0](#4140)
 - `4.13.x` Releases - [4.13.0](#4130)
-- `4.12.x` Releases - [4.12.0](#4120) | [4.12.1](#4121) | [4.12.2](#4122)
+- `4.12.x` Releases - [4.12.0](#4120) - [4.12.1](#4121) - [4.12.2](#4122)
 - `4.11.x` Releases - [4.11.0](#4110)
 - `4.10.x` Releases - [4.10.0](#4100)
 - `4.9.x` Releases - [4.9.0](#490)
-- `4.8.x` Releases - [4.8.0](#480) | [4.8.1](#481)
+- `4.8.x` Releases - [4.8.0](#480) - [4.8.1](#481)
 - `4.7.x` Releases - [4.7.0](#470)
-- `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
+- `4.6.x` Releases - [4.6.0](#460) - [4.6.1](#461) - [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
-- `4.2.x` Releases - [4.2.0](#420) | [4.2.1](#421)
-- `4.1.x` Releases - [4.1.0](#410) | [4.1.1](#411)
-- `4.0.x` Releases - [4.0.0](#400) | [4.0.1](#401)
+- `4.2.x` Releases - [4.2.0](#420) - [4.2.1](#421)
+- `4.1.x` Releases - [4.1.0](#410) - [4.1.1](#411)
+- `4.0.x` Releases - [4.0.0](#400) - [4.0.1](#401)
 
 #### 3.x Releases
 
 - `3.7.x` Releases - [3.7.0](#370)
-- `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361) | [3.6.2](#362)
+- `3.6.x` Releases - [3.6.0](#360) - [3.6.1](#361) - [3.6.2](#362)
 - `3.5.x` Releases - [3.5.0](#350)
 - `3.4.x` Releases - [3.4.0](#340)
-- `3.3.x` Releases - [3.3.0](#330) | [3.3.1](#331)
+- `3.3.x` Releases - [3.3.0](#330) - [3.3.1](#331)
 - `3.3.0` Betas - [3.3.0-beta1](#330-beta1)
 - `3.2.x` Releases - [3.2.0](#320)
 - `3.1.x` Releases - [3.1.0](#310)
@@ -84,18 +85,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - `2.9.x` Releases - [2.9.0](#290)
 - `2.8.x` Releases - [2.8.0](#280)
 - `2.7.x` Releases - [2.7.0](#270)
-- `2.6.x` Releases - [2.6.0](#260) | [2.6.1](#261)
+- `2.6.x` Releases - [2.6.0](#260) - [2.6.1](#261)
 - `2.5.x` Releases - [2.5.0](#250)
-- `2.4.x` Releases - [2.4.0](#240) | [2.4.1](#241) | [2.4.2](#242)
-- `2.3.x` Releases - [2.3.0](#230) | [2.3.1](#231)
+- `2.4.x` Releases - [2.4.0](#240) - [2.4.1](#241) - [2.4.2](#242)
+- `2.3.x` Releases - [2.3.0](#230) - [2.3.1](#231)
 - `2.2.x` Releases - [2.2.0](#220)
 - `2.1.x` Releases - [2.1.0](#210)
-- `2.0.x` Releases - [2.0.0](#200) | [2.0.1](#201) | [2.0.2](#202) | [2.0.3](#203)
+- `2.0.x` Releases - [2.0.0](#200) - [2.0.1](#201) - [2.0.2](#202) - [2.0.3](#203)
 
 #### 1.x Releases
 
 - `1.3.x` Releases - [1.3.0](#130)
-- `1.2.x` Releases - [1.2.0](#120) | [1.2.1](#121) | [1.2.2](#122)
+- `1.2.x` Releases - [1.2.0](#120) - [1.2.1](#121) - [1.2.2](#122)
 - `1.1.x` Releases - [1.1.0](#110)
 - `1.0.x` Releases - [1.0.0](#100)
 
@@ -104,6 +105,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.8.0
+
+Released February 24, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.7.0...v6.8.0)
+
+- **New**: [#1338](https://github.com/groue/GRDB.swift/pull/1338) by [@groue](https://github.com/groue): TimestampedRecord sample code
+- **New**: `EncodableRecord.databaseChanges(modify:)` modifies a record and returns a dictionary of applied changes.
+- **Documentation Update**: The [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article provides a sample `TimestampedRecord` protocol that application may adapt for their own use.
 
 ## 6.7.0
 

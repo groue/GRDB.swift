@@ -25,10 +25,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db, columns: ["score"])
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db, columns: ["score"])
     /// }
     /// ```
     ///
@@ -69,10 +68,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db, columns: [Column("score")])
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db, columns: [Column("score")])
     /// }
     /// ```
     ///
@@ -102,10 +100,9 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         player.score += 10
-    ///         try player.update(db)
-    ///     }
+    ///     var player = Player.find(db, id: 1)
+    ///     player.score += 10
+    ///     try player.update(db)
     /// }
     /// ```
     ///
@@ -155,7 +152,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter record: The comparison record.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record had changes and was updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
@@ -180,16 +177,15 @@ extension MutablePersistableRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     if var player = Player.fetchOne(db, id: 1) {
-    ///         let modified = try player.updateChanges(db) {
-    ///             $0.score = 1000
-    ///             $0.hasAward = true
-    ///         }
-    ///         if modified {
-    ///             print("player was modified")
-    ///         } else {
-    ///             print("player was not modified")
-    ///         }
+    ///     var player = Player.find(db, id: 1)
+    ///     let modified = try player.updateChanges(db) {
+    ///         $0.score = 1000
+    ///         $0.hasAward = true
+    ///     }
+    ///     if modified {
+    ///         print("player was modified")
+    ///     } else {
+    ///         print("player was not modified")
     ///     }
     /// }
     /// ```
@@ -199,7 +195,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter modify: A closure that modifies the record.
-    /// - returns: Whether the record had changes.
+    /// - returns: Whether the record was changed and updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
