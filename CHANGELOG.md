@@ -106,6 +106,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: `FTS5.api(db)` returns a pointer to the `fts5_api` structure, useful for low-level [FTS5 customization](https://www.sqlite.org/fts5.html#extending_fts5).
+
 ## 6.8.0
 
 Released February 24, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.7.0...v6.8.0)
