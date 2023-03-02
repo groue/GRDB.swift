@@ -216,10 +216,12 @@ extension ResultCode: Sendable { }
 /// do {
 ///     try player.insert(db)
 /// } catch let error as DatabaseError {
-///     switch error.resultCode {
-///     case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+///     print(error) // prints debugging information
+///     
+///     switch error {
+///     case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
 ///         // foreign key constraint error
-///     case ResultCode.SQLITE_CONSTRAINT:
+///     case DatabaseError.SQLITE_CONSTRAINT:
 ///         // any other constraint error
 ///     default:
 ///         // any other database error
