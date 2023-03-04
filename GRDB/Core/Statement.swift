@@ -373,10 +373,12 @@ public final class Statement {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         if let arguments {
-            try setArguments(arguments)
+            try setArguments(arguments) // calls reset()
         } else if argumentsNeedValidation {
             try reset()
             try validateArguments(self.arguments)
+        } else {
+            try reset()
         }
     }
     
