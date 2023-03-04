@@ -466,7 +466,7 @@ SQLite API
 
 Advanced topics:
 
-- [Prepared Statements](#prepared-statements)
+- [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - [Database Schema Introspection](#database-schema-introspection)
 - [Row Adapters](#row-adapters)
@@ -499,7 +499,7 @@ try dbQueue.write { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for a detailed documentation of SQLite arguments.
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 You can also embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
 
@@ -549,7 +549,7 @@ try db.execute(literal: """
     """)
 ```
 
-When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
+When you want to make sure that a single statement is executed, use a prepared [`Statement`].
 
 **After an INSERT statement**, you can get the row ID of the inserted row:
 
@@ -647,29 +647,7 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
-**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
-
-```swift
-let statements = try db.allStatements(sql: """
-    SELECT ...; 
-    SELECT ...; 
-    SELECT ...;
-    """)
-while let statement = try statements.next() {
-    let players = try Player.fetchAll(statement)
-}
-```
-
-You can join the results of all statements yielded by the `allStatements` method, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
-
-```swift
-// A single cursor of all rows from all statements
-let rows = try db
-    .allStatements(sql: "...")
-    .flatMap { statement in try Row.fetchCursor(statement) }
-```
-
-See [prepared statements](#prepared-statements) for more information about `allStatements()`.
+**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements] found in the SQL string.
 
 ### Cursors
 
@@ -836,7 +814,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -1451,130 +1429,6 @@ if dbValue.isNull {
     // Handle unknown grape
 }
 ```
-
-
-## Prepared Statements
-
-**Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
-
-```swift
-try dbQueue.write { db in
-    let insertSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let insertStatement = try db.makeStatement(sql: insertSQL)
-    
-    let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeStatement(sql: selectSQL)
-}
-```
-
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
-
-```swift
-insertStatement.arguments = ["name": "Arthur", "score": 1000]
-selectStatement.arguments = ["Arthur"]
-```
-
-Alternatively, you can create a prepared statement with [SQL Interpolation]:
-
-```swift
-let insertStatement = try db.makeStatement(literal: "INSERT ...")
-let selectStatement = try db.makeStatement(literal: "SELECT ...")
-//                                         ~~~~~~~
-```
-
-Statements can be executed:
-
-```swift
-try insertStatement.execute()
-```
-
-Statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
-
-```swift
-let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
-let players = try Player.fetchAll(selectStatement) // [Player]
-let players = try Player.fetchSet(selectStatement) // Set<Player>
-let player = try Player.fetchOne(selectStatement)  // Player?
-```
-
-You can set the arguments at the moment of the statement execution:
-
-```swift
-try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
-let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
-```
-
-**When you want to build multiple statements joined with a semicolon**, use the `allStatements` method:
-
-```swift
-let statements = try db.allStatements(sql: """
-    INSERT INTO player (name, score) VALUES (?, ?);
-    INSERT INTO player (name, score) VALUES (?, ?);
-    """, arguments: ["Arthur", 100, "O'Brien", 1000])
-while let statement = try statements.next() {
-    try statement.execute()
-}
-```
-
-`allStatements` also supports [SQL Interpolation]:
-
-```swift
-let statements = try db.allStatements(literal: """
-    INSERT INTO player (name, score) VALUES (\("Arthur"), \(100));
-    INSERT INTO player (name, score) VALUES (\("O'Brien"), \(1000));
-    """)
-while let statement = try statements.next() {
-    try statement.execute()
-}
-```
-
-You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but in this case make sure all individual statements can compile even if the previous ones were not run:
-
-```swift
-// OK: Array of statements
-let statements = try Array(db.allStatements(sql: """
-    INSERT ...; 
-    UPDATE ...; 
-    SELECT ...;
-    """))
-
-// FAILURE: Can't build an array of statements since 
-// the INSERT won't compile until CREATE TABLE is run.
-let statements = try Array(db.allStatements(sql: """
-    CREATE TABLE player ...; 
-    INSERT INTO player ...;
-    """))
-```
-
-See also `Database.execute(sql:)` in the [Executing Updates](#executing-updates) chapter.
-
-> **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
-
-For more information about prepared statements, see the [Statement reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
-
-
-### Prepared Statements Cache
-
-When the same query will be used several times in the lifetime of your application, you may feel a natural desire to cache prepared statements.
-
-**Don't cache statements yourself.**
-
-> **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools]. A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
-
-Instead, use the `cachedStatement` method. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
-
-```swift
-let statement = try db.cachedStatement(sql: sql)
-```
-
-Cached statements also support [SQL Interpolation]:
-
-```swift
-let statement = try db.cachedStatement(literal: "INSERT ...")
-//                                     ~~~~~~~
-```
-
-> **Warning**: Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload one from the cache.
 
 
 ## Custom SQL Functions and Aggregates
@@ -2296,7 +2150,7 @@ try Place.fetchSet(db, sql: "SELECT ...", arguments:...)    // Set<Place>
 try Place.fetchOne(db, sql: "SELECT ...", arguments:...)    // Place?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [`StatementArguments`] for more information about the query arguments.
 
 > **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
@@ -2671,7 +2525,7 @@ try dbQueue.write { db in
 }
 ```
 
-For extra precision, you can select only the columns you need, and fetch the desired value from the provided [prepared statement](#prepared-statements):
+For extra precision, you can select only the columns you need, and fetch the desired value from the provided prepared [`Statement`]:
 
 ```swift
 try dbQueue.write { db in
@@ -3872,7 +3726,7 @@ let count = try request.fetchCount(db)  // Int
 let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
 ```
 
-<a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
+<a name="list-of-record-methods-4">⁴</a> See [`Statement`]:
 
 ```swift
 let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
@@ -6099,7 +5953,7 @@ if let arguments = StatementArguments(arguments) {
 }
 ```
 
-See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
+See [`Statement`] and [DatabaseValue](#databasevalue) for more information.
 
 
 ### Error Log
@@ -6399,7 +6253,7 @@ This explicit `close()` may fail with an error. See the inline documentation of 
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
 
-You can compile the request into a prepared statement:
+You can compile the request into a prepared [`Statement`]:
 
 ```swift
 try dbQueue.read { db in
@@ -6939,6 +6793,10 @@ This protocol has been renamed [PersistableRecord] in GRDB 3.0.
 
 This error was renamed to [RecordError].
 
+#### Prepared Statements
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement)
+
 #### RowConvertible Protocol
 
 This protocol has been renamed [FetchableRecord] in GRDB 3.0.
@@ -7024,3 +6882,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
 [database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
 [`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
+[`StatementArguments`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments
+[Prepared Statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[prepared statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[`Statement`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
