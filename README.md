@@ -460,7 +460,7 @@ SQLite API
     - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
-    - [Custom Value Types](#custom-value-types)
+    - [DatabaseValueConvertible]: the protocol for custom value types
 - [Transactions and Savepoints]
 - [SQL Interpolation]
 
@@ -989,7 +989,7 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible/fromdatabasevalue(_:)-21zzv) method:
 
 ```swift
 let dbValue: DatabaseValue = row["bookCount"]
@@ -1142,7 +1142,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Full-Text Patterns**: [FTS3Pattern](Documentation/FullTextSearch.md#fts3pattern) and [FTS5Pattern](Documentation/FullTextSearch.md#fts5pattern).
 
-- Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
+- Generally speaking, all types that adopt the [DatabaseValueConvertible] protocol.
 
 Values can be used as [statement arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
@@ -1301,7 +1301,7 @@ if let row = try Row.fetchOne(db, ...) {
 }
 ```
 
-See also [Codable Records] for more date customization options, and [DatabaseValueConvertible](#custom-value-types) if you want to define a Date-wrapping type with customized database representation.
+See also [Codable Records] for more date customization options, and [DatabaseValueConvertible] if you want to define a Date-wrapping type with customized database representation.
 
 
 #### DateComponents
@@ -1451,44 +1451,6 @@ if dbValue.isNull {
     // Handle unknown grape
 }
 ```
-
-
-### Custom Value Types
-
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
-
-```swift
-protocol DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue { get }
-    
-    /// Returns a value initialized from dbValue, if possible.
-    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
-}
-```
-
-All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
-
-The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
-
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
-
-Value types that adopt both `DatabaseValueConvertible` and an archival protocol ([Codable, Encodable or Decodable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)) are automatically coded and decoded from JSON arrays and objects:
-
-```swift
-// Encoded as a JSON object in the database:
-struct Color: Codable, DatabaseValueConvertible {
-    var r: Double
-    var g: Double
-    var b: Double
-}
-```
-
-For such codable value types, GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. By default, Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
-
-In order to customize the JSON format, provide a custom implementation of the `DatabaseValueConvertible` requirements.
-
-> **Note**: standard sequences such as `Array`, `Set`, or `Dictionary` do not conform to `DatabaseValueConvertible`, even conditionally. You won't be able to directly fetch or store arrays, sets, or dictionaries as JSON database values. You can get free JSON support from these standard types when they are embedded as properties of [Codable Records], though.
 
 
 ## Prepared Statements
@@ -2958,7 +2920,7 @@ try dbQueue.write { db in
 
 Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible] protocol).
 - You can customize the encoding and decoding of dates and uuids.
 - Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
@@ -6899,6 +6861,10 @@ This chapter has been renamed [Record Comparison].
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
+#### Custom Value Types
+
+Custom Value Types conform to the [DatabaseValueConvertible] protocol.
+
 #### Customized Decoding of Database Rows
 
 This chapter has been renamed [Beyond FetchableRecord].
@@ -7057,3 +7023,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
 [`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
 [database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[DatabaseValueConvertible]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
