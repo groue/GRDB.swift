@@ -347,7 +347,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
-- [Sharing a Database]: Recommendations for App Group Containers and sandboxed macOS apps.
+- [Sharing a Database]: How to share an SQLite database between multiple processes - recommendations for App Group containers, App Extensions, App Sandbox, and file coordination.
 
 #### Good to Know
 
