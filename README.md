@@ -442,7 +442,7 @@ The differences are:
 - Database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless read-only).
 - Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
-**If you are not sure, choose `DatabaseQueue`.** You will always be able to switch to `DatabasePool` later.
+**If you are not sure, choose [`DatabaseQueue`].** You will always be able to switch to [`DatabasePool`] later.
 
 
 SQLite API
@@ -460,7 +460,7 @@ SQLite API
     - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
-    - [DatabaseValueConvertible]: the protocol for custom value types
+    - [`DatabaseValueConvertible`]: the protocol for custom value types
 - [Transactions and Savepoints]
 - [SQL Interpolation]
 
@@ -1142,7 +1142,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Full-Text Patterns**: [FTS3Pattern](Documentation/FullTextSearch.md#fts3pattern) and [FTS5Pattern](Documentation/FullTextSearch.md#fts5pattern).
 
-- Generally speaking, all types that adopt the [DatabaseValueConvertible] protocol.
+- Generally speaking, all types that adopt the [`DatabaseValueConvertible`] protocol.
 
 Values can be used as [statement arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
@@ -1301,7 +1301,7 @@ if let row = try Row.fetchOne(db, ...) {
 }
 ```
 
-See also [Codable Records] for more date customization options, and [DatabaseValueConvertible] if you want to define a Date-wrapping type with customized database representation.
+See also [Codable Records] for more date customization options, and [`DatabaseValueConvertible`] if you want to define a Date-wrapping type with customized database representation.
 
 
 #### DateComponents
@@ -2920,7 +2920,7 @@ try dbQueue.write { db in
 
 Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible] protocol).
+- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [`DatabaseValueConvertible`] protocol).
 - You can customize the encoding and decoding of dates and uuids.
 - Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
@@ -6863,7 +6863,7 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 #### Custom Value Types
 
-Custom Value Types conform to the [DatabaseValueConvertible] protocol.
+Custom Value Types conform to the [`DatabaseValueConvertible`] protocol.
 
 #### Customized Decoding of Database Rows
 
@@ -7023,4 +7023,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
 [`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
 [database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
-[DatabaseValueConvertible]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
+[`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
