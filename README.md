@@ -6783,7 +6783,7 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 #### NSNumber and NSDecimalNumber
 
-This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
+This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal).
 
 #### Persistable Protocol
 
@@ -6795,7 +6795,7 @@ This error was renamed to [RecordError].
 
 #### Prepared Statements
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement)
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
 
 #### RowConvertible Protocol
 

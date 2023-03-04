@@ -119,7 +119,7 @@ try statements.forEach { statement in
 > Tip: When you intend to run all statements in an SQL string but don't care about individual ones, don't bother iterating individual statement instances! Skip this documentation section and just use ``Database/execute(sql:arguments:)``:
 >
 > ```swift
-> try db.execute("""
+> try db.execute(sql: """
 >     CREATE TABLE player ...; 
 >     INSERT INTO player ...;
 >     """)
