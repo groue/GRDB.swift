@@ -137,7 +137,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
     
-See [Database Connections](#database-connections)
+See [Database Connections]
 
 </details>
 
@@ -318,7 +318,7 @@ Documentation
 #### Demo Applications & Frequently Asked Questions
 
 - [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
-- [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
+- [FAQ]
 
 #### Reference
 
@@ -327,7 +327,7 @@ Documentation
 #### Getting Started
 
 - [Installation](#installation)
-- [Database Connections](#database-connections): Connect to SQLite databases
+- [Database Connections]: Connect to SQLite databases
 
 #### SQLite and SQL
 
@@ -355,7 +355,7 @@ Documentation
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
-- [Data Protection](#data-protection)
+- [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
 - [Concurrency]
 
 #### General Guides & Good Practices
@@ -444,6 +444,8 @@ The differences are:
 
 **If you are not sure, choose [`DatabaseQueue`].** You will always be able to switch to [`DatabasePool`] later.
 
+More more information and tips when opening connections, see [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections).
+
 
 SQLite API
 ==========
@@ -475,7 +477,7 @@ Advanced topics:
 
 ## Executing Updates
 
-Once granted with a [database connection](#database-connections), the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once granted with a [database connection], the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -571,7 +573,7 @@ let playerId = player.id
 
 ## Fetch Queries
 
-[Database connections](#database-connections) let you fetch database rows, plain values, and custom models aka "records".
+[Database connections] let you fetch database rows, plain values, and custom models aka "records".
 
 **Rows** are the raw results of SQL queries:
 
@@ -1867,7 +1869,7 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
 
 To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
 
@@ -3767,7 +3769,7 @@ try dbQueue.write { db in
 }
 ```
 
-You need to open a [database connection](#database-connections) before you can query the database.
+You need to open a [database connection] before you can query the database.
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
@@ -5353,7 +5355,7 @@ Make sure you remove any existing `pod 'GRDB.swift'` from your Podfile. `GRDB.sw
 
 ### Creating or Opening an Encrypted Database
 
-**You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
+**You create and open an encrypted database** by providing a passphrase to your [database connection]:
 
 ```swift
 var config = Configuration()
@@ -5567,7 +5569,7 @@ Because DatabasePool maintains a pool of long-lived SQLite connections, some dat
 
 For the same reason, a database queue, which also maintains a long-lived SQLite connection, will remain available even after the passphrase has turned unavailable.
 
-Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](#data-protection). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
+Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
 
 
 ## Backup
@@ -6107,45 +6109,6 @@ config.automaticMemoryManagement = false
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config) // or DatabasePool
 ```
 
-
-## Data Protection
-
-[Data Protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) lets you protect files so that they are encrypted and unavailable until the device is unlocked.
-
-Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
-
-You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools]).
-
-For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
-
-```swift
-// Paths
-let fileManager = FileManager.default
-let directoryURL = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("database", isDirectory: true)
-let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
-
-// Create directory if needed
-var isDirectory: ObjCBool = false
-if !fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory) {
-    try fileManager.createDirectory(atPath: directoryURL.path, withIntermediateDirectories: false)
-} else if !isDirectory.boolValue {
-    throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
-}
-
-// Enable data protection
-try fileManager.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryURL.path)
-
-// Open database
-let dbQueue = try DatabaseQueue(path: databaseURL.path)
-```
-
-When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will get [DatabaseError](#error-handling) with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
-
-You can catch those errors and wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification in order to retry the failed database operation.
-
-
 FAQ
 ===
 
@@ -6193,56 +6156,53 @@ FAQ
 
 ### How do I create a database in my application?
 
-This question assumes that your application has to create a new database from scratch. If your app has to open an existing database that is embedded inside your application as a resource, see [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application) instead.
+First choose a proper location for the database file. Document-based applications will let the user pick a location. Apps that use the database as a global storage will prefer the Application Support directory.
 
-The database has to be stored in a valid place where it can be created and modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html):
+The sample code below creates or opens a database file inside its dedicated directory (a [recommended practice](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)). On the first run, a new empty database file is created. On subsequent runs, the database file already exists, so it just opens a connection:
 
 ```swift
-let databaseURL = try FileManager.default
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
+// HOW TO create an empty database, or open an existing database file
+
+// Create the "Application Support/MyDatabase" directory
+let fileManager = FileManager.default
+let appSupportURL = try fileManager.url(
+    for: .applicationSupportDirectory, in: .userDomainMask,
+    appropriateFor: nil, create: true) 
+let directoryURL = appSupportURL.appendingPathComponent("MyDatabase", isDirectory: true)
+try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+
+// Open or create the database
+let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
 let dbQueue = try DatabaseQueue(path: databaseURL.path)
 ```
 
-
 ### How do I open a database stored as a resource of my application?
 
-If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
+Open a read-only connection to your resource:
 
 ```swift
-var config = Configuration()
-config.readonly = true
-let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
-```
+// HOW TO open a read-only connection to a database resource
 
-If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html). Only then, open a [connection](#database-connections):
+// Get the path to the database resource.
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
 
-```swift
-let fileManager = FileManager.default
-let dbPath = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
-    .path
-if !fileManager.fileExists(atPath: dbPath) {
-    let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-    try fileManager.copyItem(atPath: dbResourcePath, toPath: dbPath)
+if let dbPath {
+    // If the resource exists, open a read-only connection.
+    // Writes are disallowed because resources can not be modified. 
+    var config = Configuration()
+    config.readonly = true
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+} else {
+    // The database resource can not be found.
+    // Fix your setup, or report the problem to the user. 
 }
-let dbQueue = try DatabaseQueue(path: dbPath)
 ```
-
 
 ### How do I close a database connection?
-    
-Database connections are automatically closed when they are deinitialized.
 
-When the correct execution of your program depends on precise database closing, use the `close()` method:
+Database connections are automatically closed when `DatabaseQueue` or `DatabasePool` instances are deinitialized.
 
-```swift
-try dbQueue.close()
-```
-
-This explicit `close()` may fail with an error. See the inline documentation of this method for more information. Generally speaking, you should not call this method: rely on automatic closing instead.
+If the correct execution of your program depends on precise database closing, perform an explicit call to [`close()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader/close()). This method may fail and create zombie connections, so please check its detailed documentation.
 
 ## FAQ: SQL
 
@@ -6628,7 +6588,7 @@ For more information, see [Double-quoted String Literals Are Accepted](https://s
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
 
-Those errors may be the sign that SQLite can't access the database due to [data protection](#data-protection).
+Those errors may be the sign that SQLite can't access the database due to [data protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files).
 
 When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
 
@@ -6886,3 +6846,6 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Prepared Statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
 [prepared statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
 [`Statement`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[Database Connections]: #database-connections
+[Database connections]: #database-connections
+[database connection]: #database-connections

@@ -62,6 +62,8 @@ try dbQueue.read { db in
 }
 ```
 
+For a more detailed overview, see [SQLite API](https://github.com/groue/GRDB.swift/blob/master/README.md#sqlite-api).
+
 ## Topics
 
 ### Fundamental Database Types
