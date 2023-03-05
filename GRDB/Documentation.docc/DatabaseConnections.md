@@ -49,11 +49,11 @@ if let dbPath {
 
 **If the application creates or writes in the database**, then first choose a proper location for the database file. Document-based applications will let the user pick a location. Apps that use the database as a global storage will prefer the Application Support directory.
 
-> Tip: Regardless of the database location, it is recommended that you wrap the database file inside a dedicated directory. This directory will bundle the main database file and [SQLite temporary files](https://www.sqlite.org/tempfiles.html) together.
+> Tip: Regardless of the database location, it is recommended that you wrap the database file inside a dedicated directory. This directory will bundle the main database file and its related [SQLite temporary files](https://www.sqlite.org/tempfiles.html) together.
 >
-> The dedicated directory helps moving or deleting the whole database eventually (just move or delete the whole directory).
+> The dedicated directory helps moving or deleting the whole database when needed: just move or delete the directory.
 >
-> The directory can be encrypted with [data protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files) apis, in order to help securing all database files in one shot. When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will catch ``DatabaseError`` with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
+> On iOS, the directory can be encrypted with [data protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files), in order to help securing all database files in one shot. When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will catch ``DatabaseError`` with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
 
 The sample code below creates or opens a database file inside its dedicated directory. On the first run, a new empty database file is created. On subsequent runs, the directory and database file already exist, so it just opens a connection:
 
