@@ -109,6 +109,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: `FTS5.api(db)` returns a pointer to the `fts5_api` structure, useful for low-level [FTS5 customization](https://www.sqlite.org/fts5.html#extending_fts5).
+- **Documentation Updates**: Moved more README chapters into DocC, or enhanced DocC articles:
+    - [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
+    - [Prepared Statements](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement)
+    - [DatabaseValueConvertible](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible)
 
 ## 6.8.0
 
