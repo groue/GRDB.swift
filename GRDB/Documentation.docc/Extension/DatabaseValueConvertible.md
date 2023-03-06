@@ -12,9 +12,9 @@ A `DatabaseValueConvertible` type supports conversion to and from database value
 
 ## Conforming to the DatabaseValueConvertible Protocol
 
-To conform to `DatabaseValueConvertible`, implement the two requirements ``fromDatabaseValue(_:)-21zzv`` and ``databaseValue-1ob9k``. Do not customize the ``fromMissingColumn()-7iamp`` requirement. Do not customize the conformance of `Optional`: it is built-in when the wrapped type is itself `DatabaseValueConvertible`.
+To conform to `DatabaseValueConvertible`, implement the two requirements ``fromDatabaseValue(_:)-21zzv`` and ``databaseValue-1ob9k``. Do not customize the ``fromMissingColumn()-7iamp`` requirement. If your type `MyValue` conforms, then the conformance of the optional type `MyValue?` is automatic.
 
-It is important that the implementation of `fromDatabaseValue` returns nil if the type can not be decoded from the raw database value. This nil value will have GRDB throw a decoding error accordingly.
+The implementation of `fromDatabaseValue` must return nil if the type can not be decoded from the raw database value. This nil value will have GRDB throw a decoding error accordingly.
 
 For example:
 
@@ -53,7 +53,7 @@ enum Grape: String {
     case chardonnay, merlot, riesling
 }
 
-// Empty DatabaseValueConvertible adoption is enough
+// Encodes and decodes `Grape` as a string in the database:
 extension Grape: DatabaseValueConvertible { }
 ```
 
@@ -63,18 +63,18 @@ extension Grape: DatabaseValueConvertible { }
 
 ```swift
 struct Color: Codable {
-    var r: Double
-    var g: Double
-    var b: Double
+    var red: Double
+    var green: Double
+    var blue: Double
 }
 
 // Encodes and decodes `Color` as a JSON object in the database:
 extension Color: DatabaseValueConvertible { }
 ```
 
-By default, such codable value types are encoded and decoded with the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder). `Data` values are handled with the `.base64` strategy, `Date` with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
+By default, such codable value types are encoded and decoded with the standard [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) and [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder). `Data` values are handled with the `.base64` strategy, `Date` with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
 
-In order to customize the JSON format, provide a custom implementation of the `DatabaseValueConvertible` requirements.
+To customize the JSON format, provide an explicit implementation for the `DatabaseValueConvertible` requirements.
 
 ### Adding support for the Tagged library
 
@@ -84,8 +84,8 @@ In order to customize the JSON format, provide a custom implementation of the `D
 import Tagged
 
 struct Player: Identifiable {
-    // Player.ID can not be mismatched with Team.ID or Award.ID, even
-    // though they all wrap strings.
+    // Thanks to Tagged, Player.ID can not be mismatched with Team.ID or
+    // Award.ID, even though they all wrap strings.
     typealias ID = Tagged<Player, String>
     var id: ID
     var name: String
@@ -99,8 +99,10 @@ Applications that use both Tagged and GRDB will want to add those lines somewher
 import GRDB
 import Tagged
 
+// Add database support to Tagged values
 extension Tagged: SQLExpressible where RawValue: SQLExpressible { }
 extension Tagged: StatementBinding where RawValue: StatementBinding { }
+extension Tagged: StatementColumnConvertible where RawValue: StatementColumnConvertible { }
 extension Tagged: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
 ```
 
@@ -128,6 +130,8 @@ extension EvenInteger: StatementColumnConvertible {
     }
 }
 ```
+
+This extra conformance is not required: only aim at the low-level C interface if you have identified a performance issue after profiling your application! 
 
 ## Topics
 
