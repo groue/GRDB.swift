@@ -1,3 +1,38 @@
+// Standard collections `Array`, `Set`, and `Dictionary` do not conform to
+// `DatabaseValueConvertible`, on purpose.
+//
+// Adding `DatabaseValueConvertible` conformance to those collection types
+// would litter JSON values in unexpected places, and foster misuse. For
+// example, it is better when the code below *does not compile*:
+//
+// ```swift
+// // MISUSE: if Array would conform to DatabaseValueConvertible, this
+// // code would compile, and run the incorrect SQLite query
+// // `SELECT ... WHERE id IN ('[1,2,3]')`, instead of the expected
+// // `SELECT ... WHERE id IN (1, 2, 3)`.
+// let ids = [1, 2, 3]
+// let players = try Player.fetchAll(db, sql: """
+//     SELECT * FROM player WHERE id IN (?)
+//     """, arguments: [ids])
+// ```
+//
+// Correct and fostered versions of the code above are:
+//
+// ```swift
+// // CORRECT (explicit SQLite arguments):
+// let ids = [1, 2, 3]
+// let questionMarks = databaseQuestionMarks(count: ids.count) // "?,?,?"
+// let players = try Player.fetchAll(db, sql: """
+//     SELECT * FROM player WHERE id IN (\(questionMarks))
+//     """, arguments: StatementArguments(ids))
+//
+// // CORRECT (SQL interpolation):
+// let ids = [1, 2, 3]
+// let request: SQLRequest<Player> = """
+//     SELECT * FROM player WHERE id IN \(ids)
+//     """
+// let players = try request.fetchAll(db)
+// ```
 public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     /// A database value.
     var databaseValue: DatabaseValue { get }

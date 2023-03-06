@@ -8,6 +8,8 @@ A `DatabaseValueConvertible` type supports conversion to and from database value
 
 > Note: Types that converts to and from multiple columns in a database row must not conform to the `DatabaseValueConvertible` protocol. Those types are called **record types**, and should conform to record protocols instead. See <doc:QueryInterface>.
 
+> Note: Standard collections `Array`, `Set`, and `Dictionary` do not conform to `DatabaseValueConvertible`. To store arrays, sets, or dictionaries in individual database values, wrap them as properties of `Codable` record types. They will automatically be stored as JSON objects and arrays. See <doc:QueryInterface>.
+
 ## Conforming to the DatabaseValueConvertible Protocol
 
 To conform to `DatabaseValueConvertible`, implement the two requirements ``fromDatabaseValue(_:)-21zzv`` and ``databaseValue-1ob9k``. Do not customize the ``fromMissingColumn()-7iamp`` requirement. Do not customize the conformance of `Optional`: it is built-in when the wrapped type is itself `DatabaseValueConvertible`.
@@ -126,41 +128,6 @@ extension EvenInteger: StatementColumnConvertible {
     }
 }
 ```
-
-> Note: Standard collections `Array`, `Set`, and `Dictionary` do not conform to `DatabaseValueConvertible`, on purpose. You won't be able to directly fetch or store arrays, sets, or dictionaries as JSON database values.
->
-> Standard collections get free JSON support when they are embedded as properties of `Codable` record types, though: see <doc:QueryInterface>.
->
-> It is not advised to consider the absence of those conformances as a lack, and add `DatabaseValueConvertible` conformance to those collection types in your application. This would litter JSON values in unexpected places, and foster misuse. For example, it is better when the code below *does not compile*:
->
-> ```swift
-> // MISUSE: if Array would conform to DatabaseValueConvertible, this
-> // code would compile, and run the incorrect SQLite query
-> // `SELECT ... WHERE id IN ('[1,2,3]')`, instead of the expected
-> // `SELECT ... WHERE id IN (1, 2, 3)`.
-> let ids = [1, 2, 3]
-> let players = try Player.fetchAll(db, sql: """
->     SELECT * FROM player WHERE id IN (?)
->     """, arguments: [ids])
-> ```
->
-> Correct and fostered versions of the code above are:
->
-> ```swift
-> // CORRECT (explicit SQLite arguments):
-> let ids = [1, 2, 3]
-> let questionMarks = databaseQuestionMarks(count: ids.count) // "?,?,?"
-> let players = try Player.fetchAll(db, sql: """
->     SELECT * FROM player WHERE id IN (\(questionMarks))
->     """, arguments: StatementArguments(ids))
->
-> // CORRECT (SQL interpolation):
-> let ids = [1, 2, 3]
-> let request: SQLRequest<Player> = """
->     SELECT * FROM player WHERE id IN \(ids)
->     """
-> let players = try request.fetchAll(db)
-> ```
 
 ## Topics
 
