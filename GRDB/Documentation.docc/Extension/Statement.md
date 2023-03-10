@@ -4,7 +4,7 @@ A prepared statement.
 
 ## Overview
 
-Prepared Statements let you execute an SQL query several times, with different arguments if needed.
+Prepared statements let you execute an SQL query several times, with different arguments if needed.
 
 Reusing prepared statements is a performance optimization technique because SQLite parses and analyses the SQL query only once, when the prepared statement is created.
 
@@ -52,10 +52,11 @@ try insertStatement.execute()
 To fetch rows and values from a prepared statement, use a fetching method of ``Row``, ``DatabaseValueConvertible``, or ``FetchableRecord``:
 
 ```swift
-let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
-let players = try Player.fetchAll(selectStatement) // [Player]
-let players = try Player.fetchSet(selectStatement) // Set<Player>
-let player = try Player.fetchOne(selectStatement)  // Player?
+let players = try Player.fetchCursor(selectStatement) // A Cursor of Player
+let players = try Player.fetchAll(selectStatement)    // [Player]
+let players = try Player.fetchSet(selectStatement)    // Set<Player>
+let player =  try Player.fetchOne(selectStatement)     // Player?
+//                ~~~~~~ or Row, Int, String, Date, etc.
 ```
 
 Arguments can be set at the moment of the statement execution:
@@ -67,7 +68,7 @@ let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 
 > Note: A prepared statement that has failed with an error can not be recovered. Create a new instance, or use a cached statement as described below.
 
-## The Prepared Statements Cache
+## Caching Prepared Statements
 
 When the same query will be used several times in the lifetime of an application, one may feel a natural desire to cache prepared statements.
 
