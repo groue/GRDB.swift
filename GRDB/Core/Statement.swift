@@ -251,7 +251,7 @@ public final class Statement {
     
     /// Sets the statement arguments.
     ///
-    /// This method throws a ``DatabaseError`` of code `SQLITE_ERROR` if
+    /// This method throws a ``DatabaseError`` of code `SQLITE_MISUSE` if
     /// arguments don't fill all statement arguments.
     ///
     /// For example:
