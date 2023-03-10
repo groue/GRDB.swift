@@ -170,8 +170,55 @@ public final class Statement {
     
     // MARK: Arguments
     
-    private var argumentsNeedValidation = true
+    /// Whether arguments are valid and bound inside the SQLite statement.
+    ///
+    /// If true, arguments are considered valid, and they are bound in
+    /// the SQLite statement:
+    ///
+    /// - **Valid**: Arguments match the statement expectations, or the user has
+    ///   called ``setUncheckedArguments(_:)``.
+    /// - **Bound**: The SQLite bindings are set. String and blob arguments
+    ///   are bound with SQLITE_TRANSIENT (copied and managed by SQLite).
+    ///
+    /// When false, arguments have not been validated yet, or they are
+    /// not bound.
+    ///
+    /// - Not validated yet: this is the initial default (non-validated
+    ///   empty arguments)
+    ///
+    ///     ```swift
+    ///     // Default arguments are empty, argumentsAreValidAndBound is
+    ///     // false. The statement needs one argument.
+    ///     let statement = try db.makeStatement(sql: """
+    ///         INSERT INTO t VALUES (?)
+    ///         """)
+    ///
+    ///     // Because argumentsAreValidAndBound is false, we validate the
+    ///     // empty arguments, and throw SQLITE_MISUSE: wrong number
+    ///     // of statement arguments.
+    ///     try statement.execute()
+    ///     ```
+    ///
+    /// - Not bound: this is the case after we have performed an optimized
+    ///   execution with temporary bindings that avoid copying strings
+    ///   and blobs:
+    ///
+    ///     ```swift
+    ///     let statement = try db.makeStatement(sql: """
+    ///         INSERT INTO t VALUES (?)
+    ///         """)
+    ///     // Arguments are set, and execution is performed with
+    ///     // temporary bindings.
+    ///     try statement.execute(arguments: ["Hello"])
+    ///     // <- Here statement.arguments is ["Hello"]
+    ///     // <- Here statement.argumentsAreValidAndBound is false
+    ///     ```
+    ///
+    ///     See `withArguments(_:do:)`.
+    private var argumentsAreValidAndBound = false
     
+    /// The statement arguments. They may be bound, or not, in the SQLite
+    /// statement. See `argumentsAreValidAndBound`.
     private var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
@@ -247,10 +294,10 @@ public final class Statement {
     /// statement.setUncheckedArguments([1])
     /// ```
     public func setUncheckedArguments(_ arguments: StatementArguments) {
-        _arguments = arguments
-        argumentsNeedValidation = false
-        
+        // Reset and bind arguments
         try! reset()
+        _arguments = arguments
+        argumentsAreValidAndBound = true
         clearBindings()
         
         var valuesIterator = arguments.values.makeIterator()
@@ -288,14 +335,41 @@ public final class Statement {
         var consumedArguments = arguments
         let bindings = try consumedArguments.extractBindings(forStatement: self, allowingRemainingValues: false)
         
-        // Apply
-        _arguments = arguments
-        argumentsNeedValidation = false
+        // Reset and bind arguments
         try reset()
+        _arguments = arguments
+        argumentsAreValidAndBound = true
         clearBindings()
+        
         for (index, dbValue) in zip(CInt(1)..., bindings) {
             bind(dbValue, at: index)
         }
+    }
+    
+    /// Resets, sets arguments, and calls the given closure after performing
+    /// temporary bindings that avoid copying strings and blobs.
+    ///
+    /// The bindings are valid only during the execution of this method.
+    /// After it returns, the SQLite statement bindings are cleared (but the
+    /// statement arguments are set).
+    func withArguments<T>(_ arguments: StatementArguments, do body: () throws -> T) throws -> T {
+        // Validate
+        var consumedArguments = arguments
+        let bindings = try consumedArguments.extractBindings(forStatement: self, allowingRemainingValues: false)
+        
+        // Reset and bind arguments (temporarily)
+        try reset()
+        _arguments = arguments
+        argumentsAreValidAndBound = false
+        clearBindings()
+        
+        defer {
+            // Don't leave the SQLite statement in an invalid state
+            // (temporary bindings that point to undefined memory).
+            clearBindings()
+        }
+        
+        return try withBindings(bindings, to: sqliteStatement, do: body)
     }
     
     // 1-based index
@@ -330,16 +404,44 @@ public final class Statement {
         }
     }
     
-    func reset(withArguments arguments: StatementArguments?) throws {
-        // Force arguments validity: it is a programmer error to provide
-        // arguments that do not match the statement.
-        if let arguments {
-            try setArguments(arguments) // calls reset()
-        } else if argumentsNeedValidation {
+    /// Convenience method that resets, sets arguments if needed, and checks
+    /// arguments validity.
+    ///
+    /// - parameter newArguments: if not nil, this method sets arguments.
+    func prepareExecution(withArguments newArguments: StatementArguments? = nil) throws {
+        if let newArguments {
+            try setArguments(newArguments) // calls reset()
+            return
+        }
+        
+        if argumentsAreValidAndBound {
             try reset()
-            try validateArguments(self.arguments)
         } else {
-            try reset()
+            // Arguments needs to be validated, or bound.
+            if arguments.isEmpty {
+                // Only reset and perform validation.
+                try reset()
+                try validateArguments(arguments)
+            } else {
+                // The `setArguments` method binds and validates, and that's
+                // exactly what we want to do.
+                //
+                // To get there, perform statement.execute() after
+                // statement.execute(arguments:):
+                //
+                //      // Step 1
+                //      // Optimized execution with temporary bindings in order
+                //      // to avoid copying strings and blobs: after execution,
+                //      // arguments are set, but bindings have been cleared,
+                //      // and argumentsAreValidAndBound is false.
+                //      try statement.execute(arguments: StatementArguments(person)!)
+                //
+                //      // Step 2 (we are here). Stop using temporary
+                //      // bindings because user explicitly opt ins for
+                //      // permanent ones.
+                //      try statement.execute()
+                try setArguments(arguments) // calls reset()
+            }
         }
     }
     
@@ -360,23 +462,57 @@ public final class Statement {
     ///     try createTableStatement.execute()
     ///
     ///     // Statement with argument
-    ///     let insertStatement = try db.makeStatement(sql: """
+    ///     let statement = try db.makeStatement(sql: """
     ///         INSERT INTO player (name) VALUES (?)
     ///         """)
     ///
     ///     // Set argument and execute
-    ///     try insertStatement.setArguments(["Arthur"])
-    ///     try insertStatement.execute()
+    ///     try statement.setArguments(["Arthur"])
+    ///     try statement.execute()
     ///
     ///     // Set argument and execute in one shot
-    ///     try insertStatement.execute(arguments: ["Barbara"])
+    ///     try statement.execute(arguments: ["Barbara"])
     /// }
     /// ```
+    ///
+    /// When arguments are set at the moment of execution, with an non-nil
+    /// `arguments` parameter, it is assumed that the statement won't be
+    /// reused with the same arguments: execution is performed with
+    /// temporary SQLite bindings that avoid copying strings and blobs
+    /// arguments. Compare:
+    ///
+    /// ```swift
+    /// // Set argument and execute in one shot,
+    /// // without copying the string.
+    /// try statement.execute(arguments: ["Barbara"])
+    ///
+    /// // Set argument (copy the string), and execute.
+    /// try statement.setArguments(["Arthur"])
+    /// try statement.execute()
+    /// ```
+    ///
+    /// Both techniques have the same results, but when you care about
+    /// performances, monitor your application in order to make the
+    /// best choice.
     ///
     /// - parameter arguments: Optional statement arguments.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
-        try reset(withArguments: arguments)
+        if let arguments {
+            // Assume that the statement won't be reused with the same
+            // arguments, and perform an optimized execution with temporary
+            // bindings in order to avoid copying strings and blobs.
+            try reset()
+            try withArguments(arguments) {
+                try executeAllSteps()
+            }
+        } else {
+            try prepareExecution()
+            try executeAllSteps()
+        }
+    }
+    
+    private func executeAllSteps() throws {
         try database.statementWillExecute(self)
         
         // Iterate all rows, since they may execute side effects.
@@ -597,7 +733,7 @@ final class StatementCursor: DatabaseCursor {
         self._statement = statement
         
         // Assume cursor is created for immediate iteration: reset and set arguments
-        try statement.reset(withArguments: arguments)
+        try statement.prepareExecution(withArguments: arguments)
     }
     
     deinit {
@@ -642,9 +778,48 @@ public protocol StatementBinding {
     /// Binds a statement argument.
     ///
     /// - parameter sqliteStatement: An SQLite statement.
-    /// - parameter index: 1-based index to statement arguments
+    /// - parameter index: 1-based index to statement arguments.
     /// - returns: the code returned by the `sqlite3_bind_xxx` function.
     func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt
+}
+
+/// Helper function for `withBinding(to:at:do:)` methods.
+func checkBindingSuccess(code: CInt, sqliteStatement: SQLiteStatement) throws {
+    if code == SQLITE_OK { return }
+    let message = String(cString: sqlite3_errmsg(sqlite3_db_handle(sqliteStatement)))
+    let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
+    throw DatabaseError(resultCode: code, message: message, sql: sql)
+}
+
+/// Calls the given closure after performing temporary bindings that avoid
+/// copying strings and blobs.
+///
+/// The bindings are valid only during the execution of this method.
+///
+/// - parameter bindings: The bindings
+/// - parameter sqliteStatement: The SQLite statement
+/// - parameter index: The index of the first binding.
+/// - parameter body: The closure to execute when arguments are bound.
+@usableFromInline
+func withBindings<C, T>(
+    _ bindings: C,
+    to sqliteStatement: SQLiteStatement,
+    from index: CInt = 1,
+    do body: () throws -> T)
+throws -> T
+where C: Collection, C.Element == DatabaseValue
+{
+    guard let binding = bindings.first else {
+        return try body()
+    }
+    
+    return try binding.withBinding(to: sqliteStatement, at: index) {
+        try withBindings(
+            bindings.dropFirst(),
+            to: sqliteStatement,
+            from: index + 1,
+            do: body)
+    }
 }
 
 // MARK: - StatementArguments

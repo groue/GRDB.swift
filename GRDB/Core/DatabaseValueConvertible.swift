@@ -156,7 +156,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
         }
         
         // Assume cursor is created for immediate iteration: reset and set arguments
-        try statement.reset(withArguments: arguments)
+        try statement.prepareExecution(withArguments: arguments)
     }
     
     deinit {

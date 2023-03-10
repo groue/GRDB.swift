@@ -441,4 +441,115 @@ class UpdateStatementTests : GRDBTestCase {
             XCTAssertEqual(value, 3)
         }
     }
+    
+    // To be compared with testTemporaryBindings() and testNonTemporaryBindings()
+    func testArgumentsReuse() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(literal: """
+                CREATE TABLE t(a);
+                """)
+            
+            func test(value: some DatabaseValueConvertible) throws {
+                defer { try! db.execute(sql: "DELETE FROM t") }
+                
+                // Execute with temporary bindings
+                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
+                try statement.execute(arguments: [value])
+                
+                // Execute with non temporary bindings
+                try statement.execute()
+                
+                // Since bindings are not temporary, they are not cleared,
+                // so insert the value again.
+                sqlite3_reset(statement.sqliteStatement)
+                sqlite3_step(statement.sqliteStatement)
+                sqlite3_reset(statement.sqliteStatement)
+                
+                // Test that we have inserted the value thrice.
+                try XCTAssertEqual(
+                    DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
+                    [value.databaseValue, value.databaseValue, value.databaseValue])
+            }
+            
+            try test(value: "Foo")
+            try test(value: "")
+            try test(value: "Hello".data(using: .utf8)!)
+            try test(value: Data())
+            try test(value: 42)
+            try test(value: 1.23)
+        }
+    }
+    
+    // To be compared with testNonTemporaryBindings() and testArgumentsReuse()
+    func testTemporaryBindings() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(literal: """
+                CREATE TABLE t(a);
+                """)
+            
+            func test(value: some DatabaseValueConvertible) throws {
+                defer { try! db.execute(sql: "DELETE FROM t") }
+                
+                // Execute with temporary bindings
+                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
+                try statement.execute(arguments: [value])
+                
+                // Since bindings were temporary, and cleared, we now insert NULL
+                sqlite3_reset(statement.sqliteStatement)
+                sqlite3_step(statement.sqliteStatement)
+                sqlite3_reset(statement.sqliteStatement)
+                
+                // Test that we have inserted the value, and NULL
+                try XCTAssertEqual(
+                    DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
+                    [value.databaseValue, .null])
+            }
+            
+            try test(value: "Foo")
+            try test(value: "")
+            try test(value: "Hello".data(using: .utf8)!)
+            try test(value: Data())
+            try test(value: 42)
+            try test(value: 1.23)
+        }
+    }
+    
+    // To be compared with testTemporaryBindings() and testArgumentsReuse()
+    func testNonTemporaryBindings() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(literal: """
+                CREATE TABLE t(a);
+                """)
+            
+            func test(value: some DatabaseValueConvertible) throws {
+                defer { try! db.execute(sql: "DELETE FROM t") }
+                
+                // Execute with non temporary bindings
+                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
+                try statement.setArguments([value])
+                try statement.execute()
+                
+                // Since bindings are not temporary, they are not cleared,
+                // so insert the value again.
+                sqlite3_reset(statement.sqliteStatement)
+                sqlite3_step(statement.sqliteStatement)
+                sqlite3_reset(statement.sqliteStatement)
+                
+                // Test that we have inserted the value twice.
+                try XCTAssertEqual(
+                    DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
+                    [value.databaseValue, value.databaseValue])
+            }
+            
+            try test(value: "Foo")
+            try test(value: "")
+            try test(value: "Hello".data(using: .utf8)!)
+            try test(value: Data())
+            try test(value: 42)
+            try test(value: 1.23)
+        }
+    }
 }
