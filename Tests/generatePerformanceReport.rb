@@ -40,7 +40,7 @@ BUILD_ROOT = $1
 
 # DERIVED_DATA
 tmp = BUILD_ROOT
-while !File.exists?(File.join(tmp, 'SourcePackages'))
+while !File.exist?(File.join(tmp, 'SourcePackages'))
   parent = File.dirname(tmp)
   exit 1 if tmp == parent
   tmp = parent
