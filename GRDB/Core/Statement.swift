@@ -225,13 +225,13 @@ public final class Statement {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
     
-    // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
+    // Returns ["id", nil, "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     fileprivate lazy var sqliteArgumentNames: [String?] = {
-        (0..<CInt(self.sqliteArgumentCount)).map {
-            guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, $0 + 1) else {
+        (1..<CInt(sqliteArgumentCount + 1)).map {
+            guard let cString = sqlite3_bind_parameter_name(sqliteStatement, $0) else {
                 return nil
             }
-            return String(String(cString: cString).dropFirst()) // Drop initial ":", "@", "$"
+            return String(cString: cString + 1) // Drop initial ":", "@", "$"
         }
     }()
     
@@ -502,7 +502,6 @@ public final class Statement {
             // Assume that the statement won't be reused with the same
             // arguments, and perform an optimized execution with temporary
             // bindings in order to avoid copying strings and blobs.
-            try reset()
             try withArguments(arguments) {
                 try executeAllSteps()
             }
@@ -1258,35 +1257,41 @@ public struct StatementArguments: Hashable {
         allowingRemainingValues: Bool)
     throws -> [DatabaseValue]
     {
-        let initialValuesCount = values.count
+        var iterator = values.makeIterator()
+        var consumedValuesCount = 0
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
             if let argumentName {
                 if let dbValue = namedValues[argumentName] {
                     return dbValue
-                } else if values.isEmpty {
+                } else if let value = iterator.next() {
+                    consumedValuesCount += 1
+                    return value
+                } else {
                     throw DatabaseError(
                         resultCode: .SQLITE_MISUSE,
                         message: "missing statement argument: \(argumentName)",
                         sql: statement.sql)
-                } else {
-                    return values.removeFirst()
                 }
+            } else if let value = iterator.next() {
+                consumedValuesCount += 1
+                return value
             } else {
-                if values.isEmpty {
-                    throw DatabaseError(
-                        resultCode: .SQLITE_MISUSE,
-                        message: "wrong number of statement arguments: \(initialValuesCount)",
-                        sql: statement.sql)
-                } else {
-                    return values.removeFirst()
-                }
+                throw DatabaseError(
+                    resultCode: .SQLITE_MISUSE,
+                    message: "wrong number of statement arguments: \(values.count)",
+                    sql: statement.sql)
             }
         }
-        if !allowingRemainingValues && !values.isEmpty {
+        if !allowingRemainingValues && iterator.next() != nil {
             throw DatabaseError(
                 resultCode: .SQLITE_MISUSE,
-                message: "wrong number of statement arguments: \(initialValuesCount)",
+                message: "wrong number of statement arguments: \(values.count)",
                 sql: statement.sql)
+        }
+        if consumedValuesCount == values.count {
+            values.removeAll()
+        } else {
+            values = Array(values[consumedValuesCount...])
         }
         return bindings
     }
