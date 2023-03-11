@@ -56,6 +56,20 @@ public final class Statement {
     // refined in `SQLQueryGenerator.makeStatement(_:)` when we have enough
     // information about the statement.
     /// The database region that the statement looks into.
+    ///
+    /// The returned region describes the tables and columns read by
+    /// the statement. It does not describe the columns that the statement
+    /// writes into. For example:
+    ///
+    /// ```swift
+    /// // Reads score, writes bonus
+    /// let statement = db.makeStatement(sql: """
+    ///     UPDATE player SET bonus = 0 WHERE score = 0
+    ///     """)
+    ///
+    /// // Prints "player(score)"
+    /// print(statement.databaseRegion)
+    /// ```
     public internal(set) var databaseRegion = DatabaseRegion()
     
     /// If true, the database schema cache gets invalidated after this statement
