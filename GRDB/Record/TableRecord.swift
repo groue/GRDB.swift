@@ -669,6 +669,31 @@ extension TableRecord {
 // MARK: - RecordError
 
 /// A record error.
+///
+/// `RecordError` is thrown by ``MutablePersistableRecord`` types when an
+/// `update` method could not find any row to update:
+///
+/// ```swift
+/// do {
+///     try player.update(db)
+/// } catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+///     print("Key \(key) was not found in table \(table).")
+/// }
+/// ```
+///
+/// `RecordError` is also thrown by ``FetchableRecord`` types when a
+/// `find` method does not find any record:
+///
+/// ```swift
+/// do {
+///     let player = try Player.find(db, id: 42)
+/// } catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+///     print("Key \(key) was not found in table \(table).")
+/// }
+/// ```
+///
+/// You can create `RecordError` instances with the
+/// ``TableRecord/recordNotFound(_:id:)`` method and its variants.
 public enum RecordError: Error {
     /// A record does not exist in the database.
     ///
