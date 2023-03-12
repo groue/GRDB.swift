@@ -141,7 +141,9 @@ extension FetchRequest {
     /// Returns an adapted request.
     ///
     /// The returned request performs an identical database query, but adapts
-    /// the fetched rows. See ``RowAdapter``.
+    /// the fetched rows. See ``RowAdapter``, and
+    /// ``splittingRowAdapters(columnCounts:)`` for a sample code that uses
+    /// `adapted(_:)`.
     ///
     /// - parameter adapter: A closure that accepts a database connection and
     ///   returns a row adapter.
