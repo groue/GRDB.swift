@@ -42,6 +42,23 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
             sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
         }
     }
+    
+    /// Calls the given closure after binding a statement argument.
+    ///
+    /// The binding is valid only during the execution of this method.
+    ///
+    /// - parameter sqliteStatement: An SQLite statement.
+    /// - parameter index: 1-based index to statement arguments.
+    /// - parameter body: The closure to execute when argument is bound.
+    func withBinding<T>(to sqliteStatement: SQLiteStatement, at index: CInt, do body: () throws -> T) throws -> T {
+        try withUnsafeBytes {
+            let code = sqlite3_bind_blob(
+                sqliteStatement, index,
+                $0.baseAddress, CInt($0.count), nil /* SQLITE_STATIC */)
+            try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+            return try body()
+        }
+    }
 }
 
 // MARK: - Conversions

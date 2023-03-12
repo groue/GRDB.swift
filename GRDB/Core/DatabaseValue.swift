@@ -188,6 +188,34 @@ extension DatabaseValue: StatementBinding {
             return data.bind(to: sqliteStatement, at: index)
         }
     }
+    
+    /// Calls the given closure after binding a statement argument.
+    ///
+    /// The binding is valid only during the execution of this method.
+    ///
+    /// - parameter sqliteStatement: An SQLite statement.
+    /// - parameter index: 1-based index to statement arguments.
+    /// - parameter body: The closure to execute when argument is bound.
+    func withBinding<T>(to sqliteStatement: SQLiteStatement, at index: CInt, do body: () throws -> T) throws -> T {
+        switch storage {
+        case .null:
+            let code = sqlite3_bind_null(sqliteStatement, index)
+            try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+            return try body()
+        case .int64(let int64):
+            let code = int64.bind(to: sqliteStatement, at: index)
+            try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+            return try body()
+        case .double(let double):
+            let code = double.bind(to: sqliteStatement, at: index)
+            try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+            return try body()
+        case .string(let string):
+            return try string.withBinding(to: sqliteStatement, at: index, do: body)
+        case .blob(let data):
+            return try data.withBinding(to: sqliteStatement, at: index, do: body)
+        }
+    }
 }
 
 extension DatabaseValue: Sendable { }

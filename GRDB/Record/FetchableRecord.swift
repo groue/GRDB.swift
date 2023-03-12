@@ -807,7 +807,7 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         
         // Assume cursor is created for immediate iteration: reset and set arguments
-        try statement.reset(withArguments: arguments)
+        try statement.prepareExecution(withArguments: arguments)
     }
     
     deinit {

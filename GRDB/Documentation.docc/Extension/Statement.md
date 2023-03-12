@@ -68,6 +68,24 @@ let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 
 > Note: A prepared statement that has failed with an error can not be recovered. Create a new instance, or use a cached statement as described below.
 
+> Tip: When you look after the best performance, take care about a difference between setting the arguments before execution, and setting the arguments at the moment of execution:
+>
+> ```swift
+> // First option
+> try statement.setArguments(...)
+> try statement.execute()
+>
+> // Second option
+> try statement.execute(arguments: ...)
+> ```
+>
+> Both perform exactly the same action, and most applications should not care about the difference. Yet:
+>
+> - ``setArguments(_:)`` performs a copy of string and blob arguments. It uses the low-level [`SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with the same arguments.
+> - ``execute(arguments:)`` avoids a temporary allocation for string and blob arguments. It uses the low-level [`SQLITE_STATIC`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with various arguments.
+>
+> Don't make a blind choice, and monitor your app performance if it really matters!
+
 ## Caching Prepared Statements
 
 When the same query will be used several times in the lifetime of an application, one may feel a natural desire to cache prepared statements.
