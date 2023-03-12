@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.8.x` Releases - [6.9.0](#690)
 - `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
@@ -106,7 +107,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.9.0
+
+Released March 12, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.8.0...v6.9.0)
 
 - **New**: [#1348](https://github.com/groue/GRDB.swift/pull/1348) by [@groue](https://github.com/groue): SQLite argument binding optimization
 - **New**: `FTS5.api(db)` returns a pointer to the `fts5_api` structure, useful for low-level [FTS5 customization](https://www.sqlite.org/fts5.html#extending_fts5).
