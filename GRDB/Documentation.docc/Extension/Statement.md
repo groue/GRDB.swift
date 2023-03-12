@@ -81,8 +81,8 @@ let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 >
 > Both perform exactly the same action, and most applications should not care about the difference. Yet:
 >
-> - `setArguments(_:)` performs a copy of string and blob arguments. It uses the low-level [`SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with the same arguments.
-> - `execute(arguments:)` avoids a temporary allocation for string and blob arguments. It uses the low-level [`SQLITE_STATIC`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with various arguments.
+> - ``setArguments(_:)`` performs a copy of string and blob arguments. It uses the low-level [`SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with the same arguments.
+> - ``execute(arguments:)`` avoids a temporary allocation for string and blob arguments. It uses the low-level [`SQLITE_STATIC`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with various arguments.
 >
 > Don't make a blind choice, and monitor your app performance if it really matters!
 

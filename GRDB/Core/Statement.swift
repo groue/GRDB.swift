@@ -236,6 +236,34 @@ public final class Statement {
     }()
     
     /// The statement arguments.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // This statement expects two arguments
+    /// let statement = try db.makeUpdateArgument(sql: """
+    ///     INSERT INTO player (id, name) VALUES (?, ?)
+    ///     """)
+    ///
+    /// // Set arguments
+    /// statement.arguments = [1, "Arthur"]
+    ///
+    /// // Prints [1, "Arthur"]
+    /// print(statement.arguments)
+    /// ```
+    ///
+    /// If is a programmer error to set arguments that do not provide all
+    /// values expected by the statement:
+    ///
+    /// ```swift
+    /// // Fatal error
+    /// statement.arguments = [1]
+    /// statement.arguments = [1, "Arthur", Date()]
+    /// ```
+    ///
+    /// Prefer ``setArguments(_:)`` when you are not sure that
+    /// arguments match, because it throws an error instead of raising a
+    /// fatal error.
     public var arguments: StatementArguments {
         get { _arguments }
         set {
@@ -245,12 +273,13 @@ public final class Statement {
         }
     }
     
-    /// Throws a ``DatabaseError`` of code `SQLITE_ERROR` if arguments don't
-    /// fill all statement arguments.
+    /// Throws a ``DatabaseError`` of code `SQLITE_ERROR` if the provided
+    /// arguments do not provide all values expected by the statement.
     ///
     /// For example:
     ///
     /// ```swift
+    /// // This statement expects two arguments
     /// let statement = try db.makeUpdateArgument(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
@@ -259,7 +288,8 @@ public final class Statement {
     /// statement.validateArguments([1, "Arthur"])
     ///
     /// // Throws
-    /// statement.validateArguments([1])
+    /// try statement.setArguments([1])
+    /// try statement.setArguments([1, "Arthur", Date()])
     /// ```
     ///
     /// See also ``setArguments(_:)``.
@@ -272,12 +302,13 @@ public final class Statement {
     
     /// Set arguments without any validation. Trades safety for performance.
     ///
-    /// Only call this method if you are sure input arguments match all expected
-    /// arguments of the statement.
+    /// Only call this method if you are sure input arguments provide all
+    /// values expected by the statement.
     ///
     /// For example:
     ///
     /// ```swift
+    /// // This statement expects two arguments
     /// let statement = try db.makeUpdateArgument(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
@@ -286,12 +317,13 @@ public final class Statement {
     /// statement.setUncheckedArguments([1, "Arthur"])
     ///
     /// // OK
-    /// let arguments: StatementArguments = ... // some untrusted arguments
+    /// let arguments = ... // some untrusted arguments
     /// try statement.validateArguments(arguments)
     /// statement.setUncheckedArguments(arguments)
     ///
     /// // NOT OK
     /// statement.setUncheckedArguments([1])
+    /// statement.setUncheckedArguments([1, "Arthur", Date()])
     /// ```
     public func setUncheckedArguments(_ arguments: StatementArguments) {
         // Reset and bind arguments
@@ -310,14 +342,16 @@ public final class Statement {
         }
     }
     
-    /// Sets the statement arguments.
+    /// Validates and sets the statement arguments.
     ///
     /// This method throws a ``DatabaseError`` of code `SQLITE_MISUSE` if
-    /// arguments don't fill all statement arguments.
+    /// the provided arguments do not provide all values expected by
+    /// the statement.
     ///
     /// For example:
     ///
     /// ```swift
+    /// // This statement expects two arguments
     /// let statement = try db.makeUpdateArgument(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
@@ -327,6 +361,7 @@ public final class Statement {
     ///
     /// // Throws
     /// try statement.setArguments([1])
+    /// try statement.setArguments([1, "Arthur", Date()])
     /// ```
     ///
     /// - throws: A ``DatabaseError`` if `arguments` don't fit the expected ones.
@@ -450,17 +485,18 @@ public final class Statement {
     /// For example:
     ///
     /// ```swift
-    /// let dbQueue = try DatabaseQueue()
     /// try dbQueue.write { db in
     ///     // Statement without argument
-    ///     let createTableStatement = try db.makeStatement(sql: """
+    ///     let statement = try db.makeStatement(sql: """
     ///         CREATE TABLE player (
     ///           id INTEGER PRIMARY KEY AUTOINCREMENT,
     ///           name TEXT NOT NULL
     ///         )
     ///         """)
-    ///     try createTableStatement.execute()
+    ///     try statement.execute()
+    /// }
     ///
+    /// try dbQueue.write { db in
     ///     // Statement with argument
     ///     let statement = try db.makeStatement(sql: """
     ///         INSERT INTO player (name) VALUES (?)
@@ -477,16 +513,18 @@ public final class Statement {
     ///
     /// When arguments are set at the moment of execution, with an non-nil
     /// `arguments` parameter, it is assumed that the statement won't be
-    /// reused with the same arguments: execution is performed with
+    /// reused with the same arguments. Execution is performed with
     /// temporary SQLite bindings that avoid copying strings and blobs
-    /// arguments. Compare:
+    /// arguments.
+    ///
+    /// For more information, see [`SQLITE_STATIC` and `SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html).
+    /// Compare:
     ///
     /// ```swift
-    /// // Set argument and execute in one shot,
-    /// // without copying the string.
+    /// // Uses SQLITE_STATIC
     /// try statement.execute(arguments: ["Barbara"])
     ///
-    /// // Set argument (copy the string), and execute.
+    /// // Uses SQLITE_TRANSIENT
     /// try statement.setArguments(["Arthur"])
     /// try statement.execute()
     /// ```
@@ -836,9 +874,9 @@ where C: Collection, C.Element == DatabaseValue
 /// - `@AAAA` (e.g. `@name`): named argument
 /// - `$AAAA` (e.g. `$name`): named argument
 ///
-/// GRDB does not allow to distinguish between the `:AAAA`, `@AAAA`, and `$AAAA`
-/// syntaxes. You are encouraged to write named arguments with a
-/// colon prefix: `:name`.
+/// All forms are supported,  but GRDB does not allow to distinguish between
+/// the `:AAAA`, `@AAAA`, and `$AAAA` syntaxes. You are encouraged to write
+/// named arguments with a colon prefix: `:name`.
 ///
 /// ## Positional Arguments
 ///
