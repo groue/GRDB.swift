@@ -533,7 +533,7 @@ extension QueryInterfaceRequest {
         return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
     }
     
-    /// Returns a cursor over the record deleted by a
+    /// Returns a cursor over the records deleted by a
     /// `DELETE RETURNING` statement.
     ///
     /// For example:
@@ -553,7 +553,7 @@ extension QueryInterfaceRequest {
     ///   <https://www.sqlite.org/lang_returning.html>.
     ///
     /// - parameter db: A database connection.
-    /// - returns: A ``RecordCursor`` over deleted records.
+    /// - returns: A ``RecordCursor`` over the deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func deleteAndFetchCursor(_ db: Database)
     throws -> RecordCursor<RowDecoder>
@@ -646,7 +646,7 @@ extension QueryInterfaceRequest {
         return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
     }
     
-    /// Returns a cursor over the record deleted by a
+    /// Returns a cursor over the records deleted by a
     /// `DELETE RETURNING` statement.
     ///
     /// For example:
@@ -666,7 +666,7 @@ extension QueryInterfaceRequest {
     ///   <https://www.sqlite.org/lang_returning.html>.
     ///
     /// - parameter db: A database connection.
-    /// - returns: A ``RecordCursor`` over deleted records.
+    /// - returns: A ``RecordCursor`` over the deleted records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchCursor(_ db: Database)
@@ -865,7 +865,7 @@ extension QueryInterfaceRequest {
         return updateStatement
     }
     
-    /// Returns a cursor over the record updated by an
+    /// Returns a cursor over the records updated by an
     /// `UPDATE RETURNING` statement.
     ///
     /// For example:
@@ -1018,7 +1018,7 @@ extension QueryInterfaceRequest {
         return updateStatement
     }
     
-    /// Returns a cursor over the record updated by an
+    /// Returns a cursor over the records updated by an
     /// `UPDATE RETURNING` statement.
     ///
     /// For example:

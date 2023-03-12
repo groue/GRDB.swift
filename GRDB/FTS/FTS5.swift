@@ -35,6 +35,10 @@ import Foundation
 /// - ``FTS5WrapperTokenizer``
 /// - ``FTS5TokenFlags``
 /// - ``FTS5Tokenization``
+///
+/// ### Low-Level FTS5 Customization
+///
+/// - ``api(_:)``
 public struct FTS5 {
     /// Options for Latin script characters. Matches the raw "remove_diacritics"
     /// tokenizer argument.
@@ -100,7 +104,10 @@ public struct FTS5 {
         }
     }
     
-    static func api(_ db: Database) -> UnsafePointer<fts5_api> {
+    /// Returns a pointer to the `fts5_api` structure.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#extending_fts5>
+    public static func api(_ db: Database) -> UnsafePointer<fts5_api> {
         // Access to FTS5 is one of the rare SQLite api which was broken in
         // SQLite 3.20.0+, for security reasons:
         //

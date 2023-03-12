@@ -610,6 +610,21 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
         sqlite3_bind_text(sqliteStatement, index, self, -1, SQLITE_TRANSIENT)
     }
+    
+    /// Calls the given closure after binding a statement argument.
+    ///
+    /// The binding is valid only during the execution of this method.
+    ///
+    /// - parameter sqliteStatement: An SQLite statement.
+    /// - parameter index: 1-based index to statement arguments.
+    /// - parameter body: The closure to execute when argument is bound.
+    func withBinding<T>(to sqliteStatement: SQLiteStatement, at index: CInt, do body: () throws -> T) throws -> T {
+        try withCString {
+            let code = sqlite3_bind_text(sqliteStatement, index, $0, -1, nil /* SQLITE_STATIC */)
+            try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+            return try body()
+        }
+    }
 }
 
 

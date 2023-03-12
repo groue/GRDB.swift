@@ -33,7 +33,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -42,7 +42,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Two few arguments
                 try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -51,7 +51,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Two many arguments
                 try statement.validateArguments(["foo", 1, "bar"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -60,7 +60,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([:])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -69,7 +69,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Unmappable arguments
                 try statement.validateArguments(["firstName": "foo", "age": 1])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -117,7 +117,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try updateStatement.setArguments([1])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(updateStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")
@@ -126,7 +126,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try selectStatement.setArguments([1])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(selectStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")
@@ -184,7 +184,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -193,7 +193,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -202,7 +202,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Too many arguments
                 try statement.validateArguments(["foo", 1, "baz"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -211,7 +211,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([:])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -220,7 +220,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments(["firstName": "foo"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -268,7 +268,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try updateStatement.setArguments(["name": name])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(updateStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")
@@ -277,7 +277,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try selectStatement.setArguments(["name": name])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(selectStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")
@@ -343,7 +343,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -352,7 +352,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -361,7 +361,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Too many arguments
                 try statement.validateArguments(["foo", 1, "baz"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -370,7 +370,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments([:])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -379,7 +379,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 // Missing arguments
                 try statement.validateArguments(["name": "foo"])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
@@ -428,7 +428,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try updateStatement.setArguments(["name": name])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(updateStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")
@@ -437,7 +437,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try selectStatement.setArguments(["name": name])
                 XCTFail("Expected error")
-            } catch is DatabaseError {
+            } catch DatabaseError.SQLITE_MISUSE {
                 XCTAssertEqual(selectStatement.arguments, arguments)
             } catch {
                 XCTFail("Unexpected error: \(error)")

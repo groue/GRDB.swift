@@ -140,29 +140,13 @@ try db.create(table: "membership") { t in
     }
     t.column("role", .text).notNull()
 }
-
-// REQUIRES EXTRA CONFIGURATION
-try db.create(table: "player") { t in
-    t.column("name", .text).notNull()
-}
-
-try db.create(table: "team") { t in
-    t.column("id", .text).notNull().unique()
-    t.column("name", .text).notNull()
-}
-
-try db.create(table: "membership") { t in
-    t.column("playerId", .integer).notNull()
-    t.column("teamId", .text).notNull()
-    t.column("role", .text).notNull()
-}
 ```
 
 Primary keys support record fetching methods such as ``FetchableRecord/fetchOne(_:id:)``, and persistence methods such as ``MutablePersistableRecord/update(_:onConflict:)`` or ``MutablePersistableRecord/delete(_:)``.
 
 See <doc:SingleRowTables> when you need to define a table that contains a single row.
 
-☝️ **If the database table does not define any explicit primary key**, the record type for this table needs explicit support for the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
+☝️ **If the database table does not define any explicit primary key**, identifying specific rows in this table needs explicit support for the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html) in the matching record types:
 
 ```swift
 // A table without any explicit primary key

@@ -543,6 +543,10 @@ class DatabaseRegionTests : GRDBTestCase {
                 XCTAssertEqual(tableName, "foo")
                 XCTAssertEqual(columnNames, Set(["bar", "baz"]))
             }
+            do {
+                let statement = try db.makeStatement(sql: "UPDATE foo SET bar = 'bar' WHERE baz = 'baz'")
+                XCTAssertEqual(statement.databaseRegion.description, "foo(baz)")
+            }
         }
     }
     

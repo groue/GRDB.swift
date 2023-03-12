@@ -805,7 +805,9 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self._statement = statement
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        try statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for immediate iteration: reset and set arguments
+        try statement.prepareExecution(withArguments: arguments)
     }
     
     deinit {

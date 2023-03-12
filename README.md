@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: February 19, 2023 • [version 6.8.0](https://github.com/groue/GRDB.swift/tree/v6.8.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: March 12, 2023 • [version 6.9.0](https://github.com/groue/GRDB.swift/tree/v6.9.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.8.0**                                                  |
+| **Swift 5.7+** | **v6.9.0**                                                  |
 | Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
 | Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
@@ -137,7 +137,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
     
-See [Database Connections](#database-connections)
+See [Database Connections]
 
 </details>
 
@@ -318,7 +318,7 @@ Documentation
 #### Demo Applications & Frequently Asked Questions
 
 - [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
-- [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
+- [FAQ]
 
 #### Reference
 
@@ -327,7 +327,7 @@ Documentation
 #### Getting Started
 
 - [Installation](#installation)
-- [Database Connections](#database-connections): Connect to SQLite databases
+- [Database Connections]: Connect to SQLite databases
 
 #### SQLite and SQL
 
@@ -347,7 +347,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
-- [Sharing a Database]: Recommendations for App Group Containers and sandboxed macOS apps.
+- [Sharing a Database]: How to share an SQLite database between multiple processes - recommendations for App Group containers, App Extensions, App Sandbox, and file coordination.
 
 #### Good to Know
 
@@ -355,7 +355,7 @@ Documentation
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
-- [Data Protection](#data-protection)
+- [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
 - [Concurrency]
 
 #### General Guides & Good Practices
@@ -442,7 +442,9 @@ The differences are:
 - Database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless read-only).
 - Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
-**If you are not sure, choose `DatabaseQueue`.** You will always be able to switch to `DatabasePool` later.
+**If you are not sure, choose [`DatabaseQueue`].** You will always be able to switch to [`DatabasePool`] later.
+
+For more information and tips when opening connections, see [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections).
 
 
 SQLite API
@@ -460,13 +462,13 @@ SQLite API
     - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
-    - [Custom Value Types](#custom-value-types)
+    - [`DatabaseValueConvertible`]: the protocol for custom value types
 - [Transactions and Savepoints]
 - [SQL Interpolation]
 
 Advanced topics:
 
-- [Prepared Statements](#prepared-statements)
+- [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - [Database Schema Introspection](#database-schema-introspection)
 - [Row Adapters](#row-adapters)
@@ -475,7 +477,7 @@ Advanced topics:
 
 ## Executing Updates
 
-Once granted with a [database connection](#database-connections), the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once granted with a [database connection], the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -499,7 +501,7 @@ try dbQueue.write { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for a detailed documentation of SQLite arguments.
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 You can also embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
 
@@ -549,7 +551,7 @@ try db.execute(literal: """
     """)
 ```
 
-When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
+When you want to make sure that a single statement is executed, use a prepared [`Statement`].
 
 **After an INSERT statement**, you can get the row ID of the inserted row:
 
@@ -571,7 +573,7 @@ let playerId = player.id
 
 ## Fetch Queries
 
-[Database connections](#database-connections) let you fetch database rows, plain values, and custom models aka "records".
+[Database connections] let you fetch database rows, plain values, and custom models aka "records".
 
 **Rows** are the raw results of SQL queries:
 
@@ -647,29 +649,7 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
-**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
-
-```swift
-let statements = try db.allStatements(sql: """
-    SELECT ...; 
-    SELECT ...; 
-    SELECT ...;
-    """)
-while let statement = try statements.next() {
-    let players = try Player.fetchAll(statement)
-}
-```
-
-You can join the results of all statements yielded by the `allStatements` method, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
-
-```swift
-// A single cursor of all rows from all statements
-let rows = try db
-    .allStatements(sql: "...")
-    .flatMap { statement in try Row.fetchCursor(statement) }
-```
-
-See [prepared statements](#prepared-statements) for more information about `allStatements()`.
+**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements] found in the SQL string.
 
 ### Cursors
 
@@ -836,7 +816,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -989,7 +969,7 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible/fromdatabasevalue(_:)-21zzv) method:
 
 ```swift
 let dbValue: DatabaseValue = row["bookCount"]
@@ -1142,7 +1122,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Full-Text Patterns**: [FTS3Pattern](Documentation/FullTextSearch.md#fts3pattern) and [FTS5Pattern](Documentation/FullTextSearch.md#fts5pattern).
 
-- Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
+- Generally speaking, all types that adopt the [`DatabaseValueConvertible`] protocol.
 
 Values can be used as [statement arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
@@ -1301,7 +1281,7 @@ if let row = try Row.fetchOne(db, ...) {
 }
 ```
 
-See also [Codable Records] for more date customization options, and [DatabaseValueConvertible](#custom-value-types) if you want to define a Date-wrapping type with customized database representation.
+See also [Codable Records] for more date customization options, and [`DatabaseValueConvertible`] if you want to define a Date-wrapping type with customized database representation.
 
 
 #### DateComponents
@@ -1451,168 +1431,6 @@ if dbValue.isNull {
     // Handle unknown grape
 }
 ```
-
-
-### Custom Value Types
-
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
-
-```swift
-protocol DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue { get }
-    
-    /// Returns a value initialized from dbValue, if possible.
-    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
-}
-```
-
-All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
-
-The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
-
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
-
-Value types that adopt both `DatabaseValueConvertible` and an archival protocol ([Codable, Encodable or Decodable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)) are automatically coded and decoded from JSON arrays and objects:
-
-```swift
-// Encoded as a JSON object in the database:
-struct Color: Codable, DatabaseValueConvertible {
-    var r: Double
-    var g: Double
-    var b: Double
-}
-```
-
-For such codable value types, GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. By default, Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
-
-In order to customize the JSON format, provide a custom implementation of the `DatabaseValueConvertible` requirements.
-
-> **Note**: standard sequences such as `Array`, `Set`, or `Dictionary` do not conform to `DatabaseValueConvertible`, even conditionally. You won't be able to directly fetch or store arrays, sets, or dictionaries as JSON database values. You can get free JSON support from these standard types when they are embedded as properties of [Codable Records], though.
-
-
-## Prepared Statements
-
-**Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
-
-```swift
-try dbQueue.write { db in
-    let insertSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let insertStatement = try db.makeStatement(sql: insertSQL)
-    
-    let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeStatement(sql: selectSQL)
-}
-```
-
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
-
-```swift
-insertStatement.arguments = ["name": "Arthur", "score": 1000]
-selectStatement.arguments = ["Arthur"]
-```
-
-Alternatively, you can create a prepared statement with [SQL Interpolation]:
-
-```swift
-let insertStatement = try db.makeStatement(literal: "INSERT ...")
-let selectStatement = try db.makeStatement(literal: "SELECT ...")
-//                                         ~~~~~~~
-```
-
-Statements can be executed:
-
-```swift
-try insertStatement.execute()
-```
-
-Statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
-
-```swift
-let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
-let players = try Player.fetchAll(selectStatement) // [Player]
-let players = try Player.fetchSet(selectStatement) // Set<Player>
-let player = try Player.fetchOne(selectStatement)  // Player?
-```
-
-You can set the arguments at the moment of the statement execution:
-
-```swift
-try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
-let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
-```
-
-**When you want to build multiple statements joined with a semicolon**, use the `allStatements` method:
-
-```swift
-let statements = try db.allStatements(sql: """
-    INSERT INTO player (name, score) VALUES (?, ?);
-    INSERT INTO player (name, score) VALUES (?, ?);
-    """, arguments: ["Arthur", 100, "O'Brien", 1000])
-while let statement = try statements.next() {
-    try statement.execute()
-}
-```
-
-`allStatements` also supports [SQL Interpolation]:
-
-```swift
-let statements = try db.allStatements(literal: """
-    INSERT INTO player (name, score) VALUES (\("Arthur"), \(100));
-    INSERT INTO player (name, score) VALUES (\("O'Brien"), \(1000));
-    """)
-while let statement = try statements.next() {
-    try statement.execute()
-}
-```
-
-You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but in this case make sure all individual statements can compile even if the previous ones were not run:
-
-```swift
-// OK: Array of statements
-let statements = try Array(db.allStatements(sql: """
-    INSERT ...; 
-    UPDATE ...; 
-    SELECT ...;
-    """))
-
-// FAILURE: Can't build an array of statements since 
-// the INSERT won't compile until CREATE TABLE is run.
-let statements = try Array(db.allStatements(sql: """
-    CREATE TABLE player ...; 
-    INSERT INTO player ...;
-    """))
-```
-
-See also `Database.execute(sql:)` in the [Executing Updates](#executing-updates) chapter.
-
-> **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
-
-For more information about prepared statements, see the [Statement reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
-
-
-### Prepared Statements Cache
-
-When the same query will be used several times in the lifetime of your application, you may feel a natural desire to cache prepared statements.
-
-**Don't cache statements yourself.**
-
-> **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools]. A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
-
-Instead, use the `cachedStatement` method. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
-
-```swift
-let statement = try db.cachedStatement(sql: sql)
-```
-
-Cached statements also support [SQL Interpolation]:
-
-```swift
-let statement = try db.cachedStatement(literal: "INSERT ...")
-//                                     ~~~~~~~
-```
-
-> **Warning**: Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload one from the cache.
 
 
 ## Custom SQL Functions and Aggregates
@@ -2051,7 +1869,7 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
 
 To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
 
@@ -2334,7 +2152,7 @@ try Place.fetchSet(db, sql: "SELECT ...", arguments:...)    // Set<Place>
 try Place.fetchOne(db, sql: "SELECT ...", arguments:...)    // Place?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [StatementArguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [`StatementArguments`] for more information about the query arguments.
 
 > **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
@@ -2709,7 +2527,7 @@ try dbQueue.write { db in
 }
 ```
 
-For extra precision, you can select only the columns you need, and fetch the desired value from the provided [prepared statement](#prepared-statements):
+For extra precision, you can select only the columns you need, and fetch the desired value from the provided prepared [`Statement`]:
 
 ```swift
 try dbQueue.write { db in
@@ -2958,7 +2776,7 @@ try dbQueue.write { db in
 
 Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [`DatabaseValueConvertible`] protocol).
 - You can customize the encoding and decoding of dates and uuids.
 - Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
@@ -3910,7 +3728,7 @@ let count = try request.fetchCount(db)  // Int
 let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
 ```
 
-<a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
+<a name="list-of-record-methods-4">⁴</a> See [`Statement`]:
 
 ```swift
 let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
@@ -3951,7 +3769,7 @@ try dbQueue.write { db in
 }
 ```
 
-You need to open a [database connection](#database-connections) before you can query the database.
+You need to open a [database connection] before you can query the database.
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
@@ -5537,7 +5355,7 @@ Make sure you remove any existing `pod 'GRDB.swift'` from your Podfile. `GRDB.sw
 
 ### Creating or Opening an Encrypted Database
 
-**You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
+**You create and open an encrypted database** by providing a passphrase to your [database connection]:
 
 ```swift
 var config = Configuration()
@@ -5751,7 +5569,7 @@ Because DatabasePool maintains a pool of long-lived SQLite connections, some dat
 
 For the same reason, a database queue, which also maintains a long-lived SQLite connection, will remain available even after the passphrase has turned unavailable.
 
-Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](#data-protection). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
+Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
 
 
 ## Backup
@@ -6137,7 +5955,7 @@ if let arguments = StatementArguments(arguments) {
 }
 ```
 
-See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
+See [`Statement`] and [DatabaseValue](#databasevalue) for more information.
 
 
 ### Error Log
@@ -6291,45 +6109,6 @@ config.automaticMemoryManagement = false
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config) // or DatabasePool
 ```
 
-
-## Data Protection
-
-[Data Protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) lets you protect files so that they are encrypted and unavailable until the device is unlocked.
-
-Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
-
-You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools]).
-
-For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
-
-```swift
-// Paths
-let fileManager = FileManager.default
-let directoryURL = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("database", isDirectory: true)
-let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
-
-// Create directory if needed
-var isDirectory: ObjCBool = false
-if !fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory) {
-    try fileManager.createDirectory(atPath: directoryURL.path, withIntermediateDirectories: false)
-} else if !isDirectory.boolValue {
-    throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
-}
-
-// Enable data protection
-try fileManager.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryURL.path)
-
-// Open database
-let dbQueue = try DatabaseQueue(path: databaseURL.path)
-```
-
-When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will get [DatabaseError](#error-handling) with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
-
-You can catch those errors and wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification in order to retry the failed database operation.
-
-
 FAQ
 ===
 
@@ -6377,56 +6156,53 @@ FAQ
 
 ### How do I create a database in my application?
 
-This question assumes that your application has to create a new database from scratch. If your app has to open an existing database that is embedded inside your application as a resource, see [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application) instead.
+First choose a proper location for the database file. Document-based applications will let the user pick a location. Apps that use the database as a global storage will prefer the Application Support directory.
 
-The database has to be stored in a valid place where it can be created and modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html):
+The sample code below creates or opens a database file inside its dedicated directory (a [recommended practice](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)). On the first run, a new empty database file is created. On subsequent runs, the database file already exists, so it just opens a connection:
 
 ```swift
-let databaseURL = try FileManager.default
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
+// HOW TO create an empty database, or open an existing database file
+
+// Create the "Application Support/MyDatabase" directory
+let fileManager = FileManager.default
+let appSupportURL = try fileManager.url(
+    for: .applicationSupportDirectory, in: .userDomainMask,
+    appropriateFor: nil, create: true) 
+let directoryURL = appSupportURL.appendingPathComponent("MyDatabase", isDirectory: true)
+try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+
+// Open or create the database
+let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
 let dbQueue = try DatabaseQueue(path: databaseURL.path)
 ```
 
-
 ### How do I open a database stored as a resource of my application?
 
-If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
+Open a read-only connection to your resource:
 
 ```swift
-var config = Configuration()
-config.readonly = true
-let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
-```
+// HOW TO open a read-only connection to a database resource
 
-If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html). Only then, open a [connection](#database-connections):
+// Get the path to the database resource.
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
 
-```swift
-let fileManager = FileManager.default
-let dbPath = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
-    .path
-if !fileManager.fileExists(atPath: dbPath) {
-    let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-    try fileManager.copyItem(atPath: dbResourcePath, toPath: dbPath)
+if let dbPath {
+    // If the resource exists, open a read-only connection.
+    // Writes are disallowed because resources can not be modified. 
+    var config = Configuration()
+    config.readonly = true
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+} else {
+    // The database resource can not be found.
+    // Fix your setup, or report the problem to the user. 
 }
-let dbQueue = try DatabaseQueue(path: dbPath)
 ```
-
 
 ### How do I close a database connection?
-    
-Database connections are automatically closed when they are deinitialized.
 
-When the correct execution of your program depends on precise database closing, use the `close()` method:
+Database connections are automatically closed when `DatabaseQueue` or `DatabasePool` instances are deinitialized.
 
-```swift
-try dbQueue.close()
-```
-
-This explicit `close()` may fail with an error. See the inline documentation of this method for more information. Generally speaking, you should not call this method: rely on automatic closing instead.
+If the correct execution of your program depends on precise database closing, perform an explicit call to [`close()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader/close()). This method may fail and create zombie connections, so please check its detailed documentation.
 
 ## FAQ: SQL
 
@@ -6437,7 +6213,7 @@ This explicit `close()` may fail with an error. See the inline documentation of 
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
 
-You can compile the request into a prepared statement:
+You can compile the request into a prepared [`Statement`]:
 
 ```swift
 try dbQueue.read { db in
@@ -6812,7 +6588,7 @@ For more information, see [Double-quoted String Literals Are Accepted](https://s
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
 
-Those errors may be the sign that SQLite can't access the database due to [data protection](#data-protection).
+Those errors may be the sign that SQLite can't access the database due to [data protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files).
 
 When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
 
@@ -6899,6 +6675,10 @@ This chapter has been renamed [Record Comparison].
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
 
+#### Custom Value Types
+
+Custom Value Types conform to the [`DatabaseValueConvertible`] protocol.
+
 #### Customized Decoding of Database Rows
 
 This chapter has been renamed [Beyond FetchableRecord].
@@ -6963,7 +6743,7 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 #### NSNumber and NSDecimalNumber
 
-This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
+This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal).
 
 #### Persistable Protocol
 
@@ -6972,6 +6752,10 @@ This protocol has been renamed [PersistableRecord] in GRDB 3.0.
 #### PersistenceError
 
 This error was renamed to [RecordError].
+
+#### Prepared Statements
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
 
 #### RowConvertible Protocol
 
@@ -7057,3 +6841,11 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
 [`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
 [database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
+[`StatementArguments`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments
+[Prepared Statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[prepared statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[`Statement`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[Database Connections]: #database-connections
+[Database connections]: #database-connections
+[database connection]: #database-connections

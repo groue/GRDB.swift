@@ -1,6 +1,6 @@
 # Sharing a Database
 
-How to share an SQLite Database between several processes. 
+How to share an SQLite database between multiple processes • Recommendations for App Group containers, App Extensions, App Sandbox, and file coordination.
 
 ## Overview
 
