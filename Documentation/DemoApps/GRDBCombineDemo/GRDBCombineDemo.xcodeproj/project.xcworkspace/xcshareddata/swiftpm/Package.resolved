@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDBQuery",
       "state" : {
-        "revision" : "df514f2bd74548f94e082f3233022190e594fce4",
-        "version" : "0.5.1"
+        "revision" : "aefc0d7e7a64e841da33e1c8be7429da1bd9b5d6",
+        "version" : "0.6.0"
       }
     }
   ],
