@@ -12,7 +12,7 @@
 /// // Optimized
 /// let scores = Int.fetchAll(db, sql: "SELECT score FROM player")
 ///
-/// let rows = Row.fetchCursor(db, sql: "SELECT * FROM player")
+/// let rows = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 /// while let row = try rows.next() {
 ///     // Optimized
 ///     let int: Int = row[0]
