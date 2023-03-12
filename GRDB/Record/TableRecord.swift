@@ -133,12 +133,15 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
-    ///     static let databaseSelection = [AllColumns()]
+    ///     static let databaseSelection: [any SQLSelectable] = [AllColumns()]
     /// }
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection = [Column("id"), Column("name")]
+    ///     static let databaseSelection: [any SQLSelectable] = [
+    ///         Column("id"),
+    ///         Column("name"),
+    ///     ]
     /// }
     ///
     /// // SELECT * FROM player
@@ -147,6 +150,11 @@ public protocol TableRecord {
     /// // SELECT id, name FROM player
     /// try PartialPlayer.fetchAll(db)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseSelection` property is
+    /// > explicitly declared as `[any SQLSelectable]`. If it is not, the
+    /// > Swift compiler may silently miss the protocol requirement,
+    /// > resulting in sticky `SELECT *` requests.
     static var databaseSelection: [any SQLSelectable] { get }
 }
 
