@@ -1912,6 +1912,8 @@ Details follow:
 
 ## FetchableRecord Protocol
 
+📖 [`FetchableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/fetchablerecord)
+
 **The FetchableRecord protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
@@ -1990,6 +1992,8 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 ## TableRecord Protocol
 
+📖 [`TableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord)
+
 **The TableRecord protocol** generates SQL for you. To use TableRecord, subclass the [Record](#record-class) class, or adopt it explicitly:
 
 ```swift
@@ -2045,6 +2049,8 @@ TableRecord can also fetch deal with primary and unique keys: see [Fetching by K
 
 
 ## PersistableRecord Protocol
+
+📖 [`EncodableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/encodablerecord), [`MutablePersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/mutablepersistablerecord), [`PersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/persistablerecord)
 
 **GRDB record types can create, update, and delete rows in the database.**
 
@@ -2526,7 +2532,7 @@ struct Player: Identifiable, FetchableRecord, PersistableRecord {
 }
 ```
 
-When `id` has a [database-compatible type](#values) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
+When `id` has a [database-compatible type](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
 
 ```swift
 let player = try Player.find(db, id: 1)               // Player
@@ -3648,6 +3654,8 @@ So don't miss the [SQL API](#sqlite-api).
 
 ## Requests
 
+📖 [`QueryInterfaceRequest`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest), [`Table`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table)
+
 **The query interface requests** let you fetch values from the database:
 
 ```swift
@@ -3702,7 +3710,7 @@ enum Columns: String, ColumnExpression {
 
 You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`, `with`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
-- `all()`, `none()`: the requests for all rows, or no row.
+- [`all()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/all()), [`none()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/none()): the requests for all rows, or no row.
 
     ```swift
     // SELECT * FROM player
@@ -3711,21 +3719,21 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     By default, all columns are selected. See [Columns Selected by a Request].
 
-- `select(...)` and `select(..., as:)` define the selected columns. See [Columns Selected by a Request].
+- [`select(...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/select(_:)-30yzl) and [`select(..., as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-282xc) define the selected columns. See [Columns Selected by a Request].
     
     ```swift
     // SELECT name FROM player
     Player.select(nameColumn, as: String.self)
     ```
 
-- `annotated(with: expression...)` extends the selection.
+- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
 
     ```swift
     // SELECT *, (score + bonus) AS total FROM player
     Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
     ```
 
-- `annotated(with: aggregate)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
+- [`annotated(with: aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/annotated(with:)-74xfs) extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
@@ -3735,7 +3743,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.annotated(with: Team.players.count)
     ```
 
-- `annotated(withRequired: association)` and `annotated(withOptional: association)` extends the selection with [Associations].
+- [`annotated(withRequired: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withrequired:)) and [`annotated(withOptional: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withoptional:)) extends the selection with [Associations].
     
     ```swift
     // SELECT player.*, team.color
@@ -3744,14 +3752,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.annotated(withRequired: Player.team.select(colorColumn))
     ```
 
-- `distinct()` performs uniquing.
+- [`distinct()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/distinct()) performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM player
     Player.select(nameColumn, as: String.self).distinct()
     ```
 
-- `filter(expression)` applies conditions.
+- [`filter(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/filteredrequest/filter(_:)) applies conditions.
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
@@ -3761,7 +3769,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
-- `filter(id:)` and `filter(ids:)` are type-safe methods available on [Identifiable Records]:
+- [`filter(id:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(id:)) and [`filter(ids:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(ids:)) are type-safe methods available on [Identifiable Records]:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -3771,7 +3779,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Country.filter(ids: ["FR", "US"])
     ```
     
-- `filter(key:)` and `filter(keys:)` apply conditions on primary and unique keys:
+- [`filter(key:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(key:)-1p9sq) and [`filter(keys:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(keys:)-6ggt1) apply conditions on primary and unique keys:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -3787,7 +3795,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(key: ["email": "arthur@example.com"])
     ```
 
-- `matching(pattern)` performs [full-text search](Documentation/FullTextSearch.md).
+- `matching(pattern)` ([FTS3](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-3s3zr), [FTS5](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-7c1e8)) performs [full-text search](Documentation/FullTextSearch.md).
     
     ```swift
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
@@ -3797,7 +3805,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     When the pattern is nil, no row will match.
 
-- `group(expression, ...)` groups rows.
+- [`group(expression, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/group(_:)-edak) groups rows.
     
     ```swift
     // SELECT name, MAX(score) FROM player GROUP BY name
@@ -3806,7 +3814,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .group(nameColumn)
     ```
 
-- `having(expression)` applies conditions on grouped rows.
+- [`having(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/having(_:)) applies conditions on grouped rows.
     
     ```swift
     // SELECT team, MAX(score) FROM player GROUP BY team HAVING MIN(score) >= 1000
@@ -3816,7 +3824,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .having(min(scoreColumn) >= 1000)
     ```
 
-- `having(aggregate)` applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
+- [`having(aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/having(_:)) applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*
@@ -3827,7 +3835,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.having(Team.players.count >= 5)
     ```
 
-- `order(ordering, ...)` sorts.
+- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/order(_:)-63rzl) sorts.
     
     ```swift
     // SELECT * FROM player ORDER BY name
@@ -3851,7 +3859,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn).order(nameColumn)
     ```
 
-- `reversed()` reverses the eventual orderings.
+- [`reversed()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC, name DESC
@@ -3865,7 +3873,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.all().reversed()
     ```
 
-- `limit(limit, offset: offset)` limits and pages results.
+- [`limit(limit, offset: offset)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/limit(_:offset:)) limits and pages results.
     
     ```swift
     // SELECT * FROM player LIMIT 5
@@ -3875,7 +3883,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.limit(5, offset: 10)
     ```
 
-- `joining(...)` and `including(...)` fetch and join records through [Associations].
+- [`joining(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(required:)), [`joining(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(optional:)), [`including(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(required:)), [`including(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(optional:)), and [`including(all:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(all:)) fetch and join records through [Associations].
     
     ```swift
     // SELECT player.*, team.*
@@ -3884,7 +3892,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.including(required: Player.team)
     ```
 
-- `with(cte)` embeds a [common table expression]:
+- [`with(cte)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/with(_:)) embeds a [common table expression]:
     
     ```swift
     // WITH ... SELECT * FROM player
@@ -3894,7 +3902,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 
 - Other requests that involve the primary key:
     
-    - `selectPrimaryKey(as:)` selects the primary key.
+    - [`selectPrimaryKey(as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/selectprimarykey(as:)) selects the primary key.
     
         ```swift
         // SELECT id FROM player
@@ -3907,7 +3915,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         Citizenship.selectPrimaryKey(as: Row.self) // QueryInterfaceRequest<Row>
         ```
         
-    - `orderByPrimaryKey()` sorts by primary key.
+    - [`orderByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/orderbyprimarykey()) sorts by primary key.
         
         ```swift
         // SELECT * FROM player ORDER BY id
@@ -3920,7 +3928,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         Citizenship.orderByPrimaryKey()
         ```
     
-    - `groupByPrimaryKey()` groups rows by primary key.
+    - [`groupByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/groupbyprimarykey()) groups rows by primary key.
 
 
 You can refine requests by chaining those methods:
@@ -4010,6 +4018,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 
 ### SQL Operators
+
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
 
 GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL operators.
 
@@ -4269,6 +4279,8 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
 
 
 ### SQL Functions
+
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
 
 GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
 
@@ -5273,6 +5285,8 @@ Considering that a local database is not some JSON loaded from a remote server, 
 
 ### DatabaseError
 
+📖 [`DatabaseError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseerror)
+
 **DatabaseError** are thrown on SQLite errors:
 
 ```swift
@@ -5344,6 +5358,8 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 
 
 ### RecordError
+
+📖 [`RecordError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recorderror)
 
 **RecordError** is thrown by the [PersistableRecord] protocol when the `update` method could not find any row to update:
 
