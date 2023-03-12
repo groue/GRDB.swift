@@ -130,7 +130,7 @@ let request = Book.including(optional: Book.author)
 let bookInfos = BookInfo.fetchAll(db, request)
 ```
 
-Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because your SQL skills are welcome: see the [Joined Queries Support](../README.md#joined-queries-support) chapter.
+Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because your SQL skills are welcome. The [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)) method can help you consume the rows fetched from joined queries, as in `SELECT book.*, author.* FROM ...`.
 
 
 ## Required Protocols
@@ -2996,7 +2996,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
-[Row Adapters]: ../README.md#row-adapters
+[Row Adapters]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md

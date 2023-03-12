@@ -1152,8 +1152,7 @@ extension Row {
     /// Nil is returned if the scope is not available, or contains only
     /// null values.
     ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
-    /// for more information.
+    /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
     func decodeIfPresent<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
@@ -1194,8 +1193,7 @@ extension Row {
     /// A fatal error is raised if the scope is not available, or contains only
     /// null values.
     ///
-    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
-    /// for more information.
+    /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
     func decode<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)

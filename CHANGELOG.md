@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.8.x` Releases - [6.9.0](#690)
+- `6.8.x` Releases - [6.9.0](#690) - [6.9.1](#691)
 - `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
@@ -106,6 +106,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.9.1
+
+Released March 12, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.8.0...v6.9.1)
+
+- **Documentation Updates**: Moved more README chapters into DocC:
+    - [`RowAdapter`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
+    - [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:))
 
 ## 6.9.0
 

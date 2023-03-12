@@ -133,12 +133,15 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
-    ///     static let databaseSelection = [AllColumns()]
+    ///     static let databaseSelection: [any SQLSelectable] = [AllColumns()]
     /// }
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection = [Column("id"), Column("name")]
+    ///     static let databaseSelection: [any SQLSelectable] = [
+    ///         Column("id"),
+    ///         Column("name"),
+    ///     ]
     /// }
     ///
     /// // SELECT * FROM player
@@ -147,6 +150,11 @@ public protocol TableRecord {
     /// // SELECT id, name FROM player
     /// try PartialPlayer.fetchAll(db)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseSelection` property is
+    /// > explicitly declared as `[any SQLSelectable]`. If it is not, the
+    /// > Swift compiler may silently miss the protocol requirement,
+    /// > resulting in sticky `SELECT *` requests.
     static var databaseSelection: [any SQLSelectable] { get }
 }
 
@@ -661,6 +669,31 @@ extension TableRecord {
 // MARK: - RecordError
 
 /// A record error.
+///
+/// `RecordError` is thrown by ``MutablePersistableRecord`` types when an
+/// `update` method could not find any row to update:
+///
+/// ```swift
+/// do {
+///     try player.update(db)
+/// } catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+///     print("Key \(key) was not found in table \(table).")
+/// }
+/// ```
+///
+/// `RecordError` is also thrown by ``FetchableRecord`` types when a
+/// `find` method does not find any record:
+///
+/// ```swift
+/// do {
+///     let player = try Player.find(db, id: 42)
+/// } catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+///     print("Key \(key) was not found in table \(table).")
+/// }
+/// ```
+///
+/// You can create `RecordError` instances with the
+/// ``TableRecord/recordNotFound(_:id:)`` method and its variants.
 public enum RecordError: Error {
     /// A record does not exist in the database.
     ///
