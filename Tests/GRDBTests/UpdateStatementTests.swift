@@ -442,8 +442,9 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    // To be compared with testTemporaryBindings() and testNonTemporaryBindings()
-    func testArgumentsReuse() throws {
+    // MARK: - SQLITE_STATIC vs SQLITE_TRANSIENT
+    
+    func test_SQLITE_STATIC_then_SQLITE_TRANSIENT() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.execute(literal: """
@@ -453,11 +454,11 @@ class UpdateStatementTests : GRDBTestCase {
             func test(value: some DatabaseValueConvertible) throws {
                 defer { try! db.execute(sql: "DELETE FROM t") }
                 
-                // Execute with temporary bindings
+                // Execute with temporary bindings (SQLITE_STATIC)
                 let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
                 try statement.execute(arguments: [value])
                 
-                // Execute with non temporary bindings
+                // Execute with non temporary bindings (SQLITE_TRANSIENT)
                 try statement.execute()
                 
                 // Since bindings are not temporary, they are not cleared,
@@ -469,7 +470,7 @@ class UpdateStatementTests : GRDBTestCase {
                 // Test that we have inserted the value thrice.
                 try XCTAssertEqual(
                     DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
-                    [value.databaseValue, value.databaseValue, value.databaseValue])
+                    [value.databaseValue])
             }
             
             try test(value: "Foo")
@@ -481,8 +482,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    // To be compared with testNonTemporaryBindings() and testArgumentsReuse()
-    func testTemporaryBindings() throws {
+    func test_SQLITE_STATIC() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.execute(literal: """
@@ -492,7 +492,7 @@ class UpdateStatementTests : GRDBTestCase {
             func test(value: some DatabaseValueConvertible) throws {
                 defer { try! db.execute(sql: "DELETE FROM t") }
                 
-                // Execute with temporary bindings
+                // Execute with temporary bindings (SQLITE_STATIC)
                 let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
                 try statement.execute(arguments: [value])
                 
@@ -516,8 +516,44 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    // To be compared with testTemporaryBindings() and testArgumentsReuse()
-    func testNonTemporaryBindings() throws {
+    func test_SQLITE_TRANSIENT_due_to_high_number_of_arguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(literal: """
+                -- 21 columns
+                CREATE TABLE t(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u);
+                """)
+            
+            func test(value: some DatabaseValueConvertible) throws {
+                defer { try! db.execute(sql: "DELETE FROM t") }
+                
+                // Execute with non temporary bindings (SQLITE_TRANSIENT),
+                // because there are more than 20 arguments
+                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (\(databaseQuestionMarks(count: 21)))")
+                try statement.execute(arguments: StatementArguments(Array(repeating: value, count: 21)))
+                
+                // Since bindings are not temporary, they are not cleared,
+                // so insert the value again.
+                sqlite3_reset(statement.sqliteStatement)
+                sqlite3_step(statement.sqliteStatement)
+                sqlite3_reset(statement.sqliteStatement)
+                
+                // Test that we have inserted the value twice.
+                try XCTAssertEqual(
+                    DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
+                    [value.databaseValue])
+            }
+            
+            try test(value: "Foo")
+            try test(value: "")
+            try test(value: "Hello".data(using: .utf8)!)
+            try test(value: Data())
+            try test(value: 42)
+            try test(value: 1.23)
+        }
+    }
+    
+    func test_SQLITE_TRANSIENT() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.execute(literal: """
@@ -527,7 +563,7 @@ class UpdateStatementTests : GRDBTestCase {
             func test(value: some DatabaseValueConvertible) throws {
                 defer { try! db.execute(sql: "DELETE FROM t") }
                 
-                // Execute with non temporary bindings
+                // Execute with non temporary bindings (SQLITE_TRANSIENT)
                 let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (?)")
                 try statement.setArguments([value])
                 try statement.execute()
@@ -541,7 +577,7 @@ class UpdateStatementTests : GRDBTestCase {
                 // Test that we have inserted the value twice.
                 try XCTAssertEqual(
                     DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
-                    [value.databaseValue, value.databaseValue])
+                    [value.databaseValue])
             }
             
             try test(value: "Foo")

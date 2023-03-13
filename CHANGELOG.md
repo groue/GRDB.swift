@@ -107,6 +107,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: Avoid the risk for pathologically deep stack trace, or stack overflow, introduced by [#1348](https://github.com/groue/GRDB.swift/pull/1348).
+
 ## 6.9.1
 
 Released March 12, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.8.0...v6.9.1)
