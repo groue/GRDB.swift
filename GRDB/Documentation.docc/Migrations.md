@@ -33,7 +33,7 @@ migrator.registerMigration("Add books and author.birthYear") { db in
         t.column("title", .text).notNull()
     }
 
-    try db.alter(table: "author") { t
+    try db.alter(table: "author") { t in
         t.add(column: "birthYear", .integer)
     }
 }
