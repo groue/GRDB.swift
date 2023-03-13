@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.8.x` Releases - [6.9.0](#690) - [6.9.1](#691)
+- `6.9.x` Releases - [6.9.0](#690) - [6.9.1](#691)
 - `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
 - `6.6.x` Releases - [6.6.0](#660) - [6.6.1](#661)
