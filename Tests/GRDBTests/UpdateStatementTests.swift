@@ -447,7 +447,7 @@ class UpdateStatementTests : GRDBTestCase {
     func test_SQLITE_STATIC_then_SQLITE_TRANSIENT() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(literal: """
+            try db.execute(sql: """
                 CREATE TABLE t(a);
                 """)
             
@@ -485,7 +485,7 @@ class UpdateStatementTests : GRDBTestCase {
     func test_SQLITE_STATIC() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(literal: """
+            try db.execute(sql: """
                 CREATE TABLE t(a);
                 """)
             
@@ -517,11 +517,15 @@ class UpdateStatementTests : GRDBTestCase {
     }
     
     func test_SQLITE_TRANSIENT_due_to_high_number_of_arguments() throws {
+        // SQLITE_STATIC optimization is disabled for more than 20 arguments.
+        let argumentCount = 21
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(literal: """
-                -- 21 columns
-                CREATE TABLE t(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u);
+            // "a0, a1, a2, ..."
+            let columns = (0..<argumentCount).map { "a\($0)" }.joined(separator: ",")
+            try db.execute(sql: """
+                CREATE TABLE t(\(columns));
                 """)
             
             func test(value: some DatabaseValueConvertible) throws {
@@ -529,8 +533,8 @@ class UpdateStatementTests : GRDBTestCase {
                 
                 // Execute with non temporary bindings (SQLITE_TRANSIENT),
                 // because there are more than 20 arguments
-                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (\(databaseQuestionMarks(count: 21)))")
-                try statement.execute(arguments: StatementArguments(Array(repeating: value, count: 21)))
+                let statement = try db.makeStatement(sql: "INSERT INTO t VALUES (\(databaseQuestionMarks(count: argumentCount)))")
+                try statement.execute(arguments: StatementArguments(Array(repeating: value, count: argumentCount)))
                 
                 // Since bindings are not temporary, they are not cleared,
                 // so insert the value again.
@@ -540,7 +544,7 @@ class UpdateStatementTests : GRDBTestCase {
                 
                 // Test that we have inserted the value twice.
                 try XCTAssertEqual(
-                    DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
+                    DatabaseValue.fetchSet(db, sql: "SELECT a0 FROM t"),
                     [value.databaseValue])
             }
             
@@ -556,7 +560,7 @@ class UpdateStatementTests : GRDBTestCase {
     func test_SQLITE_TRANSIENT() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(literal: """
+            try db.execute(sql: """
                 CREATE TABLE t(a);
                 """)
             
