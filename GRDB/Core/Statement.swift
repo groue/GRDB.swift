@@ -513,18 +513,19 @@ public final class Statement {
     ///
     /// When arguments are set at the moment of execution, with an non-nil
     /// `arguments` parameter, it is assumed that the statement won't be
-    /// reused with the same arguments. Execution is performed with
-    /// temporary SQLite bindings that avoid copying strings and blobs
-    /// arguments.
+    /// reused with the same arguments. When the number of arguments is
+    /// small, execution is performed with temporary SQLite bindings that
+    /// avoid copying strings and blobs arguments.
     ///
     /// For more information, see [`SQLITE_STATIC` and `SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html).
     /// Compare:
     ///
     /// ```swift
-    /// // Uses SQLITE_STATIC
+    /// // Uses SQLITE_STATIC if there are few arguments,
+    /// // SQLITE_TRANSIENT otherwise.
     /// try statement.execute(arguments: ["Barbara"])
     ///
-    /// // Uses SQLITE_TRANSIENT
+    /// // Always uses SQLITE_TRANSIENT
     /// try statement.setArguments(["Arthur"])
     /// try statement.execute()
     /// ```
@@ -537,10 +538,21 @@ public final class Statement {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         if let arguments {
-            // Assume that the statement won't be reused with the same
-            // arguments, and perform an optimized execution with temporary
-            // bindings in order to avoid copying strings and blobs.
-            try withArguments(arguments) {
+            // Assume that the statement won't be reused with the same arguments.
+            //
+            // Avoid a stack overflow, and don't perform an unbounded nesting
+            // of `withBinding(to:at:do:)` methods: only use temporary bindings
+            // for less than 20 arguments. This number 20 is completely
+            // arbitrary!
+            // See <https://forums.swift.org/t/avoiding-stack-overflow-when-nesting-string-withcstring-how-to-handle-an-arbitrary-number-of-temp-values-in-general/63663>
+            if sqliteArgumentCount <= 20 {
+                // Perform an optimized execution with temporary bindings
+                // in order to avoid copying strings and blobs.
+                try withArguments(arguments) {
+                    try executeAllSteps()
+                }
+            } else {
+                try setArguments(arguments)
                 try executeAllSteps()
             }
         } else {
