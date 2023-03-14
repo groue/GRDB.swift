@@ -109,6 +109,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+- **Fixed**: [#1349](https://github.com/groue/GRDB.swift/pull/1349) by [@JonLz](https://github.com/JonLz): Fix Migrations.md example so it compiles
 - **Fixed**: Avoid the risk for pathologically deep stack trace, or stack overflow, introduced by [#1348](https://github.com/groue/GRDB.swift/pull/1348).
 
 ## 6.9.1
