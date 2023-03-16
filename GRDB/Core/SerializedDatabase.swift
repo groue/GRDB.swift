@@ -9,6 +9,8 @@ final class SerializedDatabase {
     var configuration: Configuration { db.configuration }
     
     /// If true, overrides `configuration.allowsUnsafeTransactions`.
+    ///
+    /// See `WALSnapshotTransaction`.
     var allowsUnsafeTransactions = false
     
     /// The path to the database file

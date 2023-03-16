@@ -640,6 +640,43 @@ extension DatabasePool: DatabaseReader {
         return readers.first { $0.onValidQueue }
     }
     
+    // MARK: - WAL Snapshot Transactions
+    
+    // swiftlint:disable:next line_length
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+    /// Returns a long-lived WAL snapshot transaction on one of the
+    /// reader connections.
+    func walSnapshotTransaction() throws -> WALSnapshotTransaction {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let (reader, releaseReader) = try readerPool.get()
+        return try WALSnapshotTransaction(reader: reader) { transactionCompleted in
+            releaseReader(transactionCompleted ? .reuse : .discard)
+        }
+    }
+    
+    /// Returns a long-lived WAL snapshot transaction on one of the
+    /// reader connections.
+    func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+        guard let readerPool else {
+            completion(.failure(DatabaseError.connectionIsClosed()))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            completion(result.flatMap { reader, releaseReader in
+                Result {
+                    try WALSnapshotTransaction(reader: reader) { transactionCompleted in
+                        releaseReader(transactionCompleted ? .reuse : .discard)
+                    }
+                }
+            })
+        }
+    }
+#endif
+    
     // MARK: - Database Observation
     
     public func _add<Reducer: ValueReducer>(
