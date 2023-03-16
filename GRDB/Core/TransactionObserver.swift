@@ -761,7 +761,7 @@ public protocol TransactionObserver: AnyObject {
     /// When this method returns true for deletion events, the observer
     /// prevents the
     /// [truncate optimization](https://www.sqlite.org/lang_delete.html#the_truncate_optimization)
-    /// from being applied.
+    /// from being applied on the observed tables.
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
     /// Called when the database is changed by an insert, update, or
