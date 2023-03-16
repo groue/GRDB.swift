@@ -8,6 +8,9 @@ final class SerializedDatabase {
     /// The database configuration
     var configuration: Configuration { db.configuration }
     
+    /// If true, overrides `configuration.allowsUnsafeTransactions`.
+    var allowsUnsafeTransactions = false
+    
     /// The path to the database file
     let path: String
     
@@ -242,7 +245,7 @@ final class SerializedDatabase {
         line: UInt = #line)
     {
         GRDBPrecondition(
-            configuration.allowsUnsafeTransactions || !db.isInsideTransaction,
+            allowsUnsafeTransactions || configuration.allowsUnsafeTransactions || !db.isInsideTransaction,
             message(),
             file: file,
             line: line)
