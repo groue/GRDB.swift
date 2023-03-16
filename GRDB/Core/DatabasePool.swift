@@ -361,7 +361,7 @@ extension DatabasePool: DatabaseReader {
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
-            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
         
@@ -405,7 +405,7 @@ extension DatabasePool: DatabaseReader {
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
-            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
         
