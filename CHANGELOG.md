@@ -107,6 +107,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1350](https://github.com/groue/GRDB.swift/pull/1350) by [@groue](https://github.com/groue): ValueObservation on DatabasePool no longer opens a new database connection when it starts
+
 ## 6.9.2
 
 Released March 14, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.9.1...v6.9.2)
