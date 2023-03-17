@@ -301,7 +301,7 @@ public struct Configuration {
     /// If nil, GRDB picks a default one.
     var readonlyBusyMode: Database.BusyMode? = nil
     
-    /// The maximum number of concurrent readers.
+    /// The maximum number of concurrent read-only connections.
     ///
     /// This configuration applies to ``DatabasePool`` only. The default value
     /// is 5.
@@ -372,7 +372,28 @@ public struct Configuration {
     /// The default is true.
     public var automaticMemoryManagement = true
 #endif
-
+    
+    /// A boolean value indicating whether read-only connections should be
+    /// kept open as long as they remain in a valid state.
+    ///
+    /// This configuration applies to ``DatabasePool`` only. The default value
+    /// is false.
+    ///
+    /// A `DatabasePool` automatically closes read-only connections on
+    /// various occasions, in order to spare memory
+    /// (see ``DatabasePool/releaseMemory()``), or when connections enter an
+    /// invalid state.
+    ///
+    /// When this flag is true, only invalid connections are automatically
+    /// closed. Valid connections, once opened, are kept alive until the
+    /// `DatabasePool` is deinitialized, or one of those methods is called:
+    /// ``DatabaseReader/close()``,
+    /// ``DatabasePool/invalidateReadOnlyConnections()``.
+    ///
+    /// Consider using this flag when profiling your application reveals
+    /// that a lot of time is spent opening new SQLite connections.
+    public var persistentReaderConnections = false
+    
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration.

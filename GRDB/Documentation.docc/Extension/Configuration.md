@@ -92,6 +92,7 @@ do {
 - ``label``
 - ``maximumReaderCount``
 - ``observesSuspensionNotifications``
+- ``persistentReaderConnections``
 - ``prepareDatabase(_:)``
 - ``publicStatementArguments``
 - ``transactionClock``

@@ -168,11 +168,14 @@ extension DatabasePool {
     
     // MARK: - Memory management
     
-    /// Frees as much memory as possible, by disposing non-essential memory from
-    /// the writer connection, and closing all reader connections.
+    /// Frees as much memory as possible, by disposing non-essential memory.
     ///
     /// This method is synchronous, and blocks the current thread until all
     /// database accesses are completed.
+    ///
+    /// This method closes all reader connections, unless the
+    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// is set.
     ///
     /// - warning: This method can prevent concurrent reads from executing,
     ///   until it returns. Prefer ``releaseMemoryEventually()`` if you intend
@@ -181,34 +184,50 @@ extension DatabasePool {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
         
-        // Release readers memory by closing all connections.
-        //
-        // We must use a barrier in order to guarantee that memory has been
-        // freed (reader connections closed) when the method exits, as
-        // documented.
-        //
-        // Without the barrier, connections would only close _eventually_ (after
-        // their eventual concurrent jobs have completed).
-        readerPool?.barrier {
-            readerPool?.removeAll()
+        if configuration.persistentReaderConnections {
+            // Keep existing readers
+            readerPool?.forEach { reader in
+                reader.sync { $0.releaseMemory() }
+            }
+        } else {
+            // Release readers memory by closing all connections.
+            //
+            // We must use a barrier in order to guarantee that memory has been
+            // freed (reader connections closed) when the method exits, as
+            // documented.
+            //
+            // Without the barrier, connections would only close _eventually_ (after
+            // their eventual concurrent jobs have completed).
+            readerPool?.barrier {
+                readerPool?.removeAll()
+            }
         }
     }
     
-    /// Eventually frees as much memory as possible, by disposing non-essential
-    /// memory from the writer connection, and closing all reader connections.
+    /// Eventually frees as much memory as possible, by disposing
+    /// non-essential memory.
+    ///
+    /// This method eventually closes all reader connections, unless the
+    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// is set.
     ///
     /// Unlike ``releaseMemory()``, this method does not prevent concurrent
     /// database accesses when it is executing. But it does not notify when
     /// non-essential memory has been freed.
     public func releaseMemoryEventually() {
-        // Release readers memory by eventually closing all reader connections
-        // (they will close after their current jobs have completed).
-        readerPool?.removeAll()
+        if configuration.persistentReaderConnections {
+            // Keep existing readers
+            readerPool?.forEach { reader in
+                reader.async { $0.releaseMemory() }
+            }
+        } else {
+            // Release readers memory by eventually closing all reader connections
+            // (they will close after their current jobs have completed).
+            readerPool?.removeAll()
+        }
         
         // Release writer memory eventually.
-        writer.async { db in
-            db.releaseMemory()
-        }
+        writer.async { $0.releaseMemory() }
     }
     
     #if os(iOS)
@@ -610,6 +629,10 @@ extension DatabasePool: DatabaseReader {
     ///
     /// Eventual concurrent read-only accesses are not invalidated: they will
     /// proceed until completion.
+    ///
+    /// - This method closes all read-only connections, even if the
+    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// is set.
     public func invalidateReadOnlyConnections() {
         readerPool?.removeAll()
     }
