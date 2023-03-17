@@ -109,7 +109,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-- **New**: [#1350](https://github.com/groue/GRDB.swift/pull/1350) by [@groue](https://github.com/groue): ValueObservation on DatabasePool no longer opens a new database connection when it starts
+- **New**: [#1350](https://github.com/groue/GRDB.swift/pull/1350) by [@groue](https://github.com/groue): DatabasePool won't close read-only connections if requested, and ValueObservation no longer opens a new database connection when it starts.
 
 ## 6.9.2
 
