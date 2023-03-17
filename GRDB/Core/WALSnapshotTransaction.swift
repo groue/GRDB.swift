@@ -6,50 +6,60 @@
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
 class WALSnapshotTransaction {
     private let reader: SerializedDatabase
-    private let transactionDidComplete: (Bool) -> Void
+    private let release: (_ isInsideTransaction: Bool) -> Void
     
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
     
     /// Creates a long-live WAL transaction on a read-only connection.
     ///
-    /// The `transactionDidComplete` closure is called when the
-    /// `WALSnapshotTransaction` is deallocated, or if the
-    /// initializer throws. Its argument tells if the long-lived
-    /// transaction could be properly terminated.
+    /// The `release` closure is always called. It is called when the
+    /// `WALSnapshotTransaction` is deallocated, or if the initializer
+    /// throws.
+    ///
+    /// In normal operations, the argument to `release` is always false,
+    /// meaning that the connection is no longer in a transaction. If true,
+    /// the connection has been left inside a transaction, due to
+    /// some error.
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// let transaction = WALSnapshotTransaction(
+    ///     reader: reader,
+    ///     release: { isInsideTransaction in
+    ///         ...
+    ///     })
+    /// ```
     ///
     /// - parameter reader: A read-only database connection.
-    /// - parameter transactionDidComplete: A closure to call when the
-    ///   snapshot transaction ends.
+    /// - parameter release: A closure to call when the read-only connection
+    ///   is no longer used.
     init(
-        reader: SerializedDatabase,
-        transactionDidComplete: @escaping (Bool) -> Void)
+        onReader reader: SerializedDatabase,
+        release: @escaping (_ isInsideTransaction: Bool) -> Void)
     throws
     {
         assert(reader.configuration.readonly)
         
-        // Open a transaction and enter snapshot isolation
-        reader.allowsUnsafeTransactions = true
         do {
-            try reader.sync { db in
+            // Open a long-lived transaction, and enter snapshot isolation
+            self.walSnapshot = try reader.sync(allowingLongLivedTransaction: true) { db in
                 try db.beginTransaction(.deferred)
                 try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
+                return try WALSnapshot(db)
             }
+            self.reader = reader
+            self.release = release
         } catch {
             // self is not initialized, so deinit will not run.
-            Self.commitAndRelease(reader: reader, transactionDidComplete: transactionDidComplete)
+            Self.commitAndRelease(reader: reader, release: release)
             throw error
-        }
-        
-        self.reader = reader
-        self.transactionDidComplete = transactionDidComplete
-        self.walSnapshot = try reader.sync { db in
-            return try WALSnapshot(db)
         }
     }
     
     deinit {
-        Self.commitAndRelease(reader: reader, transactionDidComplete: transactionDidComplete)
+        Self.commitAndRelease(reader: reader, release: release)
     }
     
     /// Executes database operations in the snapshot transaction, and
@@ -61,14 +71,13 @@ class WALSnapshotTransaction {
     
     private static func commitAndRelease(
         reader: SerializedDatabase,
-        transactionDidComplete: (Bool) -> Void)
+        release: (_ isInsideTransaction: Bool) -> Void)
     {
-        reader.allowsUnsafeTransactions = false
-        let success = reader.sync { db in
+        let isInsideTransaction = reader.sync(allowingLongLivedTransaction: false) { db in
             try? db.commit()
             return db.isInsideTransaction
         }
-        transactionDidComplete(success)
+        release(isInsideTransaction)
     }
 }
 #endif

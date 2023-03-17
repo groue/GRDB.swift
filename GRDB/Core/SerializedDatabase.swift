@@ -8,16 +8,14 @@ final class SerializedDatabase {
     /// The database configuration
     var configuration: Configuration { db.configuration }
     
-    /// If true, overrides `configuration.allowsUnsafeTransactions`.
-    ///
-    /// See `WALSnapshotTransaction`.
-    var allowsUnsafeTransactions = false
-    
     /// The path to the database file
     let path: String
     
     /// The dispatch queue
     private let queue: DispatchQueue
+    
+    /// If true, overrides `configuration.allowsUnsafeTransactions`.
+    private var allowsUnsafeTransactions = false
     
     init(
         path: String,
@@ -81,10 +79,25 @@ final class SerializedDatabase {
         }
     }
     
-    /// Synchronously executes a block the serialized dispatch queue, and
-    /// returns its result.
+    /// Executes database operations, returns their result after they have
+    /// finished executing, and allows or forbids long-lived transactions.
     ///
-    /// This method is *not* reentrant.
+    /// This method is not reentrant.
+    ///
+    /// - parameter allowingLongLivedTransaction: When true, the
+    ///   ``Configuration/allowsUnsafeTransactions`` configuration flag is
+    ///   ignored until this method is called again with false.
+    func sync<T>(allowingLongLivedTransaction: Bool, _ body: (Database) throws -> T) rethrows -> T {
+        try sync { db in
+            self.allowsUnsafeTransactions = allowingLongLivedTransaction
+            return try body(db)
+        }
+    }
+    
+    /// Executes database operations, and returns their result after they
+    /// have finished executing.
+    ///
+    /// This method is not reentrant.
     func sync<T>(_ block: (Database) throws -> T) rethrows -> T {
         // Three different cases:
         //
@@ -127,8 +140,8 @@ final class SerializedDatabase {
         }
     }
     
-    /// Synchronously executes a block the serialized dispatch queue, and
-    /// returns its result.
+    /// Executes database operations, and returns their result after they
+    /// have finished executing.
     ///
     /// This method is reentrant.
     func reentrantSync<T>(_ block: (Database) throws -> T) rethrows -> T {
@@ -194,7 +207,7 @@ final class SerializedDatabase {
         }
     }
     
-    /// Asynchronously executes a block in the serialized dispatch queue.
+    // Schedules database operations for execution, and returns immediately.
     func async(_ block: @escaping (Database) -> Void) {
         queue.async {
             block(self.db)
