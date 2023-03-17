@@ -277,7 +277,8 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             _ = try Person.filter(keys: [1, 2]).deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
-
+            
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
             if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
                 _ = try Person.filter(id: 1).deleteAndFetchCursor(db).next()
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1 RETURNING *")
@@ -285,7 +286,14 @@ class TableRecordDeleteTests: GRDBTestCase {
                 _ = try Person.filter(ids: [1, 2]).deleteAndFetchCursor(db).next()
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
             }
-
+#else
+            _ = try Person.filter(id: 1).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1 RETURNING *")
+            
+            _ = try Person.filter(ids: [1, 2]).deleteAndFetchCursor(db).next()
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2) RETURNING *")
+#endif
+            
             _ = try Person.filter(sql: "id = 1").deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1 RETURNING *")
             
