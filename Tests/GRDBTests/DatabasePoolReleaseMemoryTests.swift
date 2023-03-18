@@ -198,7 +198,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 1)
     }
     
-    func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReaderConnections_is_false() throws {
+    func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReadOnlyConnections_is_false() throws {
         var persistentConnectionCount = 0
         
         dbConfiguration.SQLiteConnectionDidOpen = {
@@ -209,7 +209,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             persistentConnectionCount -= 1
         }
         
-        dbConfiguration.persistentReaderConnections = false
+        dbConfiguration.persistentReadOnlyConnections = false
         
         let dbPool = try makeDatabasePool()
         XCTAssertEqual(persistentConnectionCount, 1) // writer
@@ -221,7 +221,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(persistentConnectionCount, 1) // writer
     }
     
-    func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReaderConnections_is_true() throws {
+    func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReadOnlyConnections_is_true() throws {
         var persistentConnectionCount = 0
         
         dbConfiguration.SQLiteConnectionDidOpen = {
@@ -232,7 +232,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             persistentConnectionCount -= 1
         }
         
-        dbConfiguration.persistentReaderConnections = true
+        dbConfiguration.persistentReadOnlyConnections = true
         
         let dbPool = try makeDatabasePool()
         XCTAssertEqual(persistentConnectionCount, 1) // writer

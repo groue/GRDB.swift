@@ -173,8 +173,8 @@ extension DatabasePool {
     /// This method is synchronous, and blocks the current thread until all
     /// database accesses are completed.
     ///
-    /// This method closes all reader connections, unless the
-    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// This method closes all read-only connections, unless the
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
     /// is set.
     ///
     /// - warning: This method can prevent concurrent reads from executing,
@@ -184,7 +184,7 @@ extension DatabasePool {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
         
-        if configuration.persistentReaderConnections {
+        if configuration.persistentReadOnlyConnections {
             // Keep existing readers
             readerPool?.forEach { reader in
                 reader.sync { $0.releaseMemory() }
@@ -207,15 +207,15 @@ extension DatabasePool {
     /// Eventually frees as much memory as possible, by disposing
     /// non-essential memory.
     ///
-    /// This method eventually closes all reader connections, unless the
-    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// This method eventually closes all read-only connections, unless the
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
     /// is set.
     ///
     /// Unlike ``releaseMemory()``, this method does not prevent concurrent
     /// database accesses when it is executing. But it does not notify when
     /// non-essential memory has been freed.
     public func releaseMemoryEventually() {
-        if configuration.persistentReaderConnections {
+        if configuration.persistentReadOnlyConnections {
             // Keep existing readers
             readerPool?.forEach { reader in
                 reader.async { $0.releaseMemory() }
@@ -627,11 +627,11 @@ extension DatabasePool: DatabaseReader {
     /// After this method is called, read-only database access methods will use
     /// new SQLite connections.
     ///
-    /// Eventual concurrent read-only accesses are not invalidated: they will
+    /// Eventual concurrent read-only accesses are not interrupted, and
     /// proceed until completion.
     ///
     /// - This method closes all read-only connections, even if the
-    /// ``Configuration/persistentReaderConnections`` configuration flag
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
     /// is set.
     public func invalidateReadOnlyConnections() {
         readerPool?.removeAll()

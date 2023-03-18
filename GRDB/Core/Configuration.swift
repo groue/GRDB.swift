@@ -374,25 +374,19 @@ public struct Configuration {
 #endif
     
     /// A boolean value indicating whether read-only connections should be
-    /// kept open as long as they remain in a valid state.
+    /// kept open.
     ///
-    /// This configuration applies to ``DatabasePool`` only. The default value
-    /// is false.
+    /// This configuration flag applies to ``DatabasePool`` only. The
+    /// default value is false.
     ///
-    /// A `DatabasePool` automatically closes read-only connections on
-    /// various occasions, in order to spare memory
-    /// (see ``DatabasePool/releaseMemory()``), or when connections enter an
-    /// invalid state.
+    /// When the flag is false, a `DatabasePool` closes read-only
+    /// connections when requested to dispose non-essential memory with
+    /// ``DatabasePool/releaseMemory()``. When true, those connections are
+    /// kept open.
     ///
-    /// When this flag is true, only invalid connections are automatically
-    /// closed. Valid connections, once opened, are kept alive until the
-    /// `DatabasePool` is deinitialized, or one of those methods is called:
-    /// ``DatabaseReader/close()``,
-    /// ``DatabasePool/invalidateReadOnlyConnections()``.
-    ///
-    /// Consider using this flag when profiling your application reveals
-    /// that a lot of time is spent opening new SQLite connections.
-    public var persistentReaderConnections = false
+    /// Consider setting this flag to true when profiling your application
+    /// reveals that a lot of time is spent opening new SQLite connections.
+    public var persistentReadOnlyConnections = false
     
     // MARK: - Factory Configuration
     
