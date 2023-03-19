@@ -683,6 +683,9 @@ extension DatabasePool: DatabaseReader {
     }
     
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
+    ///
+    /// - important: The `completion` argument is executed in a serial
+    ///   dispatch queue, so make sure you use the transaction asynchronously.
     func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))

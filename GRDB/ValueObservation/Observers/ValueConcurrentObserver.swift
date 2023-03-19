@@ -324,50 +324,56 @@ extension ValueConcurrentObserver {
             do {
                 // Fetch
                 let walSnapshotTransaction = try result.get()
-                try walSnapshotTransaction.read { db in
-                    let fetchedValue: Reducer.Fetched
-                    let initialRegion: DatabaseRegion
-                    
-                    switch self.trackingMode {
-                    case let .constantRegion(regions):
-                        fetchedValue = try databaseAccess.fetch(db)
-                        let region = try DatabaseRegion.union(regions)(db)
-                        initialRegion = try region.observableRegion(db)
+                // Second async jump because that's how
+                // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
+                walSnapshotTransaction.asyncRead { db in
+                    do {
+                        let fetchedValue: Reducer.Fetched
+                        let initialRegion: DatabaseRegion
                         
-                    case .constantRegionRecordedFromSelection,
-                            .nonConstantRegionRecordedFromSelection:
-                        (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
-                    }
-                    
-                    // Reduce
-                    //
-                    // Reducing is performed asynchronously, so that we do not lock
-                    // a database dispatch queue longer than necessary.
-                    self.reduceQueue.async {
-                        let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-                        guard isNotifying else { return /* Cancelled */ }
-                        
-                        do {
-                            guard let initialValue = try self.reducer._value(fetchedValue) else {
-                                fatalError("Broken contract: reducer has no initial value")
-                            }
+                        switch self.trackingMode {
+                        case let .constantRegion(regions):
+                            fetchedValue = try databaseAccess.fetch(db)
+                            let region = try DatabaseRegion.union(regions)(db)
+                            initialRegion = try region.observableRegion(db)
                             
-                            // Notify
-                            self.scheduler.schedule {
-                                let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                                guard let onChange else { return /* Cancelled */ }
-                                onChange(initialValue)
-                            }
-                        } catch {
-                            self.notifyError(error)
+                        case .constantRegionRecordedFromSelection,
+                                .nonConstantRegionRecordedFromSelection:
+                            (fetchedValue, initialRegion) = try databaseAccess.fetchRecordingObservedRegion(db)
                         }
+                        
+                        // Reduce
+                        //
+                        // Reducing is performed asynchronously, so that we do not lock
+                        // a database dispatch queue longer than necessary.
+                        self.reduceQueue.async {
+                            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
+                            guard isNotifying else { return /* Cancelled */ }
+                            
+                            do {
+                                guard let initialValue = try self.reducer._value(fetchedValue) else {
+                                    fatalError("Broken contract: reducer has no initial value")
+                                }
+                                
+                                // Notify
+                                self.scheduler.schedule {
+                                    let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                                    guard let onChange else { return /* Cancelled */ }
+                                    onChange(initialValue)
+                                }
+                            } catch {
+                                self.notifyError(error)
+                            }
+                        }
+                        
+                        // Start observation
+                        self.asyncStartObservation(
+                            from: databaseAccess,
+                            walSnapshotTransaction: walSnapshotTransaction,
+                            initialRegion: initialRegion)
+                    } catch {
+                        self.notifyError(error)
                     }
-                    
-                    // Start observation
-                    self.asyncStartObservation(
-                        from: databaseAccess,
-                        walSnapshotTransaction: walSnapshotTransaction,
-                        initialRegion: initialRegion)
                 }
             } catch {
                 self.notifyError(error)
@@ -389,10 +395,10 @@ extension ValueConcurrentObserver {
                 
                 // Transaction is needed for comparing version snapshots
                 try writerDB.isolated(readOnly: true) {
-                    // Keep walSnapshotTransaction alive until we have compared
-                    // database versions. It prevents database checkpointing,
-                    // and keeps WAL snapshots (`sqlite3_snapshot`) valid
-                    // and comparable.
+                    // Keep walSnapshotTransaction alive until we have
+                    // compared database versions. `WALSnapshot` alone is
+                    // not able to prevent database checkpointing, and keep
+                    // snapshots comparable.
                     let isModified = withExtendedLifetime(walSnapshotTransaction) {
                         guard let currentWALSnapshot = try? WALSnapshot(writerDB) else {
                             return true

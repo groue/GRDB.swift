@@ -65,15 +65,24 @@ class WALSnapshotTransaction {
     /// Executes database operations in the snapshot transaction, and
     /// returns their result after they have finished executing.
     func read<T>(_ value: (Database) throws -> T) rethrows -> T {
-        // TODO: we should check the validity of the snapshot, as DatabaseSnapshotPool does.
+        // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
         try reader.sync(value)
+    }
+    
+    /// Schedules database operations for execution, and
+    /// returns immediately.
+    func asyncRead(_ value: @escaping (Database) -> Void) {
+        // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
+        reader.async(value)
     }
     
     private static func commitAndRelease(
         reader: SerializedDatabase,
         release: (_ isInsideTransaction: Bool) -> Void)
     {
-        let isInsideTransaction = reader.sync(allowingLongLivedTransaction: false) { db in
+        // WALSnapshotTransaction may be deinitialized in the dispatch
+        // queue of its reader: allow reentrancy.
+        let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false) { db in
             try? db.commit()
             return db.isInsideTransaction
         }
