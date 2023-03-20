@@ -120,83 +120,129 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
 
 #endif
 
-    // TODO: fix flaky test
-//    func testDatabasePoolReleaseMemoryClosesReaderConnections() throws {
-//        let countQueue = DispatchQueue(label: "GRDB")
-//        var openConnectionCount = 0
-//        var totalOpenConnectionCount = 0
-//        
-//        dbConfiguration.SQLiteConnectionDidOpen = {
-//            countQueue.sync {
-//                totalOpenConnectionCount += 1
-//                openConnectionCount += 1
-//            }
-//        }
-//        
-//        dbConfiguration.SQLiteConnectionDidClose = {
-//            countQueue.sync {
-//                openConnectionCount -= 1
-//            }
-//        }
-//        
-//        let dbPool = try makeDatabasePool()
-//        try dbPool.write { db in
-//            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-//            for _ in 0..<2 {
-//                try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
-//            }
-//        }
-//        
-//        // Block 1                  Block 2                 Block3
-//        // SELECT * FROM items
-//        // step
-//        // >
-//        let s1 = DispatchSemaphore(value: 0)
-//        //                          SELECT * FROM items
-//        //                          step
-//        //                          >
-//        let s2 = DispatchSemaphore(value: 0)
-//        // step                     step
-//        // >
-//        let s3 = DispatchSemaphore(value: 0)
-//        // end                      end                     releaseMemory
-//        
-//        let block1 = { () in
-//            try! dbPool.read { db in
-//                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
-//                XCTAssertTrue(try cursor.next() != nil)
-//                s1.signal()
-//                _ = s2.wait(timeout: .distantFuture)
-//                XCTAssertTrue(try cursor.next() != nil)
-//                s3.signal()
-//                XCTAssertTrue(try cursor.next() == nil)
-//            }
-//        }
-//        let block2 = { () in
-//            _ = s1.wait(timeout: .distantFuture)
-//            try! dbPool.read { db in
-//                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
-//                XCTAssertTrue(try cursor.next() != nil)
-//                s2.signal()
-//                XCTAssertTrue(try cursor.next() != nil)
-//                XCTAssertTrue(try cursor.next() == nil)
-//            }
-//        }
-//        let block3 = { () in
-//            _ = s3.wait(timeout: .distantFuture)
-//            dbPool.releaseMemory()
-//        }
-//        let blocks = [block1, block2, block3]
-//        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in // FIXME: this crashes sometimes
-//            blocks[index]()
-//        }
-//        
-//        // Two readers, one writer
-//        XCTAssertEqual(totalOpenConnectionCount, 3)
-//        
-//        // Writer is still open
-//        XCTAssertEqual(openConnectionCount, 1)
-//    }
+    func test_DatabasePool_releaseMemory_closes_reader_connections() throws {
+        // A complicated test setup that opens multiple reader connections.
+        let countQueue = DispatchQueue(label: "GRDB")
+        var openConnectionCount = 0
+        var totalOpenConnectionCount = 0
+        
+        dbConfiguration.SQLiteConnectionDidOpen = {
+            countQueue.sync {
+                totalOpenConnectionCount += 1
+                openConnectionCount += 1
+            }
+        }
+        
+        dbConfiguration.SQLiteConnectionDidClose = {
+            countQueue.sync {
+                openConnectionCount -= 1
+            }
+        }
+        
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            for _ in 0..<2 {
+                try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+            }
+        }
+        
+        // Block 1                  Block 2                 Block3
+        // SELECT * FROM items
+        // step
+        // >
+        let s1 = DispatchSemaphore(value: 0)
+        //                          SELECT * FROM items
+        //                          step
+        //                          >
+        let s2 = DispatchSemaphore(value: 0)
+        // step                     step
+        // >
+        let s3 = DispatchSemaphore(value: 0)
+        // end                      end                     releaseMemory
+        
+        let block1 = { () in
+            try! dbPool.read { db in
+                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                XCTAssertTrue(try cursor.next() != nil)
+                s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+                XCTAssertTrue(try cursor.next() != nil)
+                s3.signal()
+                XCTAssertTrue(try cursor.next() == nil)
+            }
+        }
+        let block2 = { () in
+            _ = s1.wait(timeout: .distantFuture)
+            try! dbPool.read { db in
+                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                XCTAssertTrue(try cursor.next() != nil)
+                s2.signal()
+                XCTAssertTrue(try cursor.next() != nil)
+                XCTAssertTrue(try cursor.next() == nil)
+            }
+        }
+        let block3 = { () in
+            _ = s3.wait(timeout: .distantFuture)
+            dbPool.releaseMemory()
+        }
+        let blocks = [block1, block2, block3]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in // FIXME: this crashes sometimes
+            blocks[index]()
+        }
+        
+        // Two readers, one writer
+        XCTAssertEqual(totalOpenConnectionCount, 3)
+        
+        // Writer is still open
+        XCTAssertEqual(openConnectionCount, 1)
+    }
+    
+    func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReadOnlyConnections_is_false() throws {
+        var persistentConnectionCount = 0
+        
+        dbConfiguration.SQLiteConnectionDidOpen = {
+            persistentConnectionCount += 1
+        }
+        
+        dbConfiguration.SQLiteConnectionDidClose = {
+            persistentConnectionCount -= 1
+        }
+        
+        dbConfiguration.persistentReadOnlyConnections = false
+        
+        let dbPool = try makeDatabasePool()
+        XCTAssertEqual(persistentConnectionCount, 1) // writer
+        
+        try dbPool.read { _ in }
+        XCTAssertEqual(persistentConnectionCount, 2) // writer + reader
+        
+        dbPool.releaseMemory()
+        XCTAssertEqual(persistentConnectionCount, 1) // writer
+    }
+    
+    func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReadOnlyConnections_is_true() throws {
+        var persistentConnectionCount = 0
+        
+        dbConfiguration.SQLiteConnectionDidOpen = {
+            persistentConnectionCount += 1
+        }
+        
+        dbConfiguration.SQLiteConnectionDidClose = {
+            persistentConnectionCount -= 1
+        }
+        
+        dbConfiguration.persistentReadOnlyConnections = true
+        
+        let dbPool = try makeDatabasePool()
+        XCTAssertEqual(persistentConnectionCount, 1) // writer
+        
+        try dbPool.read { _ in }
+        XCTAssertEqual(persistentConnectionCount, 2) // writer + reader
+        
+        dbPool.releaseMemory()
+        XCTAssertEqual(persistentConnectionCount, 2) // writer + reader
+    }
 
     func testBlocksRetainConnection() throws {
         let countQueue = DispatchQueue(label: "GRDB")

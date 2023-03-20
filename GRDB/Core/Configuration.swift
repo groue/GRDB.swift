@@ -301,13 +301,15 @@ public struct Configuration {
     /// If nil, GRDB picks a default one.
     var readonlyBusyMode: Database.BusyMode? = nil
     
-    /// The maximum number of concurrent readers.
+    /// The maximum number of concurrent reader connections.
     ///
-    /// This configuration applies to ``DatabasePool`` only. The default value
-    /// is 5.
+    /// This configuration has effect on ``DatabasePool`` and
+    /// ``DatabaseSnapshotPool`` only. The default value is 5.
     ///
     /// You can query this value at runtime in order to get the actual capacity
-    /// for concurrent reads of any ``DatabaseReader``. For example:
+    /// for concurrent reads of any ``DatabaseReader``. In this context,
+    /// ``DatabaseQueue`` and ``DatabaseSnapshot`` have a capacity of 1,
+    /// because they can't perform two concurrent reads. For example:
     ///
     /// ```swift
     /// var config = Configuration()
@@ -321,6 +323,7 @@ public struct Configuration {
     /// print(dbQueue.configuration.maximumReaderCount)    // 1
     /// print(dbPool.configuration.maximumReaderCount)     // 5
     /// print(dbSnapshot.configuration.maximumReaderCount) // 1
+    /// ```
     public var maximumReaderCount: Int = 5
     
     /// The quality of service of database accesses.
@@ -372,7 +375,22 @@ public struct Configuration {
     /// The default is true.
     public var automaticMemoryManagement = true
 #endif
-
+    
+    /// A boolean value indicating whether read-only connections should be
+    /// kept open.
+    ///
+    /// This configuration flag applies to ``DatabasePool`` only. The
+    /// default value is false.
+    ///
+    /// When the flag is false, a `DatabasePool` closes read-only
+    /// connections when requested to dispose non-essential memory with
+    /// ``DatabasePool/releaseMemory()``. When true, those connections are
+    /// kept open.
+    ///
+    /// Consider setting this flag to true when profiling your application
+    /// reveals that a lot of time is spent opening new SQLite connections.
+    public var persistentReadOnlyConnections = false
+    
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration.

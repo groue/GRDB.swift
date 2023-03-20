@@ -168,11 +168,14 @@ extension DatabasePool {
     
     // MARK: - Memory management
     
-    /// Frees as much memory as possible, by disposing non-essential memory from
-    /// the writer connection, and closing all reader connections.
+    /// Frees as much memory as possible, by disposing non-essential memory.
     ///
     /// This method is synchronous, and blocks the current thread until all
     /// database accesses are completed.
+    ///
+    /// This method closes all read-only connections, unless the
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
+    /// is set.
     ///
     /// - warning: This method can prevent concurrent reads from executing,
     ///   until it returns. Prefer ``releaseMemoryEventually()`` if you intend
@@ -181,34 +184,50 @@ extension DatabasePool {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
         
-        // Release readers memory by closing all connections.
-        //
-        // We must use a barrier in order to guarantee that memory has been
-        // freed (reader connections closed) when the method exits, as
-        // documented.
-        //
-        // Without the barrier, connections would only close _eventually_ (after
-        // their eventual concurrent jobs have completed).
-        readerPool?.barrier {
-            readerPool?.removeAll()
+        if configuration.persistentReadOnlyConnections {
+            // Keep existing readers
+            readerPool?.forEach { reader in
+                reader.sync { $0.releaseMemory() }
+            }
+        } else {
+            // Release readers memory by closing all connections.
+            //
+            // We must use a barrier in order to guarantee that memory has been
+            // freed (reader connections closed) when the method exits, as
+            // documented.
+            //
+            // Without the barrier, connections would only close _eventually_ (after
+            // their eventual concurrent jobs have completed).
+            readerPool?.barrier {
+                readerPool?.removeAll()
+            }
         }
     }
     
-    /// Eventually frees as much memory as possible, by disposing non-essential
-    /// memory from the writer connection, and closing all reader connections.
+    /// Eventually frees as much memory as possible, by disposing
+    /// non-essential memory.
+    ///
+    /// This method eventually closes all read-only connections, unless the
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
+    /// is set.
     ///
     /// Unlike ``releaseMemory()``, this method does not prevent concurrent
     /// database accesses when it is executing. But it does not notify when
     /// non-essential memory has been freed.
     public func releaseMemoryEventually() {
-        // Release readers memory by eventually closing all reader connections
-        // (they will close after their current jobs have completed).
-        readerPool?.removeAll()
+        if configuration.persistentReadOnlyConnections {
+            // Keep existing readers
+            readerPool?.forEach { reader in
+                reader.async { $0.releaseMemory() }
+            }
+        } else {
+            // Release readers memory by eventually closing all reader connections
+            // (they will close after their current jobs have completed).
+            readerPool?.removeAll()
+        }
         
         // Release writer memory eventually.
-        writer.async { db in
-            db.releaseMemory()
-        }
+        writer.async { $0.releaseMemory() }
     }
     
     #if os(iOS)
@@ -361,7 +380,7 @@ extension DatabasePool: DatabaseReader {
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
-            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
         
@@ -405,7 +424,7 @@ extension DatabasePool: DatabaseReader {
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
-            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
         
@@ -608,8 +627,12 @@ extension DatabasePool: DatabaseReader {
     /// After this method is called, read-only database access methods will use
     /// new SQLite connections.
     ///
-    /// Eventual concurrent read-only accesses are not invalidated: they will
+    /// Eventual concurrent read-only accesses are not interrupted, and
     /// proceed until completion.
+    ///
+    /// - This method closes all read-only connections, even if the
+    /// ``Configuration/persistentReadOnlyConnections`` configuration flag
+    /// is set.
     public func invalidateReadOnlyConnections() {
         readerPool?.removeAll()
     }
@@ -639,6 +662,50 @@ extension DatabasePool: DatabaseReader {
         // in the pool, and thus still relevant for our check:
         return readers.first { $0.onValidQueue }
     }
+    
+    // MARK: - WAL Snapshot Transactions
+    
+    // swiftlint:disable:next line_length
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+    /// Returns a long-lived WAL snapshot transaction on a reader connection.
+    func walSnapshotTransaction() throws -> WALSnapshotTransaction {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let (reader, releaseReader) = try readerPool.get()
+        return try WALSnapshotTransaction(onReader: reader, release: { isInsideTransaction in
+            // Discard the connection if the transaction could not be
+            // properly ended. If we'd reuse it, the next read would
+            // fail because we'd fail starting a read transaction.
+            releaseReader(isInsideTransaction ? .discard : .reuse)
+        })
+    }
+    
+    /// Returns a long-lived WAL snapshot transaction on a reader connection.
+    ///
+    /// - important: The `completion` argument is executed in a serial
+    ///   dispatch queue, so make sure you use the transaction asynchronously.
+    func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+        guard let readerPool else {
+            completion(.failure(DatabaseError.connectionIsClosed()))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            completion(result.flatMap { reader, releaseReader in
+                Result {
+                    try WALSnapshotTransaction(onReader: reader, release: { isInsideTransaction in
+                        // Discard the connection if the transaction could not be
+                        // properly ended. If we'd reuse it, the next read would
+                        // fail because we'd fail starting a read transaction.
+                        releaseReader(isInsideTransaction ? .discard : .reuse)
+                    })
+                }
+            })
+        }
+    }
+#endif
     
     // MARK: - Database Observation
     
