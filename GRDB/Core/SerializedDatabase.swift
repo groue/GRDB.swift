@@ -143,7 +143,7 @@ final class SerializedDatabase {
     /// Executes database operations, returns their result after they have
     /// finished executing, and allows or forbids long-lived transactions.
     ///
-    /// This method is not reentrant.
+    /// This method is reentrant.
     ///
     /// - parameter allowingLongLivedTransaction: When true, the
     ///   ``Configuration/allowsUnsafeTransactions`` configuration flag is
