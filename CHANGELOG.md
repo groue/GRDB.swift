@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.10.x` Releases - [6.10.0](#6100)
 - `6.9.x` Releases - [6.9.0](#690) - [6.9.1](#691) - [6.9.2](#692)
 - `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
@@ -107,7 +108,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.10.0
+
+Released March 20, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.9.2...v6.10.0)
 
 - **New**: [#1350](https://github.com/groue/GRDB.swift/pull/1350) by [@groue](https://github.com/groue): DatabasePool won't close read-only connections if requested, and ValueObservation no longer opens a new database connection when it starts.
 
