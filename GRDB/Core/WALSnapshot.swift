@@ -1,3 +1,4 @@
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
 /// An instance of WALSnapshot records the state of a WAL mode database for some
 /// specific point in history.
 ///
@@ -20,13 +21,6 @@
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot: Sendable {
-    // Xcode 14 (Swift 5.7) ships with a macOS SDK that misses snapshot support.
-    // Xcode 14.1 (Swift 5.7.1) ships with a macOS SDK that has snapshot support.
-    // This is the meaning of (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst)))
-    // swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
-    static let available = true
-    
     let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
     
     init(_ db: Database) throws {
@@ -67,15 +61,5 @@ final class WALSnapshot: Sendable {
     func compare(_ other: WALSnapshot) -> CInt {
         sqlite3_snapshot_cmp(sqliteSnapshot, other.sqliteSnapshot)
     }
-#else
-    static let available = false
-
-    init(_ db: Database) throws {
-        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "snapshots are not available")
-    }
-
-    func compare(_ other: WALSnapshot) -> CInt {
-        preconditionFailure("snapshots are not available")
-    }
-#endif
 }
+#endif
