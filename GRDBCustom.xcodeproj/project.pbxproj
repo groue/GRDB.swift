@@ -276,6 +276,7 @@
 		56D110F528AFC90800E64463 /* MutablePersistableRecord+Save.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D110E728AFC90800E64463 /* MutablePersistableRecord+Save.swift */; };
 		56D110F728AFC90800E64463 /* MutablePersistableRecord+Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D110E828AFC90800E64463 /* MutablePersistableRecord+Update.swift */; };
 		56D110FF28AFC9C600E64463 /* MutablePersistableRecord+DAO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D110FE28AFC9C600E64463 /* MutablePersistableRecord+DAO.swift */; };
+		56D3332329C38D7B00430680 /* WALSnapshotTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D3332129C38D7A00430680 /* WALSnapshotTransaction.swift */; };
 		56D507611F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
 		56D51D021EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */; };
 		56DA7D03260FAA1B00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
@@ -763,6 +764,7 @@
 		56D110E728AFC90800E64463 /* MutablePersistableRecord+Save.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MutablePersistableRecord+Save.swift"; sourceTree = "<group>"; };
 		56D110E828AFC90800E64463 /* MutablePersistableRecord+Update.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MutablePersistableRecord+Update.swift"; sourceTree = "<group>"; };
 		56D110FE28AFC9C600E64463 /* MutablePersistableRecord+DAO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MutablePersistableRecord+DAO.swift"; sourceTree = "<group>"; };
+		56D3332129C38D7A00430680 /* WALSnapshotTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WALSnapshotTransaction.swift; sourceTree = "<group>"; };
 		56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryKeyInfoTests.swift; sourceTree = "<group>"; };
 		56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FetchableRecord+TableRecord.swift"; sourceTree = "<group>"; };
 		56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordMinimalNonOptionalPrimaryKeySingleTests.swift; sourceTree = "<group>"; };
@@ -1462,6 +1464,7 @@
 				56231E6025CEBF06001DFD2F /* RowDecodingError.swift */,
 				56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */,
 				560A37A61C8FF6E500949E71 /* SerializedDatabase.swift */,
+				56D3332129C38D7A00430680 /* WALSnapshotTransaction.swift */,
 				56A6EB2226076F6A00C27594 /* SQL.swift */,
 				56E9FAC32210468500C703A8 /* SQLInterpolation.swift */,
 				56FBFED52210731000945324 /* SQLRequest.swift */,
@@ -1981,6 +1984,7 @@
 				56D110F328AFC90800E64463 /* MutablePersistableRecord.swift in Sources */,
 				F3BA80831CFB2E67003DC1BA /* DatabaseValueConvertible+RawRepresentable.swift in Sources */,
 				5657AABB1D107001006283EF /* NSData.swift in Sources */,
+				56D3332329C38D7B00430680 /* WALSnapshotTransaction.swift in Sources */,
 				5674A6E51F307F0E0095F066 /* DatabaseValueConvertible+Decodable.swift in Sources */,
 				5656A8652295BD56001FF3FF /* BelongsToAssociation.swift in Sources */,
 				F3BA806A1CFB2E55003DC1BA /* DatabaseQueue.swift in Sources */,

@@ -412,8 +412,8 @@ class ValueObservationTests: GRDBTestCase {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
-                        INSERT INTO t DEFAULT VALUES;
-                        """)
+                            INSERT INTO t DEFAULT VALUES;
+                            """)
                     }
                 }
             }
