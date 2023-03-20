@@ -97,6 +97,7 @@ import Foundation
 ///             SELECT
 ///                 \(columnsOf: Player.self), -- Instead of player.*
 ///                 \(columnsOf: Team.self),   -- Instead of team.*
+///             FROM player
 ///             LEFT JOIN team ON team.id = player.teamId
 ///             WHERE player.id = \(playerId)
 ///             """
