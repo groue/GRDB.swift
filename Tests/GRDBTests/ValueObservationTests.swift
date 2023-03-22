@@ -782,7 +782,11 @@ class ValueObservationTests: GRDBTestCase {
             assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
             
             // Observation was ended
+#if compiler(>=5.8)
+            await fulfillment(of: [cancellationExpectation], timeout: 2)
+#else
             wait(for: [cancellationExpectation], timeout: 2)
+#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -816,7 +820,11 @@ class ValueObservationTests: GRDBTestCase {
             assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
             
             // Observation was ended
+#if compiler(>=5.8)
+            await fulfillment(of: [cancellationExpectation], timeout: 2)
+#else
             wait(for: [cancellationExpectation], timeout: 2)
+#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -854,7 +862,11 @@ class ValueObservationTests: GRDBTestCase {
             assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
             
             // Observation was ended
+#if compiler(>=5.8)
+            await fulfillment(of: [cancellationExpectation], timeout: 2)
+#else
             wait(for: [cancellationExpectation], timeout: 2)
+#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -889,7 +901,11 @@ class ValueObservationTests: GRDBTestCase {
             assertValueObservationRecordingMatch(recorded: counts, expected: [0])
             
             // Observation was ended
+#if compiler(>=5.8)
+            await fulfillment(of: [cancellationExpectation], timeout: 2)
+#else
             wait(for: [cancellationExpectation], timeout: 2)
+#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -936,7 +952,11 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(cancelledValue, "cancelled loop")
             
             // Make sure observation was cancelled as well
+#if compiler(>=5.8)
+            await fulfillment(of: [cancellationExpectation], timeout: 2)
+#else
             wait(for: [cancellationExpectation], timeout: 2)
+#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
