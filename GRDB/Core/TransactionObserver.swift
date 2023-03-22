@@ -479,7 +479,7 @@ class DatabaseObservationBroker {
         
         if savepointStack.isEmpty {
             // Notify now
-            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+            for statementObservation in statementObservations where statementObservation.tracksEvent(event) {
                 statementObservation.transactionObservation.databaseDidChange(with: event)
             }
         } else {
@@ -639,7 +639,7 @@ class DatabaseObservationBroker {
         
         for (event, statementObservations) in eventsBuffer {
             assert(statementObservations.isEmpty || !database.isReadOnly, "Read-only transactions are not notified")
-            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+            for statementObservation in statementObservations where statementObservation.tracksEvent(event) {
                 event.send(to: statementObservation.transactionObservation)
             }
         }
@@ -969,12 +969,18 @@ final class TransactionObservation {
 struct StatementObservation {
     var transactionObservation: TransactionObservation
     
-    /// Filters database events that should be notified.
-    var predicate: DatabaseEventPredicate
+    /// A predicate that filters database events that should be notified.
+    ///
+    /// Call this predicate as a method:
+    ///
+    /// ```
+    /// if observation.tracksEvent(event) { ... }
+    /// ```
+    var tracksEvent: DatabaseEventPredicate
     
     init(transactionObservation: TransactionObservation, trackingEvents predicate: DatabaseEventPredicate) {
         self.transactionObservation = transactionObservation
-        self.predicate = predicate
+        self.tracksEvent = predicate
     }
 }
 
@@ -1447,7 +1453,7 @@ enum DatabaseEventPredicate {
     ///   statement authorizer.
     case matching(observedEventKinds: [DatabaseEventKind], authorizerEventKinds: [DatabaseEventKind])
     
-    func evaluate(_ event: some DatabaseEventProtocol) -> Bool {
+    func callAsFunction(_ event: some DatabaseEventProtocol) -> Bool {
         switch self {
         case .all:
             return true
