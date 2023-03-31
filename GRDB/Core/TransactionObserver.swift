@@ -454,7 +454,7 @@ class DatabaseObservationBroker {
         
         if savepointStack.isEmpty {
             // Notify now
-            for statementObservation in statementObservations where statementObservation.predicate.evaluate(event) {
+            for statementObservation in statementObservations where statementObservation.tracksEvent(event) {
                 statementObservation.transactionObservation.databaseWillChange(with: event)
             }
         } else {
