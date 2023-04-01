@@ -617,7 +617,13 @@ extension SQLRelation {
             // ->
             // SELECT COUNT(*) FROM tableName ...
             let countRelation = unordered().select(.countAll)
-            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+            do {
+                return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+            } catch {
+                // <https://github.com/groue/GRDB.swift/issues/1357>
+                // TODO: can we inspect the request and avoid catching an error?
+                return try fetchTrivialCount(db)
+            }
         }
     }
     
