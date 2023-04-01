@@ -128,6 +128,7 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
+	  -destination "platform=macOS" \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -249,6 +250,7 @@ test_install_SPM_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -266,6 +268,7 @@ test_install_SPM_macos_release:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/macos/macos.xcodeproj \
 	  -scheme macos \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -283,6 +286,7 @@ test_install_customSQLite: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project Tests/CustomSQLite/CustomSQLite.xcodeproj \
 	  -scheme CustomSQLite \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -357,6 +361,7 @@ test_performance:
 	$(XCODEBUILD) \
 	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
+	  -destination "platform=macOS" \
 	  build-for-testing test-without-building
 
 # Target that setups SQLite custom builds with extra compilation options.
