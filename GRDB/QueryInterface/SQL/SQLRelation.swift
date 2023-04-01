@@ -612,18 +612,17 @@ extension SQLRelation {
             guard !isDistinct else {
                 return try fetchTrivialCount(db)
             }
-    
+            
+            // <https://github.com/groue/GRDB.swift/issues/1357>
+            guard selection.allSatisfy(\.isTriviallyCountable) else {
+                return try fetchTrivialCount(db)
+            }
+            
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
             let countRelation = unordered().select(.countAll)
-            do {
-                return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
-            } catch {
-                // <https://github.com/groue/GRDB.swift/issues/1357>
-                // TODO: can we inspect the request and avoid catching an error?
-                return try fetchTrivialCount(db)
-            }
+            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
         }
     }
     
