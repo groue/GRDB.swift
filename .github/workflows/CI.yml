@@ -38,6 +38,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - xcode: "Xcode_14.2.app"
+            runsOn: macOS-12
+            destination: "platform=macOS"
+            name: "macOS"
+          - xcode: "Xcode_14.2.app"
+            runsOn: macOS-12
+            destination: "OS=16.2,name=iPhone 14"
+            name: "iOS"
+          - xcode: "Xcode_14.2.app"
+            runsOn: macOS-12
+            destination: "OS=16.1,name=Apple TV"
+            name: "tvOS"
           - xcode: "Xcode_14.1.app"
             runsOn: macOS-12
             destination: "platform=macOS"
@@ -46,10 +58,6 @@ jobs:
             runsOn: macOS-12
             destination: "OS=16.1,name=iPhone 14"
             name: "iOS"
-          - xcode: "Xcode_14.1.app"
-            runsOn: macOS-12
-            destination: "OS=16.1,name=Apple TV"
-            name: "tvOS"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
             destination: "platform=macOS"
@@ -72,6 +80,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - xcode: "Xcode_14.2.app"
+            runsOn: macOS-12
+            name: "Xcode 14.2"
           - xcode: "Xcode_14.1.app"
             runsOn: macOS-12
             name: "Xcode 14.1"
@@ -92,9 +103,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.1.app"
+          - xcode: "Xcode_14.2.app"
             runsOn: macOS-12
-            name: "Xcode 14.1"
+            name: "Xcode 14.2"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
@@ -109,9 +120,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.1.app"
+          - xcode: "Xcode_14.2.app"
             runsOn: macOS-12
-            name: "Xcode 14.1"
+            name: "Xcode 14.2"
+          - xcode: "Xcode_14.0.1.app"
+            runsOn: macOS-12
+            name: "Xcode 14.0.1"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
@@ -126,9 +140,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.1.app"
+          - xcode: "Xcode_14.2.app"
             runsOn: macOS-12
-            name: "Xcode 14.1"
+            name: "Xcode 14.2"
+          - xcode: "Xcode_14.0.1.app"
+            runsOn: macOS-12
+            name: "Xcode 14.0.1"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
@@ -143,9 +160,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.1.app"
+          - xcode: "Xcode_14.2.app"
             runsOn: macOS-12
-            name: "Xcode 14.1"
+            name: "Xcode 14.2"
+          - xcode: "Xcode_14.0.1.app"
+            runsOn: macOS-12
+            name: "Xcode 14.0.1"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}

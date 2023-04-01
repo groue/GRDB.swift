@@ -52,10 +52,13 @@ MAX_IOS_DESTINATION := $(shell xcrun simctl list -j devices available | Scripts/
 MIN_TVOS_DESTINATION := $(shell xcrun simctl list -j devices available | Scripts/destination.rb | grep tvOS | sort -n | head -1 | cut -wf 3 | sed 's/\(.*\)/"platform=tvOS Simulator,id=\1"/')
 MAX_TVOS_DESTINATION := $(shell xcrun simctl list -j devices available | Scripts/destination.rb | grep tvOS | sort -rn | head -1 | cut -wf 3 | sed 's/\(.*\)/"platform=tvOS Simulator,id=\1"/')
 
-# If xcpretty is available, use it for xcodebuild output
+# If xcbeautify or xcpretty is available, use it for xcodebuild output
 XCPRETTY = 
+XCBEAUTIFY_PATH := $(shell command -v xcbeautify 2> /dev/null)
 XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
-ifdef XCPRETTY_PATH
+ifdef XCBEAUTIFY_PATH
+  XCPRETTY = | xcbeautify
+else ifdef XCPRETTY_PATH
   XCPRETTY = | xcpretty -c
 endif
 
@@ -128,6 +131,7 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
+	  -destination "platform=macOS" \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -249,6 +253,7 @@ test_install_SPM_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -266,6 +271,7 @@ test_install_SPM_macos_release:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/macos/macos.xcodeproj \
 	  -scheme macos \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -283,6 +289,7 @@ test_install_customSQLite: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project Tests/CustomSQLite/CustomSQLite.xcodeproj \
 	  -scheme CustomSQLite \
+	  -destination "platform=macOS" \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -357,6 +364,7 @@ test_performance:
 	$(XCODEBUILD) \
 	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
+	  -destination "platform=macOS" \
 	  build-for-testing test-without-building
 
 # Target that setups SQLite custom builds with extra compilation options.

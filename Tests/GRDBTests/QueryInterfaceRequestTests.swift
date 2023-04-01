@@ -136,6 +136,21 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1357>
+    func testIssue1357() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = tableRequest
+                .annotated(with: Column("name").forKey("alt"))
+                .filter(Column("alt").detached)
+            
+            XCTAssertEqual(try request.fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT COUNT(*) FROM (SELECT *, "name" AS "alt" FROM "readers" WHERE "alt")
+                """)
+        }
+    }
+    
     
     // MARK: - Select
     

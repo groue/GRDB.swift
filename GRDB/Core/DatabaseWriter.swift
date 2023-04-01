@@ -289,14 +289,13 @@ public protocol DatabaseWriter: DatabaseReader {
     /// ```
     ///
     /// - note: Usage of this method is discouraged, because waiting on the
-    ///   returned ``DatabaseFuture`` blocks a thread. You may prefer the
-    ///   asynchronous version of this method: ``spawnConcurrentRead(_:)``.
+    ///   returned ``DatabaseFuture`` blocks a thread. You may prefer
+    ///   ``spawnConcurrentRead(_:)`` instead.
     /// - parameter value: A closure which accesses the database.
     func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T>
     
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
-    /// Schedules read-only database operations for execution, and
-    /// returns immediately.
+    /// Schedules read-only database operations for execution.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
@@ -311,7 +310,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// by the database writer.
     ///
     /// In the example below, the number of players is fetched concurrently with
-    /// the player insertion. Yet the future is guaranteed to return zero:
+    /// the player insertion. Yet it is guaranteed to return zero:
     ///
     /// ```swift
     /// try writer.writeWithoutTransaction { db in
@@ -333,6 +332,10 @@ public protocol DatabaseWriter: DatabaseReader {
     ///     try Player(...).insert(db)
     /// }
     /// ```
+    ///
+    /// - important: The database operations are executed immediately,
+    ///   or asynchronously, depending on the actual class
+    ///   of `DatabaseWriter`.
     ///
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure

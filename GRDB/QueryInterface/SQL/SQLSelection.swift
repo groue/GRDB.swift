@@ -244,6 +244,18 @@ extension SQLSelection {
             return .literal(sqlLiteral.qualified(with: alias))
         }
     }
+    
+    /// Supports SQLRelation.fetchCount.
+    ///
+    /// See <https://github.com/groue/GRDB.swift/issues/1357>
+    var isTriviallyCountable: Bool {
+        switch impl {
+        case .aliasedExpression, .literal:
+            return false
+        case .allColumns, .qualifiedAllColumns, .expression:
+            return true
+        }
+    }
 }
 
 extension [SQLSelection] {

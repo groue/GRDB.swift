@@ -612,7 +612,12 @@ extension SQLRelation {
             guard !isDistinct else {
                 return try fetchTrivialCount(db)
             }
-    
+            
+            // <https://github.com/groue/GRDB.swift/issues/1357>
+            guard selection.allSatisfy(\.isTriviallyCountable) else {
+                return try fetchTrivialCount(db)
+            }
+            
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...

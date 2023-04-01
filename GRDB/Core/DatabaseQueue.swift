@@ -225,21 +225,22 @@ extension DatabaseQueue: DatabaseReader {
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         writer.async { db in
-            do {
-                // The transaction guarantees snapshot isolation against eventual
-                // external connection.
-                try db.beginTransaction(.deferred)
-                try db.beginReadOnly()
-            } catch {
-                value(.failure(error))
-                return
+            defer {
+                // Ignore error because we can not notify it.
+                try? db.commit()
+                try? db.endReadOnly()
             }
             
-            value(.success(db))
-            
-            // Ignore error because we can not notify it.
-            try? db.endReadOnly()
-            try? db.commit()
+            do {
+                // Enter read-only mode before starting a transaction, so that the
+                // transaction commit does not trigger database observation.
+                // See <https://github.com/groue/GRDB.swift/pull/1213>.
+                try db.beginReadOnly()
+                try db.beginTransaction(.deferred)
+                value(.success(db))
+            } catch {
+                value(.failure(error))
+            }
         }
     }
     
@@ -273,20 +274,23 @@ extension DatabaseQueue: DatabaseReader {
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
-            
-            do {
-                try db.beginTransaction(.deferred)
-                try db.beginReadOnly()
-            } catch {
-                value(.failure(error))
-                return
+
+            defer {
+                // Ignore error because we can not notify it.
+                try? db.commit()
+                try? db.endReadOnly()
             }
             
-            value(.success(db))
-            
-            // Ignore error because we can not notify it.
-            try? db.endReadOnly()
-            try? db.commit()
+            do {
+                // Enter read-only mode before starting a transaction, so that the
+                // transaction commit does not trigger database observation.
+                // See <https://github.com/groue/GRDB.swift/pull/1213>.
+                try db.beginReadOnly()
+                try db.beginTransaction(.deferred)
+                value(.success(db))
+            } catch {
+                value(.failure(error))
+            }
         }
     }
     
