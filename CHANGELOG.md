@@ -108,6 +108,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: [#1357](https://github.com/groue/GRDB.swift/pull/1357) `QueryInterfaceRequest.fetchCount` no longer executes invalid SQL queries for some requests.
+
 ## 6.10.0
 
 Released March 20, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.9.2...v6.10.0)
