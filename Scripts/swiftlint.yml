@@ -62,7 +62,6 @@ opt_in_rules:
   - sorted_first_last
   - sorted_imports
   - toggle_bool
-  - unused_capture_list
   - vertical_parameter_alignment_on_call
   - yoda_condition
 
