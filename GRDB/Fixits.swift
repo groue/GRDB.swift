@@ -167,3 +167,5 @@ extension ValueObservation {
     where Reducer == ValueReducers.Fetch<Value>
     { preconditionFailure() }
 }
+
+// swiftlint:enable all
