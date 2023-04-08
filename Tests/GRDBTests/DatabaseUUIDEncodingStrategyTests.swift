@@ -53,7 +53,11 @@ class DatabaseUUIDEncodingStrategyTests: GRDBTestCase {
         }
     }
     
-    private func test<Strategy: StrategyProvider>(strategy: Strategy.Type, encodesUUID uuid: UUID, as value: DatabaseValueConvertible) throws {
+    private func test<Strategy: StrategyProvider>(
+        strategy: Strategy.Type,
+        encodesUUID uuid: UUID,
+        as value: any DatabaseValueConvertible)
+    throws {
         try test(record: RecordWithUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
         try test(record: RecordWithOptionalUUID<Strategy>(uuid: uuid), expectedStorage: value.databaseValue.storage)
     }

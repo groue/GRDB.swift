@@ -50,7 +50,7 @@ private struct T2: Codable, FetchableRecord, TableRecord {
 
 private struct T3: Codable, FetchableRecord, TableRecord {
     static let databaseTableName = "t3"
-    static let databaseSelection: [SQLSelectable] = [Column("t1id"), Column("name")]
+    static let databaseSelection: [any SQLSelectable] = [Column("t1id"), Column("name")]
     var t1id: Int64
     var name: String
 }

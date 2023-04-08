@@ -6,7 +6,7 @@ import GRDB
 // A custom tokenizer that ignores some tokens
 private final class StopWordsTokenizer : FTS5CustomTokenizer {
     static let name = "stopWords"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     let ignoredTokens: [String]
     
     init(db: Database, arguments: [String]) throws {
@@ -62,7 +62,7 @@ private final class StopWordsTokenizer : FTS5CustomTokenizer {
 // A custom tokenizer that converts tokens to NFKC so that "fi" can match "ﬁ" (U+FB01: LATIN SMALL LIGATURE FI)
 private final class NFKCTokenizer : FTS5CustomTokenizer {
     static let name = "nfkc"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
@@ -119,7 +119,7 @@ private final class NFKCTokenizer : FTS5CustomTokenizer {
 // A custom tokenizer that defines synonyms
 private final class SynonymsTokenizer : FTS5CustomTokenizer {
     static let name = "synonyms"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     let synonyms: [Set<String>]
     
     init(db: Database, arguments: [String]) throws {

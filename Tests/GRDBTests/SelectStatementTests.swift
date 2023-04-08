@@ -98,7 +98,7 @@ class SelectStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < :age")
-            let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+            let ageDicts: [[String: (any DatabaseValueConvertible)?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
             let counts = try ageDicts.map { dic -> Int in
                 // Make sure we don't trigger a failible initializer
                 let arguments: StatementArguments = StatementArguments(dic)
@@ -112,7 +112,7 @@ class SelectStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < :age")
-            let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+            let ageDicts: [[String: (any DatabaseValueConvertible)?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
             let counts = try ageDicts.map { ageDict -> Int in
                 statement.arguments = StatementArguments(ageDict)
                 return try Int.fetchOne(statement)!

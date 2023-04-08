@@ -395,7 +395,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             return writer
         }
         
-        func test(writer: DatabaseWriter, iteration: Int) throws {
+        func test(writer: some DatabaseWriter, iteration: Int) throws {
             // print(iteration)
             let scoreSubject = PassthroughSubject<Int, Error>()
             let publisher = scoreSubject

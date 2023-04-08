@@ -19,7 +19,7 @@ extension Book : FetchableRecord {
 
 extension Book : MutablePersistableRecord {
     static let databaseTableName = "books"
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
     
     func encode(to container: inout PersistenceContainer) {
         container[.rowID] = id

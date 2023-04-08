@@ -567,7 +567,7 @@ extension GRDBTestCase {
     
     func assertValueObservation<Reducer: ValueReducer, Failure: Error>(
         _ observation: ValueObservation<Reducer>,
-        fails testFailure: (Failure, DatabaseWriter) throws -> Void,
+        fails testFailure: (Failure, any DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)

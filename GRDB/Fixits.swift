@@ -57,7 +57,7 @@ extension DatabaseCursor {
 extension DatabaseMigrator {
     @available(*, unavailable, message: "The completion function now accepts one Result<Database, Error> argument")
     public func asyncMigrate(
-        _ writer: DatabaseWriter,
+        _ writer: any DatabaseWriter,
         completion: @escaping (Database, Error?) -> Void)
     { preconditionFailure() }
 }

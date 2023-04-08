@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 class FoundationNSUUIDTests: GRDBTestCase {
-    private func assert(_ value: DatabaseValueConvertible?, isDecodedAs expectedUUID: NSUUID?) throws {
+    private func assert(_ value: (any DatabaseValueConvertible)?, isDecodedAs expectedUUID: NSUUID?) throws {
         try makeDatabaseQueue().read { db in
             if let expectedUUID {
                 let decodedUUID = try NSUUID.fetchOne(db, sql: "SELECT ?", arguments: [value])

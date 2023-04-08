@@ -11,7 +11,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     /// Helps dealing with various SQLite versions
-    private func region(sql: String, in dbReader: DatabaseReader) throws -> String {
+    private func region(sql: String, in dbReader: some DatabaseReader) throws -> String {
         try dbReader.read { db in
             try db
                 .makeStatement(sql: sql)

@@ -572,7 +572,7 @@ public struct ScopeAdapter: RowAdapter {
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
-    public init(_ scopes: [String: RowAdapter]) {
+    public init(_ scopes: [String: any RowAdapter]) {
         // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
         self.init(base: SuffixRowAdapter(fromIndex: 0), scopes: scopes)
     }

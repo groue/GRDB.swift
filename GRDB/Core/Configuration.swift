@@ -182,7 +182,7 @@ public struct Configuration {
     /// var config = Configuration()
     /// config.transactionClock = .custom { db in /* return some Date */ }
     /// ```
-    public var transactionClock: TransactionClock = .default
+    public var transactionClock: any TransactionClock = .default
     
     // MARK: - Managing SQLite Connections
     

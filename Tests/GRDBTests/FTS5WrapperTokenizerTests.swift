@@ -6,7 +6,7 @@ import GRDB
 // A custom wrapper tokenizer that ignores some tokens
 private final class StopWordsTokenizer : FTS5WrapperTokenizer {
     static let name = "stopWords"
-    var wrappedTokenizer: FTS5Tokenizer
+    var wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
@@ -29,7 +29,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
 // A custom wrapper tokenizer that converts tokens to LatinAscii so that "fi" can match "ﬁ" (U+FB01: LATIN SMALL LIGATURE FI), "ß", "ss", and "æ", "ae".
 private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
     static let name = "latinascii"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     init(db: Database, arguments: [String]) throws {
         wrappedTokenizer = try db.makeTokenizer(.unicode61())
@@ -46,7 +46,7 @@ private final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
 // A custom wrapper tokenizer that defines synonyms
 private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     static let name = "synonyms"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     let synonyms: [Set<String>] = [["first", "1st"]]
     
     init(db: Database, arguments: [String]) throws {
@@ -87,7 +87,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
 
 class CustomizedUnicode61WrappingTokenizer: FTS5WrapperTokenizer {
     static let name = "custom_unicode61"
-    let wrappedTokenizer: FTS5Tokenizer
+    let wrappedTokenizer: any FTS5Tokenizer
     
     required init(db: Database, arguments: [String]) throws {
         wrappedTokenizer = try db.makeTokenizer(.unicode61(diacritics: .removeLegacy, separators: ["X"]))

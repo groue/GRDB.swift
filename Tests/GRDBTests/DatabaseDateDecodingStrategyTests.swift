@@ -62,7 +62,7 @@ class DatabaseDateDecodingStrategyTests: GRDBTestCase {
         _ db: Database,
         record: T.Type,
         date: (T) -> Date?,
-        databaseValue: DatabaseValueConvertible?,
+        databaseValue: (any DatabaseValueConvertible)?,
         with test: (Date?) -> Void) throws
     {
         let request = SQLRequest<Void>(sql: "SELECT ? AS date", arguments: [databaseValue])
@@ -79,7 +79,13 @@ class DatabaseDateDecodingStrategyTests: GRDBTestCase {
     }
     
     /// test the conversion from a database value to a date with a given strategy
-    private func test<Strategy: StrategyProvider>(_ db: Database, strategy: Strategy.Type, databaseValue: DatabaseValueConvertible, _ test: (Date) -> Void) throws {
+    private func test<Strategy: StrategyProvider>(
+        _ db: Database,
+        strategy: Strategy.Type,
+        databaseValue: some DatabaseValueConvertible,
+        _ test: (Date) -> Void)
+    throws
+    {
         try self.test(db, record: RecordWithDate<Strategy>.self, date: { $0.date }, databaseValue: databaseValue, with: { test($0!) })
         try self.test(db, record: RecordWithOptionalDate<Strategy>.self, date: { $0.date }, databaseValue: databaseValue, with: { test($0!) })
     }

@@ -10,6 +10,9 @@ var swiftSettings: [SwiftSetting] = [
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
 
+// For Swift 5.8+
+//swiftSettings.append(.enableUpcomingFeature("ExistentialAny"))
+
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
 if ProcessInfo.processInfo.environment["SQLITE_ENABLE_PREUPDATE_HOOK"] == "1" {

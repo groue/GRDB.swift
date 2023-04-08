@@ -27,7 +27,7 @@ private class Person : Record, Hashable {
     
     // Record
     
-    override static var databaseSelection: [SQLSelectable] {
+    override static var databaseSelection: [any SQLSelectable] {
         [AllColumns(), Column.rowID]
     }
     

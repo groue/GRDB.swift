@@ -18,7 +18,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateReturningNull() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { nil }
+            func finalize() -> (any DatabaseValueConvertible)? { nil }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -31,7 +31,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateReturningInt64() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { Int64(1) }
+            func finalize() -> (any DatabaseValueConvertible)? { Int64(1) }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -45,7 +45,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { 1e100 }
+            func finalize() -> (any DatabaseValueConvertible)? { 1e100 }
         }
         try dbQueue.inDatabase { db in
             let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
@@ -57,7 +57,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateReturningString() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { "foo" }
+            func finalize() -> (any DatabaseValueConvertible)? { "foo" }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -70,7 +70,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateReturningData() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? {
+            func finalize() -> (any DatabaseValueConvertible)? {
                 "foo".data(using: .utf8)
             }
         }
@@ -85,7 +85,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateReturningCustomValueType() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ values: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { CustomValueType() }
+            func finalize() -> (any DatabaseValueConvertible)? { CustomValueType() }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -99,11 +99,11 @@ class DatabaseAggregateTests: GRDBTestCase {
     
     func testAggregateArgumentNil() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = dbValues[0].isNull
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -120,11 +120,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateArgumentInt64() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = Int64.fromDatabaseValue(dbValues[0])
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -138,11 +138,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateArgumentDouble() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = Double.fromDatabaseValue(dbValues[0])
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -156,11 +156,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateArgumentString() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = String.fromDatabaseValue(dbValues[0])
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -173,11 +173,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateArgumentBlob() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = Data.fromDatabaseValue(dbValues[0])
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -191,11 +191,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateArgumentCustomValueType() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = CustomValueType.fromDatabaseValue(dbValues[0])
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -211,7 +211,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateWithoutArgument() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { "foo" }
+            func finalize() -> (any DatabaseValueConvertible)? { "foo" }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -232,11 +232,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateOfOneArgument() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = String.fromDatabaseValue(dbValues[0])?.uppercased()
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -259,12 +259,12 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testAggregateOfTwoArguments() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 let ints = dbValues.compactMap { Int.fromDatabaseValue($0) }
                 result = ints.reduce(0, +)
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -285,11 +285,11 @@ class DatabaseAggregateTests: GRDBTestCase {
 
     func testVariadicFunction() throws {
         struct Aggregate : DatabaseAggregate {
-            var result: DatabaseValueConvertible?
+            var result: (any DatabaseValueConvertible)?
             mutating func step(_ dbValues: [DatabaseValue]) {
                 result = dbValues.count
             }
-            func finalize() -> DatabaseValueConvertible? { result }
+            func finalize() -> (any DatabaseValueConvertible)? { result }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -308,7 +308,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw DatabaseError(message: "custom error message")
             }
-            func finalize() -> DatabaseValueConvertible? { fatalError() }
+            func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -329,7 +329,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw DatabaseError(resultCode: ResultCode(rawValue: 123))
             }
-            func finalize() -> DatabaseValueConvertible? { fatalError() }
+            func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -350,7 +350,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw DatabaseError(resultCode: ResultCode(rawValue: 123), message: "custom error message")
             }
-            func finalize() -> DatabaseValueConvertible? { fatalError() }
+            func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -371,7 +371,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
             }
-            func finalize() -> DatabaseValueConvertible? { fatalError() }
+            func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -394,7 +394,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateResultThrowingDatabaseErrorWithMessage() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() throws -> DatabaseValueConvertible? {
+            func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw DatabaseError(message: "custom error message")
             }
         }
@@ -415,7 +415,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateResultThrowingDatabaseErrorWithCode() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() throws -> DatabaseValueConvertible? {
+            func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw DatabaseError(resultCode: ResultCode(rawValue: 123))
             }
         }
@@ -436,7 +436,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateResultThrowingDatabaseErrorWithMessageAndCode() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() throws -> DatabaseValueConvertible? {
+            func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw DatabaseError(resultCode: ResultCode(rawValue: 123), message: "custom error message")
             }
         }
@@ -457,7 +457,7 @@ class DatabaseAggregateTests: GRDBTestCase {
     func testAggregateResultThrowingCustomError() throws {
         struct Aggregate : DatabaseAggregate {
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() throws -> DatabaseValueConvertible? {
+            func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
             }
         }
@@ -487,7 +487,7 @@ class DatabaseAggregateTests: GRDBTestCase {
                     sum = (sum ?? 0) + int
                 }
             }
-            func finalize() throws -> DatabaseValueConvertible? { sum }
+            func finalize() throws -> (any DatabaseValueConvertible)? { sum }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -505,7 +505,7 @@ class DatabaseAggregateTests: GRDBTestCase {
                     sum = (sum ?? 0) + int
                 }
             }
-            func finalize() throws -> DatabaseValueConvertible? { sum }
+            func finalize() throws -> (any DatabaseValueConvertible)? { sum }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -526,7 +526,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             init() { Aggregate.onInit?() }
             deinit { Aggregate.onDeinit?() }
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() -> DatabaseValueConvertible? { nil }
+            func finalize() -> (any DatabaseValueConvertible)? { nil }
         }
         var allocationCount = 0
         var aliveCount = 0
@@ -559,7 +559,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw DatabaseError(message: "boo")
             }
-            func finalize() -> DatabaseValueConvertible? { fatalError() }
+            func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
         }
         var allocationCount = 0
         var aliveCount = 0
@@ -590,7 +590,7 @@ class DatabaseAggregateTests: GRDBTestCase {
             init() { Aggregate.onInit?() }
             deinit { Aggregate.onDeinit?() }
             func step(_ dbValues: [DatabaseValue]) { }
-            func finalize() throws -> DatabaseValueConvertible? {
+            func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw DatabaseError(message: "boo")
             }
         }

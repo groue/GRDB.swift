@@ -5,7 +5,7 @@ func insertItem(_ db: Database, name: String) throws {
     try db.execute(sql: "INSERT INTO items (name) VALUES (?)", arguments: [name])
 }
 
-func fetchAllItemNames(_ dbReader: DatabaseReader) throws -> [String] {
+func fetchAllItemNames(_ dbReader: some DatabaseReader) throws -> [String] {
     try dbReader.read { db in
         try String.fetchAll(db, sql: "SELECT * FROM items ORDER BY name")
     }
