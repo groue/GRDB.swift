@@ -2,7 +2,6 @@ extension Database {
     
     // MARK: - Database Schema
     
-    // TODO: deprecate just before GRDB 6
     /// Creates a database table.
     ///
     /// For example:
@@ -321,7 +320,6 @@ extension Database {
         try execute(sql: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
-    // TODO: deprecate just before GRDB 6
     /// Creates an index.
     ///
     /// For example:
