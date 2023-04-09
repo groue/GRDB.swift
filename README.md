@@ -359,7 +359,7 @@ Documentation
 
 #### General Guides & Good Practices
 
-- :bulb: [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
+- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
 - :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 - :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
 - :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
@@ -1706,7 +1706,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 
 > **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 >
-> :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+> :bulb: **Tip**: after you have read this chapter, check the [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) Guide.
 >
 > :bulb: **Tip**: see the [Demo Applications] for sample apps that uses records.
 
@@ -2828,7 +2828,7 @@ extension Player: FetchableRecord, PersistableRecord {
 }
 ```
 
-See the [query interface](#the-query-interface) and [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) for further information.
+See the [query interface](#the-query-interface) and [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) for further information.
 
 
 ## Record Class

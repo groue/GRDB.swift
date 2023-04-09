@@ -68,8 +68,7 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 
 /// Define some player requests used by the application.
 ///
-/// See <https://github.com/groue/GRDB.swift/blob/master/README.md#requests>
-/// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md>
+/// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices>
 extension DerivableRequest<Player> {
     /// A request of players ordered by name.
     ///

@@ -27,12 +27,13 @@ Compared to [SQLite.swift](https://github.com/stephencelis/SQLite.swift) or [FMD
 
 - <doc:DatabaseSchema>
 - <doc:Migrations>
-- <doc:SingleRowTables>
 
 ### Records and the Query Interface
 
 - <doc:QueryInterface>
+- <doc:RecordRecommendedPractices>
 - <doc:RecordTimestamps>
+- <doc:SingleRowTables>
 
 ### Responding to Database Changes
 

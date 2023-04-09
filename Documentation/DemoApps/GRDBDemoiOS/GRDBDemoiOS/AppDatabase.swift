@@ -3,9 +3,6 @@ import os.log
 
 /// `AppDatabase` lets the application access the database.
 ///
-/// It applies the pratices recommended at
-/// <https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md>.
-///
 /// You create an `AppDatabase` with a connection to an SQLite database
 /// (see <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>).
 ///
