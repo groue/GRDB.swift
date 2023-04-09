@@ -5,7 +5,7 @@ import GRDB
 class AppDatabaseTests: XCTestCase {
     func test_database_schema() throws {
         // Given an empty database
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         
         // When we instantiate an AppDatabase
         _ = try AppDatabase(dbQueue)
@@ -21,7 +21,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_savePlayer_inserts() throws {
         // Given an empty players database
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         
         // When we save a new player
@@ -34,7 +34,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_savePlayer_updates() throws {
         // Given a players database that contains a player
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         var player = Player(id: nil, name: "Arthur", score: 100)
         try dbQueue.write { db in
@@ -55,7 +55,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_deletePlayers() throws {
         // Given a players database that contains four players
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         var player1 = Player(id: nil, name: "Arthur", score: 100)
         var player2 = Player(id: nil, name: "Barbara", score: 200)
@@ -83,7 +83,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_deleteAllPlayers() throws {
         // Given a players database that contains players
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         var player1 = Player(id: nil, name: "Arthur", score: 100)
         var player2 = Player(id: nil, name: "Barbara", score: 200)
@@ -105,7 +105,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_refreshPlayers_populates_an_empty_database() throws {
         // Given an empty players database
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         
         // When we refresh players
@@ -117,7 +117,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_createRandomPlayersIfEmpty_populates_an_empty_database() throws {
         // Given an empty players database
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         
         // When we create random players
@@ -129,7 +129,7 @@ class AppDatabaseTests: XCTestCase {
     
     func test_createRandomPlayersIfEmpty_does_not_modify_a_non_empty_database() throws {
         // Given a players database that contains one player
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         let appDatabase = try AppDatabase(dbQueue)
         var player = Player(id: nil, name: "Arthur", score: 100)
         try dbQueue.write { db in
