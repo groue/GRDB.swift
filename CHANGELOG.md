@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.10.x` Releases - [6.10.0](#6100) - [6.10.1](#6101)
+- `6.10.x` Releases - [6.10.0](#6100) - [6.10.1](#6101) - [6.10.2](#6102)
 - `6.9.x` Releases - [6.9.0](#690) - [6.9.1](#691) - [6.9.2](#692)
 - `6.8.x` Releases - [6.8.0](#680)
 - `6.7.x` Releases - [6.7.0](#670)
@@ -108,7 +108,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.10.2
+
+Released April 10, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.10.1...v6.10.2)
 
 - **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) guide has moved to DocC.
 - **Documentation Update**: The [Demo Applications](Documentation/DemoApps/) demonstrate how their `AppDatabase` "database manager" can provide a base database configuration. 
