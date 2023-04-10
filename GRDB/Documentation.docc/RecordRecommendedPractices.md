@@ -8,13 +8,6 @@ GRDB sits right between low-level SQLite wrappers, and high-level ORMs like [Cor
 
 This is the topic of this article. Examples will be illustrated with a simple library database made of books and their authors.
 
-- <doc:RecordRecommendedPractices#Trust-SQLite-More-Than-Yourself>
-- <doc:RecordRecommendedPractices#Persistable-Record-Types-are-Responsible-for-Their-Tables>
-- <doc:RecordRecommendedPractices#Record-Types-Hide-Intimate-Database-Details>
-- <doc:RecordRecommendedPractices#Singleton-Records>
-- <doc:RecordRecommendedPractices#Record-Requests>
-- <doc:RecordRecommendedPractices#Associations>
-
 ## Trust SQLite More Than Yourself
 
 Let's put things in the right order. An SQLite database stored on a user's device is more important than the Swift code that accesses it. When a user installs a new version of an application, only the database stored on the user's device remains the same. But all the Swift code may have changed.
@@ -66,7 +59,9 @@ Thanks to this database schema, the application will always process *consistent 
 
 > Tip: **Plan early for future versions of your application**: use <doc:Migrations>.
 
-## Persistable Record Types are Responsible for Their Tables
+## Record Types
+
+### Persistable Record Types are Responsible for Their Tables
 
 **Define one record type per database table.** This record type will be responsible for writing in this table.
 
@@ -129,10 +124,6 @@ let books = try dbQueue.read { db in
 }
 ```
 
-The `Book` and `Author` are independent structs that don't know each other. There is no `books` property in the `Author` struct, and there is no `author` property in the `Book` struct. Each type is fully responsible for its own table.
-
-The relationship between author and books will be detailed below, in the <doc:RecordRecommendedPractices#Associations> section.
-
 > Tip: When a column of a database table can't be NULL, define a non-optional property in the record type. On the other side, when the database may contain NULL, define an optional property. Compare:
 >
 > ```swift
@@ -164,7 +155,7 @@ The relationship between author and books will be detailed below, in the <doc:Re
 > }
 > ```
 
-## Record Types Hide Intimate Database Details
+### Record Types Hide Intimate Database Details
 
 In the previous sample codes, the `Book` and `Author` structs have one property per database column, and their types are natively supported by SQLite (`String`, `Int`, etc.)
 
@@ -174,7 +165,7 @@ When this happens, it's time to **distinguish the Swift and database representat
 
 Let's look at three examples.
 
-### First Example: Enums
+#### First Example: Enums
 
 Authors write books, and more specifically novels, poems, essays, or theatre plays. Let's add a `kind` column in the database. We decide that a book kind is represented as a string ("novel", "essay", etc.) in the database:
 
@@ -212,7 +203,7 @@ let novels = try dbQueue.read { db in
 }
 ```
 
-### Second Example: GPS Coordinates
+#### Second Example: GPS Coordinates
 
 GPS coordinates can be stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
 
@@ -248,7 +239,7 @@ struct Place: Codable {
 
 Generally speaking, private properties make it possible to hide raw columns from the rest of the application. The next example shows another application of this technique.
 
-### Third Example: Money Amounts
+#### Third Example: Money Amounts
 
 Before storing money amounts in an SQLite database, take care that [floating-point numbers are never a good fit](https://stackoverflow.com/questions/3730019/why-not-use-double-or-float-to-represent-currency).
 
@@ -285,17 +276,11 @@ struct Product: Codable {
 }
 ```
 
-## Singleton Records
-
-Singleton Records are records that store configuration values, user preferences, and generally some global application state. They are backed by a database table that contains a single row.
-
-The recommended setup for such records is described in the <doc:SingleRowTables> guide.
-
 ## Record Requests
 
 Once we have record types that are able to read and write in the database, we'd like to perform database requests of such records. 
 
-### Define Columns and Perform Requests
+### Columns 
 
 Requests that filter or sort records are defined with **columns**, defined in a dedicated enumeration. When the record type conforms to [`Codable`], columns can be derived from the `CodingKeys` enum:
 
@@ -361,6 +346,12 @@ extension DerivableRequest<Author> {
 
 // Book requests
 extension DerivableRequest<Book> {
+    /// Order books by title, in a localized case-insensitive fashion
+    func orderByTitle() -> Self {
+        let title = Book.Columns.title
+        return order(title.collating(.localizedCaseInsensitiveCompare))
+    }
+    
     /// Filters books by kind
     func filter(kind: Book.Kind) -> Self {
         filter(Book.Columns.kind == kind)
@@ -393,18 +384,16 @@ extension QueryInterfaceRequest<Author> {
     }
 }
 
-// The ids of French authors
+// The ids of Japanese authors
 let ids: Set<Int64> = try Author.all()
-    .filter(countryCode: "FR")
+    .filter(countryCode: "JP")
     .selectId()
     .fetchSet(db)
 ```
 
 ## Associations
 
-So far, the `Book` and `Author` types don't know each other. The only meeting point is the `Book.authorId` property.
-
-Associations help navigating from authors to their books and vice versa. Because the `book` table has an `authorId` column, we say that each book **belongs to** its author, and each author **has many** books:
+[Associations] help navigating from authors to their books and vice versa. Because the `book` table has an `authorId` column, we say that each book **belongs to** its author, and each author **has many** books:
 
 ```swift
 extension Book {
@@ -416,20 +405,22 @@ extension Author {
 }
 ```
 
-Those associations have many uses, so let's just give a few examples. The [Associations Guide] gives the full picture.
-
-### More Reusable Requests
-
-Associations make it possible to define more convenience request methods, similar to those seen in the <doc:RecordRecommendedPractices#Turn-Commonly-Used-Requests-into-Methods> section above:
+With associations, you can fetch a book's author, or an author's books:
 
 ```swift
-extension DerivableRequest<Author> {
-    /// Filters authors with at least one book
-    func havingBooks() -> Self {
-        having(Author.books.isEmpty == false)
-    }
+// Fetch all novels from an author
+try dbQueue.read { db in
+    let author: Author = ...
+    let novels: [Book] = try author.request(for: Author.books)
+        .filter(kind: .novel)
+        .orderByTitle()
+        .fetchAll(db)
 }
+```
 
+Associations also make it possible to define more convenience request methods:
+
+```swift
 extension DerivableRequest<Book> {
     /// Filters books from a country
     func filter(authorCountryCode countryCode: String) -> Self {
@@ -439,11 +430,8 @@ extension DerivableRequest<Book> {
     }
 }
 
+// Fetch all Italian novels
 try dbQueue.read { db in
-    let nonLazyAuthors: [Author] = try Author.all()
-        .havingBooks()
-        .fetchAll(db)
-    
     let italianNovels: [Book] = try Book.all()
         .filter(kind: .novel)
         .filter(authorCountryCode: "IT")
@@ -451,9 +439,15 @@ try dbQueue.read { db in
 }
 ```
 
-### Composed Records
+With associations, you can also process graphs of authors and books, as described in the next section. 
 
-Associations can also compose records together into richer types:
+### How to Model Graphs of Objects
+
+Since the beginning of this article, the `Book` and `Author` are independent structs that don't know each other. The only "meeting point" is the `Book.authorId` property.
+
+Record types don't know each other on purpose: one does not need to know the author of a book when it's time to update the title of a book, for example.
+
+When an application wants to process authors and books together, it defines dedicated types that model the desired view on the graph of related objects. For example:
 
 ```swift
 // Fetch all authors along with their number of books
@@ -470,18 +464,17 @@ let authorInfos: [AuthorInfo] = try dbQueue.read { db in
 ```
 
 ```swift
-// Fetch the careers of French authors, sorted by name
-struct Career: Codable, FetchableRecord {
+// Fetch the literary careers of German authors, sorted by name
+struct LiteraryCareer: Codable, FetchableRecord {
     var author: Author
     var books: [Book]
 }
-let authorId = 123
-let careers: [Career] = try dbQueue.read { db in
+let careers: [LiteraryCareer] = try dbQueue.read { db in
     try Author
-        .filter(countryCode: "FR")
+        .filter(countryCode: "DE")
         .orderByName()
         .including(all: Author.books)
-        .asRequest(of: Career.self)
+        .asRequest(of: LiteraryCareer.self)
         .fetchAll(db)
 }
 ```
@@ -500,32 +493,81 @@ let authorships: [Authorship] = try dbQueue.read { db in
     
     // Equivalent alternative
     try Book.all()
-        .filter(countryAuthorCode: "CO")
+        .filter(authorCountryCode: "CO")
         .including(required: Book.author)
         .asRequest(of: Authorship.self)
         .fetchAll(db)
 }
 ```
 
-In the above sample codes, requests that fetch values from several tables are decoded into additional record types: `AuthorInfo`, `Career`, and `Authorship`.
+In the above sample codes, requests that fetch values from several tables are decoded into additional record types: `AuthorInfo`, `LiteraryCareer`, and `Authorship`.
 
-Those record type conform to both [`Decodable`] and ``FetchableRecord``, so that they can feed from database rows. They do not provide any persistence methods, though. All database writes are performed from persistable record instances of type `Author` or `Book`.
+Those record type conform to both [`Decodable`] and ``FetchableRecord``, so that they can feed from database rows. They do not provide any persistence methods, though. **All database writes are performed from persistable record instances** (of type `Author` or `Book`).
 
-For more information about associations, see the [Associations Guide].
+For more information about associations, see the [Associations] guide.
 
-> Note:
->
-> The additional record types in the previous sample code may look superfluous. There exist other database libraries that are able to navigate in complex graphs of records without additional types.
->
-> That is because those libraries perform lazy loading:
->
-> ```ruby
-> # Ruby's Active Record
-> author = Author.find(123)       # Fetch author
-> book_count = author.books.count # Lazily count books on demand
-> ```
-> 
-> **GRDB does not perform lazy loading.** In a GUI application, lazy loading can not be achieved without record management (as in [Core Data]), which in turn comes with non-trivial pain points for developers regarding concurrency. Instead of lazy loading, the library provides the tooling needed to fetch data, even complex graphs, in an [isolated] fashion, so that fetched values accurately represent the database content, and all database invariants are preserved. See the <doc:Concurrency> guide for more information.
+### Lazy and Eager Loading: Comparison with Other Database Libraries
+
+The additional record types described in the previous section may look superfluous. Some other database libraries are able to navigate in graphs of records without additional types.
+
+For example, [Core Data] and Ruby's [Active Record] uses **lazy loading**. This means that relationships are lazily fetched on demand:
+
+```ruby
+# Lazy loading with Active Record
+author = Author.first       # Fetch first author
+puts author.name
+author.books.each do |book| # Lazily fetch books on demand
+  puts book.title
+end
+```
+
+**GRDB does not perform lazy loading.** In a GUI application, lazy loading can not be achieved without record management (as in [Core Data]), which in turn comes with non-trivial pain points for developers regarding concurrency. Instead of lazy loading, the library provides the tooling needed to fetch data, even complex graphs, in an [isolated] fashion, so that fetched values accurately represent the database content, and all database invariants are preserved. See the <doc:Concurrency> guide for more information.
+
+Vapor [Fluent] uses **eager loading**, which means that relationships are only fetched if explicitly requested:
+
+```swift
+// Eager loading with Fluent
+let query = Author.query(on: db)
+    .with(\.$books) // <- Explicit request for books
+    .first()
+
+// Fetch first author and its books in one stroke
+if let author = query.get() {
+    print(author.name)
+    for book in author.books { print(book.title) } 
+}
+```
+
+One must take care of fetching relationships, though, or Fluent raises a fatal error: 
+
+```swift
+// Oops, the books relation is not explicitly requested
+let query = Author.query(on: db).first()
+if let author = query.get() {
+    // fatal error: Children relation not eager loaded.
+    for book in author.books { print(book.title) } 
+}
+```
+
+**GRDB supports eager loading**. The difference with Fluent is that the relationships are modelled in a dedicated record type that provides full compile and runtime safety:
+
+```swift
+// Eager loading with GRDB
+struct LiteraryCareer: Codable, FetchableRecord {
+    var author: Author
+    var books: [Book]
+}
+
+let request = Author.all()
+    .including(all: Author.books) // <- Explicit request for books
+    .asRequest(of: LiteraryCareer.self)
+
+// Fetch first author and its books in one stroke
+if let career = try request.fetchOne(db) {
+    print(career.author.name)
+    for book in career.books { print(book.title) } 
+}
+```
 
 [Active Record]: http://guides.rubyonrails.org/active_record_basics.html
 [`Codable`]: https://developer.apple.com/documentation/swift/Codable
@@ -533,6 +575,7 @@ For more information about associations, see the [Associations Guide].
 [`Decimal`]: https://developer.apple.com/documentation/foundation/decimal
 [`Decodable`]: https://developer.apple.com/documentation/swift/Decodable
 [Django]: https://docs.djangoproject.com/en/4.2/topics/db/
+[Fluent]: https://docs.vapor.codes/fluent/overview/
 [`Identifiable`]: https://developer.apple.com/documentation/swift/identifiable
 [isolated]: https://en.wikipedia.org/wiki/Isolation_(database_systems)
-[Associations Guide]: https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md
+[Associations]: https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md
