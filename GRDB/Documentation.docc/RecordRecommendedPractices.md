@@ -55,7 +55,7 @@ Thanks to this database schema, the application will always process *consistent 
 
 > Tip: **A local SQLite database is not a JSON payload loaded from a remote server.**
 >
-> The JSON format and content can not be controlled, and an application must defend itself against wacky servers. But a local database is under your full control. It is trustable. A relational database such as SQLite guarantee the quality of users data, as long as enough energy is put in the proper definition of the database schema.
+> The JSON format and content can not be controlled, and an application must defend itself against wacky servers. But a local database is under your full control. It is trustable. A relational database such as SQLite guarantees the quality of users data, as long as enough energy is put in the proper definition of the database schema.
 
 > Tip: **Plan early for future versions of your application**: use <doc:Migrations>.
 
@@ -510,7 +510,7 @@ For more information about associations, see the [Associations] guide.
 
 The additional record types described in the previous section may look superfluous. Some other database libraries are able to navigate in graphs of records without additional types.
 
-For example, [Core Data] and Ruby's [Active Record] uses **lazy loading**. This means that relationships are lazily fetched on demand:
+For example, [Core Data] and Ruby's [Active Record] use **lazy loading**. This means that relationships are lazily fetched on demand:
 
 ```ruby
 # Lazy loading with Active Record
