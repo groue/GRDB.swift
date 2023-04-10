@@ -1030,7 +1030,7 @@ public struct StatementArguments: Hashable {
     /// The result is nil unless all array elements conform to the
     /// ``DatabaseValueConvertible`` protocol.
     public init?(_ array: [Any]) {
-        var values = [DatabaseValueConvertible?]()
+        var values = [(any DatabaseValueConvertible)?]()
         for value in array {
             guard let dbValue = DatabaseValue(value: value) else {
                 return nil

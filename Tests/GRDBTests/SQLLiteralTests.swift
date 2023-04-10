@@ -220,7 +220,7 @@ extension SQLLiteralTests {
             do {
                 // Existential
                 let query: SQL = """
-                    SELECT \(AllColumns() as SQLSelectable)
+                    SELECT \(AllColumns() as any SQLSelectable)
                     FROM player
                     """
                 
@@ -234,7 +234,7 @@ extension SQLLiteralTests {
             do {
                 // Existential
                 let query: SQL = """
-                    SELECT \(nil as SQLSelectable?)
+                    SELECT \(nil as (any SQLSelectable)?)
                     """
                 
                 let (sql, arguments) = try query.build(db)
@@ -293,7 +293,7 @@ extension SQLLiteralTests {
             do {
                 // Existential
                 let query: SQL = """
-                    INSERT INTO \(tableOf: Player() as TableRecord) DEFAULT VALUES
+                    INSERT INTO \(tableOf: Player() as any TableRecord) DEFAULT VALUES
                     """
                 
                 let (sql, arguments) = try query.build(db)
@@ -309,7 +309,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             struct AltPlayer: TableRecord {
-                static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+                static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
             }
             do {
                 let query: SQL = """
@@ -499,7 +499,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             let set: Set = [1]
             let array = ["foo", "bar", "baz"]
-            let expressions: [SQLExpressible] = [Column("a"), Column("b") + 2]
+            let expressions: [any SQLExpressible] = [Column("a"), Column("b") + 2]
             let query: SQL = """
                 SELECT * FROM player
                 WHERE teamId IN \(set)
@@ -742,8 +742,21 @@ extension SQLLiteralTests {
             
             do {
                 // Here we test that users can define functions that return
-                // literal expressions.
-                func date(_ value: SQLExpressible) -> SQLExpression {
+                // literal expressions (existential variant).
+                func date(_ value: any SQLExpressible) -> SQLExpression {
+                    SQL("DATE(\(value))").sqlExpression
+                }
+                let createdAt = Column("createdAt")
+                let request = Player.filter(date(createdAt) == "2020-01-23")
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
+                    """)
+            }
+            
+            do {
+                // Here we test that users can define functions that return
+                // literal expressions (generic variant).
+                func date(_ value: some SQLExpressible) -> SQLExpression {
                     SQL("DATE(\(value))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
@@ -756,8 +769,22 @@ extension SQLLiteralTests {
             do {
                 // Here we test that users can still define functions that
                 // return literal expressions with the previously
-                // supported technique.
-                func date(_ value: SQLExpressible) -> SQLExpression {
+                // supported technique (existential variant).
+                func date(_ value: any SQLExpressible) -> SQLExpression {
+                    SQL("DATE(\(value.sqlExpression))").sqlExpression
+                }
+                let createdAt = Column("createdAt")
+                let request = Player.filter(date(createdAt) == "2020-01-23")
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
+                    """)
+            }
+            
+            do {
+                // Here we test that users can still define functions that
+                // return literal expressions with the previously
+                // supported technique (generic variant).
+                func date(_ value: some SQLExpressible) -> SQLExpression {
                     SQL("DATE(\(value.sqlExpression))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
@@ -800,10 +827,15 @@ extension SQLLiteralTests {
     
     func testProtocolResolution() throws {
         // SQL can feed ordering, selection, and expressions.
-        acceptOrderingTerm(SQL(""))
-        acceptSelectable(SQL(""))
-        acceptSpecificExpressible(SQL(""))
-        acceptExpressible(SQL(""))
+        acceptOrderingTerm_generic(SQL(""))
+        acceptSelectable_generic(SQL(""))
+        acceptSpecificExpressible_generic(SQL(""))
+        acceptExpressible_generic(SQL(""))
+
+        acceptOrderingTerm_existential(SQL(""))
+        acceptSelectable_existential(SQL(""))
+        acceptSpecificExpressible_existential(SQL(""))
+        acceptExpressible_existential(SQL(""))
         
         // SQL can build complex expressions and orderings
         _ = SQL("") + 1
@@ -812,18 +844,24 @@ extension SQLLiteralTests {
         // Swift String literals are interpreted as String, even when SQL
         // is an accepted type.
         //
-        // should not compile: XCTAssertEqual(acceptOrderingTerm(""), String(describing: String.self))
-        // should not compile: XCTAssertEqual(acceptSelectable(""), String(describing: String.self))
-        // should not compile: XCTAssertEqual(acceptSpecificExpressible(""), String(describing: String.self))
-        XCTAssertEqual(acceptExpressible(""), String(describing: String.self))
-        
+        // should not compile: XCTAssertEqual(acceptOrderingTerm_generic(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSelectable_generic(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSpecificExpressible_generic(""), String(describing: String.self))
+        XCTAssertEqual(acceptExpressible_generic(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptOrderingTerm_existential(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSelectable_existential(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSpecificExpressible_existential(""), String(describing: String.self))
+        XCTAssertEqual(acceptExpressible_existential(""), String(describing: String.self))
+
         // When a literal can be interpreted as an ordering, a selection, or an
         // expression, then the expression interpretation is favored.
         // This test targets TableAlias subscript.
         //
-        // should not compile: XCTAssertEqual(overloaded(""), "a")
-        XCTAssertEqual(overloaded(SQL("")), "SQLSpecificExpressible")
-        
+        // should not compile: XCTAssertEqual(overloaded_generic(""), "a")
+        XCTAssertEqual(overloaded_generic(SQL("")), "SQLSpecificExpressible")
+        // should not compile: XCTAssertEqual(overloaded_existential(""), "a")
+        XCTAssertEqual(overloaded_existential(SQL("")), "SQLSpecificExpressible")
+
         // In practice:
         try makeDatabaseQueue().write { db in
             struct Player: TableRecord { }
@@ -850,33 +888,65 @@ extension SQLLiteralTests {
 
 // Support for testProtocolResolution()
 @discardableResult
-private func acceptOrderingTerm(_ x: SQLOrderingTerm) -> String {
+private func acceptOrderingTerm_generic(_ x: some SQLOrderingTerm) -> String {
     String(describing: type(of: x))
 }
 
 @discardableResult
-private func acceptSelectable(_ x: SQLSelectable) -> String {
+private func acceptSelectable_generic(_ x: some SQLSelectable) -> String {
     String(describing: type(of: x))
 }
 
 @discardableResult
-private func acceptSpecificExpressible(_ x: SQLSpecificExpressible) -> String {
+private func acceptSpecificExpressible_generic(_ x: some SQLSpecificExpressible) -> String {
     String(describing: type(of: x))
 }
 
 @discardableResult
-private func acceptExpressible(_ x: SQLExpressible) -> String {
+private func acceptExpressible_generic(_ x: some SQLExpressible) -> String {
     String(describing: type(of: x))
 }
 
-private func overloaded(_ x: SQLOrderingTerm) -> String {
+private func overloaded_generic(_ x: some SQLOrderingTerm) -> String {
     "SQLOrderingTerm"
 }
 
-private func overloaded(_ x: SQLSelectable) -> String {
+private func overloaded_generic(_ x: some SQLSelectable) -> String {
     "SQLSelectable"
 }
 
-private func overloaded(_ x: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> String {
+private func overloaded_generic(_ x: some SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> String {
+    "SQLSpecificExpressible"
+}
+
+@discardableResult
+private func acceptOrderingTerm_existential(_ x: any SQLOrderingTerm) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptSelectable_existential(_ x: any SQLSelectable) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptSpecificExpressible_existential(_ x: any SQLSpecificExpressible) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptExpressible_existential(_ x: any SQLExpressible) -> String {
+    String(describing: type(of: x))
+}
+
+private func overloaded_existential(_ x: any SQLOrderingTerm) -> String {
+    "SQLOrderingTerm"
+}
+
+private func overloaded_existential(_ x: any SQLSelectable) -> String {
+    "SQLSelectable"
+}
+
+private func overloaded_existential(_ x: any SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> String {
     "SQLSpecificExpressible"
 }

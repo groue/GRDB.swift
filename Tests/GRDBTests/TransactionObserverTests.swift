@@ -121,7 +121,7 @@ extension Artwork : FetchableRecord, PersistableRecord {
 }
 
 class TransactionObserverTests: GRDBTestCase {
-    private func setupArtistDatabase(in dbWriter: DatabaseWriter) throws {
+    private func setupArtistDatabase(in dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.execute(sql: """
             CREATE TABLE artists (

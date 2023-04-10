@@ -5,7 +5,7 @@ import GRDB
 class PlayerRequestTests: XCTestCase {
     func test_PlayerRequest_byName_fetches_well_ordered_players() throws {
         // Given a players database that contains two players
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: nil, name: "Arthur", score: 100)
         var player2 = Player(id: nil, name: "Barbara", score: 1000)
@@ -24,7 +24,7 @@ class PlayerRequestTests: XCTestCase {
     
     func test_PlayerRequest_byScore_fetches_well_ordered_players() throws {
         // Given a players database that contains two players
-        let dbQueue = try DatabaseQueue()
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: nil, name: "Arthur", score: 100)
         var player2 = Player(id: nil, name: "Barbara", score: 1000)

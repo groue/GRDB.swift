@@ -52,7 +52,7 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             
             let statement = try db.makeStatement(sql: "INSERT INTO persons (name, age) VALUES (?, ?)")
-            let persons: [[DatabaseValueConvertible?]] = [
+            let persons: [[(any DatabaseValueConvertible)?]] = [
                 ["Arthur", 41],
                 ["Barbara", nil],
                 ]
@@ -79,7 +79,7 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             
             let statement = try db.makeStatement(sql: "INSERT INTO persons (name, age) VALUES (?, ?)")
-            let persons: [[DatabaseValueConvertible?]] = [
+            let persons: [[(any DatabaseValueConvertible)?]] = [
                 ["Arthur", 41],
                 ["Barbara", nil],
                 ]
@@ -107,7 +107,7 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             
             let statement = try db.makeStatement(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)")
-            let persons: [[String: DatabaseValueConvertible?]] = [
+            let persons: [[String: (any DatabaseValueConvertible)?]] = [
                 ["name": "Arthur", "age": 41],
                 ["name": "Barbara", "age": nil],
                 ]
@@ -134,7 +134,7 @@ class UpdateStatementTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             
             let statement = try db.makeStatement(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)")
-            let persons: [[String: DatabaseValueConvertible?]] = [
+            let persons: [[String: (any DatabaseValueConvertible)?]] = [
                 ["name": "Arthur", "age": 41],
                 ["name": "Barbara", "age": nil],
                 ]

@@ -2000,7 +2000,7 @@ Each association included in the request can feed a property of the decoded reco
 - [Decoding a Joined Request with a Decodable Record]
 - [Decoding a Joined Request with FetchableRecord]
 - [Debugging Request Decoding]
-- [Good Practices for Designing Record Types] - in this general guide about records, check out the "Compose Records" chapter.
+- [Recommended Practices for Designing Record Types] - in this general guide about records, check out the "Associations" chapter.
 
 
 ## The Structure of a Joined Request
@@ -2860,7 +2860,7 @@ extension DerivableRequest<Book> {
 }
 ```
 
-See [Good Practices for Designing Record Types] for more information.
+See [Recommended Practices for Designing Record Types] for more information.
 
 
 ## Known Issues
@@ -2999,7 +2999,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Row Adapters]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
-[Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
+[Recommended Practices for Designing Record Types]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices
 [regular aggregating methods]: ../README.md#fetching-aggregated-values
 [Record class]: ../README.md#record-class
 [EncodableRecord]: ../README.md#persistablerecord-protocol

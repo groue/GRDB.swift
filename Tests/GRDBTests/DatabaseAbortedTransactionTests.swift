@@ -4,7 +4,7 @@ import GRDB
 class DatabaseAbortedTransactionTests : GRDBTestCase {
     
     func testReadTransactionAbortedByInterrupt() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
@@ -46,7 +46,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
     }
     
     func testReadTransactionAbortedByInterruptDoesNotPreventFurtherRead() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
@@ -316,7 +316,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             do {
                 try dbReader.unsafeRead { db in
                     try db.inTransaction {

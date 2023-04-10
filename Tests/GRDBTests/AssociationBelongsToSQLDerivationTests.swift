@@ -16,12 +16,12 @@ private struct B : TableRecord {
 
 private struct RestrictedB : TableRecord {
     static let databaseTableName = "b"
-    static let databaseSelection: [SQLSelectable] = [Column("name")]
+    static let databaseSelection: [any SQLSelectable] = [Column("name")]
 }
 
 private struct ExtendedB : TableRecord {
     static let databaseTableName = "b"
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 }
 
 /// Test SQL generation

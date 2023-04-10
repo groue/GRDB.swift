@@ -18,7 +18,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let count = try dbReader.read { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -41,7 +41,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
             let count = try await dbReader.read { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -57,7 +57,7 @@ class DatabaseReaderTests : GRDBTestCase {
     }
     
     func testReadPreventsDatabaseModification() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             do {
                 try dbReader.read { db in
                     try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
@@ -77,7 +77,7 @@ class DatabaseReaderTests : GRDBTestCase {
     
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_ReadPreventsDatabaseModification() async throws {
-        func test(_ dbReader: DatabaseReader) async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
             do {
                 try await dbReader.read { db in
                     try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
@@ -104,7 +104,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let count = try dbReader.unsafeRead { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -127,7 +127,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
             let count = try await dbReader.unsafeRead { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -151,7 +151,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let count = try dbReader.unsafeReentrantRead { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -167,7 +167,7 @@ class DatabaseReaderTests : GRDBTestCase {
     }
     
     func testUnsafeReentrantReadIsReentrant() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             try dbReader.unsafeReentrantRead { db1 in
                 try dbReader.unsafeReentrantRead { db2 in
                     try dbReader.unsafeReentrantRead { db3 in
@@ -187,7 +187,7 @@ class DatabaseReaderTests : GRDBTestCase {
     }
     
     func testUnsafeReentrantReadIsReentrantFromWrite() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db1 in
                 try dbWriter.unsafeReentrantRead { db2 in
                     try dbWriter.unsafeReentrantRead { db3 in
@@ -205,7 +205,7 @@ class DatabaseReaderTests : GRDBTestCase {
     // MARK: - AsyncRead
     
     func testAsyncRead() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             var count: Int?
@@ -234,7 +234,7 @@ class DatabaseReaderTests : GRDBTestCase {
     }
     
     func testAsyncReadPreventsDatabaseModification() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
             dbReader.asyncRead { dbResult in
@@ -265,7 +265,7 @@ class DatabaseReaderTests : GRDBTestCase {
     // MARK: - Function
     
     func testAddFunction() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let value = try dbReader.read { db -> Int? in
                 let f = DatabaseFunction("f", argumentCount: 0, pure: true) { _ in 0 }
                 db.add(function: f)
@@ -285,7 +285,7 @@ class DatabaseReaderTests : GRDBTestCase {
     // MARK: - Collation
     
     func testAddCollation() throws {
-        func test(_ dbReader: DatabaseReader) throws {
+        func test(_ dbReader: some DatabaseReader) throws {
             let value = try dbReader.read { db -> Int? in
                 let collation = DatabaseCollation("c") { _, _ in .orderedSame }
                 db.add(collation: collation)
@@ -311,7 +311,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ source: DatabaseReader) throws {
+        func test(_ source: some DatabaseReader) throws {
             let dest = try makeDatabaseQueue(configuration: Configuration())
             try source.backup(to: dest)
             let count = try dest.read { db in

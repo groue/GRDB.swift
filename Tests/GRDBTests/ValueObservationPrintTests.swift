@@ -11,7 +11,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     /// Helps dealing with various SQLite versions
-    private func region(sql: String, in dbReader: DatabaseReader) throws -> String {
+    private func region(sql: String, in dbReader: some DatabaseReader) throws -> String {
         try dbReader.read { db in
             try db
                 .makeStatement(sql: sql)
@@ -436,13 +436,17 @@ class ValueObservationPrintTests: GRDBTestCase {
             onChange: { _ in expectation.fulfill() })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(logger.strings, [
-                "start",
-                "fetch",
-                "value: nil",
+            // Order of events may not be stable, because the first
+            // "value: nil" is notified concurrently (from the reduce queue)
+            // with the first "database did change" (from the writer queue).
+            // That's why we test the sorted output.
+            XCTAssertEqual(logger.strings.sorted(), [
                 "database did change",
                 "fetch",
+                "fetch",
+                "start",
                 "tracked region: \(expectedRegion)",
+                "value: nil",
                 "value: nil"])
         }
     }

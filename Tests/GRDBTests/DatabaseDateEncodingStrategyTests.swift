@@ -87,7 +87,12 @@ class DatabaseDateEncodingStrategyTests: GRDBTestCase {
         }
     }
     
-    private func test<Strategy: StrategyProvider>(strategy: Strategy.Type, encodesDate date: Date, as value: DatabaseValueConvertible) throws {
+    private func test<Strategy: StrategyProvider>(
+        strategy: Strategy.Type,
+        encodesDate date: Date,
+        as value: some DatabaseValueConvertible)
+    throws
+    {
         try test(record: RecordWithDate<Strategy>(date: date), expectedStorage: value.databaseValue.storage)
         try test(record: RecordWithOptionalDate<Strategy>(date: date), expectedStorage: value.databaseValue.storage)
     }

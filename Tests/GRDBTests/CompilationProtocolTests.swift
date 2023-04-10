@@ -27,13 +27,13 @@ private struct UserDatabaseAggregate1 : DatabaseAggregate {
     let a: Int?
     init() { a = nil }
     mutating func step(_ dbValues: [DatabaseValue]) throws { }
-    func finalize() throws -> DatabaseValueConvertible? { preconditionFailure() }
+    func finalize() throws -> (any DatabaseValueConvertible)? { preconditionFailure() }
 }
 
 private class UserDatabaseAggregate2 : DatabaseAggregate {
     required init() { }
     func step(_ dbValues: [DatabaseValue]) throws { }
-    func finalize() throws -> DatabaseValueConvertible? { preconditionFailure() }
+    func finalize() throws -> (any DatabaseValueConvertible)? { preconditionFailure() }
 }
 
 // MARK: - DatabaseValueConvertible
@@ -71,7 +71,7 @@ private class UserFTS5CustomTokenizer : FTS5CustomTokenizer {
 #if SQLITE_ENABLE_FTS5
 private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
     static let name: String = "UserFTS5WrapperTokenizer"
-    var wrappedTokenizer: FTS5Tokenizer { preconditionFailure() }
+    var wrappedTokenizer: any FTS5Tokenizer { preconditionFailure() }
     required init(db: Database, arguments: [String]) throws { preconditionFailure() }
     func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: (String, FTS5TokenFlags) throws -> ()) throws { preconditionFailure() }
 }

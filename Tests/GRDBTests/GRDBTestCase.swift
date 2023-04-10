@@ -147,19 +147,37 @@ class GRDBTestCase: XCTestCase {
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
-    func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+    func assertEqualSQL(
+        _ db: Database,
+        _ request: some FetchRequest,
+        _ sql: String,
+        file: StaticString = #file,
+        line: UInt = #line)
+    throws
+    {
         try request.makeStatement(db).makeCursor().next()
         assertEqualSQL(lastSQLQuery!, sql, file: file, line: line)
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
-    func assertEqualSQL<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+    func assertEqualSQL(
+        _ databaseReader: some DatabaseReader,
+        _ request: some FetchRequest,
+        _ sql: String,
+        file: StaticString = #file,
+        line: UInt = #line)
+    throws
+    {
         try databaseReader.unsafeRead { db in
             try assertEqualSQL(db, request, sql, file: file, line: line)
         }
     }
     
-    func sql<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request) -> String {
+    func sql(
+        _ databaseReader: some DatabaseReader,
+        _ request: some FetchRequest)
+    -> String
+    {
         try! databaseReader.unsafeRead { db in
             try request.makeStatement(db).makeCursor().next()
             return lastSQLQuery!

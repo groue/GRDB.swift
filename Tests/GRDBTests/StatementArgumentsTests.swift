@@ -81,7 +81,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+            let arguments = StatementArguments([name, age] as [(any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.arguments = arguments
@@ -101,7 +101,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+            let arguments = StatementArguments([name, age] as [(any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             try updateStatement.setArguments(arguments)
@@ -139,7 +139,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+            let arguments = StatementArguments([name, age] as [(any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.setUncheckedArguments(arguments)
@@ -232,7 +232,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.arguments = arguments
@@ -252,7 +252,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             try updateStatement.setArguments(arguments)
@@ -290,7 +290,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.setUncheckedArguments(arguments)
@@ -392,7 +392,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.arguments = arguments
@@ -412,7 +412,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             try updateStatement.setArguments(arguments)
@@ -450,7 +450,7 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let name = "Arthur"
             let age = 42
-            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            let arguments = StatementArguments(["name": name, "age": age] as [String: (any DatabaseValueConvertible)?])
             
             let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.setUncheckedArguments(arguments)

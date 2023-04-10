@@ -542,7 +542,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and deallocate cancellable after second change
-        var cancellable: DatabaseCancellable?
+        var cancellable: (any DatabaseCancellable)?
         cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -588,7 +588,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and cancel cancellable after second change
-        var cancellable: DatabaseCancellable!
+        var cancellable: (any DatabaseCancellable)!
         cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -626,7 +626,7 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
 
             do {
-                var cancellable: DatabaseCancellable? = nil
+                var cancellable: (any DatabaseCancellable)? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
                 var shouldStopObservation = false
                 let observation = ValueObservation(
@@ -670,7 +670,7 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
             
             do {
-                var cancellable: DatabaseCancellable? = nil
+                var cancellable: (any DatabaseCancellable)? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
                 var shouldStopObservation = false
                 let observation = ValueObservation(

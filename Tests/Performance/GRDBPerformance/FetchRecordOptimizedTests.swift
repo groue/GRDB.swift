@@ -29,7 +29,7 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
         i9 = row[9]
     }
     
-    static let databaseSelection: [SQLSelectable] = [
+    static let databaseSelection: [any SQLSelectable] = [
         Column("i0"),
         Column("i1"),
         Column("i2"),

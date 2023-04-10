@@ -27,7 +27,7 @@ class RowFromDictionaryTests : RowTestCase {
     }
     
     func testRowValueAtIndex() {
-        let dictionary: [String: DatabaseValueConvertible?] = ["a": 0, "b": 1, "c": 2]
+        let dictionary: [String: (any DatabaseValueConvertible)?] = ["a": 0, "b": 1, "c": 2]
         let row = Row(dictionary)
         
         let aIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "a")!)
@@ -123,7 +123,7 @@ class RowFromDictionaryTests : RowTestCase {
     }
     
     func testRowDatabaseValueAtIndex() throws {
-        let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
+        let dictionary: [String: (any DatabaseValueConvertible)?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
         let row = Row(dictionary)
         
         let nullIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "null")!)
@@ -140,7 +140,7 @@ class RowFromDictionaryTests : RowTestCase {
     }
 
     func testRowDatabaseValueNamed() throws {
-        let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
+        let dictionary: [String: (any DatabaseValueConvertible)?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
         let row = Row(dictionary)
         
         guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
