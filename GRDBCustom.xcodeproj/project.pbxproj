@@ -522,7 +522,6 @@
 		56419A7F24A51614004967E1 /* Map.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Map.swift; sourceTree = "<group>"; };
 		56419A8024A51614004967E1 /* Inverted.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inverted.swift; sourceTree = "<group>"; };
 		56419A8124A51614004967E1 /* PublisherExpectation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherExpectation.swift; sourceTree = "<group>"; };
-		5643676E272EDF3700C718C7 /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
 		564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAfterNextTransactionCommitTests.swift; sourceTree = "<group>"; };
 		5644DE7E20F8D1D1001FFDDE /* DatabaseValueConversionErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConversionErrorTests.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* DatabaseCollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCollationTests.swift; sourceTree = "<group>"; };
@@ -1584,7 +1583,6 @@
 				DC37742D19C8CC90004FCF85 /* GRDB */,
 				F3BA7FED1CFB21F8003DC1BA /* GRDBCustomSQLite */,
 				DC10500F19C904DD00D8CA30 /* Tests */,
-				5643676E272EDF3700C718C7 /* Scripts */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
 			);
 			indentWidth = 4;
