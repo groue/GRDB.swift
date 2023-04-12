@@ -815,6 +815,30 @@ class DatabaseMigratorTests : GRDBTestCase {
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
     }
     
+    func testEraseDatabaseOnSchemaChangeIgnoresInternalSchemaObjects() throws {
+        // Given a migrator with eraseDatabaseOnSchemaChange
+        var migrator = DatabaseMigrator()
+        migrator.eraseDatabaseOnSchemaChange = true
+        migrator.registerMigration("1") { db in
+            try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY)")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
+        
+        // When we add an internal schema object (sqlite_stat1)
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                INSERT INTO t DEFAULT VALUES;
+                ANALYZE;
+                """)
+            try XCTAssertTrue(db.tableExists("sqlite_stat1"))
+        }
+        
+        // Then 2nd migration does not erase database
+        try migrator.migrate(dbQueue)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t") }, 1)
+    }
+    
     func testEraseDatabaseOnSchemaChangeWithRenamedMigration() throws {
         let dbQueue = try makeDatabaseQueue()
         
