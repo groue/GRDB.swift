@@ -457,7 +457,13 @@ public struct DatabaseMigrator {
                         }
                     }()
                     
-                    if try db.schema(.main) != tmpSchema {
+                    // Only compare user objects
+                    func isUserObject(_ object: SchemaObject) -> Bool {
+                        !Database.isSQLiteInternalTable(object.name) && !Database.isGRDBInternalTable(object.name)
+                    }
+                    let tmpUserSchema = tmpSchema.filter(isUserObject)
+                    let userSchema = try db.schema(.main).filter(isUserObject)
+                    if userSchema != tmpUserSchema {
                         needsErase = true
                         return .commit
                     }
