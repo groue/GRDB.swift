@@ -108,6 +108,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1361](https://github.com/groue/GRDB.swift/pull/1361) `DatabaseMigrator.eraseDatabaseOnSchemaChange` ignores internal schema objects
+
 ## 6.10.2
 
 Released April 10, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.10.1...v6.10.2)
