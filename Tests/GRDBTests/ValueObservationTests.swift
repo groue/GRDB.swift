@@ -979,6 +979,12 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let initialValueExpectation = self.expectation(description: "")
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+            initialValueExpectation.assertForOverFulfill = true
+#else
+            // ValueObservation on DatabasePool will notify the first value twice
+            initialValueExpectation.assertForOverFulfill = false
+#endif
             initialValueExpectation.expectedFulfillmentCount = observationCount
             
             let secondValueExpectation = self.expectation(description: "")
@@ -1031,6 +1037,12 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let initialValueExpectation = self.expectation(description: "")
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+            initialValueExpectation.assertForOverFulfill = true
+#else
+            // ValueObservation on DatabasePool will notify the first value twice
+            initialValueExpectation.assertForOverFulfill = false
+#endif
             initialValueExpectation.expectedFulfillmentCount = observationCount
             
             let secondValueExpectation = self.expectation(description: "")
