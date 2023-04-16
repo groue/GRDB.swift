@@ -4,38 +4,21 @@
 
 <p align="center">
     <a href="https://developer.apple.com/swift/"><img alt="Swift 5.7" src="https://img.shields.io/badge/swift-5.7-orange.svg?style=flat"></a>
-    <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
     <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
----
+**Proudly serving the community since 2017.**
 
 **Latest release**: April 10, 2023 • [version 6.10.2](https://github.com/groue/GRDB.swift/tree/v6.10.2) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
-| Swift version  | GRDB version                                                |
-| -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.10.2**                                                 |
-| Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
-| Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
-| Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 5        | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.2      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.1      | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
-| Swift 4        | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
-| Swift 3.2      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3.1      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3        | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
-| Swift 2.3      | [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) |
-| Swift 2.2      | [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) |
-
 **Contact**:
 
 - Release announcements and usage tips: follow [@groue](http://twitter.com/groue) on Twitter, [@groue@hachyderm.io](https://hachyderm.io/@groue) on Mastodon.
 - Report bugs in a [Github issue](https://github.com/groue/GRDB.swift/issues/new). Make sure you check the [existing issues](https://github.com/groue/GRDB.swift/issues?q=is%3Aopen) first.
-- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or open a [Github issue](https://github.com/groue/GRDB.swift/issues/new).
+- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GitHub discussions](https://github.com/groue/GRDB.swift/discussions), or the [GRDB forums](https://forums.swift.org/c/related-projects/grdb).
 
 
 ## What is GRDB?
