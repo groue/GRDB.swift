@@ -87,7 +87,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 // 2. Define the database schema
 try dbQueue.write { db in
     try db.create(table: "player") { t in
-        t.autoIncrementedPrimaryKey("id")
+        t.primaryKey("id", .text)
         t.column("name", .text).notNull()
         t.column("score", .integer).notNull()
     }
@@ -95,15 +95,15 @@ try dbQueue.write { db in
 
 // 3. Define a record type
 struct Player: Codable, FetchableRecord, PersistableRecord {
-    var id: Int64
+    var id: String
     var name: String
     var score: Int
 }
 
-// 4. Access the database
+// 4. Write and read in the database
 try dbQueue.write { db in
-    try Player(id: 1, name: "Arthur", score: 100).insert(db)
-    try Player(id: 2, name: "Barbara", score: 1000).insert(db)
+    try Player(id: "1", name: "Arthur", score: 100).insert(db)
+    try Player(id: "2", name: "Barbara", score: 1000).insert(db)
 }
 
 let players: [Player] = try dbQueue.read { db in
