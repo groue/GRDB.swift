@@ -273,7 +273,7 @@ extension ValueConcurrentObserver {
         // transaction, because it is a handy way to keep a read transaction
         // open until we grab a write access, and compare the database versions.
         let initialFetchTransaction = try databaseAccess.dbPool.walSnapshotTransaction()
-        let (fetchedValue, initialRegion) = try initialFetchTransaction.read { db -> (Reducer.Fetched, DatabaseRegion) in
+        let (fetchedValue, initialRegion): (Reducer.Fetched, DatabaseRegion) = try initialFetchTransaction.read { db in
             switch trackingMode {
             case let .constantRegion(regions):
                 let fetchedValue = try databaseAccess.fetch(db)
