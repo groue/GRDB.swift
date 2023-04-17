@@ -815,6 +815,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
     }
     
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1360>
     func testEraseDatabaseOnSchemaChangeIgnoresInternalSchemaObjects() throws {
         // Given a migrator with eraseDatabaseOnSchemaChange
         var migrator = DatabaseMigrator()

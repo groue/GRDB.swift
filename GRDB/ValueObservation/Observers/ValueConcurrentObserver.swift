@@ -272,8 +272,8 @@ extension ValueConcurrentObserver {
         // We perform the initial read from a long-lived WAL snapshot
         // transaction, because it is a handy way to keep a read transaction
         // open until we grab a write access, and compare the database versions.
-        let walSnapshotTransaction = try databaseAccess.dbPool.walSnapshotTransaction()
-        let (fetchedValue, initialRegion) = try walSnapshotTransaction.read { db -> (Reducer.Fetched, DatabaseRegion) in
+        let initialFetchTransaction = try databaseAccess.dbPool.walSnapshotTransaction()
+        let (fetchedValue, initialRegion): (Reducer.Fetched, DatabaseRegion) = try initialFetchTransaction.read { db in
             switch trackingMode {
             case let .constantRegion(regions):
                 let fetchedValue = try databaseAccess.fetch(db)
@@ -299,7 +299,7 @@ extension ValueConcurrentObserver {
         // Start observation
         asyncStartObservation(
             from: databaseAccess,
-            walSnapshotTransaction: walSnapshotTransaction,
+            initialFetchTransaction: initialFetchTransaction,
             initialRegion: initialRegion)
         
         return initialValue
@@ -322,11 +322,10 @@ extension ValueConcurrentObserver {
             guard isNotifying else { return /* Cancelled */ }
             
             do {
-                // Fetch
-                let walSnapshotTransaction = try result.get()
+                let initialFetchTransaction = try result.get()
                 // Second async jump because that's how
                 // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
-                walSnapshotTransaction.asyncRead { db in
+                initialFetchTransaction.asyncRead { db in
                     do {
                         let fetchedValue: Reducer.Fetched
                         let initialRegion: DatabaseRegion
@@ -369,7 +368,7 @@ extension ValueConcurrentObserver {
                         // Start observation
                         self.asyncStartObservation(
                             from: databaseAccess,
-                            walSnapshotTransaction: walSnapshotTransaction,
+                            initialFetchTransaction: initialFetchTransaction,
                             initialRegion: initialRegion)
                     } catch {
                         self.notifyError(error)
@@ -383,9 +382,26 @@ extension ValueConcurrentObserver {
     
     private func asyncStartObservation(
         from databaseAccess: DatabaseAccess,
-        walSnapshotTransaction: WALSnapshotTransaction,
+        initialFetchTransaction: WALSnapshotTransaction,
         initialRegion: DatabaseRegion)
     {
+        // We'll start the observation when we can access the writer
+        // connection. Until then, maybe the database has been modified
+        // since the initial fetch: we'll then need to notify a fresh value.
+        //
+        // To know if the database has been modified between the initial
+        // fetch and the writer access, we'll compare WAL snapshots.
+        //
+        // WAL snapshots can only be compared if the database is not
+        // checkpointed. That's why we'll keep `initialFetchTransaction`
+        // alive until the comparison is done.
+        //
+        // However, we want to release `initialFetchTransaction` as soon as
+        // possible, so that the reader connection it holds becomes
+        // available for other reads. It will be released when this optional
+        // is set to nil:
+        var initialFetchTransaction: WALSnapshotTransaction? = initialFetchTransaction
+        
         databaseAccess.dbPool.asyncWriteWithoutTransaction { writerDB in
             let events = self.lock.synchronized { self.notificationCallbacks?.events }
             guard let events else { return /* Cancelled */ }
@@ -393,20 +409,21 @@ extension ValueConcurrentObserver {
             do {
                 var observedRegion = initialRegion
                 
-                // Transaction is needed for comparing version snapshots
                 try writerDB.isolated(readOnly: true) {
-                    // Keep walSnapshotTransaction alive until we have
-                    // compared database versions. `WALSnapshot` alone is
-                    // not able to prevent database checkpointing, and keep
-                    // snapshots comparable.
-                    let isModified = withExtendedLifetime(walSnapshotTransaction) {
-                        guard let currentWALSnapshot = try? WALSnapshot(writerDB) else {
-                            return true
-                        }
-                        let ordering = walSnapshotTransaction.walSnapshot.compare(currentWALSnapshot)
+                    // Was the database modified since the initial fetch?
+                    let isModified: Bool
+                    if let currentWALSnapshot = try? WALSnapshot(writerDB) {
+                        let ordering = initialFetchTransaction!.walSnapshot.compare(currentWALSnapshot)
                         assert(ordering <= 0, "Unexpected snapshot ordering")
-                        return ordering < 0
+                        isModified = ordering < 0
+                    } else {
+                        // Can't compare: assume the database was modified.
+                        isModified = true
                     }
+                    
+                    // Comparison done: end the WAL snapshot transaction
+                    // and release its reader connection.
+                    initialFetchTransaction = nil
                     
                     if isModified {
                         events.databaseDidChange?()

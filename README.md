@@ -1,88 +1,65 @@
-![GRDB: A toolkit for SQLite databases, with a focus on application development](https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png)
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB~dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png">
+    <img alt="GRDB: A toolkit for SQLite databases, with a focus on application development." src="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png">
+</picture>
 
-<p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
+<p align="center">
+    <strong>A toolkit for SQLite databases, with a focus on application development</strong><br>
+    Proudly serving the community since 2017
+</p>
 
 <p align="center">
     <a href="https://developer.apple.com/swift/"><img alt="Swift 5.7" src="https://img.shields.io/badge/swift-5.7-orange.svg?style=flat"></a>
-    <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
     <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
----
-
-**Latest release**: April 10, 2023 • [version 6.10.2](https://github.com/groue/GRDB.swift/tree/v6.10.2) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: April 10, 2023 • [version 6.11.0](https://github.com/groue/GRDB.swift/tree/v6.11.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
-
-| Swift version  | GRDB version                                                |
-| -------------- | ----------------------------------------------------------- |
-| **Swift 5.7+** | **v6.10.2**                                                 |
-| Swift 5.3      | [v5.26.1](https://github.com/groue/GRDB.swift/tree/v5.26.1) |
-| Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
-| Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 5        | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.2      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.1      | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
-| Swift 4        | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
-| Swift 3.2      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3.1      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3        | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
-| Swift 2.3      | [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) |
-| Swift 2.2      | [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) |
 
 **Contact**:
 
 - Release announcements and usage tips: follow [@groue](http://twitter.com/groue) on Twitter, [@groue@hachyderm.io](https://hachyderm.io/@groue) on Mastodon.
 - Report bugs in a [Github issue](https://github.com/groue/GRDB.swift/issues/new). Make sure you check the [existing issues](https://github.com/groue/GRDB.swift/issues?q=is%3Aopen) first.
-- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or open a [Github issue](https://github.com/groue/GRDB.swift/issues/new).
+- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GitHub discussions](https://github.com/groue/GRDB.swift/discussions), or the [GRDB forums](https://forums.swift.org/c/related-projects/grdb).
 
 
-## What is this?
+## What is GRDB?
 
-GRDB provides raw access to SQL and advanced SQLite features, because one sometimes enjoys a sharp tool. It has robust concurrency primitives, so that multi-threaded applications can efficiently use their databases. It grants your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.
+Use this library to save your application’s permanent data into SQLite databases. It comes with built-in tools that address common needs:
 
-Compared to [SQLite.swift](https://github.com/stephencelis/SQLite.swift) or [FMDB](https://github.com/ccgus/fmdb), GRDB can spare you a lot of glue code. Compared to [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io), it can simplify your multi-threaded applications.
+- **SQL Generation**
+    
+    Enhance your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.
 
-It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), and it is [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
+- **Database Observation**
+    
+    Get notifications when database values are modified. 
 
-See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your favorite database library.
+- **Robust Concurrency**
+    
+    Multi-threaded applications can efficiently use their databases, including WAL databases that support concurrent reads and writes. 
 
+- **Migrations**
+    
+    Evolve the schema of your database as you ship new versions of your application.
+    
+- **Leverage your SQLite skills**
+
+    Not all developers need advanced SQLite features. But when you do, GRDB is as sharp as you want it to be. Come with your SQL and SQLite skills, or learn new ones as you go!
 
 ---
 
 <p align="center">
-    <a href="#features">Features</a> &bull;
     <a href="#usage">Usage</a> &bull;
-    <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
+    <a href="#installation">Installation</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
 ---
-
-
-## Features
-
-Programming tools for both database beginners and SQLite experts:
-
-- [Access to raw SQL and SQLite](#sqlite-api)
-- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
-- [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
-- [Associations]: Relations and joins between record types.
-- [WAL Mode Support](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool): Extra performance for multi-threaded applications.
-- [Migrations]: Transform your database as your application evolves.
-- [Database Observation]: Observe database changes and transactions.
-- [Full-Text Search]
-- [Encryption](#encryption)
-- [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
-
-In-depth integration with our programming environment:
-
-- [Swift Concurrency](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency): `try await` your database.
-- [SwiftUI](https://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
-- [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
-- [RxSwift](https://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 
 ## Usage
 
@@ -98,7 +75,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 // 2. Define the database schema
 try dbQueue.write { db in
     try db.create(table: "player") { t in
-        t.autoIncrementedPrimaryKey("id")
+        t.primaryKey("id", .text)
         t.column("name", .text).notNull()
         t.column("score", .integer).notNull()
     }
@@ -106,38 +83,21 @@ try dbQueue.write { db in
 
 // 3. Define a record type
 struct Player: Codable, FetchableRecord, PersistableRecord {
-    var id: Int64
+    var id: String
     var name: String
     var score: Int
 }
 
-// 4. Access the database
+// 4. Write and read in the database
 try dbQueue.write { db in
-    try Player(id: 1, name: "Arthur", score: 100).insert(db)
-    try Player(id: 2, name: "Barbara", score: 1000).insert(db)
+    try Player(id: "1", name: "Arthur", score: 100).insert(db)
+    try Player(id: "2", name: "Barbara", score: 1000).insert(db)
 }
 
 let players: [Player] = try dbQueue.read { db in
     try Player.fetchAll(db)
 }
 ```
-
-</details>
-
-<details>
-  <summary>Activate the WAL mode</summary>
-
-```swift
-import GRDB
-
-// Simple database connection
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-
-// Enhanced multithreading based on SQLite's WAL mode
-let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-```
-    
-See [Database Connections]
 
 </details>
 
@@ -308,7 +268,6 @@ See [Database Observation], [Combine Support], [RxGRDB].
 
 </details>
 
-
 Documentation
 =============
 
@@ -350,24 +309,17 @@ Documentation
 
 #### Good to Know
 
+- [Concurrency]: How to access databases in a multi-threaded application.
+- [SwiftUI](https://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
+- [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
 - [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
-- [Concurrency]
-
-#### General Guides & Good Practices
-
-- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
 - :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
-- :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
-- :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
-- :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
-- :blue_book: [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
-- :blue_book: [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- :blue_book: [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
-
+- :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
+- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
 
 **[FAQ]**
 

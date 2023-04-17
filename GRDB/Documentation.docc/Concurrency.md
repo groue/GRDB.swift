@@ -14,7 +14,7 @@ The other chapters cover, with more details, the fundamentals of SQLite concurre
 
 **The two concurrency rules are strongly recommended practices.** They are all about SQLite, a robust and reliable database that takes great care of your data: don't miss an opportunity to put it on your side!
 
-### Rule 1: Connect to any database file only once
+#### Rule 1: Connect to any database file only once
 
 Open one single ``DatabaseQueue`` or ``DatabasePool`` per database file, for the whole duration of your use of the database. Not for the duration of _each_ database access, but really for the duration of _all_ database accesses to this file.
 
@@ -27,7 +27,7 @@ Open one single ``DatabaseQueue`` or ``DatabasePool`` per database file, for the
     - You will not be able to use the <doc:DatabaseObservation> features.
     - You will see SQLite errors ([`SQLITE_BUSY`]).
 
-### Rule 2: Mind your transactions
+#### Rule 2: Mind your transactions
 
 Database operations that are grouped in a transaction are guaranteed to be either fully saved on disk, or not at all. Read-only transactions guarantee a stable and immutable view of the database, and do not see changes performed by eventual concurrent writes.
 
@@ -150,31 +150,31 @@ This prevents the database operations from various concurrent accesses from bein
 
 **You will generally use the safe database access methods `read` and `write`.** In this context, "safe" means that a database access is concurrency-friendly, because GRDB provides the following guarantees:
 
-### Serialized Writes
+#### Serialized Writes
 
 **All writes performed by one ``DatabaseQueue`` or ``DatabasePool`` instance are serialized.**
 
 This guarantee prevents [`SQLITE_BUSY`] errors during concurrent writes.
 
-### Write Transactions
+#### Write Transactions
 
 **All writes are wrapped in a transaction.**
 
 Concurrent reads can not see partial database updates (even reads performed by other processes).
 
-### Isolated Reads
+#### Isolated Reads
 
 **All reads are wrapped in a transaction.**
 
 An isolated read sees a stable and immutable state of the database, and does not see changes performed by eventual concurrent writes (even writes performed by other processes). See [Isolation In SQLite](https://www.sqlite.org/isolation.html) for more information.
 
-### Forbidden Writes
+#### Forbidden Writes
 
 **Inside a read access, all attempts to write raise an error.**
 
 This enforces the immutability of the database during a read.
 
-### Non-Reentrancy
+#### Non-Reentrancy
 
 **Database accesses methods are not reentrant.**
 
