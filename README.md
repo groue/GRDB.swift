@@ -4,15 +4,16 @@
     <img alt="GRDB: A toolkit for SQLite databases, with a focus on application development." src="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png">
 </picture>
 
-<p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
+<p align="center">
+    <strong>A toolkit for SQLite databases, with a focus on application development</strong><br>
+    Proudly serving the community since 2017
+</p>
 
 <p align="center">
     <a href="https://developer.apple.com/swift/"><img alt="Swift 5.7" src="https://img.shields.io/badge/swift-5.7-orange.svg?style=flat"></a>
     <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
-
-**Proudly serving the community since 2017.**
 
 **Latest release**: April 10, 2023 • [version 6.10.2](https://github.com/groue/GRDB.swift/tree/v6.10.2) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
