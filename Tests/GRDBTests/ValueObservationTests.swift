@@ -1086,4 +1086,59 @@ class ValueObservationTests: GRDBTestCase {
         try Test(test).runAtTemporaryDatabasePath { try (DatabaseQueue(path: $0), .immediate) }
         try Test(test).runAtTemporaryDatabasePath { try (DatabasePool(path: $0), .immediate) }
     }
+    
+    func testIssue1362() async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
+            try await writer.write { try $0.execute(sql: "CREATE TABLE s(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            var cancellables = [AnyDatabaseCancellable]()
+            
+            let observerCount = 10
+            
+            let receiveExpectation = expectation(description: "all observations received")
+            receiveExpectation.expectedFulfillmentCount = observerCount * 2
+            
+            let initialExpectation = expectation(description: "initial observations received")
+            initialExpectation.expectedFulfillmentCount = observerCount
+            
+            for _ in 1...observerCount {
+                let observation = ValueObservation.trackingConstantRegion(Table("s").fetchCount)
+                let cancellable = observation.start(
+                    in: writer,
+                    scheduling: .async(onQueue: DispatchQueue(label: "", qos: .utility)),
+                    onError: { error in XCTFail("Unexpected error: \(error)") },
+                    onChange: { value in
+                        receiveExpectation.fulfill()
+                        if value == 0 {
+                            initialExpectation.fulfill()
+                        }
+                    })
+                cancellables.append(cancellable)
+            }
+            
+#if compiler(>=5.8)
+            await fulfillment(of: [initialExpectation], timeout: 2)
+#else
+            wait(for: [initialExpectation], timeout: 2)
+#endif
+            
+            Task {
+                try await writer.write {
+                    try $0.execute(sql: "INSERT INTO s DEFAULT VALUES")
+                }
+            }
+            
+#if compiler(>=5.8)
+            await fulfillment(of: [receiveExpectation], timeout: 5)
+#else
+            wait(for: [receiveExpectation], timeout: 5)
+#endif
+            withExtendedLifetime(cancellables) {}
+        }
+        try await AsyncTest(test).runAtTemporaryDatabasePath {
+            var configuration = Configuration()
+            configuration.qos = .userInitiated
+            return try DatabasePool(path: $0, configuration: configuration)
+        }
+    }
 }
