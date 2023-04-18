@@ -365,9 +365,6 @@ extension ValueConcurrentObserver {
                             }
                         }
                         
-                        // FIXME: this sleep is for demonstration of Issue 1362 only.
-                        Thread.sleep(forTimeInterval: 0.01)
-                        
                         // Start observation
                         self.asyncStartObservation(
                             from: databaseAccess,
