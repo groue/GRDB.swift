@@ -1105,7 +1105,7 @@ class ValueObservationTests: GRDBTestCase {
                 let observation = ValueObservation.trackingConstantRegion(Table("s").fetchCount)
                 let cancellable = observation.start(
                     in: writer,
-                    scheduling: .async(onQueue: DispatchQueue(label: "", qos: .utility)),
+                    scheduling: .async(onQueue: DispatchQueue(label: "")),
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { value in
                         receiveExpectation.fulfill()
@@ -1135,10 +1135,6 @@ class ValueObservationTests: GRDBTestCase {
 #endif
             withExtendedLifetime(cancellables) {}
         }
-        try await AsyncTest(test).runAtTemporaryDatabasePath {
-            var configuration = Configuration()
-            configuration.qos = .userInitiated
-            return try DatabasePool(path: $0, configuration: configuration)
-        }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 }
