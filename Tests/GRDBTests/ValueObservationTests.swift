@@ -1086,4 +1086,42 @@ class ValueObservationTests: GRDBTestCase {
         try Test(test).runAtTemporaryDatabasePath { try (DatabaseQueue(path: $0), .immediate) }
         try Test(test).runAtTemporaryDatabasePath { try (DatabasePool(path: $0), .immediate) }
     }
+
+    func testIssue1362() async throws {
+        func test(_ writer: some DatabaseWriter) async throws {
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+
+            var observers = [(ValueObservation<ValueReducers.Fetch<Int>>, AnyDatabaseCancellable)]()
+
+            let observerCount = 10
+            let writeCount = 10
+
+            let receiveExpectation = expectation(description: "all observations received")
+            receiveExpectation.expectedFulfillmentCount = observerCount * writeCount
+            for _ in 1...observerCount {
+                let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
+                let receiver = observation.start(
+                    in: writer,
+                    scheduling: .async(onQueue: DispatchQueue(label: "")),
+                    onError: { error in XCTFail("Unexpected error: \(error)") },
+                    onChange: { _ in
+                        receiveExpectation.fulfill()
+                })
+                observers.append((observation, receiver))
+            }
+
+            for _ in 1...writeCount {
+                try await writer.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+            }
+
+#if compiler(>=5.8)
+            await fulfillment(of: [receiveExpectation], timeout: 5)
+#else
+            wait(for: [receiveExpectation], timeout: 5)
+#endif
+        }
+        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
 }
