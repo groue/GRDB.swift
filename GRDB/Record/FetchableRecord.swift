@@ -98,6 +98,7 @@ import Foundation
 /// ### Supporting Types
 /// 
 /// - ``RecordCursor``
+/// - ``FetchableRecordDecoder``
 public protocol FetchableRecord {
     
     // MARK: - Row Decoding

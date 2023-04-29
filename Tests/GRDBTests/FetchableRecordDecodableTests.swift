@@ -778,7 +778,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "requiredId": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -794,7 +794,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "REQUIREDID": 1,
                 "OPTIONALNAME": "test1",
                 "REQUIREDDATES": "[128000]",
@@ -810,7 +810,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "requiredId": 1,
                 "optionalName": nil,
                 "requiredDates": "[128000]",
@@ -826,7 +826,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "requiredId": 1,
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
@@ -840,7 +840,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try FetchableRecordDecoder().decode(Record.self, from: [
                 "required_id": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -874,7 +874,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "required_id": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -890,7 +890,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "REQUIRED_ID": 1,
                 "OPTIONAL_NAME": "test1",
                 "REQUIRED_DATES": "[128000]",
@@ -906,7 +906,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "required_id": 1,
                 "optional_name": nil,
                 "required_dates": "[128000]",
@@ -922,7 +922,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "required_id": 1,
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
@@ -937,7 +937,7 @@ extension FetchableRecordDecodableTests {
         
         do {
             // Matches JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase behavior
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "requiredId": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -953,7 +953,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try FetchableRecordDecoder().decode(Record.self, from: [
                 "required_idx": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -970,7 +970,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(IncorrectRecord.self, from: [
+            _ = try FetchableRecordDecoder().decode(IncorrectRecord.self, from: [
                 "required_id": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -1008,7 +1008,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "_requiredId": 1,
                 "_optionalName": "test1",
                 "_requiredDates": "[128000]",
@@ -1024,7 +1024,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "_requiredId": 1,
                 "_optionalName": nil,
                 "_requiredDates": "[128000]",
@@ -1040,7 +1040,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try FetchableRecordDecoder().decode(Record.self, from: [
                 "_requiredId": 1,
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
@@ -1054,7 +1054,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try FetchableRecordDecoder().decode(Record.self, from: [
                 "requiredId": 1,
                 "_optionalName": "test1",
                 "_requiredDates": "[128000]",
@@ -1377,7 +1377,7 @@ extension FetchableRecordDecodableTests {
         //   all optionals decode missing keys are nil. This is because GRDB
         //   records accept rows with missing columns, and b and c may want to
         //   decode columns.
-        _ = try RowDecoder().decode(Composed.self, from: [:])
+        _ = try FetchableRecordDecoder().decode(Composed.self, from: [:])
     }
     
     // This is a regression test for https://github.com/groue/GRDB.swift/issues/664
@@ -1389,7 +1389,7 @@ extension FetchableRecordDecodableTests {
             var b: B
         }
         do {
-            _ = try RowDecoder().decode(Composed.self, from: [:])
+            _ = try FetchableRecordDecoder().decode(Composed.self, from: [:])
             XCTFail("Expected error")
         } catch DecodingError.keyNotFound {
             // a or b can not be decoded because only one key is allowed to be missing
@@ -1409,7 +1409,7 @@ extension FetchableRecordDecodableTests {
                 // - a is present
                 // - root is b and c is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["a": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try FetchableRecordDecoder().decode(Composed.self, from: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["b", "c"].contains(key.stringValue))
@@ -1419,7 +1419,7 @@ extension FetchableRecordDecodableTests {
                 // - b is present
                 // - root is a and c is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["b": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try FetchableRecordDecoder().decode(Composed.self, from: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "c"].contains(key.stringValue))
@@ -1429,7 +1429,7 @@ extension FetchableRecordDecodableTests {
                 // - c is present
                 // - root is a and b is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["c": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try FetchableRecordDecoder().decode(Composed.self, from: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "b"].contains(key.stringValue))
@@ -1493,4 +1493,46 @@ extension FetchableRecordDecodableTests {
 
 fileprivate extension CodingUserInfoKey {
     static let testKey = CodingUserInfoKey(rawValue: "correct")!
+}
+
+// MARK: - Decodable + custom init
+
+extension FetchableRecordDecodableTests {
+    // Test for <https://github.com/groue/GRDB.swift/issues/1366#issuecomment-1527280022>
+    func testStructWithCustomizedRowInitializer() throws {
+        struct Player: Decodable, FetchableRecord {
+            var id: Int
+            var name: String
+            var isFetched: Bool = false
+            
+            enum CodingKeys: String, CodingKey {
+                case id, name
+            }
+            
+            init(id: Int, name: String) {
+                self.id = id
+                self.name = name
+                self.isFetched = false
+            }
+            
+            init(row: Row) throws {
+                self = try FetchableRecordDecoder().decode(Player.self, from: row)
+                self.isFetched = true
+            }
+        }
+        
+        do {
+            let player = Player(id: 1, name: "Arthur")
+            XCTAssertEqual(player.id, 1)
+            XCTAssertEqual(player.name, "Arthur")
+            XCTAssertEqual(player.isFetched, false)
+        }
+        
+        do {
+            let player = try Player(row: ["id": 2, "name": "Barbara"])
+            XCTAssertEqual(player.id, 2)
+            XCTAssertEqual(player.name, "Barbara")
+            XCTAssertEqual(player.isFetched, true)
+        }
+    }
 }
