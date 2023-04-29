@@ -61,7 +61,7 @@ extension Database {
     ///
     ///     class MyTokenizer : FTS5CustomTokenizer { ... }
     ///     db.add(tokenizer: MyTokenizer.self)
-    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
+    public func add(tokenizer: (some FTS5CustomTokenizer).Type) {
         let api = FTS5.api(self)
         
         // Swift won't let the @convention(c) xCreate() function below create
@@ -76,7 +76,7 @@ extension Database {
                     return SQLITE_ERROR
                 }
                 do {
-                    let tokenizer = try Tokenizer(db: db, arguments: arguments)
+                    let tokenizer = try tokenizer.init(db: db, arguments: arguments)
                     
                     // Tokenizer must remain alive until xDeleteTokenizer()
                     // is called, as the xDelete member of xTokenizer
@@ -158,7 +158,7 @@ extension Database {
         let code = withUnsafeMutablePointer(to: &xTokenizer) { xTokenizerPointer in
             api.pointee.xCreateTokenizer(
                 UnsafeMutablePointer(mutating: api),
-                Tokenizer.name,
+                tokenizer.name,
                 constructorPointer,
                 xTokenizerPointer,
                 deleteConstructor)

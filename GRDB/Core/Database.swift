@@ -94,6 +94,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 ///
 /// ### Other Database Operations
 ///
+/// - ``add(tokenizer:)``
 /// - ``backup(to:pagesPerStep:progress:)``
 /// - ``checkpoint(_:on:)``
 /// - ``clearSchemaCache()``

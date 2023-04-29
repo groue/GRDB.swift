@@ -6,7 +6,7 @@
 
 <p align="center">
     <strong>A toolkit for SQLite databases, with a focus on application development</strong><br>
-    Proudly serving the community since 2017
+    Proudly serving the community since 2015
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: April 10, 2023 • [version 6.11.0](https://github.com/groue/GRDB.swift/tree/v6.11.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: April 29, 2023 • [version 6.12.0](https://github.com/groue/GRDB.swift/tree/v6.12.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 

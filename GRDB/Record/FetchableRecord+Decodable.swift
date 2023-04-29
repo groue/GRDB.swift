@@ -3,16 +3,71 @@ import Foundation
 extension FetchableRecord where Self: Decodable {
     /// Creates a record from `row`, using the `Decodable` conformance.
     public init(row: Row) throws {
-        self = try RowDecoder().decode(from: row)
+        self = try FetchableRecordDecoder().decode(Self.self, from: row)
     }
 }
 
-// For testability. Not intended to become public as long as FetchableRecord has
-// a non-throwing row initializer, since this would open an undesired door.
-class RowDecoder {
-    init() { }
+/// An object that decodes fetchable records from database rows.
+///
+/// The example below shows how to decode an instance of a simple `Player`
+/// type, that conforms to both ``FetchableRecord`` and `Decodable`, from a
+/// database row.
+///
+/// ```swift
+/// struct Player: FetchableRecord, Decodable {
+///     var id: Int64
+///     var name: String
+///     var score: Int
+/// }
+///
+/// try dbQueue.read { db in
+///     if let row = try Row.fetchOne(db, sql: "SELECT * FROM player WHERE id = 42") {
+///         let decoder = FetchableRecordDecoder()
+///         let player = try decoder.decode(Player.self, from: row)
+///         print(player.name)
+///     }
+/// }
+/// ```
+///
+/// You will generally not need to create an instance of
+/// `FetchableRecordDecoder`. The above sample code is correct, but you will
+/// generally write instead:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     // Prefer the init(row:) initializer:
+///     if let row = try Row.fetchOne(db, sql: "SELECT * FROM player WHERE id = 42") {
+///         let player = try Player(row: row)
+///         print(player.name)
+///     }
+///
+///     // OR just directly fetch a player:
+///     if let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = 42") {
+///         print(player.name)
+///     }
+/// }
+/// ```
+///
+/// The behavior of the decoder depends on the decoded type. See:
+///
+/// - ``FetchableRecord/databaseColumnDecodingStrategy-6uefz``
+/// - ``FetchableRecord/databaseDateDecodingStrategy-78y03``
+/// - ``FetchableRecord/databaseDecodingUserInfo-77jim``
+/// - ``FetchableRecord/databaseJSONDecoder(for:)-7lmxd``
+public class FetchableRecordDecoder {
+    /// Creates a decoder for fetchable records.
+    public init() { }
     
-    func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
+    /// Returns a record of the type you specify, decoded from a
+    /// database row.
+    ///
+    /// - Parameters:
+    ///   - type: The type of the record to decode from the supplied
+    ///     database row.
+    ///   - row: The database row to decode.
+    /// - Returns: An instance of the specified record type, if the decoder
+    ///   can parse the database row.
+    public func decode<T: FetchableRecord & Decodable>(_ type: T.Type, from row: Row) throws -> T {
         let decoder = _RowDecoder<T>(row: row, codingPath: [], columnDecodingStrategy: T.databaseColumnDecodingStrategy)
         return try T(from: decoder)
     }
