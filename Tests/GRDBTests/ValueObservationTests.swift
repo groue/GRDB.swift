@@ -769,7 +769,7 @@ class ValueObservationTests: GRDBTestCase {
                     .trackingConstantRegion(Table("t").fetchCount)
                     .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
-                for try await count in try observation.values(in: writer).prefix(while: { $0 < 3 }) {
+                for try await count in try observation.values(in: writer).prefix(while: { $0 <= 3 }) {
                     counts.append(count)
                     try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
                 }
@@ -777,9 +777,9 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let counts = try await task.value
-            
-            // All values were published
-            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            XCTAssertTrue(counts.contains(0))
+            XCTAssertTrue(counts.contains(where: { $0 >= 2 }))
+            XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
 #if compiler(>=5.8)
@@ -807,7 +807,7 @@ class ValueObservationTests: GRDBTestCase {
                     .trackingConstantRegion(Table("t").fetchCount)
                     .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
-                for try await count in try observation.values(in: writer, scheduling: .immediate).prefix(while: { $0 < 3 }) {
+                for try await count in try observation.values(in: writer, scheduling: .immediate).prefix(while: { $0 <= 3 }) {
                     counts.append(count)
                     try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
                 }
@@ -815,9 +815,9 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let counts = try await task.value
-            
-            // All values were published
-            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            XCTAssertTrue(counts.contains(0))
+            XCTAssertTrue(counts.contains(where: { $0 >= 2 }))
+            XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
 #if compiler(>=5.8)
@@ -847,7 +847,7 @@ class ValueObservationTests: GRDBTestCase {
                 
                 for try await count in observation.values(in: writer) {
                     counts.append(count)
-                    if count == 2 {
+                    if count > 3 {
                         break
                     } else {
                         try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
@@ -857,9 +857,9 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let counts = try await task.value
-            
-            // All values were published
-            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            XCTAssertTrue(counts.contains(0))
+            XCTAssertTrue(counts.contains(where: { $0 >= 2 }))
+            XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
 #if compiler(>=5.8)
@@ -1085,5 +1085,71 @@ class ValueObservationTests: GRDBTestCase {
         try Test(test).run { try (DatabaseQueue(), .immediate) }
         try Test(test).runAtTemporaryDatabasePath { try (DatabaseQueue(path: $0), .immediate) }
         try Test(test).runAtTemporaryDatabasePath { try (DatabasePool(path: $0), .immediate) }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1362>
+    func testIssue1362() throws {
+        func test(_ writer: some DatabaseWriter) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE s(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            var cancellables = [AnyDatabaseCancellable]()
+            
+            // Start an observation and wait until it has installed its
+            // transaction observer.
+            let installedExpectation = expectation(description: "transaction observer installed")
+            let finalExpectation = expectation(description: "final value")
+            let initialObservation = ValueObservation.trackingConstantRegion(Table("s").fetchCount)
+            let cancellable = initialObservation.start(
+                in: writer,
+                // Immediate initial value so that the next value comes
+                // from the write access that installs the transaction observer.
+                scheduling: .immediate,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    if count == 1 {
+                        installedExpectation.fulfill()
+                    }
+                    if count == 2 {
+                        finalExpectation.fulfill()
+                    }
+                })
+            cancellables.append(cancellable)
+            try writer.write { try $0.execute(sql: "INSERT INTO s DEFAULT VALUES") } // count = 1
+            wait(for: [installedExpectation], timeout: 2)
+            
+            // Start a write that will trigger initialObservation when we decide.
+            let semaphore = DispatchSemaphore(value: 0)
+            writer.asyncWriteWithoutTransaction { db in
+                semaphore.wait()
+                do {
+                    try db.execute(sql: "INSERT INTO s DEFAULT VALUES") // count = 2
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            }
+            
+            // Start as many observations as there are readers
+            for _ in 0..<writer.configuration.maximumReaderCount {
+                let observation = ValueObservation.trackingConstantRegion(Table("s").fetchCount)
+                let cancellable = observation.start(
+                    in: writer,
+                    onError: { error in XCTFail("Unexpected error: \(error)") },
+                    onChange: { _ in })
+                cancellables.append(cancellable)
+            }
+            
+            // Wait until all observations are waiting for the writer so
+            // that they can install their transaction observer.
+            Thread.sleep(forTimeInterval: 0.5)
+            
+            // Perform the write that triggers initialObservation
+            semaphore.signal()
+            
+            // initialObservation should get its final value
+            wait(for: [finalExpectation], timeout: 2)
+            
+            withExtendedLifetime(cancellables) {}
+        }
+        
+        try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 }

@@ -101,6 +101,19 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         }
     }
     
+    /// The fetching state for observation of constant regions.
+    enum FetchingState {
+        /// No need to fetch.
+        case idle
+        
+        /// Waiting for a fetched value.
+        case fetching
+        
+        /// Waiting for a fetched value, and for a subsequent  fetch after
+        /// that, because a change has been detected as we were fetching.
+        case fetchingAndNeedsFetch
+    }
+    
     /// Ability to notify observation events
     private struct NotificationCallbacks {
         let events: ValueObservationEvents
@@ -131,6 +144,9 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     
     /// Ability to notify observation events, protected by `lock`.
     private var notificationCallbacks: NotificationCallbacks?
+    
+    /// The fetching state for observation of constant regions.
+    @LockedBox private var fetchingState = FetchingState.idle
     
     /// Support for `TransactionObserver`, protected by the serialized writer
     /// dispatch queue.
@@ -692,13 +708,10 @@ extension ValueConcurrentObserver: TransactionObserver {
         events.databaseDidChange?()
         
         // Fetch
-        let future: DatabaseFuture<Reducer.Fetched>
-        
         switch trackingMode {
         case .constantRegion, .constantRegionRecordedFromSelection:
-            future = databaseAccess.dbPool.concurrentRead { db in
-                try databaseAccess.fetch(db)
-            }
+            setNeedsFetching(databaseAccess: databaseAccess)
+            
         case .nonConstantRegionRecordedFromSelection:
             // When the tracked region is not constant, we can't perform
             // concurrent fetches of observed values.
@@ -723,26 +736,63 @@ extension ValueConcurrentObserver: TransactionObserver {
                 }
                 
                 observationState.region = observedRegion
-                future = DatabaseFuture(.success(fetchedValue))
+                reduce(.success(fetchedValue))
             } catch {
                 stopDatabaseObservation(writerDB)
                 notifyError(error)
                 return
             }
         }
-        
-        // Reduce
-        //
-        // Reducing is performed asynchronously, so that we do not lock
-        // the writer dispatch queue longer than necessary.
-        //
-        // Important: reduceQueue.async guarantees the same ordering between
-        // transactions and notifications!
+    }
+    
+    private func setNeedsFetching(databaseAccess: DatabaseAccess) {
+        $fetchingState.update { state in
+            switch state {
+            case .idle:
+                state = .fetching
+                asyncFetch(databaseAccess: databaseAccess)
+                
+            case .fetching:
+                state = .fetchingAndNeedsFetch
+                
+            case .fetchingAndNeedsFetch:
+                break
+            }
+        }
+    }
+    
+    private func asyncFetch(databaseAccess: DatabaseAccess) {
+        databaseAccess.dbPool.asyncRead { [self] dbResult in
+            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
+            guard isNotifying else { return /* Cancelled */ }
+            
+            let fetchResult = dbResult.flatMap { db in
+                Result { try databaseAccess.fetch(db) }
+            }
+            
+            self.reduce(fetchResult)
+            
+            $fetchingState.update { state in
+                switch state {
+                case .idle:
+                    // GRDB bug
+                    preconditionFailure()
+                    
+                case .fetching:
+                    state = .idle
+                    
+                case .fetchingAndNeedsFetch:
+                    state = .fetching
+                    asyncFetch(databaseAccess: databaseAccess)
+                }
+            }
+        }
+    }
+    
+    private func reduce(_ fetchResult: Result<Reducer.Fetched, Error>) {
         reduceQueue.async {
             do {
-                // Wait until fetch has completed
-                // TODO: find a way to guarantee correct ordering without waiting for a semaphore and blocking a thread.
-                let fetchedValue = try future.wait()
+                let fetchedValue = try fetchResult.get()
                 
                 let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                 guard isNotifying else { return /* Cancelled */ }

@@ -679,112 +679,105 @@ class ValueObservationRecorderTests: FailureTestCase {
     func testAssertValueObservationRecordingMatch() {
         do {
             let expected = [3]
-            assertValueObservationRecordingMatch(recorded: [3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [2]", "failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [2], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [2]") {
-                assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
-            }
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2, 3], expected: expected))
         }
         do {
             let expected = [2, 3]
-            assertValueObservationRecordingMatch(recorded: [3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [2, 2, 3, 3], expected: expected)
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [], expected: expected)
-            }
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [2], expected: expected)
-            }
-            assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [3]") {
-                assertValueObservationRecordingMatch(recorded: [3, 2], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [1]") {
-                assertValueObservationRecordingMatch(recorded: [1, 3], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [1]") {
-                assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
-            }
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 2, 3, 3], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [3, 2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [1, 3], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected))
         }
         do {
             let expected = [3, 3]
-            assertValueObservationRecordingMatch(recorded: [3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected)
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [], expected: expected)
-            }
-            assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [2]") {
-                assertValueObservationRecordingMatch(recorded: [2], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [2]") {
-                assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [2, 2]") {
-                assertValueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [1, 2]") {
-                assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
-            }
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2, 3], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected))
         }
         do {
             let expected = [1, 2, 2, 3]
-            assertValueObservationRecordingMatch(recorded: [3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 1, 3, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 2, 2, 3], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [], expected: expected)
-            }
-            assertFailure("failed - missing expected value 3") {
-                assertValueObservationRecordingMatch(recorded: [2], expected: expected)
-            }
-            assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [3]") {
-                assertValueObservationRecordingMatch(recorded: [3, 2], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [2]") {
-                assertValueObservationRecordingMatch(recorded: [2, 1, 3], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [0]") {
-                assertValueObservationRecordingMatch(recorded: [0, 3], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [0]") {
-                assertValueObservationRecordingMatch(recorded: [0, 1, 2, 3], expected: expected)
-            }
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 1, 3, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 2, 3], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [3, 2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2, 1, 3], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [0, 3], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [0, 1, 2, 3], expected: expected))
         }
         do {
             let expected = [1, 2, 1]
-            assertValueObservationRecordingMatch(recorded: [1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [2, 1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 2, 1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 1, 2, 1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 2, 1, 1], expected: expected)
-            assertValueObservationRecordingMatch(recorded: [1, 2, 2, 1], expected: expected)
-            assertFailure("failed - missing expected value 1") {
-                assertValueObservationRecordingMatch(recorded: [], expected: expected)
-            }
-            assertFailure("failed - missing expected value 1") {
-                assertValueObservationRecordingMatch(recorded: [2], expected: expected)
-            }
-            assertFailure("failed - missing expected value 1") {
-                assertValueObservationRecordingMatch(recorded: [1, 2], expected: expected)
-            }
-            assertFailure("failed - unexpected recorded prefix [0]") {
-                assertValueObservationRecordingMatch(recorded: [0, 1], expected: expected)
-            }
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 1, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 1, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 2, 1], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [1, 2], expected: expected))
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [0, 1], expected: expected))
+        }
+        do {
+            let expected = [1, 2, 3, 2, 1]
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 3, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 3, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 3, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 1], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3, 1], expected: expected))
+            
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [3, 1, 2, 1], expected: expected))
+        }
+        do {
+            let expected = [1, 2, 1, 3, 1, 4]
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 3, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 2, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 1, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [1, 3, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [3, 1, 1, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 1, 3, 4], expected: expected))
+            XCTAssertTrue(valueObservationRecordingMatch(recorded: [2, 3, 1, 4], expected: expected))
+
+            XCTAssertFalse(valueObservationRecordingMatch(recorded: [3, 2, 4], expected: expected))
         }
     }
 }
