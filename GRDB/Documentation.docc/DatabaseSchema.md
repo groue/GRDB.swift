@@ -365,6 +365,7 @@ extension Team: TableRecord {
 - ``Database/create(virtualTable:ifNotExists:using:_:)``
 - ``Database/drop(table:)``
 - ``Database/dropFTS4SynchronizationTriggers(forTable:)``
+- ``Database/dropFTS5SynchronizationTriggers(forTable:)``
 - ``Database/rename(table:to:)``
 - ``Database/ColumnType``
 - ``Database/ConflictResolution``
