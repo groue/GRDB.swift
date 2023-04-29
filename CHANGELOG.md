@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.12.x` Releases - [6.12.0](#6120)
 - `6.11.x` Releases - [6.11.0](#6110)
 - `6.10.x` Releases - [6.10.0](#6100) - [6.10.1](#6101) - [6.10.2](#6102)
 - `6.9.x` Releases - [6.9.0](#690) - [6.9.1](#691) - [6.9.2](#692)
@@ -108,6 +109,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.12.0
+
+Released April 29, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.11.0...v6.12.0)
+
+- **Fixed**: [#1364](https://github.com/groue/GRDB.swift/pull/1364) Fix a regression introduced with version 6.10.0, where starting multiple observations while performing writes could create a deadlock.
+- **New**: `FetchableRecordDecoder` is an object that decodes `Decodable` fetchable records from database rows. You may want to use this decoder when you want to use the `Decodable` initializer from `init(row: Row)`.
 
 ## 6.11.0
 
