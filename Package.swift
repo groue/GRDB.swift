@@ -5,7 +5,8 @@ import Foundation
 import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
-    .define("SQLITE_ENABLE_FTS5"),
+    .define("SQLITE_ENABLE_FTS5"), 
+    .define("SQLITE_ENABLE_RTREE")
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
