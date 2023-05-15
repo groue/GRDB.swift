@@ -110,6 +110,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1373](https://github.com/groue/GRDB.swift/pull/1373) Deprecate string literal arguments for `TableDefinition.check()`
+
+
 ## 6.12.0
 
 Released April 29, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.11.0...v6.12.0)
