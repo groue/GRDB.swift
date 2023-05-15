@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.13.x` Releases - [6.13.0](#6130)
 - `6.12.x` Releases - [6.12.0](#6120)
 - `6.11.x` Releases - [6.11.0](#6110)
 - `6.10.x` Releases - [6.10.0](#6100) - [6.10.1](#6101) - [6.10.2](#6102)
@@ -110,7 +111,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.13.0
+
+Released May 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.12.0...v6.13.0)
 
 - **New**: [#1373](https://github.com/groue/GRDB.swift/pull/1373) Deprecate string literal arguments for `TableDefinition.check()`
 
