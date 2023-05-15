@@ -545,6 +545,33 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    @available(*, deprecated)
+    func testTableCheck_deprecated() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                // Deprecated because this does not what the user means!
+                t.check("a < b")
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "a" INTEGER, \
+                "b" INTEGER, \
+                CHECK ('a < b')\
+                )
+                """)
+            
+            // Sanity check: insert should fail because the 'a < b' string is false for SQLite
+            do {
+                try db.execute(sql: "INSERT INTO test (a, b) VALUES (0, 1)")
+                XCTFail()
+            } catch {
+            }
+        }
+    }
+    
     func testConstraintLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

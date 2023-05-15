@@ -510,7 +510,8 @@ public struct TableOptions: OptionSet {
 ///
 /// ### Define Others Constraints
 ///
-/// - ``check(_:)``
+/// - ``check(_:)-6u1za``
+/// - ``check(_:)-jpcg``
 /// - ``check(sql:)``
 /// - ``constraint(literal:)``
 /// - ``constraint(sql:)``
@@ -908,10 +909,49 @@ public final class TableDefinition {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: The checked condition.
+    @available(*, deprecated)
     public func check(_ condition: some SQLExpressible) {
         checkConstraints.append(condition.sqlExpression)
     }
     
+    /// Adds a check constraint.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player (
+    /// //   personalPhone TEXT,
+    /// //   workPhone TEXT,
+    /// //   CHECK personalPhone IS NOT NULL OR workPhone IS NOT NULL
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("personalPhone", .text)
+    ///     t.column("workPhone", .text)
+    ///     let personalPhone = Column("personalPhone")
+    ///     let workPhone = Column("workPhone")
+    ///     t.check(personalPhone != nil || workPhone != nil)
+    /// }
+    /// ```
+    ///
+    /// When defining a check constraint on a single column, you can use the
+    /// ``ColumnDefinition/check(_:)`` shortcut:
+    ///
+    /// ```swift
+    /// // CREATE TABLE player(
+    /// //   name TEXT CHECK (LENGTH(name) > 0)
+    /// // )
+    /// try db.create(table: "player") { t in
+    ///     t.column("name", .text).check { length($0) > 0 }
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#ckconst>
+    ///
+    /// - parameter condition: The checked condition.
+    public func check(_ condition: some SQLSpecificExpressible) {
+        checkConstraints.append(condition.sqlExpression)
+    }
+
     /// Adds a check constraint.
     ///
     /// For example:
