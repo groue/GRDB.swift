@@ -549,7 +549,7 @@ if let author = query.get() {
 }
 ```
 
-**GRDB supports eager loading**. The difference with Fluent is that the relationships are modelled in a dedicated record type that provides full compile and runtime safety:
+**GRDB supports eager loading**. The difference with Fluent is that the relationships are modelled in a dedicated record type that provides runtime safety:
 
 ```swift
 // Eager loading with GRDB
