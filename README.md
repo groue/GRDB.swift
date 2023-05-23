@@ -4033,6 +4033,15 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     When the sequence is empty, `joined(operator: .add)` returns 0, and `joined(operator: .multiply)` returns 1.
 
+- `&`, `|`, `~`, `<<`, `>>`
+    
+    Bitwise operations (bitwise and, or, not, left shift, right shift) are derived from their Swift equivalent:
+    
+    ```swift
+    // SELECT mask & 2 AS isRocky FROM planet
+    Planet.select((Column("mask") & 2).forKey("isRocky"))
+    ```
+
 - `||`
     
     Concatenate several strings:

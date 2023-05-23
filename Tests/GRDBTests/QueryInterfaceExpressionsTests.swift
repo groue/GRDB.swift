@@ -1311,6 +1311,156 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     
+    // MARK: - Bitwise expressions
+    
+    func testPrefixBitwiseNotOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(~Col.age)),
+            "SELECT * FROM \"readers\" WHERE ~\"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(~(Col.age + 1))),
+            "SELECT * FROM \"readers\" WHERE ~(\"age\" + 1)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(~(~Col.age + 1))),
+            "SELECT * FROM \"readers\" WHERE ~((~\"age\") + 1)")
+    }
+    
+    func testInfixLeftShiftOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age << 2)),
+            "SELECT * FROM \"readers\" WHERE \"age\" << 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 << Col.age)),
+            "SELECT * FROM \"readers\" WHERE 2 << \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filterWhenConnected { _ in 2 << 2 }),
+            "SELECT * FROM \"readers\" WHERE 8")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age << Col.age)),
+            "SELECT * FROM \"readers\" WHERE \"age\" << \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((Col.age << Col.age) << 1)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" << \"age\") << 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(1 << [Col.age > 1, Col.age == nil].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE 1 << ((\"age\" > 1) AND (\"age\" IS NULL))")
+    }
+    
+    func testInfixRightShiftOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age >> 2)),
+            "SELECT * FROM \"readers\" WHERE \"age\" >> 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 >> Col.age)),
+            "SELECT * FROM \"readers\" WHERE 2 >> \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filterWhenConnected { _ in 8 >> 2 }),
+            "SELECT * FROM \"readers\" WHERE 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age >> Col.age)),
+            "SELECT * FROM \"readers\" WHERE \"age\" >> \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((Col.age >> Col.age) >> 1)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" >> \"age\") >> 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(1 >> [Col.age > 1, Col.age == nil].joined(operator: .and))),
+            "SELECT * FROM \"readers\" WHERE 1 >> ((\"age\" > 1) AND (\"age\" IS NULL))")
+    }
+    
+    func testInfixBitwiseAndOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age & 2)),
+            "SELECT * FROM \"readers\" WHERE \"age\" & 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 & Col.age)),
+            "SELECT * FROM \"readers\" WHERE 2 & \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filterWhenConnected { _ in 2 & 2 }),
+            "SELECT * FROM \"readers\" WHERE 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age & Col.age)),
+            "SELECT * FROM \"readers\" WHERE \"age\" & \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 & (Col.age & Col.age))),
+            "SELECT * FROM \"readers\" WHERE 2 & \"age\" & \"age\"")
+    }
+    
+    func testJoinedBitwiseAndOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([].joined(operator: .bitwiseAnd))),
+            "SELECT -1 FROM \"readers\"")
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, Col.age].joined(operator: .bitwiseAnd))),
+            "SELECT \"age\" & \"age\" FROM \"readers\"")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, 2.databaseValue, Col.age].joined(operator: .bitwiseAnd))),
+            "SELECT \"age\" & 2 & \"age\" FROM \"readers\"")
+
+        // Flattened
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([
+                [Col.age, 1.databaseValue].joined(operator: .bitwiseAnd),
+                [2.databaseValue, Col.age].joined(operator: .bitwiseAnd),
+                ].joined(operator: .bitwiseAnd))),
+            "SELECT \"age\" & 1 & 2 & \"age\" FROM \"readers\"")
+    }
+    
+    func testInfixBitwiseOrOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age | 2)),
+            "SELECT * FROM \"readers\" WHERE \"age\" | 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 | Col.age)),
+            "SELECT * FROM \"readers\" WHERE 2 | \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filterWhenConnected { _ in 2 | 2 }),
+            "SELECT * FROM \"readers\" WHERE 2")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.age | Col.age)),
+            "SELECT * FROM \"readers\" WHERE \"age\" | \"age\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(2 | (Col.age | Col.age))),
+            "SELECT * FROM \"readers\" WHERE 2 | \"age\" | \"age\"")
+    }
+    
+    func testJoinedBitwiseOrOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([].joined(operator: .bitwiseOr))),
+            "SELECT 0 FROM \"readers\"")
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, Col.age].joined(operator: .bitwiseOr))),
+            "SELECT \"age\" | \"age\" FROM \"readers\"")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, 2.databaseValue, Col.age].joined(operator: .bitwiseOr))),
+            "SELECT \"age\" | 2 | \"age\" FROM \"readers\"")
+
+        // Flattened
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([
+                [Col.age, 1.databaseValue].joined(operator: .bitwiseOr),
+                [2.databaseValue, Col.age].joined(operator: .bitwiseOr),
+                ].joined(operator: .bitwiseOr))),
+            "SELECT \"age\" | 1 | 2 | \"age\" FROM \"readers\"")
+    }
+
     // MARK: - IFNULL expression
     
     func testIfNull() throws {
