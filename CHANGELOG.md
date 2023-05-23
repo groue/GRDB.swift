@@ -111,6 +111,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1376](https://github.com/groue/GRDB.swift/pull/1376) Bitwise operations
+
+
 ## 6.13.0
 
 Released May 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.12.0...v6.13.0)

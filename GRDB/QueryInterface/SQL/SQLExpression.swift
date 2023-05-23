@@ -215,7 +215,7 @@ public struct SQLExpression {
         
         /// If true, (a • b) • c is strictly equal to a • (b • c).
         ///
-        /// `AND`, `OR`, `||` (concat) are stricly associative.
+        /// `AND`, `OR`, `||` (concat), `&`, `|` are stricly associative.
         ///
         /// `+` and `*` are not stricly associative when applied to floating
         /// point values.
@@ -226,7 +226,7 @@ public struct SQLExpression {
         ///
         /// `||` (concat) is bijective.
         ///
-        /// `AND`, `OR`, `+` and `*` are not.
+        /// `AND`, `OR`, `+` and `*`, `&`, `|` are not.
         let isBijective: Bool
         
         /// Creates a binary operator
@@ -306,6 +306,34 @@ public struct SQLExpression {
             neutralValue: "".databaseValue,
             strictlyAssociative: true,
             bijective: true)
+        
+        /// The `&` bitwise AND SQL operator.
+        ///
+        /// For example:
+        ///
+        /// ```swift
+        /// // mask & 2
+        /// [Column("mask"), 2.databaseValue].joined(operator: .bitwiseAnd)
+        /// ```
+        public static let bitwiseAnd = AssociativeBinaryOperator(
+            sql: "&",
+            neutralValue: (-1).databaseValue,
+            strictlyAssociative: true,
+            bijective: false)
+        
+        /// The `|` bitwise OR SQL operator.
+        ///
+        /// For example:
+        ///
+        /// ```swift
+        /// // mask | 2
+        /// [Column("mask"), 2.databaseValue].joined(operator: .bitwiseOr)
+        /// ```
+        public static let bitwiseOr = AssociativeBinaryOperator(
+            sql: "|",
+            neutralValue: 0.databaseValue,
+            strictlyAssociative: true,
+            bijective: false)
     }
     
     /// `BinaryOperator` is an SQLite binary operator, such as `>`, `=`, etc.
@@ -343,6 +371,12 @@ public struct SQLExpression {
         
         /// The `MATCH` binary operator
         static let match = BinaryOperator("MATCH")
+        
+        /// The `<<` bitwise left shift operator
+        static let leftShift = BinaryOperator("<<")
+        
+        /// The `>>` bitwise right shift operator
+        static let rightShift = BinaryOperator(">>")
     }
     
     /// `EscapableBinaryOperator` is an SQLite binary operator that accepts an
@@ -399,19 +433,16 @@ public struct SQLExpression {
         /// The SQL operator
         let sql: String
         
-        /// If true GRDB puts a white space between the operator and the operand.
-        let needsRightSpace: Bool
-        
-        /// Creates an unary operator
-        ///
-        ///     UnaryOperator("~", needsRightSpace: false)
-        init(_ sql: String, needsRightSpace: Bool) {
+        /// Creates an unary operator.
+        init(_ sql: String) {
             self.sql = sql
-            self.needsRightSpace = needsRightSpace
         }
         
         /// The `-` unary operator
-        static let minus = UnaryOperator("-", needsRightSpace: false)
+        static let minus = UnaryOperator("-")
+        
+        /// The `~` unary operator
+        static let bitwiseNot = UnaryOperator("~")
     }
 }
 
@@ -1021,9 +1052,7 @@ extension SQLExpression {
             return resultSQL
             
         case let .unary(op, expression):
-            var resultSQL = try op.sql
-                + (op.needsRightSpace ? " " : "")
-                + expression.sql(context, wrappedInParenthesis: true)
+            var resultSQL = try op.sql + expression.sql(context, wrappedInParenthesis: true)
             if wrappedInParenthesis {
                 resultSQL = "(\(resultSQL))"
             }
