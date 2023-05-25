@@ -114,6 +114,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#1376](https://github.com/groue/GRDB.swift/pull/1376) Bitwise operations
+- **New**: [#1379](https://github.com/groue/GRDB.swift/pull/1379) Create indexes with a default name
 
 
 ## 6.13.0
