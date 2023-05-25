@@ -921,6 +921,29 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testCreateIndexOn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.primaryKey("id", .integer)
+                t.column("a", .text)
+                t.column("b", .text)
+            }
+            
+            try db.create(indexOn: "test", columns: ["a"])
+            assertEqualSQL(lastSQLQuery!, "CREATE INDEX \"index_test_on_a\" ON \"test\"(\"a\")")
+            
+            try db.create(indexOn: "test", columns: ["a", "b"], options: [.unique])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX \"index_test_on_a_b\" ON \"test\"(\"a\", \"b\")")
+            
+            try db.create(indexOn: "test", columns: ["b"], options: [.unique, .ifNotExists])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"index_test_on_b\" ON \"test\"(\"b\")")
+            
+            // Sanity check
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["index_test_on_a", "index_test_on_a_b", "index_test_on_b"])
+        }
+    }
+    
     func testCreatePartialIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -955,6 +978,51 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testDropIndexOn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.primaryKey("id", .integer)
+                t.column("a", .text)
+                t.column("b", .text)
+                t.column("c", .text)
+                t.column("d", .text)
+            }
+            try db.create(index: "custom_name_a", on: "test", columns: ["a"])
+            try db.create(index: "custom_name_b", on: "test", columns: ["a", "b"])
+            try db.create(indexOn: "test", columns: ["c"])
+            try db.create(indexOn: "test", columns: ["c", "d"])
+            
+            // Custom name
+            try db.drop(indexOn: "test", columns: ["a"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"custom_name_a\"")
+            
+            // Custom name, case insensitivity
+            try db.drop(indexOn: "TEST", columns: ["A", "B"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"custom_name_b\"")
+            
+            // Default name
+            try db.drop(indexOn: "test", columns: ["c"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"index_test_on_c\"")
+            
+            // Default name, case insensitivity
+            try db.drop(indexOn: "TEST", columns: ["C", "D"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"index_test_on_c_d\"")
+            
+            // Non existing index: no error
+            try db.drop(indexOn: "test", columns: ["a", "b", "c", "d"])
+            
+            // Non existing table: error
+            do {
+                try db.drop(indexOn: "missing", columns: ["a"])
+                XCTFail("Expected error")
+            } catch { }
+
+            // Sanity check
+            XCTAssertTrue(try db.indexes(on: "test").isEmpty)
+        }
+    }
+
     func testReindex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

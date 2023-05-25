@@ -210,7 +210,7 @@ extension Database {
     /// t.column("score", .integer).indexed()
     /// ```
     ///
-    /// For extra index options, see ``create(index:on:columns:options:condition:)``.
+    /// For extra index options, see ``create(indexOn:columns:options:condition:)``.
     ///
     /// ### Generated columns
     ///
@@ -325,7 +325,8 @@ extension Database {
     /// For example:
     ///
     /// ```swift
-    /// try db.create(index: "playerByEmail", on: "player", columns: ["email"])
+    /// // CREATE INDEX index_player_on_email ON player(email)
+    /// try db.create(index: "index_player_on_email", on: "player", columns: ["email"])
     /// ```
     ///
     /// SQLite can also index expressions (<https://www.sqlite.org/expridx.html>)
@@ -340,7 +341,7 @@ extension Database {
     ///
     /// - warning: This is a legacy interface that is preserved for backwards
     ///   compatibility. Use of this interface is not recommended: prefer
-    ///   ``create(index:on:columns:options:condition:)`` instead.
+    ///   ``create(indexOn:columns:options:condition:)`` instead.
     ///
     /// - parameters:
     ///     - name: The index name.
@@ -372,7 +373,15 @@ extension Database {
     /// For example:
     ///
     /// ```swift
-    /// try db.create(index: "playerByEmail", on: "player", columns: ["email"])
+    /// // CREATE INDEX index_player_on_email ON player(email)
+    /// try db.create(index: "index_player_on_email", on: "player", columns: ["email"])
+    /// ```
+    ///
+    /// To create a unique index, specify the `.unique` option:
+    ///
+    /// ```swift
+    /// // CREATE UNIQUE INDEX index_player_on_email ON player(email)
+    /// try db.create(index: "index_player_on_email", on: "player", columns: ["email"], options: .unique)
     /// ```
     ///
     /// SQLite can also index expressions (<https://www.sqlite.org/expridx.html>)
@@ -411,13 +420,86 @@ extension Database {
         try execute(sql: sql)
     }
     
+    /// Creates an index on the specified table and columns.
+    ///
+    /// The created index is named after the table and the column name(s):
+    ///
+    /// ```swift
+    /// // CREATE INDEX index_player_on_email ON player(email)
+    /// try db.create(indexOn: "player", columns: ["email"])
+    /// ```
+    ///
+    /// To create a unique index, specify the `.unique` option:
+    ///
+    /// ```swift
+    /// // CREATE UNIQUE INDEX index_player_on_email ON player(email)
+    /// try db.create(indexOn: "player", columns: ["email"], options: .unique)
+    /// ```
+    ///
+    /// In order to specify the index name, use
+    /// ``create(index:on:columns:options:condition:)`` instead.
+    ///
+    /// SQLite can also index expressions (<https://www.sqlite.org/expridx.html>)
+    /// and use specific collations. To create such an index, use a raw SQL
+    /// query:
+    ///
+    /// ```swift
+    /// try db.execute(sql: "CREATE INDEX ...")
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_createindex.html>
+    ///
+    /// - parameters:
+    ///     - table: The name of the indexed table.
+    ///     - columns: The indexed columns.
+    ///     - options: Index creation options.
+    ///     - condition: If not nil, creates a partial index
+    ///       (see <https://www.sqlite.org/partialindex.html>).
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public func create(
+        indexOn table: String,
+        columns: [String],
+        options: IndexOptions = [],
+        condition: (any SQLExpressible)? = nil)
+    throws
+    {
+        try create(
+            index: defaultIndexName(on: table, columns: columns),
+            on: table,
+            columns: columns,
+            options: options,
+            condition: condition)
+    }
+    
+    private func defaultIndexName(on table: String, columns: [String]) -> String {
+        "index_\(table)_on_\(columns.joined(separator: "_"))"
+    }
+    
     /// Deletes a database index.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_dropindex.html>
     ///
+    /// - parameter name: The index name.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func drop(index name: String) throws {
         try execute(sql: "DROP INDEX \(name.quotedDatabaseIdentifier)")
+    }
+    
+    /// Deletes the database index on the specified table and columns
+    /// if exactly one such index exists.
+    ///
+    /// - parameters:
+    ///     - table: The name of the indexed table.
+    ///     - columns: The indexed columns.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public func drop(indexOn table: String, columns: [String]) throws {
+        let lowercasedColumns = columns.map { $0.lowercased() }
+        let indexes = try indexes(on: table).filter { index in
+            index.columns.map({ $0.lowercased() }) == lowercasedColumns
+        }
+        if let index = indexes.first, indexes.count == 1 {
+            try drop(index: index.name)
+        }
     }
     
     /// Deletes and recreates from scratch all indices that use this collation.
