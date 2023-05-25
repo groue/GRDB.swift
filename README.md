@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: May 15, 2023 • [version 6.13.0](https://github.com/groue/GRDB.swift/tree/v6.13.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: May 25, 2023 • [version 6.14.0](https://github.com/groue/GRDB.swift/tree/v6.14.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
@@ -4032,6 +4032,15 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Note in the example above how you concatenate raw values: `1000.databaseValue`. A plain `1000` would not compile.
     
     When the sequence is empty, `joined(operator: .add)` returns 0, and `joined(operator: .multiply)` returns 1.
+
+- `&`, `|`, `~`, `<<`, `>>`
+    
+    Bitwise operations (bitwise and, or, not, left shift, right shift) are derived from their Swift equivalent:
+    
+    ```swift
+    // SELECT mask & 2 AS isRocky FROM planet
+    Planet.select((Column("mask") & 2).forKey("isRocky"))
+    ```
 
 - `||`
     

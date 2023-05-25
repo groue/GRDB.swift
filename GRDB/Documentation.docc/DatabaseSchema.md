@@ -249,8 +249,8 @@ try db.create(table: "player") { t in
 
 // One single player at any given position in a team
 try db.create(
-    index: "playerTeamPosition",
-    on: "player", columns: ["teamId", "position"],
+    indexOn: "player",
+    columns: ["teamId", "position"],
     options: .unique)
 ```
 
@@ -268,10 +268,7 @@ try db.create(
 > try db.create(table: "team") { t in
 >     t.column("name", .text)
 > }
-> try db.create(
->     index: "teamName",
->     on: "team", columns: ["name"],
->     options: .unique)
+> try db.create(indexOn: "team", columns: ["name"], options: .unique)
 > ```
 >
 > If you want to turn an undroppable constraint into a droppable index, you'll need to recreate the database table. See <doc:Migrations> for the detailed procedure.
@@ -377,7 +374,9 @@ extension Team: TableRecord {
 
 ### Database Indexes
 
+- ``Database/create(indexOn:columns:options:condition:)``
 - ``Database/create(index:on:columns:options:condition:)``
+- ``Database/drop(indexOn:columns:)``
 - ``Database/drop(index:)``
 - ``IndexOptions``
 
