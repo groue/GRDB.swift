@@ -214,6 +214,7 @@ extension SelectionRequest {
 ///
 /// ### The WHERE and JOIN ON Clauses
 ///
+/// - ``all()``
 /// - ``filter(_:)``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
@@ -291,6 +292,13 @@ extension FilteredRequest {
     public func none() -> Self {
         filterWhenConnected { _ in false }
     }
+  
+  /// Returns `self`: a request that fetches all rows from this request.
+  ///
+  /// This method, which does nothing, exists in order to match ``none()``.
+  public func all() -> Self {
+      self
+  }
 }
 
 // MARK: - TableRequest
@@ -1328,6 +1336,7 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The WHERE Clause
 ///
+/// - ``FilteredRequest/all()``
 /// - ``FilteredRequest/filter(_:)``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
