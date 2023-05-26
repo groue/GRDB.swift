@@ -124,6 +124,30 @@ extension DerivableRequest<Book> {
 }
 
 class DerivableRequestTests: GRDBTestCase {
+    func testAll() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try libraryMigrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            let baseRequest = Author.all().filter(country: "FR")
+            let request = baseRequest.all()
+            let (sql, arguments) = try request.build(db)
+            XCTAssertEqual(sql, #"SELECT * FROM "author" WHERE "country" = ?"#)
+            XCTAssertEqual(arguments, ["FR"])
+        }
+    }
+    
+    func testNone() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try libraryMigrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            let baseRequest = Author.all().filter(country: "FR")
+            let request = baseRequest.none()
+            let (sql, arguments) = try request.build(db)
+            XCTAssertEqual(sql, #"SELECT * FROM "author" WHERE ("country" = ?) AND ?"#)
+            XCTAssertEqual(arguments, ["FR", false])
+        }
+    }
+    
     func testFilteredRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try libraryMigrator.migrate(dbQueue)
