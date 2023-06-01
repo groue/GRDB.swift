@@ -669,6 +669,7 @@ extension DatabasePool: DatabaseReader {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
     func walSnapshotTransaction() throws -> WALSnapshotTransaction {
+        // TODO #1383: might fail if wal file is truncated
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
@@ -687,6 +688,7 @@ extension DatabasePool: DatabaseReader {
     /// - important: The `completion` argument is executed in a serial
     ///   dispatch queue, so make sure you use the transaction asynchronously.
     func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+        // TODO #1383: might fail if wal file is truncated
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -904,6 +906,7 @@ extension DatabasePool {
     /// if this method is called from a database access where a write
     /// transaction is open.
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
+        // TODO #1383: might fail if wal file is truncated
         try unsafeReentrantRead { db in
             try DatabaseSnapshotPool(db)
         }

@@ -186,6 +186,7 @@ public final class DatabaseSnapshotPool {
     ///     - configuration: A configuration.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
+        // TODO #1383: might fail if wal file is truncated
         var configuration = Self.configure(configuration)
         
         // Acquire and hold WAL snapshot
