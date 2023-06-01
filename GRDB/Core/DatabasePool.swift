@@ -902,11 +902,12 @@ extension DatabasePool {
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
-    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html), or
-    /// if this method is called from a database access where a write
-    /// transaction is open.
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+    /// or if this method is called from a write transaction, or if the
+    /// wal file is missing or truncated (size zero).
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
-        // TODO #1383: might fail if wal file is truncated
         try unsafeReentrantRead { db in
             try DatabaseSnapshotPool(db)
         }
