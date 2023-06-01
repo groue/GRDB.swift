@@ -1175,4 +1175,34 @@ class ValueObservationTests: GRDBTestCase {
                 })
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383_async() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                try db.checkpoint(.truncate)
+            }
+        }
+        
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let observation = ValueObservation.tracking(Table("t").fetchCount)
+            let expectation = self.expectation(description: "completion")
+            expectation.assertForOverFulfill = false
+            let cancellable = observation.start(
+                in: dbPool,
+                onError: { error in
+                    XCTFail("Unexpected error \(error)")
+                    expectation.fulfill()
+                },
+                onChange: { _ in
+                    expectation.fulfill()
+                })
+            withExtendedLifetime(cancellable) { _ in
+                wait(for: [expectation], timeout: 2)
+            }
+        }
+    }
 }
