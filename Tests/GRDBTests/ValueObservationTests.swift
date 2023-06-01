@@ -1159,6 +1159,7 @@ class ValueObservationTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test")
             try dbPool.writeWithoutTransaction { db in
                 try db.execute(sql: "CREATE TABLE t(a)")
+                // Truncate the wal file (size zero)
                 try db.checkpoint(.truncate)
             }
         }
@@ -1182,6 +1183,7 @@ class ValueObservationTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test")
             try dbPool.writeWithoutTransaction { db in
                 try db.execute(sql: "CREATE TABLE t(a)")
+                // Truncate the wal file (size zero)
                 try db.checkpoint(.truncate)
             }
         }
