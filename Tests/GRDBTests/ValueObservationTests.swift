@@ -1152,4 +1152,27 @@ class ValueObservationTests: GRDBTestCase {
         
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                try db.checkpoint(.truncate)
+            }
+        }
+        
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let observation = ValueObservation.tracking(Table("t").fetchCount)
+            _ = observation.start(
+                in: dbPool, scheduling: .immediate,
+                onError: { error in
+                    XCTFail("Unexpected error \(error)")
+                },
+                onChange: { _ in
+                })
+        }
+    }
 }
