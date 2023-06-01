@@ -11,6 +11,26 @@ class DatabasePoolTests: GRDBTestCase {
         }
     }
     
+    func testCanReadFromNewInstance() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.read { _ in }
+    }
+    
+    func testCanReadFromTruncatedWalFile() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                try db.checkpoint(.truncate)
+            }
+        }
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let count = try dbPool.read(Table("t").fetchCount)
+            XCTAssertEqual(count, 0)
+        }
+    }
+    
     func testPersistentWALModeEnabled() throws {
         let path: String
         do {
