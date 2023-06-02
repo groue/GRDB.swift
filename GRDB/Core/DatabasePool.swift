@@ -84,7 +84,7 @@ public final class DatabasePool {
                 // > Many applications choose NORMAL when in WAL mode
                 try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
-                // Make sure a non-empty wal file exist.
+                // Make sure a non-empty wal file exists.
                 //
                 // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
                 // error when the user opens a pool and reads from it.
@@ -677,7 +677,6 @@ extension DatabasePool: DatabaseReader {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
     func walSnapshotTransaction() throws -> WALSnapshotTransaction {
-        // TODO #1383: might fail if wal file is truncated
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
@@ -696,7 +695,6 @@ extension DatabasePool: DatabaseReader {
     /// - important: The `completion` argument is executed in a serial
     ///   dispatch queue, so make sure you use the transaction asynchronously.
     func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
-        // TODO #1383: might fail if wal file is truncated
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))
             return
