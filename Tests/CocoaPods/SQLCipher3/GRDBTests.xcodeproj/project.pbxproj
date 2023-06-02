@@ -443,6 +443,8 @@
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		565A27CC27871FFF00659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27CB27871FFF00659A62 /* BackupTestCase.swift */; };
 		565A27CD27871FFF00659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27CB27871FFF00659A62 /* BackupTestCase.swift */; };
+		567B23172A29BFA400C61174 /* Issue1383.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 567B23162A29BFA400C61174 /* Issue1383.sqlite */; };
+		567B23182A29BFA500C61174 /* Issue1383.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 567B23162A29BFA400C61174 /* Issue1383.sqlite */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		56F61DF0283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
@@ -676,6 +678,7 @@
 		564A1F6F226B89D6001F64F1 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		565A27CB27871FFF00659A62 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
+		567B23162A29BFA400C61174 /* Issue1383.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = Issue1383.sqlite; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DEE283D484700AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
@@ -775,6 +778,7 @@
 				56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */,
 				564A1F6F226B89D6001F64F1 /* Betty.jpeg */,
 				56419CDA24A54058004967E1 /* InflectionsTests.json */,
+				567B23162A29BFA400C61174 /* Issue1383.sqlite */,
 				56419CE724A54058004967E1 /* AnyCursorTests.swift */,
 				56419D2324A5405D004967E1 /* AssociationAggregateTests.swift */,
 				56419CC124A54056004967E1 /* AssociationBelongsToDecodableRecordTests.swift */,
@@ -1086,6 +1090,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				567B23172A29BFA400C61174 /* Issue1383.sqlite in Resources */,
 				56419DE324A54062004967E1 /* InflectionsTests.json in Resources */,
 				564A2026226B89E1001F64F1 /* Betty.jpeg in Resources */,
 			);
@@ -1095,6 +1100,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				567B23182A29BFA500C61174 /* Issue1383.sqlite in Resources */,
 				56419DE424A54062004967E1 /* InflectionsTests.json in Resources */,
 				564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */,
 			);

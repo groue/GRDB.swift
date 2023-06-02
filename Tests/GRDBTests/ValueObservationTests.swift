@@ -1207,4 +1207,23 @@ class ValueObservationTests: GRDBTestCase {
             }
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383_createWal() throws {
+        let url = testBundle.url(forResource: "Issue1383", withExtension: "sqlite")!
+        // Delete files created by previous test runs
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-wal"))
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-shm"))
+        
+        let dbPool = try DatabasePool(path: url.path)
+        let observation = ValueObservation.tracking(Table("t").fetchCount)
+        _ = observation.start(
+            in: dbPool, scheduling: .immediate,
+            onError: { error in
+                XCTFail("Unexpected error \(error)")
+            },
+            onChange: { _ in
+            })
+    }
+
 }
