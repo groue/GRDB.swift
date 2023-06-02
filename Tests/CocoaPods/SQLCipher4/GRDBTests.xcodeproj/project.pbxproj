@@ -445,6 +445,8 @@
 		564A215A226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
 		565A27C927871FE500659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27C827871FE500659A62 /* BackupTestCase.swift */; };
 		565A27CA27871FE500659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27C827871FE500659A62 /* BackupTestCase.swift */; };
+		567B231A2A29BFE100C61174 /* Issue1383.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 567B23192A29BFE100C61174 /* Issue1383.sqlite */; };
+		567B231B2A29BFE100C61174 /* Issue1383.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 567B23192A29BFE100C61174 /* Issue1383.sqlite */; };
 		5691D97227257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		5691D97327257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		56F61DF6283D4AB100AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DF4283D4AB100AF9884 /* getThreadsCount.c */; };
@@ -679,6 +681,7 @@
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A2158226C8F24001F64F1 /* db.SQLCipher3 */ = {isa = PBXFileReference; lastKnownFileType = file; path = db.SQLCipher3; sourceTree = SOURCE_ROOT; };
 		565A27C827871FE500659A62 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
+		567B23192A29BFE100C61174 /* Issue1383.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = Issue1383.sqlite; sourceTree = "<group>"; };
 		5691D97127257C930021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		56F61DF2283D4AB100AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DF4283D4AB100AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
@@ -779,6 +782,7 @@
 				564A1F6F226B89D6001F64F1 /* Betty.jpeg */,
 				56419F4E24A54098004967E1 /* InflectionsTests.json */,
 				564A2158226C8F24001F64F1 /* db.SQLCipher3 */,
+				567B23192A29BFE100C61174 /* Issue1383.sqlite */,
 				56419FA524A5409E004967E1 /* AnyCursorTests.swift */,
 				56419F5A24A54098004967E1 /* AssociationAggregateTests.swift */,
 				56419FBD24A540A0004967E1 /* AssociationBelongsToDecodableRecordTests.swift */,
@@ -1090,6 +1094,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				567B231A2A29BFE100C61174 /* Issue1383.sqlite in Resources */,
 				5641A06A24A540A1004967E1 /* InflectionsTests.json in Resources */,
 				564A2026226B89E1001F64F1 /* Betty.jpeg in Resources */,
 				564A2159226C8F25001F64F1 /* db.SQLCipher3 in Resources */,
@@ -1100,6 +1105,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				567B231B2A29BFE100C61174 /* Issue1383.sqlite in Resources */,
 				5641A06B24A540A1004967E1 /* InflectionsTests.json in Resources */,
 				564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */,
 				564A215A226C8F25001F64F1 /* db.SQLCipher3 in Resources */,

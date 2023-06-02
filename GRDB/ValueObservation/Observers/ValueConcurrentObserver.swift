@@ -288,7 +288,17 @@ extension ValueConcurrentObserver {
         // We perform the initial read from a long-lived WAL snapshot
         // transaction, because it is a handy way to keep a read transaction
         // open until we grab a write access, and compare the database versions.
-        let initialFetchTransaction = try databaseAccess.dbPool.walSnapshotTransaction()
+        let initialFetchTransaction: WALSnapshotTransaction
+        do {
+            initialFetchTransaction = try databaseAccess.dbPool.walSnapshotTransaction()
+        } catch DatabaseError.SQLITE_ERROR {
+            // We can't create a WAL snapshot. The WAL file is probably
+            // missing, or is truncated. Let's degrade the observation
+            // by not using any snapshot.
+            // For more information, see <https://github.com/groue/GRDB.swift/issues/1383>
+            return try syncStartWithoutWALSnapshot(from: databaseAccess)
+        }
+        
         let (fetchedValue, initialRegion): (Reducer.Fetched, DatabaseRegion) = try initialFetchTransaction.read { db in
             switch trackingMode {
             case let .constantRegion(regions):
@@ -334,8 +344,10 @@ extension ValueConcurrentObserver {
         // transaction, because it is a handy way to keep a read transaction
         // open until we grab a write access, and compare the database versions.
         databaseAccess.dbPool.asyncWALSnapshotTransaction { result in
-            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-            guard isNotifying else { return /* Cancelled */ }
+            let (isNotifying, databaseAccess) = self.lock.synchronized {
+                (self.notificationCallbacks != nil, self.databaseAccess)
+            }
+            guard isNotifying, let databaseAccess else { return /* Cancelled */ }
             
             do {
                 let initialFetchTransaction = try result.get()
@@ -390,6 +402,12 @@ extension ValueConcurrentObserver {
                         self.notifyError(error)
                     }
                 }
+            } catch DatabaseError.SQLITE_ERROR {
+                // We can't create a WAL snapshot. The WAL file is probably
+                // missing, or is truncated. Let's degrade the observation
+                // by not using any snapshot.
+                // For more information, see <https://github.com/groue/GRDB.swift/issues/1383>
+                self.asyncStartWithoutWALSnapshot(from: databaseAccess)
             } catch {
                 self.notifyError(error)
             }
@@ -503,10 +521,21 @@ extension ValueConcurrentObserver {
 }
 #else
 extension ValueConcurrentObserver {
+    private func syncStart(from databaseAccess: DatabaseAccess) throws -> Reducer.Value {
+        try syncStartWithoutWALSnapshot(from: databaseAccess)
+    }
+    
+    private func asyncStart(from databaseAccess: DatabaseAccess) {
+        asyncStartWithoutWALSnapshot(from: databaseAccess)
+    }
+}
+#endif
+
+extension ValueConcurrentObserver {
     /// Synchronously starts the observation, and returns the initial value.
     ///
-    /// Unlike `asyncStart()`, this method does not notify the initial value or error.
-    private func syncStart(from databaseAccess: DatabaseAccess) throws -> Reducer.Value {
+    /// Unlike `asyncStartWithoutWALSnapshot()`, this method does not notify the initial value or error.
+    private func syncStartWithoutWALSnapshot(from databaseAccess: DatabaseAccess) throws -> Reducer.Value {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
         // without having to wait for an eventual long-running write
@@ -535,7 +564,7 @@ extension ValueConcurrentObserver {
         }
         
         // Start observation
-        asyncStartObservation(
+        asyncStartObservationWithoutWALSnapshot(
             from: databaseAccess,
             initialRegion: initialRegion)
         
@@ -544,8 +573,8 @@ extension ValueConcurrentObserver {
     
     /// Asynchronously starts the observation
     ///
-    /// Unlike `syncStart()`, this method does notify the initial value or error.
-    private func asyncStart(from databaseAccess: DatabaseAccess) {
+    /// Unlike `syncStartWithoutWALSnapshot()`, this method does notify the initial value or error.
+    private func asyncStartWithoutWALSnapshot(from databaseAccess: DatabaseAccess) {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
         // without having to wait for an eventual long-running write
@@ -595,7 +624,7 @@ extension ValueConcurrentObserver {
                 }
                 
                 // Start observation
-                self.asyncStartObservation(
+                self.asyncStartObservationWithoutWALSnapshot(
                     from: databaseAccess,
                     initialRegion: initialRegion)
             } catch {
@@ -604,7 +633,7 @@ extension ValueConcurrentObserver {
         }
     }
     
-    private func asyncStartObservation(
+    private func asyncStartObservationWithoutWALSnapshot(
         from databaseAccess: DatabaseAccess,
         initialRegion: DatabaseRegion)
     {
@@ -669,7 +698,6 @@ extension ValueConcurrentObserver {
         }
     }
 }
-#endif
 
 // MARK: - Observing Database Transactions
 

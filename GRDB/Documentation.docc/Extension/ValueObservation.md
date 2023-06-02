@@ -219,6 +219,9 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 > Tip: When the observation tracks a constant database region, create an optimized observation with the ``trackingConstantRegion(_:)`` method. See the documentation of this method for more information about what constitutes a "constant region", and the nature of the optimization.
 
+**Truncating WAL checkpoints impact ValueObservation.** Such checkpoints are performed with ``Database/checkpoint(_:on:)`` or [`PRAGMA wal_checkpoint`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint). When an observation is started on a ``DatabasePool``, from a database that has a missing or empty [wal file](https://www.sqlite.org/tempfiles.html#write_ahead_log_wal_files), the observation will always notify two values when it starts, even if the database content is not changed. This is a consequence of the impossibility to create the [wal snapshot](https://www.sqlite.org/c3ref/snapshot_get.html) needed for detecting that no changes were performed during the observation startup. If your application performs truncating checkpoints, you will avoid this behavior if you recreate a non-empty wal file before starting observations. To do so, perform any kind of no-op transaction (such a creating and dropping a dummy table).
+
+
 ## Topics
 
 ### Creating a ValueObservation
