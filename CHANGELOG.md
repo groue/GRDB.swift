@@ -119,7 +119,7 @@ Released June 2, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/
 
 - **New**: [#1382](https://github.com/groue/GRDB.swift/pull/1382) Add `DerivableRequest.all()`
 - **New**: [#1384](https://github.com/groue/GRDB.swift/pull/1384) Allow ValueObservation to start from a truncated wal file
-- **Documentation Update**: The [ValueObservation Performance](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation#ValueObservation-Performance)) documentation chapter explains how truncating WAL checkpoints impact `ValueObservation`.
+- **Documentation Update**: The [ValueObservation Performance](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation#ValueObservation-Performance) documentation chapter explains how truncating WAL checkpoints impact `ValueObservation`.
 
 
 ## 6.14.0
