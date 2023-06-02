@@ -84,12 +84,20 @@ public final class DatabasePool {
                 // > Many applications choose NORMAL when in WAL mode
                 try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
-                if !FileManager.default.fileExists(atPath: path + "-wal") {
-                    // Create the -wal file if it does not exist yet. This
-                    // avoids an SQLITE_CANTOPEN (14) error whenever a user
-                    // opens a pool to an existing non-WAL database, and
-                    // attempts to read from it.
-                    // See https://github.com/groue/GRDB.swift/issues/102
+                // Make sure a non-empty wal file exists.
+                //
+                // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
+                // error when the user opens a pool and reads from it.
+                // See <https://github.com/groue/GRDB.swift/issues/102>.
+                //
+                // The non-empty wal file avoids an SQLITE_ERROR (1) error
+                // when the user opens a pool and creates a wal snapshot
+                // (which happens when starting a ValueObservation).
+                // See <https://github.com/groue/GRDB.swift/issues/1383>.
+                let walPath = path + "-wal"
+                if try FileManager.default.fileExists(atPath: walPath) == false
+                    || (URL(fileURLWithPath: walPath).resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
+                {
                     try db.inSavepoint {
                         try db.execute(sql: """
                             CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
@@ -900,9 +908,11 @@ extension DatabasePool {
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
-    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html), or
-    /// if this method is called from a database access where a write
-    /// transaction is open.
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+    /// or if this method is called from a write transaction, or if the
+    /// wal file is missing or truncated (size zero).
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
         try unsafeReentrantRead { db in
             try DatabaseSnapshotPool(db)

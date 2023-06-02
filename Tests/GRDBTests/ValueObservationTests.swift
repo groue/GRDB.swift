@@ -936,7 +936,7 @@ class ValueObservationTests: GRDBTestCase {
             Task {
                 let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
                 for try await count in observation.values(in: writer) {
-                    if count == 3 {
+                    if count >= 3 {
                         cancelledTask.cancel()
                         break
                     } else {
@@ -1152,4 +1152,78 @@ class ValueObservationTests: GRDBTestCase {
         
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                // Truncate the wal file (size zero)
+                try db.checkpoint(.truncate)
+            }
+        }
+        
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let observation = ValueObservation.tracking(Table("t").fetchCount)
+            _ = observation.start(
+                in: dbPool, scheduling: .immediate,
+                onError: { error in
+                    XCTFail("Unexpected error \(error)")
+                },
+                onChange: { _ in
+                })
+        }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383_async() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                // Truncate the wal file (size zero)
+                try db.checkpoint(.truncate)
+            }
+        }
+        
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let observation = ValueObservation.tracking(Table("t").fetchCount)
+            let expectation = self.expectation(description: "completion")
+            expectation.assertForOverFulfill = false
+            let cancellable = observation.start(
+                in: dbPool,
+                onError: { error in
+                    XCTFail("Unexpected error \(error)")
+                    expectation.fulfill()
+                },
+                onChange: { _ in
+                    expectation.fulfill()
+                })
+            withExtendedLifetime(cancellable) { _ in
+                wait(for: [expectation], timeout: 2)
+            }
+        }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    func testIssue1383_createWal() throws {
+        let url = testBundle.url(forResource: "Issue1383", withExtension: "sqlite")!
+        // Delete files created by previous test runs
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-wal"))
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-shm"))
+        
+        let dbPool = try DatabasePool(path: url.path)
+        let observation = ValueObservation.tracking(Table("t").fetchCount)
+        _ = observation.start(
+            in: dbPool, scheduling: .immediate,
+            onError: { error in
+                XCTFail("Unexpected error \(error)")
+            },
+            onChange: { _ in
+            })
+    }
+
 }

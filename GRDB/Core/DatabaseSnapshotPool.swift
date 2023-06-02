@@ -108,12 +108,10 @@ public final class DatabaseSnapshotPool {
     /// assert(count == 0)
     /// ```
     ///
-    /// If any of the following statements are false when the snapshot is
-    /// created, a ``DatabaseError`` of code `SQLITE_ERROR` is thrown:
-    ///
-    /// - The database connection must be in the
-    ///   [WAL mode](https://www.sqlite.org/wal.html).
-    /// - There must not be a write transaction open.
+    /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+    /// or if this method is called from a write transaction, or if the
+    /// wal file is missing or truncated (size zero).
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     ///
@@ -175,9 +173,9 @@ public final class DatabaseSnapshotPool {
     /// let snapshot = try DatabaseSnapshotPool(path: "/path/to/database.sqlite")
     /// ```
     ///
-    /// If the database at `path` is not in the
-    /// [WAL mode](https://www.sqlite.org/wal.html), a ``DatabaseError`` of code
-    /// `SQLITE_ERROR` is thrown.
+    /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+    /// or if the wal file is missing or truncated (size zero).
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     ///

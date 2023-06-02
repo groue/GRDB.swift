@@ -3,11 +3,112 @@ import GRDB
 
 class DatabasePoolTests: GRDBTestCase {
     func testDatabasePoolCreatesWalShm() throws {
-        let dbPool = try makeDatabasePool()
-        withExtendedLifetime(dbPool) {
+        let dbPool = try makeDatabasePool(filename: "test")
+        try withExtendedLifetime(dbPool) {
             let fm = FileManager()
             XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-wal"))
             XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-shm"))
+
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+            // A non-empty wal file makes sure ValueObservation can use wal snapshots.
+            // See <https://github.com/groue/GRDB.swift/issues/1383>
+            let walURL = URL(fileURLWithPath: dbPool.path + "-wal")
+            let walSize = try walURL.resourceValues(forKeys: [.fileSizeKey]).fileSize!
+            XCTAssertGreaterThan(walSize, 0)
+#endif
+        }
+    }
+    
+    func testDatabasePoolCreatesWalShmFromNonWalDatabase() throws {
+        do {
+            let dbQueue = try makeDatabaseQueue(filename: "test")
+            try dbQueue.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+            }
+        }
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try withExtendedLifetime(dbPool) {
+                let fm = FileManager()
+                XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-wal"))
+                XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-shm"))
+                
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+                // A non-empty wal file makes sure ValueObservation can use wal snapshots.
+                // See <https://github.com/groue/GRDB.swift/issues/1383>
+                let walURL = URL(fileURLWithPath: dbPool.path + "-wal")
+                let walSize = try walURL.resourceValues(forKeys: [.fileSizeKey]).fileSize!
+                XCTAssertGreaterThan(walSize, 0)
+#endif
+            }
+        }
+    }
+
+    func testDatabasePoolCreatesWalShmFromTruncatedWalFile() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                try db.checkpoint(.truncate)
+            }
+        }
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try withExtendedLifetime(dbPool) {
+                let fm = FileManager()
+                XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-wal"))
+                XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-shm"))
+                
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+                // A non-empty wal file makes sure ValueObservation can use wal snapshots.
+                // See <https://github.com/groue/GRDB.swift/issues/1383>
+                let walURL = URL(fileURLWithPath: dbPool.path + "-wal")
+                let walSize = try walURL.resourceValues(forKeys: [.fileSizeKey]).fileSize!
+                XCTAssertGreaterThan(walSize, 0)
+#endif
+            }
+        }
+    }
+
+    func testDatabasePoolCreatesWalShmFromIssue1383() throws {
+        let url = testBundle.url(forResource: "Issue1383", withExtension: "sqlite")!
+        // Delete files created by previous test runs
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-wal"))
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent("Issue1383.sqlite-shm"))
+
+        let dbPool = try DatabasePool(path: url.path)
+        try withExtendedLifetime(dbPool) {
+            let fm = FileManager()
+            XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-wal"))
+            XCTAssertTrue(fm.fileExists(atPath: dbPool.path + "-shm"))
+            
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+            // A non-empty wal file makes sure ValueObservation can use wal snapshots.
+            // See <https://github.com/groue/GRDB.swift/issues/1383>
+            let walURL = URL(fileURLWithPath: dbPool.path + "-wal")
+            let walSize = try walURL.resourceValues(forKeys: [.fileSizeKey]).fileSize!
+            XCTAssertGreaterThan(walSize, 0)
+#endif
+        }
+    }
+    
+    func testCanReadFromNewInstance() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.read { _ in }
+    }
+    
+    func testCanReadFromTruncatedWalFile() throws {
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            try dbPool.writeWithoutTransaction { db in
+                try db.execute(sql: "CREATE TABLE t(a)")
+                try db.checkpoint(.truncate)
+            }
+        }
+        do {
+            let dbPool = try makeDatabasePool(filename: "test")
+            let count = try dbPool.read(Table("t").fetchCount)
+            XCTAssertEqual(count, 0)
         }
     }
     
