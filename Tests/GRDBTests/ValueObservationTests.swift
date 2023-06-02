@@ -936,7 +936,7 @@ class ValueObservationTests: GRDBTestCase {
             Task {
                 let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
                 for try await count in observation.values(in: writer) {
-                    if count == 3 {
+                    if count >= 3 {
                         cancelledTask.cancel()
                         break
                     } else {
