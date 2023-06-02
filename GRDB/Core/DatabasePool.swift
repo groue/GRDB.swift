@@ -84,12 +84,20 @@ public final class DatabasePool {
                 // > Many applications choose NORMAL when in WAL mode
                 try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
-                if !FileManager.default.fileExists(atPath: path + "-wal") {
-                    // Create the -wal file if it does not exist yet. This
-                    // avoids an SQLITE_CANTOPEN (14) error whenever a user
-                    // opens a pool to an existing non-WAL database, and
-                    // attempts to read from it.
-                    // See https://github.com/groue/GRDB.swift/issues/102
+                // Make sure a non-empty wal file exist.
+                //
+                // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
+                // error when the user opens a pool and reads from it.
+                // See <https://github.com/groue/GRDB.swift/issues/102>.
+                //
+                // The non-empty wal file avoids an SQLITE_ERROR (1) error
+                // when the user opens a pool and creates a wal snapshot
+                // (which happens when starting a ValueObservation).
+                // See <https://github.com/groue/GRDB.swift/issues/1383>.
+                let walPath = path + "-wal"
+                if try FileManager.default.fileExists(atPath: walPath) == false
+                    || (URL(fileURLWithPath: walPath).resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
+                {
                     try db.inSavepoint {
                         try db.execute(sql: """
                             CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
