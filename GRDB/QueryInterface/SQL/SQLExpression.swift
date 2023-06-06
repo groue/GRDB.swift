@@ -1965,7 +1965,7 @@ extension SQLSpecificExpressible {
     
     /// Returns an aliased column with the same name as the coding key.
     ///
-    /// See ``forKey(_:)-3xk0``.
+    /// See <doc:SQLSpecificExpressible/forKey(_:)-3xk0>.
     public func forKey(_ key: some CodingKey) -> SQLSelection {
         forKey(key.stringValue)
     }

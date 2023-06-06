@@ -89,7 +89,7 @@ public protocol StatementColumnConvertible {
     ///
     /// Do not check for `NULL` in your implementation of this method. Null
     /// database values are handled
-    /// in ``fromStatement(_:atUncheckedIndex:)-2i8y6``.
+    /// in ``StatementColumnConvertible/fromStatement(_:atUncheckedIndex:)-2i8y6``.
     ///
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
     ///
