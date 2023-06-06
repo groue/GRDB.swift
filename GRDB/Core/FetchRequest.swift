@@ -58,10 +58,6 @@
 /// - ``makePreparedRequest(_:forSingleResult:)``
 /// - ``PreparedRequest``
 ///
-/// ### Database Observation Support
-///
-/// - ``databaseRegion(_:)``
-///
 /// ### Adapting the Fetched Rows
 ///
 /// - ``adapted(_:)``
