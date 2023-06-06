@@ -436,7 +436,7 @@ extension QueryInterfaceRequest: DerivableRequest {
         }
     }
     
-    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+    public func with<T>(_ cte: CommonTableExpression<T>) -> Self {
         with {
             $0.relation.ctes[cte.tableName] = cte.cte
         }
