@@ -722,50 +722,53 @@ extension ValueObservation {
     ///
     /// ```swift
     /// // Tracks the full database
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: .fullDatabase,
     ///     fetch: { db in ... })
     ///
     /// // Tracks the full 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: Player.all(),
     ///     fetch: { db in ... })
     ///
     /// // Tracks the full 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: Table("player"),
     ///     fetch: { db in ... })
     ///
     /// // Tracks the row with id 42 in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: Player.filter(id: 42),
     ///     fetch: { db in ... })
     ///
     /// // Tracks the 'score' column in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: Player.select(Column("score"),
     ///     fetch: { db in ... })
     ///
     /// // Tracks the 'score' column in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: SQLRequest("SELECT score FROM player"),
     ///     fetch: { db in ... })
     ///
     /// // Tracks both the 'player' and 'team' tables
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     region: Player.all(), Team.all(),
     ///     fetch: { db in ... })
     /// ```
     ///
-    /// - parameter region: A list of observed regions.
+    /// - parameter region: A region to observe.
+    /// - parameter otherRegions: A list of supplementary regions
+    ///   to observe.
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
-        region: any DatabaseRegionConvertible...,
+        region: any DatabaseRegionConvertible,
+        _ otherRegions: any DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
-        tracking(regions: region, fetch: fetch)
+        tracking(regions: [region] + otherRegions, fetch: fetch)
     }
     
     /// Creates a `ValueObservation` that notifies the fetched value whenever
@@ -778,37 +781,37 @@ extension ValueObservation {
     ///
     /// ```swift
     /// // Tracks the full database
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [.fullDatabase],
     ///     fetch: { db in ... })
     ///
     /// // Tracks the full 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [Player.all()],
     ///     fetch: { db in ... })
     ///
     /// // Tracks the full 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [Table("player")],
     ///     fetch: { db in ... })
     ///
     /// // Tracks the row with id 42 in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [Player.filter(id: 42)],
     ///     fetch: { db in ... })
     ///
     /// // Tracks the 'score' column in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [Player.select(Column("score")],
     ///     fetch: { db in ... })
     ///
     /// // Tracks the 'score' column in the 'player' table
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [SQLRequest("SELECT score FROM player")],
     ///     fetch: { db in ... })
     ///
     /// // Tracks both the 'player' and 'team' tables
-    /// let observation = ValueObservation.tracking
+    /// let observation = ValueObservation.tracking(
     ///     regions: [Player.all(), Team.all()],
     ///     fetch: { db in ... })
     /// ```

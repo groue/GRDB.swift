@@ -159,7 +159,7 @@ let cancellable = try sharedObservation
 
 While the standard ``tracking(_:)`` method lets you track changes to a fetched value and receive any changes to it, sometimes your use case might require more granular control.
 
-Consider a scenario where you'd like to get a specific Player's row, but only when their `score` column changes. You can use ``tracking(region:fetch:)`` to do just that:
+Consider a scenario where you'd like to get a specific Player's row, but only when their `score` column changes. You can use ``tracking(region:_:fetch:)`` to do just that:
 
 ```swift
 let observation = ValueObservation.tracking(
@@ -172,7 +172,7 @@ let observation = ValueObservation.tracking(
 )
 ```
 
-This ``tracking(region:fetch:)`` method lets you entirely separate the **observed region** from the **fetched value** itself, for maximum flexibility. See ``DatabaseRegionConvertible`` for more information about the regions that can be tracked.
+This ``tracking(region:_:fetch:)`` method lets you entirely separate the **observed region(s)** from the **fetched value** itself, for maximum flexibility. See ``DatabaseRegionConvertible`` for more information about the regions that can be tracked.
 
 ## ValueObservation Performance
 
@@ -228,7 +228,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 - ``tracking(_:)``
 - ``trackingConstantRegion(_:)``
-- ``tracking(region:fetch:)``
+- ``tracking(region:_:fetch:)``
 - ``tracking(regions:fetch:)``
 
 ### Creating a Shared Observation
