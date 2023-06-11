@@ -334,5 +334,43 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1390>
+    func testIssue1390() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            struct Content: Codable, Hashable, PersistableRecord {
+                var id: String
+                var text: String
+            }
+            
+            try db.create(table: "content") { t in
+                t.primaryKey("id", .text)
+                t.column("text", .text)
+            }
+
+            try db.create(virtualTable: "fts", using: FTS5()) { t in
+                t.tokenizer = .porter()
+                t.synchronize(withTable: "content")
+                t.column("id").notIndexed()
+                t.column("text")
+            }
+            
+            try db.inTransaction {
+                try Content(id: "foobar", text: "baz").upsert(db)
+                return .commit
+            }
+        }
+    }
 }
 #endif
