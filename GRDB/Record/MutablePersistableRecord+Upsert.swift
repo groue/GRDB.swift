@@ -434,6 +434,15 @@ extension MutablePersistableRecord {
             // Rowid is the last column
             let rowid: Int64 = row[row.count - 1]
             let returned = try decode(row)
+            
+            // Now that we have fetched the values we need, we could stop
+            // there. But let's make sure we fully consume the cursor
+            // anyway, until SQLITE_DONE. This is necessary, for example,
+            // for upserts in tables that are synchronized with an
+            // FTS5 table.
+            // See <https://github.com/groue/GRDB.swift/issues/1390>
+            while try cursor.next() != nil { }
+            
             return (rowid, returned)
         }
         
