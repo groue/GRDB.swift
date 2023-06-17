@@ -1,7 +1,7 @@
 import Foundation
 
 #if !os(Linux)
-/// NSUUID adopts DatabaseValueConvertible
+/// `NSUUID` is a database value.
 extension NSUUID: DatabaseValueConvertible {
     /// Returns a BLOB database value containing the uuid bytes.
     public var databaseValue: DatabaseValue {
@@ -35,7 +35,7 @@ extension NSUUID: DatabaseValueConvertible {
 }
 #endif
 
-/// UUID adopts DatabaseValueConvertible
+/// `UUID` is a database value.
 extension UUID: DatabaseValueConvertible {
     /// Returns a BLOB database value containing the uuid bytes.
     public var databaseValue: DatabaseValue {

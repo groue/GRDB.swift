@@ -1,8 +1,7 @@
 import Foundation
 
 #if !os(Linux)
-/// NSDate is stored in the database using the format
-/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
+/// `NSDate` is a database value.
 extension NSDate: DatabaseValueConvertible {
     /// Returns a TEXT database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
@@ -31,8 +30,6 @@ extension NSDate: DatabaseValueConvertible {
 }
 #endif
 
-/// Date is stored in the database using the format
-/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
 extension Date: DatabaseValueConvertible {
     /// Returns a TEXT database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
@@ -115,6 +112,7 @@ extension Date: DatabaseValueConvertible {
     }
 }
 
+/// `Date` is a database value.
 extension Date: StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.

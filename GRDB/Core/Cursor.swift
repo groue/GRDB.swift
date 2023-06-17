@@ -14,9 +14,14 @@
 extension RangeReplaceableCollection {
     /// Creates a collection containing the elements of a cursor.
     ///
-    ///     // [String]
-    ///     let cursor = try String.fetchCursor(db, ...)
-    ///     let strings = try Array(cursor)
+    /// For example, you can turn a cursor of strings into an array
+    /// of strings:
+    ///
+    /// ```swift
+    /// // Create a [String]
+    /// let cursor = try String.fetchCursor(db, ...)
+    /// let strings = try Array(cursor)
+    /// ```
     ///
     /// - parameter cursor: The cursor whose elements feed the collection.
     public init(_ cursor: some Cursor<Element>) throws {
@@ -26,9 +31,14 @@ extension RangeReplaceableCollection {
     
     /// Creates a collection containing the elements of a cursor.
     ///
-    ///     // [String]
-    ///     let cursor = try String.fetchCursor(db, ...)
-    ///     let strings = try Array(cursor, minimumCapacity: 100)
+    /// For example, you can turn a cursor of strings into an array
+    /// of strings:
+    ///
+    /// ```swift
+    /// // Create a [String]
+    /// let cursor = try String.fetchCursor(db, ...)
+    /// let strings = try Array(cursor, minimumCapacity: 100)
+    /// ```
     ///
     /// - parameter cursor: The cursor whose elements feed the collection.
     /// - parameter minimumCapacity: Prepares the returned collection to store
@@ -41,8 +51,8 @@ extension RangeReplaceableCollection {
     
     /// Adds the elements of a cursor to the end of this collection.
     ///
-    /// In case of error, an unspecified amount of elements have been added to
-    /// the collection.
+    /// - Important: If an error is thrown, an unspecified amount of
+    ///   elements have been added to the collection.
     ///
     /// - parameter newElements: The elements to append to the collection.
     public mutating func append(contentsOf newElements: some Cursor<Element>) throws {
@@ -58,9 +68,13 @@ extension Dictionary {
     /// given closure and whose values are arrays of the elements that returned
     /// each key.
     ///
-    ///     // [Int64: [Player]]
-    ///     let cursor = try Player.fetchCursor(db)
-    ///     let dictionary = try Dictionary(grouping: cursor, by: { $0.teamID })
+    /// For example:
+    ///
+    /// ```swift
+    /// // Create a [Int64: [Player]]
+    /// let cursor = try Player.fetchCursor(db)
+    /// let dictionary = try Dictionary(grouping: cursor, by: { $0.teamID })
+    /// ```
     ///
     /// - parameter cursor: A cursor of values to group into a dictionary.
     /// - parameter keyForValue: A closure that returns a key for each element
@@ -81,12 +95,16 @@ extension Dictionary {
     /// given closure and whose values are arrays of the elements that returned
     /// each key.
     ///
-    ///     // [Int64: [Player]]
-    ///     let cursor = try Player.fetchCursor(db)
-    ///     let dictionary = try Dictionary(
-    ///         minimumCapacity: 100,
-    ///         grouping: cursor,
-    ///         by: { $0.teamID })
+    /// For example:
+    ///
+    /// ```swift
+    /// // Create a [Int64: [Player]]
+    /// let cursor = try Player.fetchCursor(db)
+    /// let dictionary = try Dictionary(
+    ///     minimumCapacity: 100,
+    ///     grouping: cursor,
+    ///     by: { $0.teamID })
+    /// ```
     ///
     /// - parameter minimumCapacity: The minimum number of key-value pairs that
     ///   the newly created dictionary should be able to store without
@@ -112,9 +130,13 @@ extension Dictionary {
     /// of key-value tuples with unique keys. Passing a cursor with duplicate
     /// keys to this initializer results in a fatal error.
     ///
-    ///     // [Int64: Player]
-    ///     let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
-    ///     let playerByID = try Dictionary(uniqueKeysWithValues: cursor)
+    /// For example:
+    ///
+    /// ```swift
+    /// // Create a [Int64: [Player]]
+    /// let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
+    /// let playerByID = try Dictionary(uniqueKeysWithValues: cursor)
+    /// ```
     ///
     /// - parameter keysAndValues: A cursor of key-value pairs to use for the
     ///   new dictionary. Every key in `keysAndValues` must be unique.
@@ -137,11 +159,15 @@ extension Dictionary {
     /// of key-value tuples with unique keys. Passing a cursor with duplicate
     /// keys to this initializer results in a fatal error.
     ///
-    ///     // [Int64: Player]
-    ///     let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
-    ///     let playerByID = try Dictionary(
-    ///         minimumCapacity: 100,
-    ///         uniqueKeysWithValues: cursor)
+    /// For example:
+    ///
+    /// ```swift
+    /// // Create a [Int64: [Player]]
+    /// let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
+    /// let playerByID = try Dictionary(
+    ///     minimumCapacity: 100,
+    ///     uniqueKeysWithValues: cursor)
+    /// ```
     ///
     /// - parameter minimumCapacity: The minimum number of key-value pairs that
     ///   the newly created dictionary should be able to store without
@@ -165,9 +191,13 @@ extension Dictionary {
 extension Set {
     /// Creates a set containing the elements of a cursor.
     ///
-    ///     // Set<String>
-    ///     let cursor = try String.fetchCursor(db, ...)
-    ///     let strings = try Set(cursor)
+    /// For example, you can turn a cursor of strings into a set of strings:
+    ///
+    /// ```swift
+    /// // Create a Set<String>
+    /// let cursor = try String.fetchCursor(db, ...)
+    /// let strings = try Set(cursor)
+    /// ```
     ///
     /// - parameter cursor: A cursor of values to gather into a set.
     public init(_ cursor: some Cursor<Element>) throws {
@@ -180,9 +210,13 @@ extension Set {
     
     /// Creates a set containing the elements of a cursor.
     ///
-    ///     // Set<String>
-    ///     let cursor = try String.fetchCursor(db, ...)
-    ///     let strings = try Set(cursor, minimumCapacity: 100)
+    /// For example, you can turn a cursor of strings into a set of strings:
+    ///
+    /// ```swift
+    /// // Create a Set<String>
+    /// let cursor = try String.fetchCursor(db, ...)
+    /// let strings = try Set(cursor, minimumCapacity: 100)
+    /// ```
     ///
     /// - parameter cursor: A cursor of values to gather into a set.
     /// - parameter minimumCapacity: The minimum number of elements that the
@@ -240,6 +274,75 @@ extension Sequence {
 ///
 /// ## Topics
 ///
+/// ### Iterating Over a Cursor’s Elements
+///
+/// - ``next()``
+/// - ``forEach(_:)-4ib2m``
+/// - ``enumerated()``
+/// - ``isEmpty``
+///
+/// ### Finding Elements
+///
+/// - ``contains(_:)``
+/// - ``contains(where:)``
+/// - ``first(where:)``
+/// - ``min()``
+/// - ``min(by:)``
+/// - ``max()``
+/// - ``max(by:)``
+///
+/// ### Selecting Elements
+///
+/// - ``prefix(_:)``
+/// - ``prefix(while:)``
+/// - ``suffix(_:)``
+///
+/// ### Excluding Elements
+///
+/// - ``dropFirst()``
+/// - ``dropFirst(_:)``
+/// - ``dropLast()``
+/// - ``dropLast(_:)``
+/// - ``drop(while:)``
+/// - ``filter(_:)``
+///
+/// ### Transforming a Cursor
+///
+/// - ``map(_:)``
+/// - ``compactMap(_:)``
+/// - ``flatMap(_:)-5ci2v``
+/// - ``flatMap(_:)-8jxlj``
+/// - ``reduce(_:_:)``
+/// - ``reduce(into:_:)``
+///
+/// ### Transforming a Sequence into a Cursor
+///
+/// - ``Swift/Sequence/flatMap(_:)``
+///
+/// ### Joining Elements
+///
+/// - ``joined()-5r5ja``
+/// - ``joined()-7bnrx``
+/// - ``joined(separator:)``
+///
+/// ### Filling RangeReplaceableCollection with the contents of a Cursor
+///
+/// - ``Swift/RangeReplaceableCollection/init(_:)``
+/// - ``Swift/RangeReplaceableCollection/init(_:minimumCapacity:)``
+/// - ``Swift/RangeReplaceableCollection/append(contentsOf:)``
+///
+/// ### Creating a Dictionary from the contents of a Cursor
+///
+/// - ``Swift/Dictionary/init(grouping:by:)``
+/// - ``Swift/Dictionary/init(minimumCapacity:grouping:by:)``
+/// - ``Swift/Dictionary/init(uniqueKeysWithValues:)``
+/// - ``Swift/Dictionary/init(minimumCapacity:uniqueKeysWithValues:)``
+///
+/// ### Creating a Set from the contents of a Cursor
+///
+/// - ``Swift/Set/init(_:)``
+/// - ``Swift/Set/init(_:minimumCapacity:)``
+///
 /// ### Supporting Types
 ///
 /// - ``AnyCursor``
@@ -269,7 +372,7 @@ extension Cursor {
     /// Returns a Boolean value indicating whether the cursor does not contain
     /// any element.
     ///
-    /// - important: This property may consume elements.
+    /// - important: This property consumes an element.
     public var isEmpty: Bool {
         get throws { try next() == nil }
     }
@@ -294,13 +397,17 @@ extension Cursor {
     /// Returns a cursor of pairs (n, x), where n represents a consecutive
     /// integer starting at zero, and x represents an element of the cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
-    ///     let c = cursor.enumerated()
-    ///     while let (n, x) = c.next() {
-    ///         print("\(n): \(x)")
-    ///     }
-    ///     // Prints: "0: foo"
-    ///     // Prints: "1: bar"
+    /// ```swift
+    /// let cursor = try String.fetchCursor(db, sql: """
+    ///     SELECT 'foo' UNION ALL SELECT 'bar'
+    ///     """)
+    /// let c = cursor.enumerated()
+    /// while let (n, x) = c.next() {
+    ///     print("\(n): \(x)")
+    /// }
+    /// // Prints: "0: foo"
+    /// // Prints: "1: bar"
+    /// ```
     public func enumerated() -> EnumeratedCursor<Self> {
         EnumeratedCursor(self)
     }
@@ -346,11 +453,13 @@ extension Cursor {
     /// If the number of elements to drop exceeds the number of elements in
     /// the cursor, the result is an empty cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropFirst(2))
-    ///     // Prints "[3, 4, 5]"
-    ///     try print(numbers.dropFirst(10))
-    ///     // Prints "[]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.dropFirst(2))
+    /// // Prints "[3, 4, 5]"
+    /// try print(numbers.dropFirst(10))
+    /// // Prints "[]"
+    /// ```
     ///
     /// - Parameter n: The number of elements to drop from the beginning of
     ///   the cursor. `n` must be greater than or equal to zero.
@@ -364,9 +473,11 @@ extension Cursor {
     ///
     /// The following example drops the first element from a cursor of integers.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropFirst())
-    ///     // Prints "[2, 3, 4, 5]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.dropFirst())
+    /// // Prints "[2, 3, 4, 5]"
+    /// ```
     ///
     /// If the cursor has no elements, the result is an empty cursor.
     ///
@@ -381,11 +492,13 @@ extension Cursor {
     /// The cursor must be finite. If the number of elements to drop exceeds
     /// the number of elements in the cursor, the result is an empty array.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropLast(2))
-    ///     // Prints "[1, 2, 3]"
-    ///     try print(numbers.dropLast(10))
-    ///     // Prints "[]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.dropLast(2))
+    /// // Prints "[1, 2, 3]"
+    /// try print(numbers.dropLast(10))
+    /// // Prints "[]"
+    /// ```
     ///
     /// - Parameter n: The number of elements to drop off the end of the
     ///   cursor. `n` must be greater than or equal to zero.
@@ -414,9 +527,11 @@ extension Cursor {
     ///
     /// The following example drops the last element from a cursor of integers.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropLast())
-    ///     // Prints "[1, 2, 3, 4]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.dropLast())
+    /// // Prints "[1, 2, 3, 4]"
+    /// ```
     ///
     /// If the cursor has no elements, the result is an empty cursor.
     ///
@@ -502,11 +617,13 @@ extension Cursor {
     /// If the maximum length exceeds the number of elements in the cursor,
     /// the result contains all the elements in the cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.prefix(2))
-    ///     // Prints "[1, 2]"
-    ///     try print(numbers.prefix(10))
-    ///     // Prints "[1, 2, 3, 4, 5]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.prefix(2))
+    /// // Prints "[1, 2]"
+    /// try print(numbers.prefix(10))
+    /// // Prints "[1, 2, 3, 4, 5]"
+    /// ```
     ///
     /// - Parameter maxLength: The maximum number of elements to return. The
     ///   value of `maxLength` must be greater than or equal to zero.
@@ -562,11 +679,13 @@ extension Cursor {
     /// elements in the cursor, the result contains all the elements in the
     /// cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.suffix(2))
-    ///     // Prints "[4, 5]"
-    ///     try print(numbers.suffix(10))
-    ///     // Prints "[1, 2, 3, 4, 5]"
+    /// ```swift
+    /// let numbers = AnyCursor([1, 2, 3, 4, 5])
+    /// try print(numbers.suffix(2))
+    /// // Prints "[4, 5]"
+    /// try print(numbers.suffix(10))
+    /// // Prints "[1, 2, 3, 4, 5]"
+    /// ```
     ///
     /// - Parameter maxLength: The maximum number of elements to return. The
     ///   value of `maxLength` must be greater than or equal to zero.
@@ -620,24 +739,16 @@ extension Cursor where Element: Equatable {
 extension Cursor where Element: Comparable {
     /// Returns the maximum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
-    /// - Returns: The cursor's maximum element, according to
-    ///   `areInIncreasingOrder`. If the cursor has no elements, returns
-    ///   `nil`.
+    /// - Returns: The cursor's maximum element. If the cursor has no
+    ///   elements, returns `nil`.
     public func max() throws -> Element? {
         try max(by: <)
     }
     
     /// Returns the minimum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
-    /// - Returns: The cursor's minimum element, according to
-    ///   `areInIncreasingOrder`. If the cursor has no elements, returns
-    ///   `nil`.
+    /// - Returns: The cursor's minimum element. If the cursor has no
+    ///   elements, returns `nil`.
     public func min() throws -> Element? {
         try min(by: <)
     }

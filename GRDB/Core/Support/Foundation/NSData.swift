@@ -1,7 +1,7 @@
 #if !os(Linux)
 import Foundation
 
-/// NSData is convertible to and from DatabaseValue.
+/// `NSData` is a database value.
 extension NSData: DatabaseValueConvertible {
     
     /// Returns a BLOB database value.

@@ -1,6 +1,6 @@
 import Foundation
 
-/// NSNull adopts DatabaseValueConvertible
+/// `NSDate` is a database value.
 extension NSNull: DatabaseValueConvertible {
     
     /// Returns the NULL database value.

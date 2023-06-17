@@ -1,7 +1,7 @@
 #if !os(Linux)
 import Foundation
 
-/// Decimal adopts DatabaseValueConvertible
+/// `Decimal` is a database value.
 extension Decimal: DatabaseValueConvertible {
     /// Returns a TEXT decimal value.
     public var databaseValue: DatabaseValue {

@@ -9,7 +9,7 @@ private let integerRoundingBehavior = NSDecimalNumberHandler(
     raiseOnUnderflow: false,
     raiseOnDivideByZero: false)
 
-/// NSNumber adopts DatabaseValueConvertible
+/// `NSNumber` is a database value.
 extension NSNumber: DatabaseValueConvertible {
     
     /// A database value.

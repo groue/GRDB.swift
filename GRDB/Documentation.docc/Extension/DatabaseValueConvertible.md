@@ -165,6 +165,38 @@ This extra conformance is not required: only aim at the low-level C interface if
 - ``fetchSet(_:_:)-1foke``
 - ``fetchOne(_:_:)-o6yj``
 
+### Supported Value Types
+
+- ``Swift/Bool``
+- ``CoreFoundation/CGFloat``
+- ``Foundation/Data``
+- ``DatabaseDateComponents``
+- ``Foundation/Date``
+- ``Swift/Double``
+- ``Foundation/Decimal``
+- ``Swift/Float``
+- ``Swift/Int``
+- ``Swift/Int8``
+- ``Swift/Int16``
+- ``Swift/Int32``
+- ``Swift/Int64``
+- ``Foundation/NSData``
+- ``Foundation/NSDate``
+- ``Foundation/NSNull``
+- ``Foundation/NSNumber``
+- ``Foundation/NSString``
+- ``Foundation/NSURL``
+- ``Foundation/NSUUID``
+- ``Swift/Optional``
+- ``Swift/UInt``
+- ``Swift/UInt8``
+- ``Swift/UInt16``
+- ``Swift/UInt32``
+- ``Swift/UInt64``
+- ``Swift/String``
+- ``Foundation/URL``
+- ``Foundation/UUID``
+
 ### Supporting Types
 
 - ``DatabaseValueCursor``

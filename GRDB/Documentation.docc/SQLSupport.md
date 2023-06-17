@@ -81,7 +81,6 @@ For a more detailed overview, see [SQLite API](https://github.com/groue/GRDB.swi
 
 ### Database Values
 
-- ``DatabaseDateComponents``
 - ``DatabaseValueConvertible``
 - ``StatementColumnConvertible``
 

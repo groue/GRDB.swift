@@ -39,6 +39,8 @@
 ///
 /// - ``append(literal:)``
 /// - ``append(sql:arguments:)``
+/// - ``Swift/Collection/joined(separator:)``
+/// - ``Swift/Sequence/joined(separator:)``
 public struct SQL {
     /// `SQL.Element` is a component of an `SQL` literal.
     ///
@@ -316,12 +318,12 @@ extension SQL: SQLOrderingTerm {
 }
 
 extension Sequence where Element == SQL {
-    /// Returns the concatenated `SQL` literal of this sequence of literals,
+    /// Concatenates the sequence elements into a new `SQL` literal,
     /// inserting the given raw SQL separator between each element.
     ///
     /// For example:
     ///
-    /// ```
+    /// ```swift
     /// let components: [SQL] = [
     ///     "UPDATE player",
     ///     "SET name = \(name)",
@@ -341,7 +343,7 @@ extension Sequence where Element == SQL {
 }
 
 extension Collection where Element == SQL {
-    /// Returns the concatenated `SQL` literal of this collection of literals,
+    /// Concatenates the collection elements into a new `SQL` literal,
     /// inserting the given raw SQL separator between each element.
     ///
     /// For example:

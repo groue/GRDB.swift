@@ -1,7 +1,7 @@
 #if !os(Linux)
 import Foundation
 
-/// NSString adopts DatabaseValueConvertible
+/// `NSString` is a database value.
 extension NSString: DatabaseValueConvertible {
     
     /// Returns a TEXT database value.

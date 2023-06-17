@@ -1,6 +1,6 @@
 // MARK: - Value Types
 
-/// Bool adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Bool` is a database value.
 extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -95,7 +95,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Int adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Int` is a database value.
 extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -134,7 +134,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Int8 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Int8` is a database value.
 extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -173,7 +173,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Int16 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Int16` is a database value.
 extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -212,7 +212,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Int32 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Int32` is a database value.
 extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -251,7 +251,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Int64 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Int64` is a database value.
 extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -294,7 +294,7 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// UInt adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `UInt` is a database value.
 extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -333,7 +333,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// UInt8 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `UInt8` is a database value.
 extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -372,7 +372,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// UInt16 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `UInt16` is a database value.
 extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -411,7 +411,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// UInt32 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `UInt32` is a database value.
 extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -450,7 +450,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// UInt64 adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `UInt64` is a database value.
 extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -489,7 +489,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Double adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Double` is a database value.
 extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -529,7 +529,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// Float adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `Float` is a database value.
 extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
@@ -569,7 +569,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     }
 }
 
-/// String adopts DatabaseValueConvertible and StatementColumnConvertible.
+/// `String` is a database value.
 extension String: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.

@@ -196,7 +196,7 @@ public struct SQLExpression {
     
     /// An associative binary SQL operator, such as `+`, `*`, `AND`, etc.
     ///
-    /// Use it with the `joined(operator:)` method. For example:
+    /// Use an associative operator with the `joined(operator:)` method:
     ///
     /// ```swift
     /// // SELECT score + bonus + 1000 FROM player
@@ -206,6 +206,27 @@ public struct SQLExpression {
     ///     1000.databaseValue]
     /// let request = Player.select(values.joined(operator: .add))
     /// ```
+    ///
+    /// ## Topics
+    ///
+    /// ### Arithmetic Operators
+    ///
+    /// - ``add``
+    /// - ``multiply``
+    ///
+    /// ### Logical Operators
+    ///
+    /// - ``and``
+    /// - ``or``
+    ///
+    /// ### String Operators
+    ///
+    /// - ``concat``
+    ///
+    /// ### Bitwise Operators
+    ///
+    /// - ``bitwiseAnd``
+    /// - ``bitwiseOr``
     public struct AssociativeBinaryOperator: Hashable {
         /// The SQL operator
         let sql: String
@@ -237,7 +258,7 @@ public struct SQLExpression {
             self.isBijective = bijective
         }
         
-        /// The `+` binary SQL operator.
+        /// The arithmetic `+` binary SQL operator.
         ///
         /// For example:
         ///
@@ -245,13 +266,19 @@ public struct SQLExpression {
         /// // score + bonus
         /// [Column("score"), Column("bonus")].joined(operator: .add)
         /// ```
+        ///
+        /// The neutral value of the `add` operator, used when joining an
+        /// empty sequence, is `0`.
+        ///
+        /// The `add` operator performs a numeric addition. To concatenate
+        /// strings, use the ``concat`` operator instead.
         public static let add = AssociativeBinaryOperator(
             sql: "+",
             neutralValue: 0.databaseValue,
             strictlyAssociative: false,
             bijective: false)
         
-        /// The `*` binary SQL operator.
+        /// The arithmetic `*` binary SQL operator.
         ///
         /// For example:
         ///
@@ -259,13 +286,16 @@ public struct SQLExpression {
         /// // score * factor
         /// [Column("score"), Column("factor")].joined(operator: .multiply)
         /// ```
+        ///
+        /// The neutral value of the `multiply` operator, used when joining an
+        /// empty sequence, is `1`.
         public static let multiply = AssociativeBinaryOperator(
             sql: "*",
             neutralValue: 1.databaseValue,
             strictlyAssociative: false,
             bijective: false)
         
-        /// The `AND` binary SQL operator.
+        /// The logical `AND` binary SQL operator.
         ///
         /// For example:
         ///
@@ -273,13 +303,16 @@ public struct SQLExpression {
         /// // isBlue AND isTall
         /// [Column("isBlue"), Column("isTall")].joined(operator: .and)
         /// ```
+        ///
+        /// The neutral value of the `and` operator, used when joining an
+        /// empty sequence, is `true`.
         public static let and = AssociativeBinaryOperator(
             sql: "AND",
             neutralValue: true.databaseValue,
             strictlyAssociative: true,
             bijective: false)
         
-        /// The `OR` binary SQL operator.
+        /// The logical `OR` binary SQL operator.
         ///
         /// For example:
         ///
@@ -287,6 +320,9 @@ public struct SQLExpression {
         /// // isBlue OR isTall
         /// [Column("isBlue"), Column("isTall")].joined(operator: .or)
         /// ```
+        ///
+        /// The neutral value of the `or` operator, used when joining an
+        /// empty sequence, is `false`.
         public static let or = AssociativeBinaryOperator(
             sql: "OR",
             neutralValue: false.databaseValue,
@@ -301,13 +337,16 @@ public struct SQLExpression {
         /// // firstName || ' ' || lastName
         /// [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
         /// ```
+        ///
+        /// The neutral value of the `concat` operator, used when joining an
+        /// empty sequence, is the empty string.
         public static let concat = AssociativeBinaryOperator(
             sql: "||",
             neutralValue: "".databaseValue,
             strictlyAssociative: true,
             bijective: true)
         
-        /// The `&` bitwise AND SQL operator.
+        /// The bitwise `&` SQL operator.
         ///
         /// For example:
         ///
@@ -315,13 +354,17 @@ public struct SQLExpression {
         /// // mask & 2
         /// [Column("mask"), 2.databaseValue].joined(operator: .bitwiseAnd)
         /// ```
+        ///
+        /// The neutral value of the `bitwiseAnd` operator, used when
+        /// joining an empty sequence, is `-1` (the signed 64-bit integer
+        /// with all bits set).
         public static let bitwiseAnd = AssociativeBinaryOperator(
             sql: "&",
             neutralValue: (-1).databaseValue,
             strictlyAssociative: true,
             bijective: false)
         
-        /// The `|` bitwise OR SQL operator.
+        /// The bitwise `|` SQL operator.
         ///
         /// For example:
         ///
@@ -329,6 +372,9 @@ public struct SQLExpression {
         /// // mask | 2
         /// [Column("mask"), 2.databaseValue].joined(operator: .bitwiseOr)
         /// ```
+        ///
+        /// The neutral value of the `bitwiseOr` operator, used when
+        /// joining an empty sequence, is `0`.
         public static let bitwiseOr = AssociativeBinaryOperator(
             sql: "|",
             neutralValue: 0.databaseValue,
@@ -1786,6 +1832,20 @@ extension SQLExpressible where Self == Column {
 /// - ``uppercased``
 /// - ``SQLDateModifier``
 ///
+/// ### Create SQL Expressions from Sequences
+///
+/// - ``Swift/Sequence/contains(_:)-9i0ld``
+/// - ``Swift/Sequence/contains(_:)-o8ic``
+/// - ``Swift/Sequence/joined(operator:)-33dy5``
+/// - ``Swift/Sequence/joined(operator:)-4k88t``
+///
+/// ### Create SQL Expressions from Ranges
+///
+/// - ``Swift/ClosedRange/contains(_:)-64zwp``
+/// - ``Swift/ClosedRange/contains(_:)-19a6d``
+/// - ``Swift/Range/contains(_:)-11nr0``
+/// - ``Swift/Range/contains(_:)-3v32b``
+///
 /// ### Creating Ordering Terms
 ///
 /// - ``asc``
@@ -1853,13 +1913,8 @@ extension Sequence where Element: SQLSpecificExpressible {
     /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
-    /// value of the operator. It is:
-    ///
-    /// - `0` for ``SQLExpression/AssociativeBinaryOperator/add``
-    /// - `1` for ``SQLExpression/AssociativeBinaryOperator/multiply``
-    /// - `false` for ``SQLExpression/AssociativeBinaryOperator/or``
-    /// - `true` for ``SQLExpression/AssociativeBinaryOperator/and``
-    /// - `""` for ``SQLExpression/AssociativeBinaryOperator/concat``
+    /// value of the operator. See
+    /// ``SQLExpression/AssociativeBinaryOperator`` for more information.
     public func joined(operator: SQLExpression.AssociativeBinaryOperator) -> SQLExpression {
         .associativeBinary(`operator`, map(\.sqlExpression))
     }
@@ -1871,7 +1926,7 @@ extension Sequence where Element == any SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    /// ```
+    /// ```swift
     /// // SELECT * FROM player
     /// // WHERE (registered
     /// //        AND (score >= 1000)
@@ -1884,13 +1939,8 @@ extension Sequence where Element == any SQLSpecificExpressible {
     /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
-    /// value of the operator. It is:
-    ///
-    /// - `0` for ``SQLExpression/AssociativeBinaryOperator/add``
-    /// - `1` for ``SQLExpression/AssociativeBinaryOperator/multiply``
-    /// - `false` for ``SQLExpression/AssociativeBinaryOperator/or``
-    /// - `true` for ``SQLExpression/AssociativeBinaryOperator/and``
-    /// - `""` for ``SQLExpression/AssociativeBinaryOperator/concat``
+    /// value of the operator. See
+    /// ``SQLExpression/AssociativeBinaryOperator`` for more information.
     public func joined(operator: SQLExpression.AssociativeBinaryOperator) -> SQLExpression {
         .associativeBinary(`operator`, map(\.sqlExpression))
     }

@@ -44,6 +44,7 @@ extension Optional: SQLSelectable where Wrapped: SQLSelectable {
 
 extension Optional: SQLSpecificExpressible where Wrapped: SQLSpecificExpressible { }
 
+/// `Optional` is a database value when it wrapped type is.
 extension Optional: DatabaseValueConvertible where Wrapped: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         switch self {

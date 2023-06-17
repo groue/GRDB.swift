@@ -1,6 +1,6 @@
 import Foundation
 
-/// Data is convertible to and from DatabaseValue.
+/// `Data` is a database value.
 extension Data: DatabaseValueConvertible, StatementColumnConvertible {
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
         if let bytes = sqlite3_column_blob(sqliteStatement, index) {

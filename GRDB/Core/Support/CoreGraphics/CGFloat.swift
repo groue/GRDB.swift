@@ -1,7 +1,7 @@
 #if canImport(CoreGraphics)
 import CoreGraphics
 
-/// CGFloat adopts DatabaseValueConvertible
+/// `CGFloat` is a database value.
 extension CGFloat: DatabaseValueConvertible {
     /// Returns a REAL database value.
     public var databaseValue: DatabaseValue {
