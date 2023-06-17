@@ -58,10 +58,6 @@
 /// - ``makePreparedRequest(_:forSingleResult:)``
 /// - ``PreparedRequest``
 ///
-/// ### Database Observation Support
-///
-/// - ``databaseRegion(_:)``
-///
 /// ### Adapting the Fetched Rows
 ///
 /// - ``adapted(_:)``
@@ -217,8 +213,8 @@ public struct AnyFetchRequest<RowDecoder> {
     ///
     /// // AnyFetchRequest<Row>
     /// let rowRequest = playerRequest.asRequest(of: Row.self)
-    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> AnyFetchRequest<RowDecoder> {
-        AnyFetchRequest<RowDecoder>(request: request)
+    public func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T> {
+        AnyFetchRequest<T>(request: request)
     }
 }
 

@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.15.x` Releases - [6.15.0](#6150)
+- `6.15.x` Releases - [6.15.0](#6150) - [6.15.1](#6151)
 - `6.14.x` Releases - [6.14.0](#6140)
 - `6.13.x` Releases - [6.13.0](#6130)
 - `6.12.x` Releases - [6.12.0](#6120)
@@ -112,6 +112,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.15.1
+
+Released June 17, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.15.0...v6.15.1)
+
+- **Fixed**: Fixed Xcode 15 warnings
+- **Fixed**: [#1391](https://github.com/groue/GRDB.swift/pull/1391) Fix upsert in FTS5-synchronized tables
+
 
 ## 6.15.0
 
