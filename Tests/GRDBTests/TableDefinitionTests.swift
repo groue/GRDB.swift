@@ -1033,4 +1033,99 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(lastSQLQuery!, "REINDEX swiftLocalizedCompare")
         }
     }
+    
+    func testCreateView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name")
+                t.column("score")
+            }
+            
+            do {
+                let request = SQLRequest(literal: """
+                    SELECT * FROM player WHERE name = \("O'Brien")
+                    """)
+                try db.create(view: "view1", as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view1" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                let request = Table("player").filter(Column("name") == "O'Brien")
+                try db.create(view: "view2", as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view2" AS SELECT * FROM "player" WHERE "name" = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                let sql: SQL = """
+                    SELECT * FROM player WHERE name = \("O'Brien")
+                    """
+                try db.create(view: "view3", asLiteral: sql)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view3" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+        }
+    }
+    
+    func testCreateViewOptions() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name")
+                t.column("score")
+            }
+            
+            let request = SQLRequest(literal: """
+                SELECT * FROM player WHERE name = \("O'Brien")
+                """)
+            
+            do {
+                try db.create(view: "view1", options: .ifNotExists, as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW IF NOT EXISTS "view1" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view2", options: .temporary, as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE TEMPORARY VIEW "view2" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view3", options: [.temporary, .ifNotExists], as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE TEMPORARY VIEW IF NOT EXISTS "view3" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view4", columns: ["a", "b", "c"], as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view4" ("a", "b", "c") AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+        }
+    }
+    
+    func testDropView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(view: "test", as: SQLRequest(literal: "SELECT 'test', 42"))
+            XCTAssertTrue(try db.viewExists("test"))
+            XCTAssertEqual(try db.columns(in: "test").count, 2)
+            
+            try db.drop(view: "test")
+            assertEqualSQL(lastSQLQuery!, "DROP VIEW \"test\"")
+            XCTAssertFalse(try db.viewExists("test"))
+        }
+    }
 }

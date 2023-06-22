@@ -372,6 +372,13 @@ extension Team: TableRecord {
 - ``TableOptions``
 - ``VirtualTableModule``
 
+### Database Views
+
+- ``Database/create(view:options:columns:as:)``
+- ``Database/create(view:options:columns:asLiteral:)``
+- ``Database/drop(view:)``
+- ``ViewOptions``
+
 ### Database Indexes
 
 - ``Database/create(indexOn:columns:options:condition:)``

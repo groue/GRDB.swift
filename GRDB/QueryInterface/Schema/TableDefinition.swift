@@ -320,6 +320,117 @@ extension Database {
         try execute(sql: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
+    /// Creates a database view.
+    ///
+    /// You can create a view with an ``SQLRequest``:
+    ///
+    /// ```swift
+    /// // CREATE VIEW hero AS SELECT * FROM player WHERE isHero == 1
+    /// try db.create(view: "hero", as: SQLRequest(literal: """
+    ///     SELECT * FROM player WHERE isHero == 1
+    ///     """)
+    /// ```
+    ///
+    /// You can also create a view with a ``QueryInterfaceRequest``:
+    ///
+    /// ```swift
+    /// // CREATE VIEW hero AS SELECT * FROM player WHERE isHero == 1
+    /// try db.create(
+    ///     view: "hero",
+    ///     as: Player.filter(Column("isHero") == true))
+    /// ```
+    ///
+    /// When creating views in <doc:Migrations>, it is not recommended to
+    /// use record types defined in the application. Instead of the `Player`
+    /// record type, prefer `Table("player")`:
+    ///
+    /// ```swift
+    /// // RECOMMENDED IN MIGRATIONS
+    /// try db.create(
+    ///     view: "hero",
+    ///     as: Table("player").filter(Column("isHero") == true))
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
+    ///
+    /// - parameters:
+    ///     - view: The view name.
+    ///     - options: View creation options.
+    ///     - columns: The columns of the view. If nil, the columns are the
+    ///       columns of the request.
+    ///     - request: The request that feeds the view.
+    public func create(
+        view name: String,
+        options: ViewOptions = [],
+        columns: [String]? = nil,
+        as request: SQLSubqueryable)
+    throws {
+        var literal: SQL = "CREATE "
+        
+        if options.contains(.temporary) {
+            literal += "TEMPORARY "
+        }
+        
+        literal += "VIEW "
+        
+        if options.contains(.ifNotExists) {
+            literal += "IF NOT EXISTS "
+        }
+        
+        literal += "\(identifier: name) "
+        
+        if let columns {
+            literal += "("
+            literal += columns.map { "\(identifier: $0)" }.joined(separator: ", ")
+            literal += ") "
+        }
+        
+        literal += "AS \(request)"
+        
+        // CREATE VIEW does not support arguments, so make sure we use
+        // literal values.
+        let context = SQLGenerationContext(self, argumentsSink: .literalValues)
+        let sql = try literal.sql(context)
+        try execute(sql: sql)
+    }
+    
+    /// Creates a database view.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // CREATE VIEW hero AS SELECT * FROM player WHERE isHero == 1
+    /// try db.create(view: "hero", asLiteral: """
+    ///     SELECT * FROM player WHERE isHero == 1
+    ///     """)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
+    ///
+    /// - parameters:
+    ///     - view: The view name.
+    ///     - options: View creation options.
+    ///     - columns: The columns of the view. If nil, the columns are the
+    ///       columns of the request.
+    ///     - sqlLiteral: An `SQL` literal.
+    public func create(
+        view name: String,
+        options: ViewOptions = [],
+        columns: [String]? = nil,
+        asLiteral sqlLiteral: SQL)
+    throws {
+        try create(view: name, options: options, columns: columns, as: SQLRequest(literal: sqlLiteral))
+    }
+
+    /// Deletes a database view.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/lang_dropview.html>
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public func drop(view name: String) throws {
+        try execute(sql: "DROP VIEW \(name.quotedDatabaseIdentifier)")
+    }
+
     /// Creates an index.
     ///
     /// For example:
@@ -554,6 +665,19 @@ public struct TableOptions: OptionSet {
 #endif
 }
 
+/// View creation options
+public struct ViewOptions: OptionSet {
+    public let rawValue: Int
+    
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    
+    /// Only creates the view if it does not already exist.
+    public static let ifNotExists = ViewOptions(rawValue: 1 << 0)
+    
+    /// Creates a temporary view.
+    public static let temporary = ViewOptions(rawValue: 1 << 1)
+}
+
 /// A `TableDefinition` lets you define the components of a database table.
 ///
 /// See the documentation of the `Database`
@@ -628,7 +752,7 @@ public final class TableDefinition {
             case let .definition(def):
                 return try def.sql(db, tableName: tableName, primaryKeyColumns: primaryKeyColumns)
             case let .literal(sqlLiteral):
-                let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                let context = SQLGenerationContext(db, argumentsSink: .literalValues)
                 return try sqlLiteral.sql(context)
             }
         }
@@ -1212,7 +1336,7 @@ public final class TableDefinition {
                 }
                 
                 for literal in literalConstraints {
-                    let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                    let context = SQLGenerationContext(db, argumentsSink: .literalValues)
                     try items.append(literal.sql(context))
                 }
                 
@@ -1439,7 +1563,7 @@ public final class TableAlteration {
                 chunks.append("ALTER TABLE")
                 chunks.append(name.quotedDatabaseIdentifier)
                 chunks.append("ADD COLUMN")
-                let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                let context = SQLGenerationContext(db, argumentsSink: .literalValues)
                 try chunks.append(sqlLiteral.sql(context))
                 let statement = chunks.joined(separator: " ")
                 statements.append(statement)
