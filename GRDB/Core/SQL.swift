@@ -254,6 +254,15 @@ extension SQL {
     }
 }
 
+extension SQL: SQLSubqueryable {
+  /// Creates a literal SQL subquery.
+  ///
+  /// Use this property when you need an explicit `SQLSubquery`.
+  public var sqlSubquery: SQLSubquery {
+    .literal(self)
+  }
+}
+
 extension SQL: SQLSpecificExpressible {
     /// Creates a literal SQL expression.
     ///
