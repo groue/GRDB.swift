@@ -42,12 +42,12 @@ let name = "O'Brien"
 // WITH playerName AS (SELECT 'O''Brien') ...
 let playerNameCTE = CommonTableExpression(
     named: "playerName",
-    sql: "SELECT ?", arguments: [name])
+    request: SQL(sql: "SELECT ?", arguments: [name]))
 
 // WITH playerName AS (SELECT 'O''Brien') ...
 let playerNameCTE = CommonTableExpression(
     named: "playerName",
-    literal: "SELECT \(name)")
+    request: SQL("SELECT \(name)"))
 
 // WITH playerName AS (SELECT 'O''Brien') ...
 let request = SQLRequest("SELECT \(name)")
@@ -63,7 +63,7 @@ All CTEs can be provided with explicit column names:
 let pairCTE = CommonTableExpression(
     named: "pair", 
     columns: ["a", "b"], 
-    sql: "SELECT 1, 2")
+    request: SQL("SELECT 1, 2"))
 ```
 
 Recursive CTEs need the `recursive` flag. The example below selects all integers between 1 and 1000:
@@ -75,11 +75,11 @@ let counterCTE = CommonTableExpression(
     recursive: true,
     named: "counter",
     columns: ["x"],
-    sql: """
+    request: SQL("""
         VALUES(1)
         UNION ALL
         SELECT x+1 FROM counter WHERE x<1000
-        """)
+        """))
 ```
 
 > **Note**: many recursive CTEs use the `UNION ALL` SQL operator. The query interface does not provide any Swift support for it, so you'll generally have to write SQL in your definitions of recursive CTEs.
@@ -103,7 +103,7 @@ We first build a `CommonTableExpression`:
 let name = "O'Brien"
 let playerNameCTE = CommonTableExpression(
     named: "playerName", 
-    literal: "SELECT \(name)")
+    request: SQL("SELECT \(name)"))
 ```
 
 We can then embed the definition of the CTE in a [query interface request] by calling the `with(_:)` method:
