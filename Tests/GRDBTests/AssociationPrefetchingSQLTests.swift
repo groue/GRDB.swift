@@ -1917,7 +1917,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             
             do {
                 sqlQueries.removeAll()
-                let cte = CommonTableExpression(named: "cte", sql: "SELECT 42")
+                let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 42"))
                 let association = Team.players.with(cte).filter(Column("playerId") == cte.all())
                 let request = Team.including(all: association)
                 _ = try Row.fetchAll(db, request)

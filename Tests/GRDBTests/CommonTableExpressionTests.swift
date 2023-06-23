@@ -6,6 +6,29 @@ class CommonTableExpressionTests: GRDBTestCase {
         // Implicit generic RowDecoder type is Row
         func acceptRowCTE(_ cte: CommonTableExpression<Row>) { }
         do {
+            let cte = CommonTableExpression(named: "foo", request: SQL(""))
+            acceptRowCTE(cte)
+        }
+        do {
+            let cte = CommonTableExpression(named: "foo", request: SQLRequest<Void>(""))
+            acceptRowCTE(cte)
+        }
+        do {
+            let cte = CommonTableExpression(named: "foo", request: SQLRequest<String>(""))
+            acceptRowCTE(cte)
+        }
+
+        // Explicit type
+        struct S { }
+        _ = CommonTableExpression<S>(named: "foo", request: SQL(""))
+        _ = CommonTableExpression<S>(named: "foo", request: SQLRequest<Void>(""))
+    }
+    
+    @available(*, deprecated)
+    func testInitializers_deprecated() {
+        // Implicit generic RowDecoder type is Row
+        func acceptRowCTE(_ cte: CommonTableExpression<Row>) { }
+        do {
             let cte = CommonTableExpression(named: "foo", sql: "")
             acceptRowCTE(cte)
         }
@@ -13,16 +36,11 @@ class CommonTableExpressionTests: GRDBTestCase {
             let cte = CommonTableExpression(named: "foo", literal: "")
             acceptRowCTE(cte)
         }
-        do {
-            let cte = CommonTableExpression(named: "foo", request: SQLRequest<Void>(""))
-            acceptRowCTE(cte)
-        }
         
         // Explicit type
         struct S { }
         _ = CommonTableExpression<S>(named: "foo", sql: "")
         _ = CommonTableExpression<S>(named: "foo", literal: "")
-        _ = CommonTableExpression<S>(named: "foo", request: SQLRequest<Void>(""))
     }
     
     func testQuery() throws {
@@ -32,25 +50,11 @@ class CommonTableExpressionTests: GRDBTestCase {
                 t.autoIncrementedPrimaryKey("id")
             }
             
-            // Just add a WITH clause: sql + arguments
-            do {
-                let cte = CommonTableExpression(
-                    named: "cte",
-                    sql: "SELECT ?",
-                    arguments: ["O'Brien"])
-                let request = T.all()
-                    .with(cte)
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT 'O''Brien') \
-                    SELECT * FROM "t"
-                    """)
-            }
-            
             // Just add a WITH clause: sql interpolation
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """
@@ -101,7 +105,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT 1 as id")
+                    request: SQL("SELECT 1 as id"))
                 let request = T.all()
                     .with(cte)
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
@@ -117,7 +121,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT 1 AS a")
+                    request: SQL("SELECT 1 AS a"))
                 let request = T.all()
                     .with(cte)
                     .including(required: T.association(to: cte).filter(Column("a") != nil))
@@ -134,7 +138,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression(
                     named: "cte",
                     columns: [],
-                    literal: "SELECT 1 AS id")
+                    request: SQL("SELECT 1 AS id"))
                 let request = T.all()
                     .with(cte)
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
@@ -151,7 +155,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression(
                     named: "cte",
                     columns: ["id", "a"],
-                    literal: "SELECT 1, 2")
+                    request: SQL("SELECT 1, 2"))
                 let request = T.all()
                     .with(cte)
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
@@ -167,7 +171,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request = T.all()
                     .with(cte)
                     .including(required: T.association(to: cte))
@@ -292,7 +296,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte1 = CommonTableExpression<CTE1>(named: "cte1", request: T.all())
                 let cte2 = CommonTableExpression<CTE2>(
                     named: "cte2",
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let assoc1 = T.association(to: cte1)
                 let assoc2 = cte1.association(to: cte2)
                 for assoc3 in [
@@ -367,13 +371,163 @@ class CommonTableExpressionTests: GRDBTestCase {
         }
     }
     
+    @available(*, deprecated)
+    func testQuery_deprecated() throws {
+        struct T: TableRecord { }
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "t") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            // Just add a WITH clause: sql + arguments
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    sql: "SELECT ?",
+                    arguments: ["O'Brien"])
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "t"
+                    """)
+            }
+            
+            // Just add a WITH clause: sql interpolation
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    literal: "SELECT \("O'Brien")")
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "t"
+                    """)
+            }
+            
+            // Include SQL request as a CTE
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    literal: "SELECT 1 as id")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 as id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
+            // Include a filtered SQL request as a CTE
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    literal: "SELECT 1 AS a")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte).filter(Column("a") != nil))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 AS a) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "cte"."a" IS NOT NULL
+                    """)
+            }
+            
+            // Include SQL request as a CTE (empty columns)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    columns: [],
+                    literal: "SELECT 1 AS id")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 AS id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
+            // Include SQL request as a CTE (custom column name)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    columns: ["id", "a"],
+                    literal: "SELECT 1, 2")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte"("id", "a") AS (SELECT 1, 2) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
+            // Include SQL request as a CTE (empty ON clause)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    literal: "SELECT \("O'Brien")")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte"
+                    """)
+            }
+            
+            // Chain CTE includes
+            do {
+                enum CTE1 { }
+                enum CTE2 { }
+                let cte1 = CommonTableExpression<CTE1>(named: "cte1", request: T.all())
+                let cte2 = CommonTableExpression<CTE2>(
+                    named: "cte2",
+                    literal: "SELECT \("O'Brien")")
+                let assoc1 = T.association(to: cte1)
+                let assoc2 = cte1.association(to: cte2)
+                for assoc3 in [
+                    cte2.association(to: T.self),
+                    cte2.association(to: Table("t")),
+                ] {
+                    let request = T.all()
+                        .with(cte1)
+                        .with(cte2)
+                        .including(required: assoc1.including(required: assoc2.including(required: assoc3)))
+                    try assertEqualSQL(db, request, """
+                        WITH \
+                        "cte1" AS (SELECT * FROM "t"), \
+                        "cte2" AS (SELECT 'O''Brien') \
+                        SELECT "t1".*, "cte1".*, "cte2".*, "t2".* \
+                        FROM "t" "t1" \
+                        JOIN "cte1" \
+                        JOIN "cte2" \
+                        JOIN "t" "t2"
+                        """)
+                }
+            }
+        }
+    }
+
     func testFetchFromCTE() throws {
         try makeDatabaseQueue().read { db in
             do {
                 // Default row decoder is Row
                 let answer = CommonTableExpression(
                     named: "answer",
-                    sql: "SELECT 42 AS value")
+                    request: SQL("SELECT 42 AS value"))
                 let row = try answer.all().with(answer).fetchOne(db)
                 XCTAssertEqual(row, ["value": 42])
             }
@@ -383,7 +537,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 }
                 let cte = CommonTableExpression<Answer>(
                     named: "answer",
-                    sql: "SELECT 42 AS value")
+                    request: SQL("SELECT 42 AS value"))
                 let answer = try cte.all().with(cte).fetchOne(db)
                 XCTAssertEqual(answer, Answer(value: 42))
             }
@@ -402,7 +556,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
             let answer = CommonTableExpression(
                 named: "answer",
-                sql: "SELECT 42 AS value")
+                request: SQL("SELECT 42 AS value"))
             let request = Player
                 .filter(Column("score") == answer.all())
                 .with(answer)
@@ -496,11 +650,11 @@ class CommonTableExpressionTests: GRDBTestCase {
                     recursive: true,
                     named: "counter",
                     columns: ["x"],
-                    literal: """
+                    request: SQL("""
                         VALUES(\(range.lowerBound)) \
                         UNION ALL \
                         SELECT x+1 FROM counter WHERE x < \(range.upperBound)
-                        """)
+                        """))
                 return counter.all().with(counter)
             }
             
@@ -520,7 +674,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request: SQLRequest<Void> = """
                     WITH \(definitionFor: cte) \
                     SELECT * FROM \(cte)
@@ -533,7 +687,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request: SQLRequest<Void> = """
                     WITH \(definitionFor: cte) \
                     \(cte.all())
@@ -547,7 +701,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression(
                     named: "cte",
                     columns: [],
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request: SQLRequest<Void> = """
                     WITH \(definitionFor: cte) \
                     SELECT * FROM \(cte)
@@ -561,7 +715,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression(
                     named: "cte",
                     columns: ["name"],
-                    literal: "SELECT \("O'Brien")")
+                    request: SQL("SELECT \("O'Brien")"))
                 let request: SQLRequest<Void> = """
                     WITH \(definitionFor: cte) \
                     SELECT * FROM \(cte)
@@ -575,7 +729,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression(
                     named: "cte",
                     columns: ["name", "score"],
-                    literal: "SELECT \("O'Brien"), 12")
+                    request: SQL("SELECT \("O'Brien"), 12"))
                 let request: SQLRequest<Void> = """
                     WITH \(definitionFor: cte) \
                     SELECT * FROM \(cte)
@@ -595,7 +749,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
             
             struct T: Encodable, PersistableRecord { }
-            let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+            let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
             
             try T.with(cte).updateAll(db, Column("a").set(to: cte.all()))
             XCTAssertEqual(lastSQLQuery, """
@@ -611,7 +765,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
             
             struct T: Encodable, PersistableRecord { }
-            let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+            let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
             
             try T.with(cte)
                 .filter(cte.contains(Column("a")))
@@ -648,7 +802,7 @@ class CommonTableExpressionTests: GRDBTestCase {
 
             do {
                 // CTE on association
-                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
                 let request = Award
                     .joining(optional: Award.player.with(cte))
                 _ = try Row.fetchAll(db, request)
@@ -662,7 +816,7 @@ class CommonTableExpressionTests: GRDBTestCase {
 
             do {
                 // CTE on hasOneThrough association
-                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
                 let request = Award
                     .joining(optional: Award.team.with(cte))
                 _ = try Row.fetchAll(db, request)
@@ -677,7 +831,7 @@ class CommonTableExpressionTests: GRDBTestCase {
 
             do {
                 // CTE on pivot of hasOneThrough association
-                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let cte = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
                 let team = Award.hasOne(Team.self, through: Award.player.with(cte), using: Player.team)
                 let request = Award
                     .joining(optional: team)
@@ -693,8 +847,8 @@ class CommonTableExpressionTests: GRDBTestCase {
             
             do {
                 // Distinct CTEs on association and main request
-                let cte1 = CommonTableExpression(named: "cte1", sql: "SELECT 1")
-                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 2")
+                let cte1 = CommonTableExpression(named: "cte1", request: SQL("SELECT 1"))
+                let cte2 = CommonTableExpression(named: "cte2", request: SQL("SELECT 2"))
                 let request = Award
                     .with(cte1)
                     .joining(optional: Award.player.with(cte2))
@@ -713,8 +867,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                 
                 do {
                     // Conflicting CTE on association and main request
-                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
-                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let cte1 = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
+                    let cte2 = CommonTableExpression(named: "cte", request: SQL("SELECT 2"))
                     let request = Award
                         .with(cte1)
                         .joining(optional: Award.player.with(cte2))
@@ -729,8 +883,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                 
                 do {
                     // Conflicting CTE on two associations
-                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
-                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let cte1 = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
+                    let cte2 = CommonTableExpression(named: "cte", request: SQL("SELECT 2"))
                     let request = Award
                         .joining(optional: Award.player.with(cte1))
                         .joining(optional: Award.team.with(cte2))
@@ -746,8 +900,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                 
                 do {
                     // Conflicting CTE on two associations
-                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
-                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let cte1 = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
+                    let cte2 = CommonTableExpression(named: "cte", request: SQL("SELECT 2"))
                     let request = Award
                         .joining(optional: Award.team.with(cte1))
                         .joining(optional: Award.player.with(cte2))
@@ -766,8 +920,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                 
                 do {
                     // Conflicting CTE on two associations
-                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
-                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let cte1 = CommonTableExpression(named: "cte", request: SQL("SELECT 1"))
+                    let cte2 = CommonTableExpression(named: "cte", request: SQL("SELECT 2"))
                     let request = Award
                         .joining(optional: Award.player.forKey("player1").with(cte1))
                         .joining(optional: Award.player.forKey("player2").with(cte2))
@@ -790,8 +944,8 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 // Failing case: test that error message suggests to fix the cte
                 // definition by declaring columns.
-                let cte1 = CommonTableExpression(named: "cte1", sql: "SELECT * FROM cte2")
-                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let cte1 = CommonTableExpression(named: "cte1", request: SQL("SELECT * FROM cte2"))
+                let cte2 = CommonTableExpression(named: "cte2", request: SQL("SELECT 1 AS a"))
                 let association = cte1.association(to: cte2)
                 let request = cte1.all().with(cte1).with(cte2).including(required: association)
                 _ = try request.asRequest(of: Row.self).fetchOne(db)
@@ -807,8 +961,8 @@ class CommonTableExpressionTests: GRDBTestCase {
             
             do {
                 // Fixed case: specify columns
-                let cte1 = CommonTableExpression(named: "cte1", columns: ["a"], sql: "SELECT * FROM cte2")
-                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let cte1 = CommonTableExpression(named: "cte1", columns: ["a"], request: SQL("SELECT * FROM cte2"))
+                let cte2 = CommonTableExpression(named: "cte2", request: SQL("SELECT 1 AS a"))
                 let association = cte1.association(to: cte2)
                 let request = cte1.all().with(cte1).with(cte2).including(required: association)
                 _ = try request.asRequest(of: Row.self).fetchOne(db)
@@ -817,7 +971,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 // Handled case: no need to specify columns
                 let cte1 = CommonTableExpression(named: "cte1", request: Table("cte2").select(Column("a")))
-                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 1 AS a")
+                let cte2 = CommonTableExpression(named: "cte2", request: SQL("SELECT 1 AS a"))
                 let association = cte1.association(to: cte2)
                 let request = cte1.all().with(cte1).with(cte2).including(required: association)
                 _ = try request.asRequest(of: Row.self).fetchOne(db)

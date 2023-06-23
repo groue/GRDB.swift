@@ -112,7 +112,7 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.aliased(TableAlias(name: "p")), """
                     SELECT "p".* FROM "player" "p"
                     """)
-                try assertEqualSQL(db, t.with(CommonTableExpression(named: "cte", literal: "SELECT \("O'Brien")")), """
+                try assertEqualSQL(db, t.with(CommonTableExpression(named: "cte", request: SQL("SELECT \("O'Brien")"))), """
                     WITH "cte" AS (SELECT 'O''Brien') SELECT * FROM "player"
                     """)
             }
