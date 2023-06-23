@@ -304,15 +304,15 @@ let request = SQLRequest<Player>(literal: literal)
 let players: [Player] = try request.fetchAll(db)
 ```
 
-`SQL` conforms to [SQLSpecificExpressible], and thus behaves as an [SQLite expression](https://sqlite.org/syntax/expr.html) by default:
+`SQL` conforms to [SQLSubqueryable], and can be used wherever GRDB (and SQLite) expect a subquery, an expression, an ordering term, etc:
 
 ```swift
 let literal: SQL = "name = \("O'Brien")"
-let request = Player.filter(literal)
+let request = Player.filter(literal) // expression expected
 let players: [Player] = try request.fetchAll(db)
 ```
 
-:warning: **Warning**: Not all SQL snippets are expressions. It is not recommended to pass `SQL` literals around, or you may end up forgetting their content, and eventually generate invalid SQL. When possible, prefer building an explicit [SQLExpression], [SQLOrdering], [SQLSelection], [SQLRequest], or [SQLSubquery], depending on what you want to express:
+:warning: **Warning**: Not all SQL snippets are subqueries or expressions. It is not recommended to pass `SQL` literals around, or you may end up forgetting their content, and eventually generate invalid SQL. When possible, prefer building an explicit [SQLExpression], [SQLOrdering], [SQLSelection], [SQLRequest], or [SQLSubquery], depending on what you want to express:
 
 ```swift
 // SQLExpression
@@ -325,11 +325,11 @@ SQL("name DESC)").sqlOrdering
 SQL("score + bonus AS total)").sqlSelection
 SQL("*").sqlSelection
 
+// SQLSubquery
+SQL("SELECT * FROM player").sqlSubquery
+
 // SQLRequest
 SQLRequest<Player>(literal: "SELECT * FROM player")
-
-// SQLSubquery
-SQLRequest(literal: "SELECT * FROM player").sqlSubquery
 ```
 
 ### SQLExpression
