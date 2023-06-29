@@ -861,7 +861,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         if options.isEmpty || trace == nil {
             #if os(Linux)
-            sqlite3_trace(sqliteConnection, nil)
+            sqlite3_trace(sqliteConnection, nil, nil)
             #else
             sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
             #endif
