@@ -17,6 +17,9 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
+      # Workaround for Xcode 14.3+
+      # https://github.com/CocoaPods/CocoaPods/issues/11839
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
       config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '3'
     end
   end
