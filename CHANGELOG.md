@@ -113,6 +113,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1402](https://github.com/groue/GRDB.swift/pull/1402) Upgrade custom SQLite builds to 3.42.0
+
 ## 6.15.1
 
 Released June 17, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.15.0...v6.15.1)
