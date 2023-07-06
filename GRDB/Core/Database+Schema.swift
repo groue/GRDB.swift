@@ -354,13 +354,13 @@ extension Database {
             // FIXME: We ignore the exception, and consider all INTEGER primary
             // keys as aliases for the rowid:
             if pkColumn.type.uppercased() == "INTEGER" {
-                primaryKey = .rowID(pkColumn.name)
+                primaryKey = .rowID(pkColumn)
             } else {
-                primaryKey = try .regular([pkColumn.name], tableHasRowID: tableHasRowID(table))
+                primaryKey = try .regular([pkColumn], tableHasRowID: tableHasRowID(table))
             }
         default:
             // Multi-columns primary key
-            primaryKey = try .regular(pkColumns.map(\.name), tableHasRowID: tableHasRowID(table))
+            primaryKey = try .regular(pkColumns, tableHasRowID: tableHasRowID(table))
         }
         
         schemaCache[table.schemaID].set(primaryKey: .value(primaryKey), forTable: table.name)
@@ -1150,22 +1150,22 @@ public struct PrimaryKeyInfo {
         
         /// An INTEGER PRIMARY KEY column that aliases the Row ID.
         /// Associated string is the column name.
-        case rowID(String)
+        case rowID(ColumnInfo)
         
         /// Any primary key, but INTEGER PRIMARY KEY.
         /// Associated strings are column names.
-        case regular(columns: [String], tableHasRowID: Bool)
+        case regular(columnInfos: [ColumnInfo], tableHasRowID: Bool)
     }
     
     private let impl: Impl
     
-    static func rowID(_ column: String) -> PrimaryKeyInfo {
-        PrimaryKeyInfo(impl: .rowID(column))
+    static func rowID(_ columnInfo: ColumnInfo) -> PrimaryKeyInfo {
+        PrimaryKeyInfo(impl: .rowID(columnInfo))
     }
     
-    static func regular(_ columns: [String], tableHasRowID: Bool) -> PrimaryKeyInfo {
-        assert(!columns.isEmpty)
-        return PrimaryKeyInfo(impl: .regular(columns: columns, tableHasRowID: tableHasRowID))
+    static func regular(_ columnInfos: [ColumnInfo], tableHasRowID: Bool) -> PrimaryKeyInfo {
+        assert(!columnInfos.isEmpty)
+        return PrimaryKeyInfo(impl: .regular(columnInfos: columnInfos, tableHasRowID: tableHasRowID))
     }
     
     static let hiddenRowID = PrimaryKeyInfo(impl: .hiddenRowID)
@@ -1175,21 +1175,34 @@ public struct PrimaryKeyInfo {
         switch impl {
         case .hiddenRowID:
             return [Column.rowID.name]
-        case let .rowID(column):
-            return [column]
-        case let .regular(columns: columns, tableHasRowID: _):
-            return columns
+        case let .rowID(columnInfo):
+            return [columnInfo.name]
+        case let .regular(columnInfos: columnInfos, tableHasRowID: _):
+            return columnInfos.map(\.name)
         }
     }
     
+    /// The columns in the primary key. Nil if the primary key is the
+    /// hidden rowID. Never empty otherwise.
+    var columnInfos: [ColumnInfo]? {
+        switch impl {
+        case .hiddenRowID:
+            return nil
+        case let .rowID(columnInfo):
+            return [columnInfo]
+        case let .regular(columnInfos: columnInfos, tableHasRowID: _):
+            return columnInfos
+        }
+    }
+
     /// When not nil, the name of the column that contains the
     /// `INTEGER PRIMARY KEY`.
     public var rowIDColumn: String? {
         switch impl {
         case .hiddenRowID:
             return nil
-        case .rowID(let column):
-            return column
+        case .rowID(let columnInfo):
+            return columnInfo.name
         case .regular:
             return nil
         }
@@ -1216,7 +1229,7 @@ public struct PrimaryKeyInfo {
             return true
         case .rowID:
             return true
-        case let .regular(columns: _, tableHasRowID: tableHasRowID):
+        case let .regular(columnInfos: _, tableHasRowID: tableHasRowID):
             return tableHasRowID
         }
     }
