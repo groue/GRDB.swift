@@ -1782,6 +1782,7 @@ extension Database {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
+        // TODO: GRDB7 make it an failable initializer that returns nil when rawValue is empty (or blank).
         /// Creates an SQL column type.
         public init(rawValue: String) {
             self.rawValue = rawValue

@@ -858,7 +858,21 @@ public struct ColumnInfo: FetchableRecord {
     ///
     /// The casing of this string depends on the SQLite version: make sure you
     /// process this string in a case-insensitive way.
+    ///
+    /// The type is the empty string when the column has no declared type.
     public let type: String
+    
+    /// The column data type (nil when the column has no declared type).
+    ///
+    /// The casing of the raw value depends on the SQLite version: make sure
+    /// you process the result in a case-insensitive way.
+    var columnType: Database.ColumnType? {
+        if type.isEmpty {
+            return nil
+        } else {
+            return Database.ColumnType(rawValue: type)
+        }
+    }
     
     /// A boolean value indicating if the column is constrained to be not null.
     public let isNotNull: Bool
