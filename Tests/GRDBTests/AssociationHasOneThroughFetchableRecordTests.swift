@@ -86,12 +86,12 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("cId").references("c")
+                t.belongsTo("c")
                 t.column("name", .text)
             }
             try db.create(table: "a") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
                 t.column("name", .text)
             }
             

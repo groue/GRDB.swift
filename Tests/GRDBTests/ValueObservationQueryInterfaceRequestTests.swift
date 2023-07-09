@@ -26,7 +26,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         }
         try db.create(table: "child") { t in
             t.autoIncrementedPrimaryKey("id")
-            t.column("parentId", .integer).references("parent", onDelete: .cascade)
+            t.belongsTo("parent", onDelete: .cascade)
             t.column("name", .text)
         }
     }

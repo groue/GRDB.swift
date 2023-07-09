@@ -631,11 +631,11 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
             }
             try db.create(table: "award") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("playerId", .integer).references("player")
+                t.belongsTo("player")
             }
             struct Team: TableRecord { }
             struct Player: TableRecord {

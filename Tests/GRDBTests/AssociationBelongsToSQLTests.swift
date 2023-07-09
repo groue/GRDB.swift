@@ -330,7 +330,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
-                t.column("parentId", .integer).references("parents")
+                t.belongsTo("parent")
             }
         }
         
@@ -546,8 +546,8 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
-                t.column("parent1Id", .integer).references("parents")
-                t.column("parent2Id", .integer).references("parents")
+                t.belongsTo("parent1", inTable: "parents")
+                t.belongsTo("parent2", inTable: "parents")
             }
         }
         
@@ -1742,7 +1742,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("aId", .integer).references("a")
+                t.belongsTo("a")
             }
             struct A: TableRecord { }
             struct B: TableRecord { }
@@ -1771,7 +1771,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 t.column("name", .text)
             }
             try db.create(table: "children") { t in
-                t.column("parentId", .integer).references("parents")
+                t.belongsTo("parent")
             }
         }
         

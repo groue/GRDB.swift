@@ -50,7 +50,7 @@ private var libraryMigrator: DatabaseMigrator = {
         }
         try db.create(table: "book") { t in
             t.autoIncrementedPrimaryKey("id")
-            t.column("authorId", .integer).notNull().references("author")
+            t.belongsTo("author").notNull()
             t.column("title", .text).notNull()
         }
         try db.create(virtualTable: "bookFts4", using: FTS4()) { t in

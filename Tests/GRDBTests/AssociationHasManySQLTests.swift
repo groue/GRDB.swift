@@ -217,7 +217,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
-                t.column("parentId", .integer).references("parents")
+                t.belongsTo("parent")
             }
         }
         
@@ -346,8 +346,8 @@ class AssociationHasManySQLTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
-                t.column("parent1Id", .integer).references("parents")
-                t.column("parent2Id", .integer).references("parents")
+                t.belongsTo("parent1", inTable: "parents")
+                t.belongsTo("parent2", inTable: "parents")
             }
         }
         
@@ -1074,10 +1074,10 @@ class AssociationHasManySQLTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent")
+                t.belongsTo("parent")
             }
             try db.create(table: "toy") { t in
-                t.column("childId", .integer).references("child")
+                t.belongsTo("child")
             }
         }
         
