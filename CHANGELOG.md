@@ -115,8 +115,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-- **New**: [#1402](https://github.com/groue/GRDB.swift/pull/1402) Upgrade custom SQLite builds to 3.42.0
-- **New**: [#1403](https://github.com/groue/GRDB.swift/pull/1403) GitHub CI: test Xcode 14.3.1, macOS 13
+- **New**: [#1401](https://github.com/groue/GRDB.swift/pull/1401) by [@kustra](https://github.com/kustra): Linux compilation fixes
+- **New**: [#1402](https://github.com/groue/GRDB.swift/pull/1402) by [@groue](https://github.com/groue): Upgrade custom SQLite builds to 3.42.0
+- **New**: [#1403](https://github.com/groue/GRDB.swift/pull/1403) by [@groue](https://github.com/groue): GitHub CI: test Xcode 14.3.1, macOS 13
 
 ## 6.15.1
 
