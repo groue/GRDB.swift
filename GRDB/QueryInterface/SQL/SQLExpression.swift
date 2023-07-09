@@ -848,7 +848,7 @@ extension SQLExpression {
     ///
     ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
     func quotedSQL(_ db: Database) throws -> String {
-        let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+        let context = SQLGenerationContext(db, argumentsSink: .literalValues)
         return try sql(context)
     }
     

@@ -38,6 +38,15 @@ extension SQLInterpolation {
         appendInterpolation(type(of: record))
     }
     
+    /// Appends a quoted identifier.
+    ///
+    ///     // INSERT INTO "group" ...
+    ///     let tableName = "group"
+    ///     let request: SQLRequest<Player> = "INSERT INTO \(identifier: tableName) ..."
+    public mutating func appendInterpolation(identifier: String) {
+        appendLiteral(identifier.quotedDatabaseIdentifier)
+    }
+    
     /// Appends the table name of the record.
     ///
     ///     // INSERT INTO player ...

@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.16.x` Releases - [6.16.0](#6160)
 - `6.15.x` Releases - [6.15.0](#6150) - [6.15.1](#6151)
 - `6.14.x` Releases - [6.14.0](#6140)
 - `6.13.x` Releases - [6.13.0](#6130)
@@ -112,6 +113,26 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.16.0
+
+Released July 9, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.15.1...v6.16.0)
+
+- **New**: [#1397](https://github.com/groue/GRDB.swift/pull/1397) by [@groue](https://github.com/groue): Swift API for creating database views
+- **New**: [#1401](https://github.com/groue/GRDB.swift/pull/1401) by [@kustra](https://github.com/kustra): Linux compilation fixes
+- **New**: [#1402](https://github.com/groue/GRDB.swift/pull/1402) by [@groue](https://github.com/groue): Upgrade custom SQLite builds to 3.42.0
+- **New**: [#1403](https://github.com/groue/GRDB.swift/pull/1403) by [@groue](https://github.com/groue): GitHub CI: test Xcode 14.3.1, macOS 13
+- **New**: :star: [#1405](https://github.com/groue/GRDB.swift/pull/1405) Simplify the declaration of BelongsTo associations in the database schema
+- **Documentation Update**: The documentation was updated for the new recommended way to declare associations in the database schema, with the `belongsTo()` method introduced by [#1405](https://github.com/groue/GRDB.swift/pull/1405):
+    - [`belongsTo(_:inTable:onDelete:onUpdate:deferred:indexed:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tabledefinition/belongsto(_:intable:ondelete:onupdate:deferred:indexed:))
+    - [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema)
+    - [Migrations](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations)
+    - [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
+    - [Associations](Documentation/AssociationsBasics.md)
+    - [`BelongsToAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/belongstoassociation)
+    - [`HasManyAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/hasmanyassociation)
+    - [`HasOneAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/hasoneassociation)
+
 
 ## 6.15.1
 

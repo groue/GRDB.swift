@@ -26,11 +26,11 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "a") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             
             try testHasManyWithTwoSteps(
@@ -66,11 +66,11 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("aId").references("a")
+                t.belongsTo("a")
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             
             try testHasManyWithTwoSteps(
@@ -109,8 +109,8 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("cId").references("c")
-                t.column("aId").references("a")
+                t.belongsTo("c")
+                t.belongsTo("a")
             }
             
             try testHasManyWithTwoSteps(
@@ -146,11 +146,11 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("aId").references("a")
+                t.belongsTo("a")
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             
             try testHasManyWithTwoSteps(
@@ -334,13 +334,13 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent")
+                t.belongsTo("parent")
             }
             try db.create(table: "toy") { t in
-                t.column("childId", .integer).references("child")
+                t.belongsTo("child")
             }
             try db.create(table: "pet") { t in
-                t.column("childId", .integer).references("child")
+                t.belongsTo("child")
             }
         }
         
@@ -462,15 +462,15 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("aId").references("a")
+                t.belongsTo("a")
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             try db.create(table: "d") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("cId").references("c")
+                t.belongsTo("c")
             }
             
             try testHasManyWithThreeSteps(
@@ -521,15 +521,15 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             try db.create(table: "d") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("cId").references("c")
+                t.belongsTo("c")
             }
             try db.create(table: "a") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
+                t.belongsTo("b")
             }
             
             try testHasManyWithThreeSteps(
@@ -581,12 +581,12 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             }
             try db.create(table: "b") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("aId").references("a")
+                t.belongsTo("a")
             }
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("bId").references("b")
-                t.column("dId").references("d")
+                t.belongsTo("b")
+                t.belongsTo("d")
             }
             
             try testHasManyWithThreeSteps(

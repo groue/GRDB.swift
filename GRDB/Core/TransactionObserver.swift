@@ -778,7 +778,8 @@ public protocol TransactionObserver: AnyObject {
     /// - note: The event is only valid for the duration of this method call.
     ///   If you need to keep it longer, store a copy: `event.copy()`.
     ///
-    /// - precondition: This method must not access the database.
+    /// - precondition: This method must not access the observed writer
+    ///   database connection.
     func databaseDidChange(with event: DatabaseEvent)
     
     /// Called when a transaction is about to be committed.
@@ -786,7 +787,8 @@ public protocol TransactionObserver: AnyObject {
     /// The transaction observer has an opportunity to rollback pending changes
     /// by throwing an error from this method.
     ///
-    /// - precondition: This method must not access the database.
+    /// - precondition: This method must not access the observed writer
+    ///   database connection.
     /// - throws: The eventual error that rollbacks pending changes.
     func databaseWillCommit() throws
     

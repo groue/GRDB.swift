@@ -300,7 +300,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             }
             try db.create(table: "book") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("authorId", .integer).references("author")
+                t.belongsTo("author")
             }
             try db.execute(sql: """
                 INSERT INTO author(id, name) VALUES (1, 'Arthur');

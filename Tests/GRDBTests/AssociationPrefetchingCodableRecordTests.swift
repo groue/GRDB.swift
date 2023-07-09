@@ -1350,9 +1350,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
         try dbQueue.write { db in
             try db.create(table: "employee") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("managerId", .integer)
-                    .indexed()
-                    .references("employee", onDelete: .restrict)
+                t.belongsTo("manager", inTable: "employee", onDelete: .restrict)
                 t.column("name", .text)
             }
             try db.execute(sql: """

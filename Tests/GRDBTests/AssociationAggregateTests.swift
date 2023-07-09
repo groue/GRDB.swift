@@ -51,13 +51,13 @@ class AssociationAggregateTests: GRDBTestCase {
             }
             try db.create(table: "player") { t in
                 t.primaryKey("id", .integer)
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
                 t.column("name", .text)
                 t.column("score", .integer)
             }
             try db.create(table: "award") { t in
                 t.primaryKey("customPrimaryKey", .integer)
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
                 t.column("name", .text)
             }
 

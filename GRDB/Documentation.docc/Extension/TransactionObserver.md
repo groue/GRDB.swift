@@ -97,7 +97,7 @@ do {
 
 - Note: All callbacks are called in the writer dispatch queue, and serialized with all database updates.
 
-- Note: The `databaseDidChange` and `databaseWillCommit` callbacks must not touch the SQLite database. This limitation does not apply to `databaseDidCommit` and `databaseDidRollback` which can use their database argument.
+- Note: The `databaseDidChange` and `databaseWillCommit` callbacks must not access the observed writer database connection in any way. This limitation does not apply to `databaseDidCommit` and `databaseDidRollback` which can use their database argument.
 
 ## Filtering Database Events
 

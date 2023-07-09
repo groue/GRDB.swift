@@ -13,6 +13,7 @@ on:
       - '.github/workflows/**'
       - 'Makefile'
       - 'Package.swift'
+      - 'SQLiteCustom/src'
   pull_request:
     paths:
       - 'GRDB/**'
@@ -20,6 +21,7 @@ on:
       - '.github/workflows/**'
       - 'Makefile'
       - 'Package.swift'
+      - 'SQLiteCustom/src'
 
 concurrency: 
   group: ${{ github.ref_name }}
@@ -38,24 +40,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            destination: "platform=macOS"
+            name: "macOS"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            destination: "OS=16.4,name=iPhone 14 Pro"
+            name: "iOS"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            destination: "OS=16.4,name=Apple TV"
+            name: "tvOS"
           - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             destination: "platform=macOS"
             name: "macOS"
           - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             destination: "OS=16.2,name=iPhone 14"
             name: "iOS"
-          - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
-            destination: "OS=16.1,name=Apple TV"
-            name: "tvOS"
           - xcode: "Xcode_14.1.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             destination: "platform=macOS"
             name: "macOS"
           - xcode: "Xcode_14.1.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             destination: "OS=16.1,name=iPhone 14"
             name: "iOS"
           - xcode: "Xcode_14.0.1.app"
@@ -80,11 +90,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            name: "Xcode 14.3.1"
           - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             name: "Xcode 14.2"
           - xcode: "Xcode_14.1.app"
-            runsOn: macOS-12
+            runsOn: macOS-13
             name: "Xcode 14.1"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
@@ -103,9 +116,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.2.app"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            name: "Xcode 14.3.1"
+          - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
-            name: "Xcode 14.2"
+            name: "Xcode 14.0.1"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
@@ -120,9 +136,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
-            name: "Xcode 14.2"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            name: "Xcode 14.3.1"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
             name: "Xcode 14.0.1"
@@ -140,9 +156,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
-            name: "Xcode 14.2"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            name: "Xcode 14.3.1"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
             name: "Xcode 14.0.1"
@@ -160,14 +176,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_14.2.app"
-            runsOn: macOS-12
-            name: "Xcode 14.2"
+          - xcode: "Xcode_14.3.1.app"
+            runsOn: macOS-13
+            name: "Xcode 14.3.1"
           - xcode: "Xcode_14.0.1.app"
             runsOn: macOS-12
             name: "Xcode 14.0.1"
     steps:
       - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
-        run: make test_archive_GRDBOSX_xcframework
+        run: make test_universal_xcframework
     

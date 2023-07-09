@@ -660,7 +660,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         try dbQueue.write { db in
             try db.create(table: "parent") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent")
+                t.belongsTo("parent")
             }
             try db.create(table: "child") { t in
                 t.column("childParentId", .integer).references("parent")

@@ -29,10 +29,9 @@
 /// }
 /// try db.create(table: "demographics") { t in
 ///     t.autoIncrementedPrimaryKey("id")
-///     t.column("countryCode", .text)                 // (2)
+///     t.belongsTo("country", onDelete: .cascade)     // (2)
 ///         .notNull()                                 // (3)
 ///         .unique()                                  // (4)
-///         .references("country", onDelete: .cascade) // (5)
 ///     t.column("population", .integer)
 ///     t.column("density", .double)
 /// }
@@ -40,16 +39,17 @@
 ///
 /// 1. The country table has a primary key.
 /// 2. The `demographics.countryCode` column is used to link a demographic
-///    profile to the country it belongs to.
+///    profile to the country it belongs to. This column is indexed in order
+///    to ease the selection of the demographics of a country. A foreign key
+///    is defined from `demographics.countryCode` column to `country.code`,
+///    so that SQLite guarantees that no profile refers to a missing
+///    country. The `onDelete: .cascade` option has SQLite automatically
+///    delete a profile when its country is deleted. See
+///    <https://sqlite.org/foreignkeys.html#fk_actions> for more information.
 /// 3. Make the `demographics.countryCode` column not null if you want SQLite to
 ///    guarantee that all profiles are linked to a country.
 /// 4. Create a unique index on the `demographics.countryCode` column in order
 ///    to guarantee the unicity of any country's demographics.
-/// 5. Create a foreign key from `demographics.countryCode` column to
-///    `country.code`, so that SQLite guarantees that no profile refers to a
-///    missing country. The `onDelete: .cascade` option has SQLite automatically
-///    delete a profile when its country is deleted.
-///    See <https://sqlite.org/foreignkeys.html#fk_actions> for more information.
 ///
 /// The example above uses a string primary for the country table. But generally
 /// speaking, all primary keys are supported.

@@ -28,26 +28,22 @@
 /// }
 /// try db.create(table: "book") { t in
 ///     t.autoIncrementedPrimaryKey("id")
-///     t.column("authorId", .integer)                // (2)
+///     t.belongsTo("author", onDelete: .cascade)     // (2)
 ///         .notNull()                                // (3)
-///         .indexed()                                // (4)
-///         .references("author", onDelete: .cascade) // (5)
 ///     t.column("title", .text)
 /// }
 /// ```
 ///
 /// 1. The author table has a primary key.
-/// 2. The `book.authorId` column is used to link a book to the author it
-///    belongs to.
+///    belongs to. This column is indexed in order to ease the selection of
+///    an author's books. A foreign key is defined from `book.authorId`
+///    column to `authors.id`, so that SQLite guarantees that no book refers
+///    to a missing author. The `onDelete: .cascade` option has SQLite
+///    automatically delete all of an author's books when that author is
+///    deleted. See <https://sqlite.org/foreignkeys.html#fk_actions> for
+///    more information.
 /// 3. Make the `book.authorId` column not null if you want SQLite to guarantee
 ///    that all books have an author.
-/// 4. Create an index on the `book.authorId` column in order to ease the
-///    selection of an author's books.
-/// 5. Create a foreign key from `book.authorId` column to `author.id`, so that
-///    SQLite guarantees that no book refers to a missing author. The
-///    `onDelete: .cascade` option has SQLite automatically delete all of an
-///    author's books when that author is deleted.
-///    See <https://sqlite.org/foreignkeys.html#fk_actions> for more information.
 ///
 /// The example above uses auto-incremented primary keys. But generally
 /// speaking, all primary keys are supported.

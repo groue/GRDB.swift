@@ -27,7 +27,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "players") { t in
                 t.primaryKey("id", .integer)
-                t.column("teamId", .integer).references("teams")
+                t.belongsTo("team")
                 t.column("name", .text)
             }
             
