@@ -678,11 +678,22 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test4") { t in
                 t.column("parent", .integer).references("test4")
             }
-            assertEqualSQL(
-                lastSQLQuery!,
-                ("CREATE TABLE \"test4\" (" +
-                    "\"parent\" INTEGER REFERENCES \"test4\"(\"rowid\")" +
-                    ")") as String)
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test4" (\
+                "parent" INTEGER REFERENCES "test4"("rowid")\
+                )
+                """)
+            
+            try db.create(table: "test5") { t in
+                t.column("parent", .integer)
+                t.foreignKey(["parent"], references: "test5")
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test5" (\
+                "parent" INTEGER, \
+                FOREIGN KEY ("parent") REFERENCES "test5"("rowid")\
+                )
+                """)
         }
     }
     
@@ -729,6 +740,40 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN f TEXT")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN g TEXT DEFAULT 'O''Brien'")
+        }
+    }
+    
+    func testAlterTableAddAutoReferencingForeignKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                try db.create(table: "hiddenRowIdTable") { t in
+                    t.column("a", .text)
+                }
+                
+                sqlQueries.removeAll()
+                try db.alter(table: "hiddenRowIdTable") { t in
+                    t.add(column: "ref").references("hiddenRowIdTable")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    ALTER TABLE "hiddenRowIdTable" ADD COLUMN "ref" REFERENCES "hiddenRowIdTable"("rowid")
+                    """)
+            }
+            
+            do {
+                try db.create(table: "explicitPrimaryKey") { t in
+                    t.primaryKey("code", .text)
+                    t.column("a", .text)
+                }
+                
+                sqlQueries.removeAll()
+                try db.alter(table: "explicitPrimaryKey") { t in
+                    t.add(column: "ref").references("explicitPrimaryKey")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    ALTER TABLE "explicitPrimaryKey" ADD COLUMN "ref" REFERENCES "explicitPrimaryKey"("code")
+                    """)
+            }
         }
     }
     
