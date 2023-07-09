@@ -205,7 +205,7 @@ class DatabaseErrorTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
-            try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
+            try db.create(table: "children") { $0.belongsTo("parent") }
             do {
                 try db.execute(sql: "INSERT INTO children (parentId) VALUES (1)")
             } catch let error as DatabaseError {
@@ -219,7 +219,7 @@ class DatabaseErrorTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
-            try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
+            try db.create(table: "children") { $0.belongsTo("parent") }
             do {
                 try db.execute(sql: "INSERT INTO children (parentId) VALUES (1)")
             } catch let error as NSError {

@@ -382,7 +382,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
             }
             
             do {
@@ -457,7 +457,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
             }
             
             do {

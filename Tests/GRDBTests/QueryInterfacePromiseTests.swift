@@ -14,7 +14,7 @@ class QueryInterfacePromiseTests: GRDBTestCase {
         try dbWriter.write { db in
             try db.create(table: "node") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("node")
+                t.belongsTo("parent", inTable: "node")
             }
         }
     }

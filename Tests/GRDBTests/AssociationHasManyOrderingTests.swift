@@ -36,7 +36,7 @@ class AssociationHasManyOrderingTests: GRDBTestCase {
             }
             try db.create(table: "player") { t in
                 t.primaryKey("id", .integer)
-                t.column("teamId", .integer).notNull().references("team")
+                t.belongsTo("team").notNull()
                 t.column("name", .text).notNull()
                 t.column("position", .integer).notNull()
             }

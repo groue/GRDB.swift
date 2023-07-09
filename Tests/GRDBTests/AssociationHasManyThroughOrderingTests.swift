@@ -40,8 +40,8 @@ class AssociationHasManyThroughOrderingTests: GRDBTestCase {
                 t.column("name", .text).notNull()
             }
             try db.create(table: "playerRole") { t in
-                t.column("teamId", .integer).notNull().references("team")
-                t.column("playerId", .integer).notNull().references("player")
+                t.belongsTo("team").notNull()
+                t.belongsTo("player").notNull()
                 t.column("position", .integer).notNull()
                 t.primaryKey(["teamId", "playerId"])
             }
