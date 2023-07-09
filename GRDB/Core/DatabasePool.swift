@@ -13,6 +13,9 @@ public final class DatabasePool {
     
     @LockedBox var databaseSnapshotCount = 0
     
+    /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
+    private var suspensionObservers: [NSObjectProtocol] = []
+    
     // MARK: - Database Information
     
     public var configuration: Configuration {
@@ -121,6 +124,9 @@ public final class DatabasePool {
     }
     
     deinit {
+        // Remove block-based Notification observers.
+        suspensionObservers.forEach(NotificationCenter.default.removeObserver(_:))
+        
         // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
@@ -169,7 +175,7 @@ public final class DatabasePool {
     }
 }
 
-// @unchecked because of databaseSnapshotCount and readerPool
+// @unchecked because of databaseSnapshotCount, readerPool and suspensionObservers
 extension DatabasePool: @unchecked Sendable { }
 
 extension DatabasePool {
@@ -345,27 +351,19 @@ extension DatabasePool: DatabaseReader {
     private func setupSuspension() {
         if configuration.observesSuspensionNotifications {
             let center = NotificationCenter.default
-            center.addObserver(
-                self,
-                selector: #selector(DatabasePool.suspend(_:)),
-                name: Database.suspendNotification,
-                object: nil)
-            center.addObserver(
-                self,
-                selector: #selector(DatabasePool.resume(_:)),
-                name: Database.resumeNotification,
-                object: nil)
+            suspensionObservers.append(center.addObserver(
+                forName: Database.suspendNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.suspend() }
+            ))
+            suspensionObservers.append(center.addObserver(
+                forName: Database.resumeNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.resume() }
+            ))
         }
-    }
-    
-    @objc
-    private func suspend(_ notification: Notification) {
-        suspend()
-    }
-    
-    @objc
-    private func resume(_ notification: Notification) {
-        resume()
     }
     
     // MARK: - Reading from Database
