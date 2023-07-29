@@ -87,7 +87,7 @@ extension FTS5WrapperTokenizer {
     public func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
-        pText: UnsafePointer<Int8>?,
+        pText: UnsafePointer<CChar>?,
         nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
     -> CInt
@@ -138,7 +138,7 @@ extension FTS5WrapperTokenizer {
                                     return
                                 }
                                 let pToken = UnsafeMutableRawPointer(mutating: addr)
-                                    .assumingMemoryBound(to: Int8.self)
+                                    .assumingMemoryBound(to: CChar.self)
                                 let nToken = CInt(buffer.count)
                                 
                                 // Inject token bytes into SQLite

@@ -877,7 +877,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         _ mask: CInt,
         _ p: UnsafeMutableRawPointer?,
         _ x: UnsafeMutableRawPointer?,
-        _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
+        _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<CChar>?)
     {
         guard let trace else { return }
         
@@ -1896,7 +1896,7 @@ extension Database {
         public struct Statement: CustomStringConvertible {
             var sqliteStatement: SQLiteStatement
             var unexpandedSQL: UnsafePointer<CChar>?
-            var sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?
+            var sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<CChar>?
             var publicStatementArguments: Bool // See Configuration.publicStatementArguments
             
             /// The executed SQL, where bound parameters are not expanded.

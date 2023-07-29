@@ -57,10 +57,10 @@ final class StatementAuthorizer {
     
     private func authorize(
         _ actionCode: CInt,
-        _ cString1: UnsafePointer<Int8>?,
-        _ cString2: UnsafePointer<Int8>?,
-        _ cString3: UnsafePointer<Int8>?,
-        _ cString4: UnsafePointer<Int8>?)
+        _ cString1: UnsafePointer<CChar>?,
+        _ cString2: UnsafePointer<CChar>?,
+        _ cString3: UnsafePointer<CChar>?,
+        _ cString4: UnsafePointer<CChar>?)
     -> CInt
     {
         // Uncomment when debugging

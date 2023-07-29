@@ -119,8 +119,8 @@ public final class Statement {
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        statementStart: UnsafePointer<CChar>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<CChar>?>,
         prepFlags: CUnsignedInt) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)

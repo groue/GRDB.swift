@@ -7,7 +7,7 @@ import Foundation
 public typealias FTS5TokenCallback = @convention(c) (
     _ context: UnsafeMutableRawPointer?,
     _ flags: CInt,
-    _ pToken: UnsafePointer<Int8>?,
+    _ pToken: UnsafePointer<CChar>?,
     _ nToken: CInt,
     _ iStart: CInt,
     _ iEnd: CInt)
@@ -77,7 +77,7 @@ public protocol FTS5Tokenizer: AnyObject {
     func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
-        pText: UnsafePointer<Int8>?,
+        pText: UnsafePointer<CChar>?,
         nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
     -> CInt
@@ -143,7 +143,7 @@ extension FTS5Tokenizer {
             guard let addr = buffer.baseAddress else {
                 return []
             }
-            let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
+            let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: CChar.self)
             let nText = CInt(buffer.count)
             
             var context = TokenizeContext()
@@ -206,8 +206,8 @@ extension Database {
             } else {
                 func withArrayOfCStrings<Result>(
                     _ input: [String],
-                    _ output: inout ContiguousArray<UnsafePointer<Int8>>,
-                    _ accessor: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
+                    _ output: inout ContiguousArray<UnsafePointer<CChar>>,
+                    _ accessor: (ContiguousArray<UnsafePointer<CChar>>) -> Result)
                 -> Result
                 {
                     if output.count == input.count {
@@ -219,7 +219,7 @@ extension Database {
                         }
                     }
                 }
-                var cStrings = ContiguousArray<UnsafePointer<Int8>>()
+                var cStrings = ContiguousArray<UnsafePointer<CChar>>()
                 cStrings.reserveCapacity(arguments.count)
                 code = withArrayOfCStrings(arguments, &cStrings) { (cStrings) in
                     cStrings.withUnsafeBufferPointer { azArg in
@@ -252,7 +252,7 @@ extension Database {
         func tokenize(
             context: UnsafeMutableRawPointer?,
             tokenization: FTS5Tokenization,
-            pText: UnsafePointer<Int8>?,
+            pText: UnsafePointer<CChar>?,
             nText: CInt,
             tokenCallback: @escaping FTS5TokenCallback)
         -> CInt

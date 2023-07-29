@@ -1095,7 +1095,7 @@ public struct DatabaseEvent {
         self.impl = impl
     }
     
-    init(kind: Kind, rowID: Int64, databaseNameCString: UnsafePointer<Int8>?, tableNameCString: UnsafePointer<Int8>?) {
+    init(kind: Kind, rowID: Int64, databaseNameCString: UnsafePointer<CChar>?, tableNameCString: UnsafePointer<CChar>?) {
         self.init(
             kind: kind,
             rowID: rowID,
@@ -1131,8 +1131,8 @@ private protocol DatabaseEventImpl {
 /// Optimization: MetalDatabaseEventImpl does not create Swift strings from raw
 /// SQLite char* until actually asked for databaseName or tableName.
 private struct MetalDatabaseEventImpl: DatabaseEventImpl {
-    let databaseNameCString: UnsafePointer<Int8>?
-    let tableNameCString: UnsafePointer<Int8>?
+    let databaseNameCString: UnsafePointer<CChar>?
+    let tableNameCString: UnsafePointer<CChar>?
     
     var databaseName: String { String(cString: databaseNameCString!) }
     var tableName: String { String(cString: tableNameCString!) }
@@ -1267,8 +1267,8 @@ public struct DatabasePreUpdateEvent {
         kind: Kind,
         initialRowID: Int64,
         finalRowID: Int64,
-        databaseNameCString: UnsafePointer<Int8>?,
-        tableNameCString: UnsafePointer<Int8>?)
+        databaseNameCString: UnsafePointer<CChar>?,
+        tableNameCString: UnsafePointer<CChar>?)
     {
         self.init(
             kind: kind,
@@ -1324,8 +1324,8 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     let connection: SQLiteConnection
     let kind: DatabasePreUpdateEvent.Kind
     
-    let databaseNameCString: UnsafePointer<Int8>?
-    let tableNameCString: UnsafePointer<Int8>?
+    let databaseNameCString: UnsafePointer<CChar>?
+    let tableNameCString: UnsafePointer<CChar>?
     
     var databaseName: String { String(cString: databaseNameCString!) }
     var tableName: String { String(cString: tableNameCString!) }
