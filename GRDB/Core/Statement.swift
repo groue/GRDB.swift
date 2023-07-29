@@ -42,7 +42,7 @@ public final class Statement {
     public var sql: String {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        // trim white space and semicolumn for homogeneous output
+        // trim white space and semicolon for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
     }
     
