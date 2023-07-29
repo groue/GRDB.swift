@@ -1343,10 +1343,6 @@ struct TableInfo: FetchableRecord {
 /// A value in the `type` column of `sqlite_master`.
 struct SchemaObjectType: Hashable, RawRepresentable, DatabaseValueConvertible {
     var rawValue: String
-    init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-    
     static let index = SchemaObjectType(rawValue: "index")
     static let table = SchemaObjectType(rawValue: "table")
     static let trigger = SchemaObjectType(rawValue: "trigger")
