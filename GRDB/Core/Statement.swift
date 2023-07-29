@@ -48,8 +48,9 @@ public final class Statement {
     
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
+        // swiftlint:disable:next redundant_self_in_closure
         let sqliteStatement = self.sqliteStatement
-        return (0..<CInt(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
+        return (0..<CInt(columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
     // The database region is reported by `sqlite3_set_authorizer`, and maybe
@@ -101,7 +102,7 @@ public final class Statement {
     /// Cache for index(ofColumn:). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
         Dictionary(
-            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+            columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
             uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }()
     
@@ -222,7 +223,7 @@ public final class Statement {
     private var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
-        Int(sqlite3_bind_parameter_count(self.sqliteStatement))
+        Int(sqlite3_bind_parameter_count(sqliteStatement))
     }()
     
     // Returns ["id", nil, "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
