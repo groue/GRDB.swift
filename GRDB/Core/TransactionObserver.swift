@@ -20,8 +20,8 @@ extension Database {
         
         // Drop cached statements that delete, because the addition of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.isDeleteStatement }
-        internalStatementCache.removeAll { $0.isDeleteStatement }
+        publicStatementCache.removeAll { $0.canDeleteRows }
+        internalStatementCache.removeAll { $0.canDeleteRows }
         
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
@@ -33,8 +33,8 @@ extension Database {
         
         // Drop cached statements that delete, because the removal of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.isDeleteStatement }
-        internalStatementCache.removeAll { $0.isDeleteStatement }
+        publicStatementCache.removeAll { $0.canDeleteRows }
+        internalStatementCache.removeAll { $0.canDeleteRows }
         
         observationBroker.remove(transactionObserver: transactionObserver)
     }

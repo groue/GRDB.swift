@@ -91,8 +91,8 @@ public final class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
-    /// A boolean value indicating if the statement deletes some rows.
-    var isDeleteStatement: Bool {
+    /// A boolean value indicating if the statement can delete some rows.
+    var canDeleteRows: Bool {
         authorizerEventKinds.contains(where: \.isDelete)
     }
     
