@@ -436,7 +436,7 @@ extension QueryInterfaceRequest: DerivableRequest {
         }
     }
     
-    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+    public func with<T>(_ cte: CommonTableExpression<T>) -> Self {
         with {
             $0.relation.ctes[cte.tableName] = cte.cte
         }
@@ -1278,6 +1278,90 @@ extension ColumnExpression {
     /// ```
     public static func /= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
         column.set(to: column / value)
+    }
+    
+    /// Creates an assignment that applies a bitwise and.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("mask") &= 2
+    /// Column("mask") &= Column("other")
+    /// ```
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = score & 2
+    ///     try Player.updateAll(db, Column("mask") &= 2)
+    /// }
+    /// ```
+    public static func &= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
+        column.set(to: column & value)
+    }
+    
+    /// Creates an assignment that applies a bitwise or.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("mask") |= 2
+    /// Column("mask") |= Column("other")
+    /// ```
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = score | 2
+    ///     try Player.updateAll(db, Column("mask") |= 2)
+    /// }
+    /// ```
+    public static func |= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
+        column.set(to: column | value)
+    }
+    
+    /// Creates an assignment that applies a bitwise left shift.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("mask") <<= 2
+    /// Column("mask") <<= Column("other")
+    /// ```
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = score << 2
+    ///     try Player.updateAll(db, Column("mask") <<= 2)
+    /// }
+    /// ```
+    public static func <<= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
+        column.set(to: column << value)
+    }
+    
+    /// Creates an assignment that applies a bitwise right shift.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("mask") >>= 2
+    /// Column("mask") >>= Column("other")
+    /// ```
+    ///
+    /// Usage:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = score >> 2
+    ///     try Player.updateAll(db, Column("mask") >>= 2)
+    /// }
+    /// ```
+    public static func >>= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
+        column.set(to: column >> value)
     }
 }
 

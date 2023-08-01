@@ -298,10 +298,10 @@ extension Table {
     ///     let maxScore: Int = row[1]
     /// }
     /// ```
-    public func select<RowDecoder>(
+    public func select<T>(
         _ selection: [any SQLSelectable],
-        as type: RowDecoder.Type = RowDecoder.self)
-    -> QueryInterfaceRequest<RowDecoder>
+        as type: T.Type = T.self)
+    -> QueryInterfaceRequest<T>
     {
         all().select(selection, as: type)
     }
@@ -328,10 +328,10 @@ extension Table {
     ///     let maxScore: Int = row[1]
     /// }
     /// ```
-    public func select<RowDecoder>(
+    public func select<T>(
         _ selection: any SQLSelectable...,
-        as type: RowDecoder.Type = RowDecoder.self)
-    -> QueryInterfaceRequest<RowDecoder>
+        as type: T.Type = T.self)
+    -> QueryInterfaceRequest<T>
     {
         all().select(selection, as: type)
     }
@@ -353,11 +353,11 @@ extension Table {
     /// let request = playerTable.select(sql: "IFNULL(name, ?)", arguments: [defaultName], as: String.self)
     /// let names = try request.fetchAll(db) // [String]
     /// ```
-    public func select<RowDecoder>(
+    public func select<T>(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        as type: RowDecoder.Type = RowDecoder.self)
-    -> QueryInterfaceRequest<RowDecoder>
+        as type: T.Type = T.self)
+    -> QueryInterfaceRequest<T>
     {
         all().select(SQL(sql: sql, arguments: arguments), as: type)
     }
@@ -376,10 +376,10 @@ extension Table {
     /// let request = playerTable.select(literal: "IFNULL(name, \(defaultName))", as: String.self)
     /// let names = try request.fetchAll(db) // [String]
     /// ```
-    public func select<RowDecoder>(
+    public func select<T>(
         literal sqlLiteral: SQL,
-        as type: RowDecoder.Type = RowDecoder.self)
-    -> QueryInterfaceRequest<RowDecoder>
+        as type: T.Type = T.self)
+    -> QueryInterfaceRequest<T>
     {
         all().select(sqlLiteral, as: type)
     }

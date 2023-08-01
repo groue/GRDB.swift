@@ -446,7 +446,7 @@ public struct DatabaseMigrator {
                         //
                         // So let's create a "regular" temporary database:
                         let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                            .appendingPathComponent(ProcessInfo().globallyUniqueString)
+                            .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
                         defer {
                             try? FileManager().removeItem(at: tmpURL)
                         }

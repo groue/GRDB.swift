@@ -860,31 +860,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.trace = trace
         
         if options.isEmpty || trace == nil {
-            #if os(Linux)
-            sqlite3_trace(sqliteConnection, nil)
-            #else
             sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
-            #endif
             return
         }
         
-        // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0
-        // http://www.sqlite.org/changes.html#version_3_14
-        #if os(Linux)
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql.map(String.init(cString:)) else { return }
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            db.trace?(Database.TraceEvent.statement(TraceEvent.Statement(impl: .trace_v1(sql))))
-        }, dbPointer)
-        #else
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_trace_v2(sqliteConnection, CUnsignedInt(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
             let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
             return SQLITE_OK
         }, dbPointer)
-        #endif
     }
     
     // Precondition: configuration.trace != nil
@@ -900,26 +885,22 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         case SQLITE_TRACE_STMT:
             if let sqliteStatement = p, let unexpandedSQL = x {
                 let statement = TraceEvent.Statement(
-                    impl: .trace_v2(
-                        sqliteStatement: OpaquePointer(sqliteStatement),
-                        unexpandedSQL: UnsafePointer(unexpandedSQL.assumingMemoryBound(to: CChar.self)),
-                        sqlite3_expanded_sql: sqlite3_expanded_sql,
-                        publicStatementArguments: configuration.publicStatementArguments))
+                    sqliteStatement: OpaquePointer(sqliteStatement),
+                    unexpandedSQL: UnsafePointer(unexpandedSQL.assumingMemoryBound(to: CChar.self)),
+                    sqlite3_expanded_sql: sqlite3_expanded_sql,
+                    publicStatementArguments: configuration.publicStatementArguments)
                 trace(TraceEvent.statement(statement))
             }
         case SQLITE_TRACE_PROFILE:
             if let sqliteStatement = p, let durationP = x?.assumingMemoryBound(to: Int64.self) {
                 let statement = TraceEvent.Statement(
-                    impl: .trace_v2(
-                        sqliteStatement: OpaquePointer(sqliteStatement),
-                        unexpandedSQL: nil,
-                        sqlite3_expanded_sql: sqlite3_expanded_sql,
-                        publicStatementArguments: configuration.publicStatementArguments))
+                    sqliteStatement: OpaquePointer(sqliteStatement),
+                    unexpandedSQL: nil,
+                    sqlite3_expanded_sql: sqlite3_expanded_sql,
+                    publicStatementArguments: configuration.publicStatementArguments)
                 let duration = TimeInterval(durationP.pointee) / 1.0e9
                 
-                #if !os(Linux)
                 trace(TraceEvent.profile(statement: statement, duration: duration))
-                #endif
             }
         default:
             break
@@ -1801,6 +1782,7 @@ extension Database {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
+        // TODO: GRDB7 make it an failable initializer that returns nil when rawValue is empty (or blank).
         /// Creates an SQL column type.
         public init(rawValue: String) {
             self.rawValue = rawValue
@@ -1897,13 +1879,11 @@ extension Database {
         /// Trace event code: `SQLITE_TRACE_STMT`.
         public static let statement = TracingOptions(rawValue: SQLITE_TRACE_STMT)
         
-        #if !os(Linux)
         /// The option that reports executed statements and the estimated
         /// duration that the statement took to run.
         ///
         /// Trace event code: `SQLITE_TRACE_PROFILE`.
         public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
-        #endif
     }
     
     /// A trace event.
@@ -1914,17 +1894,11 @@ extension Database {
         
         /// Information about an executed statement.
         public struct Statement: CustomStringConvertible {
-            enum Impl {
-                case trace_v1(String)
-                case trace_v2(
-                    sqliteStatement: SQLiteStatement,
-                    unexpandedSQL: UnsafePointer<CChar>?,
-                    sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
-                    publicStatementArguments: Bool) // See Configuration.publicStatementArguments
-            }
-            var impl: Impl
+            var sqliteStatement: SQLiteStatement
+            var unexpandedSQL: UnsafePointer<CChar>?
+            var sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?
+            var publicStatementArguments: Bool // See Configuration.publicStatementArguments
             
-            #if !os(Linux)
             /// The executed SQL, where bound parameters are not expanded.
             ///
             /// For example:
@@ -1932,21 +1906,11 @@ extension Database {
             /// ```sql
             /// SELECT * FROM player WHERE email = ?
             /// ```
-            public var sql: String { _sql }
-            #endif
-            
-            var _sql: String {
-                switch impl {
-                case .trace_v1:
-                    // Likely a GRDB bug: this api is not supposed to be available
-                    fatalError("Unavailable statement SQL")
-                    
-                case let .trace_v2(sqliteStatement, unexpandedSQL, _, _):
-                    if let unexpandedSQL {
-                        return String(cString: unexpandedSQL).trimmedSQLStatement
-                    } else {
-                        return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
-                    }
+            public var sql: String {
+                if let unexpandedSQL {
+                    return String(cString: unexpandedSQL).trimmedSQLStatement
+                } else {
+                    return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
                 }
             }
             
@@ -1962,30 +1926,18 @@ extension Database {
             ///   information from leaking in unexpected locations, so use this
             ///   property with care.
             public var expandedSQL: String {
-                switch impl {
-                case let .trace_v1(expandedSQL):
-                    return expandedSQL
-                    
-                case let .trace_v2(sqliteStatement, _, sqlite3_expanded_sql, _):
-                    guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
-                        return ""
-                    }
-                    defer { sqlite3_free(cString) }
-                    return String(cString: cString).trimmedSQLStatement
+                guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
+                    return ""
                 }
+                defer { sqlite3_free(cString) }
+                return String(cString: cString).trimmedSQLStatement
             }
             
             public var description: String {
-                switch impl {
-                case let .trace_v1(expandedSQL):
+                if publicStatementArguments {
                     return expandedSQL
-                    
-                case let .trace_v2(_, _, _, publicStatementArguments):
-                    if publicStatementArguments {
-                        return expandedSQL
-                    } else {
-                        return _sql
-                    }
+                } else {
+                    return sql
                 }
             }
         }

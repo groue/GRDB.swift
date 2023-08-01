@@ -74,6 +74,7 @@ let package = Package(
             resources: [
                 .copy("GRDBTests/Betty.jpeg"),
                 .copy("GRDBTests/InflectionsTests.json"),
+                .copy("GRDBTests/Issue1383.sqlite"),
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings)

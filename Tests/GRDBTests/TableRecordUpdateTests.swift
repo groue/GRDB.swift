@@ -347,6 +347,110 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    func testAssignmentBitwiseAndAssign() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score &= 1)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" & 1
+                """)
+            
+            try Player.updateAll(db, Columns.score &= Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" & "bonus"
+                """)
+            
+            try Player.updateAll(db, Columns.score &= -Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" & (-"bonus")
+                """)
+            
+            try Player.updateAll(db, Columns.score &= Columns.bonus * 2)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" & ("bonus" * 2)
+                """)
+        }
+    }
+    
+    func testAssignmentBitwiseOrAssign() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score |= 1)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" | 1
+                """)
+            
+            try Player.updateAll(db, Columns.score |= Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" | "bonus"
+                """)
+            
+            try Player.updateAll(db, Columns.score |= -Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" | (-"bonus")
+                """)
+            
+            try Player.updateAll(db, Columns.score |= Columns.bonus * 2)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" | ("bonus" * 2)
+                """)
+        }
+    }
+    
+    func testAssignmentLeftShiftAssign() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score <<= 1)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" << 1
+                """)
+            
+            try Player.updateAll(db, Columns.score <<= Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" << "bonus"
+                """)
+            
+            try Player.updateAll(db, Columns.score <<= -Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" << (-"bonus")
+                """)
+            
+            try Player.updateAll(db, Columns.score <<= Columns.bonus * 2)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" << ("bonus" * 2)
+                """)
+        }
+    }
+    
+    func testAssignmentRightShiftAssign() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score >>= 1)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" >> 1
+                """)
+            
+            try Player.updateAll(db, Columns.score >>= Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" >> "bonus"
+                """)
+            
+            try Player.updateAll(db, Columns.score >>= -Columns.bonus)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" >> (-"bonus")
+                """)
+            
+            try Player.updateAll(db, Columns.score >>= Columns.bonus * 2)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = "score" >> ("bonus" * 2)
+                """)
+        }
+    }
+    
     func testMultipleAssignments() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
@@ -570,7 +674,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
                 t.column("score", .integer)
             }
             

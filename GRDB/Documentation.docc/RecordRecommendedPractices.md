@@ -31,10 +31,8 @@ migrator.registerMigration("createLibrary") { db in
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()            // (5)
-        t.column("authorId", .integer)                // (6)
+        t.belongsTo("author", onDelete: .cascade)     // (6)
             .notNull()                                // (7)
-            .indexed()                                // (8)
-            .references("author", onDelete: .cascade) // (9)
     }
 }
 
@@ -46,10 +44,8 @@ try migrator.migrate(dbQueue)
 3. An author must have a name.
 4. The country of an author is not always known.
 5. A book must have a title.
-6. The `book.authorId` column is used to link a book to the author it belongs to.
+6. The `book.authorId` column is used to link a book to the author it belongs to. This column is indexed in order to ease the selection of an author's books. A foreign key is defined from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions](https://sqlite.org/foreignkeys.html#fk_actions) for more information.
 7. The `book.authorId` column is not null so that SQLite guarantees that all books have an author.
-8. The `book.authorId` column is indexed in order to ease the selection of an author's books.
-9. We define a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book can refer to a missing author. On top of that, the `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions](https://sqlite.org/foreignkeys.html#fk_actions) for more information.
 
 Thanks to this database schema, the application will always process *consistent data*, no matter how wrong the Swift code can get. Even after a hard crash, all books will have an author, a non-nil title, etc.
 
@@ -549,7 +545,7 @@ if let author = query.get() {
 }
 ```
 
-**GRDB supports eager loading**. The difference with Fluent is that the relationships are modelled in a dedicated record type that provides full compile and runtime safety:
+**GRDB supports eager loading**. The difference with Fluent is that the relationships are modelled in a dedicated record type that provides runtime safety:
 
 ```swift
 // Eager loading with GRDB

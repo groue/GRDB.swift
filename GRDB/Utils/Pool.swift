@@ -163,7 +163,7 @@ final class Pool<T> {
     
     /// Blocks until no element is used, and runs the `barrier` function before
     /// any other element is dequeued.
-    func barrier<T>(execute barrier: () throws -> T) rethrows -> T {
+    func barrier<R>(execute barrier: () throws -> R) rethrows -> R {
         try barrierQueue.sync(flags: [.barrier]) {
             itemsGroup.wait()
             return try barrier()

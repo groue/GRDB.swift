@@ -54,7 +54,7 @@ SPM_CHECKOUTS = File.join(DERIVED_DATA, 'SourcePackages', 'checkouts')
 GRDB_VERSION = info_plist_version('Support/Info.plist')
 FMDB_VERSION = info_plist_version("#{SPM_CHECKOUTS}/fmdb/src/fmdb/Info.plist")
 SQLITE_SWIFT_VERSION = git_tag_version("#{SPM_CHECKOUTS}/SQLite.swift")
-REALM_VERSION = git_tag_version("#{SPM_CHECKOUTS}/realm-cocoa")
+REALM_VERSION = git_tag_version("#{SPM_CHECKOUTS}/realm-swift")
 
 `xcodebuild -version` =~ /Xcode (.*)$/
 XCODE_VERSION = $1

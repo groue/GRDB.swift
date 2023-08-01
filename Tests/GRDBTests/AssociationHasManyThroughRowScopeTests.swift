@@ -23,11 +23,11 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "parent") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("child")
+                t.belongsTo("child")
             }
             try db.create(table: "grandChild") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("child")
+                t.belongsTo("child")
             }
             try db.execute(sql: """
                 INSERT INTO child (id) VALUES (1);
@@ -64,11 +64,11 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "parents") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("children")
+                t.belongsTo("child")
             }
             try db.create(table: "grandChildren") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("children")
+                t.belongsTo("child")
             }
             try db.execute(sql: """
                 INSERT INTO children (id) VALUES (1);
@@ -106,11 +106,11 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "parents") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("children")
+                t.belongsTo("child")
             }
             try db.create(table: "grandChildren") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("childId").references("children")
+                t.belongsTo("child")
             }
             try db.execute(sql: """
                 INSERT INTO children (id) VALUES (1);
@@ -157,8 +157,8 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId").references("parent")
-                t.column("grandChildId").references("grandChild")
+                t.belongsTo("parent")
+                t.belongsTo("grandChild")
             }
             try db.execute(sql: """
                 INSERT INTO parent (id) VALUES (1);
@@ -198,8 +198,8 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "children") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId").references("parents")
-                t.column("grandChildId").references("grandChildren")
+                t.belongsTo("parent")
+                t.belongsTo("grandChild")
             }
             try db.execute(sql: """
                 INSERT INTO parents (id) VALUES (1);
@@ -237,8 +237,8 @@ class AssociationHasManyThroughRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId").references("parent")
-                t.column("grandChildId").references("grandChild")
+                t.belongsTo("parent")
+                t.belongsTo("grandChild")
             }
             try db.execute(sql: """
                 INSERT INTO parent (id) VALUES (1);

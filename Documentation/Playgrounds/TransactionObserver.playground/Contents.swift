@@ -23,7 +23,7 @@ migrator.registerMigration("createPet") { db in
     try db.create(table: "pet") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
-        t.column("ownerId", .integer).references("person", onDelete: .cascade)
+        t.belongsTo("owner", inTable: "person", onDelete: .cascade)
     }
 }
 try! migrator.migrate(dbQueue)

@@ -545,6 +545,33 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    @available(*, deprecated)
+    func testTableCheck_deprecated() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                // Deprecated because this does not what the user means!
+                t.check("a < b")
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "a" INTEGER, \
+                "b" INTEGER, \
+                CHECK ('a < b')\
+                )
+                """)
+            
+            // Sanity check: insert should fail because the 'a < b' string is false for SQLite
+            do {
+                try db.execute(sql: "INSERT INTO test (a, b) VALUES (0, 1)")
+                XCTFail()
+            } catch {
+            }
+        }
+    }
+    
     func testConstraintLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -651,11 +678,22 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(table: "test4") { t in
                 t.column("parent", .integer).references("test4")
             }
-            assertEqualSQL(
-                lastSQLQuery!,
-                ("CREATE TABLE \"test4\" (" +
-                    "\"parent\" INTEGER REFERENCES \"test4\"(\"rowid\")" +
-                    ")") as String)
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test4" (\
+                "parent" INTEGER REFERENCES "test4"("rowid")\
+                )
+                """)
+            
+            try db.create(table: "test5") { t in
+                t.column("parent", .integer)
+                t.foreignKey(["parent"], references: "test5")
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test5" (\
+                "parent" INTEGER, \
+                FOREIGN KEY ("parent") REFERENCES "test5"("rowid")\
+                )
+                """)
         }
     }
     
@@ -702,6 +740,40 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN f TEXT")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN g TEXT DEFAULT 'O''Brien'")
+        }
+    }
+    
+    func testAlterTableAddAutoReferencingForeignKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                try db.create(table: "hiddenRowIdTable") { t in
+                    t.column("a", .text)
+                }
+                
+                sqlQueries.removeAll()
+                try db.alter(table: "hiddenRowIdTable") { t in
+                    t.add(column: "ref").references("hiddenRowIdTable")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    ALTER TABLE "hiddenRowIdTable" ADD COLUMN "ref" REFERENCES "hiddenRowIdTable"("rowid")
+                    """)
+            }
+            
+            do {
+                try db.create(table: "explicitPrimaryKey") { t in
+                    t.primaryKey("code", .text)
+                    t.column("a", .text)
+                }
+                
+                sqlQueries.removeAll()
+                try db.alter(table: "explicitPrimaryKey") { t in
+                    t.add(column: "ref").references("explicitPrimaryKey")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    ALTER TABLE "explicitPrimaryKey" ADD COLUMN "ref" REFERENCES "explicitPrimaryKey"("code")
+                    """)
+            }
         }
     }
     
@@ -894,6 +966,29 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testCreateIndexOn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.primaryKey("id", .integer)
+                t.column("a", .text)
+                t.column("b", .text)
+            }
+            
+            try db.create(indexOn: "test", columns: ["a"])
+            assertEqualSQL(lastSQLQuery!, "CREATE INDEX \"index_test_on_a\" ON \"test\"(\"a\")")
+            
+            try db.create(indexOn: "test", columns: ["a", "b"], options: [.unique])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX \"index_test_on_a_b\" ON \"test\"(\"a\", \"b\")")
+            
+            try db.create(indexOn: "test", columns: ["b"], options: [.unique, .ifNotExists])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"index_test_on_b\" ON \"test\"(\"b\")")
+            
+            // Sanity check
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["index_test_on_a", "index_test_on_a_b", "index_test_on_b"])
+        }
+    }
+    
     func testCreatePartialIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -928,6 +1023,51 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testDropIndexOn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.primaryKey("id", .integer)
+                t.column("a", .text)
+                t.column("b", .text)
+                t.column("c", .text)
+                t.column("d", .text)
+            }
+            try db.create(index: "custom_name_a", on: "test", columns: ["a"])
+            try db.create(index: "custom_name_b", on: "test", columns: ["a", "b"])
+            try db.create(indexOn: "test", columns: ["c"])
+            try db.create(indexOn: "test", columns: ["c", "d"])
+            
+            // Custom name
+            try db.drop(indexOn: "test", columns: ["a"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"custom_name_a\"")
+            
+            // Custom name, case insensitivity
+            try db.drop(indexOn: "TEST", columns: ["A", "B"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"custom_name_b\"")
+            
+            // Default name
+            try db.drop(indexOn: "test", columns: ["c"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"index_test_on_c\"")
+            
+            // Default name, case insensitivity
+            try db.drop(indexOn: "TEST", columns: ["C", "D"])
+            assertEqualSQL(lastSQLQuery!, "DROP INDEX \"index_test_on_c_d\"")
+            
+            // Non existing index: no error
+            try db.drop(indexOn: "test", columns: ["a", "b", "c", "d"])
+            
+            // Non existing table: error
+            do {
+                try db.drop(indexOn: "missing", columns: ["a"])
+                XCTFail("Expected error")
+            } catch { }
+
+            // Sanity check
+            XCTAssertTrue(try db.indexes(on: "test").isEmpty)
+        }
+    }
+
     func testReindex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -936,6 +1076,101 @@ class TableDefinitionTests: GRDBTestCase {
             
             try db.reindex(collation: .localizedCompare)
             assertEqualSQL(lastSQLQuery!, "REINDEX swiftLocalizedCompare")
+        }
+    }
+    
+    func testCreateView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name")
+                t.column("score")
+            }
+            
+            do {
+                let request = SQLRequest(literal: """
+                    SELECT * FROM player WHERE name = \("O'Brien")
+                    """)
+                try db.create(view: "view1", as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view1" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                let request = Table("player").filter(Column("name") == "O'Brien")
+                try db.create(view: "view2", as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view2" AS SELECT * FROM "player" WHERE "name" = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                let sql: SQL = """
+                    SELECT * FROM player WHERE name = \("O'Brien")
+                    """
+                try db.create(view: "view3", asLiteral: sql)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view3" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+        }
+    }
+    
+    func testCreateViewOptions() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name")
+                t.column("score")
+            }
+            
+            let request = SQLRequest(literal: """
+                SELECT * FROM player WHERE name = \("O'Brien")
+                """)
+            
+            do {
+                try db.create(view: "view1", options: .ifNotExists, as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW IF NOT EXISTS "view1" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view2", options: .temporary, as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE TEMPORARY VIEW "view2" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view3", options: [.temporary, .ifNotExists], as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE TEMPORARY VIEW IF NOT EXISTS "view3" AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+            
+            do {
+                try db.create(view: "view4", columns: ["a", "b", "c"], as: request)
+                assertEqualSQL(lastSQLQuery!, """
+                    CREATE VIEW "view4" ("a", "b", "c") AS SELECT * FROM player WHERE name = 'O''Brien'
+                    """)
+            }
+        }
+    }
+    
+    func testDropView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(view: "test", as: SQLRequest(literal: "SELECT 'test', 42"))
+            XCTAssertTrue(try db.viewExists("test"))
+            XCTAssertEqual(try db.columns(in: "test").count, 2)
+            
+            try db.drop(view: "test")
+            assertEqualSQL(lastSQLQuery!, "DROP VIEW \"test\"")
+            XCTAssertFalse(try db.viewExists("test"))
         }
     }
 }

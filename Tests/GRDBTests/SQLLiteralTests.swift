@@ -614,7 +614,7 @@ extension SQLLiteralTests {
             }
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("teamId", .integer).references("team")
+                t.belongsTo("team")
                 t.column("score", .integer)
             }
             struct Player: TableRecord { }

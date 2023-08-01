@@ -18,7 +18,7 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent")
+                t.belongsTo("parent")
             }
             try db.execute(sql: """
                 INSERT INTO parent (id) VALUES (1);
@@ -49,7 +49,7 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "children") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parents")
+                t.belongsTo("parent")
             }
             try db.execute(sql: """
                 INSERT INTO parents (id) VALUES (1);
@@ -79,7 +79,7 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
             }
             try db.create(table: "child") { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent")
+                t.belongsTo("parent")
             }
             try db.execute(sql: """
                 INSERT INTO parent (id) VALUES (1);

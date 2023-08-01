@@ -29,10 +29,7 @@ migrator.registerMigration("createLibrary") { db in
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()
-        t.column("authorId", .integer)
-            .notNull()
-            .indexed()
-            .references("author", onDelete: .cascade)
+        t.belongsTo("author", onDelete: .cascade).notNull()
     }
 }
 

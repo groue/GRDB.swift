@@ -36,7 +36,7 @@ private enum StrategyFormatted: StrategyProvider {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)!
         formatter.dateStyle = .full
-        formatter.timeStyle = .medium
+        formatter.timeStyle = .none
         return formatter
         }())
 }
@@ -199,10 +199,10 @@ extension DatabaseDateEncodingStrategyTests {
         try testNullEncoding(strategy: StrategyFormatted.self)
         
         for (date, value) in zip(testedDates, [
-            "Saturday, December 20, 1969 at 1:39:05 PM",
-            "Friday, January 2, 1970 at 10:17:36 AM",
-            "Monday, January 1, 2001 at 12:00:00 AM",
-            "Tuesday, January 2, 2001 at 10:17:36 AM",
+            "Saturday, December 20, 1969",
+            "Friday, January 2, 1970",
+            "Monday, January 1, 2001",
+            "Tuesday, January 2, 2001",
             ]) { try test(strategy: StrategyFormatted.self, encodesDate: date, as: value) }
     }
 }

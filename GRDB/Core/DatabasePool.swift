@@ -13,6 +13,9 @@ public final class DatabasePool {
     
     @LockedBox var databaseSnapshotCount = 0
     
+    /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
+    private var suspensionObservers: [NSObjectProtocol] = []
+    
     // MARK: - Database Information
     
     public var configuration: Configuration {
@@ -84,12 +87,20 @@ public final class DatabasePool {
                 // > Many applications choose NORMAL when in WAL mode
                 try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
-                if !FileManager.default.fileExists(atPath: path + "-wal") {
-                    // Create the -wal file if it does not exist yet. This
-                    // avoids an SQLITE_CANTOPEN (14) error whenever a user
-                    // opens a pool to an existing non-WAL database, and
-                    // attempts to read from it.
-                    // See https://github.com/groue/GRDB.swift/issues/102
+                // Make sure a non-empty wal file exists.
+                //
+                // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
+                // error when the user opens a pool and reads from it.
+                // See <https://github.com/groue/GRDB.swift/issues/102>.
+                //
+                // The non-empty wal file avoids an SQLITE_ERROR (1) error
+                // when the user opens a pool and creates a wal snapshot
+                // (which happens when starting a ValueObservation).
+                // See <https://github.com/groue/GRDB.swift/issues/1383>.
+                let walPath = path + "-wal"
+                if try FileManager.default.fileExists(atPath: walPath) == false
+                    || (URL(fileURLWithPath: walPath).resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
+                {
                     try db.inSavepoint {
                         try db.execute(sql: """
                             CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
@@ -113,6 +124,9 @@ public final class DatabasePool {
     }
     
     deinit {
+        // Remove block-based Notification observers.
+        suspensionObservers.forEach(NotificationCenter.default.removeObserver(_:))
+        
         // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
@@ -161,7 +175,7 @@ public final class DatabasePool {
     }
 }
 
-// @unchecked because of databaseSnapshotCount and readerPool
+// @unchecked because of databaseSnapshotCount, readerPool and suspensionObservers
 extension DatabasePool: @unchecked Sendable { }
 
 extension DatabasePool {
@@ -337,27 +351,19 @@ extension DatabasePool: DatabaseReader {
     private func setupSuspension() {
         if configuration.observesSuspensionNotifications {
             let center = NotificationCenter.default
-            center.addObserver(
-                self,
-                selector: #selector(DatabasePool.suspend(_:)),
-                name: Database.suspendNotification,
-                object: nil)
-            center.addObserver(
-                self,
-                selector: #selector(DatabasePool.resume(_:)),
-                name: Database.resumeNotification,
-                object: nil)
+            suspensionObservers.append(center.addObserver(
+                forName: Database.suspendNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.suspend() }
+            ))
+            suspensionObservers.append(center.addObserver(
+                forName: Database.resumeNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.resume() }
+            ))
         }
-    }
-    
-    @objc
-    private func suspend(_ notification: Notification) {
-        suspend()
-    }
-    
-    @objc
-    private func resume(_ notification: Notification) {
-        resume()
     }
     
     // MARK: - Reading from Database
@@ -900,9 +906,11 @@ extension DatabasePool {
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
-    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html), or
-    /// if this method is called from a database access where a write
-    /// transaction is open.
+    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+    /// or if this method is called from a write transaction, or if the
+    /// wal file is missing or truncated (size zero).
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
         try unsafeReentrantRead { db in
             try DatabaseSnapshotPool(db)

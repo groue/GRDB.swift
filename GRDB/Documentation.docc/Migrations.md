@@ -26,10 +26,7 @@ migrator.registerMigration("Create authors") { db in
 migrator.registerMigration("Add books and author.birthYear") { db in
     try db.create(table: "book") { t in
         t.autoIncrementedPrimaryKey("id")
-        t.column("authorId", .integer)
-            .notNull()
-            .indexed()
-            .references("author", onDelete: .cascade)
+        t.belongsTo("author").notNull()
         t.column("title", .text).notNull()
     }
 

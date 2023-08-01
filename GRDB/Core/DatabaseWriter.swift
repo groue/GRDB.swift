@@ -468,7 +468,7 @@ extension DatabaseWriter {
     
     // MARK: - Erasing the content of the database
     
-    /// Erases the content of the database.
+    /// Erase the database: delete all content, drop all tables, etc.
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func erase() throws {
         try barrierWriteWithoutTransaction { try $0.erase() }
@@ -687,7 +687,7 @@ extension DatabaseWriter {
         }
     }
     
-    /// Erases the content of the database.
+    /// Erase the database: delete all content, drop all tables, etc.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)

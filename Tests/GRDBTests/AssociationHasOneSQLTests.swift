@@ -189,7 +189,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
-                t.column("parentId", .integer).references("parents")
+                t.belongsTo("parent")
             }
         }
         
@@ -299,8 +299,8 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             try db.create(table: "children") { t in
-                t.column("parent1Id", .integer).references("parents")
-                t.column("parent2Id", .integer).references("parents")
+                t.belongsTo("parent1", inTable: "parents")
+                t.belongsTo("parent2", inTable: "parents")
             }
         }
         
