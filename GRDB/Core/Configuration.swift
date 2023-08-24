@@ -288,6 +288,46 @@ public struct Configuration {
     /// of a read access.
     public var allowsUnsafeTransactions = false
     
+    // MARK: - Journal Mode
+    
+    /// Defines how the journal mode is configured when the database
+    /// connection is opened.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
+    public enum JournalModeConfiguration {
+        /// The default setup has ``DatabaseQueue`` perform no specific
+        /// configuration of the journal mode, and ``DatabasePool`` 
+        /// configure the database for the WAL mode (just like the
+        /// ``wal`` case).
+        case `default`
+        
+        /// The journal mode is set to WAL (plus extra configurations that
+        /// make life easier with WAL databases).
+        case wal
+    }
+    
+    /// Defines how the journal mode is configured when the database
+    /// connection is opened.
+    ///
+    /// This configuration is ignored when ``readonly`` is true.
+    ///
+    /// The default value has ``DatabaseQueue`` perform no specific
+    /// configuration of the journal mode, and ``DatabasePool`` configure
+    /// the database for the WAL mode.
+    ///
+    /// Applications that need to open a WAL database with a
+    /// ``DatabaseQueue`` should set the `journalMode` to `wal`:
+    ///
+    /// ```swift
+    /// // Open a WAL database with DatabaseQueue
+    /// var config = Configuration()
+    /// config.journalMode = .wal
+    /// let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
+    public var journalMode = JournalModeConfiguration.default
+    
     // MARK: - Concurrency
     
     /// Defines the how `SQLITE_BUSY` errors are handled.
