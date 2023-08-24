@@ -83,7 +83,9 @@ do {
 - ``acceptsDoubleQuotedStringLiterals``
 - ``busyMode``
 - ``foreignKeysEnabled``
+- ``journalMode``
 - ``readonly``
+- ``JournalModeConfiguration``
 
 ### Configuring GRDB Connections
 

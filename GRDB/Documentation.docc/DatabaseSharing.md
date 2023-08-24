@@ -21,11 +21,13 @@ We'll address all of those challenges below.
 >
 > Always consider sharing plain files, or any other inter-process communication technique, before sharing an SQLite database.
 
-## Use a Database Pool
+## Use the WAL mode
 
-In order to access a shared database, use a ``DatabasePool``. It opens the database in the [WAL mode], which helps sharing a database.
+In order to access a shared database, use a ``DatabasePool``. It opens the database in the [WAL mode], which helps sharing a database because it allows multiple processes to access the database concurrently.
 
-Since several processes may open the database at the same time, protect the creation of the database pool with an [NSFileCoordinator].
+It is also possible to use a ``DatabaseQueue``, with the `.wal` ``Configuration/journalMode``.
+
+Since several processes may open the database at the same time, protect the creation of the database connection with an [NSFileCoordinator].
 
 - In a process that can create and write in the database, use this sample code:
     
