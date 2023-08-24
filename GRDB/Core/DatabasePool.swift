@@ -75,39 +75,12 @@ public final class DatabasePool {
                     purpose: "reader.\(readerCount)")
             })
         
-        // Activate WAL Mode unless readonly
+        // Set up journal mode unless readonly
         if !configuration.readonly {
-            try writer.sync { db in
-                let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode = WAL")
-                guard journalMode == "wal" else {
-                    throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
-                }
-                
-                // https://www.sqlite.org/pragma.html#pragma_synchronous
-                // > Many applications choose NORMAL when in WAL mode
-                try db.execute(sql: "PRAGMA synchronous = NORMAL")
-                
-                // Make sure a non-empty wal file exists.
-                //
-                // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
-                // error when the user opens a pool and reads from it.
-                // See <https://github.com/groue/GRDB.swift/issues/102>.
-                //
-                // The non-empty wal file avoids an SQLITE_ERROR (1) error
-                // when the user opens a pool and creates a wal snapshot
-                // (which happens when starting a ValueObservation).
-                // See <https://github.com/groue/GRDB.swift/issues/1383>.
-                let walPath = path + "-wal"
-                if try FileManager.default.fileExists(atPath: walPath) == false
-                    || (URL(fileURLWithPath: walPath).resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
-                {
-                    try db.inSavepoint {
-                        try db.execute(sql: """
-                            CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
-                            DROP TABLE grdb_issue_102;
-                            """)
-                        return .commit
-                    }
+            switch configuration.journalMode {
+            case .default, .wal:
+                try writer.sync {
+                    try $0.setUpWALMode()
                 }
             }
         }
