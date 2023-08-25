@@ -322,3 +322,49 @@ public func julianDay(_ value: some SQLSpecificExpressible, _ modifiers: SQLDate
 public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }
+
+// MARK: - JSON functions
+
+/// Verifies that the argument is valid JSON, and returns the minified version.
+///
+/// This function can be used to convert raw text into valid JSON
+/// that can be further used in other JSON functions so that it's interpreted as JSON and not text.
+///
+/// - Attention: This function is not appropriate for checking the validity of JSON.
+///
+/// Related SQLite documentation:<https://www.sqlite.org/json1.html#jmini>
+public func json(_ value: some SQLExpressible) -> SQLExpression {
+    .function("JSON", [value.sqlExpression])
+}
+
+/// Returns a well formed JSON array composed of the input parameters.
+///
+/// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarray>
+public func jsonArray(_ values: (any SQLExpressible)...) -> SQLExpression {
+    .function("JSON_ARRAY", values.map(\.sqlExpression))
+}
+
+/// Returns the length of a JSON array, or 0 if the input is not a JSON array.
+///
+/// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarraylen>
+public func jsonArrayLength(_ value: some SQLExpressible) -> SQLExpression {
+    .function("JSON_ARRAY_LENGTH", [value.sqlExpression])
+}
+
+/// Returns the length of a JSON array located within the given path in the input,
+/// or 0 if the input is not a JSON array.
+///
+/// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarraylen>
+public func jsonArrayLength(_ value: some SQLExpressible, _ path: String) -> SQLExpression {
+    .function("JSON_ARRAY_LENGTH", [value.sqlExpression, path.sqlExpression])
+}
+
+/// Extracts values from JSON at the given paths.
+///
+/// If a single path is provided, a corresponding SQL datatype or `NULL` is returned.
+/// If multiple paths are provided, returns a JSON array as text with the values.
+///
+/// Related SQLite documentation:<https://www.sqlite.org/json1.html#jex>
+public func jsonExtract(_ value: some SQLExpressible, _ paths: String...) -> SQLExpression {
+    .function("JSON_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
+}
