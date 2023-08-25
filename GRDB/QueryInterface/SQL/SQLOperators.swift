@@ -523,3 +523,19 @@ extension SQLSpecificExpressible {
         .escapableBinary(.like, sqlExpression, pattern.sqlExpression, escape: escape?.sqlExpression)
     }
 }
+
+// MARK: - JSON operators
+
+infix operator ->>
+
+extension SQLSpecificExpressible {
+    
+    /// The `->>` SQL operator.
+    ///
+    /// Returns the value from the selected JSON path, or `NULL` if the path doesn't exist.
+    ///
+    /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jptr>
+    public static func ->> (lhs: Self, rhs: String) -> SQLExpression {
+        .literal("\(lhs) ->> \(rhs)")
+    }
+}

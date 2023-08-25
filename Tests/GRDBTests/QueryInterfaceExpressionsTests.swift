@@ -1678,4 +1678,16 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                 """)
         }
     }
+    
+    // MARK: - JSON Operators
+    
+    func testJSONExtractOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(Col.name ->> "$")),
+            """
+            SELECT "name" ->> '$' FROM "readers"
+            """)
+    }
 }
