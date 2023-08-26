@@ -114,7 +114,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.17.0
+
+Released August 26, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.16.0...v6.17.0)
 
 - **New**: [#1421](https://github.com/groue/GRDB.swift/pull/1421) by [@groue](https://github.com/groue): Make it possible to open a DatabaseQueue in the WAL mode
 
