@@ -50,6 +50,18 @@ public final class DatabaseQueue {
             configuration: configuration,
             defaultLabel: "GRDB.DatabaseQueue")
         
+        // Set up journal mode unless readonly
+        if !configuration.readonly {
+            switch configuration.journalMode {
+            case .default:
+                break
+            case .wal:
+                try writer.sync {
+                    try $0.setUpWALMode()
+                }
+            }
+        }
+        
         setupSuspension()
         
         // Be a nice iOS citizen, and don't consume too much memory
