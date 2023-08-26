@@ -1684,10 +1684,12 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testJSONExtractOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name ->> "$")),
-            """
-            SELECT "name" ->> '$' FROM "readers"
-            """)
+        if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.select(Col.name ->> "$")),
+                """
+                SELECT "name" ->> '$' FROM "readers"
+                """)
+        }
     }
 }

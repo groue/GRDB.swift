@@ -535,6 +535,7 @@ extension SQLSpecificExpressible {
     /// Returns the value from the selected JSON path, or `NULL` if the path doesn't exist.
     ///
     /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jptr>
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     public static func ->> (lhs: Self, rhs: String) -> SQLExpression {
         .literal("\(lhs) ->> \(rhs)")
     }
