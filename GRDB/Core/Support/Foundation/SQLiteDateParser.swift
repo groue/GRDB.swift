@@ -4,6 +4,7 @@ import Foundation
 
 @usableFromInline
 struct SQLiteDateParser {
+    // swiftlint:disable:next unneeded_synthesized_initializer
     @usableFromInline
     init() { }
     

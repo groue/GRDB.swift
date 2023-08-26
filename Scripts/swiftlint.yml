@@ -57,11 +57,13 @@ opt_in_rules:
   - pattern_matching_keywords
   - prohibited_super_call
   - reduce_into
+  - redundant_self_in_closure
   - redundant_type_annotation
   - shorthand_optional_binding
   - sorted_first_last
   - sorted_imports
   - toggle_bool
+  - unhandled_throwing_task
   - vertical_parameter_alignment_on_call
   - yoda_condition
 

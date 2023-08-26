@@ -421,6 +421,41 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         configuration.SQLiteConnectionDidOpen?()
     }
     
+    /// Performs ``Configuration/JournalModeConfiguration/wal``.
+    func setUpWALMode() throws {
+        let journalMode = try String.fetchOne(self, sql: "PRAGMA journal_mode = WAL")
+        guard journalMode == "wal" else {
+            throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
+        }
+        
+        // https://www.sqlite.org/pragma.html#pragma_synchronous
+        // > Many applications choose NORMAL when in WAL mode
+        try execute(sql: "PRAGMA synchronous = NORMAL")
+        
+        // Make sure a non-empty wal file exists.
+        //
+        // The presence of the wal file avoids an SQLITE_CANTOPEN (14)
+        // error when the user opens a pool and reads from it.
+        // See <https://github.com/groue/GRDB.swift/issues/102>.
+        //
+        // The non-empty wal file avoids an SQLITE_ERROR (1) error
+        // when the user opens a pool and creates a wal snapshot
+        // (which happens when starting a ValueObservation).
+        // See <https://github.com/groue/GRDB.swift/issues/1383>.
+        let walPath = path + "-wal"
+        if try FileManager.default.fileExists(atPath: walPath) == false
+            || (URL(fileURLWithPath: walPath).resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) == 0
+        {
+            try inSavepoint {
+                try execute(sql: """
+                    CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
+                    DROP TABLE grdb_issue_102;
+                    """)
+                return .commit
+            }
+        }
+    }
+    
     private func setupDoubleQuotedStringLiterals() {
         if configuration.acceptsDoubleQuotedStringLiterals {
             _enableDoubleQuotedStringLiterals(sqliteConnection)
@@ -877,7 +912,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         _ mask: CInt,
         _ p: UnsafeMutableRawPointer?,
         _ x: UnsafeMutableRawPointer?,
-        _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
+        _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<CChar>?)
     {
         guard let trace else { return }
         
@@ -1896,7 +1931,7 @@ extension Database {
         public struct Statement: CustomStringConvertible {
             var sqliteStatement: SQLiteStatement
             var unexpandedSQL: UnsafePointer<CChar>?
-            var sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?
+            var sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<CChar>?
             var publicStatementArguments: Bool // See Configuration.publicStatementArguments
             
             /// The executed SQL, where bound parameters are not expanded.

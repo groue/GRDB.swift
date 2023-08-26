@@ -3,6 +3,37 @@ import Dispatch
 import GRDB
 
 class DatabaseQueueTests: GRDBTestCase {
+    func testJournalModeConfiguration() throws {
+        do {
+            // Factory default
+            let config = Configuration()
+            let dbQueue = try makeDatabaseQueue(filename: "factory", configuration: config)
+            let journalMode = try dbQueue.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "delete")
+        }
+        do {
+            // Explicit default
+            var config = Configuration()
+            config.journalMode = .default
+            let dbQueue = try makeDatabaseQueue(filename: "default", configuration: config)
+            let journalMode = try dbQueue.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "delete")
+        }
+        do {
+            // Explicit wal
+            var config = Configuration()
+            config.journalMode = .wal
+            let dbQueue = try makeDatabaseQueue(filename: "wal", configuration: config)
+            let journalMode = try dbQueue.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "wal")
+        }
+    }
     
     func testInvalidFileFormat() throws {
         do {

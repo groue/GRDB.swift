@@ -42,14 +42,15 @@ public final class Statement {
     public var sql: String {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        // trim white space and semicolumn for homogeneous output
+        // trim white space and semicolon for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
     }
     
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
+        // swiftlint:disable:next redundant_self_in_closure
         let sqliteStatement = self.sqliteStatement
-        return (0..<CInt(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
+        return (0..<CInt(columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
     // The database region is reported by `sqlite3_set_authorizer`, and maybe
@@ -90,8 +91,8 @@ public final class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
-    /// A boolean value indicating if the statement deletes some rows.
-    var isDeleteStatement: Bool {
+    /// A boolean value indicating if the statement can delete some rows.
+    var canDeleteRows: Bool {
         authorizerEventKinds.contains(where: \.isDelete)
     }
     
@@ -101,7 +102,7 @@ public final class Statement {
     /// Cache for index(ofColumn:). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
         Dictionary(
-            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+            columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
             uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }()
     
@@ -118,8 +119,8 @@ public final class Statement {
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        statementStart: UnsafePointer<CChar>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<CChar>?>,
         prepFlags: CUnsignedInt) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)
@@ -222,7 +223,7 @@ public final class Statement {
     private var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
-        Int(sqlite3_bind_parameter_count(self.sqliteStatement))
+        Int(sqlite3_bind_parameter_count(sqliteStatement))
     }()
     
     // Returns ["id", nil, "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
