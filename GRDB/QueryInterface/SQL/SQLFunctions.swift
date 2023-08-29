@@ -334,7 +334,7 @@ public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateM
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jmini>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-public func json(_ value: some SQLExpressible) -> SQLExpression {
+public func json(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("JSON", [value.sqlExpression])
 }
 
@@ -342,7 +342,7 @@ public func json(_ value: some SQLExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarray>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-public func jsonArray(_ values: (any SQLExpressible)...) -> SQLExpression {
+public func jsonArray(_ values: (any SQLSpecificExpressible)...) -> SQLExpression {
     .function("JSON_ARRAY", values.map(\.sqlExpression))
 }
 
@@ -350,7 +350,7 @@ public func jsonArray(_ values: (any SQLExpressible)...) -> SQLExpression {
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarraylen>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-public func jsonArrayLength(_ value: some SQLExpressible) -> SQLExpression {
+public func jsonArrayLength(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("JSON_ARRAY_LENGTH", [value.sqlExpression])
 }
 
@@ -359,7 +359,7 @@ public func jsonArrayLength(_ value: some SQLExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarraylen>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-public func jsonArrayLength(_ value: some SQLExpressible, _ path: String) -> SQLExpression {
+public func jsonArrayLength(_ value: some SQLSpecificExpressible, _ path: String) -> SQLExpression {
     .function("JSON_ARRAY_LENGTH", [value.sqlExpression, path.sqlExpression])
 }
 
@@ -370,6 +370,6 @@ public func jsonArrayLength(_ value: some SQLExpressible, _ path: String) -> SQL
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jex>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-public func jsonExtract(_ value: some SQLExpressible, _ paths: String...) -> SQLExpression {
+public func jsonExtract(_ value: some SQLSpecificExpressible, _ paths: String...) -> SQLExpression {
     .function("JSON_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
 }

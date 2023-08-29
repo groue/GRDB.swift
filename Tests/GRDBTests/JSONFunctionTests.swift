@@ -24,7 +24,7 @@ final class JSONFunctionTests: GRDBTestCase {
             
             let input = """
              { "this" : "is", "a": [ "test" ] }
-            """
+            """.databaseValue
             
             let expected = """
             {"this":"is","a":["test"]}
@@ -41,11 +41,37 @@ final class JSONFunctionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inDatabase { db in
-                try assert(db, jsonArray(1,2,"3",4), equal: "[1,2,\"3\",4]")
-                try assert(db, jsonArray(jsonArray(1, 2, "3", 4)), equal: "[[1,2,\"3\",4]]")
                 try assert(
                     db,
-                    jsonArray(1, DatabaseValue.null, "3", json("[4,5]"), json("{\"six\":7.7}")),
+                    jsonArray(
+                        1.databaseValue,
+                        2.databaseValue,
+                        "3".databaseValue,
+                        4.databaseValue
+                    ),
+                    equal: "[1,2,\"3\",4]"
+                )
+                try assert(
+                    db,
+                    jsonArray(
+                        jsonArray(
+                            1.databaseValue,
+                            2.databaseValue,
+                            "3".databaseValue,
+                            4.databaseValue
+                        )
+                    ),
+                    equal: "[[1,2,\"3\",4]]"
+                )
+                try assert(
+                    db,
+                    jsonArray(
+                        1.databaseValue,
+                        DatabaseValue.null,
+                        "3".databaseValue,
+                        json("[4,5]".databaseValue),
+                        json("{\"six\":7.7}".databaseValue)
+                    ),
                     equal: "[1,null,\"3\",[4,5],{\"six\":7.7}]"
                 )
             }
@@ -57,8 +83,8 @@ final class JSONFunctionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inDatabase { db in
-                try assert(db, jsonArrayLength("[1,2,3,4]"), equal: 4)
-                try assert(db, jsonArrayLength("{\"one\":[1,2,3]}"), equal: 0)
+                try assert(db, jsonArrayLength("[1,2,3,4]".databaseValue), equal: 4)
+                try assert(db, jsonArrayLength("{\"one\":[1,2,3]}".databaseValue), equal: 0)
             }
         }
     }
@@ -68,8 +94,8 @@ final class JSONFunctionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inDatabase { db in
-                try assert(db, jsonArrayLength("[1,2,3,4]", "$"), equal: 4)
-                try assert(db, jsonArrayLength("[1,2,3,4]", "$[2]"), equal: 0)
+                try assert(db, jsonArrayLength("[1,2,3,4]".databaseValue, "$"), equal: 4)
+                try assert(db, jsonArrayLength("[1,2,3,4]".databaseValue, "$[2]"), equal: 0)
             }
         }
     }
@@ -80,7 +106,7 @@ final class JSONFunctionTests: GRDBTestCase {
             
             let input = """
             {"a":2,"c":[4,5,{"f":7}]}
-            """
+            """.databaseValue
             
             try dbQueue.inDatabase { db in
                 try assert(db, jsonExtract(input, "$"), equal: input)
