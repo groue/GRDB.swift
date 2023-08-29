@@ -1686,7 +1686,13 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name ->> "$")),
+                sql(dbQueue, tableRequest.select(Col.name[objectAt: "$"])),
+                """
+                SELECT "name" -> '$' FROM "readers"
+                """)
+            
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.select(Col.name[valueAt: "$"])),
                 """
                 SELECT "name" ->> '$' FROM "readers"
                 """)

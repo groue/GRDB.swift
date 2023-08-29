@@ -526,17 +526,29 @@ extension SQLSpecificExpressible {
 
 // MARK: - JSON operators
 
-infix operator ->>
-
 extension SQLSpecificExpressible {
+    
+    /// The `->` SQL operator.
+    ///
+    /// Returns the object from the selected JSON path, or `NULL` if the path doesn't exist.
+    ///
+    /// For getting a JSON object, use ``subscript(valueAt:)`` instead.
+    ///
+    /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jptr>
+    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+    public subscript(objectAt jsonPath: String) -> SQLExpression {
+        .literal("\(self) -> \(jsonPath)")
+    }
     
     /// The `->>` SQL operator.
     ///
     /// Returns the value from the selected JSON path, or `NULL` if the path doesn't exist.
     ///
+    /// For getting a JSON object, use ``subscript(objectAt:)`` instead.
+    ///
     /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jptr>
     @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-    public static func ->> (lhs: Self, rhs: String) -> SQLExpression {
-        .literal("\(lhs) ->> \(rhs)")
+    public subscript(valueAt jsonPath: String) -> SQLExpression {
+        .literal("\(self) ->> \(jsonPath)")
     }
 }
