@@ -964,6 +964,10 @@ extension AnyDatabaseWriter: DatabaseReader {
         base.configuration
     }
     
+    public var path: String {
+        base.path
+    }
+    
     public func close() throws {
         try base.close()
     }
