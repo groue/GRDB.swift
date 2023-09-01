@@ -16,9 +16,6 @@ public final class DatabaseQueue {
         writer.configuration
     }
     
-    /// The path to the database file.
-    ///
-    /// The path is `:memory:` for in-memory databases.
     public var path: String {
         writer.path
     }
