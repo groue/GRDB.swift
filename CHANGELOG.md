@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.18.x` Releases - [6.18.0](#6180)
 - `6.17.x` Releases - [6.17.0](#6170)
 - `6.16.x` Releases - [6.16.0](#6160)
 - `6.15.x` Releases - [6.15.0](#6150) - [6.15.1](#6151)
@@ -114,6 +115,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.18.0
+
+Released September 1, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.17.0...v6.18.0)
+
+- **New**: Expose the database path from `DatabaseReader`.
 
 ## 6.17.0
 
