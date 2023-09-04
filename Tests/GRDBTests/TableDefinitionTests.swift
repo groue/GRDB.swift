@@ -961,8 +961,14 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(index: "test_on_a_b_2", on: "test", columns: ["a", "b"], options: [.unique, .ifNotExists])
             assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b_2\" ON \"test\"(\"a\", \"b\")")
             
+            try db.create(index: "test_on_a_plus_b", on: "test", expressions: [Column("a") + Column("b")], options: [.unique, .ifNotExists])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_plus_b\" ON \"test\"(\"a\" + \"b\")")
+            
+            try db.create(index: "test_on_a_nocase", on: "test", expressions: [Column("a").collating(.nocase)], options: [.unique, .ifNotExists])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_nocase\" ON \"test\"(\"a\" COLLATE NOCASE)")
+
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b", "test_on_a_b_2"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b", "test_on_a_b_2", "test_on_a_nocase"])
         }
     }
     
@@ -1000,6 +1006,9 @@ class TableDefinitionTests: GRDBTestCase {
             
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], options: [.unique, .ifNotExists], condition: Column("a") == 1)
             assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
+            
+            try db.create(index: "test_on_a_plus_b", on: "test", expressions: [Column("a") + Column("b")], options: [.unique, .ifNotExists], condition: Column("a") == 1)
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_plus_b\" ON \"test\"(\"a\" + \"b\") WHERE \"a\" = 1")
             
             // Sanity check
             XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a_b"])

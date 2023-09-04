@@ -385,6 +385,7 @@ extension Team: TableRecord {
 
 - ``Database/create(indexOn:columns:options:condition:)``
 - ``Database/create(index:on:columns:options:condition:)``
+- ``Database/create(index:on:expressions:options:condition:)``
 - ``Database/drop(indexOn:columns:)``
 - ``Database/drop(index:)``
 - ``IndexOptions``

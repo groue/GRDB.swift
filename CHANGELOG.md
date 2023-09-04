@@ -119,6 +119,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#1429](https://github.com/groue/GRDB.swift/pull/1429) by [@JhonnyBillM](https://github.com/JhonnyBillM): Allow `DatabaseValueConvertible` types to customize their database JSON format
+- **New**: `Database` has learned to create indexes on expressions, and specify specific collations on indexed columns, with the `create(index:on:expressions:options:condition:)` method. 
 
 ## 6.18.0
 
