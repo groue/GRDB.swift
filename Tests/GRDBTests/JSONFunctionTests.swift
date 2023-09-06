@@ -118,4 +118,15 @@ final class JSONFunctionTests: GRDBTestCase {
             }
         }
     }
+    
+    func testIsJSONValid() throws {
+        if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
+            let dbQueue = try makeDatabaseQueue()
+            
+            try dbQueue.inDatabase { db in
+                try assert(db, isJSONValid(#"{"x":35}"#.databaseValue), equal: 1)
+                try assert(db,  isJSONValid(#"{"x":35"#.databaseValue), equal: 0)
+            }
+        }
+    }
 }

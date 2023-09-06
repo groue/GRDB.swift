@@ -398,3 +398,27 @@ public func jsonArrayLength(_ value: some SQLSpecificExpressible, _ path: String
 public func jsonExtract(_ value: some SQLSpecificExpressible, _ paths: String...) -> SQLExpression {
     .function("JSON_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
 }
+
+/// The `JSON_VALID` SQL function.
+///  
+/// Checks if the given expression is a well-formed,
+/// canonical [RFC-7159](https://datatracker.ietf.org/doc/html/rfc7159) JSON string
+/// without any JSON5 extensions.
+///
+/// For example:
+///  
+/// ``` swift
+/// // json_valid('{"x":35}')
+/// isJSONValid(#"{"x":35}"#.databaseValue) // 1
+///  
+/// // json_valid('{"x":35')
+/// isJSONValid(#"{"x":35"#.databaseValue) // 0
+/// ```
+///  
+/// Related SQLite documentation: <https://www.sqlite.org/json1.html#jvalid>
+/// - parameter value: JSON to be validated.
+/// - returns: ``SQLExpression`` returning `1` if the input was valid, and `0` if it was invalid.
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+public func isJSONValid(_ value: some SQLSpecificExpressible) -> SQLExpression {
+    .function("JSON_VALID", [value.sqlExpression])
+}
