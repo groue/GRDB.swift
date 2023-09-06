@@ -325,12 +325,15 @@ public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateM
 
 // MARK: - JSON functions
 
+/// The `JSON` SQL function.
+///
 /// Verifies that the argument is valid JSON, and returns the minified version.
 ///
 /// This function can be used to convert raw text into valid JSON
 /// that can be further used in other JSON functions so that it's interpreted as JSON and not text.
 ///
 /// - Attention: This function is not appropriate for checking the validity of JSON.
+/// Use ``isJSONValid(_:)`` instead.
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jmini>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
@@ -338,6 +341,8 @@ public func json(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("JSON", [value.sqlExpression])
 }
 
+/// The `JSON_ARRAY` SQL function.
+///
 /// Returns a well formed JSON array composed of the input parameters.
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarray>
@@ -346,6 +351,8 @@ public func jsonArray(_ values: (any SQLSpecificExpressible)...) -> SQLExpressio
     .function("JSON_ARRAY", values.map(\.sqlExpression))
 }
 
+/// The `JSON_ARRAY_LENGTH` SQL function.
+///
 /// Returns the length of a JSON array, or 0 if the input is not a JSON array.
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jarraylen>
@@ -354,6 +361,8 @@ public func jsonArrayLength(_ value: some SQLSpecificExpressible) -> SQLExpressi
     .function("JSON_ARRAY_LENGTH", [value.sqlExpression])
 }
 
+/// The `JSON_ARRAY_LENGTH` SQL function.
+///
 /// Returns the length of a JSON array located within the given path in the input,
 /// or 0 if the input is not a JSON array.
 ///
@@ -363,10 +372,26 @@ public func jsonArrayLength(_ value: some SQLSpecificExpressible, _ path: String
     .function("JSON_ARRAY_LENGTH", [value.sqlExpression, path.sqlExpression])
 }
 
-/// Extracts values from JSON at the given paths.
+/// The `JSON_EXTRACT` SQL function.
 ///
-/// If a single path is provided, a corresponding SQL datatype or `NULL` is returned.
-/// If multiple paths are provided, returns a JSON array as text with the values.
+/// Extracts and returns one or more values from well-formed JSON.
+/// If multiple paths are provided, the function returns a JSON array holding the extracted values.
+///
+/// For example:
+///
+/// ```swift
+/// // JSON_EXTRACT(jsonData, '$')
+/// jsonExtract(Column("jsonData"), "$")
+///
+/// // JSON_EXTRACT(jsonData, '$.values')
+/// jsonExtract(Column("jsonData"), "$.values")
+///
+/// // JSON_EXTRACT(jsonData, '$.values[2]')
+/// jsonExtract(Column("jsonData"), "$.values[2]")
+///
+/// // JSON_EXTRACT(jsonData, '$.first_key', '$.second_key')
+/// jsonExtract(Column("jsonData"), "$.first_key", "$.second_key")
+/// ```
 ///
 /// Related SQLite documentation:<https://www.sqlite.org/json1.html#jex>
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
