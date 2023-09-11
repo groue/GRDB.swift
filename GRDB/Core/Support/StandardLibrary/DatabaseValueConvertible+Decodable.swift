@@ -179,11 +179,7 @@ extension DatabaseValueConvertible where Self: Decodable {
             guard let data = Data.fromDatabaseValue(databaseValue) else {
                 return nil
             }
-            let decoder = JSONDecoder()
-            decoder.dataDecodingStrategy = .base64
-            decoder.dateDecodingStrategy = .millisecondsSince1970
-            decoder.nonConformingFloatDecodingStrategy = .throw
-            return try? decoder.decode(Self.self, from: data)
+            return try? databaseJSONDecoder().decode(Self.self, from: data)
         } catch {
             return nil
         }

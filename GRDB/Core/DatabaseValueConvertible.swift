@@ -59,6 +59,18 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     ///
     /// - returns: A decoded value, or, if decoding is impossible, nil.
     static func fromMissingColumn() -> Self?
+    
+    /// Returns the `JSONDecoder` that decodes the value for a given column.
+    ///
+    /// This method is dedicated to ``DatabaseValueConvertible`` types that also conform
+    /// to the standard `Decodable` protocol.
+    static func databaseJSONDecoder() -> JSONDecoder
+    
+    /// Returns the `JSONEncoder` that encodes the value for a given column.
+    ///
+    /// This method is dedicated to ``DatabaseValueConvertible`` types that also conform
+    /// to the standard `Encodable` protocol.
+    static func databaseJSONEncoder() -> JSONEncoder
 }
 
 extension DatabaseValueConvertible {
@@ -74,6 +86,41 @@ extension DatabaseValueConvertible {
     /// Default implementation fails to decode a value from a missing column.
     public static func fromMissingColumn() -> Self? {
         nil // failure.
+    }
+    
+    /// Returns the `JSONDecoder` that decodes the value.
+    ///
+    /// The default implementation returns a `JSONDecoder` with the
+    /// following properties:
+    ///
+    /// - `dataDecodingStrategy`: `.base64`
+    /// - `dateDecodingStrategy`: `.millisecondsSince1970`
+    /// - `nonConformingFloatDecodingStrategy`: `.throw`
+    public static func databaseJSONDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dataDecodingStrategy = .base64
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        decoder.nonConformingFloatDecodingStrategy = .throw
+        return decoder
+    }
+    
+    /// Returns the `JSONEncoder` that encodes the value.
+    ///
+    /// The default implementation returns a `JSONEncoder` with the
+    /// following properties:
+    ///
+    /// - `dataEncodingStrategy`: `.base64`
+    /// - `dateEncodingStrategy`: `.millisecondsSince1970`
+    /// - `nonConformingFloatEncodingStrategy`: `.throw`
+    /// - `outputFormatting`: `.sortedKeys`
+    public static func databaseJSONEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dataEncodingStrategy = .base64
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        encoder.nonConformingFloatEncodingStrategy = .throw
+        // guarantee some stability in order to ease value comparison
+        encoder.outputFormatting = .sortedKeys
+        return encoder
     }
 }
 

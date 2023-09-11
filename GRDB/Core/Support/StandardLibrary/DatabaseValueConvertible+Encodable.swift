@@ -49,9 +49,14 @@ private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
 
 private class DatabaseValueEncoder: Encoder {
     let encode: (DatabaseValue) -> Void
+    let jsonEncoder: JSONEncoder?
     var requiresJSON = false
     
-    init(encode: @escaping (DatabaseValue) -> Void) {
+    init(
+        jsonEncoder: JSONEncoder? = nil,
+        encode: @escaping (DatabaseValue) -> Void
+    ) {
+        self.jsonEncoder = jsonEncoder
         self.encode = encode
     }
     
@@ -115,12 +120,16 @@ private class DatabaseValueEncoder: Encoder {
                 throw JSONRequiredError()
             }
         } catch is JSONRequiredError {
-            let encoder = JSONEncoder()
-            encoder.dataEncodingStrategy = .base64
-            encoder.dateEncodingStrategy = .millisecondsSince1970
-            encoder.nonConformingFloatEncodingStrategy = .throw
-            // guarantee some stability in order to ease value comparison
-            encoder.outputFormatting = .sortedKeys
+            let defaultEncoder: JSONEncoder = {
+                let encoder = JSONEncoder()
+                encoder.dataEncodingStrategy = .base64
+                encoder.dateEncodingStrategy = .millisecondsSince1970
+                encoder.nonConformingFloatEncodingStrategy = .throw
+                // guarantee some stability in order to ease value comparison
+                encoder.outputFormatting = .sortedKeys
+                return encoder
+            }()
+            let encoder = jsonEncoder ?? defaultEncoder
             let jsonData = try encoder.encode(value)
             
             // Store JSON String in the database for easier debugging and
@@ -138,7 +147,11 @@ private class DatabaseValueEncoder: Encoder {
 extension DatabaseValueConvertible where Self: Encodable {
     public var databaseValue: DatabaseValue {
         var dbValue: DatabaseValue! = nil
-        try! DatabaseValueEncoder(encode: { dbValue = $0 }).encode(self)
+        try! DatabaseValueEncoder(
+            jsonEncoder: Self.databaseJSONEncoder(),
+            encode: { dbValue = $0 }
+        )
+        .encode(self)
         return dbValue
     }
 }
