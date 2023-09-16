@@ -2,6 +2,7 @@ import Foundation
 
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
+    let jsonEncoder: JSONEncoder
     
     var codingPath: [any CodingKey] { [] }
     
@@ -42,18 +43,18 @@ private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
             // This allows us to encode Date as String, for example.
             encode(dbValueConvertible.databaseValue)
         } else {
-            try DatabaseValueEncoder(encode: encode).encode(value)
+            try DatabaseValueEncoder(jsonEncoder: jsonEncoder, encode: encode).encode(value)
         }
     }
 }
 
 private class DatabaseValueEncoder: Encoder {
     let encode: (DatabaseValue) -> Void
-    let jsonEncoder: JSONEncoder?
+    let jsonEncoder: JSONEncoder
     var requiresJSON = false
     
     init(
-        jsonEncoder: JSONEncoder? = nil,
+        jsonEncoder: JSONEncoder,
         encode: @escaping (DatabaseValue) -> Void
     ) {
         self.jsonEncoder = jsonEncoder
@@ -109,7 +110,7 @@ private class DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
-        DatabaseValueEncodingContainer(encode: encode)
+        DatabaseValueEncodingContainer(encode: encode, jsonEncoder: jsonEncoder)
     }
     
     func encode<T: Encodable>(_ value: T) throws {
@@ -120,17 +121,7 @@ private class DatabaseValueEncoder: Encoder {
                 throw JSONRequiredError()
             }
         } catch is JSONRequiredError {
-            let defaultEncoder: JSONEncoder = {
-                let encoder = JSONEncoder()
-                encoder.dataEncodingStrategy = .base64
-                encoder.dateEncodingStrategy = .millisecondsSince1970
-                encoder.nonConformingFloatEncodingStrategy = .throw
-                // guarantee some stability in order to ease value comparison
-                encoder.outputFormatting = .sortedKeys
-                return encoder
-            }()
-            let encoder = jsonEncoder ?? defaultEncoder
-            let jsonData = try encoder.encode(value)
+            let jsonData = try jsonEncoder.encode(value)
             
             // Store JSON String in the database for easier debugging and
             // database inspection. Thanks to SQLite weak typing, we won't
