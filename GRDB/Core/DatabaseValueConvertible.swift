@@ -62,13 +62,13 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     /// - returns: A decoded value, or, if decoding is impossible, nil.
     static func fromMissingColumn() -> Self?
     
-    /// Returns the `JSONDecoder` that decodes the value for a given column.
+    /// Returns the `JSONDecoder` that decodes the value.
     ///
     /// This method is dedicated to ``DatabaseValueConvertible`` types that 
     /// also conform to the standard `Decodable` protocol.
     static func databaseJSONDecoder() -> JSONDecoder
     
-    /// Returns the `JSONEncoder` that encodes the value for a given column.
+    /// Returns the `JSONEncoder` that encodes the value.
     ///
     /// This method is dedicated to ``DatabaseValueConvertible`` types that
     /// also conform to the standard `Encodable` protocol.
