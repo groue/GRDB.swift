@@ -1,3 +1,5 @@
+import Foundation
+
 // Standard collections `Array`, `Set`, and `Dictionary` do not conform to
 // `DatabaseValueConvertible`, on purpose.
 //
