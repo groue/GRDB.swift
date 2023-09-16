@@ -151,6 +151,11 @@ This extra conformance is not required: only aim at the low-level C interface if
 
 - ``databaseValue-1ob9k``
 
+### Configuring the JSON format for the standard Decodable protocol
+
+- ``databaseJSONDecoder()-7zou9``
+- ``databaseJSONEncoder()-37sff``
+
 ### Fetching Values from Raw SQL
 
 - ``fetchCursor(_:sql:arguments:adapter:)-6elcz``
