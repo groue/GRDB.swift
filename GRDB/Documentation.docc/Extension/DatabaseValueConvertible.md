@@ -74,7 +74,14 @@ extension Color: DatabaseValueConvertible { }
 
 By default, such codable value types are encoded and decoded with the standard [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) and [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder). `Data` values are handled with the `.base64` strategy, `Date` with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
 
-To customize the JSON format, provide an explicit implementation for the `DatabaseValueConvertible` requirements.
+To customize the JSON format, provide an explicit implementation for the `DatabaseValueConvertible` requirements, or implement these two methods:
+
+```swift
+protocol DatabaseValueConvertible {
+    static func databaseJSONDecoder() -> JSONDecoder
+    static func databaseJSONEncoder() -> JSONEncoder
+}
+```
 
 ### Adding support for the Tagged library
 
@@ -143,6 +150,11 @@ This extra conformance is not required: only aim at the low-level C interface if
 ### Accessing the DatabaseValue
 
 - ``databaseValue-1ob9k``
+
+### Configuring the JSON format for the standard Decodable protocol
+
+- ``databaseJSONDecoder()-7zou9``
+- ``databaseJSONEncoder()-37sff``
 
 ### Fetching Values from Raw SQL
 

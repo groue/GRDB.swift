@@ -304,4 +304,39 @@ extension DatabaseValueConvertibleEncodableTests {
         let encodedUUID = UUID.fromDatabaseValue(dbValue)!
         XCTAssertEqual(encodedUUID, value.uuid)
     }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodableWithCustomJsonEncoder() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let duration: Double
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+            
+            public static func databaseJSONEncoder() -> JSONEncoder {
+                let encoder = JSONEncoder()
+                encoder.dataEncodingStrategy = .base64
+                encoder.dateEncodingStrategy = .millisecondsSince1970
+                encoder.nonConformingFloatEncodingStrategy = .convertToString(
+                    positiveInfinity: "+InF",
+                    negativeInfinity: "-InF",
+                    nan: "NaN"
+                )
+                // guarantee some stability in order to ease value comparison
+                encoder.outputFormatting = .sortedKeys
+                return encoder
+            }
+        }
+        
+        do {
+            let dbValue = Value(duration: .infinity).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"duration":"+InF"}"#)
+            
+            let dbValue2 = Value(duration: -Double.infinity).databaseValue
+            XCTAssertEqual(dbValue2.storage.value as! String, #"{"duration":"-InF"}"#)
+            
+            let dbValue3 = Value(duration: .nan).databaseValue
+            XCTAssertEqual(dbValue3.storage.value as! String, #"{"duration":"NaN"}"#)
+        }
+    }
 }
