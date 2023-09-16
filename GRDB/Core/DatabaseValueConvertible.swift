@@ -62,14 +62,14 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     
     /// Returns the `JSONDecoder` that decodes the value for a given column.
     ///
-    /// This method is dedicated to ``DatabaseValueConvertible`` types that also conform
-    /// to the standard `Decodable` protocol.
+    /// This method is dedicated to ``DatabaseValueConvertible`` types that 
+    /// also conform to the standard `Decodable` protocol.
     static func databaseJSONDecoder() -> JSONDecoder
     
     /// Returns the `JSONEncoder` that encodes the value for a given column.
     ///
-    /// This method is dedicated to ``DatabaseValueConvertible`` types that also conform
-    /// to the standard `Encodable` protocol.
+    /// This method is dedicated to ``DatabaseValueConvertible`` types that
+    /// also conform to the standard `Encodable` protocol.
     static func databaseJSONEncoder() -> JSONEncoder
 }
 
