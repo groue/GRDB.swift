@@ -13,6 +13,7 @@
 		56012B82257404A400B4925B /* CommonTableExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B80257404A300B4925B /* CommonTableExpression.swift */; };
 		560233CF2724339A00529DF3 /* SharedValueObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233CC2724339A00529DF3 /* SharedValueObservationTests.swift */; };
 		560233D127243A9200529DF3 /* SharedValueObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233D027243A9100529DF3 /* SharedValueObservation.swift */; };
+		5603CEC42AC862F800CF097D /* SQLJSONFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */; };
 		56043296228F00A9009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */; };
 		560432A6228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
 		5604484E25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5604484C25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift */; };
@@ -434,6 +435,7 @@
 		56012B80257404A300B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
 		560233CC2724339A00529DF3 /* SharedValueObservationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedValueObservationTests.swift; sourceTree = "<group>"; };
 		560233D027243A9100529DF3 /* SharedValueObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedValueObservation.swift; sourceTree = "<group>"; };
+		5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLJSONFunctions.swift; sourceTree = "<group>"; };
 		56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
 		560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
 		5604484C25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRelationTests.swift; sourceTree = "<group>"; };
@@ -855,6 +857,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5603CEBE2AC862F800CF097D /* JSON */ = {
+			isa = PBXGroup;
+			children = (
+				5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */,
+			);
+			path = JSON;
+			sourceTree = "<group>";
+		};
 		5605F1471C672E4000235C62 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -1647,6 +1657,7 @@
 				566DDE11288D76400000DCFB /* Fixits.swift */,
 				56A2386F1B9C75030082EB20 /* Core */,
 				5698AC291D9E5A480056AF8C /* FTS */,
+				5603CEBE2AC862F800CF097D /* JSON */,
 				56A238911B9C750B0082EB20 /* Migration */,
 				5656A8252295BD56001FF3FF /* QueryInterface */,
 				56A2389F1B9C753B0082EB20 /* Record */,
@@ -2015,6 +2026,7 @@
 				5656A88F2295BD56001FF3FF /* Column.swift in Sources */,
 				564CE5B721B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				5656A8612295BD56001FF3FF /* TableRecord+Association.swift in Sources */,
+				5603CEC42AC862F800CF097D /* SQLJSONFunctions.swift in Sources */,
 				F3BA808C1CFB2E75003DC1BA /* DatabaseMigrator.swift in Sources */,
 				563CBBE42A595141008905CE /* SQLIndexGenerator.swift in Sources */,
 				5613ED6121A95E6100DC7A68 /* ValueObservation.swift in Sources */,

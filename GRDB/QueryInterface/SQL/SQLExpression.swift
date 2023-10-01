@@ -37,6 +37,25 @@
 public struct SQLExpression {
     private var impl: Impl
     
+    /// The preferred interpretation of the expression in JSON
+    /// building contexts (see `jsonBuilderExpression`).
+    ///
+    /// ```swift
+    /// // Considering:
+    /// // JSON_ARRAY('[1, 2, 3]') → '["[1, 2, 3]"]'
+    /// // JSON_ARRAY(JSON('[1, 2, 3]')) → [[1,2,3]]
+    ///
+    /// // Compare an expression with preferredJSONInterpretation = .unspecified:
+    /// // JSON_ARRAY("info")
+    /// Database.jsonArray([Column("info")])
+    ///
+    /// // ...with an expression with preferredJSONInterpretation = .jsonValue:
+    /// // JSON_ARRAY(JSON("info"))
+    /// Database.jsonArray([Column("info").jsonValue])
+    /// Database.jsonArray([JSONColumn("info")])
+    /// ```
+    var preferredJSONInterpretation = JSONInterpretation.deferredToSQLite
+    
     /// The private implementation of the public `SQLExpression`.
     private enum Impl {
         /// A column.
@@ -428,11 +447,22 @@ public struct SQLExpression {
         /// The SQL operator
         let sql: String
         
-        /// Creates a binary operator
+        /// A boolean value indicating if the operator is known to return a
+        /// JSON value.
         ///
-        ///     BinaryOperator("-")
-        init(_ sql: String) {
+        /// A false value does not provide any information.
+        let isJSONValue: Bool
+        
+        /// Creates a binary operator.
+        ///
+        /// For example:
+        ///
+        /// ```
+        /// BinaryOperator("-")
+        /// ```
+        init(_ sql: String, isJSONValue: Bool = false) {
             self.sql = sql
+            self.isJSONValue = isJSONValue
         }
         
         /// The `<` binary operator
@@ -461,6 +491,14 @@ public struct SQLExpression {
         
         /// The `>>` bitwise right shift operator
         static let rightShift = BinaryOperator(">>")
+        
+        // Not guarded by availability checks, but only available for SQLite 3.38+
+        /// The `->` SQL operator
+        static let jsonExtractJSON = BinaryOperator("->", isJSONValue: true)
+        
+        // Not guarded by availability checks, but only available for SQLite 3.38+
+        /// The `->>` SQL operator
+        static let jsonExtractSQL = BinaryOperator("->>")
     }
     
     /// `EscapableBinaryOperator` is an SQLite binary operator that accepts an
@@ -527,6 +565,36 @@ public struct SQLExpression {
         
         /// The `~` unary operator
         static let bitwiseNot = UnaryOperator("~")
+    }
+    
+    /// Describes the interpretation of an expression in a JSON
+    /// building context.
+    enum JSONInterpretation {
+        /// JSON interpretation is deferred to SQLite:
+        ///
+        /// ```swift
+        /// // JSON_ARRAY('[1, 2, 3]') → '["[1, 2, 3]"]'
+        /// Database.jsonArray(["[1, 2, 3]"])
+        ///
+        /// // JSON_ARRAY(JSON('[1, 2, 3]')) → '[[1, 2, 3]]'
+        /// Database.jsonArray([Database.json("[1, 2, 3]")])
+        ///
+        /// // JSON_ARRAY("info")
+        /// Database.jsonArray([Column("info")])
+        /// ```
+        case deferredToSQLite
+        
+        /// Expression is interpreted as a JSON value:
+        ///
+        /// ```swift
+        /// // JSON_ARRAY(JSON('[1, 2, 3]')) → '[[1, 2, 3]]'
+        /// Database.jsonArray(["[1, 2, 3]"].jsonValue)
+        ///
+        /// // JSON_ARRAY(JSON("info"))
+        /// Database.jsonArray([Column("info").jsonValue])
+        /// Database.jsonArray([JSONColumn("info")])
+        /// ```
+        case jsonValue
     }
 }
 
@@ -922,7 +990,11 @@ extension SQLExpression {
 extension SQLExpression {
     /// Returns a qualified expression
     func qualified(with alias: TableAlias) -> Self {
-        .init(impl: impl.qualified(with: alias))
+        .init(impl: impl.qualified(with: alias), preferredJSONInterpretation: preferredJSONInterpretation)
+    }
+    
+    func withPreferredJSONInterpretation(_ interpretation: JSONInterpretation) -> Self {
+        .init(impl: impl, preferredJSONInterpretation: interpretation)
     }
 }
 
@@ -1730,6 +1802,12 @@ struct SQLFunctionFlags {
     /// A boolean value indicating if the function should have `DISTINCT`
     /// in its SQL generation (as in `COUNT(DISTINCT ...)`).
     var isDistinct = false
+    
+    /// A boolean value indicating if a function is known to return a
+    /// JSON value.
+    ///
+    /// A false value does not provide any information.
+    var isJSONValue = false
 }
 
 extension SQLFunctionFlags {
@@ -1796,6 +1874,20 @@ extension SQLFunctionFlags {
         "TOTAL",
     ]
     
+    private static let knownFunctionsReturningJSONValue: Set<String> = [
+        "JSON",
+        "JSON_ARRAY",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "JSON_INSERT",
+        "JSON_OBJECT",
+        "JSON_PATCH",
+        "JSON_REMOVE",
+        "JSON_REPLACE",
+        "JSON_SET",
+        "JSON_QUOTE",
+    ]
+    
     /// Infers flags from the function name and number of arguments.
     static func defaultFlags(for functionName: String, argumentCount: Int) -> Self {
         var flags = SQLFunctionFlags()
@@ -1810,10 +1902,99 @@ extension SQLFunctionFlags {
             flags.isAggregate = Self.knownAggregateFunctions.contains(name.uppercased())
         }
         
+        if name == "JSON_EXTRACT" && argumentCount > 2 {
+            flags.isJSONValue = true
+        } else {
+            flags.isJSONValue = Self.knownFunctionsReturningJSONValue.contains(name)
+        }
+        
         return flags
     }
 }
 
+// MARK: - JSON
+
+extension SQLExpression {
+    /// A boolean value indicating if the expression is known to be a
+    /// JSON value.
+    ///
+    /// A false value does not provide any information.
+    ///
+    /// For examples:
+    ///
+    /// ```swift
+    /// // isJSONValue is true:
+    /// //
+    /// // NULL
+    /// // JSON('[1, 2, 3]')
+    /// // info -> 'address'
+    /// DatabaseValue.null
+    /// Database.json("[1, 2, 3]")
+    /// JSONColumn("info").jsonString(forKey: "address")
+    ///
+    /// // isJSONValue is false
+    /// //
+    /// // '[1, 2, 3]'
+    /// // info
+    /// // info ->> 'address'
+    /// [1, 2, 3].databaseValue
+    /// JSONColumn("info")
+    /// JSONColumn("info")["address"]
+    /// ```
+    var isJSONValue: Bool {
+        switch impl {
+        case .databaseValue(.null):
+            return true
+            
+        case let .binary(op, _, _):
+            return op.isJSONValue
+            
+        case let .collated(expression, _):
+            return expression.isJSONValue
+            
+        case let .function(_, flags: flags, arguments: _):
+            return flags.isJSONValue
+            
+        default:
+            return false
+        }
+    }
+    
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Returns an expression suitable in JSON building contexts.
+    var jsonBuilderExpression: SQLExpression {
+        switch preferredJSONInterpretation {
+        case .deferredToSQLite:
+            return self
+            
+        case .jsonValue:
+            if isJSONValue {
+                return self
+            } else {
+                // Needs explicit call to JSON()
+                return .function("JSON", [self])
+            }
+        }
+    }
+#else
+    @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+    /// Returns an expression suitable in JSON building contexts.
+    var jsonBuilderExpression: SQLExpression {
+        switch preferredJSONInterpretation {
+        case .deferredToSQLite:
+            return self
+            
+        case .jsonValue:
+            if isJSONValue {
+                return self
+            } else {
+                // Needs explicit call to JSON()
+                return .function("JSON", [self])
+            }
+        }
+    }
+#endif
+}
 
 // MARK: - SQLExpressible
 
