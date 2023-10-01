@@ -19,7 +19,7 @@ public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// average(Column("length"))
 /// ```
 public func average(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("AVG", [value.sqlExpression])
+    .function("AVG", [value.sqlExpression])
 }
 
 /// The `COUNT` SQL function.
@@ -81,7 +81,7 @@ public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// max(Column("score"))
 /// ```
 public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("MAX", [value.sqlExpression])
+    .function("MAX", [value.sqlExpression])
 }
 
 /// The `MIN` SQL function.
@@ -93,7 +93,7 @@ public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// min(Column("score"))
 /// ```
 public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("MIN", [value.sqlExpression])
+    .function("MIN", [value.sqlExpression])
 }
 
 /// The `SUM` SQL function.
@@ -109,7 +109,7 @@ public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
 public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("SUM", [value.sqlExpression])
+    .function("SUM", [value.sqlExpression])
 }
 
 /// The `TOTAL` SQL function.
@@ -125,7 +125,7 @@ public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
 public func total(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("TOTAL", [value.sqlExpression])
+    .function("TOTAL", [value.sqlExpression])
 }
 
 // MARK: - String functions

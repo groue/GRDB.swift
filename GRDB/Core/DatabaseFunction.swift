@@ -30,9 +30,22 @@ public final class DatabaseFunction: Hashable {
     /// The name of the SQL function
     public var name: String { identity.name }
     private let identity: Identity
-    let pure: Bool
+    let isPure: Bool
     private let kind: Kind
-    private var eTextRep: CInt { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var eTextRep: CInt { (SQLITE_UTF8 | (isPure ? SQLITE_DETERMINISTIC : 0)) }
+    
+    var functionFlags: SQLFunctionFlags {
+        var flags = SQLFunctionFlags(isPure: isPure)
+        
+        switch kind {
+        case .function:
+            break
+        case .aggregate:
+            flags.isAggregate = true
+        }
+        
+        return flags
+    }
     
     /// Creates an SQL function.
     ///
@@ -76,7 +89,7 @@ public final class DatabaseFunction: Hashable {
         function: @escaping ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
         self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
+        self.isPure = pure
         self.kind = .function{ (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in
                 DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
@@ -140,7 +153,7 @@ public final class DatabaseFunction: Hashable {
         aggregate: Aggregate.Type)
     {
         self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
+        self.isPure = pure
         self.kind = .aggregate { Aggregate() }
     }
     
@@ -170,12 +183,7 @@ public final class DatabaseFunction: Hashable {
     /// }
     /// ```
     public func callAsFunction(_ arguments: any SQLExpressible...) -> SQLExpression {
-        switch kind {
-        case .aggregate:
-            return .function(name, arguments.map(\.sqlExpression))
-        case .function:
-            return .aggregate(name, arguments.map(\.sqlExpression))
-        }
+        .function(name, arguments.map(\.sqlExpression), flags: functionFlags)
     }
 
     /// Calls sqlite3_create_function_v2
