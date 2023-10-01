@@ -218,6 +218,7 @@ extension MutablePersistableRecord {
 
 extension MutablePersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
     /// new record built from the updated row.
     ///
@@ -241,6 +242,7 @@ extension MutablePersistableRecord {
         try updateAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
     /// new record built from the updated row.
     ///
@@ -267,6 +269,7 @@ extension MutablePersistableRecord {
         }
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a
@@ -294,6 +297,7 @@ extension MutablePersistableRecord {
         try updateChangesAndFetch(db, onConflict: conflictResolution, as: Self.self, modify: modify)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a
@@ -478,6 +482,7 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a
@@ -514,6 +519,7 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
 #else
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `UPDATE RETURNING` statement on all columns, and returns a
     /// new record built from the updated row.
     ///
@@ -565,6 +571,7 @@ extension MutablePersistableRecord {
         }
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a
@@ -593,6 +600,7 @@ extension MutablePersistableRecord {
         try updateChangesAndFetch(db, onConflict: conflictResolution, as: Self.self, modify: modify)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a
@@ -781,6 +789,7 @@ extension MutablePersistableRecord {
             fetch: fetch)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Modifies the record according to the provided `modify` closure, and
     /// executes an `UPDATE RETURNING` statement that updates the modified
     /// columns, if and only if the record was modified. The method returns a

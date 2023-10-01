@@ -91,6 +91,7 @@ extension MutablePersistableRecord {
 
 extension MutablePersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
@@ -122,6 +123,7 @@ extension MutablePersistableRecord {
         return try result.insertAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
@@ -264,6 +266,7 @@ extension MutablePersistableRecord {
         return success.returned
     }
 #else
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
@@ -296,6 +299,7 @@ extension MutablePersistableRecord {
         return try result.insertAndFetch(db, onConflict: conflictResolution, as: Self.self)
     }
     
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
