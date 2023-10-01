@@ -1826,6 +1826,14 @@ extension Database {
         /// The `TEXT` column type.
         public static let text = ColumnType(rawValue: "TEXT")
         
+        /// The `TEXT` column type, suitable for JSON columns.
+        ///
+        /// SQLite JSON functions and operators are
+        /// [documented](https://www.sqlite.org/json1.html#interface_overview)
+        /// to throw errors if any of their arguments are binary blobs.
+        /// That's the reason why it is recommended to store JSON as text.
+        public static let jsonText = ColumnType(rawValue: "TEXT")
+        
         /// The `INTEGER` column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
         
