@@ -14,6 +14,8 @@
 		560233C42724234F00529DF3 /* SharedValueObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233C32724234F00529DF3 /* SharedValueObservation.swift */; };
 		560233C92724338800529DF3 /* SharedValueObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233C82724338800529DF3 /* SharedValueObservationTests.swift */; };
 		5603CEBA2AC862EC00CF097D /* SQLJSONFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEB62AC862EC00CF097D /* SQLJSONFunctions.swift */; };
+		5603CEBB2AC862EC00CF097D /* SQLJSONExpressible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEB72AC862EC00CF097D /* SQLJSONExpressible.swift */; };
+		5603CEBC2AC862EC00CF097D /* JSONColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEB82AC862EC00CF097D /* JSONColumn.swift */; };
 		560432A0228F00C2009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */; };
 		560432A3228F1668009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A2228F1667009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
 		5604484925DEEEF7002BAA79 /* AssociationPrefetchingRelationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5604484825DEEEF7002BAA79 /* AssociationPrefetchingRelationTests.swift */; };
@@ -420,6 +422,8 @@
 		560233C32724234F00529DF3 /* SharedValueObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedValueObservation.swift; sourceTree = "<group>"; };
 		560233C82724338800529DF3 /* SharedValueObservationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedValueObservationTests.swift; sourceTree = "<group>"; };
 		5603CEB62AC862EC00CF097D /* SQLJSONFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLJSONFunctions.swift; sourceTree = "<group>"; };
+		5603CEB72AC862EC00CF097D /* SQLJSONExpressible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLJSONExpressible.swift; sourceTree = "<group>"; };
+		5603CEB82AC862EC00CF097D /* JSONColumn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONColumn.swift; sourceTree = "<group>"; };
 		56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
 		560432A2228F1667009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
 		5604484825DEEEF7002BAA79 /* AssociationPrefetchingRelationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRelationTests.swift; sourceTree = "<group>"; };
@@ -847,6 +851,8 @@
 		5603CEB52AC862EC00CF097D /* JSON */ = {
 			isa = PBXGroup;
 			children = (
+				5603CEB82AC862EC00CF097D /* JSONColumn.swift */,
+				5603CEB72AC862EC00CF097D /* SQLJSONExpressible.swift */,
 				5603CEB62AC862EC00CF097D /* SQLJSONFunctions.swift */,
 			);
 			path = JSON;
@@ -2164,6 +2170,7 @@
 				5659F4881EA8D94E004A4992 /* Utils.swift in Sources */,
 				566BE71E2342542F00A8254B /* LockedBox.swift in Sources */,
 				56A238931B9C750B0082EB20 /* DatabaseMigrator.swift in Sources */,
+				5603CEBB2AC862EC00CF097D /* SQLJSONExpressible.swift in Sources */,
 				56F89DF72A57EAA9002FE2AA /* ColumnDefinition.swift in Sources */,
 				5611620825757583007AAF99 /* JoinAssociation.swift in Sources */,
 				5695311F1C907A8C00CF1A2B /* DatabaseSchemaCache.swift in Sources */,
@@ -2192,6 +2199,7 @@
 				56D110BF28AFC51000E64463 /* MutablePersistableRecord+Insert.swift in Sources */,
 				566B9C2025C6CC24004542CF /* RowDecodingError.swift in Sources */,
 				5698AD211DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
+				5603CEBC2AC862EC00CF097D /* JSONColumn.swift in Sources */,
 				56A238831B9C75030082EB20 /* DatabaseQueue.swift in Sources */,
 				5605F1671C672E4000235C62 /* NSNumber.swift in Sources */,
 				56E9FADA221053DD00C703A8 /* SQL.swift in Sources */,

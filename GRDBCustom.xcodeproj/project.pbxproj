@@ -14,6 +14,8 @@
 		560233CF2724339A00529DF3 /* SharedValueObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233CC2724339A00529DF3 /* SharedValueObservationTests.swift */; };
 		560233D127243A9200529DF3 /* SharedValueObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560233D027243A9100529DF3 /* SharedValueObservation.swift */; };
 		5603CEC42AC862F800CF097D /* SQLJSONFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */; };
+		5603CEC52AC862F800CF097D /* SQLJSONExpressible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEC02AC862F800CF097D /* SQLJSONExpressible.swift */; };
+		5603CEC62AC862F800CF097D /* JSONColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CEC12AC862F800CF097D /* JSONColumn.swift */; };
 		56043296228F00A9009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */; };
 		560432A6228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
 		5604484E25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5604484C25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift */; };
@@ -436,6 +438,8 @@
 		560233CC2724339A00529DF3 /* SharedValueObservationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedValueObservationTests.swift; sourceTree = "<group>"; };
 		560233D027243A9100529DF3 /* SharedValueObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedValueObservation.swift; sourceTree = "<group>"; };
 		5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLJSONFunctions.swift; sourceTree = "<group>"; };
+		5603CEC02AC862F800CF097D /* SQLJSONExpressible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLJSONExpressible.swift; sourceTree = "<group>"; };
+		5603CEC12AC862F800CF097D /* JSONColumn.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONColumn.swift; sourceTree = "<group>"; };
 		56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
 		560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
 		5604484C25DEEF7C002BAA79 /* AssociationPrefetchingRelationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRelationTests.swift; sourceTree = "<group>"; };
@@ -860,6 +864,8 @@
 		5603CEBE2AC862F800CF097D /* JSON */ = {
 			isa = PBXGroup;
 			children = (
+				5603CEC12AC862F800CF097D /* JSONColumn.swift */,
+				5603CEC02AC862F800CF097D /* SQLJSONExpressible.swift */,
 				5603CEBF2AC862F800CF097D /* SQLJSONFunctions.swift */,
 			);
 			path = JSON;
@@ -1995,6 +2001,7 @@
 				F3BA807F1CFB2E61003DC1BA /* NSString.swift in Sources */,
 				56F89DFA2A57EAB9002FE2AA /* ColumnDefinition.swift in Sources */,
 				56F89E1C2A585E0D002FE2AA /* SQLTableGenerator.swift in Sources */,
+				5603CEC52AC862F800CF097D /* SQLJSONExpressible.swift in Sources */,
 				560233D127243A9200529DF3 /* SharedValueObservation.swift in Sources */,
 				5656A8592295BD56001FF3FF /* SQLGenerationContext.swift in Sources */,
 				5690C3421D23E82A00E59934 /* Data.swift in Sources */,
@@ -2023,6 +2030,7 @@
 				5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				5656A85B2295BD56001FF3FF /* TableDefinition.swift in Sources */,
 				5656A8552295BD56001FF3FF /* FTS5+QueryInterface.swift in Sources */,
+				5603CEC62AC862F800CF097D /* JSONColumn.swift in Sources */,
 				5656A88F2295BD56001FF3FF /* Column.swift in Sources */,
 				564CE5B721B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				5656A8612295BD56001FF3FF /* TableRecord+Association.swift in Sources */,
