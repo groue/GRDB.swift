@@ -17,15 +17,20 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 - ``PersistableRecord``
 - ``TableRecord``
 
-### Associations
+### Expressions
 
-- ``Association``
+- ``Column``
+- ``SQLExpression``
 
-### Query Interface Requests
+### Requests
 
 - ``CommonTableExpression``
 - ``QueryInterfaceRequest``
 - ``Table``
+
+### Associations
+
+- ``Association``
 
 ### Errors
 
@@ -34,9 +39,10 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 
 ### Supporting Types
 
+- ``ColumnExpression``
 - ``DerivableRequest``
 - ``SQLExpressible``
 - ``SQLSpecificExpressible``
+- ``SQLSubqueryable``
 - ``SQLOrderingTerm``
 - ``SQLSelectable``
-- ``SQLSubqueryable``

@@ -2001,12 +2001,6 @@ extension SQLExpression {
 /// A type that can be used as an SQL expression.
 ///
 /// Related SQLite documentation <https://www.sqlite.org/syntax/expr.html>
-///
-/// ## Topics
-///
-/// ### Supporting Type
-///
-/// - ``SQLExpression``
 public protocol SQLExpressible {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
@@ -2030,11 +2024,6 @@ extension SQLExpressible where Self == Column {
 /// On the other side, `Int` adopts ``SQLExpressible``.
 ///
 /// ## Topics
-///
-/// ### Column Expressions
-///
-/// - ``Column``
-/// - ``ColumnExpression``
 ///
 /// ### Applying a Collation
 ///

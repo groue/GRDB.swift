@@ -93,14 +93,8 @@ let players: [Player] = try dbQueue.read { db in
 - <doc:RecordTimestamps>
 - <doc:SingleRowTables>
 
-### Responding to Database Changes
+### Database Tools
 
 - <doc:DatabaseObservation>
-
-### Full-Text Search
-
 - <doc:FullTextSearch>
-
-### Combine Publishers
-
 - ``DatabasePublishers``
