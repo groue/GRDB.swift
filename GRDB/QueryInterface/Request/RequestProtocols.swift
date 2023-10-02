@@ -442,7 +442,11 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? any EncodableRecord.Type {
-            if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
+            if Sequence.Element.self == Data.self || Sequence.Element.self == Optional<Data>.self {
+                let strategy = recordType.databaseDataEncodingStrategy
+                let keys = keys.compactMap { ($0 as! Data?).flatMap(strategy.encode)?.databaseValue }
+                return filter(rawKeys: keys)
+            } else if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
                 let strategy = recordType.databaseDateEncodingStrategy
                 let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
                 return filter(rawKeys: keys)

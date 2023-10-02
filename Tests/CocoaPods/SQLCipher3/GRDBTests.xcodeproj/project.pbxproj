@@ -3,10 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		561F38F92AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */; };
+		561F38FA2AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */; };
+		561F38FB2AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */; };
+		561F38FC2AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */; };
 		56419D6724A54062004967E1 /* DatabasePoolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9C24A54053004967E1 /* DatabasePoolTests.swift */; };
 		56419D6824A54062004967E1 /* DatabasePoolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9C24A54053004967E1 /* DatabasePoolTests.swift */; };
 		56419D6924A54062004967E1 /* ResultCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9D24A54053004967E1 /* ResultCodeTests.swift */; };
@@ -459,6 +463,8 @@
 /* Begin PBXFileReference section */
 		04298D834C818285823558AB /* Pods-GRDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.release.xcconfig"; sourceTree = "<group>"; };
 		47C5D1B9AFFE795AA1D6EA5D /* Pods-GRDBTestsEncrypted.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.release.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.release.xcconfig"; sourceTree = "<group>"; };
+		561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataDecodingStrategyTests.swift; sourceTree = "<group>"; };
+		561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		56419C9C24A54053004967E1 /* DatabasePoolTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePoolTests.swift; sourceTree = "<group>"; };
 		56419C9D24A54053004967E1 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
 		56419C9E24A54053004967E1 /* DatabaseQueueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueTests.swift; sourceTree = "<group>"; };
@@ -827,6 +833,8 @@
 				56419CE824A54059004967E1 /* DatabaseCollationTests.swift */,
 				56419D1124A5405C004967E1 /* DatabaseConfigurationTests.swift */,
 				56419CA424A54054004967E1 /* DatabaseCursorTests.swift */,
+				561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */,
+				561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */,
 				56419CCE24A54057004967E1 /* DatabaseDateDecodingStrategyTests.swift */,
 				56419CE424A54058004967E1 /* DatabaseDateEncodingStrategyTests.swift */,
 				56419CAF24A54054004967E1 /* DatabaseErrorTests.swift */,
@@ -1226,6 +1234,7 @@
 				56419DF324A54062004967E1 /* AssociationBelongsToSQLDerivationTests.swift in Sources */,
 				56419E6724A54062004967E1 /* AssociationHasOneThroughDecodableRecordTests.swift in Sources */,
 				56419E4D24A54062004967E1 /* FoundationNSDecimalNumberTests.swift in Sources */,
+				561F38F92AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift in Sources */,
 				56419E6B24A54062004967E1 /* ValueObservationFetchTests.swift in Sources */,
 				56419D8524A54062004967E1 /* FTS4RecordTests.swift in Sources */,
 				5641A1B224A540D6004967E1 /* Next.swift in Sources */,
@@ -1383,6 +1392,7 @@
 				56419EA924A54063004967E1 /* DatabasePoolReleaseMemoryTests.swift in Sources */,
 				56419E7F24A54063004967E1 /* DatabaseQueueConcurrencyTests.swift in Sources */,
 				56419EF124A54063004967E1 /* StatementColumnConvertibleFetchTests.swift in Sources */,
+				561F38FB2AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */,
 				56419EA324A54063004967E1 /* TableRecordDeleteTests.swift in Sources */,
 				56419EFB24A54063004967E1 /* FoundationDateComponentsTests.swift in Sources */,
 				56419E3D24A54062004967E1 /* FTS3TableBuilderTests.swift in Sources */,
@@ -1452,6 +1462,7 @@
 				56419DF424A54062004967E1 /* AssociationBelongsToSQLDerivationTests.swift in Sources */,
 				56419E6824A54062004967E1 /* AssociationHasOneThroughDecodableRecordTests.swift in Sources */,
 				56419E4E24A54062004967E1 /* FoundationNSDecimalNumberTests.swift in Sources */,
+				561F38FA2AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift in Sources */,
 				56419E6C24A54062004967E1 /* ValueObservationFetchTests.swift in Sources */,
 				56419D8624A54062004967E1 /* FTS4RecordTests.swift in Sources */,
 				5641A1B324A540D6004967E1 /* Next.swift in Sources */,
@@ -1609,6 +1620,7 @@
 				56419EAA24A54063004967E1 /* DatabasePoolReleaseMemoryTests.swift in Sources */,
 				56419E8024A54063004967E1 /* DatabaseQueueConcurrencyTests.swift in Sources */,
 				56419EF224A54063004967E1 /* StatementColumnConvertibleFetchTests.swift in Sources */,
+				561F38FC2AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */,
 				56419EA424A54063004967E1 /* TableRecordDeleteTests.swift in Sources */,
 				56419EFC24A54063004967E1 /* FoundationDateComponentsTests.swift in Sources */,
 				56419E3E24A54062004967E1 /* FTS3TableBuilderTests.swift in Sources */,
