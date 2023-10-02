@@ -1,3 +1,106 @@
+/// A type of SQL expression that is interpreted as a JSON value.
+///
+/// ## Overview
+///
+/// JSON values that conform to `SQLJSONExpressible` have two purposes:
+///
+/// - They provide Swift APIs for accessing their JSON subcomponents at
+/// the SQL level.
+///
+/// - When used in a JSON-building function such as
+///   ``Database/jsonArray(_:)-8xxe3`` or ``Database/jsonObject(_:)``,
+///   they are parsed and interpreted as JSON, not as plain strings.
+///
+/// To build a JSON value, create a ``JSONColumn``, or call the
+///  ``SQLSpecificExpressible/asJSON`` property of any
+/// other expression.
+///
+/// For example, here are some JSON values:
+///
+/// ```swift
+/// // JSON columns:
+/// JSONColumn("info")
+/// Column("info").asJSON
+///
+/// // The JSON array [1, 2, 3]:
+/// "[1, 2, 3]".databaseValue.asJSON
+///
+/// // A JSON value that will trigger a
+/// // "malformed JSON" SQLite error when
+/// // parsed by SQLite:
+/// "{foo".databaseValue.asJSON
+/// ```
+///
+/// The expressions below are not JSON values:
+///
+/// ```swift
+/// // A plain column:
+/// Column("info")
+///
+/// // Plain strings:
+/// "[1, 2, 3]"
+/// "{foo"
+/// ```
+///
+/// ## Access JSON subcomponents
+///
+/// JSON values provide access to the [`->` and `->>` SQL operators](https://www.sqlite.org/json1.html)
+/// and other SQLite JSON functions:
+///
+/// ```swift
+/// let info = JSONColumn("info")
+///
+/// // SELECT info ->> 'firstName' FROM player
+/// // → 'Arthur'
+/// let firstName = try Player
+///     .select(info["firstName"], as: String.self)
+///     .fetchOne(db)
+///
+/// // SELECT info ->> 'address' FROM player
+/// // → '{"street":"Rue de Belleville","city":"Paris"}'
+/// let address = try Player
+///     .select(info["address"], as: String.self)
+///     .fetchOne(db)
+/// ```
+///
+/// ## Build JSON objects and arrays from JSON values
+///
+/// When used in a JSON-building function such as
+/// ``Database/jsonArray(_:)-8xxe3`` or ``Database/jsonObject(_:)-5iswr``,
+/// JSON values are parsed and interpreted as JSON, not as plain strings.
+///
+/// In the example below, we can see how the `JSONColumn` is interpreted as
+/// JSON, while the `Column` with the same name is interpreted as a
+/// plain string:
+///
+/// ```swift
+/// let elements: [any SQLExpressible] = [
+///     JSONColumn("address"),
+///     Column("address"),
+/// ]
+///
+/// let array = Database.jsonArray(elements)
+///
+/// // SELECT JSON_ARRAY(JSON(address), address) FROM player
+/// // → '[{"country":"FR"},"{\"country\":\"FR\"}"]'
+/// //     <--- object ---> <------ string ------>
+/// let json = try Player
+///     .select(array, as: String.self)
+///     .fetchOne(db)
+/// ```
+///
+/// ## Topics
+///
+/// ### Accessing JSON subcomponents
+///
+/// - ``subscript(_:)``
+/// - ``jsonExtract(atPath:)``
+/// - ``jsonExtract(atPaths:)``
+/// - ``jsonRepresentation(atPath:)``
+///
+/// ### Supporting Types
+///
+/// - ``AnySQLJSONExpressible``
 public protocol SQLJSONExpressible: SQLSpecificExpressible { }
 
 extension ColumnExpression where Self: SQLJSONExpressible {

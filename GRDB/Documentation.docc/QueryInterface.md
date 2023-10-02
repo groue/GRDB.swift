@@ -20,6 +20,7 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 ### Expressions
 
 - ``Column``
+- ``JSONColumn``
 - ``SQLExpression``
 
 ### Requests
@@ -42,6 +43,7 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 - ``ColumnExpression``
 - ``DerivableRequest``
 - ``SQLExpressible``
+- ``SQLJSONExpressible``
 - ``SQLSpecificExpressible``
 - ``SQLSubqueryable``
 - ``SQLOrderingTerm``

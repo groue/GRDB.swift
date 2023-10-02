@@ -1930,7 +1930,7 @@ extension SQLExpression {
     /// // info -> 'address'
     /// DatabaseValue.null
     /// Database.json("[1, 2, 3]")
-    /// JSONColumn("info").jsonString(forKey: "address")
+    /// JSONColumn("info").jsonRepresentation(forKey: "address")
     ///
     /// // isJSONValue is false
     /// //
@@ -2032,6 +2032,8 @@ extension SQLExpressible where Self == Column {
 ///
 /// ### SQL Functions & Operators
 ///
+/// See also JSON functions in <doc:JSON>.
+///
 /// - ``abs(_:)-5l6xp``
 /// - ``average(_:)``
 /// - ``capitalized``
@@ -2051,6 +2053,10 @@ extension SQLExpressible where Self == Column {
 /// - ``total(_:)``
 /// - ``uppercased``
 /// - ``SQLDateModifier``
+///
+/// ### Interpreting an expression as JSON
+///
+/// - ``asJSON``
 ///
 /// ### Creating Ordering Terms
 ///

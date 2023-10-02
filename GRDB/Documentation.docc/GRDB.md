@@ -97,4 +97,5 @@ let players: [Player] = try dbQueue.read { db in
 
 - <doc:DatabaseObservation>
 - <doc:FullTextSearch>
+- <doc:JSON>
 - ``DatabasePublishers``

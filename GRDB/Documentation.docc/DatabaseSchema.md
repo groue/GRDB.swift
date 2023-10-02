@@ -26,6 +26,8 @@ Even though all schema are supported, some features of the library and of the Sw
 
 When those conventions are not applied, or not applicable, you will have to perform extra configurations.
 
+For recommendations specific to JSON columns, see <doc:JSON>.
+
 ### Table names should be English, singular, and camelCased
 
 Make them look like singular Swift identifiers: `player`, `team`, `postalAddress`:
