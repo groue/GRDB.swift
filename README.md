@@ -2502,7 +2502,7 @@ try Player.deleteAll(db, ids: [1, 2, 3])
 > **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
 > 
 > ```swift
-> // Those methods are not type-checked
+> // Available on non-Identifiable types
 > try Player.fetchOne(db, key: 1)
 > try Player.fetchOne(db, key: ["email": "arthur@example.com"])
 > try Country.fetchAll(db, keys: ["FR", "US"])
@@ -2514,6 +2514,26 @@ try Player.deleteAll(db, ids: [1, 2, 3])
 > try Player.deleteOne(db, key: 1)
 > try Player.deleteAll(db, keys: [1, 2, 3])
 > ```
+
+> **Note**: It is not recommended to use `Identifiable` on record types that use an auto-incremented primary key:
+>
+> ```swift
+> // AVOID declaring Identifiable conformance when key is auto-incremented
+> struct Player {
+>     var id: Int64? // Not an id suitable for Identifiable
+>     var name: String
+>     var score: Int
+> }
+> 
+> extension Player: FetchableRecord, MutablePersistableRecord {
+>     // Update auto-incremented id upon successful insertion
+>     mutating func didInsert(_ inserted: InsertionSuccess) {
+>         id = inserted.rowID
+>     }
+> }
+> ```
+>
+> For a detailed rationale, please see [issue #1435](https://github.com/groue/GRDB.swift/issues/1435#issuecomment-1740857712).
 
 Some database tables have a single-column primary key which is not called "id":
 

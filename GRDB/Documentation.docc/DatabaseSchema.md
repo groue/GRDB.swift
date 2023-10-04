@@ -165,11 +165,6 @@ struct Player: Codable {
     var score: Int
 }
 
-extension Player: Identifiable {
-    // Required because the primary key column is not 'id'
-    var id: Int64? { rowid }
-}
-
 extension Player: FetchableRecord, MutablePersistableRecord {
     // Required because the primary key
     // is the hidden rowid column.

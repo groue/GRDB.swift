@@ -119,10 +119,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#1429](https://github.com/groue/GRDB.swift/pull/1429) by [@JhonnyBillM](https://github.com/JhonnyBillM): Allow `DatabaseValueConvertible` types to customize their database JSON format
-- **New**: `Database` has learned to create indexes on expressions, and specify specific collations on indexed columns, with the `create(index:on:expressions:options:condition:)` method. 
 - **New**: [#1436](https://github.com/groue/GRDB.swift/pull/1436) by [@myyra](https://github.com/myyra) and [@groue](https://github.com/groue): JSON functions
+- **New**: `Database` has learned to create indexes on expressions, and specify specific collations on indexed columns, with the `create(index:on:expressions:options:condition:)` method. 
 - **New**: Codable records can specify coding strategies for their `Data` properties. See [#1436](https://github.com/groue/GRDB.swift/pull/1436) for more information.
 - **Documentation Update**: A new [JSON Support](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/json) article provides an overview of JSON handling.
+- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/v6.18.0/documentation/grdb/recordrecommendedpractices) now recommend that record types with an auto-incremented id avoid conforming to the `Identifiable` protocol.
 
 ## 6.18.0
 
