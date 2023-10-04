@@ -126,7 +126,7 @@ Released October 4, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compa
 - **New**: `Database` has learned to create indexes on expressions, and specify specific collations on indexed columns, with the `create(index:on:expressions:options:condition:)` method. 
 - **New**: Codable records can specify coding strategies for their `Data` properties. See [#1436](https://github.com/groue/GRDB.swift/pull/1436) for more information.
 - **Documentation Update**: A new [JSON Support](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/json) article provides an overview of JSON handling.
-- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/v6.18.0/documentation/grdb/recordrecommendedpractices) now recommend that record types with an auto-incremented id avoid conforming to the `Identifiable` protocol.
+- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) now recommend that record types with an auto-incremented id avoid conforming to the `Identifiable` protocol.
 
 ## 6.18.0
 
