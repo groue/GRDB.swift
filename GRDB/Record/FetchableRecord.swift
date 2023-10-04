@@ -89,10 +89,12 @@ import Foundation
 /// ### Configuring Row Decoding for the Standard Decodable Protocol
 ///
 /// - ``databaseColumnDecodingStrategy-6uefz``
+/// - ``databaseDataDecodingStrategy-71bh1``
 /// - ``databaseDateDecodingStrategy-78y03``
 /// - ``databaseDecodingUserInfo-77jim``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
 /// - ``DatabaseColumnDecodingStrategy``
+/// - ``DatabaseDataDecodingStrategy``
 /// - ``DatabaseDateDecodingStrategy``
 ///
 /// ### Supporting Types
@@ -153,6 +155,29 @@ public protocol FetchableRecord {
     /// ``init(row:)-4ptlh`` implementation.
     static func databaseJSONDecoder(for column: String) -> JSONDecoder
     
+    /// The strategy for decoding `Data` columns.
+    ///
+    /// This property is dedicated to ``FetchableRecord`` types that also
+    /// conform to the standard `Decodable` protocol and use the default
+    /// ``init(row:)-4ptlh`` implementation.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, Decodable {
+    ///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
+    ///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+    ///             return nil
+    ///         }
+    ///         return Data(base64Encoded: base64Data)
+    ///     }
+    ///
+    ///     // Decoded from both database base64 strings and blobs
+    ///     var myData: Data
+    /// }
+    /// ```
+    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { get }
+
     /// The strategy for decoding `Date` columns.
     ///
     /// This property is dedicated to ``FetchableRecord`` types that also
@@ -214,6 +239,12 @@ extension FetchableRecord {
         decoder.nonConformingFloatDecodingStrategy = .throw
         decoder.userInfo = databaseDecodingUserInfo
         return decoder
+    }
+    
+    /// The default strategy for decoding `Data` columns is
+    /// ``DatabaseDataDecodingStrategy/deferredToData``.
+    public static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy {
+        .deferredToData
     }
     
     /// The default strategy for decoding `Date` columns is
@@ -821,6 +852,39 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public func _element(sqliteStatement: SQLiteStatement) throws -> Record {
         try Record(row: _row)
     }
+}
+
+// MARK: - DatabaseDataDecodingStrategy
+
+/// `DatabaseDataDecodingStrategy` specifies how `FetchableRecord` types that
+/// also  adopt the standard `Decodable` protocol decode their
+/// `Data` properties.
+///
+/// For example:
+///
+/// ```swift
+/// struct Player: FetchableRecord, Decodable {
+///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
+///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+///             return nil
+///         }
+///         return Data(base64Encoded: base64Data)
+///     }
+///
+///     // Decoded from both database base64 strings and blobs
+///     var myData: Data
+/// }
+/// ```
+public enum DatabaseDataDecodingStrategy {
+    /// Decodes `Data` columns from SQL blobs and UTF8 text.
+    case deferredToData
+    
+    /// Decodes `Data` columns according to the user-provided function.
+    ///
+    /// If the database value does not contain a suitable value, the function
+    /// must return nil (GRDB will interpret this nil result as a conversion
+    /// error, and react accordingly).
+    case custom((DatabaseValue) -> Data?)
 }
 
 // MARK: - DatabaseDateDecodingStrategy

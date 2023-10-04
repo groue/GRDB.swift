@@ -24,7 +24,9 @@ When a schema change is not directly supported by SQLite, or not available on th
 
 Even though all schema are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
 
-When those conventions are not applied, or not applicable, you will have to perform extra configurations.  
+When those conventions are not applied, or not applicable, you will have to perform extra configurations.
+
+For recommendations specific to JSON columns, see <doc:JSON>.
 
 ### Table names should be English, singular, and camelCased
 

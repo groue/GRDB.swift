@@ -431,6 +431,15 @@ public class TableAlias {
         expression.sqlExpression.qualified(with: self)
     }
     
+    public subscript(_ expression: some SQLJSONExpressible &
+                     SQLSpecificExpressible &
+                     SQLSelectable &
+                     SQLOrderingTerm)
+    -> AnySQLJSONExpressible
+    {
+        AnySQLJSONExpressible(sqlExpression: expression.sqlExpression.qualified(with: self))
+    }
+    
     /// Returns an SQL ordering term that refers to the aliased table.
     ///
     /// For example, let's sort books by author name first, and then by title:
