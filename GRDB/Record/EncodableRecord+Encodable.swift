@@ -128,7 +128,9 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     }
     
     fileprivate func encode<T>(_ value: T, forKey key: any CodingKey) throws where T: Encodable {
-        if let date = value as? Date {
+        if let data = value as? Data {
+            persist(Record.databaseDataEncodingStrategy.encode(data), forKey: key)
+        } else if let date = value as? Date {
             persist(Record.databaseDateEncodingStrategy.encode(date), forKey: key)
         } else if let uuid = value as? UUID {
             persist(Record.databaseUUIDEncodingStrategy.encode(uuid), forKey: key)

@@ -61,7 +61,7 @@ How you can Contribute
     - Get familiar with the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/).
     - Spaces, not tabs.
     - Whitespace-only lines are not trimmed.
-    - Documentation comments are hard-wrapped at column 80 (Xcode > Preferences > Text Editing > Display > [X] Page guide at column: 80).
+    - Documentation comments are hard-wrapped at column 76 (Xcode > Preferences > Text Editing > Display > [X] Page guide at column: 76).
     - No Swiftlint warning after a build.
 
 

@@ -37,6 +37,25 @@
 public struct SQLExpression {
     private var impl: Impl
     
+    /// The preferred interpretation of the expression in JSON
+    /// building contexts (see `jsonBuilderExpression`).
+    ///
+    /// ```swift
+    /// // Considering:
+    /// // JSON_ARRAY('[1, 2, 3]') → '["[1, 2, 3]"]'
+    /// // JSON_ARRAY(JSON('[1, 2, 3]')) → [[1,2,3]]
+    ///
+    /// // Compare an expression with preferredJSONInterpretation = .unspecified:
+    /// // JSON_ARRAY("info")
+    /// Database.jsonArray([Column("info")])
+    ///
+    /// // ...with an expression with preferredJSONInterpretation = .jsonValue:
+    /// // JSON_ARRAY(JSON("info"))
+    /// Database.jsonArray([Column("info").jsonValue])
+    /// Database.jsonArray([JSONColumn("info")])
+    /// ```
+    var preferredJSONInterpretation = JSONInterpretation.deferredToSQLite
+    
     /// The private implementation of the public `SQLExpression`.
     private enum Impl {
         /// A column.
@@ -146,7 +165,7 @@ public struct SQLExpression {
         ///
         ///     <function>(<argument>, ...)
         ///     <function>(DISTINCT <argument>)
-        case function(String, aggregate: Bool, distinct: Bool, arguments: [SQLExpression])
+        case function(String, flags: SQLFunctionFlags, arguments: [SQLExpression])
         
         /// An expression that checks for zero or positive values.
         ///
@@ -178,6 +197,90 @@ public struct SQLExpression {
         /// - For views, it is true iff any column is not null.
         /// - For CTEs, it is not implemented yet.
         case qualifiedExists(TableAlias, isNegated: Bool)
+        
+        /// Returns a qualified expression
+        func qualified(with alias: TableAlias) -> Impl {
+            switch self {
+            case .databaseValue,
+                 .qualifiedColumn,
+                 .qualifiedFastPrimaryKey,
+                 .qualifiedExists,
+                 .subquery,
+                 .exists:
+                return self
+                
+            case let .column(name):
+                return .qualifiedColumn(name, alias)
+                
+            case let .rowValue(expressions):
+                return .rowValue(expressions.map { $0.qualified(with: alias) })
+                
+            case let .literal(sqlLiteral):
+                return .literal(sqlLiteral.qualified(with: alias))
+                
+            case let .between(
+                expression: expression,
+                lowerBound: lowerBound,
+                upperBound: upperBound,
+                isNegated: isNegated):
+                
+                return .between(
+                    expression: expression.qualified(with: alias),
+                    lowerBound: lowerBound.qualified(with: alias),
+                    upperBound: upperBound.qualified(with: alias),
+                    isNegated: isNegated)
+                
+            case let .binary(op, lhs, rhs):
+                return .binary(op, lhs.qualified(with: alias), rhs.qualified(with: alias))
+                
+            case let .escapableBinary(op, lhs, rhs, escape):
+                return .escapableBinary(
+                    op,
+                    lhs.qualified(with: alias),
+                    rhs.qualified(with: alias),
+                    escape: escape?.qualified(with: alias))
+                
+            case let .associativeBinary(op, expressions):
+                return .associativeBinary(op, expressions.map { $0.qualified(with: alias) })
+                
+            case let .in(expression, collection, isNegated: isNegated):
+                return .in(
+                    expression.qualified(with: alias),
+                    collection.qualified(with: alias),
+                    isNegated: isNegated
+                )
+                
+            case let .unary(op, expression):
+                return .unary(op, expression.qualified(with: alias))
+                
+            case let .compare(op, lhs, rhs):
+                return .compare(op, lhs.qualified(with: alias), rhs.qualified(with: alias))
+                
+            case let .tableMatch(a, expression):
+                return .tableMatch(a, expression.qualified(with: alias))
+                
+            case let .not(expression):
+                return .not(expression.qualified(with: alias))
+                
+            case let .collated(expression, collationName):
+                return .collated(expression.qualified(with: alias), collationName)
+                
+            case .countAll:
+                return .countAll
+                
+            case let .function(name, flags: flags, arguments: arguments):
+                return .function(
+                    name,
+                    flags: flags,
+                    arguments: arguments.map { $0.qualified(with: alias) })
+                
+            case let .isEmpty(expression, isNegated: isNegated):
+                return .isEmpty(expression.qualified(with: alias), isNegated: isNegated)
+                
+            case .fastPrimaryKey:
+                return .qualifiedFastPrimaryKey(alias)
+            }
+        }
     }
     
     /// `BooleanTest` supports truthiness tests.
@@ -344,11 +447,22 @@ public struct SQLExpression {
         /// The SQL operator
         let sql: String
         
-        /// Creates a binary operator
+        /// A boolean value indicating if the operator is known to return a
+        /// JSON value.
         ///
-        ///     BinaryOperator("-")
-        init(_ sql: String) {
+        /// A false value does not provide any information.
+        let isJSONValue: Bool
+        
+        /// Creates a binary operator.
+        ///
+        /// For example:
+        ///
+        /// ```
+        /// BinaryOperator("-")
+        /// ```
+        init(_ sql: String, isJSONValue: Bool = false) {
             self.sql = sql
+            self.isJSONValue = isJSONValue
         }
         
         /// The `<` binary operator
@@ -377,6 +491,14 @@ public struct SQLExpression {
         
         /// The `>>` bitwise right shift operator
         static let rightShift = BinaryOperator(">>")
+        
+        // Not guarded by availability checks, but only available for SQLite 3.38+
+        /// The `->` SQL operator
+        static let jsonExtractJSON = BinaryOperator("->", isJSONValue: true)
+        
+        // Not guarded by availability checks, but only available for SQLite 3.38+
+        /// The `->>` SQL operator
+        static let jsonExtractSQL = BinaryOperator("->>")
     }
     
     /// `EscapableBinaryOperator` is an SQLite binary operator that accepts an
@@ -443,6 +565,36 @@ public struct SQLExpression {
         
         /// The `~` unary operator
         static let bitwiseNot = UnaryOperator("~")
+    }
+    
+    /// Describes the interpretation of an expression in a JSON
+    /// building context.
+    enum JSONInterpretation {
+        /// JSON interpretation is deferred to SQLite:
+        ///
+        /// ```swift
+        /// // JSON_ARRAY('[1, 2, 3]') → '["[1, 2, 3]"]'
+        /// Database.jsonArray(["[1, 2, 3]"])
+        ///
+        /// // JSON_ARRAY(JSON('[1, 2, 3]')) → '[[1, 2, 3]]'
+        /// Database.jsonArray([Database.json("[1, 2, 3]")])
+        ///
+        /// // JSON_ARRAY("info")
+        /// Database.jsonArray([Column("info")])
+        /// ```
+        case deferredToSQLite
+        
+        /// Expression is interpreted as a JSON value:
+        ///
+        /// ```swift
+        /// // JSON_ARRAY(JSON('[1, 2, 3]')) → '[[1, 2, 3]]'
+        /// Database.jsonArray(["[1, 2, 3]"].jsonValue)
+        ///
+        /// // JSON_ARRAY(JSON("info"))
+        /// Database.jsonArray([Column("info").jsonValue])
+        /// Database.jsonArray([JSONColumn("info")])
+        /// ```
+        case jsonValue
     }
 }
 
@@ -763,41 +915,31 @@ extension SQLExpression {
     ///
     ///     COUNT(<expression>)
     static func count(_ expression: SQLExpression) -> Self {
-        aggregate("COUNT", [expression])
+        function("COUNT", [expression])
     }
     
     /// The `COUNT(DISTINCT)` function.
     ///
     ///     COUNT(DISTINCT <expression>)
     static func countDistinct(_ expression: SQLExpression) -> Self {
-        distinctAggregate("COUNT", expression)
+        function("COUNT", [expression], flags: .init(isAggregate: true, isDistinct: true))
     }
     
     /// A function call.
     ///
     ///     <function>(<argument>, ...)
-    ///
-    /// - warning: for aggregate functions, call one of:
-    ///     - `SQLExpression.aggregate(_:_:)`,
-    ///     - `SQLExpression.distinctAggregate(_:_:)`,
-    ///     - `SQLExpression.countDistinct(_:)`
-    ///     - `SQLExpression.countAll`.
     static func function(_ name: String, _ arguments: [SQLExpression]) -> Self {
-        self.init(impl: .function(name, aggregate: false, distinct: false, arguments: arguments))
+        .init(impl: .function(
+            name,
+            flags: .defaultFlags(for: name, argumentCount: arguments.count),
+            arguments: arguments))
     }
     
-    /// An aggregate function call.
+    /// A function call with explicit flags.
     ///
-    ///     <aggregate>(<argument>, ...)
-    static func aggregate(_ name: String, _ arguments: [SQLExpression]) -> Self {
-        self.init(impl: .function(name, aggregate: true, distinct: false, arguments: arguments))
-    }
-    
-    /// A distinct aggregate function call.
-    ///
-    ///     <aggregate>(DISTINCT <argument>)
-    static func distinctAggregate(_ name: String, _ argument: SQLExpression) -> Self {
-        self.init(impl: .function(name, aggregate: true, distinct: true, arguments: [argument]))
+    ///     <function>(<argument>, ...)
+    static func function(_ name: String, _ arguments: [SQLExpression], flags: SQLFunctionFlags) -> Self {
+        .init(impl: .function(name, flags: flags, arguments: arguments))
     }
     
     /// An expression that checks for zero or positive values.
@@ -842,6 +984,21 @@ extension SQLExpression {
         self.init(impl: .qualifiedExists(alias, isNegated: false))
     }
 }
+
+// MARK: - Deriving Expressions
+
+extension SQLExpression {
+    /// Returns a qualified expression
+    func qualified(with alias: TableAlias) -> Self {
+        .init(impl: impl.qualified(with: alias), preferredJSONInterpretation: preferredJSONInterpretation)
+    }
+    
+    func withPreferredJSONInterpretation(_ interpretation: JSONInterpretation) -> Self {
+        .init(impl: impl, preferredJSONInterpretation: interpretation)
+    }
+}
+
+// MARK: - Expressions Information
 
 extension SQLExpression {
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
@@ -906,7 +1063,7 @@ extension SQLExpression {
         case let .collated(expression, _):
             return try expression.column(db, for: alias, acceptsBijection: acceptsBijection)
             
-        case let .function(name, aggregate: false, distinct: false, arguments: arguments):
+        case let .function(name, flags: flags, arguments: arguments) where !flags.isAggregate:
             guard acceptsBijection else {
                 return nil
             }
@@ -1101,11 +1258,11 @@ extension SQLExpression {
         case .countAll:
             return "COUNT(*)"
             
-        case let .function(name, aggregate: aggregate, distinct: distinct, arguments: arguments):
-            assert(!distinct || aggregate, "distinct requires aggregate")
-            assert(!distinct || arguments.count == 1, "distinct requires a single argument")
+        case let .function(name, flags: flags, arguments: arguments):
+            assert(!flags.isDistinct || flags.isAggregate, "distinct requires aggregate")
+            assert(!flags.isDistinct || arguments.count == 1, "distinct requires a single argument")
             return try name
-                + (distinct ? "(DISTINCT " : "(")
+                + (flags.isDistinct ? "(DISTINCT " : "(")
                 + arguments.map { try $0.sql(context) }.joined(separator: ", ")
                 + ")"
             
@@ -1516,17 +1673,6 @@ extension SQLExpression {
         }
     }
     
-    private static let knownPureFunctions = [
-        "ABS", "CHAR", "COALESCE", "GLOB", "HEX", "IFNULL",
-        "IIF", "INSTR", "LENGTH", "LIKE", "LIKELIHOOD",
-        "LIKELY", "LOAD_EXTENSION", "LOWER", "LTRIM",
-        "NULLIF", "PRINTF", "QUOTE", "REPLACE", "ROUND",
-        "RTRIM", "SOUNDEX", "SQLITE_COMPILEOPTION_GET",
-        "SQLITE_COMPILEOPTION_USED", "SQLITE_SOURCE_ID",
-        "SQLITE_VERSION", "SUBSTR", "TRIM", "TRIM",
-        "TYPEOF", "UNICODE", "UNLIKELY", "UPPER", "ZEROBLOB",
-    ]
-    
     /// Returns true if the expression has a unique value when SQLite runs
     /// a request.
     ///
@@ -1567,96 +1713,13 @@ extension SQLExpression {
              let .collated(expression, _):
             return expression.isConstantInRequest
             
-        case let .function(name, aggregate: false, distinct: false, arguments: arguments):
-            let name = name.uppercased()
-            guard ((name == "MAX" || name == "MIN") && arguments.count > 1)
-                    || Self.knownPureFunctions.contains(name)
-            else {
-                return false // Don't know - assume not constant
-            }
+        case let .function(_, flags: flags, arguments: arguments)
+            where flags.isPure && !flags.isAggregate:
             
             return arguments.allSatisfy(\.isConstantInRequest)
             
         default:
             return false
-        }
-    }
-    
-    /// Returns a qualified expression
-    func qualified(with alias: TableAlias) -> SQLExpression {
-        switch impl {
-        case .databaseValue,
-             .qualifiedColumn,
-             .qualifiedFastPrimaryKey,
-             .qualifiedExists,
-             .subquery,
-             .exists:
-            return self
-            
-        case let .column(name):
-            return .qualifiedColumn(name, alias)
-            
-        case let .rowValue(expressions):
-            assert(!expressions.isEmpty)
-            return .rowValue(expressions.map { $0.qualified(with: alias) })!
-            
-        case let .literal(sqlLiteral):
-            return .literal(sqlLiteral.qualified(with: alias))
-            
-        case let .between(expression: expression, lowerBound: lowerBound, upperBound: upperBound, isNegated: isNegated):
-            return .between(
-                expression: expression.qualified(with: alias),
-                lowerBound: lowerBound.qualified(with: alias),
-                upperBound: upperBound.qualified(with: alias),
-                isNegated: isNegated)
-            
-        case let .binary(op, lhs, rhs):
-            return .binary(op, lhs.qualified(with: alias), rhs.qualified(with: alias))
-            
-        case let .escapableBinary(op, lhs, rhs, escape):
-            return .escapableBinary(
-                op,
-                lhs.qualified(with: alias),
-                rhs.qualified(with: alias),
-                escape: escape?.qualified(with: alias))
-            
-        case let .associativeBinary(op, expressions):
-            return .associativeBinary(op, expressions.map { $0.qualified(with: alias) })
-            
-        case let .in(expression, collection, isNegated: isNegated):
-            return .in(
-                expression.qualified(with: alias),
-                collection.qualified(with: alias),
-                isNegated: isNegated
-            )
-            
-        case let .unary(op, expression):
-            return .unary(op, expression.qualified(with: alias))
-            
-        case let .compare(op, lhs, rhs):
-            return .compare(op, lhs.qualified(with: alias), rhs.qualified(with: alias))
-            
-        case let .tableMatch(a, expression):
-            return .tableMatch(a, expression.qualified(with: alias))
-            
-        case let .not(expression):
-            return .not(expression.qualified(with: alias))
-            
-        case let .collated(expression, collationName):
-            return .collated(expression.qualified(with: alias), collationName)
-            
-        case .countAll:
-            return .countAll
-            
-        case let .function(name, aggregate: aggregate, distinct: distinct, arguments: arguments):
-            return SQLExpression(impl: .function(name, aggregate: aggregate, distinct: distinct,
-                                                 arguments: arguments.map { $0.qualified(with: alias) }))
-            
-        case let .isEmpty(expression, isNegated: isNegated):
-            return .isEmpty(expression.qualified(with: alias), isNegated: isNegated)
-            
-        case .fastPrimaryKey:
-            return .qualifiedFastPrimaryKey(alias)
         }
     }
     
@@ -1709,8 +1772,10 @@ extension SQLExpression {
             
             return false
             
-        case .countAll,
-             .function(_, aggregate: true, distinct: _, arguments: _):
+        case .countAll:
+            return true
+            
+        case let .function(_, flags: flags, arguments: _) where flags.isAggregate:
             return true
             
         default:
@@ -1719,17 +1784,223 @@ extension SQLExpression {
     }
 }
 
+// MARK: - Function Flags
+
+/// Information about a function
+struct SQLFunctionFlags {
+    /// A boolean value indicating if a function is known to be pure.
+    ///
+    /// A false value does not provide any information.
+    var isPure = false
+    
+    /// A boolean value indicating if a function is known to be
+    /// an aggregate.
+    ///
+    /// A false value does not provide any information.
+    var isAggregate = false
+    
+    /// A boolean value indicating if the function should have `DISTINCT`
+    /// in its SQL generation (as in `COUNT(DISTINCT ...)`).
+    var isDistinct = false
+    
+    /// A boolean value indicating if a function is known to return a
+    /// JSON value.
+    ///
+    /// A false value does not provide any information.
+    var isJSONValue = false
+}
+
+extension SQLFunctionFlags {
+    // TODO: add missing pure functions:
+    // https://www.sqlite.org/lang_aggfunc.html
+    // https://www.sqlite.org/lang_datefunc.html
+    // https://www.sqlite.org/lang_mathfunc.html
+    private static let knownPureFunctions: Set<String> = [
+        "ABS",
+        "CHAR",
+        "COALESCE",
+        "GLOB",
+        "HEX",
+        "IFNULL",
+        "IIF",
+        "INSTR",
+        "JSON",
+        "JSON_ARRAY",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "JSON_INSERT",
+        "JSON_OBJECT",
+        "JSON_PATCH",
+        "JSON_REMOVE",
+        "JSON_REPLACE",
+        "JSON_SET",
+        "JSON_QUOTE",
+        "LENGTH",
+        "LIKE",
+        "LIKELIHOOD",
+        "LIKELY",
+        "LOAD_EXTENSION",
+        "LOWER",
+        "LTRIM",
+        "NULLIF",
+        "PRINTF",
+        "QUOTE",
+        "REPLACE",
+        "ROUND",
+        "RTRIM",
+        "SOUNDEX",
+        "SQLITE_COMPILEOPTION_GET",
+        "SQLITE_COMPILEOPTION_USED",
+        "SQLITE_SOURCE_ID",
+        "SQLITE_VERSION",
+        "SUBSTR",
+        "TRIM",
+        "TYPEOF",
+        "UNICODE",
+        "UNLIKELY",
+        "UPPER",
+        "ZEROBLOB",
+    ]
+    
+    private static let knownAggregateFunctions: Set<String> = [
+        "AVG",
+        "COUNT",
+        "GROUP_CONCAT",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "MAX", // when single argument
+        "MIN", // when single argument
+        "SUM",
+        "TOTAL",
+    ]
+    
+    private static let knownFunctionsReturningJSONValue: Set<String> = [
+        "JSON",
+        "JSON_ARRAY",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "JSON_INSERT",
+        "JSON_OBJECT",
+        "JSON_PATCH",
+        "JSON_REMOVE",
+        "JSON_REPLACE",
+        "JSON_SET",
+        "JSON_QUOTE",
+    ]
+    
+    /// Infers flags from the function name and number of arguments.
+    static func defaultFlags(for functionName: String, argumentCount: Int) -> Self {
+        var flags = SQLFunctionFlags()
+        
+        let name = functionName.uppercased()
+        
+        flags.isPure = Self.knownPureFunctions.contains(name)
+        
+        if (name == "MAX" || name == "MIN") && argumentCount > 1 {
+            flags.isPure = true
+        } else {
+            flags.isAggregate = Self.knownAggregateFunctions.contains(name.uppercased())
+        }
+        
+        if name == "JSON_EXTRACT" && argumentCount > 2 {
+            flags.isJSONValue = true
+        } else {
+            flags.isJSONValue = Self.knownFunctionsReturningJSONValue.contains(name)
+        }
+        
+        return flags
+    }
+}
+
+// MARK: - JSON
+
+extension SQLExpression {
+    /// A boolean value indicating if the expression is known to be a
+    /// JSON value.
+    ///
+    /// A false value does not provide any information.
+    ///
+    /// For examples:
+    ///
+    /// ```swift
+    /// // isJSONValue is true:
+    /// //
+    /// // NULL
+    /// // JSON('[1, 2, 3]')
+    /// // info -> 'address'
+    /// DatabaseValue.null
+    /// Database.json("[1, 2, 3]")
+    /// JSONColumn("info").jsonRepresentation(forKey: "address")
+    ///
+    /// // isJSONValue is false
+    /// //
+    /// // '[1, 2, 3]'
+    /// // info
+    /// // info ->> 'address'
+    /// [1, 2, 3].databaseValue
+    /// JSONColumn("info")
+    /// JSONColumn("info")["address"]
+    /// ```
+    var isJSONValue: Bool {
+        switch impl {
+        case .databaseValue(.null):
+            return true
+            
+        case let .binary(op, _, _):
+            return op.isJSONValue
+            
+        case let .collated(expression, _):
+            return expression.isJSONValue
+            
+        case let .function(_, flags: flags, arguments: _):
+            return flags.isJSONValue
+            
+        default:
+            return false
+        }
+    }
+    
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Returns an expression suitable in JSON building contexts.
+    var jsonBuilderExpression: SQLExpression {
+        switch preferredJSONInterpretation {
+        case .deferredToSQLite:
+            return self
+            
+        case .jsonValue:
+            if isJSONValue {
+                return self
+            } else {
+                // Needs explicit call to JSON()
+                return .function("JSON", [self])
+            }
+        }
+    }
+#else
+    @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+    /// Returns an expression suitable in JSON building contexts.
+    var jsonBuilderExpression: SQLExpression {
+        switch preferredJSONInterpretation {
+        case .deferredToSQLite:
+            return self
+            
+        case .jsonValue:
+            if isJSONValue {
+                return self
+            } else {
+                // Needs explicit call to JSON()
+                return .function("JSON", [self])
+            }
+        }
+    }
+#endif
+}
+
 // MARK: - SQLExpressible
 
 /// A type that can be used as an SQL expression.
 ///
 /// Related SQLite documentation <https://www.sqlite.org/syntax/expr.html>
-///
-/// ## Topics
-///
-/// ### Supporting Type
-///
-/// - ``SQLExpression``
 public protocol SQLExpressible {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
@@ -1754,17 +2025,14 @@ extension SQLExpressible where Self == Column {
 ///
 /// ## Topics
 ///
-/// ### Column Expressions
-///
-/// - ``Column``
-/// - ``ColumnExpression``
-///
 /// ### Applying a Collation
 ///
 /// - ``collating(_:)-2mr78``
 /// - ``collating(_:)-10dk1``
 ///
 /// ### SQL Functions & Operators
+///
+/// See also JSON functions in <doc:JSON>.
 ///
 /// - ``abs(_:)-5l6xp``
 /// - ``average(_:)``
@@ -1785,6 +2053,10 @@ extension SQLExpressible where Self == Column {
 /// - ``total(_:)``
 /// - ``uppercased``
 /// - ``SQLDateModifier``
+///
+/// ### Interpreting an expression as JSON
+///
+/// - ``asJSON``
 ///
 /// ### Creating Ordering Terms
 ///
