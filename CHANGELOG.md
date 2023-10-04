@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.19.x` Releases - [6.19.0](#6190)
 - `6.18.x` Releases - [6.18.0](#6180)
 - `6.17.x` Releases - [6.17.0](#6170)
 - `6.16.x` Releases - [6.16.0](#6160)
@@ -116,7 +117,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.19.0
+
+Released October 4, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.18.0...v6.19.0)
 
 - **New**: [#1429](https://github.com/groue/GRDB.swift/pull/1429) by [@JhonnyBillM](https://github.com/JhonnyBillM): Allow `DatabaseValueConvertible` types to customize their database JSON format
 - **New**: [#1436](https://github.com/groue/GRDB.swift/pull/1436) by [@myyra](https://github.com/myyra) and [@groue](https://github.com/groue): JSON functions
