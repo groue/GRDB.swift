@@ -2,10 +2,19 @@ extension Database {
     
     // MARK: - Database Observation
     
-    /// Adds a transaction observer, so that it gets notified of
-    /// database changes and transactions.
+    /// Adds a transaction observer on the database connection, so that it
+    /// gets notified of database changes and transactions.
     ///
     /// This method has no effect on read-only database connections.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.write { db in
+    ///     db.add(transactionObserver: myObserver)
+    /// }
+    /// ```
     ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
@@ -26,7 +35,16 @@ extension Database {
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
-    /// Removes a transaction observer.
+    /// Removes a transaction observer from the database connection.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.write { db in
+    ///     db.remove(transactionObserver: myObserver)
+    /// }
+    /// ```
     public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
         guard let observationBroker else { return }
