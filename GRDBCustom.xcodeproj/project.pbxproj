@@ -201,6 +201,7 @@
 		5676FBAA22F5CEB9004717D9 /* ValueObservationRegionRecordingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5676FBA822F5CEB8004717D9 /* ValueObservationRegionRecordingTests.swift */; };
 		56781B08243F7B5300650A83 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 56781B06243F7B4B00650A83 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		567A80561D41350C00C7DCEC /* IndexInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567A80521D41350C00C7DCEC /* IndexInfoTests.swift */; };
+		567B5C042AD328D900629622 /* DatabaseColumnEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567B5C022AD328D900629622 /* DatabaseColumnEncodingStrategyTests.swift */; };
 		567DAF381EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
 		567E420A242AB3CB00CAAD2C /* FailureTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567E4207242AB3CB00CAAD2C /* FailureTestCase.swift */; };
 		567F45AB1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
@@ -662,6 +663,7 @@
 		5676FBA822F5CEB8004717D9 /* ValueObservationRegionRecordingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationRegionRecordingTests.swift; sourceTree = "<group>"; };
 		56781B06243F7B4B00650A83 /* GRDB-Bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDB-Bridging.h"; path = "SQLiteCustom/GRDB-Bridging.h"; sourceTree = "<group>"; };
 		567A80521D41350C00C7DCEC /* IndexInfoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexInfoTests.swift; sourceTree = "<group>"; };
+		567B5C022AD328D900629622 /* DatabaseColumnEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseColumnEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseLogErrorTests.swift; sourceTree = "<group>"; };
 		567E4207242AB3CB00CAAD2C /* FailureTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureTestCase.swift; sourceTree = "<group>"; };
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
@@ -966,6 +968,7 @@
 		560B3FA41C19DFF800C58EC7 /* PersistableRecord */ = {
 			isa = PBXGroup;
 			children = (
+				567B5C022AD328D900629622 /* DatabaseColumnEncodingStrategyTests.swift */,
 				561F38F02AC9CE220051EEE9 /* DatabaseDataEncodingStrategyTests.swift */,
 				5665FA3B2129EED8004D8612 /* DatabaseDateEncodingStrategyTests.swift */,
 				56703299212B5461007D270F /* DatabaseUUIDEncodingStrategyTests.swift */,
@@ -2294,6 +2297,7 @@
 				562393511DEDFEFB00A6B01F /* EnumeratedCursorTests.swift in Sources */,
 				56AE6428222AACE300AD1B0B /* AssociationHasOneThroughSQLTests.swift in Sources */,
 				F3BA812D1CFB3064003DC1BA /* RecordMinimalPrimaryKeySingleTests.swift in Sources */,
+				567B5C042AD328D900629622 /* DatabaseColumnEncodingStrategyTests.swift in Sources */,
 				5698AC831DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
 				F3BA811B1CFB305F003DC1BA /* FetchableRecord+QueryInterfaceRequestTests.swift in Sources */,
 				5603CED52AC8643800CF097D /* JSONExpressionsTests.swift in Sources */,
