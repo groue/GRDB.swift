@@ -1739,7 +1739,7 @@ extension Row {
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
-        try request.supplementaryFetch?(db, rows)
+        try request.supplementaryFetch?(db, rows, nil)
         return rows
     }
     
@@ -1772,7 +1772,7 @@ extension Row {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(db, rows)
+            try supplementaryFetch(db, rows, nil)
             return Set(rows)
         } else {
             return try fetchSet(request.statement, adapter: request.adapter)
@@ -1809,7 +1809,7 @@ extension Row {
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
         }
-        try request.supplementaryFetch?(db, [row])
+        try request.supplementaryFetch?(db, [row], nil)
         return row
     }
 }
