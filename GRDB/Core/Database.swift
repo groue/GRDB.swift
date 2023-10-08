@@ -65,6 +65,15 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``TransactionCompletion``
 /// - ``TransactionKind``
 ///
+/// ### Printing Database Content
+///
+/// - ``dumpContent(format:to:)``
+/// - ``dumpRequest(_:format:to:)``
+/// - ``dumpSQL(_:format:to:)``
+/// - ``dumpTables(_:format:tableHeader:to:)``
+/// - ``DumpFormat``
+/// - ``DumpTableHeaderOptions``
+///
 /// ### Database Observation
 ///
 /// - ``add(transactionObserver:extent:)``

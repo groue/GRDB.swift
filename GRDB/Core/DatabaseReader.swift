@@ -33,6 +33,15 @@ import Dispatch
 /// - ``unsafeReentrantRead(_:)``
 /// - ``asyncUnsafeRead(_:)``
 ///
+/// ### Printing Database Content
+///
+/// - ``dumpContent(format:to:)``
+/// - ``dumpRequest(_:format:to:)``
+/// - ``dumpSQL(_:format:to:)``
+/// - ``dumpTables(_:format:tableHeader:to:)``
+/// - ``DumpFormat``
+/// - ``DumpTableHeaderOptions``
+///
 /// ### Other Database Operations
 ///
 /// - ``backup(to:pagesPerStep:progress:)``

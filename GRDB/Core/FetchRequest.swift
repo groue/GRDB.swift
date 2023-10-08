@@ -123,7 +123,11 @@ typealias WillExecuteSupplementaryRequest = (_ request: AnyFetchRequest<Row>, _ 
 /// - parameter rows: The rows that are modified by the supplementary fetch.
 /// - parameter willExecuteSupplementaryRequest: A closure to execute before
 ///   performing supplementary fetches.
-typealias SupplementaryFetch = (_ db: Database, _ rows: [Row], _ willExecuteSupplementaryRequest: WillExecuteSupplementaryRequest?) throws -> Void
+typealias SupplementaryFetch = (
+    _ db: Database,
+    _ rows: [Row],
+    _ willExecuteSupplementaryRequest: WillExecuteSupplementaryRequest?)
+throws -> Void
 
 /// A `PreparedRequest` is a request that is ready to be executed.
 public struct PreparedRequest {
