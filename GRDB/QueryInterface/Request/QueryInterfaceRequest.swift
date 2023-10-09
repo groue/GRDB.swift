@@ -344,6 +344,12 @@ extension QueryInterfaceRequest: OrderedRequest {
             $0.relation = $0.relation.unordered()
         }
     }
+    
+    public func withStableOrder() -> QueryInterfaceRequest<RowDecoder> {
+        with {
+            $0.relation = $0.relation.withStableOrder()
+        }
+    }
 }
 
 extension QueryInterfaceRequest: AggregatingRequest {

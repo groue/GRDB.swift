@@ -208,6 +208,15 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "author"
                 """)
             
+            sqlQueries.removeAll()
+            _ /* stableOrderAuthors */ = try Author.all()
+                .orderByFullName()
+                .withStableOrder()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "author" ORDER BY "lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare, "id"
+                """)
+            
             // ... for two requests (2)
             sqlQueries.removeAll()
             let bookTitles = try Book
@@ -251,6 +260,23 @@ class DerivableRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
                 JOIN "author" ON "author"."id" = "book"."authorId"
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* stableOrderBooks */ = try Book
+                .joining(required: Book.author.orderByFullName())
+                .orderByTitle()
+                .withStableOrder()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT "book".* FROM "book" \
+                JOIN "author" ON "author"."id" = "book"."authorId" \
+                ORDER BY \
+                "book"."title" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "book"."id", \
+                "author"."lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "author"."firstName" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "author"."id"
                 """)
         }
     }

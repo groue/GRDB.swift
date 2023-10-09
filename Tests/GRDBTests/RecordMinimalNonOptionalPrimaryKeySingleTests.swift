@@ -436,6 +436,17 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
     }
     
     
+    // MARK: - Stable order
+    
+    func testStableOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = MinimalNonOptionalPrimaryKeySingle.all().withStableOrder()
+            try assertEqualSQL(db, request, "SELECT * FROM \"minimalSingles\" ORDER BY \"id\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {
