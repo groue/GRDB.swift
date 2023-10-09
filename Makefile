@@ -81,10 +81,12 @@ test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo test_GRDBAsyncDemo
 
 test_framework_GRDBOSX:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination "platform=macOS" \
+	  -resultBundlePath TestResults.xcresult \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
 	  $(TEST_ACTIONS) \
@@ -93,76 +95,92 @@ test_framework_GRDBOSX:
 test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget
 
 test_framework_GRDBiOS_maxTarget:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBiOS_minTarget:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
 
 test_framework_GRDBtvOS_maxTarget:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MAX_TVOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  OTHER_SWIFT_FLAGS=$(OTHER_SWIFT_FLAGS) \
 	  GCC_PREPROCESSOR_DEFINITIONS=$(GCC_PREPROCESSOR_DEFINITIONS) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBtvOS_minTarget:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MIN_TVOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination "platform=macOS" \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
 
 test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_SQLCipher3:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher3 && \
+	rm -rf TestResults.xcresult && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBTests \
+	  -resultBundlePath TestResults.xcresult \
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
@@ -173,10 +191,12 @@ endif
 test_framework_SQLCipher3Encrypted:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher3 && \
+	rm -rf TestResults_encrypted.xcresult && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBEncryptedTests \
+	  -resultBundlePath TestResults_encrypted.xcresult \
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
@@ -187,10 +207,12 @@ endif
 test_framework_SQLCipher4:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher4 && \
+	rm -rf TestResults.xcresult && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBTests \
+	  -resultBundlePath TestResults.xcresult \
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
@@ -201,10 +223,12 @@ endif
 test_framework_SQLCipher4Encrypted:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher4 && \
+	rm -rf TestResults_encrypted.xcresult && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace GRDBTests.xcworkspace \
 	  -scheme GRDBEncryptedTests \
+	  -resultBundlePath TestResults_encrypted.xcresult \
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
@@ -369,26 +393,32 @@ else
 endif
 
 test_GRDBDemoiOS:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_GRDBCombineDemo:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
 	  -scheme GRDBCombineDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_GRDBAsyncDemo:
+	rm -rf TestResults.xcresult
 	$(XCODEBUILD) \
 	  -project Documentation/DemoApps/GRDBAsyncDemo/GRDBAsyncDemo.xcodeproj \
 	  -scheme GRDBAsyncDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  -resultBundlePath TestResults.xcresult \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
