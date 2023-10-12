@@ -100,8 +100,13 @@ extension QueryInterfaceRequest: FetchRequest {
         let associations = relation.prefetchedAssociations
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
-            preparedRequest.supplementaryFetch = { [relation] db, rows in
-                try prefetch(db, associations: associations, from: relation, into: rows)
+            preparedRequest.supplementaryFetch = { [relation] db, rows, willExecuteSupplementaryRequest in
+                try prefetch(
+                    db,
+                    associations: associations,
+                    from: relation,
+                    into: rows,
+                    willExecuteSupplementaryRequest: willExecuteSupplementaryRequest)
             }
         }
         return preparedRequest
@@ -337,6 +342,12 @@ extension QueryInterfaceRequest: OrderedRequest {
     public func unordered() -> Self {
         with {
             $0.relation = $0.relation.unordered()
+        }
+    }
+    
+    public func withStableOrder() -> QueryInterfaceRequest<RowDecoder> {
+        with {
+            $0.relation = $0.relation.withStableOrder()
         }
     }
 }
@@ -1374,11 +1385,14 @@ extension ColumnExpression {
 /// - parameter associations: Prefetched associations.
 /// - parameter originRows: The rows that need to be extended with prefetched rows.
 /// - parameter originQuery: The query that was used to fetch `originRows`.
+/// - parameter willExecuteSupplementaryRequest: A closure executed before a
+///   supplementary fetch is performed.
 private func prefetch(
     _ db: Database,
     associations: [_SQLAssociation],
     from originRelation: SQLRelation,
-    into originRows: [Row]) throws
+    into originRows: [Row],
+    willExecuteSupplementaryRequest: WillExecuteSupplementaryRequest?) throws
 {
     guard let firstOriginRow = originRows.first else {
         // No rows -> no prefetch
@@ -1473,6 +1487,10 @@ private func prefetch(
                     annotatedWith: pivotColumns)
             }
             
+            if let willExecuteSupplementaryRequest {
+                // Support for `Database.dumpRequest`
+                try willExecuteSupplementaryRequest(.init(prefetchRequest), association.keyPath)
+            }
             let prefetchedRows = try prefetchRequest.fetchAll(db)
             let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
             let groupingIndexes = firstOriginRow.indexes(forColumns: leftColumns)

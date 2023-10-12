@@ -44,6 +44,7 @@ import Foundation
 /// ### Creating a DatabaseValue
 ///
 /// - ``init(value:)``
+/// - ``init(sqliteStatement:index:)``
 /// - ``null``
 ///
 /// ### Accessing the SQLite storage
@@ -149,7 +150,7 @@ public struct DatabaseValue: Hashable {
     }
     
     /// Creates a `DatabaseValue` initialized from a raw SQLite statement pointer.
-    init(sqliteStatement: SQLiteStatement, index: CInt) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null
