@@ -20,14 +20,20 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - ``ValueObservation``
 - ``SharedValueObservation``
 - ``AsyncValueObservation``
+- ``Database/registerAccess(to:)``
 
 ### Observing Database Transactions
 
 - ``DatabaseRegionObservation``
+- ``Database/afterNextTransaction(onCommit:onRollback:)``
 
 ### Low-Level Transaction Observers
 
 - ``TransactionObserver``
+- ``Database/add(transactionObserver:extent:)``
+- ``Database/remove(transactionObserver:)``
+- ``DatabaseWriter/add(transactionObserver:extent:)``
+- ``DatabaseWriter/remove(transactionObserver:)``
 - ``Database/TransactionObservationExtent``
 
 ### Database Regions

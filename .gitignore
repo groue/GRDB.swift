@@ -115,3 +115,6 @@ Tests/SPM/Packages
 
 # Test products
 Tests/products
+
+# CI
+*.xcresult

@@ -494,6 +494,17 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     }
     
     
+    // MARK: - Stable order
+    
+    func testStableOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Email.all().withStableOrder()
+            try assertEqualSQL(db, request, "SELECT * FROM \"emails\" ORDER BY \"email\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

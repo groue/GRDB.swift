@@ -497,6 +497,17 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
     }
     
     
+    // MARK: - Stable order
+    
+    func testStableOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Pet.all().withStableOrder()
+            try assertEqualSQL(db, request, "SELECT * FROM \"pets\" ORDER BY \"UUID\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

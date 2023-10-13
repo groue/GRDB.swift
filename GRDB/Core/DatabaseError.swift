@@ -549,7 +549,7 @@ extension DatabaseError: CustomStringConvertible {
             description += ": \(message)"
         }
         if let sql {
-            description += " - while executing `\(sql)`"
+            description += " - while executing `\(sql.trimmedSQLStatement)`"
         }
         if publicStatementArguments, let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"
@@ -577,7 +577,7 @@ extension DatabaseError: CustomStringConvertible {
             description += ": \(message)"
         }
         if let sql {
-            description += " - while executing `\(sql)`"
+            description += " - while executing `\(sql.trimmedSQLStatement)`"
         }
         if let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"

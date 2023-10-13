@@ -37,7 +37,7 @@ try db.create(table: "player") { t in
 >     ])
 >
 > // SELECT * FROM player
-> // WHERE "address" ->> 'country' = 'FR'
+> // WHERE "address" ->> 'country' = 'DE'
 > let germanPlayers = try Player
 >     .filter(JSONColumn("address")["country"] == "DE")
 >     .fetchAll(db)

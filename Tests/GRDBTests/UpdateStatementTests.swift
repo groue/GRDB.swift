@@ -388,7 +388,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.description, """
                     SQLite error 21: Multiple statements found. To execute multiple statements, \
                     use Database.execute(sql:) or Database.allStatements(sql:) instead. \
-                    - while executing `UPDATE persons SET age = 1; UPDATE persons SET age = 2;`
+                    - while executing `UPDATE persons SET age = 1; UPDATE persons SET age = 2`
                     """)
             }
         }

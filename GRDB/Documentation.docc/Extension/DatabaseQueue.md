@@ -91,8 +91,7 @@ A `DatabaseQueue` needs your application to follow rules in order to deliver its
 
 ### Accessing the Database
 
-See ``DatabaseReader`` and ``DatabaseWriter`` for more database
-access methods.
+See ``DatabaseReader`` and ``DatabaseWriter`` for more database access methods.
 
 - ``inDatabase(_:)``
 - ``inTransaction(_:_:)``

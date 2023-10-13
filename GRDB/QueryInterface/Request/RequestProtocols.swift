@@ -905,6 +905,7 @@ extension AggregatingRequest {
 /// - ``orderWhenConnected(_:)``
 /// - ``reversed()``
 /// - ``unordered()``
+/// - ``withStableOrder()``
 public protocol OrderedRequest {
     /// Sorts the fetched rows according to the given SQL ordering terms.
     ///
@@ -965,6 +966,14 @@ public protocol OrderedRequest {
     ///     .unordered()
     /// ```
     func unordered() -> Self
+    
+    /// Returns a request with a stable order.
+    ///
+    /// The returned request lifts ordering ambiguities and always return
+    /// its results in the same order.
+    ///
+    /// The purpose of this method is to make requests testable.
+    func withStableOrder() -> Self
 }
 
 extension OrderedRequest {
@@ -1378,6 +1387,7 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``TableRequest/orderByPrimaryKey()``
 /// - ``OrderedRequest/reversed()``
 /// - ``OrderedRequest/unordered()``
+/// - ``OrderedRequest/withStableOrder()``
 ///
 /// ### Associations
 ///
