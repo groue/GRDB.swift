@@ -46,7 +46,6 @@ public struct JSONDumpFormat {
         if #available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *) {
             encoder.outputFormatting = .withoutEscapingSlashes
         }
-        print(encoder.outputFormatting.contains(.prettyPrinted))
         encoder.nonConformingFloatEncodingStrategy = .convertToString(
             positiveInfinity: "inf",
             negativeInfinity: "-inf",
