@@ -1,5 +1,7 @@
 # The Database Schema
 
+Define or query the database schema.
+
 ## Overview
 
 **GRDB supports all database schemas, and has no requirement.** Any existing SQLite database can be opened, and you are free to structure your new databases as you wish.

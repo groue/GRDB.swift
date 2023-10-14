@@ -1,5 +1,7 @@
 # Transactions and Savepoints
 
+Precise transaction handling.
+
 ## Transactions and Safety
 
 **A transaction is a fundamental tool of SQLite** that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections. It is at the core of GRDB <doc:Concurrency> guarantees.
