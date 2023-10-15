@@ -312,7 +312,7 @@ extension SQLJSONExpressible {
     /// Related SQL documentation: <https://www.sqlite.org/json1.html#jex>
     ///
     /// - parameter path: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
-    @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public func jsonExtract(atPath path: some SQLExpressible) -> SQLExpression {
         Database.jsonExtract(self, atPath: path)
     }
@@ -334,7 +334,7 @@ extension SQLJSONExpressible {
     /// Related SQL documentation: <https://www.sqlite.org/json1.html#jex>
     ///
     /// - parameter paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public func jsonExtract<C>(atPaths paths: C) -> SQLExpression
     where C: Collection, C.Element: SQLExpressible
     {
@@ -385,7 +385,7 @@ extension SQLJSONExpressible {
 //     /// ```
 //     ///
 //     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jpatch>
-//     @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
 //     public func jsonPatch(
 //         with patch: some SQLExpressible)
 //     -> ColumnAssignment
@@ -408,7 +408,7 @@ extension SQLJSONExpressible {
 //     ///
 //     /// - Parameters:
 //     ///   - paths: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
-//     @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
 //     public func jsonRemove(atPath path: some SQLExpressible) -> ColumnAssignment {
 //         .init(columnName: name, value: Database.jsonRemove(self, atPath: path))
 //     }
@@ -428,7 +428,7 @@ extension SQLJSONExpressible {
 //     ///
 //     /// - Parameters:
 //     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-//     @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
 //     public func jsonRemove<C>(atPaths paths: C)
 //     -> ColumnAssignment
 //     where C: Collection, C.Element: SQLExpressible
