@@ -492,13 +492,21 @@ public struct SQLExpression {
         /// The `>>` bitwise right shift operator
         static let rightShift = BinaryOperator(">>")
         
-        // Not guarded by availability checks, but only available for SQLite 3.38+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
         /// The `->` SQL operator
         static let jsonExtractJSON = BinaryOperator("->", isJSONValue: true)
         
-        // Not guarded by availability checks, but only available for SQLite 3.38+
         /// The `->>` SQL operator
         static let jsonExtractSQL = BinaryOperator("->>")
+#else
+        /// The `->` SQL operator
+        @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+        static let jsonExtractJSON = BinaryOperator("->", isJSONValue: true)
+        
+        /// The `->>` SQL operator
+        @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+        static let jsonExtractSQL = BinaryOperator("->>")
+#endif
     }
     
     /// `EscapableBinaryOperator` is an SQLite binary operator that accepts an
@@ -1977,7 +1985,7 @@ extension SQLExpression {
         }
     }
 #else
-    @available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) // SQLite 3.38+
+    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     /// Returns an expression suitable in JSON building contexts.
     var jsonBuilderExpression: SQLExpression {
         switch preferredJSONInterpretation {

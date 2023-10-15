@@ -9,7 +9,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -44,7 +44,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -105,7 +105,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -130,6 +130,49 @@ final class JSONExpressionsTests: GRDBTestCase {
             try assertEqualSQL(db, Database.jsonArray([1, 2, "3", 4]), """
                 JSON_ARRAY(1, 2, '3', 4)
                 """)
+            
+            // Note: this JSON(JSON_EXTRACT(...)) is useful, when the extracted value is a string that contains JSON
+            try assertEqualSQL(db, player
+                .select(
+                    Database.jsonArray([
+                        nameColumn,
+                        nameColumn.asJSON,
+                        infoColumn,
+                        infoColumn.jsonExtract(atPath: "address"),
+                        infoColumn.jsonExtract(atPath: "address").asJSON,
+                    ] as [any SQLExpressible])
+                ), """
+                SELECT JSON_ARRAY(\
+                "name", \
+                JSON("name"), \
+                JSON("info"), \
+                JSON_EXTRACT("info", 'address'), \
+                JSON(JSON_EXTRACT("info", 'address'))\
+                ) FROM "player"
+                """)
+        }
+    }
+    
+    func test_Database_jsonArray_from_SQLJSONExpressible() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON support is not available")
+        }
+#else
+        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON support is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("info", .jsonText)
+            }
+            let player = Table("player")
+            let nameColumn = Column("name")
+            let infoColumn = JSONColumn("info")
             
             // Note: this JSON(JSON_EXTRACT(...)) is useful, when the extracted value is a string that contains JSON
             try assertEqualSQL(db, player
@@ -238,7 +281,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -273,7 +316,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -351,7 +394,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -394,7 +437,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -429,7 +472,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -484,7 +527,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -539,7 +582,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -594,7 +637,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -697,7 +740,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -780,7 +823,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -863,7 +906,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -906,7 +949,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -949,7 +992,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -984,7 +1027,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1019,7 +1062,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1062,7 +1105,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1097,7 +1140,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1144,7 +1187,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1175,7 +1218,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1202,9 +1245,10 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
-            throw XCTSkip("JSON support is not available")
+        guard #available(iOS 16, macOS 12, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON support or generated columns are not available")
         }
+        
 #endif
         
         try makeDatabaseQueue().inDatabase { db in
@@ -1212,27 +1256,35 @@ final class JSONExpressionsTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
                 t.column("address", .jsonText)
                 t.column("country", .text)
-                    .generatedAs(JSONColumn("address")["country"])
+                    .generatedAs(JSONColumn("address").jsonExtract(atPath: "$.country"))
                     .indexed()
             }
             
             XCTAssertEqual(Array(sqlQueries.suffix(2)), [
                 """
-                CREATE TABLE "player" ("id" INTEGER PRIMARY KEY, "address" TEXT, "country" TEXT GENERATED ALWAYS AS ("address" ->> 'country') VIRTUAL)
+                CREATE TABLE "player" (\
+                "id" INTEGER PRIMARY KEY, \
+                "address" TEXT, \
+                "country" TEXT GENERATED ALWAYS AS (JSON_EXTRACT("address", '$.country')) VIRTUAL\
+                )
                 """,
                 """
                 CREATE INDEX "player_on_country" ON "player"("country")
                 """,
-                ])
+            ])
             
             try db.create(index: "player_on_address", on: "player", expressions: [
-                JSONColumn("address")["country"],
-                JSONColumn("address")["city"],
-                JSONColumn("address")["street"],
+                JSONColumn("address").jsonExtract(atPath: "$.country"),
+                JSONColumn("address").jsonExtract(atPath: "$.city"),
+                JSONColumn("address").jsonExtract(atPath: "$.street"),
             ])
             
             XCTAssertEqual(lastSQLQuery, """
-                CREATE INDEX "player_on_address" ON "player"("address" ->> 'country', "address" ->> 'city', "address" ->> 'street')
+                CREATE INDEX "player_on_address" ON "player"(\
+                JSON_EXTRACT("address", '$.country'), \
+                JSON_EXTRACT("address", '$.city'), \
+                JSON_EXTRACT("address", '$.street')\
+                )
                 """)
             
             try db.execute(literal: """
@@ -1245,7 +1297,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             try XCTAssertEqual(String.fetchOne(db, sql: "SELECT country FROM player"), "France")
         }
     }
-
+    
 // TODO: Enable when those apis are ready.
 //     func test_ColumnAssignment() throws {
 // #if GRDBCUSTOMSQLITE || GRDBCIPHER
@@ -1254,7 +1306,7 @@ final class JSONExpressionsTests: GRDBTestCase {
 //             throw XCTSkip("JSON support is not available")
 //         }
 // #else
-//         guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+//         guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
 //             throw XCTSkip("JSON support is not available")
 //         }
 // #endif
@@ -1277,7 +1329,6 @@ final class JSONExpressionsTests: GRDBTestCase {
 //             try Player.updateAll(db, [
 //                 JSONColumn("info").jsonRemove(atPath: "$.country")
 //             ])
-//             print(lastSQLQuery!)
 //             XCTAssertEqual(lastSQLQuery, """
 //                 UPDATE "player" SET "info" = JSON_REMOVE("info", '$.country')
 //                 """)
@@ -1285,7 +1336,6 @@ final class JSONExpressionsTests: GRDBTestCase {
 //             try Player.updateAll(db, [
 //                 JSONColumn("info").jsonRemove(atPaths: ["$.country", "$.city"])
 //             ])
-//             print(lastSQLQuery!)
 //             XCTAssertEqual(lastSQLQuery, """
 //                 UPDATE "player" SET "info" = JSON_REMOVE("info", '$.country', '$.city')
 //                 """)

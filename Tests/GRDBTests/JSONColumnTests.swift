@@ -9,7 +9,7 @@ final class JSONColumnTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -44,15 +44,47 @@ final class JSONColumnTests: GRDBTestCase {
         }
     }
     
-    func test_extraction() throws {
+    func test_JSON_EXTRACT() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
         guard sqlite3_libversion_number() >= 3038000 else {
-            throw XCTSkip("JSON support is not available")
+            throw XCTSkip("JSON_EXTRACT is not available")
+        }
+#else
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON_EXTRACT is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("info", .jsonText)
+            }
+            
+            let player = Table("player")
+            let info = JSONColumn("info")
+            
+            try assertEqualSQL(db, player.select(info.jsonExtract(atPath: "$.score")), """
+                SELECT JSON_EXTRACT("info", '$.score') FROM "player"
+                """)
+            
+            try assertEqualSQL(db, player.select(info.jsonExtract(atPaths: ["$.score", "$.bonus"])), """
+                SELECT JSON_EXTRACT("info", '$.score', '$.bonus') FROM "player"
+                """)
+        }
+    }
+    
+    func test_extraction_operators() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON operators are not available")
         }
 #else
         guard #available(iOS 16, macOS 13.2, tvOS 17, watchOS 9, *) else {
-            throw XCTSkip("JSON support is not available")
+            throw XCTSkip("JSON operators are not available")
         }
 #endif
         
@@ -72,14 +104,6 @@ final class JSONColumnTests: GRDBTestCase {
             
             try assertEqualSQL(db, player.select(info["$.score"]), """
                 SELECT "info" ->> '$.score' FROM "player"
-                """)
-            
-            try assertEqualSQL(db, player.select(info.jsonExtract(atPath: "$.score")), """
-                SELECT JSON_EXTRACT("info", '$.score') FROM "player"
-                """)
-            
-            try assertEqualSQL(db, player.select(info.jsonExtract(atPaths: ["$.score", "$.bonus"])), """
-                SELECT JSON_EXTRACT("info", '$.score', '$.bonus') FROM "player"
                 """)
             
             try assertEqualSQL(db, player.select(info.jsonRepresentation(atPath: "score")), """
