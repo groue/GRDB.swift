@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.20.x` Releases - [6.20.0](#6200) - [6.20.1](#6201)
+- `6.20.x` Releases - [6.20.0](#6200) - [6.20.1](#6201) - [6.20.2](#6202)
 - `6.19.x` Releases - [6.19.0](#6190)
 - `6.18.x` Releases - [6.18.0](#6180)
 - `6.17.x` Releases - [6.17.0](#6170)
@@ -118,9 +118,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 6.20.2
+
+Released October 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.20.1...v6.20.2)
+
+- **Fixed**: [#1442](https://github.com/groue/GRDB.swift/pull/1442) by [@groue](https://github.com/groue): Extend the macOS availability of JSON functions
+
 ## 6.20.1
 
-Released October 13, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.19.0...v6.20.0)
+Released October 13, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.20.0...v6.20.1)
 
 - **Fixed**: Removed a debug print
 
