@@ -4,7 +4,7 @@ Store and use JSON values in SQLite databases.
 
 ## Overview
 
-SQLite and GRDB can store and fetch JSON values in database columns. Starting SQLite 3.38.0 (iOS 16+, macOS 13.2+, tvOS 17+, and watchOS 9+), JSON values can be manipulated at the database level.
+SQLite and GRDB can store and fetch JSON values in database columns. Starting iOS 16+, macOS 10.15+, tvOS 17+, and watchOS 9+, JSON values can be manipulated at the database level.
 
 ## Store and fetch JSON values
 
@@ -98,7 +98,7 @@ extension Team: FetchableRecord, PersistableRecord {
 
 ## Manipulate JSON values at the database level
 
-[SQLite JSON functions and operators](https://www.sqlite.org/json1.html) are available starting SQLite 3.38.0 (iOS 16+, macOS 13.2+, tvOS 17+, and watchOS 9+).
+[SQLite JSON functions and operators](https://www.sqlite.org/json1.html) are available starting iOS 16+, macOS 10.15+, tvOS 17+, and watchOS 9+.
 
 Functions such as `JSON`, `JSON_EXTRACT`, `JSON_PATCH` and others are available as static methods on `Database`: ``Database/json(_:)``, ``Database/jsonExtract(_:atPath:)``, ``Database/jsonPatch(_:with:)``, etc.
 
