@@ -59,10 +59,14 @@ import Dispatch
 /// let snapshot2 = try dbPool.makeSnapshot()
 ///
 /// // Guaranteed to be zero
-/// let count1 = try snapshot1.read(Player.fetchCount)
+/// let count1 = try snapshot1.read { db in
+///     try Player.fetchCount(db)
+/// }
 ///
 /// // Could be anything
-/// let count2 = try snapshot2.read(Player.fetchCount)
+/// let count2 = try snapshot2.read { db in
+///     try Player.fetchCount(db)
+/// }
 /// ```
 ///
 /// `DatabaseSnapshot` inherits its database access methods from the

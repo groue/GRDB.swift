@@ -362,7 +362,9 @@ And we can fetch the data that feeds our application screen:
 
 ```swift
 
-let chatInfos: [ChatInfos] = try dbQueue.read(request.fetchAll)
+let chatInfos: [ChatInfos] = try dbQueue.read { db in
+    try request.fetchAll(db)
+}
 ```
 
 > :bulb: **Tip**: the joining methods are generally type-safe: they won't allow you to join apples to oranges. This works when associations have a *precise* type. In this context, anonymous `CommonTableExpression` CTEs can work against type safety. When you want to define associations between several CTEs, and make sure the compiler will notice wrong uses of those associations, tag your common table expressions with an explicit type: `CommonTableExpression<SomeType>`.
