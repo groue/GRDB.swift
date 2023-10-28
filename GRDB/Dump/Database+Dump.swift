@@ -59,7 +59,7 @@ extension Database {
         try _dumpRequest(request, format: format, to: &dumpStream)
     }
     
-    /// Prints the contents of the provided tables.
+    /// Prints the contents of the provided tables and views.
     ///
     /// For example:
     ///
@@ -80,17 +80,29 @@ extension Database {
     ///   - tables: The table names.
     ///   - format: The output format.
     ///   - tableHeader: Options for printing table names.
+    ///   - stableOrder: A boolean value that controls the ordering of
+    ///     rows fetched from views. If false (the default), rows are
+    ///     printed in the order specified by the view (which may be
+    ///     undefined). It true, outputted rows are always printed in the
+    ///     same stable order. The purpose of this stable order is to make
+    ///     the output suitable for testing.
     ///   - stream: A stream for text output, which directs output to the
     ///     console by default.
     public func dumpTables(
         _ tables: [String],
         format: some DumpFormat = .debug(),
         tableHeader: DumpTableHeaderOptions = .automatic,
+        stableOrder: Bool = false,
         to stream: (any TextOutputStream)? = nil)
     throws
     {
         var dumpStream = DumpStream(stream)
-        try _dumpTables(tables, format: format, tableHeader: tableHeader, to: &dumpStream)
+        try _dumpTables(
+            tables,
+            format: format,
+            tableHeader: tableHeader,
+            stableOrder: stableOrder,
+            to: &dumpStream)
     }
     
     /// Prints the contents of the database.
@@ -186,7 +198,8 @@ extension Database {
     func _dumpTables(
         _ tables: [String],
         format: some DumpFormat,
-        tableHeader: DumpTableHeaderOptions = .automatic,
+        tableHeader: DumpTableHeaderOptions,
+        stableOrder: Bool,
         to stream: inout DumpStream)
     throws
     {
@@ -203,10 +216,21 @@ extension Database {
             } else {
                 stream.write("\n")
             }
+            
             if header {
                 stream.writeln(table)
             }
-            try _dumpRequest(Table(table).orderByPrimaryKey(), format: format, to: &stream)
+            
+            if try tableExists(table) {
+                // Always sort tables by primary key
+                try _dumpRequest(Table(table).orderByPrimaryKey(), format: format, to: &stream)
+            } else if stableOrder {
+                // View with stable order
+                try _dumpRequest(Table(table).all().withStableOrder(), format: format, to: &stream)
+            } else {
+                // Use view ordering, if any (no guarantee of stable order).
+                try _dumpRequest(Table(table).all(), format: format, to: &stream)
+            }
         }
     }
     
@@ -246,7 +270,7 @@ extension Database {
             }
         if tables.isEmpty { return }
         stream.write("\n")
-        try _dumpTables(tables, format: format, tableHeader: .always, to: &stream)
+        try _dumpTables(tables, format: format, tableHeader: .always, stableOrder: true, to: &stream)
     }
 }
 

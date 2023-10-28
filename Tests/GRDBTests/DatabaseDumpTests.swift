@@ -1072,7 +1072,7 @@ final class DatabaseDumpTests: GRDBTestCase {
         }
     }
     
-    func test_dumpTables_single() throws {
+    func test_dumpTables_single_table() throws {
         try makeRugbyDatabase().read { db in
             do {
                 // Default format
@@ -1095,6 +1095,66 @@ final class DatabaseDumpTests: GRDBTestCase {
                     {"id":3,"teamId":null,"name":"Gwendal Roué"}]
                     
                     """)
+            }
+        }
+    }
+    
+    func test_dumpTables_single_view() throws {
+        try makeRugbyDatabase().write { db in
+            try db.create(view: "playerName", as: Player
+                .orderByPrimaryKey()
+                .select(Column("name")))
+            
+            do {
+                // Default order: use the view ordering
+                do {
+                    // Default format
+                    let stream = TestStream()
+                    try db.dumpTables(["playerName"], to: stream)
+                    XCTAssertEqual(stream.output, """
+                    Antoine Dupond
+                    Owen Farrell
+                    Gwendal Roué
+                    
+                    """)
+                }
+                do {
+                    // Custom format
+                    let stream = TestStream()
+                    try db.dumpTables(["playerName"], format: .json(), to: stream)
+                    XCTAssertEqual(stream.output, """
+                    [{"name":"Antoine Dupond"},
+                    {"name":"Owen Farrell"},
+                    {"name":"Gwendal Roué"}]
+                    
+                    """)
+                }
+            }
+            
+            do {
+                // Stable order
+                do {
+                    // Default format
+                    let stream = TestStream()
+                    try db.dumpTables(["playerName"], stableOrder: true, to: stream)
+                    XCTAssertEqual(stream.output, """
+                    Antoine Dupond
+                    Gwendal Roué
+                    Owen Farrell
+                    
+                    """)
+                }
+                do {
+                    // Custom format
+                    let stream = TestStream()
+                    try db.dumpTables(["playerName"], format: .json(), stableOrder: true, to: stream)
+                    XCTAssertEqual(stream.output, """
+                    [{"name":"Antoine Dupond"},
+                    {"name":"Gwendal Roué"},
+                    {"name":"Owen Farrell"}]
+                    
+                    """)
+                }
             }
         }
     }
