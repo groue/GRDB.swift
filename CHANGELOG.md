@@ -118,6 +118,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Version
+
+- **New**: [#1448](https://github.com/groue/GRDB.swift/pull/1448) by [@groue](https://github.com/groue): Add support for stable ordering and dump of views
+
 ## 6.20.2
 
 Released October 15, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.20.1...v6.20.2)
