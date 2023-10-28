@@ -173,7 +173,13 @@ class DerivableRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
-            // ... for two requests (1)
+            try db.create(view: "authorView", as: Author.select(
+                AllColumns(),
+                [Column("firstName"), Column("lastName")]
+                    .joined(operator: .concat)
+                    .forKey("fullName")))
+                          
+            // ... for one table
             sqlQueries.removeAll()
             let authorNames = try Author.all()
                 .orderByFullName()
@@ -210,6 +216,14 @@ class DerivableRequestTests: GRDBTestCase {
             
             sqlQueries.removeAll()
             _ /* stableOrderAuthors */ = try Author.all()
+                .withStableOrder()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "author" ORDER BY "id"
+                """)
+
+            sqlQueries.removeAll()
+            _ /* stableOrderAuthors */ = try Author.all()
                 .orderByFullName()
                 .withStableOrder()
                 .fetchAll(db)
@@ -217,7 +231,53 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "author" ORDER BY "lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare, "id"
                 """)
             
-            // ... for two requests (2)
+            // ... for one view
+            sqlQueries.removeAll()
+            _ /* authorViewNames */ = try Table("authorView").all()
+                .order(Column("fullName"))
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "authorView" \
+                ORDER BY "fullName"
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* reversedAuthorViewNames */ = try Table("authorView").all()
+                .order(Column("fullName"))
+                .reversed()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "authorView" \
+                ORDER BY "fullName" DESC
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* unorderedAuthorViews */ = try Table("authorView").all()
+                .order(Column("fullName"))
+                .unordered()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "authorView"
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* stableOrderAuthorViews */ = try Table("authorView").all()
+                .withStableOrder()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "authorView" ORDER BY 1, 2, 3, 4, 5
+                """)
+
+            sqlQueries.removeAll()
+            _ /* stableOrderAuthorViews */ = try Table("authorView").all()
+                .order(Column("fullName"))
+                .withStableOrder()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "authorView" ORDER BY "fullName", 1, 2, 3, 4, 5
+                """)
+            
+            // ... for two tables (2)
             sqlQueries.removeAll()
             let bookTitles = try Book
                 .joining(required: Book.author.orderByFullName())
