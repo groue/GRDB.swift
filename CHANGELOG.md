@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.21.x` Releases - [6.21.0](#6210)
 - `6.20.x` Releases - [6.20.0](#6200) - [6.20.1](#6201) - [6.20.2](#6202)
 - `6.19.x` Releases - [6.19.0](#6190)
 - `6.18.x` Releases - [6.18.0](#6180)
@@ -118,7 +119,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Version
+## 6.21.0
+
+Released October 29, 2023
 
 - **New**: [#1448](https://github.com/groue/GRDB.swift/pull/1448) by [@groue](https://github.com/groue): Add support for stable ordering and dump of views
 - **New**: [#1449](https://github.com/groue/GRDB.swift/pull/1449) by [@groue](https://github.com/groue): Backport temporary copies from GRDBSnapshotTesting
