@@ -30,7 +30,9 @@ final class DatabaseQueueTemporaryCopyTests: GRDBTestCase {
     
     func test_temporaryCopy() throws {
         let source = try makeSourceDatabase()
-        let dbQueue = try DatabaseQueue.temporaryCopy(fromPath: source.path)
+        let dbQueue = try DatabaseQueue.temporaryCopy(
+            fromPath: source.path,
+            configuration: dbConfiguration)
         
         // Test that content was faithfully copied
         let stream = TestStream()
@@ -48,7 +50,9 @@ final class DatabaseQueueTemporaryCopyTests: GRDBTestCase {
     
     func test_temporaryCopy_write() throws {
         let source = try makeSourceDatabase()
-        let dbQueue = try DatabaseQueue.temporaryCopy(fromPath: source.path)
+        let dbQueue = try DatabaseQueue.temporaryCopy(
+            fromPath: source.path,
+            configuration: dbConfiguration)
         
         // The in-memory copy is writable (necessary for testing migrations)
         try dbQueue.write { db in
@@ -70,7 +74,7 @@ final class DatabaseQueueTemporaryCopyTests: GRDBTestCase {
     
     func test_temporaryCopy_readOnly() throws {
         let source = try makeSourceDatabase()
-        var config = Configuration()
+        var config = dbConfiguration!
         config.readonly = true
         let dbQueue = try DatabaseQueue.temporaryCopy(fromPath: source.path, configuration: config)
         
@@ -116,7 +120,9 @@ final class DatabaseQueueTemporaryCopyTests: GRDBTestCase {
         
         // …GRDB users can test the migrator on fixtures
         let source = try makeSourceDatabase()
-        let dbQueue = try DatabaseQueue.temporaryCopy(fromPath: source.path)
+        let dbQueue = try DatabaseQueue.temporaryCopy(
+            fromPath: source.path,
+            configuration: dbConfiguration)
         
         try migrator.migrate(dbQueue, upTo: "v2")
         do {
