@@ -53,7 +53,7 @@ extension DatabaseReader {
         }
     }
     
-    /// Prints the contents of the provided tables.
+    /// Prints the contents of the provided tables and views.
     ///
     /// For example:
     ///
@@ -72,17 +72,29 @@ extension DatabaseReader {
     ///   - tables: The table names.
     ///   - format: The output format.
     ///   - tableHeader: Options for printing table names.
+    ///   - stableOrder: A boolean value that controls the ordering of
+    ///     rows fetched from views. If false (the default), rows are
+    ///     printed in the order specified by the view (which may be
+    ///     undefined). It true, outputted rows are always printed in the
+    ///     same stable order. The purpose of this stable order is to make
+    ///     the output suitable for testing.
     ///   - stream: A stream for text output, which directs output to the
     ///     console by default.
     public func dumpTables(
         _ tables: [String],
         format: some DumpFormat = .debug(),
         tableHeader: DumpTableHeaderOptions = .automatic,
+        stableOrder: Bool = false,
         to stream: (any TextOutputStream)? = nil)
     throws
     {
         try unsafeReentrantRead { db in
-            try db.dumpTables(tables, format: format, tableHeader: tableHeader, to: stream)
+            try db.dumpTables(
+                tables,
+                format: format,
+                tableHeader: tableHeader,
+                stableOrder: stableOrder,
+                to: stream)
         }
     }
     

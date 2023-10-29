@@ -88,6 +88,8 @@ A `DatabaseQueue` needs your application to follow rules in order to deliver its
 
 - ``init(named:configuration:)``
 - ``init(path:configuration:)``
+- ``inMemoryCopy(fromPath:configuration:)``
+- ``temporaryCopy(fromPath:configuration:)``
 
 ### Accessing the Database
 

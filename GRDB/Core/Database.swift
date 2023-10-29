@@ -70,7 +70,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``dumpContent(format:to:)``
 /// - ``dumpRequest(_:format:to:)``
 /// - ``dumpSQL(_:format:to:)``
-/// - ``dumpTables(_:format:tableHeader:to:)``
+/// - ``dumpTables(_:format:tableHeader:stableOrder:to:)``
 /// - ``DumpFormat``
 /// - ``DumpTableHeaderOptions``
 ///
