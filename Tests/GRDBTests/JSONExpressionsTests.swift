@@ -1211,6 +1211,72 @@ final class JSONExpressionsTests: GRDBTestCase {
         }
     }
     
+    func test_Database_jsonGroupArray_filter() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON support is not available")
+        }
+#else
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON support is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("info", .jsonText)
+            }
+            let player = Table("player")
+            let nameColumn = Column("name")
+            let infoColumn = JSONColumn("info")
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(nameColumn, filter: length(nameColumn) > 0)), """
+                SELECT JSON_GROUP_ARRAY("name") FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                """)
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, filter: length(nameColumn) > 0)), """
+                SELECT JSON_GROUP_ARRAY(JSON("info")) FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                """)
+        }
+    }
+    
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    func test_Database_jsonGroupArray_order() throws {
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON support is not available")
+        }
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("info", .jsonText)
+            }
+            let player = Table("player")
+            let nameColumn = Column("name")
+            let infoColumn = JSONColumn("info")
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(nameColumn, orderBy: nameColumn)), """
+                SELECT JSON_GROUP_ARRAY("name" ORDER BY "name") FROM "player"
+                """)
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, orderBy: nameColumn.desc)), """
+                SELECT JSON_GROUP_ARRAY(JSON("info") ORDER BY "name" DESC) FROM "player"
+                """)
+
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(nameColumn, orderBy: nameColumn, filter: length(nameColumn) > 0)), """
+                SELECT JSON_GROUP_ARRAY("name" ORDER BY "name") FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                """)
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, orderBy: nameColumn.desc, filter: length(nameColumn) > 0)), """
+                SELECT JSON_GROUP_ARRAY(JSON("info") ORDER BY "name" DESC) FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                """)
+        }
+    }
+#endif
+    
     func test_Database_jsonGroupObject() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
@@ -1234,6 +1300,33 @@ final class JSONExpressionsTests: GRDBTestCase {
             
             try assertEqualSQL(db, player.select(Database.jsonGroupObject(key: keyColumn, value: valueColumn)), """
                 SELECT JSON_GROUP_OBJECT("key", JSON("value")) FROM "player"
+                """)
+        }
+    }
+    
+    func test_Database_jsonGroupObject_filter() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON support is not available")
+        }
+#else
+        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON support is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("key", .text)
+                t.column("value", .jsonText)
+            }
+            let player = Table("player")
+            let keyColumn = Column("key")
+            let valueColumn = JSONColumn("value")
+            
+            try assertEqualSQL(db, player.select(Database.jsonGroupObject(key: keyColumn, value: valueColumn, filter: length(valueColumn) > 0)), """
+                SELECT JSON_GROUP_OBJECT("key", JSON("value")) FILTER (WHERE LENGTH("value") > 0) FROM "player"
                 """)
         }
     }

@@ -165,8 +165,14 @@ public struct SQLExpression {
         ///
         ///     <function>(<argument>, ...)
         ///     <function>(DISTINCT <argument>)
-        case function(String, flags: SQLFunctionFlags, arguments: [SQLExpression])
+        indirect case simpleFunction(SQLSimpleFunctionInvocation)
         
+        /// An aggregate function call.
+        ///
+        ///     <function>(<argument>, ...)
+        ///     <function>(DISTINCT <argument>)
+        indirect case aggregateFunction(SQLAggregateFunctionInvocation)
+
         /// An expression that checks for zero or positive values.
         ///
         ///     <expression> = 0
@@ -268,11 +274,11 @@ public struct SQLExpression {
             case .countAll:
                 return .countAll
                 
-            case let .function(name, flags: flags, arguments: arguments):
-                return .function(
-                    name,
-                    flags: flags,
-                    arguments: arguments.map { $0.qualified(with: alias) })
+            case let .simpleFunction(invocation):
+                return .simpleFunction(invocation.qualified(with: alias))
+                
+            case let .aggregateFunction(invocation):
+                return .aggregateFunction(invocation.qualified(with: alias))
                 
             case let .isEmpty(expression, isNegated: isNegated):
                 return .isEmpty(expression.qualified(with: alias), isNegated: isNegated)
@@ -916,8 +922,153 @@ extension SQLExpression {
     
     // MARK: Functions
     
+    // TODO: add missing pure functions:
+    // https://www.sqlite.org/lang_aggfunc.html
+    // https://www.sqlite.org/lang_datefunc.html
+    // https://www.sqlite.org/lang_mathfunc.html
+    private static let knownPureFunctions: Set<String> = [
+        "ABS",
+        "CHAR",
+        "COALESCE",
+        "GLOB",
+        "HEX",
+        "IFNULL",
+        "IIF",
+        "INSTR",
+        "JSON",
+        "JSON_ARRAY",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "JSON_INSERT",
+        "JSON_OBJECT",
+        "JSON_PATCH",
+        "JSON_REMOVE",
+        "JSON_REPLACE",
+        "JSON_SET",
+        "JSON_QUOTE",
+        "LENGTH",
+        "LIKE",
+        "LIKELIHOOD",
+        "LIKELY",
+        "LOAD_EXTENSION",
+        "LOWER",
+        "LTRIM",
+        "NULLIF",
+        "PRINTF",
+        "QUOTE",
+        "REPLACE",
+        "ROUND",
+        "RTRIM",
+        "SOUNDEX",
+        "SQLITE_COMPILEOPTION_GET",
+        "SQLITE_COMPILEOPTION_USED",
+        "SQLITE_SOURCE_ID",
+        "SQLITE_VERSION",
+        "SUBSTR",
+        "TRIM",
+        "TYPEOF",
+        "UNICODE",
+        "UNLIKELY",
+        "UPPER",
+        "ZEROBLOB",
+    ]
+    
+    private static let knownAggregateFunctions: Set<String> = [
+        "AVG",
+        "COUNT",
+        "GROUP_CONCAT",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "MAX", // when single argument
+        "MIN", // when single argument
+        "SUM",
+        "TOTAL",
+    ]
+    
+    private static let knownFunctionsReturningJSONValue: Set<String> = [
+        "JSON",
+        "JSON_ARRAY",
+        "JSON_GROUP_ARRAY",
+        "JSON_GROUP_OBJECT",
+        "JSON_INSERT",
+        "JSON_OBJECT",
+        "JSON_PATCH",
+        "JSON_REMOVE",
+        "JSON_REPLACE",
+        "JSON_SET",
+        "JSON_QUOTE",
+    ]
+    
     /// The `COUNT(*)` expression.
     static let countAll = SQLExpression(impl: .countAll)
+    
+    /// A function call.
+    static func function(_ functionName: String, _ arguments: [SQLExpression]) -> Self {
+        let name = functionName.uppercased()
+        
+        if (name == "MAX" || name == "MIN") && arguments.count > 1 {
+            return .simpleFunction(
+                functionName,
+                arguments,
+                isPure: true,
+                isJSONValue: false)
+            
+        } else if Self.knownAggregateFunctions.contains(name) {
+            return .aggregateFunction(
+                functionName,
+                arguments,
+                isJSONValue: Self.knownFunctionsReturningJSONValue.contains(name))
+            
+        } else {
+            let isJSONValue: Bool
+            if name == "JSON_EXTRACT" && arguments.count > 2 {
+                isJSONValue = true
+            } else {
+                isJSONValue = Self.knownFunctionsReturningJSONValue.contains(name)
+            }
+            
+            return .simpleFunction(
+                functionName, arguments,
+                isPure: Self.knownPureFunctions.contains(name),
+                isJSONValue: isJSONValue)
+        }
+    }
+    
+    /// A simple function call.
+    ///
+    /// - warning: Don't use this method for aggregate functions!
+    static func simpleFunction(
+        _ name: String,
+        _ arguments: [SQLExpression],
+        isPure: Bool = false,
+        isJSONValue: Bool = false)
+    -> Self
+    {
+        .init(impl: .simpleFunction(SQLSimpleFunctionInvocation(
+            name: name,
+            arguments: arguments,
+            isPure: isPure,
+            isJSONValue: isJSONValue)))
+    }
+    
+    /// An aggregate function call.
+    static func aggregateFunction(
+        _ name: String,
+        _ arguments: [SQLExpression],
+        isDistinct: Bool = false,
+        ordering: SQLOrdering? = nil,
+        filter: SQLExpression? = nil,
+        isJSONValue: Bool = false)
+    -> Self
+    {
+        .init(impl: .aggregateFunction(.init(
+            name: name,
+            arguments: arguments,
+            isDistinct: isDistinct,
+            ordering: ordering,
+            filter: filter,
+            isJSONValue: isJSONValue)))
+    }
     
     /// The `COUNT` function.
     ///
@@ -930,24 +1081,7 @@ extension SQLExpression {
     ///
     ///     COUNT(DISTINCT <expression>)
     static func countDistinct(_ expression: SQLExpression) -> Self {
-        function("COUNT", [expression], flags: .init(isAggregate: true, isDistinct: true))
-    }
-    
-    /// A function call.
-    ///
-    ///     <function>(<argument>, ...)
-    static func function(_ name: String, _ arguments: [SQLExpression]) -> Self {
-        .init(impl: .function(
-            name,
-            flags: .defaultFlags(for: name, argumentCount: arguments.count),
-            arguments: arguments))
-    }
-    
-    /// A function call with explicit flags.
-    ///
-    ///     <function>(<argument>, ...)
-    static func function(_ name: String, _ arguments: [SQLExpression], flags: SQLFunctionFlags) -> Self {
-        .init(impl: .function(name, flags: flags, arguments: arguments))
+        aggregateFunction("COUNT", [expression], isDistinct: true)
     }
     
     /// An expression that checks for zero or positive values.
@@ -1071,18 +1205,8 @@ extension SQLExpression {
         case let .collated(expression, _):
             return try expression.column(db, for: alias, acceptsBijection: acceptsBijection)
             
-        case let .function(name, flags: flags, arguments: arguments) where !flags.isAggregate:
-            guard acceptsBijection else {
-                return nil
-            }
-            let name = name.uppercased()
-            if ["HEX", "QUOTE"].contains(name) && arguments.count == 1 {
-                return try arguments[0].column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else if name == "IFNULL" && arguments.count == 2 && arguments[1].isConstantInRequest {
-                return try arguments[0].column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else {
-                return nil
-            }
+        case let .simpleFunction(invocation) where acceptsBijection:
+            return try invocation.column(db, for: alias)
             
         case let .qualifiedFastPrimaryKey(a):
             if alias == a {
@@ -1266,13 +1390,11 @@ extension SQLExpression {
         case .countAll:
             return "COUNT(*)"
             
-        case let .function(name, flags: flags, arguments: arguments):
-            assert(!flags.isDistinct || flags.isAggregate, "distinct requires aggregate")
-            assert(!flags.isDistinct || arguments.count == 1, "distinct requires a single argument")
-            return try name
-                + (flags.isDistinct ? "(DISTINCT " : "(")
-                + arguments.map { try $0.sql(context) }.joined(separator: ", ")
-                + ")"
+        case let .simpleFunction(invocation):
+            return try invocation.sql(context)
+            
+        case let .aggregateFunction(invocation):
+            return try invocation.sql(context, wrappedInParenthesis: wrappedInParenthesis)
             
         case let .isEmpty(expression, isNegated: isNegated):
             var resultSQL = try """
@@ -1721,10 +1843,8 @@ extension SQLExpression {
              let .collated(expression, _):
             return expression.isConstantInRequest
             
-        case let .function(_, flags: flags, arguments: arguments)
-            where flags.isPure && !flags.isAggregate:
-            
-            return arguments.allSatisfy(\.isConstantInRequest)
+        case let .simpleFunction(invocation):
+            return invocation.isConstantInRequest
             
         default:
             return false
@@ -1783,7 +1903,7 @@ extension SQLExpression {
         case .countAll:
             return true
             
-        case let .function(_, flags: flags, arguments: _) where flags.isAggregate:
+        case .aggregateFunction:
             return true
             
         default:
@@ -1792,131 +1912,108 @@ extension SQLExpression {
     }
 }
 
-// MARK: - Function Flags
-
-/// Information about a function
-struct SQLFunctionFlags {
+/// https://www.sqlite.org/syntax/simple-function-invocation.html
+struct SQLSimpleFunctionInvocation {
+    var name: String
+    var arguments: [SQLExpression]
+    
     /// A boolean value indicating if a function is known to be pure.
     ///
     /// A false value does not provide any information.
-    var isPure = false
-    
-    /// A boolean value indicating if a function is known to be
-    /// an aggregate.
-    ///
-    /// A false value does not provide any information.
-    var isAggregate = false
-    
-    /// A boolean value indicating if the function should have `DISTINCT`
-    /// in its SQL generation (as in `COUNT(DISTINCT ...)`).
-    var isDistinct = false
+    var isPure: Bool
     
     /// A boolean value indicating if a function is known to return a
     /// JSON value.
     ///
     /// A false value does not provide any information.
-    var isJSONValue = false
+    var isJSONValue: Bool
+
+    var isConstantInRequest: Bool {
+        isPure && arguments.allSatisfy(\.isConstantInRequest)
+    }
+    
+    func qualified(with alias: TableAlias) -> Self {
+        SQLSimpleFunctionInvocation(
+            name: name,
+            arguments: arguments.map { $0.qualified(with: alias) },
+            isPure: isPure,
+            isJSONValue: isJSONValue)
+    }
+    
+    func column(_ db: Database, for alias: TableAlias) throws -> String? {
+        let name = name.uppercased()
+        if ["HEX", "QUOTE"].contains(name) && arguments.count == 1 {
+            return try arguments[0].column(db, for: alias, acceptsBijection: true)
+        } else if name == "IFNULL" && arguments.count == 2 && arguments[1].isConstantInRequest {
+            return try arguments[0].column(db, for: alias, acceptsBijection: true)
+        } else {
+            return nil
+        }
+    }
+    
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        var sql = name
+        sql += "("
+        sql += try arguments
+            .map { try $0.sql(context) }
+            .joined(separator: ", ")
+        sql += ")"
+        return sql
+    }
 }
 
-extension SQLFunctionFlags {
-    // TODO: add missing pure functions:
-    // https://www.sqlite.org/lang_aggfunc.html
-    // https://www.sqlite.org/lang_datefunc.html
-    // https://www.sqlite.org/lang_mathfunc.html
-    private static let knownPureFunctions: Set<String> = [
-        "ABS",
-        "CHAR",
-        "COALESCE",
-        "GLOB",
-        "HEX",
-        "IFNULL",
-        "IIF",
-        "INSTR",
-        "JSON",
-        "JSON_ARRAY",
-        "JSON_GROUP_ARRAY",
-        "JSON_GROUP_OBJECT",
-        "JSON_INSERT",
-        "JSON_OBJECT",
-        "JSON_PATCH",
-        "JSON_REMOVE",
-        "JSON_REPLACE",
-        "JSON_SET",
-        "JSON_QUOTE",
-        "LENGTH",
-        "LIKE",
-        "LIKELIHOOD",
-        "LIKELY",
-        "LOAD_EXTENSION",
-        "LOWER",
-        "LTRIM",
-        "NULLIF",
-        "PRINTF",
-        "QUOTE",
-        "REPLACE",
-        "ROUND",
-        "RTRIM",
-        "SOUNDEX",
-        "SQLITE_COMPILEOPTION_GET",
-        "SQLITE_COMPILEOPTION_USED",
-        "SQLITE_SOURCE_ID",
-        "SQLITE_VERSION",
-        "SUBSTR",
-        "TRIM",
-        "TYPEOF",
-        "UNICODE",
-        "UNLIKELY",
-        "UPPER",
-        "ZEROBLOB",
-    ]
+/// https://www.sqlite.org/syntax/aggregate-function-invocation.html
+struct SQLAggregateFunctionInvocation {
+    var name: String
+    var arguments: [SQLExpression]
+    var isDistinct = false
+    var ordering: SQLOrdering? = nil // SQLite 3.44.0+
+    var filter: SQLExpression? = nil // @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) SQLite 3.30+
     
-    private static let knownAggregateFunctions: Set<String> = [
-        "AVG",
-        "COUNT",
-        "GROUP_CONCAT",
-        "JSON_GROUP_ARRAY",
-        "JSON_GROUP_OBJECT",
-        "MAX", // when single argument
-        "MIN", // when single argument
-        "SUM",
-        "TOTAL",
-    ]
+    /// A boolean value indicating if a function is known to return a
+    /// JSON value.
+    ///
+    /// A false value does not provide any information.
+    var isJSONValue: Bool
     
-    private static let knownFunctionsReturningJSONValue: Set<String> = [
-        "JSON",
-        "JSON_ARRAY",
-        "JSON_GROUP_ARRAY",
-        "JSON_GROUP_OBJECT",
-        "JSON_INSERT",
-        "JSON_OBJECT",
-        "JSON_PATCH",
-        "JSON_REMOVE",
-        "JSON_REPLACE",
-        "JSON_SET",
-        "JSON_QUOTE",
-    ]
+    func qualified(with alias: TableAlias) -> Self {
+        SQLAggregateFunctionInvocation(
+            name: name,
+            arguments: arguments.map { $0.qualified(with: alias) },
+            isDistinct: isDistinct,
+            ordering: ordering?.qualified(with: alias),
+            filter: filter?.qualified(with: alias),
+            isJSONValue: isJSONValue)
+    }
     
-    /// Infers flags from the function name and number of arguments.
-    static func defaultFlags(for functionName: String, argumentCount: Int) -> Self {
-        var flags = SQLFunctionFlags()
+    func sql(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var sql = name
         
-        let name = functionName.uppercased()
-        
-        flags.isPure = Self.knownPureFunctions.contains(name)
-        
-        if (name == "MAX" || name == "MIN") && argumentCount > 1 {
-            flags.isPure = true
+        if isDistinct {
+            sql += "(DISTINCT "
         } else {
-            flags.isAggregate = Self.knownAggregateFunctions.contains(name.uppercased())
+            sql += "("
         }
         
-        if name == "JSON_EXTRACT" && argumentCount > 2 {
-            flags.isJSONValue = true
-        } else {
-            flags.isJSONValue = Self.knownFunctionsReturningJSONValue.contains(name)
+        sql += try arguments
+            .map { try $0.sql(context) }
+            .joined(separator: ", ")
+        
+        if let ordering {
+            sql += try " ORDER BY \(ordering.sql(context))"
         }
         
-        return flags
+        sql += ")"
+        
+        if let filter {
+            sql += try " FILTER (WHERE \(filter.sql(context)))"
+        }
+        
+        if wrappedInParenthesis && filter != nil {
+            return "(\(sql))"
+        } else {
+            return sql
+        }
     }
 }
 
@@ -1960,8 +2057,11 @@ extension SQLExpression {
         case let .collated(expression, _):
             return expression.isJSONValue
             
-        case let .function(_, flags: flags, arguments: _):
-            return flags.isJSONValue
+        case let .simpleFunction(invocation):
+            return invocation.isJSONValue
+            
+        case let .aggregateFunction(invocation):
+            return invocation.isJSONValue
             
         default:
             return false
