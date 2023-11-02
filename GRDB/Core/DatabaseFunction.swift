@@ -34,19 +34,6 @@ public final class DatabaseFunction: Hashable {
     private let kind: Kind
     private var eTextRep: CInt { (SQLITE_UTF8 | (isPure ? SQLITE_DETERMINISTIC : 0)) }
     
-    var functionFlags: SQLFunctionFlags {
-        var flags = SQLFunctionFlags(isPure: isPure)
-        
-        switch kind {
-        case .function:
-            break
-        case .aggregate:
-            flags.isAggregate = true
-        }
-        
-        return flags
-    }
-    
     /// Creates an SQL function.
     ///
     /// For example:
@@ -157,6 +144,7 @@ public final class DatabaseFunction: Hashable {
         self.kind = .aggregate { Aggregate() }
     }
     
+    // TODO: GRDB7 -> expose ORDER BY and FILTER when we have distinct types for simple functions and aggregates.
     /// Returns an SQL expression that applies the function.
     ///
     /// You can use a `DatabaseFunction` as a regular Swift function. It returns
@@ -183,9 +171,24 @@ public final class DatabaseFunction: Hashable {
     /// }
     /// ```
     public func callAsFunction(_ arguments: any SQLExpressible...) -> SQLExpression {
-        .function(name, arguments.map(\.sqlExpression), flags: functionFlags)
+        switch kind {
+        case .function:
+            return .simpleFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isPure: isPure,
+                isJSONValue: false)
+        case .aggregate:
+            return .aggregateFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isDistinct: false,
+                ordering: nil,
+                filter: nil,
+                isJSONValue: false)
+        }
     }
-
+    
     /// Calls sqlite3_create_function_v2
     /// See <https://sqlite.org/c3ref/create_function.html>
     func install(in db: Database) {
