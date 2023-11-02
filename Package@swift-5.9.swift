@@ -53,7 +53,10 @@ let package = Package(
             dependencies: ["CSQLite"],
             path: "GRDB",
             cSettings: cSettings,
-            swiftSettings: swiftSettings),
+            swiftSettings: swiftSettings + [
+                // <https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md>
+                .enableExperimentalFeature("StrictConcurrency"),
+            ]),
         .testTarget(
             name: "GRDBTests",
             dependencies: ["GRDB"],
