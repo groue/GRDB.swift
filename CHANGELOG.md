@@ -119,6 +119,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1452](https://github.com/groue/GRDB.swift/pull/1452) by [@groue](https://github.com/groue): SQLite 3.44.0, FILTER and ORDER BY clauses in aggregate functions
+
 ## 6.21.0
 
 Released October 29, 2023
