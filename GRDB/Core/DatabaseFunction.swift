@@ -144,6 +144,7 @@ public final class DatabaseFunction: Hashable {
         self.kind = .aggregate { Aggregate() }
     }
     
+    // TODO: GRDB7 -> expose ORDER BY and FILTER when we have distinct types for simple functions and aggregates.
     /// Returns an SQL expression that applies the function.
     ///
     /// You can use a `DatabaseFunction` as a regular Swift function. It returns
