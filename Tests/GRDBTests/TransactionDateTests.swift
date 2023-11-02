@@ -3,14 +3,20 @@ import GRDB
 
 class TransactionDateTests: GRDBTestCase {
     func testTransactionDateOutsideOfTransaction() throws {
-        let dates = [
-            Date.distantPast,
-            Date(),
-            Date.distantFuture,
-        ]
-        var dateIterator = dates.makeIterator()
+        class Context {
+            static let dates = [
+                Date.distantPast,
+                Date(),
+                Date.distantFuture,
+            ]
+            var dateIterator: [Date].Iterator
+            init() {
+                dateIterator = Self.dates.makeIterator()
+            }
+        }
+        let context = Context()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            context.dateIterator.next()!
         }
         
         var collectedDates: [Date] = []
@@ -19,18 +25,24 @@ class TransactionDateTests: GRDBTestCase {
             try collectedDates.append(db.transactionDate)
             try collectedDates.append(db.transactionDate)
         }
-        XCTAssertEqual(collectedDates, dates)
+        XCTAssertEqual(collectedDates, Context.dates)
     }
     
     func testTransactionDateInsideTransaction_commit() throws {
-        let dates = [
-            Date.distantPast,
-            Date(),
-            Date.distantFuture,
-        ]
-        var dateIterator = dates.makeIterator()
+        class Context {
+            static let dates = [
+                Date.distantPast,
+                Date(),
+                Date.distantFuture,
+            ]
+            var dateIterator: [Date].Iterator
+            init() {
+                dateIterator = Self.dates.makeIterator()
+            }
+        }
+        let context = Context()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            context.dateIterator.next()!
         }
         
         var collectedDates: [Date] = []
@@ -42,18 +54,29 @@ class TransactionDateTests: GRDBTestCase {
             try db.execute(sql: "COMMIT")
             try collectedDates.append(db.transactionDate)
         }
-        XCTAssertEqual(collectedDates, [dates[0], dates[1], dates[1], dates[2]])
+        XCTAssertEqual(collectedDates, [
+            Context.dates[0],
+            Context.dates[1],
+            Context.dates[1],
+            Context.dates[2],
+        ])
     }
     
     func testTransactionDateInsideTransaction_rollback() throws {
-        let dates = [
-            Date.distantPast,
-            Date(),
-            Date.distantFuture,
-        ]
-        var dateIterator = dates.makeIterator()
+        class Context {
+            static let dates = [
+                Date.distantPast,
+                Date(),
+                Date.distantFuture,
+            ]
+            var dateIterator: [Date].Iterator
+            init() {
+                dateIterator = Self.dates.makeIterator()
+            }
+        }
+        let context = Context()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            context.dateIterator.next()!
         }
         
         var collectedDates: [Date] = []
@@ -65,18 +88,29 @@ class TransactionDateTests: GRDBTestCase {
             try db.execute(sql: "ROLLBACK")
             try collectedDates.append(db.transactionDate)
         }
-        XCTAssertEqual(collectedDates, [dates[0], dates[1], dates[1], dates[2]])
+        XCTAssertEqual(collectedDates, [
+            Context.dates[0],
+            Context.dates[1],
+            Context.dates[1],
+            Context.dates[2],
+        ])
     }
     
     func testTransactionDateInsideTransaction_rollbackingError() throws {
-        let dates = [
-            Date.distantPast,
-            Date(),
-            Date.distantFuture,
-        ]
-        var dateIterator = dates.makeIterator()
+        class Context {
+            static let dates = [
+                Date.distantPast,
+                Date(),
+                Date.distantFuture,
+            ]
+            var dateIterator: [Date].Iterator
+            init() {
+                dateIterator = Self.dates.makeIterator()
+            }
+        }
+        let context = Context()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            context.dateIterator.next()!
         }
         
         var collectedDates: [Date] = []
@@ -92,7 +126,12 @@ class TransactionDateTests: GRDBTestCase {
                 """)
             try collectedDates.append(db.transactionDate)
         }
-        XCTAssertEqual(collectedDates, [dates[0], dates[1], dates[1], dates[2]])
+        XCTAssertEqual(collectedDates, [
+            Context.dates[0],
+            Context.dates[1],
+            Context.dates[1],
+            Context.dates[2],
+        ])
     }
     
     func test_TimestampedRecord_default_willInsert() throws {
@@ -107,8 +146,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -119,7 +161,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
+        context.currentDate = Date.distantPast
         try dbQueue.write { db in
             do {
                 var player = Player(name: "Arthur")
@@ -152,8 +194,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -164,14 +209,14 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
+        context.currentDate = Date.distantPast
         try dbQueue.write { db in
             var player = Player(name: "Arthur")
             try player.insert(db)
         }
         
         let newTransactionDate = Date()
-        currentDate = newTransactionDate
+        context.currentDate = newTransactionDate
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             
@@ -198,8 +243,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -210,14 +258,14 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
+        context.currentDate = Date.distantPast
         try dbQueue.write { db in
             var player = Player(name: "Arthur")
             try player.insert(db)
         }
         
         let newTransactionDate = Date()
-        currentDate = newTransactionDate
+        context.currentDate = newTransactionDate
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             
@@ -251,8 +299,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -267,7 +318,7 @@ class TransactionDateTests: GRDBTestCase {
         }
         
         let newTransactionDate = Date()
-        currentDate = newTransactionDate
+        context.currentDate = newTransactionDate
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             try player.touch(db)
@@ -303,8 +354,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -315,7 +369,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
+        context.currentDate = Date.distantPast
         try dbQueue.write { db in
             var player = Player(name: "Arthur", isInserted: false)
             try player.insert(db)
@@ -354,8 +408,11 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        class Context {
+            var currentDate = Date.distantPast
+        }
+        let context = Context()
+        dbConfiguration.transactionClock = .custom { _ in context.currentDate }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -366,7 +423,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
+        context.currentDate = Date.distantPast
         try dbQueue.write { db in
             let player = Player(name: "Arthur")
             try player.insert(db)

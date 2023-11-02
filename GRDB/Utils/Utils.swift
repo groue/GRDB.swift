@@ -67,7 +67,7 @@ extension Dictionary {
 }
 
 extension DispatchQueue {
-    private static var mainKey: DispatchSpecificKey<()> = {
+    private static let mainKey: DispatchSpecificKey<()> = {
         let key = DispatchSpecificKey<()>()
         DispatchQueue.main.setSpecific(key: key, value: ())
         return key
@@ -124,8 +124,21 @@ struct PrintOutputStream: TextOutputStream {
     }
 }
 
+final class LockedTextOutputStream: @unchecked Sendable {
+    var stream: any TextOutputStream
+    let lock = NSLock()
+    init(stream: any TextOutputStream) {
+        self.stream = stream
+    }
+    func write(_ string: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        stream.write(string)
+    }
+}
+
 /// Concatenates two functions
-func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+func concat(_ rhs: (@Sendable () -> Void)?, _ lhs: (@Sendable () -> Void)?) -> (@Sendable () -> Void)? {
     switch (rhs, lhs) {
     case let (rhs, nil):
         return rhs
@@ -140,7 +153,7 @@ func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
 }
 
 /// Concatenates two functions
-func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+func concat<T>(_ rhs: (@Sendable (T) -> Void)?, _ lhs: (@Sendable(T) -> Void)?) -> (@Sendable(T) -> Void)? {
     switch (rhs, lhs) {
     case let (rhs, nil):
         return rhs

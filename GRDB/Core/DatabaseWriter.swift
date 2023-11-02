@@ -181,7 +181,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the barrier access to the database.
-    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, any Error>) -> Void)
+    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, any Error>) -> Void)
     
     /// Schedules database operations for execution, and returns immediately.
     ///
@@ -213,7 +213,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database.
-    func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+    func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -292,7 +292,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   returned ``DatabaseFuture`` blocks a thread. You may prefer
     ///   ``spawnConcurrentRead(_:)`` instead.
     /// - parameter value: A closure which accesses the database.
-    func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T>
+    func concurrentRead<T>(_ value: @escaping @Sendable (Database) throws -> T) -> DatabaseFuture<T>
     
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
     /// Schedules read-only database operations for execution.
@@ -340,7 +340,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func spawnConcurrentRead(_ value: @escaping (Result<Database, any Error>) -> Void)
+    func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, any Error>) -> Void)
 }
 
 extension DatabaseWriter {
@@ -426,8 +426,8 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - parameter completion: A closure called with the transaction result.
     public func asyncWrite<T>(
-        _ updates: @escaping (Database) throws -> T,
-        completion: @escaping (Database, Result<T, any Error>) -> Void)
+        _ updates: @escaping @Sendable (Database) throws -> T,
+        completion: @escaping @Sendable (Database, Result<T, any Error>) -> Void)
     {
         asyncWriteWithoutTransaction { db in
             do {
@@ -557,7 +557,7 @@ extension DatabaseWriter {
     func _addWriteOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -608,7 +608,7 @@ extension DatabaseWriter {
     ///   would happen while establishing the database access or committing
     ///   the transaction.
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func write<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func write<T>(_ updates: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWrite(updates, completion: { _, result in
                 continuation.resume(with: result)
@@ -646,7 +646,7 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func writeWithoutTransaction<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func writeWithoutTransaction<T>(_ updates: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWriteWithoutTransaction { db in
                 do {
@@ -699,7 +699,7 @@ extension DatabaseWriter {
     /// - throws: The error thrown by `updates`.
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func barrierWriteWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T)
+        _ updates: @escaping @Sendable (Database) throws -> T)
     async throws -> T
     {
         try await withUnsafeThrowingContinuation { continuation in
@@ -803,7 +803,7 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        updates: @escaping (Database) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> Output)
     -> DatabasePublishers.Write<Output>
     {
         OnDemandFuture { fulfill in
@@ -866,10 +866,10 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which writes in the database.
     /// - parameter value: A closure which reads from the database.
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func writePublisher<S, T, Output>(
+    public func writePublisher<S, T: Sendable, Output: Sendable>(
         receiveOn scheduler: S = DispatchQueue.main,
-        updates: @escaping (Database) throws -> T,
-        thenRead value: @escaping (Database, T) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> T,
+        thenRead value: @escaping @Sendable (Database, T) throws -> Output)
     -> DatabasePublishers.Write<Output>
     where S: Scheduler
     {
@@ -885,7 +885,7 @@ extension DatabaseWriter {
                     fulfill(.failure(error))
                     return
                 }
-                self.spawnConcurrentRead { dbResult in
+                self.spawnConcurrentRead { [updatesValue] dbResult in
                     fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
                 }
             }
@@ -941,7 +941,7 @@ extension Publisher where Failure == any Error {
 ///
 /// let count: Int = try futureCount.wait()
 /// ```
-public class DatabaseFuture<Value> {
+public class DatabaseFuture<Value: Sendable> {
     private var consumed = false
     private let _wait: () throws -> Value
     
@@ -964,6 +964,31 @@ public class DatabaseFuture<Value> {
         GRDBPrecondition(consumed == false, "DatabaseFuture.wait() must be called only once")
         consumed = true
         return try _wait()
+    }
+}
+
+/// Helps building DatabaseFuture with strict concurrency checkings
+final class DatabaseFutureBuilder<Value: Sendable>: @unchecked Sendable {
+    /// The semaphore that blocks until result is set.
+    let semaphore = DispatchSemaphore(value: 0)
+    
+    var result: Result<Value, any Error>? = nil
+    
+    init() { }
+    
+    /// - precondition: MUST be called once.
+    func resolve(_ result: Result<Value, any Error>) {
+        self.result = result
+        semaphore.signal()
+    }
+    
+    /// - precondition: MUST be called once.
+    func future() -> DatabaseFuture<Value> {
+        DatabaseFuture { [self] in
+            // Block the future until results are fetched
+            _ = semaphore.wait(timeout: .distantFuture)
+            return try result!.get()
+        }
     }
 }
 
@@ -1003,7 +1028,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, any Error>) -> Void) {
         base.asyncRead(value)
     }
     
@@ -1012,7 +1037,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, any Error>) -> Void) {
         base.asyncUnsafeRead(value)
     }
     
@@ -1023,7 +1048,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
         base._add(
@@ -1044,11 +1069,11 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, any Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, any Error>) -> Void) {
         base.asyncBarrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
     
@@ -1056,11 +1081,11 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.unsafeReentrantWrite(updates)
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
+    public func concurrentRead<T>(_ value: @escaping @Sendable (Database) throws -> T) -> DatabaseFuture<T> {
         base.concurrentRead(value)
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, any Error>) -> Void) {
         base.spawnConcurrentRead(value)
     }
 }

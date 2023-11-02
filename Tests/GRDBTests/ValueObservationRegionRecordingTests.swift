@@ -130,24 +130,27 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var regions: [DatabaseRegion] = []
+        class Recorder {
+            var regions: [DatabaseRegion] = []
+            var results: [Int] = []
+        }
+        let recorder = Recorder()
         let observation = ValueObservation
             .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             }
-            .handleEvents(willTrackRegion: { regions.append($0) })
+            .handleEvents(willTrackRegion: { recorder.regions.append($0) })
         
         let observer = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                recorder.results.append(count)
                 notificationExpectation.fulfill()
         })
         
@@ -162,9 +165,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [0, 1, 2, 3])
+            XCTAssertEqual(recorder.results, [0, 1, 2, 3])
             
-            XCTAssertEqual(regions.map(\.description), [
+            XCTAssertEqual(recorder.regions.map(\.description), [
                 "a(value),source(name)",
                 "b(value),source(name)"])
         }
@@ -181,25 +184,28 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var regions: [DatabaseRegion] = []
+        class Recorder {
+            var regions: [DatabaseRegion] = []
+            var results: [Int] = []
+        }
+        let recorder = Recorder()
         let observation = ValueObservation
             .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             }
-            .handleEvents(willTrackRegion: { regions.append($0) })
+            .handleEvents(willTrackRegion: { recorder.regions.append($0) })
         
         let observer = observation.start(
             in: dbQueue,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                recorder.results.append(count)
                 notificationExpectation.fulfill()
         })
         
@@ -214,9 +220,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [0, 1, 2, 3])
+            XCTAssertEqual(recorder.results, [0, 1, 2, 3])
             
-            XCTAssertEqual(regions.map(\.description), [
+            XCTAssertEqual(recorder.regions.map(\.description), [
                 "a(value),source(name)",
                 "b(value),source(name)"])
         }

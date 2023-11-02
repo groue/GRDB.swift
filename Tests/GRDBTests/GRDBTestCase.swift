@@ -219,12 +219,12 @@ extension FetchRequest {
 
 /// A type-erased ValueReducer.
 public struct AnyValueReducer<Fetched, Value>: ValueReducer {
-    private var __fetch: (Database) throws -> Fetched
-    private var __value: (Fetched) -> Value?
+    private var __fetch: @Sendable (Database) throws -> Fetched
+    private var __value: @Sendable (Fetched) -> Value?
     
     public init(
-        fetch: @escaping (Database) throws -> Fetched,
-        value: @escaping (Fetched) -> Value?)
+        fetch: @escaping @Sendable (Database) throws -> Fetched,
+        value: @escaping @Sendable (Fetched) -> Value?)
     {
         self.__fetch = fetch
         self.__value = value

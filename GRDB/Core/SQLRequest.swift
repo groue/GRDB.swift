@@ -191,7 +191,7 @@ extension SQLRequest: FetchRequest {
         .literal(sqlLiteral)
     }
     
-    public func fetchCount(_ db: Database) throws -> Int {
+    @Sendable public func fetchCount(_ db: Database) throws -> Int {
         try SQLRequest<Int>("SELECT COUNT(*) FROM (\(self))").fetchOne(db)!
     }
     

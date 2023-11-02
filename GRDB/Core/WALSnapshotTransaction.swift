@@ -4,9 +4,9 @@
 ///
 /// `WALSnapshotTransaction` **takes ownership** of its reader
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
-class WALSnapshotTransaction {
+final class WALSnapshotTransaction: Sendable {
     private let reader: SerializedDatabase
-    private let release: (_ isInsideTransaction: Bool) -> Void
+    private let release: @Sendable (_ isInsideTransaction: Bool) -> Void
     
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
@@ -37,7 +37,7 @@ class WALSnapshotTransaction {
     ///   is no longer used.
     init(
         onReader reader: SerializedDatabase,
-        release: @escaping (_ isInsideTransaction: Bool) -> Void)
+        release: @escaping @Sendable (_ isInsideTransaction: Bool) -> Void)
     throws
     {
         assert(reader.configuration.readonly)
@@ -71,7 +71,7 @@ class WALSnapshotTransaction {
     
     /// Schedules database operations for execution, and
     /// returns immediately.
-    func asyncRead(_ value: @escaping (Database) -> Void) {
+    func asyncRead(_ value: @escaping @Sendable (Database) -> Void) {
         // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
         reader.async(value)
     }

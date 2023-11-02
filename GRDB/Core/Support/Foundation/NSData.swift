@@ -1,6 +1,7 @@
 #if !os(Linux)
 import Foundation
 
+// GRDB7: remove conformance because NSData is not Sendable.
 /// NSData is convertible to and from DatabaseValue.
 extension NSData: DatabaseValueConvertible {
     

@@ -35,8 +35,9 @@ import Dispatch
 ///     got 2
 ///     got 1
 ///     got 3
-final class Pool<T> {
-    private class Item {
+final class Pool<T: Sendable>: @unchecked Sendable {
+    // @unchecked Sendable because protected by Pool.
+    private class Item: @unchecked Sendable {
         let element: T
         var isAvailable: Bool
         
@@ -75,7 +76,7 @@ final class Pool<T> {
     
     /// Returns a tuple (element, release)
     /// Client must call release(), only once, after the element has been used.
-    func get() throws -> (element: T, release: (PoolCompletion) -> Void) {
+    func get() throws -> (element: T, release: @Sendable (PoolCompletion) -> Void) {
         try barrierQueue.sync {
             itemsSemaphore.wait()
             itemsGroup.enter()
@@ -107,7 +108,7 @@ final class Pool<T> {
     ///
     /// - important: The `execute` argument is executed in a serial dispatch
     ///   queue, so make sure you use the element asynchronously.
-    func asyncGet(_ execute: @escaping (Result<(element: T, release: (PoolCompletion) -> Void), any Error>) -> Void) {
+    func asyncGet(_ execute: @escaping @Sendable (Result<(element: T, release: @Sendable (PoolCompletion) -> Void), any Error>) -> Void) {
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum
@@ -172,7 +173,7 @@ final class Pool<T> {
     
     /// Asynchronously runs the `barrier` function when no element is used, and
     /// before any other element is dequeued.
-    func asyncBarrier(execute barrier: @escaping () -> Void) {
+    func asyncBarrier(execute barrier: @escaping @Sendable () -> Void) {
         barrierQueue.async(flags: [.barrier]) {
             self.itemsGroup.wait()
             barrier()

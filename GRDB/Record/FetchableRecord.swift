@@ -320,7 +320,7 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(
+    @Sendable public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -348,7 +348,7 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(
+    @Sendable public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -378,7 +378,7 @@ extension FetchableRecord where Self: Hashable {
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(
+    @Sendable public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -449,7 +449,7 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(
+    @Sendable public static func fetchAll(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -478,7 +478,7 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(
+    @Sendable public static func fetchOne(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -509,7 +509,7 @@ extension FetchableRecord where Self: Hashable {
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(
+    @Sendable public static func fetchSet(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -589,7 +589,7 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Self] {
+    @Sendable public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Self] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
@@ -624,7 +624,7 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Self? {
+    @Sendable public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Self? {
         let request = try request.makePreparedRequest(db, forSingleResult: true)
         if let supplementaryFetch = request.supplementaryFetch {
             guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
@@ -664,7 +664,7 @@ extension FetchableRecord where Self: Hashable {
     ///     - sql: a FetchRequest.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Self> {
+    @Sendable public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Self> {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
@@ -746,7 +746,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try RowDecoder.fetchAll(db, self)
     }
     
@@ -774,7 +774,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+    @Sendable public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try RowDecoder.fetchOne(db, self)
     }
 }
@@ -805,7 +805,7 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     ///     - sql: a FetchRequest.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try RowDecoder.fetchSet(db, self)
     }
 }

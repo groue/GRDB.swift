@@ -23,12 +23,15 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value: Int?
+                class Recorder {
+                    var value: Int?
+                }
+                let recorder = Recorder()
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { recorder.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(recorder.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -36,12 +39,15 @@ class SharedValueObservationTests: GRDBTestCase {
             }
             
             do {
-                var value: Int?
+                class Recorder {
+                    var value: Int?
+                }
+                let recorder = Recorder()
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { recorder.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(recorder.value, 0)
                 XCTAssertEqual(log.flush(), [])
                 
                 cancellable.cancel()
@@ -75,21 +81,24 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value1: Int?
-                var value2: Int?
+                class Recorder {
+                    var value1: Int?
+                    var value2: Int?
+                }
+                let recorder = Recorder()
                 let cancellable1 = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
                     onChange: { value in
-                        value1 = value
+                        recorder.value1 = value
                         _ = sharedObservation!.start(
                             onError: { XCTFail("Unexpected error \($0)") },
                             onChange: { value in
-                                value2 = value
+                                recorder.value2 = value
                             })
                     })
                 
-                XCTAssertEqual(value1, 0)
-                XCTAssertEqual(value2, 0)
+                XCTAssertEqual(recorder.value1, 0)
+                XCTAssertEqual(recorder.value2, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable1.cancel()
@@ -159,12 +168,15 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value: Int?
+                class Recorder {
+                    var value: Int?
+                }
+                let recorder = Recorder()
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { recorder.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(recorder.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -172,12 +184,15 @@ class SharedValueObservationTests: GRDBTestCase {
             }
             
             do {
-                var value: Int?
+                class Recorder {
+                    var value: Int?
+                }
+                let recorder = Recorder()
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { recorder.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(recorder.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -210,21 +225,24 @@ class SharedValueObservationTests: GRDBTestCase {
         
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
-            var value1: Int?
-            var value2: Int?
+            class Context {
+                var value1: Int?
+                var value2: Int?
+            }
+            let context = Context()
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: { value in
-                    value1 = value
+                    context.value1 = value
                     _ = sharedObservation!.start(
                         onError: { XCTFail("Unexpected error \($0)") },
                         onChange: { value in
-                            value2 = value
+                            context.value2 = value
                         })
                 })
             
-            XCTAssertEqual(value1, 0)
-            XCTAssertEqual(value2, 0)
+            XCTAssertEqual(context.value1, 0)
+            XCTAssertEqual(context.value2, 0)
             XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable1.cancel()
@@ -256,41 +274,46 @@ class SharedValueObservationTests: GRDBTestCase {
         
         // We want to control when the shared observation is deallocated
         try withExtendedLifetime(sharedObservation) { sharedObservation in
+            class Context {
+                var values1: [Int] = []
+                var values2: [Int] = []
+                var values3: [Int] = []
+            }
+            let context = Context()
+            
             // --- Start observation 1
-            var values1: [Int] = []
             let exp1 = expectation(description: "")
             exp1.expectedFulfillmentCount = 2
             exp1.assertForOverFulfill = false
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values1.append($0)
+                    context.values1.append($0)
                     exp1.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1, [0, 1])
+            XCTAssertEqual(context.values1, [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
             
             // --- Start observation 2
-            var values2: [Int] = []
             let exp2 = expectation(description: "")
             exp2.expectedFulfillmentCount = 2
             exp2.assertForOverFulfill = false
             let cancellable2 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values2.append($0)
+                    context.values2.append($0)
                     exp2.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2])
+            XCTAssertEqual(context.values1, [0, 1, 2])
+            XCTAssertEqual(context.values2, [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -298,22 +321,21 @@ class SharedValueObservationTests: GRDBTestCase {
             XCTAssertEqual(log.flush(), [])
             
             // --- Start observation 3
-            var values3: [Int] = []
             let exp3 = expectation(description: "")
             exp3.expectedFulfillmentCount = 2
             exp3.assertForOverFulfill = false
             let cancellable3 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values3.append($0)
+                    context.values3.append($0)
                     exp3.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2, 3])
-            XCTAssertEqual(values3, [2, 3])
+            XCTAssertEqual(context.values1, [0, 1, 2])
+            XCTAssertEqual(context.values2, [1, 2, 3])
+            XCTAssertEqual(context.values3, [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
@@ -338,24 +360,30 @@ class SharedValueObservationTests: GRDBTestCase {
             }
         }
         
+        class Context {
+            var sharedObservation: SharedValueObservation<Int>?
+            init(dbQueue: DatabaseQueue, log: Log) {
+                sharedObservation = ValueObservation
+                    .tracking(Table("player").fetchCount)
+                    .print(to: log)
+                    .shared(
+                        in: dbQueue,
+                        scheduling: .async(onQueue: .main),
+                        extent: .observationLifetime)
+            }
+        }
         let log = Log()
-        var sharedObservation: SharedValueObservation<Int>? = ValueObservation
-            .tracking(Table("player").fetchCount)
-            .print(to: log)
-            .shared(
-                in: dbQueue,
-                scheduling: .async(onQueue: .main),
-                extent: .observationLifetime)
+        let context = Context(dbQueue: dbQueue, log: log)
         XCTAssertEqual(log.flush(), [])
         
         // ---
         let exp = expectation(description: "")
         exp.expectedFulfillmentCount = 3
-        let cancellable = sharedObservation!.start(
+        let cancellable = context.sharedObservation!.start(
             onError: { XCTFail("Unexpected error \($0)") },
-            onChange: { value in
+            onChange: { [weak context] value in
                 // Early release
-                sharedObservation = nil
+                context?.sharedObservation = nil
                 
                 switch value {
                 case 0:
@@ -435,41 +463,46 @@ class SharedValueObservationTests: GRDBTestCase {
         
         // We want to control when the shared observation is deallocated
         try withExtendedLifetime(sharedObservation) { sharedObservation in
+            class Context {
+                var values1: [Int] = []
+                var values2: [Int] = []
+                var values3: [Int] = []
+            }
+            let context = Context()
+            
             // --- Start observation 1
-            var values1: [Int] = []
             let exp1 = expectation(description: "")
             exp1.expectedFulfillmentCount = 2
             exp1.assertForOverFulfill = false
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values1.append($0)
+                    context.values1.append($0)
                     exp1.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1, [0, 1])
+            XCTAssertEqual(context.values1, [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
             
             // --- Start observation 2
-            var values2: [Int] = []
             let exp2 = expectation(description: "")
             exp2.expectedFulfillmentCount = 2
             exp2.assertForOverFulfill = false
             let cancellable2 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values2.append($0)
+                    context.values2.append($0)
                     exp2.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2])
+            XCTAssertEqual(context.values1, [0, 1, 2])
+            XCTAssertEqual(context.values2, [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -477,22 +510,21 @@ class SharedValueObservationTests: GRDBTestCase {
             XCTAssertEqual(log.flush(), [])
             
             // --- Start observation 3
-            var values3: [Int] = []
             let exp3 = expectation(description: "")
             exp3.expectedFulfillmentCount = 2
             exp3.assertForOverFulfill = false
             let cancellable3 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: {
-                    values3.append($0)
+                    context.values3.append($0)
                     exp3.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2, 3])
-            XCTAssertEqual(values3, [2, 3])
+            XCTAssertEqual(context.values1, [0, 1, 2])
+            XCTAssertEqual(context.values2, [1, 2, 3])
+            XCTAssertEqual(context.values3, [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
@@ -522,11 +554,15 @@ class SharedValueObservationTests: GRDBTestCase {
             }
         }
         
+        class Context {
+            var fetchError: (any Error)? = nil
+        }
+        let context = Context()
         let log = Log()
-        var fetchError: (any Error)? = nil
+        
         let publisher = ValueObservation
             .tracking { db -> Int in
-                if let error = fetchError { throw error }
+                if let error = context.fetchError { throw error }
                 return try Table("player").fetchCount(db)
             }
             .print(to: log)
@@ -540,7 +576,7 @@ class SharedValueObservationTests: GRDBTestCase {
             try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
             try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
             
-            fetchError = TestError()
+            context.fetchError = TestError()
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
@@ -557,7 +593,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         do {
-            fetchError = nil
+            context.fetchError = nil
             let recorder = publisher.record()
             if case .finished = try wait(for: recorder.completion, timeout: 1) { XCTFail("Expected error") }
             XCTAssertEqual(log.flush(), [])
@@ -578,11 +614,15 @@ class SharedValueObservationTests: GRDBTestCase {
             }
         }
         
+        class Context {
+            var fetchError: (any Error)? = nil
+        }
+        let context = Context()
         let log = Log()
-        var fetchError: (any Error)? = nil
+        
         let publisher = ValueObservation
             .tracking { db -> Int in
-                if let error = fetchError { throw error }
+                if let error = context.fetchError { throw error }
                 return try Table("player").fetchCount(db)
             }
             .print(to: log)
@@ -596,7 +636,7 @@ class SharedValueObservationTests: GRDBTestCase {
             try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
             try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
             
-            fetchError = TestError()
+            context.fetchError = TestError()
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
@@ -613,7 +653,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         do {
-            fetchError = nil
+            context.fetchError = nil
             let recorder = publisher.record()
             try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
             XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 1"])

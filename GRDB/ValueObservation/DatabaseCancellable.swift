@@ -5,7 +5,7 @@
 /// ### Supporting Types
 ///
 /// - ``AnyDatabaseCancellable``
-public protocol DatabaseCancellable {
+public protocol DatabaseCancellable: Sendable {
     /// Cancel the activity.
     func cancel()
 }
@@ -15,31 +15,35 @@ public protocol DatabaseCancellable {
 ///
 /// An `AnyDatabaseCancellable` instance automatically calls ``cancel()``
 ///  when deinitialized.
-public class AnyDatabaseCancellable: DatabaseCancellable {
-    private var _cancel: (() -> Void)?
+public class AnyDatabaseCancellable: DatabaseCancellable, @unchecked Sendable {
+    @LockedBox private var _cancel: (() -> Void)?
+    
+    var isCancelled: Bool {
+        _cancel == nil
+    }
     
     /// Initializes the cancellable object with the given cancel-time closure.
-    public init(cancel: @escaping () -> Void) {
+    public init(cancel: @escaping @Sendable () -> Void) {
         _cancel = cancel
     }
     
     /// Creates a cancellable object that forwards cancellation to `base`.
     public convenience init(_ base: some DatabaseCancellable) {
-        var cancellable = Optional.some(base)
         self.init {
-            cancellable?.cancel()
-            cancellable = nil // Release memory
+            base.cancel()
         }
     }
     
     deinit {
-        _cancel?()
+        cancel()
     }
     
     public func cancel() {
-        // Don't prevent multiple concurrent calls to _cancel, because it is
-        // pointless. But release memory!
-        _cancel?()
-        _cancel = nil
+        let cancel = $_cancel.update {
+            let result = $0
+            $0 = nil
+            return result
+        }
+        cancel?()
     }
 }

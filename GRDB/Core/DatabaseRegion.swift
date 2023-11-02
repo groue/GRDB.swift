@@ -378,11 +378,11 @@ private struct TableRegion: Equatable {
 /// ### Supporting Types
 ///
 ///  - ``AnyDatabaseRegionConvertible``
-public protocol DatabaseRegionConvertible {
+public protocol DatabaseRegionConvertible: Sendable {
     /// Returns a database region.
     ///
     /// - parameter db: A database connection.
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
+    @Sendable func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 
 extension DatabaseRegionConvertible where Self == DatabaseRegion {
@@ -399,9 +399,9 @@ extension DatabaseRegion: DatabaseRegionConvertible {
 
 /// A type-erased DatabaseRegionConvertible
 public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
-    let _region: (Database) throws -> DatabaseRegion
+    let _region: @Sendable (Database) throws -> DatabaseRegion
     
-    public init(_ region: @escaping (Database) throws -> DatabaseRegion) {
+    public init(_ region: @escaping @Sendable (Database) throws -> DatabaseRegion) {
         _region = region
     }
     

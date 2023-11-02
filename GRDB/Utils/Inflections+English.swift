@@ -43,8 +43,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extension Inflections {
-    /// The default inflections
-    public static var `default`: Inflections = {
+    static func makeEnglishInflections() -> Self {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
@@ -134,5 +133,5 @@ extension Inflections {
         inflections.irregularSuffix("zombie", "zombies")
         
         return inflections
-    }()
+    }
 }

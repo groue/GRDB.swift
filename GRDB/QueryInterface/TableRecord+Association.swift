@@ -339,7 +339,7 @@ extension TableRecord {
     /// - returns: An association to the common table expression.
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
@@ -540,6 +540,7 @@ extension TableRecord {
 // MARK: - Request for associated records
 
 extension TableRecord where Self: EncodableRecord {
+    // TODO: GRDB7: require that Self is Sendable
     /// Returns a request for the associated record(s).
     ///
     /// For example:

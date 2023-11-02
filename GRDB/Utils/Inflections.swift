@@ -32,6 +32,14 @@ extension String {
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 public struct Inflections {
+    @LockedBox fileprivate static var defaultInflections: Inflections = makeEnglishInflections()
+    
+    /// The default inflections
+    public static var `default`: Inflections {
+        get { defaultInflections }
+        set { defaultInflections = newValue }
+    }
+    
     private var pluralizeRules: [(NSRegularExpression, String)] = []
     private var singularizeRules: [(NSRegularExpression, String)] = []
     private var uncountablesRegularExpressions: [String: NSRegularExpression] = [:]

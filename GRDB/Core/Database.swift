@@ -130,20 +130,28 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Configuration
     
+    @LockedBox private static var logErrorFunction: LogErrorFunction? = nil
+    
     /// The error logging function.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    public static var logError: LogErrorFunction? = nil {
-        didSet {
-            if logError != nil {
-                _registerErrorLogCallback { (_, code, message) in
-                    guard let logError = Database.logError else { return }
-                    guard let message = message.map(String.init) else { return }
-                    let resultCode = ResultCode(rawValue: code)
-                    logError(resultCode, message)
+    public static var logError: LogErrorFunction? {
+        get {
+            logErrorFunction
+        }
+        set {
+            $logErrorFunction.update {
+                $0 = newValue
+                if $0 != nil {
+                    _registerErrorLogCallback { (_, code, message) in
+                        guard let logError = Database.logError else { return }
+                        guard let message = message.map(String.init) else { return }
+                        let resultCode = ResultCode(rawValue: code)
+                        logError(resultCode, message)
+                    }
+                } else {
+                    _registerErrorLogCallback(nil)
                 }
-            } else {
-                _registerErrorLogCallback(nil)
             }
         }
     }
@@ -1785,7 +1793,7 @@ extension Database {
     /// Related SQLite documentation:
     /// - <https://www.sqlite.org/datatype3.html#collating_sequences>
     /// - <https://www.sqlite.org/datatype3.html#collation>
-    public struct CollationName: RawRepresentable, Hashable {
+    public struct CollationName: RawRepresentable, Hashable, Sendable {
         public let rawValue: String
         
         /// Creates a collation name.

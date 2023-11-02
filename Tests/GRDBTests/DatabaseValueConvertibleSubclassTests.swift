@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
+private class FetchableParent : DatabaseValueConvertible, CustomStringConvertible, @unchecked Sendable {
     var databaseValue: DatabaseValue { "Parent".databaseValue }
     
     class func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {

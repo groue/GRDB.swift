@@ -39,10 +39,11 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
     
     func assertTransaction_registerBefore(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
         class Witness { }
+        class Recorder { var commitCount = 0 }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var commitCount = 0
+            let recorder = Recorder()
             weak var deallocationWitness: Witness? = nil
             do {
                 let witness = Witness()
@@ -51,19 +52,19 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                 db.afterNextTransaction { _ in
                     // use witness
                     withExtendedLifetime(witness, { })
-                    commitCount += 1
+                    recorder.commitCount += 1
                 }
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(commitCount, 0)
+            XCTAssertEqual(recorder.commitCount, 0)
             try db.execute(sql: startSQL)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 0, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -73,20 +74,23 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 0, "\(startSQL); \(endSQL)")
             }
         }
     }
     
     func assertTransaction_registerBetween(start startSQL: String, end endSQL: String, isNotifiedAs expectedCompletion: Database.TransactionCompletion) throws {
         class Witness { }
+        class Recorder {
+            var commitCount = 0
+            var rollbackCount = 0
+        }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var commitCount = 0
-            var rollbackCount = 0
+            let recorder = Recorder()
             try db.execute(sql: startSQL)
             
             weak var deallocationWitness: Witness? = nil
@@ -98,25 +102,25 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                     onCommit: { _ in
                         // use witness
                         withExtendedLifetime(witness, { })
-                        commitCount += 1
+                        recorder.commitCount += 1
                     },
                     onRollback: { _ in
                         // use witness
                         withExtendedLifetime(witness, { })
-                        rollbackCount += 1
+                        recorder.rollbackCount += 1
                     })
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(commitCount, 0)
+            XCTAssertEqual(recorder.commitCount, 0)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.rollbackCount, 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.rollbackCount, 1, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -126,11 +130,11 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.rollbackCount, 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(recorder.rollbackCount, 1, "\(startSQL); \(endSQL)")
             }
         }
     }

@@ -15,12 +15,15 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: .fullDatabase)
         
-        var count = 0
+        class Recorder {
+            var count = 0
+        }
+        let recorder = Recorder()
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                recorder.count += 1
                 notificationExpectation.fulfill()
             })
         
@@ -37,7 +40,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            XCTAssertEqual(count, 3)
+            XCTAssertEqual(recorder.count, 3)
         }
     }
 
@@ -84,12 +87,15 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: request1, request2)
         
-        var count = 0
+        class Recorder {
+            var count = 0
+        }
+        let recorder = Recorder()
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                recorder.count += 1
                 notificationExpectation.fulfill()
             })
         
@@ -106,7 +112,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            XCTAssertEqual(count, 3)
+            XCTAssertEqual(recorder.count, 3)
         }
     }
     
@@ -126,12 +132,15 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: [request1, request2])
         
-        var count = 0
+        class Recorder {
+            var count = 0
+        }
+        let recorder = Recorder()
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                recorder.count += 1
                 notificationExpectation.fulfill()
             })
         
@@ -148,7 +157,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            XCTAssertEqual(count, 3)
+            XCTAssertEqual(recorder.count, 3)
         }
     }
     
@@ -162,13 +171,16 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         
-        var count = 0
+        class Recorder {
+            var count = 0
+        }
+        let recorder = Recorder()
         do {
             let cancellable = observation.start(
                 in: dbQueue,
                 onError: { XCTFail("Unexpected error: \($0)") },
                 onChange: { db in
-                    count += 1
+                    recorder.count += 1
                     notificationExpectation.fulfill()
                 })
             
@@ -187,7 +199,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
         waitForExpectations(timeout: 1, handler: nil)
         
-        XCTAssertEqual(count, 2)
+        XCTAssertEqual(recorder.count, 2)
     }
     
     func testDatabaseRegionExtentNextTransaction() throws {
@@ -200,18 +212,21 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         
-        var count = 0
-        var cancellable: AnyDatabaseCancellable?
-        cancellable = observation.start(
+        class Recorder {
+            var count = 0
+            var cancellable: AnyDatabaseCancellable?
+        }
+        let recorder = Recorder()
+        recorder.cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
-            onChange: { db in
-                cancellable?.cancel()
-                count += 1
+            onChange: { [weak recorder] db in
+                recorder?.cancellable?.cancel()
+                recorder?.count += 1
                 notificationExpectation.fulfill()
             })
         
-        try withExtendedLifetime(cancellable) {
+        try withExtendedLifetime(recorder) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
             }
@@ -221,7 +236,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            XCTAssertEqual(count, 1)
+            XCTAssertEqual(recorder.count, 1)
         }
     }
     

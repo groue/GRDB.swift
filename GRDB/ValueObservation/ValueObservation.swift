@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: _ValueReducer> {
+public struct ValueObservation<Reducer: _ValueReducer>: Sendable {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
@@ -30,10 +30,10 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
-    var makeReducer: () -> Reducer
+    var makeReducer: @Sendable () -> Reducer
     
     /// Returns a ValueObservation with a transformed reducer.
-    func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
+    func mapReducer<R>(_ transform: @escaping @Sendable (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             events: events,
@@ -44,7 +44,7 @@ public struct ValueObservation<Reducer: _ValueReducer> {
 }
 
 /// Configures the tracked region
-enum ValueObservationTrackingMode {
+enum ValueObservationTrackingMode: Sendable {
     /// The tracked region is constant and explicit.
     ///
     /// Use case:
@@ -73,17 +73,17 @@ enum ValueObservationTrackingMode {
     case nonConstantRegionRecordedFromSelection
 }
 
-struct ValueObservationEvents: Refinable {
-    var willStart: (() -> Void)?
-    var willTrackRegion: ((DatabaseRegion) -> Void)?
-    var databaseDidChange: (() -> Void)?
-    var didFail: ((any Error) -> Void)?
-    var didCancel: (() -> Void)?
+struct ValueObservationEvents: Sendable, Refinable {
+    var willStart: (@Sendable () -> Void)?
+    var willTrackRegion: (@Sendable (DatabaseRegion) -> Void)?
+    var databaseDidChange: (@Sendable () -> Void)?
+    var didFail: (@Sendable (any Error) -> Void)?
+    var didCancel: (@Sendable () -> Void)?
 }
 
-typealias ValueObservationStart<T> = (
-    _ onError: @escaping (any Error) -> Void,
-    _ onChange: @escaping (T) -> Void)
+typealias ValueObservationStart<T> = @Sendable (
+    _ onError: @escaping @Sendable (any Error) -> Void,
+    _ onChange: @escaping @Sendable (T) -> Void)
 -> AnyDatabaseCancellable
 
 extension ValueObservation: Refinable {
@@ -138,8 +138,8 @@ extension ValueObservation: Refinable {
     public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: @escaping (any Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onError: @escaping @Sendable (any Error) -> Void,
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     where Reducer: ValueReducer
     {
@@ -175,13 +175,13 @@ extension ValueObservation: Refinable {
     /// - returns: A `ValueObservation` that performs the specified closures
     ///   when ValueObservation events occur.
     public func handleEvents(
-        willStart: (() -> Void)? = nil,
-        willFetch: (() -> Void)? = nil,
-        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
-        databaseDidChange: (() -> Void)? = nil,
-        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
-        didFail: ((any Error) -> Void)? = nil,
-        didCancel: (() -> Void)? = nil)
+        willStart: (@Sendable () -> Void)? = nil,
+        willFetch: (@Sendable () -> Void)? = nil,
+        willTrackRegion: (@Sendable (DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (@Sendable () -> Void)? = nil,
+        didReceiveValue: (@Sendable (Reducer.Value) -> Void)? = nil,
+        didFail: (@Sendable (any Error) -> Void)? = nil,
+        didCancel: (@Sendable () -> Void)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
@@ -231,33 +231,25 @@ extension ValueObservation: Refinable {
     ///   used to log messages to other destinations.
     public func print(
         _ prefix: String = "",
-        to stream: (any TextOutputStream)? = nil)
+        to stream: (any TextOutputStream & Sendable)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let lock = NSLock()
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
-        var stream = stream ?? PrintOutputStream()
+        let stream = LockedTextOutputStream(stream: stream ?? PrintOutputStream())
         return handleEvents(
             willStart: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)start") },
             willFetch: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)fetch") },
             willTrackRegion: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)tracked region: \($0)") },
             databaseDidChange: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)database did change") },
             didReceiveValue: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)value: \($0)") },
             didFail: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)failure: \($0)") },
             didCancel: {
-                lock.lock(); defer { lock.unlock() }
                 stream.write("\(prefix)cancel") })
     }
     
@@ -472,7 +464,7 @@ extension DatabasePublishers {
         }
     }
     
-    private class ValueSubscription<Downstream: Subscriber>: Subscription
+    private class ValueSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable
     where Downstream.Failure == any Error
     {
         private struct WaitingForDemand {
@@ -703,7 +695,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func trackingConstantRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -764,7 +756,7 @@ extension ValueObservation {
     public static func tracking<Value>(
         region: any DatabaseRegionConvertible,
         _ otherRegions: any DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -820,7 +812,7 @@ extension ValueObservation {
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -877,7 +869,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {

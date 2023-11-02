@@ -138,7 +138,7 @@
 /// ### Database Observation Support
 ///
 /// - ``databaseRegion(_:)``
-public struct Table<RowDecoder> {
+public struct Table<RowDecoder>: Sendable {
     /// The table name.
     public var tableName: String
     
@@ -800,7 +800,7 @@ extension Table {
     /// ```
     ///
     /// - parameter db: A database connection.
-    public func fetchCount(_ db: Database) throws -> Int {
+    @Sendable public func fetchCount(_ db: Database) throws -> Int {
         try all().fetchCount(db)
     }
 }
@@ -860,7 +860,7 @@ extension Table where RowDecoder: FetchableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
 
@@ -880,7 +880,7 @@ extension Table where RowDecoder: FetchableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+    @Sendable public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
@@ -902,7 +902,7 @@ extension Table where RowDecoder: FetchableRecord & Hashable {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
 }
@@ -961,7 +961,7 @@ extension Table where RowDecoder == Row {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Row] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [Row] {
         try all().fetchAll(db)
     }
 
@@ -980,7 +980,7 @@ extension Table where RowDecoder == Row {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> Row? {
+    @Sendable public func fetchOne(_ db: Database) throws -> Row? {
         try all().fetchOne(db)
     }
 
@@ -999,7 +999,7 @@ extension Table where RowDecoder == Row {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<Row> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<Row> {
         try all().fetchSet(db)
     }
 }
@@ -1034,7 +1034,7 @@ extension Table where RowDecoder: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
 
@@ -1048,7 +1048,7 @@ extension Table where RowDecoder: DatabaseValueConvertible {
     /// - parameter db: A database connection.
     /// - returns: An optional value.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+    @Sendable public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
@@ -1061,7 +1061,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
     /// - parameter db: A database connection.
     /// - returns: A set of values.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
 }
@@ -1096,7 +1096,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         try all().fetchAll(db)
     }
 
@@ -1110,7 +1110,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     /// - parameter db: A database connection.
     /// - returns: An optional value.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+    @Sendable public func fetchOne(_ db: Database) throws -> RowDecoder? {
         try all().fetchOne(db)
     }
 }
@@ -1123,7 +1123,7 @@ extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConv
     /// - parameter db: A database connection.
     /// - returns: A set of values.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
         try all().fetchSet(db)
     }
 }
@@ -1297,7 +1297,7 @@ extension Table {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(

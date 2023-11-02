@@ -6,40 +6,46 @@ class DatabaseConfigurationTests: GRDBTestCase {
     
     func testPrepareDatabase() throws {
         // prepareDatabase is called when connection opens
-        var connectionCount = 0
+        class Recorder {
+            var connectionCount = 0
+        }
+        let recorder = Recorder()
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            connectionCount += 1
+            recorder.connectionCount += 1
         }
         
         _ = try DatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCount, 1)
+        XCTAssertEqual(recorder.connectionCount, 1)
         
         _ = try makeDatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCount, 2)
+        XCTAssertEqual(recorder.connectionCount, 2)
         
         let pool = try makeDatabasePool(configuration: configuration)
-        XCTAssertEqual(connectionCount, 3)
+        XCTAssertEqual(recorder.connectionCount, 3)
         
         try pool.read { _ in }
-        XCTAssertEqual(connectionCount, 4)
+        XCTAssertEqual(recorder.connectionCount, 4)
         
         try pool.makeSnapshot().read { _ in }
-        XCTAssertEqual(connectionCount, 5)
+        XCTAssertEqual(recorder.connectionCount, 5)
         
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
         try pool.makeSnapshotPool().read { _ in }
-        XCTAssertEqual(connectionCount, 6)
+        XCTAssertEqual(recorder.connectionCount, 6)
 #endif
     }
     
     func testPrepareDatabaseError() throws {
         struct TestError: Error { }
-        var error: TestError?
+        class Context {
+            var error: TestError?
+        }
+        let context = Context()
         
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            if let error {
+            if let error = context.error {
                 throw error
             }
         }
@@ -47,36 +53,36 @@ class DatabaseConfigurationTests: GRDBTestCase {
         // TODO: what about in-memory DatabaseQueue???
         
         do {
-            error = TestError()
+            context.error = TestError()
             _ = try makeDatabaseQueue(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            error = TestError()
+            context.error = TestError()
             _ = try makeDatabasePool(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            error = nil
+            context.error = nil
             let pool = try makeDatabasePool(configuration: configuration)
             
             do {
-                error = TestError()
+                context.error = TestError()
                 try pool.read { _ in }
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
             do {
-                error = TestError()
+                context.error = TestError()
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
             do {
-                error = TestError()
+                context.error = TestError()
                 _ = try pool.makeSnapshotPool()
                 XCTFail("Expected TestError")
             } catch is TestError { }

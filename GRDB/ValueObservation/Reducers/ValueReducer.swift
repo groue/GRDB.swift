@@ -1,10 +1,10 @@
 /// Implementation details of `ValueReducer`.
-public protocol _ValueReducer {
+public protocol _ValueReducer: Sendable {
     /// The type of fetched database values
-    associatedtype Fetched
+    associatedtype Fetched: Sendable
     
     /// The type of observed values
-    associatedtype Value
+    associatedtype Value: Sendable
     
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.

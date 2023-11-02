@@ -16,12 +16,11 @@ import Foundation
 /// queue, and fulfill GRDB preconditions.
 @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 struct OnDemandFuture<Output, Failure: Error>: Publisher {
-    typealias Promise = (Result<Output, Failure>) -> Void
     typealias Output = Output
     typealias Failure = Failure
-    fileprivate let attemptToFulfill: (@escaping Promise) -> Void
+    fileprivate let attemptToFulfill: (@escaping @Sendable (Result<Output, Failure>) -> Void) -> Void
     
-    init(_ attemptToFulfill: @escaping (@escaping Promise) -> Void) {
+    init(_ attemptToFulfill: @escaping (@escaping @Sendable (Result<Output, Failure>) -> Void) -> Void) {
         self.attemptToFulfill = attemptToFulfill
     }
     
@@ -34,8 +33,8 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
 }
 
 @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription {
-    typealias Promise = (Result<Downstream.Input, Downstream.Failure>) -> Void
+private final class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable {
+    typealias Promise = @Sendable (Result<Downstream.Input, Downstream.Failure>) -> Void
     
     private enum State {
         case waitingForDemand(downstream: Downstream, attemptToFulfill: (@escaping Promise) -> Void)

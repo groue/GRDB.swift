@@ -52,7 +52,7 @@ extension FetchableRecord where Self: TableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database) throws -> [Self] {
+    @Sendable public static func fetchAll(_ db: Database) throws -> [Self] {
         try all().fetchAll(db)
     }
     
@@ -71,7 +71,7 @@ extension FetchableRecord where Self: TableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database) throws -> Self? {
+    @Sendable public static func fetchOne(_ db: Database) throws -> Self? {
         try all().fetchOne(db)
     }
 }
@@ -92,7 +92,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     ///
     /// - parameter db: A database connection.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database) throws -> Set<Self> {
+    @Sendable public static func fetchSet(_ db: Database) throws -> Set<Self> {
         try all().fetchSet(db)
     }
 }
@@ -154,7 +154,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll<Keys>(_ db: Database, keys: Keys)
+    @Sendable public static func fetchAll<Keys>(_ db: Database, keys: Keys)
     throws -> [Self]
     where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
@@ -182,7 +182,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Self? {
+    @Sendable public static func fetchOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Self? {
         if key.databaseValue.isNull {
             // Don't hit the database
             return nil
@@ -275,7 +275,7 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     ///     - ids: A collection of primary keys.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll<IDS>(_ db: Database, ids: IDS) throws -> [Self]
+    @Sendable public static func fetchAll<IDS>(_ db: Database, ids: IDS) throws -> [Self]
     where IDS: Collection, IDS.Element == ID
     {
         if ids.isEmpty {
@@ -301,7 +301,7 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     ///     - id: A primary key value.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, id: ID) throws -> Self? {
+    @Sendable public static func fetchOne(_ db: Database, id: ID) throws -> Self? {
         try filter(id: id).fetchOne(db)
     }
     
@@ -346,7 +346,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     ///     - keys: A sequence of primary keys.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet<Keys>(_ db: Database, keys: Keys)
+    @Sendable public static func fetchSet<Keys>(_ db: Database, keys: Keys)
     throws -> Set<Self>
     where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
@@ -377,7 +377,7 @@ extension FetchableRecord where Self: TableRecord & Hashable & Identifiable, ID:
     ///     - ids: A collection of primary keys.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet<IDS>(_ db: Database, ids: IDS) throws -> Set<Self>
+    @Sendable public static func fetchSet<IDS>(_ db: Database, ids: IDS) throws -> Set<Self>
     where IDS: Collection, IDS.Element == ID
     {
         if ids.isEmpty {
@@ -449,7 +449,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> [Self] {
+    @Sendable public static func fetchAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> [Self] {
         if keys.isEmpty {
             // Avoid hitting the database
             return []
@@ -473,7 +473,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A key dictionary.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]?) throws -> Self? {
+    @Sendable public static func fetchOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]?) throws -> Self? {
         guard let key else {
             // Avoid hitting the database
             return nil
@@ -527,7 +527,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     ///     - keys: An array of key dictionaries.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Set<Self> {
+    @Sendable public static func fetchSet(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Set<Self> {
         if keys.isEmpty {
             // Avoid hitting the database
             return []

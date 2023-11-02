@@ -19,7 +19,7 @@ public struct SQLSelection {
     private var impl: Impl
     
     /// The private implementation of the public `SQLSelection`.
-    private enum Impl {
+    private enum Impl: Sendable {
         /// All columns: `*`
         case allColumns
         
@@ -301,7 +301,7 @@ enum SQLCount {
 ///
 /// - ``AllColumns``
 /// - ``SQLSelection``
-public protocol SQLSelectable {
+public protocol SQLSelectable: Sendable {
     /// Returns an SQL selection.
     var sqlSelection: SQLSelection { get }
 }

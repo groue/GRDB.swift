@@ -547,7 +547,7 @@ struct SQLQueryGenerator: Refinable {
 ///     ORDER BY ... -- ordering
 ///     LIMIT ...    -- limit
 
-private struct SQLQualifiedRelation {
+private struct SQLQualifiedRelation: Sendable {
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
         joins.reduce(into: [source.alias].compactMap { $0 }) {
@@ -713,7 +713,7 @@ private struct SQLQualifiedRelation {
 extension SQLQualifiedRelation: Refinable { }
 
 /// A "qualified" source, where all tables are identified with a table alias.
-private struct SQLQualifiedSource {
+private struct SQLQualifiedSource: Sendable {
     var tableName: String
     var alias: TableAlias
     

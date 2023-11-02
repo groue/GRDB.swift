@@ -223,7 +223,7 @@ public struct Configuration {
     ///
     /// On newly created databases files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
-    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+    public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
     }
     

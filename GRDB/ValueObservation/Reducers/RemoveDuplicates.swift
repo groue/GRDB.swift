@@ -5,7 +5,7 @@ extension ValueObservation {
     /// - parameter predicate: A closure to evaluate whether two values are
     ///   equivalent, for purposes of filtering. Return true from this closure
     ///   to indicate that the second element is a duplicate of the first.
-    public func removeDuplicates(by predicate: @escaping (Reducer.Value, Reducer.Value) -> Bool)
+    public func removeDuplicates(by predicate: @escaping @Sendable (Reducer.Value, Reducer.Value) -> Bool)
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
         mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
@@ -58,7 +58,9 @@ extension ValueObservation where Reducer.Value: Equatable {
     public func removeDuplicates()
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
-        mapReducer { ValueReducers.RemoveDuplicates($0, predicate: ==) }
+        mapReducer {
+            ValueReducers.RemoveDuplicates($0, predicate: { $0 == $1 })
+        }
     }
 }
 
@@ -70,9 +72,9 @@ extension ValueReducers {
     public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer {
         private var base: Base
         private var previousValue: Base.Value?
-        private var predicate: (Base.Value, Base.Value) -> Bool
+        private var predicate: @Sendable (Base.Value, Base.Value) -> Bool
         
-        init(_ base: Base, predicate: @escaping (Base.Value, Base.Value) -> Bool) {
+        init(_ base: Base, predicate: @escaping @Sendable (Base.Value, Base.Value) -> Bool) {
             self.base = base
             self.predicate = predicate
         }

@@ -114,11 +114,12 @@ class DatabaseTraceTests : GRDBTestCase {
     }
     
     func testTraceFromConfigurationWithDefaultOptions() throws {
-        var events: [String] = []
+        class Recorder { var events: [String] = [] }
+        let recorder = Recorder()
         var configuration = Configuration()
         configuration.prepareDatabase { db in
             db.trace { event in
-                events.append("SQL: \(event)")
+                recorder.events.append("SQL: \(event)")
             }
         }
         let dbQueue = try makeDatabaseQueue(configuration: configuration)
@@ -127,19 +128,20 @@ class DatabaseTraceTests : GRDBTestCase {
                 CREATE table t(a);
                 INSERT INTO t (a) VALUES (?)
                 """, arguments: [1])
-            XCTAssertEqual(events.suffix(2), [
+            XCTAssertEqual(recorder.events.suffix(2), [
                 "SQL: CREATE table t(a)",
                 "SQL: INSERT INTO t (a) VALUES (?)"])
         }
     }
     
     func testTraceFromConfigurationWithPublicStatementArguments() throws {
-        var events: [String] = []
+        class Recorder { var events: [String] = [] }
+        let recorder = Recorder()
         var configuration = Configuration()
         configuration.publicStatementArguments = true
         configuration.prepareDatabase { db in
             db.trace { event in
-                events.append("SQL: \(event)")
+                recorder.events.append("SQL: \(event)")
             }
         }
         let dbQueue = try makeDatabaseQueue(configuration: configuration)
@@ -148,7 +150,7 @@ class DatabaseTraceTests : GRDBTestCase {
                 CREATE table t(a);
                 INSERT INTO t (a) VALUES (?)
                 """, arguments: [1])
-            XCTAssertEqual(events.suffix(2), [
+            XCTAssertEqual(recorder.events.suffix(2), [
                 "SQL: CREATE table t(a)",
                 "SQL: INSERT INTO t (a) VALUES (1)"])
         }

@@ -5,19 +5,22 @@ import Dispatch
 class ValueObservationTests: GRDBTestCase {
     func testImmediateError() throws {
         struct TestError: Error { }
+        class Recorder {
+            var error: TestError?
+        }
         
         func test(_ dbWriter: some DatabaseWriter) throws {
             // Create an observation
             let observation = ValueObservation.trackingConstantRegion { _ in throw TestError() }
             
             // Start observation
-            var error: TestError?
+            let recorder = Recorder()
             _ = observation.start(
                 in: dbWriter,
                 scheduling: .immediate,
-                onError: { error = $0 as? TestError },
+                onError: { recorder.error = $0 as? TestError },
                 onChange: { _ in })
-            XCTAssertNotNil(error)
+            XCTAssertNotNil(recorder.error)
         }
         
         try test(makeDatabaseQueue())
@@ -26,7 +29,11 @@ class ValueObservationTests: GRDBTestCase {
     
     func testErrorCompletesTheObservation() throws {
         struct TestError: Error { }
-        
+        class Context {
+            var nextError: (any Error)? = nil // If not null, observation throws an error
+            var errorCaught = false
+        }
+
         func test(_ dbWriter: some DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -37,25 +44,24 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            var nextError: (any Error)? = nil // If not null, observation throws an error
+            let context = Context()
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
-                if let error = nextError {
+                if let error = context.nextError {
                     throw error
                 }
             }
             
             // Start observation
-            var errorCaught = false
             let cancellable = observation.start(
                 in: dbWriter,
                 onError: { _ in
-                    errorCaught = true
+                    context.errorCaught = true
                     notificationExpectation.fulfill()
                 },
                 onChange: {
-                    XCTAssertFalse(errorCaught)
-                    nextError = TestError()
+                    XCTAssertFalse(context.errorCaught)
+                    context.nextError = TestError()
                     notificationExpectation.fulfill()
                     // Trigger another change
                     try! dbWriter.writeWithoutTransaction { db in
@@ -65,7 +71,7 @@ class ValueObservationTests: GRDBTestCase {
             
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 2, handler: nil)
-                XCTAssertTrue(errorCaught)
+                XCTAssertTrue(context.errorCaught)
             }
         }
         
@@ -92,12 +98,15 @@ class ValueObservationTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        var region: DatabaseRegion?
+        class Recorder {
+            var region: DatabaseRegion?
+        }
+        let recorder = Recorder()
         let expectation = self.expectation(description: "")
         let observation = ValueObservation
             .trackingConstantRegion(request.fetchAll)
             .handleEvents(willTrackRegion: {
-                region = $0
+                recorder.region = $0
                 expectation.fulfill()
             })
         let observer = observation.start(
@@ -106,7 +115,7 @@ class ValueObservationTests: GRDBTestCase {
             onChange: { _ in })
         withExtendedLifetime(observer) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(region!.description, "t(id,name)") // view is NOT tracked
+            XCTAssertEqual(recorder.region!.description, "t(id,name)") // view is NOT tracked
         }
     }
     
@@ -125,12 +134,15 @@ class ValueObservationTests: GRDBTestCase {
         
         // Test that no pragma table is included in the observed region.
         // This optimization helps observation that feed from a single table.
-        var region: DatabaseRegion?
+        class Recorder {
+            var region: DatabaseRegion?
+        }
+        let recorder = Recorder()
         let expectation = self.expectation(description: "")
         let observation = ValueObservation
             .trackingConstantRegion(request.fetchAll)
             .handleEvents(willTrackRegion: {
-                region = $0
+                recorder.region = $0
                 expectation.fulfill()
             })
         let observer = observation.start(
@@ -139,7 +151,7 @@ class ValueObservationTests: GRDBTestCase {
             onChange: { _ in })
         withExtendedLifetime(observer) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(region!.description, "t(id,name)[1]") // pragma_table_xinfo is NOT tracked
+            XCTAssertEqual(recorder.region!.description, "t(id,name)[1]") // pragma_table_xinfo is NOT tracked
         }
     }
     
@@ -325,10 +337,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -341,18 +357,17 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(context.observedCounts, [0, 0])
         }
     }
     
@@ -365,10 +380,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -381,18 +400,17 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(context.observedCounts, [0, 0])
         }
     }
     
@@ -405,10 +423,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -431,18 +453,17 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(context.observedCounts, expectedCounts)
         }
     }
     
@@ -455,10 +476,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -481,18 +506,17 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(context.observedCounts, expectedCounts)
         }
     }
     
@@ -531,7 +555,11 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        class Context {
+            var changesCount = 0
+            var cancellable: (any DatabaseCancellable)?
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -542,14 +570,14 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and deallocate cancellable after second change
-        var cancellable: (any DatabaseCancellable)?
-        cancellable = observation.start(
+        context.cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable = nil
+            onChange: { [weak context] _ in
+                guard let context else { return }
+                context.changesCount += 1
+                if context.changesCount == 2 {
+                    context.cancellable = nil
                 }
                 notificationExpectation.fulfill()
             })
@@ -564,11 +592,8 @@ class ValueObservationTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
-        // Avoid "Variable 'cancellable' was written to, but never read" warning
-        _ = cancellable
-        
         waitForExpectations(timeout: 2, handler: nil)
-        XCTAssertEqual(changesCount, 2)
+        XCTAssertEqual(context.changesCount, 2)
     }
     
     func testCancellableExplicitCancellation() throws {
@@ -577,7 +602,11 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        class Context {
+            var changesCount = 0
+            var cancellable: (any DatabaseCancellable)?
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -588,35 +617,38 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and cancel cancellable after second change
-        var cancellable: (any DatabaseCancellable)!
-        cancellable = observation.start(
+        context.cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable.cancel()
+            onChange: { [weak context] _ in
+                guard let context else { return }
+                context.changesCount += 1
+                if context.changesCount == 2 {
+                    context.cancellable?.cancel()
                 }
                 notificationExpectation.fulfill()
             })
         
-        try withExtendedLifetime(cancellable) {
-            // notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            // not notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(changesCount, 2)
+        // notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
+        
+        // not notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 2, handler: nil)
+        XCTAssertEqual(context.changesCount, 2)
     }
     
     func testCancellableInvalidation1() throws {
+        class Context {
+            var shouldStopObservation = false
+            var cancellable: (any DatabaseCancellable)? = nil
+        }
+        
         // Test that observation stops when cancellable is deallocated
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -626,22 +658,20 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
             
             do {
-                var cancellable: (any DatabaseCancellable)? = nil
-                _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
-                var shouldStopObservation = false
+                let context = Context()
                 let observation = ValueObservation(
                     trackingMode: .nonConstantRegionRecordedFromSelection,
                     makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in
-                                if shouldStopObservation {
-                                    cancellable = nil /* deallocation */
+                                if context.shouldStopObservation {
+                                    context.cancellable = nil /* deallocation */
                                 }
-                                shouldStopObservation = true
+                                context.shouldStopObservation = true
                             },
                             value: { _ in () })
                     })
-                cancellable = observation.start(
+                context.cancellable = observation.start(
                     in: dbWriter,
                     scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -661,6 +691,11 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     func testCancellableInvalidation2() throws {
+        class Context {
+            var shouldStopObservation = false
+            var cancellable: (any DatabaseCancellable)? = nil
+        }
+        
         // Test that observation stops when cancellable is deallocated
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -670,23 +705,21 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
             
             do {
-                var cancellable: (any DatabaseCancellable)? = nil
-                _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
-                var shouldStopObservation = false
+                let context = Context()
                 let observation = ValueObservation(
                     trackingMode: .nonConstantRegionRecordedFromSelection,
                     makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in },
                             value: { _ in
-                                if shouldStopObservation {
-                                    cancellable = nil /* deallocation right before notification */
+                                if context.shouldStopObservation {
+                                    context.cancellable = nil /* deallocation right before notification */
                                 }
-                                shouldStopObservation = true
+                                context.shouldStopObservation = true
                                 return ()
                             })
                     })
-                cancellable = observation.start(
+                context.cancellable = observation.start(
                     in: dbWriter,
                     scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },

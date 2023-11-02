@@ -1,6 +1,7 @@
 #if !os(Linux)
 import Foundation
 
+// GRDB7: remove conformance because NSString is not Sendable.
 /// NSString adopts DatabaseValueConvertible
 extension NSString: DatabaseValueConvertible {
     

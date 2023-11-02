@@ -50,7 +50,7 @@ extension Database {
         
         init(
             db: Database,
-            constructor: @escaping (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> CInt)
+            constructor: @escaping @Sendable (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> CInt)
         {
             self.db = db
             self.constructor = constructor

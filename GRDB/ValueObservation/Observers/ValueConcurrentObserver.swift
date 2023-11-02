@@ -18,7 +18,7 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler> {
+final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler>: @unchecked Sendable {
     // MARK: - Configuration
     //
     // Configuration is not mutable.
@@ -72,7 +72,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     //   be notified. See error catching clauses.
     
     /// Ability to access the database
-    private struct DatabaseAccess {
+    private struct DatabaseAccess: Sendable {
         /// The observed DatabasePool.
         let dbPool: DatabasePool
         
@@ -117,7 +117,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     /// Ability to notify observation events
     private struct NotificationCallbacks {
         let events: ValueObservationEvents
-        let onChange: (Reducer.Value) -> Void
+        let onChange: @Sendable (Reducer.Value) -> Void
     }
     
     /// Relationship with the `TransactionObserver` protocol
@@ -161,7 +161,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler
@@ -373,7 +373,7 @@ extension ValueConcurrentObserver {
                         //
                         // Reducing is performed asynchronously, so that we do not lock
                         // a database dispatch queue longer than necessary.
-                        self.reduceQueue.async {
+                        self.reduceQueue.async { [fetchedValue] in
                             let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                             guard isNotifying else { return /* Cancelled */ }
                             
@@ -383,7 +383,7 @@ extension ValueConcurrentObserver {
                                 }
                                 
                                 // Notify
-                                self.scheduler.schedule {
+                                self.scheduler.schedule { [initialValue] in
                                     let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                                     guard let onChange else { return /* Cancelled */ }
                                     onChange(initialValue)
@@ -419,24 +419,24 @@ extension ValueConcurrentObserver {
         initialFetchTransaction: WALSnapshotTransaction,
         initialRegion: DatabaseRegion)
     {
-        // We'll start the observation when we can access the writer
-        // connection. Until then, maybe the database has been modified
-        // since the initial fetch: we'll then need to notify a fresh value.
-        //
-        // To know if the database has been modified between the initial
-        // fetch and the writer access, we'll compare WAL snapshots.
-        //
-        // WAL snapshots can only be compared if the database is not
-        // checkpointed. That's why we'll keep `initialFetchTransaction`
-        // alive until the comparison is done.
-        //
-        // However, we want to release `initialFetchTransaction` as soon as
-        // possible, so that the reader connection it holds becomes
-        // available for other reads. It will be released when this optional
-        // is set to nil:
-        var initialFetchTransaction: WALSnapshotTransaction? = initialFetchTransaction
-        
-        databaseAccess.dbPool.asyncWriteWithoutTransaction { writerDB in
+        databaseAccess.dbPool.asyncWriteWithoutTransaction { [initialFetchTransaction] writerDB in
+            // We'll start the observation when we can access the writer
+            // connection. Until then, maybe the database has been modified
+            // since the initial fetch: we'll then need to notify a fresh value.
+            //
+            // To know if the database has been modified between the initial
+            // fetch and the writer access, we'll compare WAL snapshots.
+            //
+            // WAL snapshots can only be compared if the database is not
+            // checkpointed. That's why we'll keep `initialFetchTransaction`
+            // alive until the comparison is done.
+            //
+            // However, we want to release `initialFetchTransaction` as soon as
+            // possible, so that the reader connection it holds becomes
+            // available for other reads. It will be released when this optional
+            // is set to nil:
+            var initialFetchTransaction: WALSnapshotTransaction? = initialFetchTransaction
+            
             let events = self.lock.synchronized { self.notificationCallbacks?.events }
             guard let events else { return /* Cancelled */ }
             

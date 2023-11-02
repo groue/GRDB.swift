@@ -43,7 +43,7 @@ extension DatabaseRegionObservation {
 
 extension DatabaseRegionObservation {
     /// The state of a started DatabaseRegionObservation
-    private enum ObservationState {
+    private enum ObservationState: Sendable {
         case cancelled
         case pending
         case started(DatabaseRegionObserver)
@@ -85,23 +85,23 @@ extension DatabaseRegionObservation {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         in writer: some DatabaseWriter,
-        onError: @escaping (any Error) -> Void,
-        onChange: @escaping (Database) -> Void)
+        onError: @escaping @Sendable (any Error) -> Void,
+        onChange: @escaping @Sendable (Database) -> Void)
     -> AnyDatabaseCancellable
     {
-        @LockedBox var state = ObservationState.pending
+        let state = LockedBox(wrappedValue: ObservationState.pending)
         
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         writer.unsafeReentrantWrite { db in
             do {
                 let region = try observedRegion(db).observableRegion(db)
-                $state.update {
-                    let observer = DatabaseRegionObserver(region: region, onChange: {
-                        if case .cancelled = state {
+                state.update {
+                    let observer = DatabaseRegionObserver(region: region, onChange: { db in
+                        if case .cancelled = state.wrappedValue {
                             return
                         }
-                        onChange($0)
+                        onChange(db)
                     })
                     
                     // Use the `.observerLifetime` extent so that we can cancel
@@ -122,7 +122,7 @@ extension DatabaseRegionObservation {
             // Deallocates the transaction observer. This makes sure that the
             // `onChange` callback will never be called again, because the
             // observation was started with the `.observerLifetime` extent.
-            state = .cancelled
+            state.wrappedValue = .cancelled
         }
     }
 }
@@ -147,12 +147,12 @@ extension DatabaseRegionObservation {
 }
 #endif
 
-private class DatabaseRegionObserver: TransactionObserver {
+private class DatabaseRegionObserver: TransactionObserver, @unchecked Sendable {
     let region: DatabaseRegion
-    let onChange: (Database) -> Void
+    let onChange: @Sendable (Database) -> Void
     var isChanged = false
     
-    init(region: DatabaseRegion, onChange: @escaping (Database) -> Void) {
+    init(region: DatabaseRegion, onChange: @escaping @Sendable (Database) -> Void) {
         self.region = region
         self.onChange = onChange
     }
@@ -207,7 +207,7 @@ extension DatabasePublishers {
         }
     }
     
-    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
+    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable
     where Downstream.Failure == any Error, Downstream.Input == Database
     {
         private struct WaitingForDemand {

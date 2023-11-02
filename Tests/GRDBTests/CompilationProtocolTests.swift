@@ -43,7 +43,7 @@ private struct UserDatabaseValueConvertible1 : DatabaseValueConvertible {
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UserDatabaseValueConvertible1? { preconditionFailure() }
 }
 
-private class UserDatabaseValueConvertible2 : DatabaseValueConvertible {
+private final class UserDatabaseValueConvertible2 : DatabaseValueConvertible {
     var databaseValue: DatabaseValue { preconditionFailure() }
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? { preconditionFailure() }
 }
