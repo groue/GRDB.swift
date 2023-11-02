@@ -1334,7 +1334,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 // of NSFileCoordinator. What a weird API.
                 let coordinator = NSFileCoordinator(filePresenter: nil)
                 var coordinatorError: NSError?
-                var poolError: Error?
+                var poolError: (any Error)?
                 coordinator.coordinate(writingItemAt: dbURL, options: .forMerging, error: &coordinatorError) { url in
                     do {
                         _ = try DatabasePool(path: url.path)
@@ -1355,7 +1355,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinatorError: NSError?
         var dbPool: DatabasePool?
-        var dbError: Error?
+        var dbError: (any Error)?
         coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError) { url in
             do {
                 dbPool = try openDatabase(at: url)
@@ -1384,7 +1384,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinatorError: NSError?
         var dbPool: DatabasePool?
-        var dbError: Error?
+        var dbError: (any Error)?
         coordinator.coordinate(readingItemAt: databaseURL, options: .withoutChanges, error: &coordinatorError) { url in
             do {
                 dbPool = try openReadOnlyDatabase(at: url)

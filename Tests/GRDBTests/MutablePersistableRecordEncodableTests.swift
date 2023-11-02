@@ -38,7 +38,7 @@ extension MutablePersistableRecordEncodableTests {
                 case value = "someColumn"
             }
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
                 try container.encode(value + " (Encodable)", forKey: .value)
             }
@@ -129,7 +129,7 @@ extension MutablePersistableRecordEncodableTests {
         struct Value : Encodable {
             let string: String
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(string)
             }
@@ -174,7 +174,7 @@ extension MutablePersistableRecordEncodableTests {
         struct NestedValue : Encodable {
             let string: String
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(string)
             }
@@ -183,7 +183,7 @@ extension MutablePersistableRecordEncodableTests {
         struct Value : Encodable {
             let nestedValue: NestedValue
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(nestedValue)
             }
@@ -281,7 +281,7 @@ extension MutablePersistableRecordEncodableTests {
                 self.string = string
             }
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(string + " (Encodable)")
             }
@@ -576,7 +576,7 @@ extension MutablePersistableRecordEncodableTests {
         
         enum CodingKeys: String, CodingKey { case name, key, context }
         
-        func encode(to encoder: Encoder) throws {
+        func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(name, forKey: .name)
             try container.encodeIfPresent(encoder.codingPath.last?.stringValue, forKey: .key)
@@ -587,7 +587,7 @@ extension MutablePersistableRecordEncodableTests {
     struct NestedSingle: Encodable {
         var name: String
         
-        func encode(to encoder: Encoder) throws {
+        func encode(to encoder: any Encoder) throws {
             var container = encoder.singleValueContainer()
             var value = name
             value += ",key:\(encoder.codingPath.last?.stringValue ?? "nil")"
@@ -599,7 +599,7 @@ extension MutablePersistableRecordEncodableTests {
     struct NestedUnkeyed: Encodable {
         var name: String
         
-        func encode(to encoder: Encoder) throws {
+        func encode(to encoder: any Encoder) throws {
             var container = encoder.unkeyedContainer()
             try container.encode(name)
             if let key = encoder.codingPath.last?.stringValue {
@@ -630,7 +630,7 @@ extension MutablePersistableRecordEncodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
         }
         
-        func encode(to encoder: Encoder) throws {
+        func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(nestedKeyed, forKey: .nestedKeyed)
             try container.encode(nestedSingle, forKey: .nestedSingle)
@@ -668,7 +668,7 @@ extension MutablePersistableRecordEncodableTests {
             return encoder
         }
         
-        func encode(to encoder: Encoder) throws {
+        func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(nestedKeyed, forKey: .nestedKeyed)
             try container.encode(nestedSingle, forKey: .nestedSingle)
@@ -798,7 +798,7 @@ extension MutablePersistableRecordEncodableTests {
                 self.lastName = lastName
             }
 
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 let userInfoValue = encoder.userInfo[.testKey] as? String
                 var container = encoder.container(keyedBy: CodingKeys.self)
 

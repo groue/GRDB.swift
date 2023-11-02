@@ -40,7 +40,7 @@ public class Recorder<Input, Failure: Error>: Subscriber {
         
         /// Publisher is subscribed. The recorder may have an expectation to
         /// fulfill. It keeps track of all published elements.
-        case subscribed(Subscription, RecorderExpectation?, [Input])
+        case subscribed(any Subscription, RecorderExpectation?, [Input])
         
         /// Publisher is completed. The recorder keeps track of all published
         /// elements and completion.
@@ -204,7 +204,7 @@ public class Recorder<Input, Failure: Error>: Subscriber {
     
     // MARK: - Subscriber
     
-    public func receive(subscription: Subscription) {
+    public func receive(subscription: any Subscription) {
         synchronized {
             switch state {
             case let .waitingForSubscription(exp):

@@ -181,7 +181,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the barrier access to the database.
-    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void)
+    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, any Error>) -> Void)
     
     /// Schedules database operations for execution, and returns immediately.
     ///
@@ -340,7 +340,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func spawnConcurrentRead(_ value: @escaping (Result<Database, any Error>) -> Void)
 }
 
 extension DatabaseWriter {
@@ -427,7 +427,7 @@ extension DatabaseWriter {
     /// - parameter completion: A closure called with the transaction result.
     public func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
-        completion: @escaping (Database, Result<T, Error>) -> Void)
+        completion: @escaping (Database, Result<T, any Error>) -> Void)
     {
         asyncWriteWithoutTransaction { db in
             do {
@@ -906,9 +906,9 @@ extension DatabasePublishers {
     /// You build such a publisher from ``DatabaseWriter``.
     public struct Write<Output>: Publisher {
         public typealias Output = Output
-        public typealias Failure = Error
+        public typealias Failure = any Error
         
-        fileprivate let upstream: AnyPublisher<Output, Error>
+        fileprivate let upstream: AnyPublisher<Output, any Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)
@@ -917,7 +917,7 @@ extension DatabasePublishers {
 }
 
 @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-extension Publisher where Failure == Error {
+extension Publisher where Failure == any Error {
     fileprivate func eraseToWritePublisher() -> DatabasePublishers.Write<Output> {
         .init(upstream: self.eraseToAnyPublisher())
     }
@@ -949,7 +949,7 @@ public class DatabaseFuture<Value> {
         _wait = wait
     }
     
-    init(_ result: Result<Value, Error>) {
+    init(_ result: Result<Value, any Error>) {
         _wait = result.get
     }
     
@@ -1003,7 +1003,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         base.asyncRead(value)
     }
     
@@ -1012,7 +1012,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         base.asyncUnsafeRead(value)
     }
     
@@ -1044,7 +1044,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, any Error>) -> Void) {
         base.asyncBarrierWriteWithoutTransaction(updates)
     }
     
@@ -1060,7 +1060,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
         base.concurrentRead(value)
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         base.spawnConcurrentRead(value)
     }
 }

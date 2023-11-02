@@ -176,7 +176,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: some DatabaseWriter) throws {
             let semaphore = DispatchSemaphore(value: 0)
-            let testSubject = PassthroughSubject<Int, Error>()
+            let testSubject = PassthroughSubject<Int, any Error>()
             let testCancellable = testSubject
                 .sink(
                     receiveCompletion: { _ in },
@@ -228,7 +228,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     private class DemandSubscriber<Input, Failure: Error>: Subscriber {
-        private var subscription: Subscription?
+        private var subscription: (any Subscription)?
         let subject = PassthroughSubject<Input, Failure>()
         deinit {
             subscription?.cancel()
@@ -242,7 +242,7 @@ class ValueObservationPublisherTests : XCTestCase {
             subscription!.request(demand)
         }
         
-        func receive(subscription: Subscription) {
+        func receive(subscription: any Subscription) {
             self.subscription = subscription
         }
         
@@ -267,7 +267,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         func test(writer: some DatabaseWriter) throws {
-            let subscriber = DemandSubscriber<Int, Error>()
+            let subscriber = DemandSubscriber<Int, any Error>()
             
             let expectation = self.expectation(description: "")
             expectation.isInverted = true
@@ -302,7 +302,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         func test(writer: some DatabaseWriter) throws {
-            let subscriber = DemandSubscriber<Int, Error>()
+            let subscriber = DemandSubscriber<Int, any Error>()
             let expectation = self.expectation(description: "")
             
             let testCancellable = subscriber.subject.sink(
@@ -340,7 +340,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         func test(writer: some DatabaseWriter) throws {
-            let subscriber = DemandSubscriber<Int, Error>()
+            let subscriber = DemandSubscriber<Int, any Error>()
             let expectation = self.expectation(description: "")
             expectation.isInverted = true
             
@@ -382,7 +382,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         func test(writer: some DatabaseWriter) throws {
-            let subscriber = DemandSubscriber<Int, Error>()
+            let subscriber = DemandSubscriber<Int, any Error>()
             let expectation = self.expectation(description: "")
             
             let testCancellable = subscriber.subject

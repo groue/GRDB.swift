@@ -967,7 +967,7 @@ public enum DatabaseColumnDecodingStrategy {
     case convertFromSnakeCase
     
     /// A key decoding strategy defined by the closure you supply.
-    case custom((String) -> CodingKey)
+    case custom((String) -> any CodingKey)
     
     func key<K: CodingKey>(forColumn column: String) -> K? {
         switch self {

@@ -4,7 +4,7 @@ import XCTest
 private class Observer : TransactionObserver {
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
-    var commitError: Error?
+    var commitError: (any Error)?
     var deinitBlock: (() -> ())?
     var didCommitBlock: ((Database) -> ())?
     var observesBlock: (DatabaseEventKind) -> Bool

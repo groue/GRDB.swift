@@ -92,7 +92,7 @@ private class DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    func unkeyedContainer() -> any UnkeyedEncodingContainer {
         // We need to perform JSON encoding. Unfortunately we can't access the
         // inner container of Foundation's JSONEncoder. At this point we must
         // throw an error so that the caller can retry encoding from scratch.
@@ -109,7 +109,7 @@ private class DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
-    func singleValueContainer() -> SingleValueEncodingContainer {
+    func singleValueContainer() -> any SingleValueEncodingContainer {
         DatabaseValueEncodingContainer(encode: encode, jsonEncoder: jsonEncoder)
     }
     

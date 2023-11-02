@@ -523,7 +523,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         let log = Log()
-        var fetchError: Error? = nil
+        var fetchError: (any Error)? = nil
         let publisher = ValueObservation
             .tracking { db -> Int in
                 if let error = fetchError { throw error }
@@ -579,7 +579,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         let log = Log()
-        var fetchError: Error? = nil
+        var fetchError: (any Error)? = nil
         let publisher = ValueObservation
             .tracking { db -> Int in
                 if let error = fetchError { throw error }

@@ -10,9 +10,9 @@ struct JSONRequiredEncoder: Encoder {
         return KeyedEncodingContainer(container)
     }
     
-    func unkeyedContainer() -> UnkeyedEncodingContainer { self }
+    func unkeyedContainer() -> any UnkeyedEncodingContainer { self }
     
-    func singleValueContainer() -> SingleValueEncodingContainer { self }
+    func singleValueContainer() -> any SingleValueEncodingContainer { self }
     
     struct KeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
         var codingPath: [any CodingKey]
@@ -47,15 +47,15 @@ struct JSONRequiredEncoder: Encoder {
             return KeyedEncodingContainer(container)
         }
         
-        func nestedUnkeyedContainer(forKey key: KeyType) -> UnkeyedEncodingContainer {
+        func nestedUnkeyedContainer(forKey key: KeyType) -> any UnkeyedEncodingContainer {
             JSONRequiredEncoder(codingPath: codingPath)
         }
         
-        func superEncoder() -> Encoder {
+        func superEncoder() -> any Encoder {
             JSONRequiredEncoder(codingPath: codingPath)
         }
         
-        func superEncoder(forKey key: KeyType) -> Encoder {
+        func superEncoder(forKey key: KeyType) -> any Encoder {
             JSONRequiredEncoder(codingPath: codingPath)
         }
     }
@@ -91,7 +91,7 @@ extension JSONRequiredEncoder: UnkeyedEncodingContainer {
         return KeyedEncodingContainer(container)
     }
     
-    mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer { self }
+    mutating func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer { self }
     
-    mutating func superEncoder() -> Encoder { self }
+    mutating func superEncoder() -> any Encoder { self }
 }

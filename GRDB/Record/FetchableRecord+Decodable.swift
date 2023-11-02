@@ -79,7 +79,7 @@ public class FetchableRecordDecoder {
 /// The decoder that decodes a record from a database row
 private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
-    var codingPath: [CodingKey]
+    var codingPath: [any CodingKey]
     var columnDecodingStrategy: DatabaseColumnDecodingStrategy
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
@@ -87,7 +87,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         KeyedDecodingContainer(KeyedContainer<Key>(decoder: self))
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         guard let codingKey = codingPath.last else {
             fatalError("unkeyed decoding from database row is not supported")
         }
@@ -105,7 +105,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 debugDescription: debugDescription))
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> any SingleValueDecodingContainer {
         guard let key = codingPath.last else {
             // Decoding an array of scalars from rows: pick the first column
             return ColumnDecoder<R>(row: row, columnIndex: 0, codingPath: codingPath)
@@ -123,8 +123,8 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
     
     class KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
         private let decoder: _RowDecoder
-        var codingPath: [CodingKey] { decoder.codingPath }
-        private var decodedRootKey: CodingKey?
+        var codingPath: [any CodingKey] { decoder.codingPath }
+        private var decodedRootKey: (any CodingKey)?
         // Not nil iff decoder has a columnDecodingStrategy
         private let _columnForKey: [String: String]?
         
@@ -378,17 +378,17 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             fatalError("not implemented")
         }
         
-        func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+        func nestedUnkeyedContainer(forKey key: Key) throws -> any UnkeyedDecodingContainer {
             throw DecodingError.typeMismatch(
-                UnkeyedDecodingContainer.self,
+                (any UnkeyedDecodingContainer).self,
                 DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
         }
         
-        func superDecoder() throws -> Decoder {
+        func superDecoder() throws -> any Decoder {
             decoder
         }
         
-        func superDecoder(forKey key: Key) throws -> Decoder {
+        func superDecoder(forKey key: Key) throws -> any Decoder {
             decoder
         }
         
@@ -397,7 +397,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         private func decode<T>(
             _ type: T.Type,
             fromRow row: Row,
-            codingPath: [CodingKey])
+            codingPath: [any CodingKey])
         throws -> T
         where T: Decodable
         {
@@ -449,11 +449,11 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
 
 private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
     var rows: [Row]
-    var codingPath: [CodingKey]
+    var codingPath: [any CodingKey]
     var currentIndex: Int
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
-    init(rows: [Row], codingPath: [CodingKey]) {
+    init(rows: [Row], codingPath: [any CodingKey]) {
         self.rows = rows
         self.codingPath = codingPath
         self.currentIndex = 0
@@ -463,9 +463,9 @@ private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
         fatalError("keyed decoding from prefetched rows is not supported")
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer { self }
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer { self }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> any SingleValueDecodingContainer {
         fatalError("single value decoding from prefetched rows is not supported")
     }
 }
@@ -501,11 +501,11 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
         fatalError("not implemented")
     }
     
-    mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+    mutating func nestedUnkeyedContainer() throws -> any UnkeyedDecodingContainer {
         fatalError("not implemented")
     }
     
-    mutating func superDecoder() throws -> Decoder {
+    mutating func superDecoder() throws -> any Decoder {
         fatalError("not implemented")
     }
 }
@@ -516,7 +516,7 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
 private struct ColumnDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var columnIndex: Int
-    var codingPath: [CodingKey]
+    var codingPath: [any CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -524,12 +524,12 @@ private struct ColumnDecoder<R: FetchableRecord>: Decoder {
         throw JSONRequiredError()
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         // We need to switch to JSON decoding
         throw JSONRequiredError()
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer { self }
+    func singleValueContainer() throws -> any SingleValueDecodingContainer { self }
 }
 
 extension ColumnDecoder: SingleValueDecodingContainer {

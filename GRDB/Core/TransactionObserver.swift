@@ -751,7 +751,7 @@ class DatabaseObservationBroker {
         
         /// Transaction turns rollbacked because a transaction observer has
         /// cancelled a commit by throwing an error.
-        case cancelledCommit(Error)
+        case cancelledCommit(any Error)
     }
 }
 

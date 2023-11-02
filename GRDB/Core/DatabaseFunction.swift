@@ -403,7 +403,7 @@ public final class DatabaseFunction: Hashable {
         }
     }
     
-    private static func report(error: Error, in sqliteContext: OpaquePointer?) {
+    private static func report(error: some Error, in sqliteContext: OpaquePointer?) {
         if let error = error as? DatabaseError {
             if let message = error.message {
                 sqlite3_result_error(sqliteContext, message, -1)

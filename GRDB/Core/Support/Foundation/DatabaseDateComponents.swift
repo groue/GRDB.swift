@@ -152,7 +152,7 @@ extension DatabaseDateComponents: DatabaseValueConvertible {
 }
 
 extension DatabaseDateComponents: Decodable {
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let stringValue = try container.decode(String.self)
         guard let decodedValue = DatabaseDateComponents.fromDatabaseValue(stringValue.databaseValue) else {
@@ -164,7 +164,7 @@ extension DatabaseDateComponents: Decodable {
 }
 
 extension DatabaseDateComponents: Encodable {
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(String.fromDatabaseValue(databaseValue)!)
     }

@@ -14,7 +14,7 @@ public class ValueObservationRecorder<Value> {
     /// The recorder state
     private struct State {
         var values: [Value]
-        var error: Error?
+        var error: (any Error)?
         var recorderExpectation: RecorderExpectation?
         var cancellable: AnyDatabaseCancellable?
     }
@@ -65,7 +65,7 @@ public class ValueObservationRecorder<Value> {
     }
     
     // Internal for testability.
-    func onError(_ error: Error) {
+    func onError(_ error: any Error) {
         return synchronized {
             if state.error != nil {
                 // This is possible with ValueObservation, but not supported by ValueObservationRecorder
@@ -140,7 +140,7 @@ public class ValueObservationRecorder<Value> {
     /// - returns: The value
     func value<T>(_ value: (
         _ values: [Value],
-        _ error: Error?,
+        _ error: (any Error)?,
         _ remainingValues: ArraySlice<Value>,
         _ consume: (_ count: Int) -> ()) throws -> T)
         rethrows -> T
@@ -220,7 +220,7 @@ extension ValueObservation {
     public func record(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: ((Error) -> Void)? = nil,
+        onError: ((any Error) -> Void)? = nil,
         onChange: ((Reducer.Value) -> Void)? = nil)
     -> ValueObservationRecorder<Reducer.Value>
     where Reducer: ValueReducer
@@ -805,7 +805,7 @@ extension ValueObservationExpectations {
             recorder.fulfillOnError(expectation)
         }
         
-        public func get() throws -> (values: [Value], error: Error) {
+        public func get() throws -> (values: [Value], error: any Error) {
             try recorder.value { (values, error, remainingValues, consume) in
                 if let error {
                     consume(remainingValues.count)

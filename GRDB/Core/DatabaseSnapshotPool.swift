@@ -292,7 +292,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return

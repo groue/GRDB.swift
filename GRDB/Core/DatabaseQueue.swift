@@ -8,7 +8,7 @@ public final class DatabaseQueue {
     private let writer: SerializedDatabase
     
     /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
-    private var suspensionObservers: [NSObjectProtocol] = []
+    private var suspensionObservers: [any NSObjectProtocol] = []
     
     // MARK: - Configuration
     
@@ -233,7 +233,7 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         writer.async { db in
             defer {
                 // Ignore error because we can not notify it.
@@ -258,7 +258,7 @@ extension DatabaseQueue: DatabaseReader {
         try writer.sync(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         writer.async { value(.success($0)) }
     }
     
@@ -279,7 +279,7 @@ extension DatabaseQueue: DatabaseReader {
         })
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -379,7 +379,7 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, any Error>) -> Void) {
         writer.async { updates(.success($0)) }
     }
     

@@ -27,7 +27,7 @@ struct PlayerRequest: Queryable {
     
     static var defaultValue: [Player] { [] }
     
-    func publisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
+    func publisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], any Error> {
         // Build the publisher from the general-purpose read-only access
         // granted by `appDatabase.reader`.
         // Some apps will prefer to call a dedicated method of `appDatabase`.

@@ -99,7 +99,7 @@ extension Sequence {
 ///         finally: cleanup)
 func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) throws -> T {
     var result: T?
-    var firstError: Error?
+    var firstError: (any Error)?
     do {
         result = try execute()
     } catch {

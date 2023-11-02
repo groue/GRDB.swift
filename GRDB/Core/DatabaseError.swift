@@ -186,7 +186,7 @@ extension ResultCode {
     ///     // any other database error
     /// }
     /// ```
-    public static func ~= (lhs: Self, rhs: Error) -> Bool {
+    public static func ~= (lhs: Self, rhs: any Error) -> Bool {
         guard let error = rhs as? DatabaseError else { return false }
         return lhs ~= error.extendedResultCode
     }

@@ -252,7 +252,7 @@ struct InflectionTestCases: Decodable {
         }
     }
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         var testCases: [String: [(String, String)]] = [:]
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
         for key in container.allKeys {

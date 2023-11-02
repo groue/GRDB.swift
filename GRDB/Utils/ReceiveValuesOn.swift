@@ -48,7 +48,7 @@ where
     private enum State {
         case waitingForRequest(Upstream, Target)
         case waitingForSubscription(Target, Subscribers.Demand)
-        case subscribed(Target, Subscription)
+        case subscribed(Target, any Subscription)
         case finished
     }
     
@@ -110,7 +110,7 @@ where
     
     // MARK: Subscriber
     
-    func receive(subscription: Subscription) {
+    func receive(subscription: any Subscription) {
         lock.synchronized { sideEffect in
             switch state {
             case let .waitingForSubscription(target, currentDemand):

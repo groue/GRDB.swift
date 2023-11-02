@@ -457,7 +457,7 @@ extension ValueWriteOnlyObserver: DatabaseCancellable {
         }
     }
     
-    func notifyError(_ error: Error) {
+    func notifyError(_ error: any Error) {
         scheduler.schedule {
             let events = self.lock.synchronized {
                 let events = self.notificationCallbacks?.events

@@ -37,7 +37,7 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            var nextError: Error? = nil // If not null, observation throws an error
+            var nextError: (any Error)? = nil // If not null, observation throws an error
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
                 if let error = nextError {
@@ -922,7 +922,7 @@ class ValueObservationTests: GRDBTestCase {
             let cancellationExpectation = expectation(description: "cancelled")
             
             // Launch a task that we'll cancel
-            let cancelledTask = Task<String, Error> {
+            let cancelledTask = Task<String, any Error> {
                 // Loops until cancelled
                 let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
                 let cancelledObservation = observation.handleEvents(didCancel: {

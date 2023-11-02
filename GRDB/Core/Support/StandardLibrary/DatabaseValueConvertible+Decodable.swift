@@ -161,12 +161,12 @@ private struct DatabaseValueDecoder: Decoder {
         throw JSONRequiredError()
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         // We need to switch to JSON decoding
         throw JSONRequiredError()
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> any SingleValueDecodingContainer {
         DatabaseValueDecodingContainer(dbValue: dbValue, codingPath: codingPath)
     }
 }

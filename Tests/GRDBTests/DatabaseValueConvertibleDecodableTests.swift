@@ -6,7 +6,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value : Decodable, DatabaseValueConvertible {
             let string: String
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 string = try decoder.singleValueContainer().decode(String.self)
             }
             
@@ -42,7 +42,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value : Decodable, DatabaseValueConvertible {
             let string: String
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 string = try decoder.singleValueContainer().decode(String.self)
             }
             
@@ -54,7 +54,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct ValueWrapper : Decodable, DatabaseValueConvertible {
             let value: Value
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 value = try decoder.singleValueContainer().decode(Value.self)
             }
             
@@ -91,13 +91,13 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             struct Nested : Decodable {
                 let string: String
                 
-                init(from decoder: Decoder) throws {
+                init(from decoder: any Decoder) throws {
                     string = try decoder.singleValueContainer().decode(String.self)
                 }
             }
             let nested: Nested
 
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 nested = try decoder.singleValueContainer().decode(Nested.self)
             }
             
@@ -162,7 +162,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value: Decodable, DatabaseValueConvertible {
             let dictionary: [String: Int]
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 dictionary = try .init(from: decoder)
             }
             
@@ -195,7 +195,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value: Decodable, DatabaseValueConvertible {
             let strings: [String]
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 strings = try .init(from: decoder)
             }
             
@@ -228,7 +228,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value: Decodable, DatabaseValueConvertible {
             let dictionary: [String: Int]
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.singleValueContainer()
                 dictionary = try container.decode([String: Int].self)
             }
@@ -262,7 +262,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         struct Value: Decodable, DatabaseValueConvertible {
             let strings: [String]
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.singleValueContainer()
                 strings = try container.decode([String].self)
             }

@@ -107,7 +107,7 @@ final class Pool<T> {
     ///
     /// - important: The `execute` argument is executed in a serial dispatch
     ///   queue, so make sure you use the element asynchronously.
-    func asyncGet(_ execute: @escaping (Result<(element: T, release: (PoolCompletion) -> Void), Error>) -> Void) {
+    func asyncGet(_ execute: @escaping (Result<(element: T, release: (PoolCompletion) -> Void), any Error>) -> Void) {
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum

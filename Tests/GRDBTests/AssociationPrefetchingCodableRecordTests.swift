@@ -127,7 +127,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     }
                     
                     enum CodingKeys: CodingKey { case a, bs }
-                    init(from decoder: Decoder) throws {
+                    init(from decoder: any Decoder) throws {
                         let container = try decoder.container(keyedBy: CodingKeys.self)
                         a = try container.decode(A.self, forKey: .a)
                         if try container.decodeNil(forKey: .bs) {
@@ -307,7 +307,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         }
                         
                         enum CodingKeys: CodingKey { case a, bs }
-                        init(from decoder: Decoder) throws {
+                        init(from decoder: any Decoder) throws {
                             let container = try decoder.container(keyedBy: CodingKeys.self)
                             a = try container.decode(A.self, forKey: .a)
                             if try container.decodeNil(forKey: .bs) {

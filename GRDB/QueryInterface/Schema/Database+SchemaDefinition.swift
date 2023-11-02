@@ -365,7 +365,7 @@ extension Database {
         view name: String,
         options: ViewOptions = [],
         columns: [String]? = nil,
-        as request: SQLSubqueryable)
+        as request: some SQLSubqueryable)
     throws {
         var literal: SQL = "CREATE "
         

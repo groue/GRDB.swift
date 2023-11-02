@@ -72,7 +72,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
         
         func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
-            let testSubject = PassthroughSubject<Database, Error>()
+            let testSubject = PassthroughSubject<Database, any Error>()
             let testCancellable = testSubject
                 .tryMap(Player.fetchCount)
                 .collect(3)

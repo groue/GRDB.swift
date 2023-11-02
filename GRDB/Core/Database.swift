@@ -308,7 +308,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Invariant: `transactionDateResult` is nil iff connection is not
     /// inside a transaction.
-    var transactionDateResult: Result<Date, Error>?
+    var transactionDateResult: Result<Date, any Error>?
     
     /// The date of the current transaction.
     ///
@@ -1209,7 +1209,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: (any Error)? = nil
         let needsRollback: Bool
         do {
             let completion = try operations()
@@ -1353,7 +1353,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: (any Error)? = nil
         let needsRollback: Bool
         do {
             let completion = try operations()

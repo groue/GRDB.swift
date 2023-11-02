@@ -7,7 +7,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value : Encodable, DatabaseValueConvertible {
             let string: String
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(string)
             }
@@ -28,7 +28,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value : Encodable, DatabaseValueConvertible {
             let string: String
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(string)
             }
@@ -41,7 +41,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Wrapper : Encodable, DatabaseValueConvertible {
             let value: Value
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(value)
             }
@@ -63,14 +63,14 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
             struct Nested : Encodable {
                 let string: String
                 
-                func encode(to encoder: Encoder) throws {
+                func encode(to encoder: any Encoder) throws {
                     var container = encoder.singleValueContainer()
                     try container.encode(string)
                 }
             }
             let nested: Nested
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(nested)
             }
@@ -111,7 +111,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value: Encodable, DatabaseValueConvertible {
             let dictionary: [String: Int]
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 try dictionary.encode(to: encoder)
             }
             
@@ -135,7 +135,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value: Encodable, DatabaseValueConvertible {
             let strings: [String]
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 try strings.encode(to: encoder)
             }
             
@@ -159,7 +159,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value: Encodable, DatabaseValueConvertible {
             let dictionary: [String: Int]
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(dictionary)
             }
@@ -184,7 +184,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         struct Value: Encodable, DatabaseValueConvertible {
             let strings: [String]
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(strings)
             }
@@ -232,7 +232,7 @@ extension DatabaseValueConvertibleEncodableTests {
         struct Value : Encodable, DatabaseValueConvertible {
             let date: Date
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(date)
             }
@@ -261,7 +261,7 @@ extension DatabaseValueConvertibleEncodableTests {
         struct Value : Encodable, DatabaseValueConvertible {
             let url: URL
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(url)
             }
@@ -285,7 +285,7 @@ extension DatabaseValueConvertibleEncodableTests {
         struct Value : Encodable, DatabaseValueConvertible {
             let uuid: UUID
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(uuid)
             }

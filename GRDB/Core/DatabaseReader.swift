@@ -213,7 +213,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -284,7 +284,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -575,9 +575,9 @@ extension DatabasePublishers {
     /// You build such a publisher from ``DatabaseReader``.
     public struct Read<Output>: Publisher {
         public typealias Output = Output
-        public typealias Failure = Error
+        public typealias Failure = any Error
         
-        fileprivate let upstream: AnyPublisher<Output, Error>
+        fileprivate let upstream: AnyPublisher<Output, any Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)
@@ -586,7 +586,7 @@ extension DatabasePublishers {
 }
 
 @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-extension Publisher where Failure == Error {
+extension Publisher where Failure == any Error {
     fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
         .init(upstream: eraseToAnyPublisher())
     }
@@ -677,7 +677,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         base.asyncRead(value)
     }
     
@@ -686,7 +686,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         base.asyncUnsafeRead(value)
     }
     
@@ -757,7 +757,7 @@ extension DatabaseSnapshotReader {
     }
     
     // There is no such thing as an unsafe access to a snapshot.
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, any Error>) -> Void) {
         asyncRead(value)
     }
 }

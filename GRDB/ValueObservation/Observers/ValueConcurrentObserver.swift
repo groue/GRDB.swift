@@ -817,7 +817,7 @@ extension ValueConcurrentObserver: TransactionObserver {
         }
     }
     
-    private func reduce(_ fetchResult: Result<Reducer.Fetched, Error>) {
+    private func reduce(_ fetchResult: Result<Reducer.Fetched, any Error>) {
         reduceQueue.async {
             do {
                 let fetchedValue = try fetchResult.get()
@@ -874,7 +874,7 @@ extension ValueConcurrentObserver: DatabaseCancellable {
         }
     }
     
-    func notifyError(_ error: Error) {
+    func notifyError(_ error: any Error) {
         scheduler.schedule {
             let events = self.lock.synchronized {
                 let events = self.notificationCallbacks?.events

@@ -29,11 +29,11 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
         return KeyedEncodingContainer(container)
     }
     
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    func unkeyedContainer() -> any UnkeyedEncodingContainer {
         fatalError("unkeyed encoding is not supported")
     }
     
-    func singleValueContainer() -> SingleValueEncodingContainer {
+    func singleValueContainer() -> any SingleValueEncodingContainer {
         // @itaiferber on https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/11
         //
         // > Encoding a value into a single-value container is equivalent to
@@ -109,15 +109,15 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
             fatalError("Not implemented")
         }
         
-        func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
+        func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
             fatalError("Not implemented")
         }
         
-        func superEncoder() -> Encoder {
+        func superEncoder() -> any Encoder {
             recordEncoder
         }
         
-        func superEncoder(forKey key: Key) -> Encoder {
+        func superEncoder(forKey key: Key) -> any Encoder {
             recordEncoder
         }
     }
@@ -195,7 +195,7 @@ private class ColumnEncoder<Record: EncodableRecord>: Encoder {
         return KeyedEncodingContainer(container)
     }
     
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    func unkeyedContainer() -> any UnkeyedEncodingContainer {
         // We need to perform JSON encoding. Unfortunately we can't access the
         // inner container of Foundation's JSONEncoder. At this point we must
         // throw an error so that the caller can retry encoding from scratch.
@@ -205,7 +205,7 @@ private class ColumnEncoder<Record: EncodableRecord>: Encoder {
         return JSONRequiredEncoder(codingPath: codingPath)
     }
     
-    func singleValueContainer() -> SingleValueEncodingContainer { self }
+    func singleValueContainer() -> any SingleValueEncodingContainer { self }
 }
 
 extension ColumnEncoder: SingleValueEncodingContainer {

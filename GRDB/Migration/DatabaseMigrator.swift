@@ -264,7 +264,7 @@ public struct DatabaseMigrator {
     ///   from succeeding.
     public func asyncMigrate(
         _ writer: some DatabaseWriter,
-        completion: @escaping (Result<Database, Error>) -> Void)
+        completion: @escaping (Result<Database, any Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {
@@ -523,9 +523,9 @@ extension DatabasePublishers {
     /// You build such a publisher from ``DatabaseMigrator``.
     public struct Migrate: Publisher {
         public typealias Output = Void
-        public typealias Failure = Error
+        public typealias Failure = any Error
         
-        fileprivate let upstream: AnyPublisher<Void, Error>
+        fileprivate let upstream: AnyPublisher<Void, any Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)

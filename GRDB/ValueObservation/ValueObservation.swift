@@ -77,12 +77,12 @@ struct ValueObservationEvents: Refinable {
     var willStart: (() -> Void)?
     var willTrackRegion: ((DatabaseRegion) -> Void)?
     var databaseDidChange: (() -> Void)?
-    var didFail: ((Error) -> Void)?
+    var didFail: ((any Error) -> Void)?
     var didCancel: (() -> Void)?
 }
 
 typealias ValueObservationStart<T> = (
-    _ onError: @escaping (Error) -> Void,
+    _ onError: @escaping (any Error) -> Void,
     _ onChange: @escaping (T) -> Void)
 -> AnyDatabaseCancellable
 
@@ -138,7 +138,7 @@ extension ValueObservation: Refinable {
     public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: @escaping (Error) -> Void,
+        onError: @escaping (any Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     where Reducer: ValueReducer
@@ -180,7 +180,7 @@ extension ValueObservation: Refinable {
         willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
         databaseDidChange: (() -> Void)? = nil,
         didReceiveValue: ((Reducer.Value) -> Void)? = nil,
-        didFail: ((Error) -> Void)? = nil,
+        didFail: ((any Error) -> Void)? = nil,
         didCancel: (() -> Void)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
@@ -231,7 +231,7 @@ extension ValueObservation: Refinable {
     ///   used to log messages to other destinations.
     public func print(
         _ prefix: String = "",
-        to stream: TextOutputStream? = nil)
+        to stream: (any TextOutputStream)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         let lock = NSLock()
@@ -333,7 +333,7 @@ extension ValueObservation {
 /// ``SharedValueObservation``.
 @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 public struct AsyncValueObservation<Element>: AsyncSequence {
-    public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
+    public typealias BufferingPolicy = AsyncThrowingStream<Element, any Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
     
     var bufferingPolicy: BufferingPolicy
@@ -377,7 +377,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
     }
     
     public struct Iterator: AsyncIteratorProtocol {
-        var iterator: AsyncThrowingStream<Element, Error>.AsyncIterator
+        var iterator: AsyncThrowingStream<Element, any Error>.AsyncIterator
         let cancellable: AnyDatabaseCancellable
         
         public mutating func next() async throws -> Element? {
@@ -457,7 +457,7 @@ extension DatabasePublishers {
     /// You build such a publisher from ``ValueObservation``
     /// or ``SharedValueObservation``.
     public struct Value<Output>: Publisher {
-        public typealias Failure = Error
+        public typealias Failure = any Error
         private let start: ValueObservationStart<Output>
         
         init(start: @escaping ValueObservationStart<Output>) {
@@ -473,7 +473,7 @@ extension DatabasePublishers {
     }
     
     private class ValueSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error
+    where Downstream.Failure == any Error
     {
         private struct WaitingForDemand {
             let downstream: Downstream

@@ -85,7 +85,7 @@ extension DatabaseRegionObservation {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         in writer: some DatabaseWriter,
-        onError: @escaping (Error) -> Void,
+        onError: @escaping (any Error) -> Void,
         onChange: @escaping (Database) -> Void)
     -> AnyDatabaseCancellable
     {
@@ -188,7 +188,7 @@ extension DatabasePublishers {
     /// You build such a publisher from ``DatabaseRegionObservation``.
     public struct DatabaseRegion: Publisher {
         public typealias Output = Database
-        public typealias Failure = Error
+        public typealias Failure = any Error
         
         let writer: any DatabaseWriter
         let observation: DatabaseRegionObservation
@@ -208,7 +208,7 @@ extension DatabasePublishers {
     }
     
     private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error, Downstream.Input == Database
+    where Downstream.Failure == any Error, Downstream.Input == Database
     {
         private struct WaitingForDemand {
             let downstream: Downstream
@@ -298,7 +298,7 @@ extension DatabasePublishers {
             }
         }
         
-        private func receive(failure error: Error) {
+        private func receive(failure error: any Error) {
             lock.synchronized {
                 if case let .observing(info) = state {
                     state = .finished

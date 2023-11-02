@@ -27,7 +27,7 @@ extension FetchableRecordDecodableTests {
                 case value = "someColumn"
             }
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 value = try container.decode(String.self, forKey: .value)
             }
@@ -89,7 +89,7 @@ extension FetchableRecordDecodableTests {
         struct Value : Decodable {
             let string: String
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 string = try decoder.singleValueContainer().decode(String.self)
             }
         }
@@ -125,7 +125,7 @@ extension FetchableRecordDecodableTests {
         struct NestedValue : Decodable {
             let string: String
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 string = try decoder.singleValueContainer().decode(String.self)
             }
         }
@@ -133,7 +133,7 @@ extension FetchableRecordDecodableTests {
         struct Value : Decodable {
             let nestedValue: NestedValue
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 nestedValue = try decoder.singleValueContainer().decode(NestedValue.self)
             }
         }
@@ -214,7 +214,7 @@ extension FetchableRecordDecodableTests {
                 self.string = string
             }
             
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 string = try decoder.singleValueContainer().decode(String.self) + " (Decodable)"
             }
             
@@ -1084,7 +1084,7 @@ extension FetchableRecordDecodableTests {
         
         enum CodingKeys: String, CodingKey { case name }
         
-        init(from decoder: Decoder) throws {
+        init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             name = try container.decode(String.self, forKey: .name)
             key = decoder.codingPath.last?.stringValue
@@ -1097,7 +1097,7 @@ extension FetchableRecordDecodableTests {
         var key: String?
         var context: String?
         
-        init(from decoder: Decoder) throws {
+        init(from decoder: any Decoder) throws {
             let container = try decoder.singleValueContainer()
             name = try container.decode(String.self)
             key = decoder.codingPath.last?.stringValue
@@ -1110,7 +1110,7 @@ extension FetchableRecordDecodableTests {
         var key: String?
         var context: String?
         
-        init(from decoder: Decoder) throws {
+        init(from decoder: any Decoder) throws {
             var container = try decoder.unkeyedContainer()
             name = try container.decode(String.self)
             key = decoder.codingPath.last?.stringValue
@@ -1129,7 +1129,7 @@ extension FetchableRecordDecodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed
         }
         
-        init(from decoder: Decoder) throws {
+        init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             nestedKeyed = try container.decode(NestedKeyed.self, forKey: .nestedKeyed)
             nestedSingle = try container.decode(NestedSingle.self, forKey: .nestedSingle)
@@ -1150,7 +1150,7 @@ extension FetchableRecordDecodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed
         }
         
-        required init(from decoder: Decoder) throws {
+        required init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             nestedKeyed = try container.decode(NestedKeyed.self, forKey: .nestedKeyed)
             nestedSingle = try container.decode(NestedSingle.self, forKey: .nestedSingle)
@@ -1448,7 +1448,7 @@ extension FetchableRecordDecodableTests {
                 self.lastName = lastName
             }
 
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let userInfoValue = decoder.userInfo[.testKey] as? String
 
                 let container = try decoder.container(keyedBy: CodingKeys.self)
