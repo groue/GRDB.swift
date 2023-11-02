@@ -133,8 +133,8 @@ The `->` and `->>` SQL operators are available on the ``SQLJSONExpressible`` pro
 - ``Database/jsonArray(_:)-469db``
 - ``Database/jsonObject(_:)``
 - ``Database/jsonQuote(_:)``
-- ``Database/jsonGroupArray(_:)``
-- ``Database/jsonGroupObject(key:value:)``
+- ``Database/jsonGroupArray(_:filter:)``
+- ``Database/jsonGroupObject(key:value:filter:)``
 
 ### Modify JSON values at the SQL level
 

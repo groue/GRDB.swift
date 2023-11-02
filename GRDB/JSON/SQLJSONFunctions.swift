@@ -373,6 +373,19 @@ extension Database {
     
     /// The `JSON_GROUP_ARRAY` SQL function.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSON_GROUP_ARRAY(name) FROM player
+    /// Player.select(Database.jsonGroupArray(Column("name")))
+    ///
+    /// // SELECT JSON_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonGroupArray(Column("name"), filter: Column("score") > 0))
+    ///
+    /// // SELECT JSON_GROUP_ARRAY(name ORDER BY name) FROM player
+    /// Player.select(Database.jsonGroupArray(Column("name"), orderBy: Column("name")))
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
     public static func jsonGroupArray(
         _ value: some SQLExpressible,
@@ -388,6 +401,21 @@ extension Database {
     }
     
     /// The `JSON_GROUP_OBJECT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSON_GROUP_OBJECT(name, score) FROM player
+    /// Player.select(Database.jsonGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score")))
+    ///
+    /// // SELECT JSON_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score"),
+    ///     filter: Column("score") > 0))
+    /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
     public static func jsonGroupObject(
@@ -796,6 +824,16 @@ extension Database {
     
     /// The `JSON_GROUP_ARRAY` SQL function.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSON_GROUP_ARRAY(name) FROM player
+    /// Player.select(Database.jsonGroupArray(Column("name")))
+    ///
+    /// // SELECT JSON_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonGroupArray(Column("name"), filter: Column("score") > 0))
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public static func jsonGroupArray(
@@ -810,6 +848,21 @@ extension Database {
     }
     
     /// The `JSON_GROUP_OBJECT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSON_GROUP_OBJECT(name, score) FROM player
+    /// Player.select(Database.jsonGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score")))
+    ///
+    /// // SELECT JSON_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score"),
+    ///     filter: Column("score") > 0))
+    /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS

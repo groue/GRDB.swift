@@ -2144,6 +2144,7 @@ extension SQLExpressible where Self == Column {
 ///
 /// - ``abs(_:)-5l6xp``
 /// - ``average(_:)``
+/// - ``average(_:filter:)``
 /// - ``capitalized``
 /// - ``count(_:)``
 /// - ``count(distinct:)``
@@ -2156,9 +2157,13 @@ extension SQLExpressible where Self == Column {
 /// - ``localizedUppercased``
 /// - ``lowercased``
 /// - ``min(_:)``
+/// - ``min(_:filter:)``
 /// - ``max(_:)``
+/// - ``max(_:filter:)``
 /// - ``sum(_:)``
+/// - ``sum(_:filter:)``
 /// - ``total(_:)``
+/// - ``total(_:filter:)``
 /// - ``uppercased``
 /// - ``SQLDateModifier``
 ///
