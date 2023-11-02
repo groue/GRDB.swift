@@ -1245,7 +1245,7 @@ final class JSONExpressionsTests: GRDBTestCase {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     func test_Database_jsonGroupArray_order() throws {
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3038000 else {
+        guard sqlite3_libversion_number() >= 3044000 else {
             throw XCTSkip("JSON support is not available")
         }
         
