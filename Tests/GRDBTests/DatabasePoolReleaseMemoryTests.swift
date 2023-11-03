@@ -57,10 +57,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         // Precondition: there is one reader.
         try dbPool.read { _ in }
         
-        // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        // Eventually simulate memory warning (after dbPool could register).
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+        }
         
         // Postcondition: reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -85,10 +87,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         // Precondition: there is one reader.
         try dbPool.read { _ in }
         
-        // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        // Eventually simulate memory warning (after dbPool could register).
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+        }
         
         // Postcondition: no reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -106,10 +110,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             semaphore.wait()
         }
         
-        // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        // Eventually simulate memory warning (after dbPool could register).
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+        }
         
         // Make sure we can read
         try dbPool.read { _ in }

@@ -91,7 +91,9 @@ public final class DatabasePool {
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
         if configuration.automaticMemoryManagement {
-            setupMemoryManagement()
+            DispatchQueue.main.async { [weak self] in
+                self?.setupMemoryManagement()
+            }
         }
         #endif
     }
@@ -221,6 +223,7 @@ extension DatabasePool {
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
+    @MainActor
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
@@ -235,7 +238,7 @@ extension DatabasePool {
             object: nil)
     }
     
-    @objc
+    @MainActor @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = notification.object as? UIApplication else {
             return
