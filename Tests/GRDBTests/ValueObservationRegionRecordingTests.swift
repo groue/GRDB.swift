@@ -130,7 +130,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
+        class Context {
+            var results: [Int] = []
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
@@ -147,7 +150,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                context.results.append(count)
                 notificationExpectation.fulfill()
         })
         
@@ -162,7 +165,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [0, 1, 2, 3])
+            XCTAssertEqual(context.results, [0, 1, 2, 3])
             
             XCTAssertEqual(regions.map(\.description), [
                 "a(value),source(name)",
@@ -181,7 +184,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
+        class Context {
+            var results: [Int] = []
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
@@ -199,7 +205,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                context.results.append(count)
                 notificationExpectation.fulfill()
         })
         
@@ -214,7 +220,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [0, 1, 2, 3])
+            XCTAssertEqual(context.results, [0, 1, 2, 3])
             
             XCTAssertEqual(regions.map(\.description), [
                 "a(value),source(name)",

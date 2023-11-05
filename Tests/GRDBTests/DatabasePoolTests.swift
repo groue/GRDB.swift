@@ -228,7 +228,10 @@ class DatabasePoolTests: GRDBTestCase {
         let group = DispatchGroup()
         
         // The maximum number of threads we could witness
-        var maxThreadCount: CInt = 0
+        class Context {
+            var maxThreadCount: CInt = 0
+        }
+        let context = Context()
         let lock = NSLock()
         
         for _ in (0..<numberOfConcurrentReads) {
@@ -240,14 +243,14 @@ class DatabasePoolTests: GRDBTestCase {
                 
                 let threadsCount = getThreadsCount()
                 lock.lock()
-                maxThreadCount = max(maxThreadCount, threadsCount)
+                context.maxThreadCount = max(context.maxThreadCount, threadsCount)
                 lock.unlock()
                 
                 group.leave()
             }
         }
         group.wait()
-        XCTAssert(maxThreadCount < 50)
+        XCTAssert(context.maxThreadCount < 50)
 #endif
     }
     
@@ -270,7 +273,10 @@ class DatabasePoolTests: GRDBTestCase {
         let group = DispatchGroup()
         
         // The maximum number of threads we could witness
-        var maxThreadCount: CInt = 0
+        class Context {
+            var maxThreadCount: CInt = 0
+        }
+        let context = Context()
         let lock = NSLock()
         
         for _ in (0..<numberOfConcurrentReads) {
@@ -282,14 +288,14 @@ class DatabasePoolTests: GRDBTestCase {
                 
                 let threadsCount = getThreadsCount()
                 lock.lock()
-                maxThreadCount = max(maxThreadCount, threadsCount)
+                context.maxThreadCount = max(context.maxThreadCount, threadsCount)
                 lock.unlock()
                 
                 group.leave()
             }
         }
         group.wait()
-        XCTAssert(maxThreadCount < 50)
+        XCTAssert(context.maxThreadCount < 50)
 #endif
     }
     

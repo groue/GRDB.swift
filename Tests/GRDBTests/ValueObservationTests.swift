@@ -5,19 +5,22 @@ import Dispatch
 class ValueObservationTests: GRDBTestCase {
     func testImmediateError() throws {
         struct TestError: Error { }
+        class Context {
+            var error: TestError?
+        }
         
         func test(_ dbWriter: some DatabaseWriter) throws {
             // Create an observation
             let observation = ValueObservation.trackingConstantRegion { _ in throw TestError() }
             
             // Start observation
-            var error: TestError?
+            let context = Context()
             _ = observation.start(
                 in: dbWriter,
                 scheduling: .immediate,
-                onError: { error = $0 as? TestError },
+                onError: { context.error = $0 as? TestError },
                 onChange: { _ in })
-            XCTAssertNotNil(error)
+            XCTAssertNotNil(context.error)
         }
         
         try test(makeDatabaseQueue())
@@ -26,36 +29,39 @@ class ValueObservationTests: GRDBTestCase {
     
     func testErrorCompletesTheObservation() throws {
         struct TestError: Error { }
+        class Context {
+            var nextError: Error? = nil // If not null, observation throws an error
+            var errorCaught = false
+        }
         
         func test(_ dbWriter: some DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
+            let context = Context()
             let notificationExpectation = expectation(description: "notification")
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            var nextError: Error? = nil // If not null, observation throws an error
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
-                if let error = nextError {
+                if let error = context.nextError {
                     throw error
                 }
             }
             
             // Start observation
-            var errorCaught = false
             let cancellable = observation.start(
                 in: dbWriter,
                 onError: { _ in
-                    errorCaught = true
+                    context.errorCaught = true
                     notificationExpectation.fulfill()
                 },
                 onChange: {
-                    XCTAssertFalse(errorCaught)
-                    nextError = TestError()
+                    XCTAssertFalse(context.errorCaught)
+                    context.nextError = TestError()
                     notificationExpectation.fulfill()
                     // Trigger another change
                     try! dbWriter.writeWithoutTransaction { db in
@@ -65,7 +71,7 @@ class ValueObservationTests: GRDBTestCase {
             
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 2, handler: nil)
-                XCTAssertTrue(errorCaught)
+                XCTAssertTrue(context.errorCaught)
             }
         }
         
@@ -341,18 +347,21 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        class Context {
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(context.observedCounts, [0, 0])
         }
     }
     
@@ -381,18 +390,21 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        class Context {
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(context.observedCounts, [0, 0])
         }
     }
     
@@ -431,18 +443,21 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        class Context {
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(context.observedCounts, expectedCounts)
         }
     }
     
@@ -481,18 +496,21 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        class Context {
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                context.observedCounts.append(count)
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(context.observedCounts, expectedCounts)
         }
     }
     
@@ -531,7 +549,11 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        class Context {
+            var changesCount = 0
+            var cancellable: (any DatabaseCancellable)?
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -542,14 +564,13 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and deallocate cancellable after second change
-        var cancellable: (any DatabaseCancellable)?
-        cancellable = observation.start(
+        context.cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable = nil
+                context.changesCount += 1
+                if context.changesCount == 2 {
+                    context.cancellable = nil
                 }
                 notificationExpectation.fulfill()
             })
@@ -564,11 +585,8 @@ class ValueObservationTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
-        // Avoid "Variable 'cancellable' was written to, but never read" warning
-        _ = cancellable
-        
         waitForExpectations(timeout: 2, handler: nil)
-        XCTAssertEqual(changesCount, 2)
+        XCTAssertEqual(context.changesCount, 2)
     }
     
     func testCancellableExplicitCancellation() throws {
@@ -577,7 +595,11 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        class Context {
+            var changesCount = 0
+            var cancellable: (any DatabaseCancellable)!
+        }
+        let context = Context()
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -588,32 +610,29 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and cancel cancellable after second change
-        var cancellable: (any DatabaseCancellable)!
-        cancellable = observation.start(
+        context.cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable.cancel()
+                context.changesCount += 1
+                if context.changesCount == 2 {
+                    context.cancellable.cancel()
                 }
                 notificationExpectation.fulfill()
             })
         
-        try withExtendedLifetime(cancellable) {
-            // notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            // not notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(changesCount, 2)
+        // notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
+        
+        // not notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 2, handler: nil)
+        XCTAssertEqual(context.changesCount, 2)
     }
     
     func testCancellableInvalidation1() throws {

@@ -122,7 +122,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "")
-            migrator.asyncMigrate(writer, completion: { dbResult in
+            migrator.asyncMigrate(writer, completion: { [migrator2] dbResult in
                 // No migration error
                 let db = try! dbResult.get()
                 
