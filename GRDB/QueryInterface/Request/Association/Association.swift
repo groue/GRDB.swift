@@ -173,7 +173,10 @@ extension Association {
 
 // SelectionRequest conformance
 extension Association {
-    public func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
+    public func selectWhenConnected(
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable])
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.selectWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
@@ -181,7 +184,10 @@ extension Association {
         }
     }
     
-    public func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
+    public func annotatedWhenConnected(
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable])
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.annotatedWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
@@ -192,7 +198,10 @@ extension Association {
 
 // FilteredRequest conformance
 extension Association {
-    public func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
+    public func filterWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible)
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.filterWhenConnected { db in
                 try predicate(db).sqlExpression
@@ -203,7 +212,10 @@ extension Association {
 
 // OrderedRequest conformance
 extension Association {
-    public func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self {
+    public func orderWhenConnected(
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm])
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.orderWhenConnected { db in
                 try orderings(db).map(\.sqlOrdering)
@@ -239,7 +251,10 @@ extension Association {
 
 // AggregatingRequest conformance
 extension Association {
-    public func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self {
+    public func groupWhenConnected(
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible])
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.groupWhenConnected { db in
                 try expressions(db).map(\.sqlExpression)
@@ -247,7 +262,10 @@ extension Association {
         }
     }
     
-    public func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
+    public func havingWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible)
+    -> Self
+    {
         withDestinationRelation { relation in
             relation = relation.havingWhenConnected { db in
                 try predicate(db).sqlExpression
