@@ -331,10 +331,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -347,10 +351,6 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        class Context {
-            var observedCounts: [Int] = []
-        }
-        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
@@ -374,10 +374,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -390,10 +394,6 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        class Context {
-            var observedCounts: [Int] = []
-        }
-        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
@@ -417,10 +417,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -443,10 +447,6 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        class Context {
-            var observedCounts: [Int] = []
-        }
-        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
@@ -470,10 +470,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+            var observedCounts: [Int] = []
+        }
+        let context = Context()
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if context.needsChange {
+                context.needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -496,10 +500,6 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        class Context {
-            var observedCounts: [Int] = []
-        }
-        let context = Context()
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,

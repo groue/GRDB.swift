@@ -410,11 +410,14 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+        }
+        let context = Context()
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
-                if needsChange {
-                    needsChange = false
+                if context.needsChange {
+                    context.needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;
@@ -461,11 +464,14 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        class Context {
+            var needsChange = true
+        }
+        let context = Context()
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
-                if needsChange {
-                    needsChange = false
+                if context.needsChange {
+                    context.needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;
