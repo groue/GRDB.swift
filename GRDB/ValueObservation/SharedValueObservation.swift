@@ -1,7 +1,7 @@
 import Foundation
 
 /// The extent of the shared subscription to a ``SharedValueObservation``.
-public enum SharedValueObservationExtent {
+public enum SharedValueObservationExtent: Sendable {
     /// The ``SharedValueObservation`` starts a single database observation,
     /// which stops when the `SharedValueObservation` is deallocated and all
     /// subscriptions terminated.

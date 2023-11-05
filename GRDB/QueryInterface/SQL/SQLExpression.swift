@@ -315,7 +315,7 @@ public struct SQLExpression {
     ///     1000.databaseValue]
     /// let request = Player.select(values.joined(operator: .add))
     /// ```
-    public struct AssociativeBinaryOperator: Hashable {
+    public struct AssociativeBinaryOperator: Hashable, Sendable {
         /// The SQL operator
         let sql: String
         

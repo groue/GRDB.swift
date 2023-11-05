@@ -40,7 +40,7 @@
 ///
 /// - ``isModified(byEventsOfKind:)``
 /// - ``isModified(by:)``
-public struct DatabaseRegion {
+public struct DatabaseRegion: Sendable {
     private let tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
     
     private init(tableRegions: [CaseInsensitiveIdentifier: TableRegion]?) {

@@ -847,7 +847,7 @@ extension Database {
 ///
 /// - [pragma `table_info`](https://www.sqlite.org/pragma.html#pragma_table_info)
 /// - [pragma `table_xinfo`](https://www.sqlite.org/pragma.html#pragma_table_xinfo)
-public struct ColumnInfo: FetchableRecord {
+public struct ColumnInfo: FetchableRecord, Sendable {
     let cid: Int
     let hidden: Int?
     
@@ -933,9 +933,9 @@ public struct ColumnInfo: FetchableRecord {
 ///
 /// - [pragma `index_list`](https://www.sqlite.org/pragma.html#pragma_index_list)
 /// - [pragma `index_info`](https://www.sqlite.org/pragma.html#pragma_index_info)
-public struct IndexInfo {
+public struct IndexInfo: Sendable {
     /// The origin of an index.
-    public struct Origin: RawRepresentable, Equatable, DatabaseValueConvertible {
+    public struct Origin: RawRepresentable, Equatable, DatabaseValueConvertible, Sendable {
         public var rawValue: String
         
         public init(rawValue: String) {
@@ -1008,7 +1008,7 @@ public struct IndexInfo {
 /// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_foreign_key_check>
-public struct ForeignKeyViolation {
+public struct ForeignKeyViolation: Sendable {
     /// The name of the table that contains the foreign key.
     public var originTable: String
     
@@ -1157,7 +1157,7 @@ extension ForeignKeyViolation: CustomStringConvertible {
 /// pk.rowIDColumn // nil
 /// pk.isRowID     // false
 /// ```
-public struct PrimaryKeyInfo {
+public struct PrimaryKeyInfo: Sendable {
     private enum Impl {
         /// The hidden rowID.
         case hiddenRowID
@@ -1283,7 +1283,7 @@ public struct PrimaryKeyInfo {
 /// `Database` method.
 ///
 /// Related SQLite documentation: [pragma `foreign_key_list`](https://www.sqlite.org/pragma.html#pragma_foreign_key_list).
-public struct ForeignKeyInfo {
+public struct ForeignKeyInfo: Sendable {
     /// The first column in the output of the `foreign_key_list` pragma.
     public var id: Int
     

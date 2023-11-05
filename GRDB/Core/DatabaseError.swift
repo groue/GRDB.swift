@@ -3,7 +3,7 @@ import Foundation
 /// An SQLite result code.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/rescode.html>
-public struct ResultCode: RawRepresentable, Equatable {
+public struct ResultCode: RawRepresentable, Equatable, Sendable {
     /// The raw SQLite result code.
     public let rawValue: CInt
     
@@ -205,8 +205,6 @@ extension ResultCode: CustomStringConvertible {
         }
     }
 }
-
-extension ResultCode: Sendable { }
 
 /// A `DatabaseError` describes an SQLite error.
 ///

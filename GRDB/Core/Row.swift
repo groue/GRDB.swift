@@ -2059,7 +2059,7 @@ typealias RowIndex = Row.Index
 
 extension Row {
     /// An index to a (column, value) pair in a ``Row``.
-    public struct Index {
+    public struct Index: Sendable {
         let index: Int
         init(_ index: Int) { self.index = index }
     }

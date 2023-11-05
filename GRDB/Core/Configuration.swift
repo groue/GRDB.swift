@@ -294,7 +294,7 @@ public struct Configuration {
     /// connection is opened.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
-    public enum JournalModeConfiguration {
+    public enum JournalModeConfiguration: Sendable {
         /// The default setup has ``DatabaseQueue`` perform no specific
         /// configuration of the journal mode, and ``DatabasePool`` 
         /// configure the database for the WAL mode (just like the

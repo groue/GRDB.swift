@@ -135,7 +135,7 @@ extension Database {
     }
     
     /// The extent of the observation performed by a ``TransactionObserver``.
-    public enum TransactionObservationExtent {
+    public enum TransactionObservationExtent: Sendable {
         /// Observation lasts until observer is deallocated.
         case observerLifetime
         /// Observation lasts until the next transaction.
@@ -1064,7 +1064,7 @@ protocol DatabaseEventProtocol {
 /// ``TransactionObserver`` protocol for more information.
 public struct DatabaseEvent {
     /// An event kind.
-    public enum Kind: CInt {
+    public enum Kind: CInt, Sendable {
         /// An insertion event
         case insert = 18 // SQLITE_INSERT
         
@@ -1182,7 +1182,7 @@ private struct CopiedDatabaseEventImpl: DatabaseEventImpl {
 public struct DatabasePreUpdateEvent {
     
     /// An event kind
-    public enum Kind: CInt {
+    public enum Kind: CInt, Sendable {
         /// SQLITE_INSERT
         case insert = 18
         

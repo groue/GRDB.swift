@@ -52,7 +52,7 @@ import Foundation
 /// - ``isNull``
 /// - ``storage-swift.property``
 /// - ``Storage-swift.enum``
-public struct DatabaseValue: Hashable {
+public struct DatabaseValue: Hashable, Sendable {
     /// The SQLite storage.
     public let storage: Storage
     
@@ -218,8 +218,6 @@ extension DatabaseValue: StatementBinding {
         }
     }
 }
-
-extension DatabaseValue: Sendable { }
 
 // @unchecked Sendable because Data is not Sendable in all target OS
 extension DatabaseValue.Storage: @unchecked Sendable { }
