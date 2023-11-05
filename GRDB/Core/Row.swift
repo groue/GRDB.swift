@@ -1447,7 +1447,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(
+    @Sendable public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -1476,7 +1476,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(
+    @Sendable public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -1505,7 +1505,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(
+    @Sendable public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: (any RowAdapter)? = nil)
@@ -1589,7 +1589,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(
+    @Sendable public static func fetchAll(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -1618,7 +1618,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(
+    @Sendable public static func fetchSet(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -1647,7 +1647,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(
+    @Sendable public static func fetchOne(
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
@@ -1736,7 +1736,7 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
+    @Sendable public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
         try request.supplementaryFetch?(db, rows, nil)
@@ -1768,7 +1768,7 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
+    @Sendable public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try fetchAll(request.statement, adapter: request.adapter)
@@ -1804,7 +1804,7 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
+    @Sendable public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
         let request = try request.makePreparedRequest(db, forSingleResult: true)
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
@@ -1874,7 +1874,7 @@ extension FetchRequest<Row> {
     /// - parameter db: A database connection.
     /// - returns: An array of fetched rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [Row] {
+    @Sendable public func fetchAll(_ db: Database) throws -> [Row] {
         try Row.fetchAll(db, self)
     }
     
@@ -1895,7 +1895,7 @@ extension FetchRequest<Row> {
     /// - parameter db: A database connection.
     /// - returns: A set of fetched rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchSet(_ db: Database) throws -> Set<Row> {
+    @Sendable public func fetchSet(_ db: Database) throws -> Set<Row> {
         try Row.fetchSet(db, self)
     }
     
@@ -1916,7 +1916,7 @@ extension FetchRequest<Row> {
     /// - parameter db: A database connection.
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    public func fetchOne(_ db: Database) throws -> Row? {
+    @Sendable public func fetchOne(_ db: Database) throws -> Row? {
         try Row.fetchOne(db, self)
     }
 }

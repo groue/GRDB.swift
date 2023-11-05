@@ -224,7 +224,7 @@ extension TableRecord {
     /// ```
     ///
     /// - parameter db: A database connection.
-    public static func fetchCount(_ db: Database) throws -> Int {
+    @Sendable public static func fetchCount(_ db: Database) throws -> Int {
         try all().fetchCount(db)
     }
 }
