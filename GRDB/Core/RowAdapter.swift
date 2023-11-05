@@ -656,11 +656,11 @@ struct ChainedAdapter: RowAdapter {
 /// print(Array(adaptedRow.columnNames))
 /// ```
 public struct RenameColumnAdapter: RowAdapter {
-    let transform: (String) -> String
+    let transform: @Sendable (String) -> String
     
     /// Creates a `RenameColumnAdapter` adapter that renames columns according to the
     /// provided transform function.
-    public init(_ transform: @escaping (String) -> String) {
+    public init(_ transform: @escaping @Sendable (String) -> String) {
         self.transform = transform
     }
     
