@@ -789,13 +789,17 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         
-        var witness = 1
+        class Context {
+            var witness = 1
+        }
+        let context = Context()
+        
         migrator.registerMigration("1") { db in
             try db.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY);
                 INSERT INTO t1(id) VALUES (?)
-                """, arguments: [witness])
-            witness += 1
+                """, arguments: [context.witness])
+            context.witness += 1
         }
         
         let dbQueue = try makeDatabaseQueue()
