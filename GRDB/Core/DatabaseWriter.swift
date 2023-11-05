@@ -885,7 +885,7 @@ extension DatabaseWriter {
                     fulfill(.failure(error))
                     return
                 }
-                self.spawnConcurrentRead { dbResult in
+                self.spawnConcurrentRead { [updatesValue] dbResult in
                     fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
                 }
             }
