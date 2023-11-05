@@ -264,7 +264,7 @@ public struct DatabaseMigrator {
     ///   from succeeding.
     public func asyncMigrate(
         _ writer: some DatabaseWriter,
-        completion: @escaping (Result<Database, Error>) -> Void)
+        completion: @escaping @Sendable (Result<Database, Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {

@@ -107,7 +107,9 @@ final class Pool<T> {
     ///
     /// - important: The `execute` argument is executed in a serial dispatch
     ///   queue, so make sure you use the element asynchronously.
-    func asyncGet(_ execute: @escaping (Result<(element: T, release: (PoolCompletion) -> Void), Error>) -> Void) {
+    func asyncGet(
+        _ execute: @escaping @Sendable (Result<(element: T, release: (PoolCompletion) -> Void), Error>) -> Void)
+    {
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum
@@ -172,7 +174,7 @@ final class Pool<T> {
     
     /// Asynchronously runs the `barrier` function when no element is used, and
     /// before any other element is dequeued.
-    func asyncBarrier(execute barrier: @escaping () -> Void) {
+    func asyncBarrier(execute barrier: @escaping @Sendable () -> Void) {
         barrierQueue.async(flags: [.barrier]) {
             self.itemsGroup.wait()
             barrier()

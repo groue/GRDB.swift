@@ -71,7 +71,7 @@ class WALSnapshotTransaction {
     
     /// Schedules database operations for execution, and
     /// returns immediately.
-    func asyncRead(_ value: @escaping (Database) -> Void) {
+    func asyncRead(_ value: @escaping @Sendable (Database) -> Void) {
         // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
         reader.async(value)
     }

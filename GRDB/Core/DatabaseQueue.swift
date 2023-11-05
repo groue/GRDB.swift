@@ -233,7 +233,7 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         writer.async { db in
             defer {
                 // Ignore error because we can not notify it.
@@ -258,7 +258,7 @@ extension DatabaseQueue: DatabaseReader {
         try writer.sync(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         writer.async { value(.success($0)) }
     }
     
@@ -266,7 +266,7 @@ extension DatabaseQueue: DatabaseReader {
         try writer.reentrantSync(value)
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
+    public func concurrentRead<T>(_ value: @escaping @Sendable (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
         return DatabaseFuture(Result {
@@ -379,7 +379,7 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void) {
         writer.async { updates(.success($0)) }
     }
     
@@ -425,7 +425,7 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
         writer.async(updates)
     }
 }
