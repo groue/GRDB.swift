@@ -551,7 +551,7 @@ extension DatabaseReader {
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        value: @escaping (Database) throws -> Output)
+        value: @escaping @Sendable (Database) throws -> Output)
     -> DatabasePublishers.Read<Output>
     {
         Deferred {

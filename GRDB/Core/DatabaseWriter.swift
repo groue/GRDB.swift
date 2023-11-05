@@ -803,7 +803,7 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        updates: @escaping (Database) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> Output)
     -> DatabasePublishers.Write<Output>
     {
         OnDemandFuture { fulfill in
@@ -868,8 +868,8 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func writePublisher<S, T, Output>(
         receiveOn scheduler: S = DispatchQueue.main,
-        updates: @escaping (Database) throws -> T,
-        thenRead value: @escaping (Database, T) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> T,
+        thenRead value: @escaping @Sendable (Database, T) throws -> Output)
     -> DatabasePublishers.Write<Output>
     where S: Scheduler
     {
