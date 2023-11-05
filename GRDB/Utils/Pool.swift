@@ -46,6 +46,8 @@ final class Pool<T> {
         }
     }
     
+    typealias ElementAndRelease = (element: T, release: @Sendable (PoolCompletion) -> Void)
+    
     private let makeElement: () throws -> T
     @ReadWriteBox private var items: [Item] = []
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
@@ -75,7 +77,7 @@ final class Pool<T> {
     
     /// Returns a tuple (element, release)
     /// Client must call release(), only once, after the element has been used.
-    func get() throws -> (element: T, release: (PoolCompletion) -> Void) {
+    func get() throws -> ElementAndRelease {
         try barrierQueue.sync {
             itemsSemaphore.wait()
             itemsGroup.enter()
@@ -107,9 +109,7 @@ final class Pool<T> {
     ///
     /// - important: The `execute` argument is executed in a serial dispatch
     ///   queue, so make sure you use the element asynchronously.
-    func asyncGet(
-        _ execute: @escaping @Sendable (Result<(element: T, release: (PoolCompletion) -> Void), Error>) -> Void)
-    {
+    func asyncGet(_ execute: @escaping @Sendable (Result<ElementAndRelease, Error>) -> Void) {
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum
