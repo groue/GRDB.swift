@@ -703,7 +703,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func trackingConstantRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -764,7 +764,7 @@ extension ValueObservation {
     public static func tracking<Value>(
         region: any DatabaseRegionConvertible,
         _ otherRegions: any DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -820,7 +820,7 @@ extension ValueObservation {
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -877,7 +877,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
