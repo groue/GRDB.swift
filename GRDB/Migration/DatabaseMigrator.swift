@@ -40,7 +40,7 @@ import Foundation
 /// - ``completedMigrations(_:)``
 /// - ``hasBeenSuperseded(_:)``
 /// - ``hasCompletedMigrations(_:)``
-public struct DatabaseMigrator {
+public struct DatabaseMigrator: Sendable {
     /// Controls how a migration handle foreign keys constraints.
     public enum ForeignKeyChecks {
         /// The migration runs with disabled foreign keys.
@@ -207,7 +207,7 @@ public struct DatabaseMigrator {
     public mutating func registerMigration(
         _ identifier: String,
         foreignKeyChecks: ForeignKeyChecks = .deferred,
-        migrate: @escaping (Database) throws -> Void)
+        migrate: @escaping @Sendable (Database) throws -> Void)
     {
         let migrationChecks: Migration.ForeignKeyChecks
         switch foreignKeyChecks {
