@@ -257,7 +257,9 @@ extension DatabasePool {
             // has freed its memory. That's better than nothing.
             releaseMemoryEventually()
             writer.async { _ in
-                application.endBackgroundTask(task)
+                DispatchQueue.main.async {
+                    application.endBackgroundTask(task)
+                }
             }
         }
     }

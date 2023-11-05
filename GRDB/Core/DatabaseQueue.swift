@@ -169,7 +169,9 @@ extension DatabaseQueue {
             // Release memory asynchronously
             writer.async { db in
                 db.releaseMemory()
-                application.endBackgroundTask(task)
+                DispatchQueue.main.async {
+                    application.endBackgroundTask(task)
+                }
             }
         }
     }
