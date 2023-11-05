@@ -5,8 +5,10 @@
 /// `WALSnapshotTransaction` **takes ownership** of its reader
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
 class WALSnapshotTransaction {
-    private let reader: SerializedDatabase
-    private let release: (_ isInsideTransaction: Bool) -> Void
+    // nil when closed
+    private var reader: SerializedDatabase?
+    // nil when closed
+    private var release: ((_ isInsideTransaction: Bool) -> Void)?
     
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
@@ -59,21 +61,39 @@ class WALSnapshotTransaction {
     }
     
     deinit {
-        Self.commitAndRelease(reader: reader, release: release)
+        close()
     }
     
     /// Executes database operations in the snapshot transaction, and
     /// returns their result after they have finished executing.
-    func read<T>(_ value: (Database) throws -> T) rethrows -> T {
+    func read<T>(_ value: (Database) throws -> T) throws -> T {
+        guard let reader else {
+            throw DatabaseError.snapshotIsLost()
+        }
+        
         // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
-        try reader.sync(value)
+        return try reader.sync(value)
     }
     
     /// Schedules database operations for execution, and
     /// returns immediately.
-    func asyncRead(_ value: @escaping @Sendable (Database) -> Void) {
+    func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+        guard let reader else {
+            value(.failure(DatabaseError.snapshotIsLost()))
+            return
+        }
+        
         // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
-        reader.async(value)
+        reader.async { db in
+            value(.success(db))
+        }
+    }
+    
+    func close() {
+        guard let reader, let release else { return }
+        self.reader = nil
+        self.release = nil
+        Self.commitAndRelease(reader: reader, release: release)
     }
     
     private static func commitAndRelease(
