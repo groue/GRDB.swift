@@ -194,3 +194,25 @@ extension NSLocking {
 #if !canImport(ObjectiveC)
 @inlinable func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result { try body() }
 #endif
+
+/// A helper class that builds a DatabaseFuture without compiler errors
+/// regarding concurrency.
+final class UnsafeDatabaseFutureBuilder<T>: @unchecked Sendable {
+    let semaphore = DispatchSemaphore(value: 0)
+    var result: Result<T, Error>? = nil
+    
+    /// - precondition: MUST be called once.
+    func setResultAndReleaseFuture(_ result: Result<T, Error>) {
+        self.result = result
+        semaphore.signal()
+    }
+    
+    /// - precondition: MUST be called once.
+    func makeFuture() -> DatabaseFuture<T> {
+        DatabaseFuture { [self] in
+            // Block the future until results are fetched
+            _ = semaphore.wait(timeout: .distantFuture)
+            return try result!.get()
+        }
+    }
+}

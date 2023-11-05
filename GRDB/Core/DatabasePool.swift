@@ -447,21 +447,18 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func concurrentRead<T>(_ value: @escaping @Sendable (Database) throws -> T) -> DatabaseFuture<T> {
-        // The semaphore that blocks until futureResult is defined:
-        let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: Result<T, Error>? = nil
+        let builder = UnsafeDatabaseFutureBuilder<T>()
         
         asyncConcurrentRead { dbResult in
-            // Fetch and release the future
-            futureResult = dbResult.flatMap { db in Result { try value(db) } }
-            futureSemaphore.signal()
+            let result = dbResult.flatMap { db in
+                Result {
+                    try value(db)
+                }
+            }
+            builder.setResultAndReleaseFuture(result)
         }
         
-        return DatabaseFuture {
-            // Block the future until results are fetched
-            _ = futureSemaphore.wait(timeout: .distantFuture)
-            return try futureResult!.get()
-        }
+        return builder.makeFuture()
     }
     
     public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
