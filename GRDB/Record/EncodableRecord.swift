@@ -466,7 +466,7 @@ extension Row {
 ///     var jsonData: Data
 /// }
 /// ```
-public enum DatabaseDataEncodingStrategy {
+public enum DatabaseDataEncodingStrategy: Sendable {
     /// Encodes `Data` columns as SQL blob.
     case deferredToData
     
@@ -474,7 +474,7 @@ public enum DatabaseDataEncodingStrategy {
     case text
     
     /// Encodes `Data` column as the result of the user-provided function.
-    case custom((Data) -> (any DatabaseValueConvertible)?)
+    case custom(@Sendable (Data) -> (any DatabaseValueConvertible)?)
     
     func encode(_ data: Data) -> DatabaseValue {
         switch self {
@@ -508,7 +508,7 @@ public enum DatabaseDataEncodingStrategy {
 ///     var creationDate: Date
 /// }
 /// ```
-public enum DatabaseDateEncodingStrategy {
+public enum DatabaseDateEncodingStrategy: Sendable {
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
@@ -538,7 +538,7 @@ public enum DatabaseDateEncodingStrategy {
     case formatted(DateFormatter)
     
     /// Encodes the result of the user-provided function
-    case custom((Date) -> (any DatabaseValueConvertible)?)
+    case custom(@Sendable (Date) -> (any DatabaseValueConvertible)?)
     
     private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -585,7 +585,7 @@ public enum DatabaseDateEncodingStrategy {
 ///     var uuid: UUID
 /// }
 /// ```
-public enum DatabaseUUIDEncodingStrategy {
+public enum DatabaseUUIDEncodingStrategy: Sendable {
     /// The strategy that uses formatting from the UUID type.
     ///
     /// It encodes UUIDs as 16-bytes data blobs.
@@ -626,7 +626,7 @@ public enum DatabaseUUIDEncodingStrategy {
 ///     var playerID: String
 /// }
 /// ```
-public enum DatabaseColumnEncodingStrategy {
+public enum DatabaseColumnEncodingStrategy: Sendable {
     /// A key encoding strategy that doesn’t change key names during encoding.
     case useDefaultKeys
     
@@ -634,7 +634,7 @@ public enum DatabaseColumnEncodingStrategy {
     case convertToSnakeCase
     
     /// A key encoding strategy defined by the closure you supply.
-    case custom((any CodingKey) -> String)
+    case custom(@Sendable (any CodingKey) -> String)
     
     func column(forKey key: some CodingKey) -> String {
         switch self {
