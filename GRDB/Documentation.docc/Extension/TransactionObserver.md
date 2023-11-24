@@ -29,6 +29,7 @@ The only changes and transactions that are not notified are:
 
 - Read-only transactions.
 - Changes and transactions performed by external database connections.
+- Changes performed by SQLite statements that are not compiled and executed by GRDB.
 - Changes to the database schema, changes to internal system tables such as `sqlite_master`.
 - Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 - The deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
