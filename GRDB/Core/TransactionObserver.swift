@@ -288,6 +288,12 @@ class DatabaseObservationBroker {
             .canonicalTables(database)
             .impactfulEventKinds(database)
         
+        // Support for stopObservingDatabaseChangesUntilNextTransaction()
+        SchedulingWatchdog.current!.databaseObservationBroker = self
+        defer {
+            SchedulingWatchdog.current!.databaseObservationBroker = nil
+        }
+        
         for observation in transactionObservations where observation.isEnabled {
             if eventKinds.contains(where: { observation.observes(eventsOfKind: $0) }) {
                 observation.databaseDidChange()
@@ -912,7 +918,7 @@ extension TransactionObserver {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
                 stopObservingDatabaseChangesUntilNextTransaction must be called \
-                from the databaseDidChange(with:) method
+                from the `databaseDidChange()` or `databaseDidChange(with:)` methods
                 """)
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
