@@ -2275,7 +2275,7 @@ class TransactionObserverTests: GRDBTestCase {
     func testUnspecifiedChangeToColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.create(table: "test", options: .temporary) { t in
+            try db.create(table: "test") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("a")
                 t.column("b")
@@ -2284,7 +2284,28 @@ class TransactionObserverTests: GRDBTestCase {
         
         do {
             let observer = Observer(observes: { eventKind in
-                if case .update("test", ["a"]) = eventKind {
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
                     return true
                 }
                 return false
@@ -2295,7 +2316,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try db.notifyChanges(in: Table("test"))
             }
             
-            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeCount, 1)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -2305,7 +2326,7 @@ class TransactionObserverTests: GRDBTestCase {
         
         do {
             let observer = Observer(observes: { eventKind in
-                if case .update("test", ["a"]) = eventKind {
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
                     return true
                 }
                 return false
@@ -2326,7 +2347,7 @@ class TransactionObserverTests: GRDBTestCase {
         
         do {
             let observer = Observer(observes: { eventKind in
-                if case .update("test", ["a"]) = eventKind {
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
                     return true
                 }
                 return false
@@ -2348,7 +2369,7 @@ class TransactionObserverTests: GRDBTestCase {
 
         do {
             let observer = Observer(observes: { eventKind in
-                if case .update("test", ["a"]) = eventKind {
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
                     return true
                 }
                 return false
