@@ -866,9 +866,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public func notifyChanges(in region: some DatabaseRegionConvertible) throws {
         // Don't do anything when read-only, because read-only transactions
         // are not notified. We don't want to notify transactions observers
-        // of changes, and have them wait for a commit that will never come!
-        if !isReadOnly {
-            try observationBroker?.notifyChanges(in: region.databaseRegion(self))
+        // of changes, and have them wait for a commit notification that
+        // will never come.
+        if !isReadOnly, let observationBroker {
+            let eventKinds = try region
+                .databaseRegion(self)
+                // Use canonical table names for case insensitivity of the input.
+                .canonicalTables(self)
+                .impactfulEventKinds(self)
+            
+            try observationBroker.notifyChanges(withEventsOfKind: eventKinds)
         }
     }
     

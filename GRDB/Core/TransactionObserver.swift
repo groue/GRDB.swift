@@ -282,12 +282,7 @@ class DatabaseObservationBroker {
         }
     }
     
-    func notifyChanges(in region: DatabaseRegion) throws {
-        // Use canonical table names for case insensitivity of the input.
-        let eventKinds = try region
-            .canonicalTables(database)
-            .impactfulEventKinds(database)
-        
+    func notifyChanges(withEventsOfKind eventKinds: [DatabaseEventKind]) throws {
         // Support for stopObservingDatabaseChangesUntilNextTransaction()
         SchedulingWatchdog.current!.databaseObservationBroker = self
         defer {
