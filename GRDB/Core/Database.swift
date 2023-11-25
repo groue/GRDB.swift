@@ -79,6 +79,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``add(transactionObserver:extent:)``
 /// - ``remove(transactionObserver:)``
 /// - ``afterNextTransaction(onCommit:onRollback:)``
+/// - ``notifyChanges(in:)``
 /// - ``registerAccess(to:)``
 ///
 /// ### Collations
