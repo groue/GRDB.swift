@@ -2433,6 +2433,61 @@ class TransactionObserverTests: GRDBTestCase {
         XCTAssertEqual(observer.lastCommittedEvents.count, 0)
     }
     
+    func test_stopObservingDatabaseChangesUntilNextTransaction_from_databaseDidChange() throws {
+        class Observer: TransactionObserver {
+            var didChangeCount: Int = 0
+            var didChangeWithEventCount: Int = 0
+            var willCommitCount: Int = 0
+            var didCommitCount: Int = 0
+            var didRollbackCount: Int = 0
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+            var willChangeCount: Int = 0
+            func databaseWillChange(with event: DatabasePreUpdateEvent) { willChangeCount += 1 }
+            #endif
+            
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            
+            func databaseDidChange() {
+                didChangeCount += 1
+                stopObservingDatabaseChangesUntilNextTransaction()
+            }
+            
+            func databaseDidChange(with event: DatabaseEvent) {
+                didChangeWithEventCount += 1
+            }
+            
+            func databaseWillCommit() throws { willCommitCount += 1 }
+            func databaseDidCommit(_ db: Database) { didCommitCount += 1 }
+            func databaseDidRollback(_ db: Database) { didRollbackCount += 1 }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE test(a)")
+        }
+        
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+        
+        try dbQueue.write { db in
+            // detected
+            try db.execute(sql: "INSERT INTO test (a) VALUES (1)")
+            try db.notifyChanges(in: .fullDatabase)
+            // ignored
+            try db.execute(sql: "INSERT INTO test (a) VALUES (2)")
+        }
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+        XCTAssertEqual(observer.willChangeCount, 1)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 1)
+        XCTAssertEqual(observer.didChangeWithEventCount, 1)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+    }
+    
     // MARK: - Read-Only Connection
     
     func testReadOnlyConnection() throws {
