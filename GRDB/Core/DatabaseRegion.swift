@@ -169,16 +169,16 @@ public struct DatabaseRegion {
         // the observed region, we optimize database observation.
         //
         // And by canonicalizing table names, we remove views, and help the
-        // `isModified` methods.
+        // `isModified` methods. (TODO: is this comment still accurate?
+        // Isn't it about providing TransactionObserver.observes() with
+        // real tables names, instead?)
         try ignoringInternalSQLiteTables().canonicalTables(db)
     }
     
     /// Returns a region only made of actual tables with their canonical names.
-    /// Canonical names help the `isModified` methods.
     ///
-    /// This method removes views (assuming no table exists with the same name
-    /// as a view).
-    private func canonicalTables(_ db: Database) throws -> DatabaseRegion {
+    /// This method removes views.
+    func canonicalTables(_ db: Database) throws -> DatabaseRegion {
         guard let tableRegions else { return .fullDatabase }
         var region = DatabaseRegion()
         for (table, tableRegion) in tableRegions {
@@ -232,6 +232,44 @@ extension DatabaseRegion {
             return true
         }
         return tableRegion.contains(rowID: event.rowID)
+    }
+    
+    /// Returns an array of all event kinds that can impact this region.
+    ///
+    /// - precondition: the region is canonical.
+    func impactfulEventKinds(_ db: Database) throws -> [DatabaseEventKind] {
+        if let tableRegions {
+            return try tableRegions.flatMap { (table, tableRegion) -> [DatabaseEventKind] in
+                let tableName = table.rawValue // canonical table name
+                let columnNames: Set<String>
+                if let columns = tableRegion.columns {
+                    columnNames = Set(columns.map(\.rawValue))
+                } else {
+                    columnNames = try Set(db.columns(in: tableName).map(\.name))
+                }
+                
+                return [
+                    DatabaseEventKind.delete(tableName: tableName),
+                    DatabaseEventKind.insert(tableName: tableName),
+                    DatabaseEventKind.update(tableName: tableName, columnNames: columnNames),
+                ]
+            }
+        } else {
+            // full database
+            return try db.schemaIdentifiers().flatMap { schemaIdentifier in
+                let schema = try db.schema(schemaIdentifier)
+                return try schema.objects
+                    .filter { $0.type == .table }
+                    .flatMap { table in
+                        let columnNames = try Set(db.columns(in: table.name).map(\.name))
+                        return [
+                            DatabaseEventKind.delete(tableName: table.name),
+                            DatabaseEventKind.insert(tableName: table.name),
+                            DatabaseEventKind.update(tableName: table.name, columnNames: columnNames),
+                        ]
+                    }
+            }
+        }
     }
 }
 

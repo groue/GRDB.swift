@@ -1367,7 +1367,7 @@ struct SchemaObject: Hashable, FetchableRecord {
 
 /// All objects in a database schema (tables, views, indexes, triggers).
 struct SchemaInfo: Equatable {
-    private var objects: Set<SchemaObject>
+    let objects: Set<SchemaObject>
     
     /// Returns whether there exists a object of given type with this name
     /// (case-insensitive).

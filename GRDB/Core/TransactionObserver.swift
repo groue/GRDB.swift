@@ -282,6 +282,19 @@ class DatabaseObservationBroker {
         }
     }
     
+    func notifyChanges(in region: DatabaseRegion) throws {
+        // Use canonical table names for case insensitivity of the input.
+        let eventKinds = try region
+            .canonicalTables(database)
+            .impactfulEventKinds(database)
+        
+        for observation in transactionObservations where observation.isEnabled {
+            if eventKinds.contains(where: { observation.observes(eventsOfKind: $0) }) {
+                observation.databaseDidChange()
+            }
+        }
+    }
+    
     // MARK: - Statement execution
     
     /// Returns true if there exists some transaction observer interested in
@@ -951,6 +964,11 @@ final class TransactionObservation {
         observer?.databaseWillChange(with: event)
     }
     #endif
+    
+    func databaseDidChange() {
+        guard isEnabled else { return }
+        observer?.databaseDidChange()
+    }
     
     func databaseDidChange(with event: DatabaseEvent) {
         guard isEnabled else { return }
