@@ -21,12 +21,14 @@ private class Observer : TransactionObserver {
         }
     }
     
+    var didChangeCount: Int = 0
     var didChangeWithEventCount: Int = 0
     var willCommitCount: Int = 0
     var didCommitCount: Int = 0
     var didRollbackCount: Int = 0
     
     func resetCounts() {
+        didChangeCount = 0
         didChangeWithEventCount = 0
         willCommitCount = 0
         didCommitCount = 0
@@ -48,6 +50,10 @@ private class Observer : TransactionObserver {
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         observesBlock(eventKind)
+    }
+    
+    func databaseDidChange() {
+        didChangeCount += 1
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
@@ -796,6 +802,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -826,6 +833,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 3) // 3 deletes
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -894,6 +902,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -907,6 +916,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -917,6 +927,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -928,6 +939,7 @@ class TransactionObserverTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
         XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 1)
         XCTAssertEqual(observer.didCommitCount, 1)
@@ -1003,6 +1015,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 3) // 3 deletes
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1014,6 +1027,7 @@ class TransactionObserverTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
         XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 1)
         XCTAssertEqual(observer.didCommitCount, 1)
@@ -1132,6 +1146,7 @@ class TransactionObserverTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
         XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 0)
         XCTAssertEqual(observer.didCommitCount, 0)
@@ -1154,6 +1169,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -1167,6 +1183,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1191,6 +1208,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -1205,6 +1223,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1229,6 +1248,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 1)
                 #endif
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -1260,6 +1280,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1284,6 +1305,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -1297,6 +1319,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1322,6 +1345,7 @@ class TransactionObserverTests: GRDBTestCase {
                     #if SQLITE_ENABLE_PREUPDATE_HOOK
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -1336,6 +1360,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -1369,6 +1394,7 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1478,6 +1504,7 @@ class TransactionObserverTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
+        XCTAssertEqual(observer.didChangeCount, 0)
         XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 0)
         XCTAssertEqual(observer.didCommitCount, 0)
@@ -1503,6 +1530,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1522,6 +1550,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 3)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1550,6 +1579,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1578,6 +1608,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 2)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1613,6 +1644,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1646,6 +1678,7 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
+            XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -1659,12 +1692,14 @@ class TransactionObserverTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         class Observer: TransactionObserver {
+            var didChangeCount: Int = 0
             var didChangeWithEventCount: Int = 0
             var willCommitCount: Int = 0
             var didCommitCount: Int = 0
             var didRollbackCount: Int = 0
 
             func resetCounts() {
+                didChangeCount = 0
                 didChangeWithEventCount = 0
                 willCommitCount = 0
                 didCommitCount = 0
@@ -1680,6 +1715,10 @@ class TransactionObserverTests: GRDBTestCase {
             #endif
             
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            
+            func databaseDidChange() {
+                didChangeCount += 1
+            }
             
             func databaseDidChange(with event: DatabaseEvent) {
                 didChangeWithEventCount += 1
@@ -1720,6 +1759,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 2)
                 #endif
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 2)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -1739,6 +1779,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 1)
                 #endif
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -1758,6 +1799,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 2)
                 #endif
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 2)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -1777,6 +1819,7 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 3)
                 #endif
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 3)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -1803,6 +1846,7 @@ class TransactionObserverTests: GRDBTestCase {
                     BEGIN;
                     COMMIT;
                     """)
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -1818,6 +1862,7 @@ class TransactionObserverTests: GRDBTestCase {
                     SELECT * FROM artists;
                     COMMIT;
                     """)
+                XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.didChangeWithEventCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -1843,6 +1888,7 @@ class TransactionObserverTests: GRDBTestCase {
                         BEGIN;
                         COMMIT;
                         """)
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -1858,6 +1904,7 @@ class TransactionObserverTests: GRDBTestCase {
                         SELECT * FROM artists;
                         COMMIT;
                         """)
+                    XCTAssertEqual(observer.didChangeCount, 0)
                     XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)

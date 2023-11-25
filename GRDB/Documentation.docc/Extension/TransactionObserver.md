@@ -245,6 +245,7 @@ This extra API can be activated in two ways:
 
 ### Handling Database Changes
 
+- ``databaseDidChange()-7olv7``
 - ``databaseDidChange(with:)``
 - ``stopObservingDatabaseChangesUntilNextTransaction()``
 - ``DatabaseEvent``

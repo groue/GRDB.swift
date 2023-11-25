@@ -782,6 +782,13 @@ public protocol TransactionObserver: AnyObject {
     /// from being applied on the observed tables.
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
+    /// Called when the database was modified in some unspecified way.
+    ///
+    /// This method allows a transaction observer to handle changes that are
+    /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// and ``Database/notifyChanges(in:)`` for more information.
+    func databaseDidChange()
+    
     /// Called when the database is changed by an insert, update, or
     /// delete event.
     ///
@@ -857,6 +864,9 @@ extension TransactionObserver {
     public func databaseWillChange(with event: DatabasePreUpdateEvent) { }
     #endif
     
+    /// The default implementation does nothing.
+    public func databaseDidChange() { }
+    
     /// Prevents the observer from receiving further change notifications until
     /// the next transaction.
     ///
@@ -889,7 +899,7 @@ extension TransactionObserver {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
                 stopObservingDatabaseChangesUntilNextTransaction must be called \
-                from the databaseDidChange method
+                from the databaseDidChange(with:) method
                 """)
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
