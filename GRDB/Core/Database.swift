@@ -838,10 +838,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     // Notify all observers of regular tables
+    ///     // Notify observers that some changes were performed in the database
     ///     try db.notifyChanges(in: .fullDatabase)
     ///
-    ///     // Notify all observers of the player table
+    ///     // Notify observers that some changes were performed in the player table
     ///     try db.notifyChanges(in: Player.all())
     ///
     ///     // Equivalent alternative
