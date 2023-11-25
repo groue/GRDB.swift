@@ -820,6 +820,52 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    /// Notifies that some changes were performed in the provided
+    /// database region.
+    ///
+    /// This method makes it possible to notify undetected changes, such as
+    /// changes performed by another process, changes performed by
+    /// direct calls to SQLite C functions, or changes to the
+    /// database schema.
+    /// See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// for a detailed list of undetected database modifications.
+    ///
+    /// It triggers active transaction observers (``TransactionObserver``).
+    /// In particular, ``ValueObservation`` that observe the input `region`
+    /// will fetch and notify a fresh value.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // Notify all observers of regular tables
+    ///     try db.notifyChanges(in: .fullDatabase)
+    ///
+    ///     // Notify all observers of the player table
+    ///     try db.notifyChanges(in: Player.all())
+    ///
+    ///     // Equivalent alternative
+    ///     try db.notifyChanges(in: Table("player"))
+    /// }
+    /// ```
+    ///
+    /// This method has no effect when called from a read-only
+    /// database access.
+    ///
+    /// > Caveat: Individual rowids in the input region are ignored.
+    /// > Notifying a change to a specific rowid is the same as notifying a
+    /// > change in the whole table:
+    /// >
+    /// > ```swift
+    /// > try dbQueue.write { db in
+    /// >     // Equivalent
+    /// >     try db.notifyChanges(in: Player.all())
+    /// >     try db.notifyChanges(in: Player.filter(id: 1))
+    /// > }
+    /// > ```
+    public func notifyChanges(in region: some DatabaseRegionConvertible) throws {
+    }
+    
     /// Extends the `region` argument with the database region selected by all
     /// statements executed by the closure, and all regions explicitly tracked
     /// with the ``registerAccess(to:)`` method.
