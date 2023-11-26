@@ -9,6 +9,7 @@
 The only changes that are not notified are:
 
 - Changes performed by external database connections.
+- Changes performed by SQLite statements that are not compiled and executed by GRDB.
 - Changes to the database schema, changes to internal system tables such as `sqlite_master`.
 - Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 

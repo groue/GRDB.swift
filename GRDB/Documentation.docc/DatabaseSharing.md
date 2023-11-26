@@ -228,9 +228,7 @@ In applications that use the background modes supported by iOS, post `resumeNoti
 
 <doc:DatabaseObservation> features are not able to detect database changes performed by other processes.
 
-Whenever you need to notify other processes that the database has been changed, you will have to use a cross-process notification mechanism such as [NSFileCoordinator] or [CFNotificationCenterGetDarwinNotifyCenter].
-
-You can trigger those notifications automatically with ``DatabaseRegionObservation``:
+Whenever you need to notify other processes that the database has been changed, you will have to use a cross-process notification mechanism such as [NSFileCoordinator] or [CFNotificationCenterGetDarwinNotifyCenter]. You can trigger those notifications automatically with ``DatabaseRegionObservation``:
 
 ```swift
 // Notify all changes made to the database
@@ -245,6 +243,8 @@ let observer = try observation.start(in: dbPool) { db in
     // Notify other processes
 }
 ```
+
+The processes that observe the database can catch those notifications, and deal with the notified changes. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes> for some related techniques.
 
 [NSFileCoordinator]: https://developer.apple.com/documentation/foundation/nsfilecoordinator
 [CFNotificationCenterGetDarwinNotifyCenter]: https://developer.apple.com/documentation/corefoundation/1542572-cfnotificationcentergetdarwinnot

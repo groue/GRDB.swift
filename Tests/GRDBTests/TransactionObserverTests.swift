@@ -22,12 +22,14 @@ private class Observer : TransactionObserver {
     }
     
     var didChangeCount: Int = 0
+    var didChangeWithEventCount: Int = 0
     var willCommitCount: Int = 0
     var didCommitCount: Int = 0
     var didRollbackCount: Int = 0
     
     func resetCounts() {
         didChangeCount = 0
+        didChangeWithEventCount = 0
         willCommitCount = 0
         didCommitCount = 0
         didRollbackCount = 0
@@ -50,8 +52,12 @@ private class Observer : TransactionObserver {
         observesBlock(eventKind)
     }
     
-    func databaseDidChange(with event: DatabaseEvent) {
+    func databaseDidChange() {
         didChangeCount += 1
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        didChangeWithEventCount += 1
         events.append(event.copy())
     }
     
@@ -796,7 +802,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -826,7 +833,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
             #endif
-            XCTAssertEqual(observer.didChangeCount, 3) // 3 deletes
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 3) // 3 deletes
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -894,7 +902,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -907,7 +916,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -917,7 +927,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -929,6 +940,7 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
         XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 1)
         XCTAssertEqual(observer.didCommitCount, 1)
         XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1003,7 +1015,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
             #endif
-            XCTAssertEqual(observer.didChangeCount, 3) // 3 deletes
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 3) // 3 deletes
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1015,6 +1028,7 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
         XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 1)
         XCTAssertEqual(observer.didCommitCount, 1)
         XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1133,6 +1147,7 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
         XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 0)
         XCTAssertEqual(observer.didCommitCount, 0)
         XCTAssertEqual(observer.didRollbackCount, 1)
@@ -1155,6 +1170,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1168,6 +1184,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
             XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1192,6 +1209,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1206,6 +1224,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
             XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 1)
@@ -1229,7 +1248,8 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 1)
                 #endif
-                XCTAssertEqual(observer.didChangeCount, 1)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 0)
                 XCTAssertEqual(observer.didRollbackCount, 1)
@@ -1260,7 +1280,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 1)
@@ -1285,6 +1306,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1298,6 +1320,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
             XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1323,6 +1346,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.willChangeCount, 0)
                     #endif
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1337,6 +1361,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.willChangeCount, 0)
             #endif
             XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
             XCTAssertEqual(observer.didRollbackCount, 1)
@@ -1369,7 +1394,8 @@ class TransactionObserverTests: GRDBTestCase {
             #if SQLITE_ENABLE_PREUPDATE_HOOK
                 XCTAssertEqual(observer.willChangeCount, 1)
             #endif
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1479,6 +1505,7 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.willChangeCount, 0)
         #endif
         XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
         XCTAssertEqual(observer.willCommitCount, 0)
         XCTAssertEqual(observer.didCommitCount, 0)
         XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1504,6 +1531,7 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1522,7 +1550,8 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
-            XCTAssertEqual(observer.didChangeCount, 3)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 3)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1550,7 +1579,8 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1578,7 +1608,8 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
-            XCTAssertEqual(observer.didChangeCount, 2)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 2)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1613,7 +1644,8 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1646,7 +1678,8 @@ class TransactionObserverTests: GRDBTestCase {
                 return .commit
             }
             
-            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 1)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
             XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1660,12 +1693,14 @@ class TransactionObserverTests: GRDBTestCase {
         
         class Observer: TransactionObserver {
             var didChangeCount: Int = 0
+            var didChangeWithEventCount: Int = 0
             var willCommitCount: Int = 0
             var didCommitCount: Int = 0
             var didRollbackCount: Int = 0
 
             func resetCounts() {
                 didChangeCount = 0
+                didChangeWithEventCount = 0
                 willCommitCount = 0
                 didCommitCount = 0
                 didRollbackCount = 0
@@ -1681,8 +1716,12 @@ class TransactionObserverTests: GRDBTestCase {
             
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
             
-            func databaseDidChange(with event: DatabaseEvent) {
+            func databaseDidChange() {
                 didChangeCount += 1
+            }
+            
+            func databaseDidChange(with event: DatabaseEvent) {
+                didChangeWithEventCount += 1
                 if event.tableName == "ignore" {
                     stopObservingDatabaseChangesUntilNextTransaction()
                 }
@@ -1720,7 +1759,8 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 2)
                 #endif
-                XCTAssertEqual(observer.didChangeCount, 2)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 2)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
                 XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1739,7 +1779,8 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 1)
                 #endif
-                XCTAssertEqual(observer.didChangeCount, 1)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
                 XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1758,7 +1799,8 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 2)
                 #endif
-                XCTAssertEqual(observer.didChangeCount, 2)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 2)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
                 XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1777,12 +1819,694 @@ class TransactionObserverTests: GRDBTestCase {
                 #if SQLITE_ENABLE_PREUPDATE_HOOK
                     XCTAssertEqual(observer.willChangeCount, 3)
                 #endif
-                XCTAssertEqual(observer.didChangeCount, 3)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 3)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
                 XCTAssertEqual(observer.didRollbackCount, 0)
             }
         }
+    }
+    
+    // MARK: - Unspecified changes
+    
+    func testUnspecifiedChangeInFullDatabase() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        
+        do {
+            let observer = Observer(observes: { _ in true })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { _ in false })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return true
+                case .update:
+                    return false
+                case .delete:
+                    return false
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return false
+                case .update:
+                    return true
+                case .delete:
+                    return false
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return false
+                case .update:
+                    return false
+                case .delete:
+                    return true
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "artists"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "non_existing"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+    
+    func testUnspecifiedChangeInEmptyRegion() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        
+        let observer = Observer(observes: { _ in true })
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.write { db in
+            try db.notifyChanges(in: DatabaseRegion())
+        }
+        
+        // No change detected because changed region is empty
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+        XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+    }
+    
+    func testUnspecifiedChangeInEmptyDatabase() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        let observer = Observer(observes: { _ in true })
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.write { db in
+            try db.notifyChanges(in: .fullDatabase)
+        }
+        
+        // No change detected because there is no table
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+        XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+    }
+
+    func testUnspecifiedChange_sqlite_master() throws {
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "sqlite_master"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            // Undetected because the full database region does not include sqlite_master
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "sqlite_master"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("sqlite_master"))
+            }
+            
+            // Detected because explicit sqlite_master region
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+    
+    func testUnspecifiedChange_sqlite_temp_master() throws {
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "sqlite_temp_master"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("sqlite_temp_master"))
+            }
+            
+            // Undetected because there is no temp schema
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "sqlite_temp_master"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                // Create temp schema
+                try db.execute(sql: "CREATE TEMPORARY TABLE t(a)")
+                
+                // Explicit sqlite_temp_master
+                try db.notifyChanges(in: Table("sqlite_temp_master"))
+            }
+            
+            // Detected because the temp schema exists.
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+
+    func testUnspecifiedChangeToTable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        
+        do {
+            let observer = Observer(observes: { _ in true })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { _ in false })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return true
+                case .update:
+                    return false
+                case .delete:
+                    return false
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return false
+                case .update:
+                    return true
+                case .delete:
+                    return false
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                switch eventKind {
+                case .insert:
+                    return false
+                case .update:
+                    return false
+                case .delete:
+                    return true
+                }
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "artists"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "artists"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                // Case insensitivity (observer has to use the canonical name).
+                try db.notifyChanges(in: Table("ARTISTS"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "artworks"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("artists"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+
+    func testUnspecifiedChangeToColumn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "test") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("a")
+                t.column("b")
+            }
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("test"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("test").select(Column("a")))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                // Case insensitivity
+                try db.notifyChanges(in: Table("TEST").select(Column("A")))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+
+        do {
+            let observer = Observer(observes: { eventKind in
+                if case .update("test", let columns) = eventKind, columns.contains("a") {
+                    return true
+                }
+                return false
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("test").select(Column("b")))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+
+    func testUnspecifiedChangeToTemporaryTable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "test", options: .temporary) { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "test"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: .fullDatabase)
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+        
+        do {
+            let observer = Observer(observes: { eventKind in
+                eventKind.tableName == "test"
+            })
+            dbQueue.add(transactionObserver: observer)
+            
+            try dbQueue.write { db in
+                try db.notifyChanges(in: Table("test"))
+            }
+            
+            XCTAssertEqual(observer.didChangeCount, 1)
+            XCTAssertEqual(observer.didChangeWithEventCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 1)
+            XCTAssertEqual(observer.didCommitCount, 1)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+        }
+    }
+    
+    func testUnspecifiedChangeFromReadOnlyAccess() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        
+        let observer = Observer(observes: { _ in true })
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.read { db in
+            try db.notifyChanges(in: .fullDatabase)
+        }
+        
+        // No change detected from read-only access
+        XCTAssertEqual(observer.didChangeCount, 0)
+        XCTAssertEqual(observer.didChangeWithEventCount, 0)
+        XCTAssertEqual(observer.willCommitCount, 0)
+        XCTAssertEqual(observer.didCommitCount, 0)
+        XCTAssertEqual(observer.didRollbackCount, 0)
+        XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+    }
+    
+    func test_stopObservingDatabaseChangesUntilNextTransaction_from_databaseDidChange() throws {
+        class Observer: TransactionObserver {
+            var didChangeCount: Int = 0
+            var didChangeWithEventCount: Int = 0
+            var willCommitCount: Int = 0
+            var didCommitCount: Int = 0
+            var didRollbackCount: Int = 0
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+            var willChangeCount: Int = 0
+            func databaseWillChange(with event: DatabasePreUpdateEvent) { willChangeCount += 1 }
+            #endif
+            
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            
+            func databaseDidChange() {
+                didChangeCount += 1
+                stopObservingDatabaseChangesUntilNextTransaction()
+            }
+            
+            func databaseDidChange(with event: DatabaseEvent) {
+                didChangeWithEventCount += 1
+            }
+            
+            func databaseWillCommit() throws { willCommitCount += 1 }
+            func databaseDidCommit(_ db: Database) { didCommitCount += 1 }
+            func databaseDidRollback(_ db: Database) { didRollbackCount += 1 }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE test(a)")
+        }
+        
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+        
+        try dbQueue.write { db in
+            // detected
+            try db.execute(sql: "INSERT INTO test (a) VALUES (1)")
+            try db.notifyChanges(in: .fullDatabase)
+            // ignored
+            try db.execute(sql: "INSERT INTO test (a) VALUES (2)")
+        }
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+        XCTAssertEqual(observer.willChangeCount, 1)
+        #endif
+        XCTAssertEqual(observer.didChangeCount, 1)
+        XCTAssertEqual(observer.didChangeWithEventCount, 1)
+        XCTAssertEqual(observer.willCommitCount, 1)
+        XCTAssertEqual(observer.didCommitCount, 1)
+        XCTAssertEqual(observer.didRollbackCount, 0)
     }
     
     // MARK: - Read-Only Connection
@@ -1804,6 +2528,7 @@ class TransactionObserverTests: GRDBTestCase {
                     COMMIT;
                     """)
                 XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
                 XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1819,6 +2544,7 @@ class TransactionObserverTests: GRDBTestCase {
                     COMMIT;
                     """)
                 XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.didChangeWithEventCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
                 XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1844,6 +2570,7 @@ class TransactionObserverTests: GRDBTestCase {
                         COMMIT;
                         """)
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)
@@ -1859,6 +2586,7 @@ class TransactionObserverTests: GRDBTestCase {
                         COMMIT;
                         """)
                     XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.didChangeWithEventCount, 0)
                     XCTAssertEqual(observer.willCommitCount, 0)
                     XCTAssertEqual(observer.didCommitCount, 0)
                     XCTAssertEqual(observer.didRollbackCount, 0)

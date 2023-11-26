@@ -161,6 +161,11 @@ private class DatabaseRegionObserver: TransactionObserver {
         region.isModified(byEventsOfKind: eventKind)
     }
     
+    func databaseDidChange() {
+        isChanged = true
+        stopObservingDatabaseChangesUntilNextTransaction()
+    }
+    
     func databaseDidChange(with event: DatabaseEvent) {
         if region.isModified(by: event) {
             isChanged = true

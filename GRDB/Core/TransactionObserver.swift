@@ -282,6 +282,20 @@ class DatabaseObservationBroker {
         }
     }
     
+    func notifyChanges(withEventsOfKind eventKinds: [DatabaseEventKind]) throws {
+        // Support for stopObservingDatabaseChangesUntilNextTransaction()
+        SchedulingWatchdog.current!.databaseObservationBroker = self
+        defer {
+            SchedulingWatchdog.current!.databaseObservationBroker = nil
+        }
+        
+        for observation in transactionObservations where observation.isEnabled {
+            if eventKinds.contains(where: { observation.observes(eventsOfKind: $0) }) {
+                observation.databaseDidChange()
+            }
+        }
+    }
+    
     // MARK: - Statement execution
     
     /// Returns true if there exists some transaction observer interested in
@@ -782,6 +796,13 @@ public protocol TransactionObserver: AnyObject {
     /// from being applied on the observed tables.
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
+    /// Called when the database was modified in some unspecified way.
+    ///
+    /// This method allows a transaction observer to handle changes that are
+    /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// and ``Database/notifyChanges(in:)`` for more information.
+    func databaseDidChange()
+    
     /// Called when the database is changed by an insert, update, or
     /// delete event.
     ///
@@ -857,6 +878,9 @@ extension TransactionObserver {
     public func databaseWillChange(with event: DatabasePreUpdateEvent) { }
     #endif
     
+    /// The default implementation does nothing.
+    public func databaseDidChange() { }
+    
     /// Prevents the observer from receiving further change notifications until
     /// the next transaction.
     ///
@@ -889,7 +913,7 @@ extension TransactionObserver {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
                 stopObservingDatabaseChangesUntilNextTransaction must be called \
-                from the databaseDidChange method
+                from the `databaseDidChange()` or `databaseDidChange(with:)` methods
                 """)
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
@@ -941,6 +965,11 @@ final class TransactionObservation {
         observer?.databaseWillChange(with: event)
     }
     #endif
+    
+    func databaseDidChange() {
+        guard isEnabled else { return }
+        observer?.databaseDidChange()
+    }
     
     func databaseDidChange(with event: DatabaseEvent) {
         guard isEnabled else { return }

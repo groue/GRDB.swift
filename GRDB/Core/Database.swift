@@ -79,6 +79,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``add(transactionObserver:extent:)``
 /// - ``remove(transactionObserver:)``
 /// - ``afterNextTransaction(onCommit:onRollback:)``
+/// - ``notifyChanges(in:)``
 /// - ``registerAccess(to:)``
 ///
 /// ### Collations
@@ -817,6 +818,65 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public func registerAccess(to region: @autoclosure () -> some DatabaseRegionConvertible) throws {
         if isRecordingSelectedRegion {
             try selectedRegion.formUnion(region().databaseRegion(self))
+        }
+    }
+    
+    /// Notifies that some changes were performed in the provided
+    /// database region.
+    ///
+    /// This method makes it possible to notify undetected changes, such as
+    /// changes performed by another process, changes performed by
+    /// direct calls to SQLite C functions, or changes to the
+    /// database schema.
+    /// See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// for a detailed list of undetected database modifications.
+    ///
+    /// It triggers active transaction observers (``TransactionObserver``).
+    /// In particular, ``ValueObservation`` that observe the input `region`
+    /// will fetch and notify a fresh value.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write { db in
+    ///     // Notify observers that some changes were performed in the database
+    ///     try db.notifyChanges(in: .fullDatabase)
+    ///
+    ///     // Notify observers that some changes were performed in the player table
+    ///     try db.notifyChanges(in: Player.all())
+    ///
+    ///     // Equivalent alternative
+    ///     try db.notifyChanges(in: Table("player"))
+    /// }
+    /// ```
+    ///
+    /// This method has no effect when called from a read-only
+    /// database access.
+    ///
+    /// > Caveat: Individual rowids in the input region are ignored.
+    /// > Notifying a change to a specific rowid is the same as notifying a
+    /// > change in the whole table:
+    /// >
+    /// > ```swift
+    /// > try dbQueue.write { db in
+    /// >     // Equivalent
+    /// >     try db.notifyChanges(in: Player.all())
+    /// >     try db.notifyChanges(in: Player.filter(id: 1))
+    /// > }
+    /// > ```
+    public func notifyChanges(in region: some DatabaseRegionConvertible) throws {
+        // Don't do anything when read-only, because read-only transactions
+        // are not notified. We don't want to notify transactions observers
+        // of changes, and have them wait for a commit notification that
+        // will never come.
+        if !isReadOnly, let observationBroker {
+            let eventKinds = try region
+                .databaseRegion(self)
+                // Use canonical table names for case insensitivity of the input.
+                .canonicalTables(self)
+                .impactfulEventKinds(self)
+            
+            try observationBroker.notifyChanges(withEventsOfKind: eventKinds)
         }
     }
     
