@@ -580,6 +580,11 @@ class DatabaseObservationBroker {
         // even if we actually execute an empty deferred transaction.
         //
         // For better or for worse, let's simulate a transaction:
+        //
+        // 2023-11-26: I'm glad we did, because that's how we support calls
+        // to `Database.notifyChanges(in:)` from an empty transaction, as a
+        // way to tell transaction observers about changes performed by some
+        // external connection.
         
         do {
             try databaseWillCommit()
@@ -801,6 +806,9 @@ public protocol TransactionObserver: AnyObject {
     /// This method allows a transaction observer to handle changes that are
     /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
     /// and ``Database/notifyChanges(in:)`` for more information.
+    ///
+    /// The exact nature of changes is unknown, but they comply to the
+    /// ``observes(eventsOfKind:)`` test.
     func databaseDidChange()
     
     /// Called when the database is changed by an insert, update, or

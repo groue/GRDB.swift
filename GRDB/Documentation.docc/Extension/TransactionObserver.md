@@ -231,7 +231,7 @@ This extra API can be activated in two ways:
 
 ## Dealing with Undetected Changes
 
-Some changes and transactions are not automatically notified to transaction observers:
+The changes and transactions that are not automatically notified to transaction observers are:
 
 - Read-only transactions.
 - Changes and transactions performed by external database connections.
@@ -240,11 +240,7 @@ Some changes and transactions are not automatically notified to transaction obse
 - Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 - The deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
 
-Undetected changes are notified to the ``databaseDidChange()-7olv7`` callback when you perform an explicit call to the ``Database/notifyChanges(in:)`` `Database` method.
-
-Event filtering described in <doc:GRDB/TransactionObserver#Filtering-Database-Events> still applies: the `databaseDidChange()` callback is not called for changes that are not observed. 
-
-For example:
+To notify undetected changes to transaction observers, perform an explicit call to the ``Database/notifyChanges(in:)`` `Database` method. The ``databaseDidChange()-7olv7`` callback will be called accordingly. For example:
 
 ```swift
 try dbQueue.write { db in
