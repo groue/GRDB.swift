@@ -224,6 +224,42 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             XCTAssertEqual(count, 1)
         }
     }
+
+    func test_DatabaseRegionObservation_is_triggered_by_explicit_change_notification() throws {
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
+        try dbQueue1.write { db in
+            try db.execute(sql: "CREATE TABLE test(a)")
+        }
+        
+        let undetectedExpectation = expectation(description: "undetected")
+        undetectedExpectation.isInverted = true
+
+        let detectedExpectation = expectation(description: "detected")
+        
+        let observation = DatabaseRegionObservation(tracking: Table("test"))
+        let cancellable = observation.start(
+            in: dbQueue1,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { _ in
+                undetectedExpectation.fulfill()
+                detectedExpectation.fulfill()
+            })
+        
+        try withExtendedLifetime(cancellable) {
+            // Change performed from external connection is not detected...
+            let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue2.write { db in
+                try db.execute(sql: "INSERT INTO test (a) VALUES (1)")
+            }
+            wait(for: [undetectedExpectation], timeout: 2)
+            
+            // ... until we perform an explicit change notification
+            try dbQueue1.write { db in
+                try db.notifyChanges(in: Table("test"))
+            }
+            wait(for: [detectedExpectation], timeout: 2)
+        }
+    }
     
     // Regression test for https://github.com/groue/GRDB.swift/issues/514
     // TODO: uncomment and make this test pass.

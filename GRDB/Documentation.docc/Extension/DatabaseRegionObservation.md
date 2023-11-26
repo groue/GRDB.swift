@@ -6,11 +6,7 @@
 
 `DatabaseRegionObservation` tracks insertions, updates, and deletions that impact the tracked region, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-The only changes that are not notified are:
-
-- Changes performed by external database connections.
-- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
-- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+See <doc:GRDB/DatabaseRegionObservation#Dealing-with-Undetected-Changes> below for the list of exceptions.
 
 `DatabaseRegionObservation` calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check ``ValueObservation`` before using `DatabaseRegionObservation`.
 
@@ -76,6 +72,30 @@ let observation = DatabaseRegionObservation(
 // Observe the full database
 let observation = DatabaseRegionObservation(
     tracking: .fullDatabase)
+```
+
+## Dealing with Undetected Changes
+
+`DatabaseRegionObservation` will not notify impactful transactions whenever the database is modified in an undetectable way:
+
+- Changes performed by external database connections.
+- Changes performed by SQLite statements that are not compiled and executed by GRDB.
+- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
+- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+
+To have observations notify such undetected changes, applications can take explicit action: call the ``Database/notifyChanges(in:)`` `Database` method from a write transaction:
+    
+```swift
+try dbQueue.write { db in
+    // Notify observations that some changes were performed in the database
+    try db.notifyChanges(in: .fullDatabase)
+
+    // Notify observations that some changes were performed in the player table
+    try db.notifyChanges(in: Player.all())
+
+    // Equivalent alternative
+    try db.notifyChanges(in: Table("player"))
+}
 ```
 
 ## Topics

@@ -1505,6 +1505,28 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT AVG(\"age\" / 2) FROM \"readers\"")
     }
     
+    func testAvgExpression_filter() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3030000 else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #else
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(average(Col.age, filter: Col.age > 0))),
+            "SELECT AVG(\"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(average(Col.age / 2, filter: Col.age > 0))),
+            "SELECT AVG(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+
     func testLengthExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -1524,6 +1546,28 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT MIN(\"age\" / 2) FROM \"readers\"")
     }
     
+    func testMinExpression_filter() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3030000 else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #else
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(min(Col.age, filter: Col.age > 0))),
+            "SELECT MIN(\"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(min(Col.age / 2, filter: Col.age > 0))),
+            "SELECT MIN(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+    
     func testMaxExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -1533,6 +1577,28 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(max(Col.age / 2))),
             "SELECT MAX(\"age\" / 2) FROM \"readers\"")
+    }
+    
+    func testMaxExpression_filter() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3030000 else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #else
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(max(Col.age, filter: Col.age < 0))),
+            "SELECT MAX(\"age\") FILTER (WHERE \"age\" < 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(max(Col.age / 2, filter: Col.age < 0))),
+            "SELECT MAX(\"age\" / 2) FILTER (WHERE \"age\" < 0) FROM \"readers\"")
     }
     
     func testSumExpression() throws {
@@ -1546,6 +1612,52 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT SUM(\"age\" / 2) FROM \"readers\"")
     }
     
+    func testSumExpression_filter() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3030000 else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #else
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age, filter: Col.age > 0))),
+            "SELECT SUM(\"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age / 2, filter: Col.age > 0))),
+            "SELECT SUM(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+    
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    func testSumExpression_order() throws {
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3044000 else {
+            throw XCTSkip("ORDER BY clause on aggregate functions is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age, orderBy: Col.age))),
+            "SELECT SUM(\"age\" ORDER BY \"age\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age / 2, orderBy: Col.age.desc))),
+            "SELECT SUM(\"age\" / 2 ORDER BY \"age\" DESC) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age, orderBy: Col.age, filter: Col.age > 0))),
+            "SELECT SUM(\"age\" ORDER BY \"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(sum(Col.age / 2, orderBy: Col.age.desc, filter: Col.age > 0))),
+            "SELECT SUM(\"age\" / 2 ORDER BY \"age\" DESC) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+#endif
+    
     func testTotalExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -1557,6 +1669,51 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT TOTAL(\"age\" / 2) FROM \"readers\"")
     }
     
+    func testTotalExpression_filter() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3030000 else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #else
+        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("FILTER clause on aggregate functions is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age, filter: Col.age > 0))),
+            "SELECT TOTAL(\"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age / 2, filter: Col.age > 0))),
+            "SELECT TOTAL(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+    
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+    func testTotalExpression_order() throws {
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3044000 else {
+            throw XCTSkip("ORDER BY clause on aggregate functions is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age, orderBy: Col.age))),
+            "SELECT TOTAL(\"age\" ORDER BY \"age\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age / 2, orderBy: Col.age.desc))),
+            "SELECT TOTAL(\"age\" / 2 ORDER BY \"age\" DESC) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age, orderBy: Col.age, filter: Col.age > 0))),
+            "SELECT TOTAL(\"age\" ORDER BY \"age\") FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age / 2, orderBy: Col.age.desc, filter: Col.age > 0))),
+            "SELECT TOTAL(\"age\" / 2 ORDER BY \"age\" DESC) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
+    }
+#endif
     
     // MARK: - LIKE operator
     

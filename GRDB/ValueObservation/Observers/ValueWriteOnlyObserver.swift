@@ -345,6 +345,13 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         }
     }
     
+    func databaseDidChange() {
+        // Database was modified!
+        observationState.isModified = true
+        // We can stop observing the current transaction
+        stopObservingDatabaseChangesUntilNextTransaction()
+    }
+    
     func databaseDidChange(with event: DatabaseEvent) {
         if let region = observationState.region, region.isModified(by: event) {
             // Database was modified!

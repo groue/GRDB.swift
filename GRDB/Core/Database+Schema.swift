@@ -57,6 +57,14 @@ extension Database {
             case let .attached(name): return "\(name).sqlite_master"
             }
         }
+        
+        /// The name of the master sqlite table, without the schema name.
+        var unqualifiedMasterTableName: String { // swiftlint:disable:this inclusive_language
+            switch self {
+            case .main, .attached: return "sqlite_master"
+            case .temp: return "sqlite_temp_master"
+            }
+        }
     }
     
     /// The identifier of a database table or view.
@@ -658,8 +666,16 @@ extension Database {
     /// attached database.
     func canonicalTableName(_ tableName: String) throws -> String? {
         for schemaIdentifier in try schemaIdentifiers() {
+            // Regular tables
             if let result = try schema(schemaIdentifier).canonicalName(tableName, ofType: .table) {
                 return result
+            }
+            
+            // Master table (sqlite_master, sqlite_temp_master)
+            // swiftlint:disable:next inclusive_language
+            let masterTableName = schemaIdentifier.unqualifiedMasterTableName
+            if tableName.lowercased() == masterTableName.lowercased() {
+                return masterTableName
             }
         }
         return nil
@@ -1367,7 +1383,7 @@ struct SchemaObject: Hashable, FetchableRecord {
 
 /// All objects in a database schema (tables, views, indexes, triggers).
 struct SchemaInfo: Equatable {
-    private var objects: Set<SchemaObject>
+    let objects: Set<SchemaObject>
     
     /// Returns whether there exists a object of given type with this name
     /// (case-insensitive).

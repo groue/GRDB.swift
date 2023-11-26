@@ -395,4 +395,27 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabaseQueue()))
         try await test(setup(makeDatabasePool()))
     }
+    
+    /// A test related to <https://github.com/groue/GRDB.swift/issues/1456>
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    func testAsyncWriteThenRead() async throws {
+        /// An async read performed after an async write should see the write.
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            try await dbWriter.write { db in
+                try db.execute(sql: """
+                    CREATE TABLE t (id INTEGER PRIMARY KEY);
+                    INSERT INTO t VALUES (1);
+                    """)
+            }
+            
+            let count = try await dbWriter.read { db in
+                try Table("t").fetchCount(db)
+            }
+            
+            XCTAssertEqual(count, 1)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+    }
 }
