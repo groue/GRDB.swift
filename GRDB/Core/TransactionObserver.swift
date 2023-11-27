@@ -889,11 +889,12 @@ extension TransactionObserver {
     /// The default implementation does nothing.
     public func databaseDidChange() { }
     
-    /// Prevents the observer from receiving further change notifications until
-    /// the next transaction.
+    /// Prevents the observer from receiving further change notifications 
+    /// until the next transaction.
     ///
     /// After this method has been called, the ``databaseDidChange(with:)``
-    /// method won't be called until the next transaction.
+    /// and ``databaseDidChange()-7olv7`` methods won't be called until the
+    /// next transaction.
     ///
     /// For example:
     ///
@@ -906,6 +907,13 @@ extension TransactionObserver {
     ///         return eventKind.tableName == "player"
     ///     }
     ///
+    ///     func databaseDidChange() {
+    ///         playerTableWasModified = true
+    ///
+    ///         // It is pointless to keep on tracking further changes:
+    ///         stopObservingDatabaseChangesUntilNextTransaction()
+    ///     }
+    ///
     ///     func databaseDidChange(with event: DatabaseEvent) {
     ///         playerTableWasModified = true
     ///
@@ -916,7 +924,7 @@ extension TransactionObserver {
     /// ```
     ///
     /// - precondition: This method must be called from
-    ///   ``databaseDidChange(with:)``.
+    ///   ``databaseDidChange(with:)`` or ``databaseDidChange()-7olv7``.
     public func stopObservingDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
