@@ -109,6 +109,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``checkpoint(_:on:)``
 /// - ``clearSchemaCache()``
 /// - ``logError``
+/// - ``readOnly(_:)``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``
 /// - ``CheckpointMode``
@@ -772,11 +773,38 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// Grants read-only access in the wrapped closure.
-    func readOnly<T>(_ block: () throws -> T) throws -> T {
+    /// Executes read-only database operations, and returns their result
+    /// after they have finished executing.
+    ///
+    /// Attempts to write throw a ``DatabaseError`` with
+    /// resultCode `SQLITE_READONLY`.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.write do { db in
+    ///     // Write OK
+    ///     try Player(...).insert(db)
+    ///
+    ///     try db.readOnly {
+    ///         // Read OK
+    ///         let players = try Player.fetchAll(db)
+    ///
+    ///         // Throws SQLITE_READONLY
+    ///         try Player(...).insert(db)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// This method is reentrant.
+    ///
+    /// - parameter value: A closure that reads from the database.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
+    ///   error thrown by `value`.
+    public func readOnly<T>(_ value: () throws -> T) throws -> T {
         try beginReadOnly()
         return try throwingFirstError(
-            execute: block,
+            execute: value,
             finally: endReadOnly)
     }
     
@@ -1225,7 +1253,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// For example:
     ///
     /// ```swift
-    /// try dbQueue.writeWithoutTransaction do {
+    /// try dbQueue.writeWithoutTransaction do { db in
     ///     try db.inTransaction {
     ///         try db.execute(sql: "INSERT ...")
     ///         return .commit
