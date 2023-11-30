@@ -1,5 +1,5 @@
 import XCTest
-@testable import GRDB
+import GRDB
 
 class DatabaseTests : GRDBTestCase {
     
@@ -520,7 +520,6 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    // Test an internal API
     func testReadOnly() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
