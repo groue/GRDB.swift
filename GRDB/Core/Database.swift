@@ -60,6 +60,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``inSavepoint(_:)``
 /// - ``inTransaction(_:_:)``
 /// - ``isInsideTransaction``
+/// - ``readOnly(_:)``
 /// - ``rollback()``
 /// - ``transactionDate``
 /// - ``TransactionCompletion``
@@ -109,7 +110,6 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``checkpoint(_:on:)``
 /// - ``clearSchemaCache()``
 /// - ``logError``
-/// - ``readOnly(_:)``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``
 /// - ``CheckpointMode``
