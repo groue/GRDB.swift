@@ -720,10 +720,23 @@ extension Database {
     
     /// Returns the columns in a table or a view.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or if no
-    /// such table or view with this name exists in the main or temp schema, or
-    /// in an attached database.
-    public func columns(in tableName: String) throws -> [ColumnInfo] {
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
+    /// the specified schema does not exist,or if no such table or view
+    /// with this name exists in the main or temp schema, or in an attached
+    /// database.
+    public func columns(in tableName: String, in schemaName: String? = nil) throws -> [ColumnInfo] {
+        if let schemaName {
+            let schemaIdentifier = try schemaIdentifier(named: schemaName)
+            if let result = try columns(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            } else {
+                throw DatabaseError.noSuchTable(tableName)
+            }
+        }
+        
         for schemaIdentifier in try schemaIdentifiers() {
             if let result = try columns(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
                 return result
@@ -881,7 +894,7 @@ extension Database {
 
 /// Information about a column of a database table.
 ///
-/// You get `ColumnInfo` instances with the ``Database/columns(in:)``
+/// You get `ColumnInfo` instances with the ``Database/columns(in:in:)``
 /// `Database` method.
 ///
 /// Related SQLite documentation:
