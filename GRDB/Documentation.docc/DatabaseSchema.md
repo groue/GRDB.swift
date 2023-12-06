@@ -396,7 +396,7 @@ extension Team: TableRecord {
 - ``Database/indexes(on:)``
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``
-- ``Database/primaryKey(_:)``
+- ``Database/primaryKey(_:in:)``
 - ``Database/schemaVersion()``
 - ``Database/table(_:hasUniqueKey:)``
 - ``Database/tableExists(_:)``

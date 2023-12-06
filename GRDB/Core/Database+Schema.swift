@@ -154,6 +154,19 @@ extension Database {
         return schemaIdentifiers
     }
     
+    /// The `SchemaIdentifier` named `schemaName` if it exists.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or 
+    /// if no such schema exists.
+    private func schemaIdentifier(named schemaName: String) throws -> SchemaIdentifier {
+        let allIdentifiers = try schemaIdentifiers()
+        if let result = allIdentifiers.first(where: { $0.sql.lowercased() == schemaName.lowercased() }) {
+            return result
+        } else {
+            throw DatabaseError.noSuchSchema(schemaName)
+        }
+    }
+    
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Returns information about a table or a view
     func table(_ tableName: String) throws -> TableInfo? {
@@ -272,10 +285,22 @@ extension Database {
     /// table has no explicit primary key, the result is the hidden
     /// "rowid" column.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or if no
-    /// such table exists in the main or temp schema, or in an
-    /// attached database.
-    public func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo {
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
+    /// the specified schema does not exist, or if no such table exists in
+    /// the main or temp schema, or in an attached database.
+    public func primaryKey(_ tableName: String, in schemaName: String? = nil) throws -> PrimaryKeyInfo {
+        if let schemaName {
+            let schemaIdentifier = try schemaIdentifier(named: schemaName)
+            if let result = try primaryKey(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            } else {
+                throw DatabaseError.noSuchTable(tableName)
+            }
+        }
+        
         for schemaIdentifier in try schemaIdentifiers() {
             if let result = try primaryKey(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
                 return result
@@ -1129,7 +1154,7 @@ extension ForeignKeyViolation: CustomStringConvertible {
 
 /// Information about a primary key.
 ///
-/// You get `PrimaryKeyInfo` instances with the ``Database/primaryKey(_:)``
+/// You get `PrimaryKeyInfo` instances with the ``Database/primaryKey(_:in:)``
 /// `Database` method.
 ///
 /// When the table's primary key is the rowid:
