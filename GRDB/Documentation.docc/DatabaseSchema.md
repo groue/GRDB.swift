@@ -393,7 +393,7 @@ extension Team: TableRecord {
 
 - ``Database/columns(in:in:)``
 - ``Database/foreignKeys(on:in:)``
-- ``Database/indexes(on:)``
+- ``Database/indexes(on:in:)``
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``
 - ``Database/primaryKey(_:in:)``

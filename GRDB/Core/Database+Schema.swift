@@ -454,10 +454,18 @@ extension Database {
     /// the columns contain the primary key or a unique index, use
     /// ``table(_:hasUniqueKey:)``.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or if no
-    /// such table exists in the main or temp schema, or in an
-    /// attached database.
-    public func indexes(on tableName: String) throws -> [IndexInfo] {
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
+    /// the specified schema does not exist, or if no such table or view
+    /// with this name exists in the main or temp schema, or in an attached
+    /// database.
+    public func indexes(on tableName: String, in schemaName: String? = nil) throws -> [IndexInfo] {
+        if let schemaName {
+            return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: indexes(on:))
+        }
+        
         for schemaIdentifier in try schemaIdentifiers() {
             if let result = try indexes(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
                 return result
@@ -998,7 +1006,7 @@ public struct ColumnInfo: FetchableRecord {
 
 /// Information about an index.
 ///
-/// You get `IndexInfo` instances with the ``Database/indexes(on:)``
+/// You get `IndexInfo` instances with the ``Database/indexes(on:in:)``
 /// `Database` method.
 ///
 /// Related SQLite documentation:
