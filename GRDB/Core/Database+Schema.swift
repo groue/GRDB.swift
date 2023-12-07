@@ -293,12 +293,7 @@ extension Database {
     /// the main or temp schema, or in an attached database.
     public func primaryKey(_ tableName: String, in schemaName: String? = nil) throws -> PrimaryKeyInfo {
         if let schemaName {
-            let schemaIdentifier = try schemaIdentifier(named: schemaName)
-            if let result = try primaryKey(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
-                return result
-            } else {
-                throw DatabaseError.noSuchTable(tableName)
-            }
+            return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: primaryKey(_:))
         }
         
         for schemaIdentifier in try schemaIdentifiers() {
@@ -714,6 +709,26 @@ extension Database {
         schemaCache[schemaID].schemaInfo = schemaInfo
         return schemaInfo
     }
+    
+    /// Attempts to perform a table introspection function on a given
+    /// table and schema
+    ///
+    /// - parameter tableName: The name of the table to examine
+    /// - parameter schemaName: The name of the schema to check
+    /// - parameter introspector: An introspection function taking a
+    /// `TableIdentifier` as the only parameter
+    private func introspect<T>(
+        tableNamed tableName: String,
+        inSchemaNamed schemaName: String,
+        using introspector: (TableIdentifier) throws -> T?
+    ) throws -> T {
+        let schemaIdentifier = try schemaIdentifier(named: schemaName)
+        if let result = try introspector(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+            return result
+        } else {
+            throw DatabaseError.noSuchTable(tableName)
+        }
+    }
 }
 
 extension Database {
@@ -729,12 +744,7 @@ extension Database {
     /// database.
     public func columns(in tableName: String, in schemaName: String? = nil) throws -> [ColumnInfo] {
         if let schemaName {
-            let schemaIdentifier = try schemaIdentifier(named: schemaName)
-            if let result = try columns(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
-                return result
-            } else {
-                throw DatabaseError.noSuchTable(tableName)
-            }
+            return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: columns(in:))
         }
         
         for schemaIdentifier in try schemaIdentifiers() {
