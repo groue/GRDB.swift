@@ -399,9 +399,9 @@ extension Team: TableRecord {
 - ``Database/primaryKey(_:in:)``
 - ``Database/schemaVersion()``
 - ``Database/table(_:hasUniqueKey:)``
-- ``Database/tableExists(_:)``
-- ``Database/triggerExists(_:)``
-- ``Database/viewExists(_:)``
+- ``Database/tableExists(_:in:)``
+- ``Database/triggerExists(_:in:)``
+- ``Database/viewExists(_:in:)``
 - ``ColumnInfo``
 - ``ForeignKeyInfo``
 - ``IndexInfo``

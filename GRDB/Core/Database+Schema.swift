@@ -223,10 +223,19 @@ extension Database {
         return tableInfo
     }
     
-    /// Returns whether a table exists, in the main or temp schema, or in an
-    /// attached database.
-    public func tableExists(_ name: String) throws -> Bool {
-        try schemaIdentifiers().contains {
+    /// Returns whether a table exists
+    ///
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
+    /// if the specified schema does not exist
+    public func tableExists(_ name: String, in schemaName: String? = nil) throws -> Bool {
+        if let schemaName {
+            return try exists(type: .table, name: name, in: schemaName)
+        }
+        
+        return try schemaIdentifiers().contains {
             try exists(type: .table, name: name, in: $0)
         }
     }
@@ -259,17 +268,54 @@ extension Database {
     
     /// Returns whether a view exists, in the main or temp schema, or in an
     /// attached database.
-    public func viewExists(_ name: String) throws -> Bool {
-        try schemaIdentifiers().contains {
+    ///
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
+    /// if the specified schema does not exist
+    public func viewExists(_ name: String, in schemaName: String? = nil) throws -> Bool {
+        if let schemaName {
+            return try exists(type: .view, name: name, in: schemaName)
+        }
+        
+        return try schemaIdentifiers().contains {
             try exists(type: .view, name: name, in: $0)
         }
     }
     
     /// Returns whether a trigger exists, in the main or temp schema, or in an
     /// attached database.
-    public func triggerExists(_ name: String) throws -> Bool {
-        try schemaIdentifiers().contains {
+    ///
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
+    /// if the specified schema does not exist
+    public func triggerExists(_ name: String, in schemaName: String? = nil) throws -> Bool {
+        if let schemaName {
+            return try exists(type: .trigger, name: name, in: schemaName)
+        }
+        
+        return try schemaIdentifiers().contains {
             try exists(type: .trigger, name: name, in: $0)
+        }
+    }
+    
+    /// Checks if an entity exists in a given schema
+    ///
+    /// This is checking for the existence of the entity specified by
+    /// `type` and `name`. It is assumed that the existence of a schema
+    /// named `schemaName` is already known and will throw an error if it
+    /// cannot be found.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
+    /// if the specified schema does not exist
+    private func exists(type: SchemaObjectType, name: String, in schemaName: String) throws -> Bool {
+        if let schemaID = try schemaIdentifiers().first(where: { $0.sql.lowercased() == schemaName.lowercased() }) {
+            return try exists(type: type, name: name, in: schemaID)
+        } else {
+            throw DatabaseError.noSuchSchema(schemaName)
         }
     }
     
