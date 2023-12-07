@@ -392,7 +392,7 @@ extension Team: TableRecord {
 ### Querying the Database Schema
 
 - ``Database/columns(in:in:)``
-- ``Database/foreignKeys(on:)``
+- ``Database/foreignKeys(on:in:)``
 - ``Database/indexes(on:)``
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``

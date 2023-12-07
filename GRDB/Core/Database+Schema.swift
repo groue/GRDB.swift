@@ -546,10 +546,18 @@ extension Database {
     
     /// Returns the foreign keys defined on table named `tableName`.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or if no
-    /// such table exists in the main or temp schema, or in an
-    /// attached database.
-    public func foreignKeys(on tableName: String) throws -> [ForeignKeyInfo] {
+    /// When `schemaName` is not specified, known schemas are iterated in
+    /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
+    /// the specified schema does not exist, or if no such table or view
+    /// with this name exists in the main or temp schema, or in an attached
+    /// database.
+    public func foreignKeys(on tableName: String, in schemaName: String? = nil) throws -> [ForeignKeyInfo] {
+        if let schemaName {
+            return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: foreignKeys(on:))
+        }
+        
         for schemaIdentifier in try schemaIdentifiers() {
             if let result = try foreignKeys(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
                 return result
@@ -1087,7 +1095,7 @@ public struct ForeignKeyViolation {
     /// The id of the foreign key constraint that failed.
     ///
     /// This id matches the ``ForeignKeyInfo/id`` property in
-    /// ``ForeignKeyInfo``. See ``Database/foreignKeys(on:)``.
+    /// ``ForeignKeyInfo``. See ``Database/foreignKeys(on:in:)``.
     public var foreignKeyId: Int
     
     /// A precise description of the foreign key violation.
@@ -1343,7 +1351,7 @@ public struct PrimaryKeyInfo {
 
 /// Information about a foreign key.
 ///
-/// You get `ForeignKeyInfo` instances with the ``Database/foreignKeys(on:)``
+/// You get `ForeignKeyInfo` instances with the ``Database/foreignKeys(on:in:)``
 /// `Database` method.
 ///
 /// Related SQLite documentation: [pragma `foreign_key_list`](https://www.sqlite.org/pragma.html#pragma_foreign_key_list).
