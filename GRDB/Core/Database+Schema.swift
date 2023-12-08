@@ -692,10 +692,27 @@ extension Database {
     
     /// Returns a cursor over foreign key violations in the table.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or if no
-    /// such table exists in the main or temp schema, or in an
-    /// attached database.
-    public func foreignKeyViolations(in tableName: String) throws -> RecordCursor<ForeignKeyViolation> {
+    /// When `schemaName` is not specified, known schemas are checked in
+    /// SQLite resolution order and the first matching table is used.
+    ///
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
+    /// the specified schema does not exist, or if no such table or view
+    /// with this name exists in the main or temp schema, or in an attached
+    /// database.
+    public func foreignKeyViolations(
+        in tableName: String,
+        in schemaName: String? = nil)
+    throws -> RecordCursor<ForeignKeyViolation>
+    {
+        if let schemaName {
+            let schemaID = try schemaIdentifier(named: schemaName)
+            if try exists(type: .table, name: tableName, in: schemaID) {
+                return try foreignKeyViolations(in: TableIdentifier(schemaID: schemaID, name: tableName))
+            } else {
+                throw DatabaseError.noSuchTable(tableName)
+            }
+        }
+        
         for schemaIdentifier in try schemaIdentifiers() {
             if try exists(type: .table, name: tableName, in: schemaIdentifier) {
                 return try foreignKeyViolations(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName))
@@ -724,14 +741,21 @@ extension Database {
     
     /// Throws an error if there exists a foreign key violation in the table.
     ///
+    /// When `schemaName` is not specified, known schemas are checked in
+    /// SQLite resolution order and the first matching table is used.
+    ///
     /// On the first foreign key violation found in the table, this method
     /// throws a ``DatabaseError`` with extended code
     /// `SQLITE_CONSTRAINT_FOREIGNKEY`.
     ///
     /// If you are looking for the list of foreign key violations, prefer
-    /// ``foreignKeyViolations(in:)`` instead.
-    public func checkForeignKeys(in tableName: String) throws {
-        try checkForeignKeys(from: foreignKeyViolations(in: tableName))
+    /// ``foreignKeyViolations(in:in:)`` instead.
+    ///
+    /// - throws: A ``DatabaseError`` as described above; when a
+    /// specified schema does not exist; if no such table or view with this
+    /// name exists in the main or temp schema or in an attached database.
+    public func checkForeignKeys(in tableName: String, in schemaName: String? = nil) throws {
+        try checkForeignKeys(from: foreignKeyViolations(in: tableName, in: schemaName))
     }
     
     private func checkForeignKeys(from violations: RecordCursor<ForeignKeyViolation>) throws {
@@ -1095,7 +1119,7 @@ public struct IndexInfo {
 ///
 /// You get instances of `ForeignKeyViolation` from the `Database` methods
 /// ``Database/foreignKeyViolations()`` and
-/// ``Database/foreignKeyViolations(in:)`` methods.
+/// ``Database/foreignKeyViolations(in:in:)`` methods.
 ///
 /// For example:
 ///

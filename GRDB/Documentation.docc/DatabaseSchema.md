@@ -410,9 +410,9 @@ extension Team: TableRecord {
 ### Integrity Checks
 
 - ``Database/checkForeignKeys()``
-- ``Database/checkForeignKeys(in:)``
+- ``Database/checkForeignKeys(in:in:)``
 - ``Database/foreignKeyViolations()``
-- ``Database/foreignKeyViolations(in:)``
+- ``Database/foreignKeyViolations(in:in:)``
 - ``ForeignKeyViolation``
 
 ### Sunsetted Methods

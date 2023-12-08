@@ -319,4 +319,168 @@ class ForeignKeyInfoTests: GRDBTestCase {
             }
         }
     }
+    
+    func testForeignKeyViolationsUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: "CREATE TABLE parent (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE child (parentId REFERENCES parent)")
+            do {
+                _ = try db.foreignKeyViolations(in: "child", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (13, '1');
+                """)
+            do {
+                let violations = try Array(db.foreignKeyViolations(in: "child", in: "main"))
+                XCTAssertEqual(violations.count, 1)
+            }
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "main")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsInSpecifiedSchemaWithTableNameCollisions() throws {
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (10, '1');
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child", in: "attached"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 20 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "attached")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    // The `child` table in the attached database should not
+    // be found unless explicitly specified as it is after
+    // `main.child` in resolution order.
+    func testForeignKeyViolationsInUnspecifiedSchemaWithTableNameCollisions() throws {
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (10, '1');
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 10 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsInUnspecifiedSchemaFindsAttachedDatabase() throws {
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 20 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
 }
