@@ -1,7 +1,7 @@
 struct IndexDefinition {
     let name: String
     let table: String
-    let columns: [String]
+    let expressions: [SQLExpression]
     let options: IndexOptions
     let condition: SQLExpression?
 }

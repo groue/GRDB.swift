@@ -6,11 +6,7 @@
 
 `ValueObservation` tracks insertions, updates, and deletions that impact the tracked value, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-The only changes that are not notified are:
-
-- Changes performed by external database connections. See <doc:DatabaseSharing#How-to-perform-cross-process-database-observation> for more information.
-- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
-- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+See <doc:GRDB/ValueObservation#Dealing-with-Undetected-Changes> below for the list of exceptions.
 
 ## ValueObservation Usage
 
@@ -173,6 +169,30 @@ let observation = ValueObservation.tracking(
 ```
 
 This ``tracking(region:_:fetch:)`` method lets you entirely separate the **observed region(s)** from the **fetched value** itself, for maximum flexibility. See ``DatabaseRegionConvertible`` for more information about the regions that can be tracked.
+
+## Dealing with Undetected Changes
+
+`ValueObservation` will not fetch and notify a fresh value whenever the database is modified in an undetectable way:
+
+- Changes performed by external database connections.
+- Changes performed by SQLite statements that are not compiled and executed by GRDB.
+- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
+- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+
+To have observations notify a fresh values after such an undetected change was performed, applications can take explicit action. For example, cancel and restart observations. Alternatively, call the ``Database/notifyChanges(in:)`` `Database` method from a write transaction:
+    
+```swift
+try dbQueue.write { db in
+    // Notify observations that some changes were performed in the database
+    try db.notifyChanges(in: .fullDatabase)
+
+    // Notify observations that some changes were performed in the player table
+    try db.notifyChanges(in: Player.all())
+
+    // Equivalent alternative
+    try db.notifyChanges(in: Table("player"))
+}
+```
 
 ## ValueObservation Performance
 

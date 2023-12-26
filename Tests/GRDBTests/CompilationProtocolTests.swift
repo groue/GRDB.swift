@@ -52,7 +52,7 @@ private class UserDatabaseValueConvertible2 : DatabaseValueConvertible {
 
 #if SQLITE_ENABLE_FTS5
 private class UserFTS5Tokenizer : FTS5Tokenizer {
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<CChar>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
 }
 #endif
 
@@ -62,7 +62,7 @@ private class UserFTS5Tokenizer : FTS5Tokenizer {
 private class UserFTS5CustomTokenizer : FTS5CustomTokenizer {
     static let name: String = "UserFTS5CustomTokenizer"
     required init(db: Database, arguments: [String]) throws { preconditionFailure() }
-    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<CChar>?, nText: CInt, tokenCallback: @escaping FTS5TokenCallback) -> CInt { preconditionFailure() }
 }
 #endif
 

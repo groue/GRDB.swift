@@ -75,7 +75,7 @@ extension DatabaseDateComponents: StatementColumnConvertible {
         }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
         let components = cString.withMemoryRebound(
-            to: Int8.self,
+            to: CChar.self,
             capacity: length + 1 /* trailing \0 */) { cString in
             SQLiteDateParser().components(cString: cString, length: length)
         }

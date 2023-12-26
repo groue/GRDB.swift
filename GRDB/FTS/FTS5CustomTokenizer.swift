@@ -131,10 +131,10 @@ extension Database {
             tokenizerPointer: OpaquePointer?,
             context: UnsafeMutableRawPointer?,
             flags: CInt,
-            pText: UnsafePointer<Int8>?,
+            pText: UnsafePointer<CChar>?,
             nText: CInt,
             // swiftlint:disable:next line_length
-            tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, CInt, UnsafePointer<Int8>?, CInt, CInt, CInt) -> CInt)?)
+            tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, CInt, UnsafePointer<CChar>?, CInt, CInt, CInt) -> CInt)?)
         -> CInt
         {
             guard let tokenizerPointer else {

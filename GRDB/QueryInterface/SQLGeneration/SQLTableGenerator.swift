@@ -406,14 +406,14 @@ extension SQLTableGenerator {
                 indexGenerator = SQLIndexGenerator(
                     name: Database.defaultIndexName(on: originTable, columns: columnNames),
                     table: originTable,
-                    columns: columnNames,
+                    expressions: columnNames.map { .column($0) },
                     options: indexOptions,
                     condition: nil)
             case .unique:
                 indexGenerator = SQLIndexGenerator(
                     name: Database.defaultIndexName(on: originTable, columns: columnNames),
                     table: originTable,
-                    columns: columnNames,
+                    expressions: columnNames.map { .column($0) },
                     options: indexOptions.union([.unique]),
                     condition: nil)
             }

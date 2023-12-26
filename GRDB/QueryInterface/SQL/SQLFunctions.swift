@@ -10,6 +10,40 @@ public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("ABS", [value.sqlExpression])
 }
 
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// The `AVG` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // AVG(length)
+/// average(Column("length"))
+/// ```
+public func average(
+    _ value: some SQLSpecificExpressible,
+    filter: (any SQLSpecificExpressible)? = nil)
+-> SQLExpression {
+    .aggregateFunction("AVG", [value.sqlExpression], filter: filter?.sqlExpression)
+}
+#else
+/// The `AVG` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // AVG(length) FILTER (WHERE length > 0)
+/// average(Column("length"), filter: Column("length") > 0)
+/// ```
+@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+public func average(
+    _ value: some SQLSpecificExpressible,
+    filter: some SQLSpecificExpressible)
+-> SQLExpression {
+    .aggregateFunction(
+        "AVG", [value.sqlExpression],
+        filter: filter.sqlExpression)
+}
+
 /// The `AVG` SQL function.
 ///
 /// For example:
@@ -19,8 +53,9 @@ public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// average(Column("length"))
 /// ```
 public func average(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("AVG", [value.sqlExpression])
+    .aggregateFunction("AVG", [value.sqlExpression])
 }
+#endif
 
 /// The `COUNT` SQL function.
 ///
@@ -72,6 +107,38 @@ public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("LENGTH", [value.sqlExpression])
 }
 
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// The `MAX` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // MAX(score)
+/// max(Column("score"))
+/// ```
+public func max(
+    _ value: some SQLSpecificExpressible,
+    filter: (any SQLSpecificExpressible)? = nil)
+-> SQLExpression {
+    .aggregateFunction("MAX", [value.sqlExpression], filter: filter?.sqlExpression)
+}
+#else
+/// The `MAX` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // MAX(score) FILTER (WHERE score < 0)
+/// max(Column("score"), filter: Column("score") < 0)
+/// ```
+@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+public func max(
+    _ value: some SQLSpecificExpressible,
+    filter: some SQLSpecificExpressible)
+-> SQLExpression {
+    .aggregateFunction("MAX", [value.sqlExpression], filter: filter.sqlExpression)
+}
+
 /// The `MAX` SQL function.
 ///
 /// For example:
@@ -81,7 +148,40 @@ public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// max(Column("score"))
 /// ```
 public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("MAX", [value.sqlExpression])
+    .aggregateFunction("MAX", [value.sqlExpression])
+}
+#endif
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// The `MIN` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // MIN(score)
+/// min(Column("score"))
+/// ```
+public func min(
+    _ value: some SQLSpecificExpressible,
+    filter: (any SQLSpecificExpressible)? = nil) 
+-> SQLExpression {
+    .aggregateFunction("MIN", [value.sqlExpression], filter: filter?.sqlExpression)
+}
+#else
+/// The `MIN` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // MIN(score) FILTER (WHERE score > 0)
+/// min(Column("score"), filter: Column("score") > 0)
+/// ```
+@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+public func min(
+    _ value: some SQLSpecificExpressible,
+    filter: some SQLSpecificExpressible)
+-> SQLExpression {
+    .aggregateFunction("MIN", [value.sqlExpression], filter: filter.sqlExpression)
 }
 
 /// The `MIN` SQL function.
@@ -93,7 +193,55 @@ public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
 /// min(Column("score"))
 /// ```
 public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("MIN", [value.sqlExpression])
+    .aggregateFunction("MIN", [value.sqlExpression])
+}
+#endif
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// The `SUM` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // SUM(amount)
+/// sum(Column("amount"))
+/// ```
+///
+/// See also ``total(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+public func sum(
+    _ value: some SQLSpecificExpressible,
+    orderBy ordering: (any SQLOrderingTerm)? = nil,
+    filter: (any SQLSpecificExpressible)? = nil)
+-> SQLExpression
+{
+    .aggregateFunction(
+        "SUM", [value.sqlExpression],
+        ordering: ordering?.sqlOrdering,
+        filter: filter?.sqlExpression)
+}
+#else
+/// The `SUM` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // SUM(amount) FILTER (WHERE amount > 0)
+/// sum(Column("amount"), filter: Column("amount") > 0)
+/// ```
+///
+/// See also ``total(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+public func sum(
+    _ value: some SQLSpecificExpressible,
+    filter: some SQLSpecificExpressible)
+-> SQLExpression {
+    .aggregateFunction(
+        "SUM", [value.sqlExpression],
+        filter: filter.sqlExpression)
 }
 
 /// The `SUM` SQL function.
@@ -109,7 +257,55 @@ public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
 public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("SUM", [value.sqlExpression])
+    .aggregateFunction("SUM", [value.sqlExpression])
+}
+#endif
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// The `TOTAL` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // TOTAL(amount)
+/// total(Column("amount"))
+/// ```
+///
+/// See also ``sum(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+public func total(
+    _ value: some SQLSpecificExpressible,
+    orderBy ordering: (any SQLOrderingTerm)? = nil,
+    filter: (any SQLSpecificExpressible)? = nil)
+-> SQLExpression
+{
+    .aggregateFunction(
+        "TOTAL", [value.sqlExpression],
+        ordering: ordering?.sqlOrdering,
+        filter: filter?.sqlExpression)
+}
+#else
+/// The `TOTAL` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // TOTAL(amount) FILTER (WHERE amount > 0)
+/// total(Column("amount"), filter: Column("amount") > 0)
+/// ```
+///
+/// See also ``total(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+public func total(
+    _ value: some SQLSpecificExpressible,
+    filter: some SQLSpecificExpressible)
+-> SQLExpression {
+    .aggregateFunction(
+        "TOTAL", [value.sqlExpression],
+        filter: filter.sqlExpression)
 }
 
 /// The `TOTAL` SQL function.
@@ -125,8 +321,9 @@ public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
 public func total(_ value: some SQLSpecificExpressible) -> SQLExpression {
-    .aggregate("TOTAL", [value.sqlExpression])
+    .aggregateFunction("TOTAL", [value.sqlExpression])
 }
+#endif
 
 // MARK: - String functions
 

@@ -127,7 +127,7 @@ extension AssociationToMany {
     /// }
     /// ```
     public func average(_ expression: some SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("AVG", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.function("AVG", [expression.sqlExpression]))
         if let column = expression as? any ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -174,7 +174,7 @@ extension AssociationToMany {
     /// }
     /// ```
     public func max(_ expression: some SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("MAX", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.function("MAX", [expression.sqlExpression]))
         if let column = expression as? any ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -221,7 +221,7 @@ extension AssociationToMany {
     /// }
     /// ```
     public func min(_ expression: some SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("MIN", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.function("MIN", [expression.sqlExpression]))
         if let column = expression as? any ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -271,7 +271,7 @@ extension AssociationToMany {
     /// }
     /// ```
     public func sum(_ expression: some SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.function("SUM", [expression.sqlExpression]))
         if let column = expression as? any ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
@@ -321,7 +321,7 @@ extension AssociationToMany {
     /// }
     /// ```
     public func total(_ expression: some SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("TOTAL", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.function("TOTAL", [expression.sqlExpression]))
         if let column = expression as? any ColumnExpression {
             let name = key.singularizedName
             // Yes we use the `Sum` suffix instead of `Total`. Both `total(_:)`

@@ -1,31 +1,33 @@
 struct SQLIndexGenerator {
     let name: String
     let table: String
-    let columns: [String]
+    let expressions: [SQLExpression]
     let options: IndexOptions
     let condition: SQLExpression?
     
     func sql(_ db: Database) throws -> String {
-        var chunks: [String] = []
-        chunks.append("CREATE")
+        var sql: SQL = "CREATE"
+        
         if options.contains(.unique) {
-            chunks.append("UNIQUE")
+            sql += " UNIQUE"
         }
-        chunks.append("INDEX")
+        
+        sql += " INDEX"
+        
         if options.contains(.ifNotExists) {
-            chunks.append("IF NOT EXISTS")
+            sql += " IF NOT EXISTS"
         }
-        chunks.append(name.quotedDatabaseIdentifier)
-        chunks.append("ON")
-        chunks.append("""
-            \(table.quotedDatabaseIdentifier)(\
-            \(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
-            )
-            """)
+        
+        sql += " \(identifier: name) ON \(identifier: table)("
+        sql += expressions.map { SQL($0) }.joined(separator: ", ")
+        sql += ")"
+        
         if let condition {
-            try chunks.append("WHERE \(condition.quotedSQL(db))")
+            sql += " WHERE \(condition)"
         }
-        return chunks.joined(separator: " ")
+        
+        let context = SQLGenerationContext(db, argumentsSink: .literalValues)
+        return try sql.sql(context)
     }
 }
 
@@ -33,7 +35,7 @@ extension SQLIndexGenerator {
     init(index: IndexDefinition) {
         name = index.name
         table = index.table
-        columns = index.columns
+        expressions = index.expressions
         options = index.options
         condition = index.condition
     }

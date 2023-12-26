@@ -510,6 +510,17 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
     }
     
     
+    // MARK: - Stable order
+    
+    func testStableOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Citizenship.all().withStableOrder()
+            try assertEqualSQL(db, request, "SELECT * FROM \"citizenships\" ORDER BY \"personName\", \"countryName\"")
+        }
+    }
+    
+    
     // MARK: - Exists
     
     func testExistsWithNilPrimaryKeyReturnsFalse() throws {

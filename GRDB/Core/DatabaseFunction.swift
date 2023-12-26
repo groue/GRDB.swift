@@ -30,9 +30,9 @@ public final class DatabaseFunction: Hashable {
     /// The name of the SQL function
     public var name: String { identity.name }
     private let identity: Identity
-    let pure: Bool
+    let isPure: Bool
     private let kind: Kind
-    private var eTextRep: CInt { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var eTextRep: CInt { (SQLITE_UTF8 | (isPure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Creates an SQL function.
     ///
@@ -76,7 +76,7 @@ public final class DatabaseFunction: Hashable {
         function: @escaping ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
         self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
+        self.isPure = pure
         self.kind = .function{ (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in
                 DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
@@ -140,10 +140,11 @@ public final class DatabaseFunction: Hashable {
         aggregate: Aggregate.Type)
     {
         self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
+        self.isPure = pure
         self.kind = .aggregate { Aggregate() }
     }
     
+    // TODO: GRDB7 -> expose ORDER BY and FILTER when we have distinct types for simple functions and aggregates.
     /// Returns an SQL expression that applies the function.
     ///
     /// You can use a `DatabaseFunction` as a regular Swift function. It returns
@@ -171,13 +172,23 @@ public final class DatabaseFunction: Hashable {
     /// ```
     public func callAsFunction(_ arguments: any SQLExpressible...) -> SQLExpression {
         switch kind {
-        case .aggregate:
-            return .function(name, arguments.map(\.sqlExpression))
         case .function:
-            return .aggregate(name, arguments.map(\.sqlExpression))
+            return .simpleFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isPure: isPure,
+                isJSONValue: false)
+        case .aggregate:
+            return .aggregateFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isDistinct: false,
+                ordering: nil,
+                filter: nil,
+                isJSONValue: false)
         }
     }
-
+    
     /// Calls sqlite3_create_function_v2
     /// See <https://sqlite.org/c3ref/create_function.html>
     func install(in db: Database) {

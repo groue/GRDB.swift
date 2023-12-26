@@ -282,6 +282,28 @@ extension SQLRelation: Refinable {
         }
     }
     
+    func withStableOrder() -> Self {
+        with { relation in
+            relation.ordering = relation.ordering.appending(Ordering(orderings: { [relation] db in
+                if try db.tableExists(source.tableName) {
+                    // Order by primary key. Don't order by rowid because those are
+                    // not stable: rowids can change after a vacuum.
+                    return try db.primaryKey(source.tableName).columns.map { SQLExpression.column($0).sqlOrdering }
+                } else {
+                    // Support for views: create a stable order from all columns:
+                    // ORDER BY 1, 2, 3, ...
+                    let columnCount = try SQLQueryGenerator(relation: relation).columnCount(db)
+                    return (1...columnCount).map { SQL(sql: $0.description).sqlOrdering }
+                }
+            }))
+            relation.children = children.mapValues { child in
+                child.with {
+                    $0.relation = $0.relation.withStableOrder()
+                }
+            }
+        }
+    }
+    
     // Remove ordering iff relation has no LIMIT clause
     func unorderedUnlessLimited() -> Self {
         if limit != nil {

@@ -373,7 +373,7 @@ extension SQLStatementCursor: Cursor {
             let baseAddress = buffer.baseAddress! // never nil because the buffer contains the trailing \0.
             
             // Compile next statement
-            var statementEnd: UnsafePointer<Int8>? = nil
+            var statementEnd: UnsafePointer<CChar>? = nil
             let statement = try Statement(
                 database: database,
                 statementStart: baseAddress + offset,

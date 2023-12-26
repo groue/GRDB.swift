@@ -39,6 +39,7 @@ extension PersistableRecord {
 
 extension PersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
     /// returns a new record built from the saved row.
     ///
@@ -127,6 +128,7 @@ extension PersistableRecord {
         return success.returned
     }
 #else
+    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
     /// returns a new record built from the saved row.
     ///

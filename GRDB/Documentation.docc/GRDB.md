@@ -6,10 +6,6 @@ A toolkit for SQLite databases, with a focus on application development
 
 ![GRDB Logo](GRDBLogo.png)
 
-- [GitHub Repository](http://github.com/groue/GRDB.swift)
-- [Installation Instructions, encryption with SQLCipher, custom SQLite builds](https://github.com/groue/GRDB.swift#installation)
-- [GRDBQuery](https://github.com/groue/GRDBQuery), the SwiftUI companion for GRDB
-
 ## Overview
 
 Use this library to save your application’s permanent data into SQLite databases. It comes with built-in tools that address common needs:
@@ -71,6 +67,12 @@ let players: [Player] = try dbQueue.read { db in
 }
 ```
 
+## Links and Companion Libraries
+
+- [GitHub Repository](http://github.com/groue/GRDB.swift)
+- [Installation Instructions, encryption with SQLCipher, custom SQLite builds](https://github.com/groue/GRDB.swift#installation)
+- [GRDBQuery](https://github.com/groue/GRDBQuery): the SwiftUI companion for GRDB.
+- [GRDBSnapshotTesting](https://github.com/groue/GRDBSnapshotTesting): Test your database.
 
 ## Topics
 
@@ -93,14 +95,9 @@ let players: [Player] = try dbQueue.read { db in
 - <doc:RecordTimestamps>
 - <doc:SingleRowTables>
 
-### Responding to Database Changes
+### Application Tools
 
 - <doc:DatabaseObservation>
-
-### Full-Text Search
-
 - <doc:FullTextSearch>
-
-### Combine Publishers
-
+- <doc:JSON>
 - ``DatabasePublishers``

@@ -433,7 +433,7 @@ extension Database {
         try execute(sql: "DROP VIEW \(name.quotedDatabaseIdentifier)")
     }
     
-    /// Creates an index.
+    /// Creates an index on the specified table and columns.
     ///
     /// For example:
     ///
@@ -443,12 +443,8 @@ extension Database {
     /// ```
     ///
     /// SQLite can also index expressions (<https://www.sqlite.org/expridx.html>)
-    /// and use specific collations. To create such an index, use a raw SQL
-    /// query:
-    ///
-    /// ```swift
-    /// try db.execute(sql: "CREATE INDEX ...")
-    /// ```
+    /// and use specific collations. To create such an index, use
+    /// ``create(index:on:expressions:options:condition:)``.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createindex.html>
     ///
@@ -481,7 +477,7 @@ extension Database {
         try create(index: name, on: table, columns: columns, options: options, condition: condition)
     }
     
-    /// Creates an index.
+    /// Creates an index on the specified table and columns.
     ///
     /// For example:
     ///
@@ -526,7 +522,7 @@ extension Database {
         let index = IndexDefinition(
             name: name,
             table: table,
-            columns: columns,
+            expressions: columns.map { .column($0) },
             options: options,
             condition: condition?.sqlExpression)
         let generator = SQLIndexGenerator(index: index)
@@ -534,7 +530,58 @@ extension Database {
         try execute(sql: sql)
     }
     
-    /// Creates an index on the specified table and columns.
+    /// Creates an index on the specified table and expressions.
+    ///
+    /// This method can generally create indexes on expressions (see
+    /// <https://www.sqlite.org/expridx.html>):
+    ///
+    /// ```swift
+    /// // CREATE INDEX txy ON t(x+y)
+    /// try db.create(
+    ///     index: "txy",
+    ///     on: "t",
+    ///     expressions: [Column("x") + Column("y")])
+    /// ```
+    ///
+    /// In particular, you can specify the collation on indexed
+    /// columns (see <https://www.sqlite.org/lang_createindex.html#collations>):
+    ///
+    /// ```swift
+    /// // CREATE INDEX index_player_name ON player(name COLLATE NOCASE)
+    /// try db.create(
+    ///     index: "index_player_name",
+    ///     on: "player",
+    ///     expressions: [Column("name").collating(.nocase)])
+    /// ```
+    ///
+    /// - parameters:
+    ///     - name: The index name.
+    ///     - table: The name of the indexed table.
+    ///     - expressions: The indexed expressions.
+    ///     - options: Index creation options.
+    ///     - condition: If not nil, creates a partial index
+    ///       (see <https://www.sqlite.org/partialindex.html>).
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public func create(
+        index name: String,
+        on table: String,
+        expressions: [any SQLExpressible],
+        options: IndexOptions = [],
+        condition: (any SQLExpressible)? = nil)
+    throws
+    {
+        let index = IndexDefinition(
+            name: name,
+            table: table,
+            expressions: expressions.map { $0.sqlExpression },
+            options: options,
+            condition: condition?.sqlExpression)
+        let generator = SQLIndexGenerator(index: index)
+        let sql = try generator.sql(self)
+        try execute(sql: sql)
+    }
+    
+    /// Creates an index with a default name on the specified table and columns.
     ///
     /// The created index is named after the table and the column name(s):
     ///
@@ -554,12 +601,8 @@ extension Database {
     /// ``create(index:on:columns:options:condition:)`` instead.
     ///
     /// SQLite can also index expressions (<https://www.sqlite.org/expridx.html>)
-    /// and use specific collations. To create such an index, use a raw SQL
-    /// query:
-    ///
-    /// ```swift
-    /// try db.execute(sql: "CREATE INDEX ...")
-    /// ```
+    /// and use specific collations. To create such an index, use
+    /// ``create(index:on:expressions:options:condition:)``.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createindex.html>
     ///

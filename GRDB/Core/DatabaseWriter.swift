@@ -445,10 +445,21 @@ extension DatabaseWriter {
     
     // MARK: - Transaction Observers
     
-    /// Adds a transaction observer, so that it gets notified of
-    /// database changes and transactions.
+    /// Adds a transaction observer to the writer connection, so that it
+    /// gets notified of database changes and transactions.
     ///
-    /// This method has no effect on read-only database connections.
+    /// This method waits until all currently executing database accesses
+    /// performed by the writer dispatch queue finish executing.
+    /// At that point, database observation begins.
+    ///
+    /// It has no effect on read-only database connections.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.add(transactionObserver: myObserver)
+    /// ```
     ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
@@ -461,7 +472,18 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
-    /// Removes a transaction observer.
+    /// Removes a transaction observer from the writer connection.
+    ///
+    /// This method waits until all currently executing database accesses
+    /// performed by the writer dispatch queue finish executing.
+    /// At that point, database observation stops.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.remove(transactionObserver: myObserver)
+    /// ```
     public func remove(transactionObserver: some TransactionObserver) {
         writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
     }
@@ -962,6 +984,10 @@ public final class AnyDatabaseWriter {
 extension AnyDatabaseWriter: DatabaseReader {
     public var configuration: Configuration {
         base.configuration
+    }
+    
+    public var path: String {
+        base.path
     }
     
     public func close() throws {

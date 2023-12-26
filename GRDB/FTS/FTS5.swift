@@ -143,9 +143,9 @@ public struct FTS5 {
     private static func api_v2(
         _ db: Database,
         // swiftlint:disable:next line_length
-        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> CInt,
+        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<CChar>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<CChar>?>?) -> CInt,
         // swiftlint:disable:next line_length
-        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
+        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<CChar>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
     -> UnsafePointer<fts5_api>
     {
         var statement: SQLiteStatement? = nil
@@ -157,7 +157,7 @@ public struct FTS5 {
             fatalError("FTS5 is not available")
         }
         defer { sqlite3_finalize(statement) }
-        type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
+        type.utf8Start.withMemoryRebound(to: CChar.self, capacity: type.utf8CodeUnitCount) { typePointer in
             _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
         }
         sqlite3_step(statement)

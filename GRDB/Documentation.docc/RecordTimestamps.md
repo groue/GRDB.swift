@@ -25,7 +25,7 @@ try db.create(table: "player") { t in
     t.column("score", .integer).notNull()
 }
 
-struct Player: Identifiable {
+struct Player {
     var id: Int64?
     var creationDate: Date?
     var modificationDate: Date?
@@ -156,7 +156,7 @@ When you fetch timestamped records from the database, it may be inconvenient to 
 
 ```swift
 let player = try dbQueue.read { db 
-    try Player.find(db, id: 1)
+    try Player.find(db, key: 1)
 }
 player.creationDate     // optional 😕
 player.modificationDate // optional 😕
@@ -166,7 +166,7 @@ A possible technique is to define two record types: one that deals with players 
 
 ```swift
 /// `Player` deals with unsaved players
-struct Player: Identifiable {
+struct Player {
     var id: Int64?              // optional
     var creationDate: Date?     // optional
     var modificationDate: Date? // optional
@@ -244,7 +244,7 @@ You can copy it in your application, or use it as an inspiration. Not all apps h
 
     ```swift
     // The base Player type
-    struct Player: Identifiable {
+    struct Player {
         var id: Int64?
         var creationDate: Date?
         var modificationDate: Date?

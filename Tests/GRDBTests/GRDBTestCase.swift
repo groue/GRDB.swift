@@ -159,6 +159,19 @@ class GRDBTestCase: XCTestCase {
         assertEqualSQL(lastSQLQuery!, sql, file: file, line: line)
     }
     
+    // Compare SQL strings.
+    func assertEqualSQL(
+        _ db: Database,
+        _ expression: some SQLExpressible,
+        _ sql: String,
+        file: StaticString = #file,
+        line: UInt = #line)
+    throws
+    {
+        let request: SQLRequest<Row> = "SELECT \(expression)"
+        try assertEqualSQL(db, request, "SELECT \(sql)", file: file, line: line)
+    }
+    
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
     func assertEqualSQL(
         _ databaseReader: some DatabaseReader,
@@ -172,7 +185,7 @@ class GRDBTestCase: XCTestCase {
             try assertEqualSQL(db, request, sql, file: file, line: line)
         }
     }
-    
+
     func sql(
         _ databaseReader: some DatabaseReader,
         _ request: some FetchRequest)

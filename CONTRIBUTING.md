@@ -61,7 +61,7 @@ How you can Contribute
     - Get familiar with the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/).
     - Spaces, not tabs.
     - Whitespace-only lines are not trimmed.
-    - Documentation comments are hard-wrapped at column 80 (Xcode > Preferences > Text Editing > Display > [X] Page guide at column: 80).
+    - Documentation comments are hard-wrapped at column 76 (Xcode > Preferences > Text Editing > Display > [X] Page guide at column: 76).
     - No Swiftlint warning after a build.
 
 
@@ -69,7 +69,7 @@ How you can Contribute
 
     GRDB documentation is provided as a DocC reference, and guides ([README.md](README.md) and the [Documentation](Documentation) folder).
     
-    Please keep the reference and the guides up-to-date. Use Xcode > Product > Build Documentation in order to control the quality of your reference documentation.
+    Please keep the reference and the guides up-to-date. To control the quality of your DocC reference documentation, close the workspace, open `Package.swift` in Xcode, and use Product > Build Documentation.
     
     GRDB is "documentation-driven", which means that nothing ships until it is supported by documentation that makes sense. Documentation makes sense when someone who is not you is able to figure out what is the purpose of your contribution, how to use it, and what are its eventual caveats and corner cases. When the documentation is hard to write, or reveals too many caveats, it is the sign that the api needs to be fixed.
     

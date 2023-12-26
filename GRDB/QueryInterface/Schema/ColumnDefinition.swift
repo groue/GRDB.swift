@@ -559,7 +559,7 @@ public final class ColumnDefinition {
             return IndexDefinition(
                 name: "\(table)_on_\(name)",
                 table: table,
-                columns: [name],
+                expressions: [.column(name)],
                 options: options,
                 condition: nil)
         }

@@ -397,7 +397,9 @@ let publisher = observation
      
     // NEW: GRDB 5
     let query: SQL = "UPDATE player SET name = \(name) WHERE id = \(id)"
-    let (sql, arguments) = try dbQueue.read(query.build)
+    let (sql, arguments) = try dbQueue.read { db in
+        try query.build(db)
+    }
     print(sql)             // prints "UPDATE player SET name = ? WHERE id = ?"
     print(arguments)       // prints ["O'Brien", 42]
     ```

@@ -104,7 +104,9 @@ public final class DatabaseSnapshotPool {
     ///
     /// // Later... Maybe some players have been created.
     /// // The snapshot is guaranteed to see an empty table of players, though:
-    /// let count = try snapshot.read(Player.fetchCount)
+    /// let count = try snapshot.read { db in
+    ///     try Player.fetchCount(db)
+    /// }
     /// assert(count == 0)
     /// ```
     ///

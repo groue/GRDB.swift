@@ -25,13 +25,7 @@ Database changes are notified to the ``databaseDidChange(with:)`` callback. This
 
 Transaction completions are notified to the ``databaseWillCommit()-7mksu``, ``databaseDidCommit(_:)`` and ``databaseDidRollback(_:)`` callbacks.
 
-The only changes and transactions that are not notified are:
-
-- Read-only transactions.
-- Changes and transactions performed by external database connections.
-- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
-- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
-- The deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
+> Important: Some changes and transactions are not automatically notified. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes> below.
 
 Notified changes are not actually written to disk until the transaction commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
@@ -189,7 +183,7 @@ class PlayerObserver: TransactionObserver {
 }
 ```
 
-### Support for SQLite Pre-Update Hooks
+## Support for SQLite Pre-Update Hooks
 
 When SQLite is built with the `SQLITE_ENABLE_PREUPDATE_HOOK` option, `TransactionObserver` gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
@@ -235,6 +229,41 @@ This extra API can be activated in two ways:
 
 2. Use a [custom SQLite build](http://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md) and activate the `SQLITE_ENABLE_PREUPDATE_HOOK` compilation option.
 
+## Dealing with Undetected Changes
+
+The changes and transactions that are not automatically notified to transaction observers are:
+
+- Read-only transactions.
+- Changes and transactions performed by external database connections.
+- Changes performed by SQLite statements that are not both compiled and executed through GRDB APIs.
+- Changes to the database schema, changes to internal system tables such as `sqlite_master`.
+- Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+- The deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
+
+To notify undetected changes to transaction observers, perform an explicit call to the ``Database/notifyChanges(in:)`` `Database` method. The ``databaseDidChange()-7olv7`` callback will be called accordingly. For example:
+
+```swift
+try dbQueue.write { db in
+    // Notify observers that some changes were performed in the database
+    try db.notifyChanges(in: .fullDatabase)
+
+    // Notify observers that some changes were performed in the player table
+    try db.notifyChanges(in: Player.all())
+
+    // Equivalent alternative
+    try db.notifyChanges(in: Table("player"))
+}
+```
+
+To notify a change in the database schema, notify a change to the `sqlite_master` table:
+
+```swift
+try dbQueue.write { db in
+    // Notify all observers of the sqlite_master table
+    try db.notifyChanges(in: Table("sqlite_master"))
+}
+```
+
 ## Topics
 
 ### Filtering Database Changes
@@ -244,6 +273,7 @@ This extra API can be activated in two ways:
 
 ### Handling Database Changes
 
+- ``databaseDidChange()-7olv7``
 - ``databaseDidChange(with:)``
 - ``stopObservingDatabaseChangesUntilNextTransaction()``
 - ``DatabaseEvent``

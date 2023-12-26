@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: July 9, 2023 • [version 6.16.0](https://github.com/groue/GRDB.swift/tree/v6.16.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: December 1, 2023 • [version 6.23.0](https://github.com/groue/GRDB.swift/tree/v6.23.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
@@ -310,7 +310,6 @@ Documentation
 #### Good to Know
 
 - [Concurrency]: How to access databases in a multi-threaded application.
-- [SwiftUI](https://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
 - [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
 - [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
@@ -320,6 +319,11 @@ Documentation
 - :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 - :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
 - :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
+
+#### Companion Libraries
+
+- [GRDBQuery](https://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
+- [GRDBSnapshotTesting](https://github.com/groue/GRDBSnapshotTesting): Test your database. 
 
 **[FAQ]**
 
@@ -2502,7 +2506,7 @@ try Player.deleteAll(db, ids: [1, 2, 3])
 > **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
 > 
 > ```swift
-> // Those methods are not type-checked
+> // Available on non-Identifiable types
 > try Player.fetchOne(db, key: 1)
 > try Player.fetchOne(db, key: ["email": "arthur@example.com"])
 > try Country.fetchAll(db, keys: ["FR", "US"])
@@ -2514,6 +2518,26 @@ try Player.deleteAll(db, ids: [1, 2, 3])
 > try Player.deleteOne(db, key: 1)
 > try Player.deleteAll(db, keys: [1, 2, 3])
 > ```
+
+> **Note**: It is not recommended to use `Identifiable` on record types that use an auto-incremented primary key:
+>
+> ```swift
+> // AVOID declaring Identifiable conformance when key is auto-incremented
+> struct Player {
+>     var id: Int64? // Not an id suitable for Identifiable
+>     var name: String
+>     var score: Int
+> }
+> 
+> extension Player: FetchableRecord, MutablePersistableRecord {
+>     // Update auto-incremented id upon successful insertion
+>     mutating func didInsert(_ inserted: InsertionSuccess) {
+>         id = inserted.rowID
+>     }
+> }
+> ```
+>
+> For a detailed rationale, please see [issue #1435](https://github.com/groue/GRDB.swift/issues/1435#issuecomment-1740857712).
 
 Some database tables have a single-column primary key which is not called "id":
 
@@ -2571,7 +2595,7 @@ For more information about Codable records, see:
 
 - [JSON Columns]
 - [Column Names Coding Strategies]
-- [Date and UUID Coding Strategies]
+- [Data, Date, and UUID Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
 
@@ -2646,9 +2670,9 @@ protocol EncodableRecord {
 See [DatabaseColumnDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumndecodingstrategy) and [DatabaseColumnEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumnencodingstrategy/) to learn about all available strategies.
 
 
-### Date and UUID Coding Strategies
+### Data, Date, and UUID Coding Strategies
 
-By default, [Codable Records] encode and decode their Date and UUID properties as described in the general [Date and DateComponents](#date-and-datecomponents) and [UUID](#uuid) chapters.
+By default, [Codable Records] encode and decode their Data properties as blobs, and Date and UUID properties as described in the general [Date and DateComponents](#date-and-datecomponents) and [UUID](#uuid) chapters.
 
 To sum up: dates encode themselves in the "YYYY-MM-DD HH:MM:SS.SSS" format, in the UTC time zone, and decode a variety of date formats and timestamps. UUIDs encode themselves as 16-bytes data blobs, and decode both 16-bytes data blobs and strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".
 
@@ -2656,27 +2680,29 @@ Those behaviors can be overridden:
 
 ```swift
 protocol FetchableRecord {
+    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { get }
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
 protocol EncodableRecord {
+    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { get }
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
     static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 ```
 
-See [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
+See [DatabaseDataDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatadecodingstrategy/), [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDataEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedataencodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
 
 There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
-Customized date and uuid handling apply:
+Customized coding strategies apply:
 
 - When encoding and decoding database rows to and from records (fetching and persistence methods).
 - In requests by single-column primary key: `fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.
 
-*They do not apply* in other requests based on date or uuid values.
+*They do not apply* in other requests based on data, date, or uuid values.
 
-So make sure that dates and uuids are properly encoded in your requests. For example:
+So make sure that those are properly encoded in your requests. For example:
 
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
@@ -3449,11 +3475,11 @@ This is the list of record methods, along with their required protocols. The [Re
 | **[Codable Records]** | | |
 | `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
-| `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#data-date-and-uuid-coding-strategies) |
 | `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
-| `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
-| `Type.databaseUUIDEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#data-date-and-uuid-coding-strategies) |
+| `Type.databaseUUIDEncodingStrategy` | [EncodableRecord] | [*](#data-date-and-uuid-coding-strategies) |
 | **Define [Associations]** | | |
 | `Type.belongsTo(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
 | `Type.hasMany(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
@@ -6213,6 +6239,10 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasewriter).
 
+#### Date and UUID Coding Strategies
+
+This chapter has been renamed [Data, Date, and UUID Coding Strategies].
+
 #### Dealing with External Connections
 
 This chapter has been superseded by the [Sharing a Database] guide.
@@ -6308,7 +6338,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
 [Column Names Coding Strategies]: #column-names-coding-strategies
-[Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
+[Data, Date, and UUID Coding Strategies]: #data-date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md

@@ -2,10 +2,19 @@ extension Database {
     
     // MARK: - Database Observation
     
-    /// Adds a transaction observer, so that it gets notified of
-    /// database changes and transactions.
+    /// Adds a transaction observer on the database connection, so that it
+    /// gets notified of database changes and transactions.
     ///
     /// This method has no effect on read-only database connections.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.write { db in
+    ///     db.add(transactionObserver: myObserver)
+    /// }
+    /// ```
     ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
@@ -20,21 +29,30 @@ extension Database {
         
         // Drop cached statements that delete, because the addition of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.isDeleteStatement }
-        internalStatementCache.removeAll { $0.isDeleteStatement }
+        publicStatementCache.removeAll { $0.canDeleteRows }
+        internalStatementCache.removeAll { $0.canDeleteRows }
         
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
-    /// Removes a transaction observer.
+    /// Removes a transaction observer from the database connection.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myObserver = MyObserver()
+    /// try dbQueue.write { db in
+    ///     db.remove(transactionObserver: myObserver)
+    /// }
+    /// ```
     public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
         guard let observationBroker else { return }
         
         // Drop cached statements that delete, because the removal of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.removeAll { $0.isDeleteStatement }
-        internalStatementCache.removeAll { $0.isDeleteStatement }
+        publicStatementCache.removeAll { $0.canDeleteRows }
+        internalStatementCache.removeAll { $0.canDeleteRows }
         
         observationBroker.remove(transactionObserver: transactionObserver)
     }
@@ -261,6 +279,20 @@ class DatabaseObservationBroker {
         if let observation = transactionObservations.first(where: { $0.isWrapping(transactionObserver) }) {
             observation.isEnabled = false
             statementObservations.removeFirst { $0.transactionObservation === observation }
+        }
+    }
+    
+    func notifyChanges(withEventsOfKind eventKinds: [DatabaseEventKind]) throws {
+        // Support for stopObservingDatabaseChangesUntilNextTransaction()
+        SchedulingWatchdog.current!.databaseObservationBroker = self
+        defer {
+            SchedulingWatchdog.current!.databaseObservationBroker = nil
+        }
+        
+        for observation in transactionObservations where observation.isEnabled {
+            if eventKinds.contains(where: { observation.observes(eventsOfKind: $0) }) {
+                observation.databaseDidChange()
+            }
         }
     }
     
@@ -548,6 +580,11 @@ class DatabaseObservationBroker {
         // even if we actually execute an empty deferred transaction.
         //
         // For better or for worse, let's simulate a transaction:
+        //
+        // 2023-11-26: I'm glad we did, because that's how we support calls
+        // to `Database.notifyChanges(in:)` from an empty transaction, as a
+        // way to tell transaction observers about changes performed by some
+        // external connection.
         
         do {
             try databaseWillCommit()
@@ -764,6 +801,16 @@ public protocol TransactionObserver: AnyObject {
     /// from being applied on the observed tables.
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
+    /// Called when the database was modified in some unspecified way.
+    ///
+    /// This method allows a transaction observer to handle changes that are
+    /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// and ``Database/notifyChanges(in:)`` for more information.
+    ///
+    /// The exact nature of changes is unknown, but they comply to the
+    /// ``observes(eventsOfKind:)`` test.
+    func databaseDidChange()
+    
     /// Called when the database is changed by an insert, update, or
     /// delete event.
     ///
@@ -839,11 +886,15 @@ extension TransactionObserver {
     public func databaseWillChange(with event: DatabasePreUpdateEvent) { }
     #endif
     
-    /// Prevents the observer from receiving further change notifications until
-    /// the next transaction.
+    /// The default implementation does nothing.
+    public func databaseDidChange() { }
+    
+    /// Prevents the observer from receiving further change notifications 
+    /// until the next transaction.
     ///
     /// After this method has been called, the ``databaseDidChange(with:)``
-    /// method won't be called until the next transaction.
+    /// and ``databaseDidChange()-7olv7`` methods won't be called until the
+    /// next transaction.
     ///
     /// For example:
     ///
@@ -856,6 +907,13 @@ extension TransactionObserver {
     ///         return eventKind.tableName == "player"
     ///     }
     ///
+    ///     func databaseDidChange() {
+    ///         playerTableWasModified = true
+    ///
+    ///         // It is pointless to keep on tracking further changes:
+    ///         stopObservingDatabaseChangesUntilNextTransaction()
+    ///     }
+    ///
     ///     func databaseDidChange(with event: DatabaseEvent) {
     ///         playerTableWasModified = true
     ///
@@ -866,12 +924,12 @@ extension TransactionObserver {
     /// ```
     ///
     /// - precondition: This method must be called from
-    ///   ``databaseDidChange(with:)``.
+    ///   ``databaseDidChange(with:)`` or ``databaseDidChange()-7olv7``.
     public func stopObservingDatabaseChangesUntilNextTransaction() {
         guard let broker = SchedulingWatchdog.current?.databaseObservationBroker else {
             fatalError("""
                 stopObservingDatabaseChangesUntilNextTransaction must be called \
-                from the databaseDidChange method
+                from the `databaseDidChange()` or `databaseDidChange(with:)` methods
                 """)
         }
         broker.disableUntilNextTransaction(transactionObserver: self)
@@ -923,6 +981,11 @@ final class TransactionObservation {
         observer?.databaseWillChange(with: event)
     }
     #endif
+    
+    func databaseDidChange() {
+        guard isEnabled else { return }
+        observer?.databaseDidChange()
+    }
     
     func databaseDidChange(with event: DatabaseEvent) {
         guard isEnabled else { return }
@@ -1095,7 +1158,12 @@ public struct DatabaseEvent {
         self.impl = impl
     }
     
-    init(kind: Kind, rowID: Int64, databaseNameCString: UnsafePointer<Int8>?, tableNameCString: UnsafePointer<Int8>?) {
+    init(
+        kind: Kind,
+        rowID: Int64,
+        databaseNameCString: UnsafePointer<CChar>?,
+        tableNameCString: UnsafePointer<CChar>?)
+    {
         self.init(
             kind: kind,
             rowID: rowID,
@@ -1131,8 +1199,8 @@ private protocol DatabaseEventImpl {
 /// Optimization: MetalDatabaseEventImpl does not create Swift strings from raw
 /// SQLite char* until actually asked for databaseName or tableName.
 private struct MetalDatabaseEventImpl: DatabaseEventImpl {
-    let databaseNameCString: UnsafePointer<Int8>?
-    let tableNameCString: UnsafePointer<Int8>?
+    let databaseNameCString: UnsafePointer<CChar>?
+    let tableNameCString: UnsafePointer<CChar>?
     
     var databaseName: String { String(cString: databaseNameCString!) }
     var tableName: String { String(cString: tableNameCString!) }
@@ -1267,8 +1335,8 @@ public struct DatabasePreUpdateEvent {
         kind: Kind,
         initialRowID: Int64,
         finalRowID: Int64,
-        databaseNameCString: UnsafePointer<Int8>?,
-        tableNameCString: UnsafePointer<Int8>?)
+        databaseNameCString: UnsafePointer<CChar>?,
+        tableNameCString: UnsafePointer<CChar>?)
     {
         self.init(
             kind: kind,
@@ -1324,8 +1392,8 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     let connection: SQLiteConnection
     let kind: DatabasePreUpdateEvent.Kind
     
-    let databaseNameCString: UnsafePointer<Int8>?
-    let tableNameCString: UnsafePointer<Int8>?
+    let databaseNameCString: UnsafePointer<CChar>?
+    let tableNameCString: UnsafePointer<CChar>?
     
     var databaseName: String { String(cString: databaseNameCString!) }
     var tableName: String { String(cString: tableNameCString!) }

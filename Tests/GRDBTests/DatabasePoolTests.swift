@@ -2,6 +2,38 @@ import XCTest
 import GRDB
 
 class DatabasePoolTests: GRDBTestCase {
+    func testJournalModeConfiguration() throws {
+        do {
+            // Factory default
+            let config = Configuration()
+            let dbPool = try makeDatabasePool(filename: "factory", configuration: config)
+            let journalMode = try dbPool.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "wal")
+        }
+        do {
+            // Explicit default
+            var config = Configuration()
+            config.journalMode = .default
+            let dbPool = try makeDatabasePool(filename: "default", configuration: config)
+            let journalMode = try dbPool.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "wal")
+        }
+        do {
+            // Explicit wal
+            var config = Configuration()
+            config.journalMode = .wal
+            let dbPool = try makeDatabasePool(filename: "wal", configuration: config)
+            let journalMode = try dbPool.read { db in
+                try String.fetchOne(db, sql: "PRAGMA journal_mode")
+            }
+            XCTAssertEqual(journalMode, "wal")
+        }
+    }
+    
     func testDatabasePoolCreatesWalShm() throws {
         let dbPool = try makeDatabasePool(filename: "test")
         try withExtendedLifetime(dbPool) {

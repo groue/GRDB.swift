@@ -222,6 +222,12 @@ extension Association {
             relation = relation.unordered()
         }
     }
+    
+    public func withStableOrder() -> Self {
+        withDestinationRelation { relation in
+            relation = relation.withStableOrder()
+        }
+    }
 }
 
 // TableRequest conformance

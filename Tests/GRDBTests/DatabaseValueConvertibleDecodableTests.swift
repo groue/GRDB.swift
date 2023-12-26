@@ -326,4 +326,57 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             XCTAssertEqual(value, .foo)
         }
     }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodableWithCustomJsonDecoder() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let duration: Double
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+            
+            public static func databaseJSONDecoder() -> JSONDecoder {
+                let decoder = JSONDecoder()
+                decoder.dataDecodingStrategy = .base64
+                decoder.dateDecodingStrategy = .millisecondsSince1970
+                decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+                    positiveInfinity: "+InF",
+                    negativeInfinity: "-InF",
+                    nan: "NaN"
+                )
+                return decoder
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"{ "duration": "+InF" }"#.databaseValue)!
+            XCTAssertEqual(value.duration, Double.infinity)
+            
+            let value2 = Value.fromDatabaseValue(#"{ "duration": "-InF" }"#.databaseValue)!
+            XCTAssertEqual(value2.duration, -Double.infinity)
+            
+            let value3 = Value.fromDatabaseValue(#"{ "duration": "NaN" }"#.databaseValue)!
+            XCTAssertTrue(value3.duration.isNaN)
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '{ "duration": "+InF" }'"#)!
+                XCTAssertEqual(value.duration, Double.infinity)
+                
+                let value2 = try Value.fetchOne(db, sql: #"SELECT '{ "duration": "-InF" }'"#)!
+                XCTAssertEqual(value2.duration, -Double.infinity)
+                
+                let value3 = try Value.fetchOne(db, sql: #"SELECT '{ "duration": "NaN" }'"#)!
+                XCTAssertTrue(value3.duration.isNaN)
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue("infinity".databaseValue)
+            XCTAssertNil(value)
+        }
+    }
 }

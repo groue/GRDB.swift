@@ -17,6 +17,7 @@ import Dispatch
 /// ### Database Information
 ///
 /// - ``configuration``
+/// - ``path``
 ///
 /// ### Reading from the Database
 ///
@@ -32,6 +33,15 @@ import Dispatch
 /// - ``unsafeReentrantRead(_:)``
 /// - ``asyncUnsafeRead(_:)``
 ///
+/// ### Printing Database Content
+///
+/// - ``dumpContent(format:to:)``
+/// - ``dumpRequest(_:format:to:)``
+/// - ``dumpSQL(_:format:to:)``
+/// - ``dumpTables(_:format:tableHeader:stableOrder:to:)``
+/// - ``DumpFormat``
+/// - ``DumpTableHeaderOptions``
+///
 /// ### Other Database Operations
 ///
 /// - ``backup(to:pagesPerStep:progress:)``
@@ -45,6 +55,12 @@ public protocol DatabaseReader: AnyObject, Sendable {
     
     /// The database configuration.
     var configuration: Configuration { get }
+    
+    /// The path to the database file.
+    ///
+    /// In-memory databases also have a path:
+    /// see [In-Memory Databases](https://www.sqlite.org/inmemorydb.html).
+    var path: String { get }
     
     /// Closes the database connection.
     ///
@@ -642,6 +658,10 @@ public final class AnyDatabaseReader {
 extension AnyDatabaseReader: DatabaseReader {
     public var configuration: Configuration {
         base.configuration
+    }
+    
+    public var path: String {
+        base.path
     }
     
     public func close() throws {

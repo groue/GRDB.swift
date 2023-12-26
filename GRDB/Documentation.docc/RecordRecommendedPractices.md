@@ -61,16 +61,16 @@ Thanks to this database schema, the application will always process *consistent 
 
 **Define one record type per database table.** This record type will be responsible for writing in this table.
 
-**Let's start from regular structs** whose properties match the columns in their database table. Those structs conform to the standard [`Identifiable`] protocol because they have an identifier (the primary key). They conform to the standard [`Codable`] protocol so that we don't have to write the methods that convert to and from raw database rows.
+**Let's start from regular structs** whose properties match the columns in their database table. They conform to the standard [`Codable`] protocol so that we don't have to write the methods that convert to and from raw database rows.
 
 ```swift
-struct Author: Codable, Identifiable {
+struct Author: Codable {
     var id: Int64?
     var name: String
     var countryCode: String?
 }
 
-struct Book: Codable, Identifiable {
+struct Book: Codable {
     var id: Int64?
     var authorId: Int64
     var title: String
@@ -129,7 +129,7 @@ let books = try dbQueue.read { db in
 >     t.column("countryCode", .text)    // Can be NULL
 > }
 >
-> struct Author: Codable, Identifiable {
+> struct Author: Codable {
 >     var id: Int64?
 >     var name: String         // Not optional
 >     var countryCode: String? // Optional
@@ -150,6 +150,25 @@ let books = try dbQueue.read { db in
 >     try Author.find(db, id: authorID)
 > }
 > ```
+>
+> Take care that **`Identifiable` is not a good fit for optional ids**. You will frequently meet optional ids for records with auto-incremented ids:
+>
+> ```swift
+> struct Player: Codable {
+>     var id: Int64? // Optional ids are not suitable for Identifiable
+>     var name: String
+>     var score: Int
+> }
+> 
+> extension Player: FetchableRecord, MutablePersistableRecord {
+>     // Update auto-incremented id upon successful insertion
+>     mutating func didInsert(_ inserted: InsertionSuccess) {
+>         id = inserted.rowID
+>     }
+> }
+> ```
+>
+> For more details about auto-incremented ids and `Identifiable`, see [issue #1435](https://github.com/groue/GRDB.swift/issues/1435#issuecomment-1740857712).
 
 ### Record Types Hide Intimate Database Details
 
