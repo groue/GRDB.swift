@@ -1337,6 +1337,10 @@ final class DatabaseDumpTests: GRDBTestCase {
     }
     
     func test_dumpContent_ignores_shadow_tables() throws {
+        guard sqlite3_libversion_number() >= 3037000 else {
+            throw XCTSkip("Can't detect shadow tables")
+        }
+        
         try makeDatabaseQueue().write { db in
             try db.create(table: "document") { t in
                 t.autoIncrementedPrimaryKey("id")
