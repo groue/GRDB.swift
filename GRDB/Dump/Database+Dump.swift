@@ -129,6 +129,9 @@ extension Database {
     ///
     /// > Note: Internal SQLite and GRDB schema objects are not recorded
     /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
     ///
     /// - Parameters:
     ///   - format: The output format.
@@ -252,7 +255,7 @@ extension Database {
             """)
         for row in sqlRows {
             let name: String = row[1]
-            if Database.isSQLiteInternalTable(name) || Database.isGRDBInternalTable(name) {
+            if try ignoresObject(named: name) {
                 continue
             }
             stream.writeln(row[0])
@@ -266,11 +269,41 @@ extension Database {
                 ORDER BY name COLLATE NOCASE
                 """)
             .filter {
-                !(Database.isSQLiteInternalTable($0) || Database.isGRDBInternalTable($0))
+                try !ignoresObject(named: $0)
             }
         if tables.isEmpty { return }
         stream.write("\n")
         try _dumpTables(tables, format: format, tableHeader: .always, stableOrder: true, to: &stream)
+    }
+    
+    private func ignoresObject(named name: String) throws -> Bool {
+        if Database.isSQLiteInternalTable(name) { return true }
+        if Database.isGRDBInternalTable(name) { return true }
+        if try isShadowTable(name) { return true }
+        return false
+    }
+    
+    private func isShadowTable(_ tableName: String) throws -> Bool {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Maybe SQLCipher is too old: check actual version
+        if sqlite3_libversion_number() >= 3037000 {
+            guard let table = try table(tableName) else {
+                // Not a table
+                return false
+            }
+            return table.kind == .shadow
+        }
+#else
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
+            guard let table = try table(tableName) else {
+                // Not a table
+                return false
+            }
+            return table.kind == .shadow
+        }
+#endif
+        // Don't know
+        return false
     }
 }
 

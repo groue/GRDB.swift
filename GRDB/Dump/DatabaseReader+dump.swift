@@ -120,6 +120,9 @@ extension DatabaseReader {
     ///
     /// > Note: Internal SQLite and GRDB schema objects are not recorded
     /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
     ///
     /// - Parameters:
     ///   - format: The output format.
