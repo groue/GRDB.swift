@@ -6,7 +6,7 @@ Release Process
 To release a new GRDB version:
 
 - Tests
-    - `make test`
+    - `make distclean test`
     - Build and run GRDBDemoiOS in Release configuration on a device
     - Archive GRDBDemoiOS
     - Check for performance regression with GRDBOSXPerformanceTests

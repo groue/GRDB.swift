@@ -391,17 +391,17 @@ extension Team: TableRecord {
 
 ### Querying the Database Schema
 
-- ``Database/columns(in:)``
-- ``Database/foreignKeys(on:)``
-- ``Database/indexes(on:)``
+- ``Database/columns(in:in:)``
+- ``Database/foreignKeys(on:in:)``
+- ``Database/indexes(on:in:)``
 - ``Database/isGRDBInternalTable(_:)``
 - ``Database/isSQLiteInternalTable(_:)``
-- ``Database/primaryKey(_:)``
+- ``Database/primaryKey(_:in:)``
 - ``Database/schemaVersion()``
 - ``Database/table(_:hasUniqueKey:)``
-- ``Database/tableExists(_:)``
-- ``Database/triggerExists(_:)``
-- ``Database/viewExists(_:)``
+- ``Database/tableExists(_:in:)``
+- ``Database/triggerExists(_:in:)``
+- ``Database/viewExists(_:in:)``
 - ``ColumnInfo``
 - ``ForeignKeyInfo``
 - ``IndexInfo``
@@ -410,9 +410,9 @@ extension Team: TableRecord {
 ### Integrity Checks
 
 - ``Database/checkForeignKeys()``
-- ``Database/checkForeignKeys(in:)``
+- ``Database/checkForeignKeys(in:in:)``
 - ``Database/foreignKeyViolations()``
-- ``Database/foreignKeyViolations(in:)``
+- ``Database/foreignKeyViolations(in:in:)``
 - ``ForeignKeyViolation``
 
 ### Sunsetted Methods
