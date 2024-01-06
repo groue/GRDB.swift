@@ -1336,6 +1336,78 @@ final class DatabaseDumpTests: GRDBTestCase {
         }
     }
     
+    func test_dumpContent_ignores_shadow_tables() throws {
+        guard sqlite3_libversion_number() >= 3037000 else {
+            throw XCTSkip("Can't detect shadow tables")
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "document") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("body")
+            }
+            
+            try db.execute(sql: "INSERT INTO document VALUES (1, 'Hello world!')")
+            
+            try db.create(virtualTable: "document_ft", using: FTS4()) { t in
+                t.synchronize(withTable: "document")
+                t.column("body")
+            }
+            
+            let stream = TestStream()
+            try db.dumpContent(to: stream)
+            print(stream.output)
+            XCTAssertEqual(stream.output, """
+                sqlite_master
+                CREATE TABLE "document" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "body");
+                CREATE TRIGGER "__document_ft_ai" AFTER INSERT ON "document" BEGIN
+                    INSERT INTO "document_ft"("docid", "body") VALUES(new."id", new."body");
+                END;
+                CREATE TRIGGER "__document_ft_au" AFTER UPDATE ON "document" BEGIN
+                    INSERT INTO "document_ft"("docid", "body") VALUES(new."id", new."body");
+                END;
+                CREATE TRIGGER "__document_ft_bd" BEFORE DELETE ON "document" BEGIN
+                    DELETE FROM "document_ft" WHERE docid=old."id";
+                END;
+                CREATE TRIGGER "__document_ft_bu" BEFORE UPDATE ON "document" BEGIN
+                    DELETE FROM "document_ft" WHERE docid=old."id";
+                END;
+                CREATE VIRTUAL TABLE "document_ft" USING fts4(body, content="document");
+                
+                document
+                1|Hello world!
+                
+                document_ft
+                Hello world!
+                
+                """)
+        }
+    }
+    
+    func test_dumpContent_ignores_GRDB_internal_tables() throws {
+        let dbQueue = try makeDatabaseQueue()
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        try migrator.migrate(dbQueue)
+        
+        try dbQueue.read { db in
+            let stream = TestStream()
+            try db.dumpContent(to: stream)
+            print(stream.output)
+            XCTAssertEqual(stream.output, """
+                sqlite_master
+                CREATE TABLE "player" ("id" INTEGER PRIMARY KEY AUTOINCREMENT);
+
+                player
+                
+                """)
+        }
+    }
+    
     // MARK: - Support Databases
     
     private func makeValuesDatabase() throws -> DatabaseQueue {

@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.24.x` Releases - [6.24.0](#6240)
+- `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241)
 - `6.23.x` Releases - [6.23.0](#6230)
 - `6.22.x` Releases - [6.22.0](#6220)
 - `6.21.x` Releases - [6.21.0](#6210)
@@ -121,6 +121,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.24.1
+
+Released January 6, 2024
+
+- **New**: [#1477](https://github.com/groue/GRDB.swift/pull/1477): Remove shadow tables from database dump
 
 ## 6.24.0
 
