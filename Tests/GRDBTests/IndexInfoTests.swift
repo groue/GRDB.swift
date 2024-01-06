@@ -126,6 +126,12 @@ class IndexInfoTests: GRDBTestCase {
     }
     
     func testSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """
@@ -154,6 +160,12 @@ class IndexInfoTests: GRDBTestCase {
     // be found unless explicitly specified as it is after
     // `main.player` in resolution order.
     func testUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """
@@ -175,6 +187,12 @@ class IndexInfoTests: GRDBTestCase {
     }
     
     func testUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """

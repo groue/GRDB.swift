@@ -101,6 +101,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     }
     
     func testSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
@@ -124,6 +130,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     // be found unless explicitly specified as it is after
     // `main.children` in resolution order.
     func testUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
@@ -144,6 +156,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     }
     
     func testUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
@@ -368,6 +386,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     }
     
     func testForeignKeyViolationsInSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """
@@ -411,6 +435,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     // be found unless explicitly specified as it is after
     // `main.child` in resolution order.
     func testForeignKeyViolationsInUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """
@@ -451,6 +481,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     }
     
     func testForeignKeyViolationsInUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
         let attached = try makeDatabaseQueue(filename: "attached1")
         try attached.inDatabase { db in
             try db.execute(sql: """
