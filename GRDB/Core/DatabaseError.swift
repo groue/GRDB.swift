@@ -396,6 +396,10 @@ public struct DatabaseError: Error {
     static func noSuchTable(_ tableName: String) -> Self {
         DatabaseError(message: "no such table: \(tableName)")
     }
+    
+    static func noSuchSchema(_ schemaName: String) -> Self {
+        DatabaseError(message: "no such schema: \(schemaName)")
+    }
 }
 
 extension DatabaseError {
