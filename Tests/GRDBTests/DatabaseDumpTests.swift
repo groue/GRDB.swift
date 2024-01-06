@@ -1336,6 +1336,30 @@ final class DatabaseDumpTests: GRDBTestCase {
         }
     }
     
+    func test_dumpContent_ignores_GRDB_internal_tables() throws {
+        let dbQueue = try makeDatabaseQueue()
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        try migrator.migrate(dbQueue)
+        
+        try dbQueue.read { db in
+            let stream = TestStream()
+            try db.dumpContent(to: stream)
+            print(stream.output)
+            XCTAssertEqual(stream.output, """
+                sqlite_master
+                CREATE TABLE "player" ("id" INTEGER PRIMARY KEY AUTOINCREMENT);
+
+                player
+                
+                """)
+        }
+    }
+    
     // MARK: - Support Databases
     
     private func makeValuesDatabase() throws -> DatabaseQueue {
