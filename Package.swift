@@ -53,6 +53,9 @@ let package = Package(
             name: "GRDB",
             dependencies: ["CSQLite"],
             path: "GRDB",
+            resources: [
+                .copy("GRDB/PrivacyInfo.xcprivacy")
+            ],
             cSettings: cSettings,
             swiftSettings: swiftSettings),
         .testTarget(
@@ -71,6 +74,7 @@ let package = Package(
                 "parsePerformanceTests.rb",
             ],
             resources: [
+                .copy("GRDB/PrivacyInfo.xcprivacy"),
                 .copy("GRDBTests/Betty.jpeg"),
                 .copy("GRDBTests/InflectionsTests.json"),
                 .copy("GRDBTests/Issue1383.sqlite"),
