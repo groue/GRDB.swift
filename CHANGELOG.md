@@ -122,6 +122,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: Associations that involve views instead of tables are supported, but they require an explicit `ForeignKey` in their definition. Now a clear diagnostic message is emitted, instead of a unhelpful "no such table" runtime error.
+
 ## 6.24.1
 
 Released January 6, 2024
