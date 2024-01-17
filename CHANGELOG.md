@@ -124,6 +124,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+- **Documentation Update**: The [Sharing a Database](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing) guide was updated with a new recommendation. When an SQLite database is shared between multiple processes, writers should always perform IMMEDIATE transactions in order to avoid the `SQLITE_BUSY` error that can occur when transactions overlap. The new recommendation fits in a single line of code: `configuration.defaultTransactionKind = .immediate`.
 - **New**: Associations that involve views instead of tables are supported, but they require an explicit `ForeignKey` in their definition. Now a clear diagnostic message is emitted, instead of a unhelpful "no such table" runtime error.
 
 ## 6.24.1
