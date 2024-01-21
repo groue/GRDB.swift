@@ -258,6 +258,140 @@ class DatabaseQueueTests: GRDBTestCase {
         try test(qos: .userInitiated)
     }
     
+    // MARK: - SQLITE_BUSY prevention
+    
+    // See <https://github.com/groue/GRDB.swift/issues/1483>
+    func test_busy_timeout_does_not_prevent_SQLITE_BUSY_when_write_lock_is_acquired_by_other_connection() throws {
+        var configuration = dbConfiguration!
+        configuration.journalMode = .wal
+        configuration.busyMode = .timeout(1) // Does not help in this case
+        
+        let dbQueue1 = try makeDatabaseQueue(filename: "test", configuration: configuration)
+        let dbQueue2 = try makeDatabaseQueue(filename: "test", configuration: configuration)
+        
+        // DB1                          DB2
+        // BEGIN DEFERRED TRANSACTION
+        // READ
+        let s1 = DispatchSemaphore(value: 0)
+        //                              BEGIN DEFERRED TRANSACTION
+        //                              WRITE
+        let s2 = DispatchSemaphore(value: 0)
+        // WRITE -> SQLITE_BUSY because DB2 is already holding the write lock.
+        let s3 = DispatchSemaphore(value: 0)
+        //                              COMMIT
+
+        let block1 = {
+            try! dbQueue1.inDatabase { db in
+                try db.inTransaction(.deferred) {
+                    try db.execute(sql: "SELECT * FROM sqlite_master")
+                    s1.signal()
+                    s2.wait()
+                    do {
+                        try db.execute(sql: "CREATE TABLE test1(a)")
+                        XCTFail("Expected error")
+                    } catch DatabaseError.SQLITE_BUSY {
+                        // Test success
+                    }
+                    s3.signal()
+                    return .commit
+                }
+            }
+        }
+        
+        let block2 = {
+            try! dbQueue2.inDatabase { db in
+                s1.wait()
+                try db.inTransaction(.deferred) {
+                    try db.execute(sql: "CREATE TABLE test2(a)")
+                    s2.signal()
+                    s3.wait()
+                    return .commit
+                }
+            }
+        }
+        
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
+    
+    // See <https://github.com/groue/GRDB.swift/issues/1483>
+    func test_busy_timeout_does_not_prevent_SQLITE_BUSY_when_write_lock_was_acquired_by_other_connection() throws {
+        var configuration = dbConfiguration!
+        configuration.journalMode = .wal
+        configuration.busyMode = .timeout(1) // Does not help in this case
+        
+        let dbQueue1 = try makeDatabaseQueue(filename: "test", configuration: configuration)
+        let dbQueue2 = try makeDatabaseQueue(filename: "test", configuration: configuration)
+        
+        // DB1                          DB2
+        // BEGIN DEFERRED TRANSACTION
+        // READ
+        let s1 = DispatchSemaphore(value: 0)
+        //                              WRITE
+        let s2 = DispatchSemaphore(value: 0)
+        // WRITE -> SQLITE_BUSY because write lock can't be acquired,
+        // even though DB2 does no longer hold any lock.
+
+        let block1 = {
+            try! dbQueue1.inDatabase { db in
+                try db.inTransaction(.deferred) {
+                    try db.execute(sql: "SELECT * FROM sqlite_master")
+                    s1.signal()
+                    s2.wait()
+                    do {
+                        try db.execute(sql: "CREATE TABLE test1(a)")
+                        XCTFail("Expected error")
+                    } catch DatabaseError.SQLITE_BUSY {
+                        // Test success
+                    }
+                    return .commit
+                }
+            }
+        }
+        
+        let block2 = {
+            try! dbQueue2.inDatabase { db in
+                s1.wait()
+                try db.execute(sql: "CREATE TABLE test2(a)")
+                s2.signal()
+            }
+        }
+        
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
+    
+    // See <https://github.com/groue/GRDB.swift/issues/1483>
+    func test_busy_timeout_and_IMMEDIATE_transactions_do_prevent_SQLITE_BUSY() throws {
+        var configuration = dbConfiguration!
+        // Test fails when this line is commented
+        configuration.defaultTransactionKind = .immediate
+        // Test fails when this line is commented
+        configuration.busyMode = .timeout(10)
+        
+        let dbQueue = try makeDatabaseQueue(filename: "test")
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "PRAGMA journal_mode = wal")
+            try db.execute(sql: "CREATE TABLE test(a)")
+        }
+        
+        let parallelWritesCount = 50
+        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { index in
+            let dbQueue = try! makeDatabaseQueue(filename: "test", configuration: configuration)
+            try! dbQueue.write { db in
+                _ = try Table("test").fetchCount(db)
+                try db.execute(sql: "INSERT INTO test VALUES (1)")
+            }
+        }
+        
+        let count = try dbQueue.read(Table("test").fetchCount)
+        XCTAssertEqual(count, parallelWritesCount)
+    }
+
     // MARK: - Closing
     
     func testClose() throws {

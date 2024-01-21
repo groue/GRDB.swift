@@ -310,6 +310,7 @@ extension ValueObservation {
     }
 }
 
+// TODO: [GRDB7] Make it Sendable for easier integration with AsyncAlgorithms
 /// An asynchronous sequence of values observed by a ``ValueObservation``.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
