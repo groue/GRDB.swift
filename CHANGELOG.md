@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241)
+- `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241) - [6.24.2](#6242)
 - `6.23.x` Releases - [6.23.0](#6230)
 - `6.22.x` Releases - [6.22.0](#6220)
 - `6.21.x` Releases - [6.21.0](#6210)
@@ -122,10 +122,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.24.2
 
-- **Documentation Update**: The [Sharing a Database](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing) guide was updated with a new recommendation. When an SQLite database is shared between multiple processes, writers should always perform IMMEDIATE transactions in order to avoid the `SQLITE_BUSY` error that can occur when transactions overlap. The new recommendation fits in a single line of code: `configuration.defaultTransactionKind = .immediate`.
-- **New**: Associations that involve views instead of tables are supported, but they require an explicit `ForeignKey` in their definition. Now a clear diagnostic message is emitted, instead of a unhelpful "no such table" runtime error.
+Released January 21, 2024
+
+- **Documentation Update**: [#1485](https://github.com/groue/GRDB.swift/pull/1485) The [Sharing a Database](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing) guide was updated with a new recommendation for databases shared between multiple processes. Writers should always perform IMMEDIATE transactions in order to avoid the `SQLITE_BUSY` error that can occur when transactions overlap. The new recommendation fits in a single line of code: `configuration.defaultTransactionKind = .immediate`.
+- **New**: Associations that involve views instead of tables were already supported, with an explicit `ForeignKey` in their definition. When the foreign key is missing, a clear diagnostic message is now emitted, instead of an unhelpful "no such table" runtime error.
 
 ## 6.24.1
 
