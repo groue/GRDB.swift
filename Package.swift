@@ -4,7 +4,8 @@
 import Foundation
 import PackageDescription
 
-var swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [    
+    .define("SQLITE_ENABLE_SNAPSHOT"), 
     .define("SQLITE_ENABLE_FTS5"), 
     .define("SQLITE_ENABLE_RTREE")
 ]
