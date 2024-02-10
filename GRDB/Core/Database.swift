@@ -122,8 +122,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - SQLite C API
     
-    // TODO: make it non optional, since one can't get a `Database` instance
-    // after `close()`.
     /// The raw SQLite connection, suitable for the SQLite C API.
     ///
     /// The result is nil after the database has been successfully closed with
