@@ -84,6 +84,9 @@
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] More schema alterations
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
+- [ ] GRDB7/concurrency
+    - migrations
+    - JSONB https://hachyderm.io/@jason_abbott/111908186742242971#.
 
 
 ## Unsure if necessary
