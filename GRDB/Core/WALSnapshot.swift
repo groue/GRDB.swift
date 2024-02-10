@@ -20,7 +20,9 @@
 /// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
-final class WALSnapshot: Sendable {
+final class WALSnapshot: @unchecked Sendable {
+    // Unchecked because of `sqliteSnapshot`.
+    
     let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
     
     init(_ db: Database) throws {
