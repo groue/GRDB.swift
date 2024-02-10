@@ -84,6 +84,11 @@
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] More schema alterations
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
+- [ ] GRDB7/concurrency
+    - migrations
+    - AsyncValueObservation
+- [ ] GRDB7 JSONB https://hachyderm.io/@jason_abbott/111908186742242971#.
+- [ ] GRDB7: stop exporting CSQLite https://github.com/groue/GRDB.swift/issues/642#issuecomment-1937347696
 
 
 ## Unsure if necessary
