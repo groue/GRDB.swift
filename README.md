@@ -2310,11 +2310,10 @@ try dbQueue.write { db in
     let partialPlayer = PartialPlayer(name: "Alice")
     
     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    if let player = try partialPlayer.insertAndFetch(db, as: Player.self) {
-        print(player.id)    // The inserted id
-        print(player.name)  // The inserted name
-        print(player.score) // The default score
-    }
+    let player = try partialPlayer.insertAndFetch(db, as: Player.self)
+    print(player.id)    // The inserted id
+    print(player.name)  // The inserted name
+    print(player.score) // The default score
 }
 ```
 
@@ -3088,15 +3087,16 @@ struct Player : MutablePersistableRecord {
 try player.insert(db)
 ```
 
-> **Note**: If you specify the `ignore` policy for inserts, the [`didInsert`  callback](#persistence-callbacks) will be called with some random id in case of failed insert. You can detect failed insertions with `insertAndFetch`:
+> **Note**: If you specify the `ignore` policy for inserts, the [`didInsert` callback](#persistence-callbacks) will be called with some random id in case of failed insert. You can detect failed insertions with `insertAndFetch`:
 >     
 > ```swift
 > // How to detect failed `INSERT OR IGNORE`:
 > // INSERT OR IGNORE INTO player ... RETURNING *
-> if let insertedPlayer = try player.insertAndFetch(db) {
+> do {
+>     let insertedPlayer = try player.insertAndFetch(db) {
 >     // Succesful insertion
-> } else {
->     // Ignored failure
+> catch RecordError.recordNotFound {
+>     // Failed insertion due to IGNORE policy
 > }
 > ```
 >
