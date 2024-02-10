@@ -121,7 +121,7 @@ public struct FTS5 {
         return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         #else
         // GRDB is linked against the system SQLite.
-        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
+        if #available(macOS 10.14, watchOS 5, *) { // SQLite 3.20+
             return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         } else {
             return api_v1(db)
