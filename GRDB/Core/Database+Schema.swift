@@ -997,7 +997,7 @@ extension Database {
 ///
 /// - [pragma `table_info`](https://www.sqlite.org/pragma.html#pragma_table_info)
 /// - [pragma `table_xinfo`](https://www.sqlite.org/pragma.html#pragma_table_xinfo)
-public struct ColumnInfo: FetchableRecord {
+public struct ColumnInfo: FetchableRecord, Sendable {
     let cid: Int
     let hidden: Int?
     
@@ -1085,7 +1085,7 @@ public struct ColumnInfo: FetchableRecord {
 /// - [pragma `index_info`](https://www.sqlite.org/pragma.html#pragma_index_info)
 public struct IndexInfo {
     /// The origin of an index.
-    public struct Origin: RawRepresentable, Equatable, DatabaseValueConvertible {
+    public struct Origin: RawRepresentable, Equatable, DatabaseValueConvertible, Sendable {
         public var rawValue: String
         
         public init(rawValue: String) {
@@ -1307,8 +1307,8 @@ extension ForeignKeyViolation: CustomStringConvertible {
 /// pk.rowIDColumn // nil
 /// pk.isRowID     // false
 /// ```
-public struct PrimaryKeyInfo {
-    private enum Impl {
+public struct PrimaryKeyInfo: Sendable {
+    private enum Impl: Sendable {
         /// The hidden rowID.
         case hiddenRowID
         
