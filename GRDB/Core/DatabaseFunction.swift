@@ -29,7 +29,7 @@ import SQLite3
 /// - ``localizedUppercase``
 /// - ``lowercase``
 /// - ``uppercase``
-public final class DatabaseFunction: Hashable {
+public final class DatabaseFunction: Hashable, Sendable {
     // SQLite identifies functions by (name + argument count)
     private struct Identity: Hashable {
         let name: String
@@ -82,11 +82,11 @@ public final class DatabaseFunction: Hashable {
         _ name: String,
         argumentCount: Int? = nil,
         pure: Bool = false,
-        function: @escaping ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
+        function: @escaping @Sendable ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
         self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
         self.isPure = pure
-        self.kind = .function{ (argc, argv) in
+        self.kind = .function { (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in
                 DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
             }
@@ -274,12 +274,12 @@ public final class DatabaseFunction: Hashable {
     
     /// A function kind: an "SQL function" or an "aggregate".
     /// See <http://sqlite.org/capi3ref.html#sqlite3_create_function>
-    private enum Kind {
+    private enum Kind: Sendable {
         /// A regular function: SELECT f(1)
-        case function((CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?)
+        case function(@Sendable (CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?)
         
         /// An aggregate: SELECT f(foo) FROM bar GROUP BY baz
-        case aggregate(() -> any DatabaseAggregate)
+        case aggregate(@Sendable () -> any DatabaseAggregate)
         
         /// Feeds the `pApp` parameter of sqlite3_create_function_v2
         /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
