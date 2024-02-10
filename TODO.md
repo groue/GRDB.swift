@@ -113,7 +113,6 @@
     - [X] configuration
     - [X] customtransactionclock
     - [X] database/busymode
-    - [ ] databaseaggregate
     - [ ] databasecancellable
     - [ ] databasecollation
     - [X] databasecolumndecodingstrategy
@@ -122,7 +121,7 @@
     - [X] databasedataencodingstrategy
     - [X] databasedatedecodingstrategy
     - [X] databasedateencodingstrategy
-    - [ ] databasefunction
+    - [X] databasefunction
     - [ ] databasemigrator
     - [ ] databasepublishers/databaseregion
     - [ ] databasepublishers/migrate
