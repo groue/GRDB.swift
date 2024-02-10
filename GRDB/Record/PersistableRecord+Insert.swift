@@ -56,7 +56,6 @@ extension PersistableRecord {
 
 extension PersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
@@ -94,11 +93,10 @@ extension PersistableRecord {
     ///     let partialPlayer = PartialPlayer(name: "Alice")
     ///
     ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///     if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
-    ///         print(player.id)    // The inserted id
-    ///         print(player.name)  // The inserted name
-    ///         print(player.score) // The default score
-    ///     }
+    ///     let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
+    ///     print(player.id)    // The inserted id
+    ///     print(player.name)  // The inserted name
+    ///     print(player.score) // The default score
     /// }
     /// ```
     ///
@@ -107,19 +105,23 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`, if any. The result can be
-    ///   nil when the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the insertion failed due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     public func insertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try insertAndFetch(db, onConflict: conflictResolution, selection: T.databaseSelection) {
-            try T.fetchOne($0)
+            if let result = try T.fetchOne($0) {
+                return result
+            }
+            throw recordNotFound(db)
         }
     }
     
@@ -199,7 +201,6 @@ extension PersistableRecord {
         return success.returned
     }
 #else
-    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
     /// from the inserted row.
     ///
@@ -237,11 +238,10 @@ extension PersistableRecord {
     ///     let partialPlayer = PartialPlayer(name: "Alice")
     ///
     ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///     if let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self) {
-    ///         print(player.id)    // The inserted id
-    ///         print(player.name)  // The inserted name
-    ///         print(player.score) // The default score
-    ///     }
+    ///     let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
+    ///     print(player.id)    // The inserted id
+    ///     print(player.name)  // The inserted name
+    ///     print(player.score) // The default score
     /// }
     /// ```
     ///
@@ -250,20 +250,24 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`, if any. The result can be
-    ///   nil when the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the insertion failed due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func insertAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try insertAndFetch(db, onConflict: conflictResolution, selection: T.databaseSelection) {
-            try T.fetchOne($0)
+            if let result = try T.fetchOne($0) {
+                return result
+            }
+            throw recordNotFound(db)
         }
     }
     

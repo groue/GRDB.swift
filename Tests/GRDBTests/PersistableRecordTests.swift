@@ -1342,7 +1342,7 @@ extension PersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 let partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.insertAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
@@ -1444,7 +1444,7 @@ extension PersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 let partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
                 XCTAssert(sqlQueries.contains("""
@@ -1480,7 +1480,7 @@ extension PersistableRecordTests {
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
                 sqlQueries.removeAll()
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
@@ -1517,7 +1517,7 @@ extension PersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
                 XCTAssert(sqlQueries.contains("""
