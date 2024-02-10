@@ -10,7 +10,7 @@ import Foundation
 ///
 /// - ``DefaultTransactionClock``
 /// - ``CustomTransactionClock``
-public protocol TransactionClock {
+public protocol TransactionClock: Sendable {
     /// Returns the date of the current transaction.
     ///
     /// This function is called whenever a transaction starts - precisely

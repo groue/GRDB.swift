@@ -1,7 +1,8 @@
 import Dispatch
 import Foundation
 
-public struct Configuration {
+// TODO: remove @unchecked when DispatchQoS is Sendable
+public struct Configuration: @unchecked Sendable {
     
     // MARK: - Misc options
     
@@ -186,7 +187,7 @@ public struct Configuration {
     
     // MARK: - Managing SQLite Connections
     
-    private var setups: [(Database) throws -> Void] = []
+    private var setups: [@Sendable (Database) throws -> Void] = []
     
     /// Defines a function to run whenever an SQLite connection is opened.
     ///
@@ -223,7 +224,7 @@ public struct Configuration {
     ///
     /// On newly created databases files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
-    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+    public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
     }
     
@@ -294,7 +295,7 @@ public struct Configuration {
     /// connection is opened.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
-    public enum JournalModeConfiguration {
+    public enum JournalModeConfiguration: Sendable {
         /// The default setup has ``DatabaseQueue`` perform no specific
         /// configuration of the journal mode, and ``DatabasePool`` 
         /// configure the database for the WAL mode (just like the
@@ -445,9 +446,9 @@ public struct Configuration {
     /// through a `SerializedDatabase`.
     var threadingMode = Database.ThreadingMode.default
     
-    var SQLiteConnectionDidOpen: (() -> Void)?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
-    var SQLiteConnectionDidClose: (() -> Void)?
+    var SQLiteConnectionDidOpen: (@Sendable () -> Void)?
+    var SQLiteConnectionWillClose: (@Sendable (SQLiteConnection) -> Void)?
+    var SQLiteConnectionDidClose: (@Sendable () -> Void)?
     var SQLiteOpenFlags: CInt {
         var flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         if sqlite3_libversion_number() >= 3037000 {

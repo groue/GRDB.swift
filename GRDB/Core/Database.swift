@@ -1806,7 +1806,7 @@ extension Database {
     // MARK: - Database-Related Types
     
     /// See BusyMode and <https://www.sqlite.org/c3ref/busy_handler.html>
-    public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
+    public typealias BusyCallback = @Sendable (_ numberOfTries: Int) -> Bool
     
     /// When there are several connections to a database, a connection may try
     /// to access the database while it is locked by another connection.
@@ -1834,7 +1834,7 @@ extension Database {
     /// - <https://www.sqlite.org/c3ref/busy_handler.html>
     /// - <https://www.sqlite.org/lang_transaction.html>
     /// - <https://www.sqlite.org/wal.html>
-    public enum BusyMode {
+    public enum BusyMode: Sendable {
         /// The `SQLITE_BUSY` error is immediately returned to the connection
         /// that tries to access the locked database.
         case immediateError
@@ -1871,7 +1871,7 @@ extension Database {
     /// Related SQLite documentation:
     /// - <https://www.sqlite.org/datatype3.html#collating_sequences>
     /// - <https://www.sqlite.org/datatype3.html#collation>
-    public struct CollationName: RawRepresentable, Hashable {
+    public struct CollationName: RawRepresentable, Hashable, Sendable {
         public let rawValue: String
         
         /// Creates a collation name.
@@ -1908,7 +1908,7 @@ extension Database {
     ///
     /// For more information, see
     /// [Datatypes In SQLite](https://www.sqlite.org/datatype3.html).
-    public struct ColumnType: RawRepresentable, Hashable {
+    public struct ColumnType: RawRepresentable, Hashable, Sendable {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
@@ -2002,7 +2002,7 @@ extension Database {
     /// ``Database/trace(options:_:)`` method.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/c_trace.html>
-    public struct TracingOptions: OptionSet {
+    public struct TracingOptions: OptionSet, Sendable {
         /// The raw trace event code.
         public let rawValue: CInt
         
@@ -2143,7 +2143,7 @@ extension Database {
     /// A transaction kind.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
-    public enum TransactionKind: String {
+    public enum TransactionKind: String, Sendable {
         /// The `DEFERRED` transaction kind.
         case deferred = "DEFERRED"
         
