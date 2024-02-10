@@ -421,7 +421,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         // Optimization available
         expectedCounts = [0, 1]
 #else
@@ -471,7 +471,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         // Optimization available
         expectedCounts = [0, 1]
 #else
@@ -498,7 +498,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Snapshot Observation
     
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
     func testDatabaseSnapshotPoolObservation() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -825,11 +825,7 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
-#if compiler(>=5.8)
             await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -863,11 +859,7 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
-#if compiler(>=5.8)
             await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -905,11 +897,7 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(counts.sorted(), counts)
             
             // Observation was ended
-#if compiler(>=5.8)
             await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -944,11 +932,7 @@ class ValueObservationTests: GRDBTestCase {
             assertValueObservationRecordingMatch(recorded: counts, expected: [0])
             
             // Observation was ended
-#if compiler(>=5.8)
             await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -995,11 +979,7 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertEqual(cancelledValue, "cancelled loop")
             
             // Make sure observation was cancelled as well
-#if compiler(>=5.8)
             await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
         }
         
         try await AsyncTest(test).run { try DatabaseQueue() }
@@ -1022,7 +1002,7 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let initialValueExpectation = self.expectation(description: "")
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             initialValueExpectation.assertForOverFulfill = true
 #else
             // ValueObservation on DatabasePool will notify the first value twice
@@ -1080,7 +1060,7 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             let initialValueExpectation = self.expectation(description: "")
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             initialValueExpectation.assertForOverFulfill = true
 #else
             // ValueObservation on DatabasePool will notify the first value twice

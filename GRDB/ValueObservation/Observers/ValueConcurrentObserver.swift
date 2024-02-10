@@ -273,8 +273,7 @@ extension ValueConcurrentObserver {
     }
 }
 
-// swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 extension ValueConcurrentObserver {
     /// Synchronously starts the observation, and returns the initial value.
     ///
