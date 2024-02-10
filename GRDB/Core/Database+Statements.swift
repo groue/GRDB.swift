@@ -538,7 +538,7 @@ struct StatementCache {
         let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         #else
         let statement: Statement
-        if #available(iOS 12, macOS 10.14, watchOS 5, *) { // SQLite 3.20+
+        if #available(macOS 10.14, watchOS 5, *) { // SQLite 3.20+
             statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         } else {
             statement = try db.makeStatement(sql: sql)
