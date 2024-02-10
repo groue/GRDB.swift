@@ -89,16 +89,16 @@ extension DatabaseRegionObservation {
         onChange: @escaping (Database) -> Void)
     -> AnyDatabaseCancellable
     {
-        @LockedBox var state = ObservationState.pending
+        let stateMutex = LockedBox(wrappedValue: ObservationState.pending)
         
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         writer.unsafeReentrantWrite { db in
             do {
                 let region = try observedRegion(db).observableRegion(db)
-                $state.update {
+                stateMutex.update { state in
                     let observer = DatabaseRegionObserver(region: region, onChange: {
-                        if case .cancelled = state {
+                        if case .cancelled = stateMutex.wrappedValue {
                             return
                         }
                         onChange($0)
@@ -111,7 +111,7 @@ extension DatabaseRegionObservation {
                     // the observer.
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     
-                    $0 = .started(observer)
+                    state = .started(observer)
                 }
             } catch {
                 onError(error)
@@ -122,7 +122,7 @@ extension DatabaseRegionObservation {
             // Deallocates the transaction observer. This makes sure that the
             // `onChange` callback will never be called again, because the
             // observation was started with the `.observerLifetime` extent.
-            state = .cancelled
+            stateMutex.wrappedValue = .cancelled
         }
     }
 }

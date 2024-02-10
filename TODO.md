@@ -95,7 +95,7 @@
 - [ ] GRDB7: Consider putting a Task cancellation handler on async methods.
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
 - [ ] GRDB7: Sendable conformances
-    - [ ] anydatabasecancellable
+    - [X] anydatabasecancellable
     - [ ] anydatabaseregionconvertible
     - [ ] anyfetchrequest
     - [ ] anysqljsonexpressible

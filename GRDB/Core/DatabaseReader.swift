@@ -620,16 +620,16 @@ extension DatabaseReader {
             }
             return AnyDatabaseCancellable(cancel: { /* nothing to cancel */ })
         } else {
-            var isCancelled = false
+            let cancellable = AnyDatabaseCancellable()
             asyncRead { dbResult in
-                guard !isCancelled else { return }
+                if cancellable.isCancelled { return }
                 
                 let result = dbResult.flatMap { db in
                     Result { try observation.fetchInitialValue(db) }
                 }
                 
                 scheduler.schedule {
-                    guard !isCancelled else { return }
+                    if cancellable.isCancelled { return }
                     do {
                         try onChange(result.get())
                     } catch {
@@ -637,7 +637,7 @@ extension DatabaseReader {
                     }
                 }
             }
-            return AnyDatabaseCancellable(cancel: { isCancelled = true })
+            return cancellable
         }
     }
 }
