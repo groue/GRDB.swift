@@ -6,6 +6,8 @@ import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
+    // <https://github.com/apple/swift-evolution/blob/main/proposals/0337-support-incremental-migration-to-concurrency-checking.md>
+    .enableExperimentalFeature("StrictConcurrency"),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
