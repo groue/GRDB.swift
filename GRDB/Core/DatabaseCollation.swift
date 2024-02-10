@@ -29,10 +29,10 @@ import Foundation
 /// - ``localizedCompare``
 /// - ``localizedStandardCompare``
 /// - ``unicodeCompare``
-public final class DatabaseCollation {
+public final class DatabaseCollation: Sendable {
     /// The name of the collation.
     public let name: String
-    let function: (CInt, UnsafeRawPointer?, CInt, UnsafeRawPointer?) -> ComparisonResult
+    let function: @Sendable (CInt, UnsafeRawPointer?, CInt, UnsafeRawPointer?) -> ComparisonResult
     
     /// Creates a collation.
     ///
@@ -49,7 +49,7 @@ public final class DatabaseCollation {
     /// - parameters:
     ///     - name: The collation name.
     ///     - function: A function that compares two strings.
-    public init(_ name: String, function: @escaping (String, String) -> ComparisonResult) {
+    public init(_ name: String, function: @escaping @Sendable (String, String) -> ComparisonResult) {
         self.name = name
         self.function = { (length1, buffer1, length2, buffer2) in
             // Buffers are not C strings: they do not end with \0.

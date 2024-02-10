@@ -114,7 +114,7 @@
     - [X] customtransactionclock
     - [X] database/busymode
     - [ ] databasecancellable
-    - [ ] databasecollation
+    - [X] databasecollation
     - [X] databasecolumndecodingstrategy
     - [X] databasecolumnencodingstrategy
     - [X] databasedatadecodingstrategy
