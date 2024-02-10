@@ -16,7 +16,7 @@ public typealias FTS5TokenCallback = @convention(c) (
 /// The reason why FTS5 is requesting tokenization.
 ///
 /// See the `FTS5_TOKENIZE_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
-public struct FTS5Tokenization: OptionSet {
+public struct FTS5Tokenization: OptionSet, Sendable {
     public let rawValue: CInt
     
     public init(rawValue: CInt) {

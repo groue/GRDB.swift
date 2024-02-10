@@ -1,5 +1,5 @@
 /// Table creation options.
-public struct TableOptions: OptionSet {
+public struct TableOptions: OptionSet, Sendable {
     public let rawValue: Int
     
     public init(rawValue: Int) { self.rawValue = rawValue }

@@ -20,7 +20,7 @@
 /// - ``simple``
 /// - ``unicode61(diacritics:separators:tokenCharacters:)``
 /// - ``FTS3/Diacritics``
-public struct FTS3TokenizerDescriptor {
+public struct FTS3TokenizerDescriptor: Sendable {
     let name: String
     let arguments: [String]
     
