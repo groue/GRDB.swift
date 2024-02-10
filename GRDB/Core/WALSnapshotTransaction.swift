@@ -1,5 +1,4 @@
-// swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 /// A long-live read-only WAL transaction.
 ///
 /// `WALSnapshotTransaction` **takes ownership** of its reader
