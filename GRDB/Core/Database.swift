@@ -133,7 +133,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// The error logging function.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -1994,7 +1994,7 @@ extension Database {
     }
     
     /// An error log function that takes an error code and message.
-    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    public typealias LogErrorFunction = @Sendable (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// An option for the SQLite tracing feature.
     ///
