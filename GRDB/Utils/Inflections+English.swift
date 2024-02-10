@@ -44,7 +44,7 @@
 
 extension Inflections {
     /// The default inflections
-    public static var `default`: Inflections = {
+    nonisolated(unsafe) public static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
