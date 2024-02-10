@@ -139,20 +139,20 @@ class SelectStatementTests : GRDBTestCase {
     func testCachedSelectStatementStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var needsThrow = false
+            let needsThrowMutex = Mutex(false)
             db.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
-                if needsThrow {
+                if needsThrowMutex.value {
                     throw DatabaseError(message: "boom")
                 }
                 return "success"
             })
             let sql = "SELECT bomb()"
             
-            needsThrow = false
+            needsThrowMutex.value = false
             XCTAssertEqual(try String.fetchAll(db.cachedStatement(sql: sql)), ["success"])
             
             do {
-                needsThrow = true
+                needsThrowMutex.value = true
                 _ = try String.fetchAll(db.cachedStatement(sql: sql))
                 XCTFail()
             } catch let error as DatabaseError {
@@ -162,7 +162,7 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.description, "SQLite error 1: boom - while executing `\(sql)`")
             }
             
-            needsThrow = false
+            needsThrowMutex.value = false
             XCTAssertEqual(try String.fetchAll(db.cachedStatement(sql: sql)), ["success"])
         }
     }

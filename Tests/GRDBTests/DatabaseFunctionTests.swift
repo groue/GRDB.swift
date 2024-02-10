@@ -347,13 +347,13 @@ class DatabaseFunctionTests: GRDBTestCase {
 
     func testFunctionsAreClosures() throws {
         let dbQueue = try makeDatabaseQueue()
-        var x = 123
+        let mutex = Mutex(123)
         let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
-            return x
+            return mutex.value
         }
         try dbQueue.inDatabase { db in
             db.add(function: fn)
-            x = 321
+            mutex.value = 321
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f()")!, 321)
         }
     }
