@@ -493,6 +493,8 @@
 		568C3F802A5AB36900A2309D /* ForeignKeyDefinitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
+		56BCA6642B79249800B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA6632B79249800B3A7F8 /* Mutex.swift */; };
+		56BCA6652B79249800B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA6632B79249800B3A7F8 /* Mutex.swift */; };
 		56F61DF0283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
 		56F61DF1283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -749,6 +751,7 @@
 		567B5C4A2AD32F7000629622 /* DatabaseReaderDumpTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReaderDumpTests.swift; sourceTree = "<group>"; };
 		568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ForeignKeyDefinitionTests.swift; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
+		56BCA6632B79249800B3A7F8 /* Mutex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mutex.swift; sourceTree = "<group>"; };
 		56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DEE283D484700AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
 		56F61DEF283D484700AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
@@ -996,6 +999,7 @@
 				56419D2F24A5405E004967E1 /* MutablePersistableRecordEncodableTests.swift */,
 				56419D4424A5405F004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift */,
 				56419D3B24A5405F004967E1 /* MutablePersistableRecordTests.swift */,
+				56BCA6632B79249800B3A7F8 /* Mutex.swift */,
 				56419CFD24A5405A004967E1 /* NumericOverflowTests.swift */,
 				56419D4F24A54060004967E1 /* OrderedDictionaryTests.swift */,
 				56419D4524A5405F004967E1 /* PersistableRecordTests.swift */,
@@ -1479,6 +1483,7 @@
 				56419D6F24A54062004967E1 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				56419E7324A54062004967E1 /* TruncateOptimizationTests.swift in Sources */,
 				56419E4724A54062004967E1 /* RecordEditedTests.swift in Sources */,
+				56BCA6642B79249800B3A7F8 /* Mutex.swift in Sources */,
 				56419EEF24A54063004967E1 /* RecordPrimaryKeyNoneTests.swift in Sources */,
 				56419EA724A54063004967E1 /* CursorTests.swift in Sources */,
 				56419E0D24A54062004967E1 /* DatabaseQueueSchemaCacheTests.swift in Sources */,
@@ -1727,6 +1732,7 @@
 				56419D7024A54062004967E1 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				56419E7424A54062004967E1 /* TruncateOptimizationTests.swift in Sources */,
 				56419E4824A54062004967E1 /* RecordEditedTests.swift in Sources */,
+				56BCA6652B79249800B3A7F8 /* Mutex.swift in Sources */,
 				56419EF024A54063004967E1 /* RecordPrimaryKeyNoneTests.swift in Sources */,
 				56419EA824A54063004967E1 /* CursorTests.swift in Sources */,
 				56419E0E24A54062004967E1 /* DatabaseQueueSchemaCacheTests.swift in Sources */,

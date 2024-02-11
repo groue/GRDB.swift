@@ -276,6 +276,7 @@
 		56B964D61DA521450002DA19 /* FTS5TableBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */; };
 		56B964DB1DA5216B0002DA19 /* FTS5RecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B964C11DA521450002DA19 /* FTS5RecordTests.swift */; };
 		56BB6EAB1D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */; };
+		56BCA65F2B79247000B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA65D2B79247000B3A7F8 /* Mutex.swift */; };
 		56BF22882417821F003D86EB /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BF22862417821F003D86EB /* UtilsTests.swift */; };
 		56C0539322ACEECD0029D27D /* Fetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538A22ACEECD0029D27D /* Fetch.swift */; };
 		56C0539722ACEECD0029D27D /* ValueReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538C22ACEECD0029D27D /* ValueReducer.swift */; };
@@ -794,6 +795,7 @@
 		56B964C11DA521450002DA19 /* FTS5RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5RecordTests.swift; sourceTree = "<group>"; };
 		56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5TableBuilderTests.swift; sourceTree = "<group>"; };
 		56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdog.swift; sourceTree = "<group>"; };
+		56BCA65D2B79247000B3A7F8 /* Mutex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mutex.swift; sourceTree = "<group>"; };
 		56BF22862417821F003D86EB /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		56C0538A22ACEECD0029D27D /* Fetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetch.swift; sourceTree = "<group>"; };
 		56C0538C22ACEECD0029D27D /* ValueReducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueReducer.swift; sourceTree = "<group>"; };
@@ -1032,6 +1034,7 @@
 			children = (
 				567E4207242AB3CB00CAAD2C /* FailureTestCase.swift */,
 				5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */,
+				56BCA65D2B79247000B3A7F8 /* Mutex.swift */,
 				562EA81E1F17B26F00FA528C /* Compilation */,
 				56A238111B9C74A90082EB20 /* Core */,
 				567B5BFC2AD3285C00629622 /* Dump */,
@@ -2345,6 +2348,7 @@
 				562393631DEE06D300A6B01F /* CursorTests.swift in Sources */,
 				563B06D52185E04600B38F35 /* ValueObservationFetchTests.swift in Sources */,
 				562205FE1E420EA2005860AC /* DatabasePoolConcurrencyTests.swift in Sources */,
+				56BCA65F2B79247000B3A7F8 /* Mutex.swift in Sources */,
 				565EFAF11D0436CE00A8FA9D /* NumericOverflowTests.swift in Sources */,
 				56DF0017228DDB8300D611F3 /* AssociationPrefetchingRowTests.swift in Sources */,
 				F3BA812E1CFB3064003DC1BA /* RecordPrimaryKeyMultipleTests.swift in Sources */,
