@@ -1,10 +1,15 @@
 /// Implementation details of `ValueReducer`.
 public protocol _ValueReducer {
-    /// The type of fetched database values
-    associatedtype Fetched
+    // Sendable because fetched values will asynchronously jump from a
+    // database access dispatch queue to a reducer dispatch queue.
+    /// The type of fetched database values.
+    associatedtype Fetched: Sendable
     
-    /// The type of observed values
-    associatedtype Value
+    // Sendable because reduced values will asynchronously jump from a
+    // reducer dispatch queue to a user-provided queue (the main queue,
+    // most frequently).
+    /// The type of observed values.
+    associatedtype Value: Sendable
     
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.
