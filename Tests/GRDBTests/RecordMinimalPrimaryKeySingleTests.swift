@@ -11,7 +11,7 @@ class MinimalSingle: Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
     }
     
@@ -49,7 +49,9 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setup)
+        migrator.registerMigration("createMinimalSingle") {
+            try MinimalSingle.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     
