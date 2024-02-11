@@ -260,7 +260,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 - ``publisher(in:scheduling:)``
 - ``start(in:scheduling:onError:onChange:)``
-- ``values(in:scheduling:bufferingPolicy:)``
+- ``values(in:bufferingPolicy:)``
 - ``DatabaseCancellable``
 - ``ValueObservationScheduler``
 

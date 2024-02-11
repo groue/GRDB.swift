@@ -294,18 +294,20 @@ extension ValueObservation {
     /// ```
     ///
     /// - parameter reader: A DatabaseReader.
-    /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
-    ///   values are dispatched asynchronously on the main dispatch queue.
     @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func values(
         in reader: some DatabaseReader,
-        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
     where Reducer: ValueReducer
     {
         AsyncValueObservation(bufferingPolicy: bufferingPolicy) { onError, onChange in
-            self.start(in: reader, scheduling: scheduler, onError: onError, onChange: onChange)
+            self.start(
+                in: reader,
+                // TODO: can we avoid this hop to the main queue?
+                scheduling: .async(onQueue: .main),
+                onError: onError,
+                onChange: onChange)
         }
     }
 }
