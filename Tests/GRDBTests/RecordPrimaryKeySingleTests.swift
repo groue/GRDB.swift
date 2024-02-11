@@ -12,7 +12,7 @@ class Pet : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    @Sendable static func setup(inDatabase db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE pets (
                 UUID TEXT NOT NULL PRIMARY KEY,

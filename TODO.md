@@ -122,7 +122,7 @@
     - [X] databasedatedecodingstrategy
     - [X] databasedateencodingstrategy
     - [X] databasefunction
-    - [ ] databasemigrator
+    - [X] databasemigrator
     - [ ] databasepublishers/databaseregion
     - [ ] databasepublishers/migrate
     - [ ] databasepublishers/read

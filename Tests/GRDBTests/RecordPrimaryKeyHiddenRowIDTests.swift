@@ -16,7 +16,7 @@ private class Person : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    @Sendable static func setup(inDatabase db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE persons (
                 creationDate TEXT NOT NULL,

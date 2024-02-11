@@ -11,7 +11,7 @@ class Email : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    @Sendable static func setup(inDatabase db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE emails (
                 email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE,
