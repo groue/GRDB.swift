@@ -265,29 +265,29 @@ extension ValueObservation: Refinable {
         to stream: Stream)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let stream = LockedBox(wrappedValue: stream)
+        let stream = Mutex(stream)
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         return handleEvents(
             willStart: {
-                stream.update { $0.write("\(prefix)start") }
+                stream.withLock { $0.write("\(prefix)start") }
             },
             willFetch: {
-                stream.update { $0.write("\(prefix)fetch") }
+                stream.withLock { $0.write("\(prefix)fetch") }
             },
             willTrackRegion: { region in
-                stream.update { $0.write("\(prefix)tracked region: \(region)") }
+                stream.withLock { $0.write("\(prefix)tracked region: \(region)") }
             },
             databaseDidChange: {
-                stream.update { $0.write("\(prefix)database did change") }
+                stream.withLock { $0.write("\(prefix)database did change") }
             },
             didReceiveValue: { value in
-                stream.update { $0.write("\(prefix)value: \(value)") }
+                stream.withLock { $0.write("\(prefix)value: \(value)") }
             },
             didFail: { error in
-                stream.update { $0.write("\(prefix)failure: \(error)") }
+                stream.withLock { $0.write("\(prefix)failure: \(error)") }
             },
             didCancel: {
-                stream.update { $0.write("\(prefix)cancel") }
+                stream.withLock { $0.write("\(prefix)cancel") }
             })
     }
     

@@ -11,7 +11,7 @@ public final class DatabasePool {
     /// It is constant, until close() sets it to nil.
     private var readerPool: Pool<SerializedDatabase>?
     
-    @LockedBox var databaseSnapshotCount = 0
+    @Mutex var databaseSnapshotCount = 0
     
     /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
     private var suspensionObservers: [NSObjectProtocol] = []

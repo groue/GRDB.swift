@@ -281,7 +281,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     var isInsideTransactionBlock = false
     
     /// Support for `checkForSuspensionViolation(from:)`
-    @LockedBox var isSuspended = false
+    @Mutex var isSuspended = false
     
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
@@ -1112,7 +1112,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Suspension ends with `resume()`.
     func suspend() {
-        $isSuspended.update { isSuspended in
+        $isSuspended.withLock { isSuspended in
             if isSuspended {
                 return
             }
@@ -1169,7 +1169,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See `suspend()` and ``Configuration/observesSuspensionNotifications``.
     func checkForSuspensionViolation(from statement: Statement) throws {
-        try $isSuspended.read { isSuspended in
+        try $isSuspended.withLock { isSuspended in
             guard isSuspended else {
                 return
             }

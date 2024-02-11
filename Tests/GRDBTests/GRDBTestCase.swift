@@ -56,7 +56,7 @@ class GRDBTestCase: XCTestCase {
     private var dbDirectoryPath: String!
     
     // Populated by default configuration
-    @LockedBox var sqlQueries: [String] = []
+    @Mutex var sqlQueries: [String] = []
     
     // Populated by default configuration
     var lastSQLQuery: String? { sqlQueries.last }
