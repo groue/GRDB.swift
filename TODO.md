@@ -91,7 +91,7 @@
 - [ ] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
 - [X] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
 - [X] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
-- [ ] GRDB7: Replace LockedBox with Mutex (00ccab06)
+- [X] GRDB7: Replace LockedBox with Mutex (00ccab06)
 - [ ] GRDB7: Sendable: BusyCallback (e0d8e20b)
 - [ ] GRDB7: Sendable: BusyMode (e0d8e20b)
 - [ ] GRDB7: Sendable: TransactionClock (f7dc72a5)

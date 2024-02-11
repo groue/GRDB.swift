@@ -80,7 +80,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -105,7 +105,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -131,7 +131,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("bs2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -170,7 +170,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                                 .order(Column("colb2")))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -221,7 +221,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .hasMany(Child.self))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -244,7 +244,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .hasMany(Child.self))
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -263,7 +263,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .filter(Column("parentA") == "foo")
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -286,7 +286,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .limit(1)
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -318,7 +318,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -352,7 +352,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -404,7 +404,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("cs2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -502,7 +502,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                                 .including(all: Child.hasMany(GrandChild.self)))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -534,7 +534,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                                 .including(all: Child.hasMany(GrandChild.self)))
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -550,7 +550,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                                 .including(all: Child.hasMany(GrandChild.self)))
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -576,7 +576,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .filter(Column("name") == "foo")
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -617,7 +617,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -646,7 +646,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -699,7 +699,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("cs2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -741,7 +741,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -777,7 +777,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("ds3"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -821,7 +821,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -856,7 +856,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -894,7 +894,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -936,7 +936,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -970,7 +970,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1010,7 +1010,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .including(all: A.hasMany(C.self))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1052,7 +1052,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .including(all: A.hasMany(C.self))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1098,7 +1098,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .including(all: A.hasMany(C.self))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1139,7 +1139,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     )
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1191,7 +1191,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("a2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1249,7 +1249,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     )
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1301,7 +1301,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("c2"))
                     .orderByPrimaryKey()
 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1361,7 +1361,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .filter(Column("cold2") != 8)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1399,7 +1399,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .filter(Column("cold2") != 8)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1437,7 +1437,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     )
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1492,7 +1492,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("a2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1553,7 +1553,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     )
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1608,7 +1608,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                         .forKey("c2"))
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1671,7 +1671,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .filter(Column("cold2") != 8)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1712,7 +1712,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .filter(Column("cold2") != 8)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1755,7 +1755,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .filter(sql: "1 + 1")
                     .orderByPrimaryKey()
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter(isSelectQuery)
@@ -1802,7 +1802,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             
             do {
                 // Group an association
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let association = Team.players.select(max(Column("score"))).group(Column("category"))
                 let request = Team.including(all: association)
                 _ = try Row.fetchAll(db, request)
@@ -1821,7 +1821,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             
             do {
                 // Filter an association with an association aggregate
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let association = Team.players.having(Player.awards.isEmpty)
                 let request = Team.including(all: association)
                 _ = try Row.fetchAll(db, request)
@@ -1842,7 +1842,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             
             do {
                 // Annotate an association with an association aggregate
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let association = Team.players.annotated(with: Player.awards.count)
                 let request = Team.including(all: association)
                 _ = try Row.fetchAll(db, request)
@@ -1880,7 +1880,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let association = Team.players.distinct()
                 let request = Team.including(all: association)
                 _ = try Row.fetchAll(db, request)
@@ -1916,7 +1916,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let cte = CommonTableExpression(named: "cte", sql: "SELECT 42")
                 let association = Team.players.with(cte).filter(Column("playerId") == cte.all())
                 let request = Team.including(all: association)

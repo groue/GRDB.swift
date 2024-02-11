@@ -64,10 +64,12 @@ class GRDBTestCase: XCTestCase {
     // The default path for database pool directory
     private var dbDirectoryPath: String!
     
-    // Populated by default configuration
-    @LockedBox var sqlQueries: [String] = []
+    let _sqlQueriesMutex: Mutex<[String]> = Mutex([])
     
-    // Populated by default configuration
+    // Automatically updated by default dbConfiguration
+    var sqlQueries: [String] { _sqlQueriesMutex.load() }
+    
+    // Automatically updated by default dbConfiguration
     var lastSQLQuery: String? { sqlQueries.last }
     
     override func setUp() {
@@ -112,9 +114,11 @@ class GRDBTestCase: XCTestCase {
             }
         }
         
-        dbConfiguration.prepareDatabase { db in
+        dbConfiguration.prepareDatabase { [_sqlQueriesMutex] db in
             db.trace { event in
-                self.sqlQueries.append(event.expandedDescription)
+                _sqlQueriesMutex.withLock {
+                    $0.append(event.expandedDescription)
+                }
             }
             
             #if GRDBCIPHER_USE_ENCRYPTION
@@ -122,12 +126,16 @@ class GRDBTestCase: XCTestCase {
             #endif
         }
         
-        sqlQueries = []
+        clearSQLQueries()
     }
     
     override func tearDown() {
         super.tearDown()
         do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
+    }
+    
+    func clearSQLQueries() {
+        _sqlQueriesMutex.store([])
     }
     
     func assertNoError(file: StaticString = #file, line: UInt = #line, _ test: () throws -> Void) {
