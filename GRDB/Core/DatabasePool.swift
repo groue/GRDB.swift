@@ -62,17 +62,15 @@ public final class DatabasePool {
         // an opened transaction.
         readerConfiguration.allowsUnsafeTransactions = false
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [readerConfiguration] index in
                 return try SerializedDatabase(
                     path: path,
                     configuration: readerConfiguration,
                     defaultLabel: "GRDB.DatabasePool",
-                    purpose: "reader.\(readerCount)")
+                    purpose: "reader.\(index)")
             })
         
         // Set up journal mode unless readonly
@@ -357,7 +355,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -401,7 +399,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -446,25 +444,22 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        // The semaphore that blocks until futureResult is defined:
-        let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: Result<T, Error>? = nil
+    public func concurrentRead<T>(_ value: @escaping @Sendable (Database) throws -> T) -> DatabaseFuture<T> {
+        let builder = UnsafeDatabaseFutureBuilder<T>()
         
         asyncConcurrentRead { dbResult in
-            // Fetch and release the future
-            futureResult = dbResult.flatMap { db in Result { try value(db) } }
-            futureSemaphore.signal()
+            let result = dbResult.flatMap { db in
+                Result {
+                    try value(db)
+                }
+            }
+            builder.setResultAndReleaseFuture(result)
         }
         
-        return DatabaseFuture {
-            // Block the future until results are fetched
-            _ = futureSemaphore.wait(timeout: .distantFuture)
-            return try futureResult!.get()
-        }
+        return builder.makeFuture()
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         asyncConcurrentRead(value)
     }
     
@@ -505,7 +500,7 @@ extension DatabasePool: DatabaseReader {
     /// ```
     ///
     /// - parameter value: A function that accesses the database.
-    public func asyncConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -664,7 +659,9 @@ extension DatabasePool: DatabaseReader {
     ///
     /// - important: The `completion` argument is executed in a serial
     ///   dispatch queue, so make sure you use the transaction asynchronously.
-    func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+    func asyncWALSnapshotTransaction(
+        _ completion: @escaping @Sendable (Result<WALSnapshotTransaction, Error>) -> Void
+    ) {
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -690,7 +687,7 @@ extension DatabasePool: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
         if configuration.readonly {
@@ -721,7 +718,7 @@ extension DatabasePool: DatabaseReader {
     private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -755,7 +752,7 @@ extension DatabasePool: DatabaseWriter {
         }
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -808,7 +805,7 @@ extension DatabasePool: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
         writer.async(updates)
     }
 }

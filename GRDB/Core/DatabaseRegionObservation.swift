@@ -43,7 +43,9 @@ extension DatabaseRegionObservation {
 
 extension DatabaseRegionObservation {
     /// The state of a started DatabaseRegionObservation
-    private enum ObservationState {
+    private enum ObservationState: @unchecked Sendable {
+        // @unchecked because we don't use DatabaseRegionObserver outside of
+        // the writer dispatch queue.
         case cancelled
         case pending
         case started(DatabaseRegionObserver)
@@ -85,20 +87,20 @@ extension DatabaseRegionObservation {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         in writer: some DatabaseWriter,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Database) -> Void)
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Database) -> Void)
     -> AnyDatabaseCancellable
     {
-        @LockedBox var state = ObservationState.pending
+        let stateBox = LockedBox(wrappedValue: ObservationState.pending)
         
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         writer.unsafeReentrantWrite { db in
             do {
                 let region = try observedRegion(db).observableRegion(db)
-                $state.update {
+                stateBox.update {
                     let observer = DatabaseRegionObserver(region: region, onChange: {
-                        if case .cancelled = state {
+                        if case .cancelled = stateBox.wrappedValue {
                             return
                         }
                         onChange($0)
@@ -122,7 +124,7 @@ extension DatabaseRegionObservation {
             // Deallocates the transaction observer. This makes sure that the
             // `onChange` callback will never be called again, because the
             // observation was started with the `.observerLifetime` extent.
-            state = .cancelled
+            stateBox.wrappedValue = .cancelled
         }
     }
 }
@@ -152,7 +154,7 @@ private class DatabaseRegionObserver: TransactionObserver {
     let onChange: (Database) -> Void
     var isChanged = false
     
-    init(region: DatabaseRegion, onChange: @escaping (Database) -> Void) {
+    init(region: DatabaseRegion, onChange: @escaping @Sendable (Database) -> Void) {
         self.region = region
         self.onChange = onChange
     }
