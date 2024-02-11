@@ -1,5 +1,5 @@
 /// An internal struct that defines a migration.
-struct Migration {
+struct Migration: Sendable {
     enum ForeignKeyChecks {
         case deferred
         case immediate
@@ -8,7 +8,7 @@ struct Migration {
     
     let identifier: String
     var foreignKeyChecks: ForeignKeyChecks
-    let migrate: (Database) throws -> Void
+    let migrate: @Sendable (Database) throws -> Void
     
     func run(_ db: Database) throws {
         if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
