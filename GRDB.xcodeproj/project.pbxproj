@@ -284,6 +284,7 @@
 		56B964B11DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B964B01DA51D010002DA19 /* FTS5TokenizerDescriptor.swift */; };
 		56B964B91DA51D0A0002DA19 /* FTS5Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B964B81DA51D0A0002DA19 /* FTS5Pattern.swift */; };
 		56BB6EA91D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */; };
+		56BCA65C2B79246300B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA65B2B79246300B3A7F8 /* Mutex.swift */; };
 		56BF2282241781C5003D86EB /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BF2281241781C5003D86EB /* UtilsTests.swift */; };
 		56CC922C201DFFB900CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC922B201DFFB900CB597E /* DropWhileCursorTests.swift */; };
 		56CC9243201E034D00CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9242201E034D00CB597E /* PrefixWhileCursorTests.swift */; };
@@ -783,6 +784,7 @@
 		56B964C11DA521450002DA19 /* FTS5RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5RecordTests.swift; sourceTree = "<group>"; };
 		56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5TableBuilderTests.swift; sourceTree = "<group>"; };
 		56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdog.swift; sourceTree = "<group>"; };
+		56BCA65B2B79246300B3A7F8 /* Mutex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mutex.swift; sourceTree = "<group>"; };
 		56BF2281241781C5003D86EB /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
 		56C48E731C9A9923005DF1D9 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
@@ -1010,6 +1012,7 @@
 			children = (
 				56677C14241D14450050755D /* FailureTestCase.swift */,
 				5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */,
+				56BCA65B2B79246300B3A7F8 /* Mutex.swift */,
 				562EA81E1F17B26F00FA528C /* Compilation */,
 				56A238111B9C74A90082EB20 /* Core */,
 				567B5BDA2AD3281B00629622 /* Dump */,
@@ -2102,6 +2105,7 @@
 				56B021C91D8C0D3900B239BB /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
 				56D496C11D81373A008276D7 /* DatabaseQueueBackupTests.swift in Sources */,
 				562393721DEE104400A6B01F /* MapCursorTests.swift in Sources */,
+				56BCA65C2B79246300B3A7F8 /* Mutex.swift in Sources */,
 				56D496571D81303E008276D7 /* FoundationDateComponentsTests.swift in Sources */,
 				568C3F7A2A5AB2C300A2309D /* ForeignKeyDefinitionTests.swift in Sources */,
 				56D496701D81309E008276D7 /* RecordPrimaryKeyRowIDTests.swift in Sources */,

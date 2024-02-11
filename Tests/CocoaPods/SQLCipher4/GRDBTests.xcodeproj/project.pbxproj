@@ -495,6 +495,8 @@
 		568C3F982A5AB3A800A2309D /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C3F8A2A5AB3A800A2309D /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
 		5691D97227257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		5691D97327257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
+		56BCA6612B79248B00B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA6602B79248B00B3A7F8 /* Mutex.swift */; };
+		56BCA6622B79248B00B3A7F8 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA6602B79248B00B3A7F8 /* Mutex.swift */; };
 		56F61DF6283D4AB100AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DF4283D4AB100AF9884 /* getThreadsCount.c */; };
 		56F61DF7283D4AB100AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DF4283D4AB100AF9884 /* getThreadsCount.c */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -752,6 +754,7 @@
 		568C3F892A5AB3A800A2309D /* DatabaseSnapshotPoolTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSnapshotPoolTests.swift; sourceTree = "<group>"; };
 		568C3F8A2A5AB3A800A2309D /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordMinimalNonOptionalPrimaryKeySingleTests.swift; sourceTree = "<group>"; };
 		5691D97127257C930021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
+		56BCA6602B79248B00B3A7F8 /* Mutex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mutex.swift; sourceTree = "<group>"; };
 		56F61DF2283D4AB100AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DF4283D4AB100AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
 		56F61DF5283D4AB100AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
@@ -1000,6 +1003,7 @@
 				56419F0224A54093004967E1 /* MutablePersistableRecordEncodableTests.swift */,
 				56419F3124A54096004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift */,
 				56419F0124A54093004967E1 /* MutablePersistableRecordTests.swift */,
+				56BCA6602B79248B00B3A7F8 /* Mutex.swift */,
 				56419F0824A54093004967E1 /* NumericOverflowTests.swift */,
 				56419F0324A54093004967E1 /* OrderedDictionaryTests.swift */,
 				56419F1A24A54094004967E1 /* PersistableRecordTests.swift */,
@@ -1484,6 +1488,7 @@
 				5641A14E24A540A2004967E1 /* DatabaseFunctionTests.swift in Sources */,
 				5641A0C024A540A1004967E1 /* ValueObservationRecorderTests.swift in Sources */,
 				5641A08024A540A1004967E1 /* ResultCodeTests.swift in Sources */,
+				56BCA6612B79248B00B3A7F8 /* Mutex.swift in Sources */,
 				5641A12C24A540A1004967E1 /* FTS3TableBuilderTests.swift in Sources */,
 				5641A07424A540A1004967E1 /* RawRepresentable+DatabaseValueConvertibleTests.swift in Sources */,
 				5641A0DA24A540A1004967E1 /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
@@ -1732,6 +1737,7 @@
 				5641A14F24A540A2004967E1 /* DatabaseFunctionTests.swift in Sources */,
 				5641A0C124A540A1004967E1 /* ValueObservationRecorderTests.swift in Sources */,
 				5641A08124A540A1004967E1 /* ResultCodeTests.swift in Sources */,
+				56BCA6622B79248B00B3A7F8 /* Mutex.swift in Sources */,
 				5641A12D24A540A1004967E1 /* FTS3TableBuilderTests.swift in Sources */,
 				5641A07524A540A1004967E1 /* RawRepresentable+DatabaseValueConvertibleTests.swift in Sources */,
 				5641A0DB24A540A1004967E1 /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
