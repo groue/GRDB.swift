@@ -57,7 +57,7 @@ public struct SQLExpression {
     var preferredJSONInterpretation = JSONInterpretation.deferredToSQLite
     
     /// The private implementation of the public `SQLExpression`.
-    private enum Impl {
+    private enum Impl: Sendable {
         /// A column.
         ///
         ///     id
@@ -315,7 +315,7 @@ public struct SQLExpression {
     ///     1000.databaseValue]
     /// let request = Player.select(values.joined(operator: .add))
     /// ```
-    public struct AssociativeBinaryOperator: Hashable {
+    public struct AssociativeBinaryOperator: Hashable, Sendable {
         /// The SQL operator
         let sql: String
         

@@ -339,7 +339,7 @@ extension TableRecord {
     /// - returns: An association to the common table expression.
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
@@ -559,7 +559,7 @@ extension TableRecord where Self: EncodableRecord {
     /// ```
     public func request<A: Association>(for association: A)
     -> QueryInterfaceRequest<A.RowDecoder>
-    where A.OriginRowDecoder == Self
+    where A.OriginRowDecoder == Self, Self: Sendable
     {
         switch association._sqlAssociation.pivot.condition {
         case .expression:

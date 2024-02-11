@@ -172,11 +172,12 @@ class StatementArgumentsSink {
     private(set) var arguments: StatementArguments
     private let rawSQL: Bool
     
+    // It's ok no make it nonisolated, because the instance is never modified.
     /// A sink which turns all argument values into SQL literals.
     ///
     /// The `"WHERE name = \("O'Brien")"` SQL literal is turned into the
     /// `WHERE name = 'O''Brien'` SQL.
-    static let literalValues = StatementArgumentsSink(rawSQL: true)
+    nonisolated(unsafe) static let literalValues = StatementArgumentsSink(rawSQL: true)
     
     private init(rawSQL: Bool) {
         self.arguments = []
@@ -514,6 +515,9 @@ extension TableAlias: Hashable {
         hasher.combine(ObjectIdentifier(root))
     }
 }
+
+// TODO: make it really Sendable.
+extension TableAlias: @unchecked Sendable { }
 
 extension [TableAlias] {
     /// Resolve ambiguities in aliases' names.
