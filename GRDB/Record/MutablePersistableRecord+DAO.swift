@@ -266,16 +266,17 @@ final class DAO<Record: MutablePersistableRecord> {
 
 // MARK: - InsertQuery
 
-private struct InsertQuery: Hashable {
+private struct InsertQuery: Hashable, Sendable {
     let onConflict: Database.ConflictResolution
     let tableName: String
     let insertedColumns: [String]
 }
 
 extension InsertQuery {
-    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
+    private static let cache: ReadWriteBox<[InsertQuery: String]> = ReadWriteBox(wrappedValue: [:])
+    
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cache.wrappedValue[self] {
             return sql
         }
         let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
@@ -294,7 +295,7 @@ extension InsertQuery {
             VALUES (\(valuesSQL))
             """
         }
-        Self.sqlCache[self] = sql
+        Self.cache.update { $0[self] = sql }
         return sql
     }
 }
@@ -309,9 +310,10 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
+    private static let cache: ReadWriteBox<[UpdateQuery: String]> = ReadWriteBox(wrappedValue: [:])
+    
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cache.wrappedValue[self] {
             return sql
         }
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
@@ -331,7 +333,7 @@ extension UpdateQuery {
                 WHERE \(whereSQL)
                 """
         }
-        Self.sqlCache[self] = sql
+        Self.cache.update { $0[self] = sql }
         return sql
     }
 }

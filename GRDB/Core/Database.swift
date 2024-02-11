@@ -1852,7 +1852,7 @@ extension Database {
     /// The available checkpoint modes.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/wal_checkpoint_v2.html>
-    public enum CheckpointMode: CInt {
+    public enum CheckpointMode: CInt, Sendable {
         /// The `SQLITE_CHECKPOINT_PASSIVE` mode.
         case passive = 0
         
@@ -1959,7 +1959,7 @@ extension Database {
     /// An SQLite conflict resolution.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_conflict.html>
-    public enum ConflictResolution: String {
+    public enum ConflictResolution: String, Sendable {
         /// The `ROLLBACK` conflict resolution.
         case rollback = "ROLLBACK"
         
@@ -1979,7 +1979,7 @@ extension Database {
     /// A foreign key action.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/foreignkeys.html>
-    public enum ForeignKeyAction: String {
+    public enum ForeignKeyAction: String, Sendable {
         /// The `CASCADE` foreign key action.
         case cascade = "CASCADE"
         
@@ -2135,7 +2135,7 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
     @frozen
-    public enum TransactionCompletion {
+    public enum TransactionCompletion: Sendable {
         case commit
         case rollback
     }
@@ -2159,7 +2159,7 @@ extension Database {
     /// - Note: Only the multi-thread mode (`SQLITE_OPEN_NOMUTEX`) is currently
     /// supported, since all <doc:DatabaseConnections> access SQLite connections
     /// through a `SerializedDatabase`.
-    enum ThreadingMode {
+    enum ThreadingMode: Sendable {
         case `default`
         case multiThread
         case serialized
