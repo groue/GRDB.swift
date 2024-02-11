@@ -11,7 +11,7 @@ public final class DatabasePool {
     /// It is constant, until close() sets it to nil.
     private var readerPool: Pool<SerializedDatabase>?
     
-    @LockedBox var databaseSnapshotCount = 0
+    let databaseSnapshotCountMutex = Mutex(0)
     
     /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
     private var suspensionObservers: [NSObjectProtocol] = []
@@ -144,7 +144,7 @@ public final class DatabasePool {
     }
 }
 
-// @unchecked because of databaseSnapshotCount, readerPool and suspensionObservers
+// @unchecked because of readerPool and suspensionObservers
 extension DatabasePool: @unchecked Sendable { }
 
 extension DatabasePool {
@@ -863,7 +863,7 @@ extension DatabasePool {
             path: path,
             configuration: DatabasePool.readerConfiguration(writer.configuration),
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\($databaseSnapshotCount.increment())")
+            purpose: "snapshot.\(databaseSnapshotCountMutex.increment())")
     }
     
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)

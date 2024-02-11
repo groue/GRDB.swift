@@ -64,10 +64,15 @@ class GRDBTestCase: XCTestCase {
     // The default path for database pool directory
     private var dbDirectoryPath: String!
     
-    // Populated by default configuration
-    @LockedBox var sqlQueries: [String] = []
+    let _sqlQueriesMutex: Mutex<[String]> = Mutex([])
     
-    // Populated by default configuration
+    // Automatically updated by default dbConfiguration
+    var sqlQueries: [String] {
+        get { _sqlQueriesMutex.value }
+        set { _sqlQueriesMutex.value = newValue }
+    }
+    
+    // Automatically updated by default dbConfiguration
     var lastSQLQuery: String? { sqlQueries.last }
     
     override func setUp() {
