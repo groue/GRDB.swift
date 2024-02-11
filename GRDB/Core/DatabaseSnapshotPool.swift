@@ -130,6 +130,7 @@ public final class DatabaseSnapshotPool {
     ///   `db` is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(_ db: Database, configuration: Configuration? = nil) throws {
+        let path = db.path
         var configuration = Self.configure(configuration ?? db.configuration)
         
         // Acquire and hold WAL snapshot
@@ -138,7 +139,7 @@ public final class DatabaseSnapshotPool {
         }
         var holderConfig = Configuration()
         holderConfig.allowsUnsafeTransactions = true
-        snapshotHolder = try DatabaseQueue(path: db.path, configuration: holderConfig)
+        snapshotHolder = try DatabaseQueue(path: path, configuration: holderConfig)
         try snapshotHolder.inDatabase { db in
             try db.beginTransaction(.deferred)
             try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
@@ -158,20 +159,18 @@ public final class DatabaseSnapshotPool {
         }
         
         self.configuration = configuration
-        self.path = db.path
+        self.path = path
         self.walSnapshot = walSnapshot
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [configuration] index in
                 return try SerializedDatabase(
-                    path: db.path,
+                    path: path,
                     configuration: configuration,
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
-                    purpose: "snapshot.\(readerCount)")
+                    purpose: "snapshot.\(index)")
             })
     }
     
@@ -219,17 +218,15 @@ public final class DatabaseSnapshotPool {
         self.path = path
         self.walSnapshot = walSnapshot
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [configuration] index in
                 return try SerializedDatabase(
                     path: path,
                     configuration: configuration,
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
-                    purpose: "snapshot.\(readerCount)")
+                    purpose: "snapshot.\(index)")
             })
     }
     
