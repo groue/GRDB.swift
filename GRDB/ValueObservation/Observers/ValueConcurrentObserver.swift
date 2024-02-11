@@ -146,7 +146,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     private var notificationCallbacks: NotificationCallbacks?
     
     /// The fetching state for observation of constant regions.
-    @LockedBox private var fetchingState = FetchingState.idle
+    private let fetchingStateMutex = Mutex(FetchingState.idle)
     
     /// Support for `TransactionObserver`, protected by the serialized writer
     /// dispatch queue.
@@ -780,7 +780,7 @@ extension ValueConcurrentObserver: TransactionObserver {
     }
     
     private func setNeedsFetching(databaseAccess: DatabaseAccess) {
-        $fetchingState.update { state in
+        fetchingStateMutex.withLock { state in
             switch state {
             case .idle:
                 state = .fetching
@@ -806,7 +806,7 @@ extension ValueConcurrentObserver: TransactionObserver {
             
             self.reduce(fetchResult)
             
-            $fetchingState.update { state in
+            fetchingStateMutex.withLock { state in
                 switch state {
                 case .idle:
                     // GRDB bug

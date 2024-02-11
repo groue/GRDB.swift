@@ -234,31 +234,30 @@ extension ValueObservation: Refinable {
         to stream: TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let lock = NSLock()
+        let streamMutex = Mutex(stream ?? PrintOutputStream())
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
-        var stream = stream ?? PrintOutputStream()
         return handleEvents(
             willStart: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)start") },
+                streamMutex.withLock { $0.write("\(prefix)start") }
+            },
             willFetch: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)fetch") },
-            willTrackRegion: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)tracked region: \($0)") },
+                streamMutex.withLock { $0.write("\(prefix)fetch") }
+            },
+            willTrackRegion: { region in
+                streamMutex.withLock { $0.write("\(prefix)tracked region: \(region)") }
+            },
             databaseDidChange: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)database did change") },
-            didReceiveValue: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)value: \($0)") },
-            didFail: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)failure: \($0)") },
+                streamMutex.withLock { $0.write("\(prefix)database did change") }
+            },
+            didReceiveValue: { value in
+                streamMutex.withLock { $0.write("\(prefix)value: \(value)") }
+            },
+            didFail: { error in
+                streamMutex.withLock { $0.write("\(prefix)failure: \(error)") }
+            },
             didCancel: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)cancel") })
+                streamMutex.withLock { $0.write("\(prefix)cancel") }
+            })
     }
     
     // MARK: - Fetching Values

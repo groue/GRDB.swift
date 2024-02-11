@@ -292,7 +292,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     var isInsideTransactionBlock = false
     
     /// Support for `checkForSuspensionViolation(from:)`
-    @LockedBox var isSuspended = false
+    let isSuspendedMutex = Mutex(false)
     
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
@@ -1125,22 +1125,25 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Suspension ends with `resume()`.
     func suspend() {
-        $isSuspended.update { isSuspended in
+        let needsInterrupt = isSuspendedMutex.withLock { isSuspended in
             if isSuspended {
-                return
+                return false
             }
             
-            // Prevent future lock acquisition
             isSuspended = true
-            
-            // Interrupt the database because this may trigger an
-            // SQLITE_INTERRUPT error which may itself abort a transaction and
-            // release a lock. See <https://www.sqlite.org/c3ref/interrupt.html>
+            return true
+        }
+        
+        if needsInterrupt {
+            // Interrupting the database can trigger an SQLITE_INTERRUPT
+            // error which may itself abort a transaction and
+            // release a database lock, which is our goal.
+            // See <https://www.sqlite.org/c3ref/interrupt.html>
+            //
+            // Maybe interrupt will not release any lock. To address this,
+            // we'll issue a rollback on next database access which requires
+            // a lock. See `checkForSuspensionViolation(from:).`
             interrupt()
-            
-            // Now what about the eventual remaining lock? We'll issue a
-            // rollback on next database access which requires a lock, in
-            // checkForSuspensionViolation(from:).
         }
     }
     
@@ -1152,7 +1155,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See suspend().
     func resume() {
-        isSuspended = false
+        isSuspendedMutex.value = false
     }
     
     /// Support for `checkForSuspensionViolation(from:)`
@@ -1182,9 +1185,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See `suspend()` and ``Configuration/observesSuspensionNotifications``.
     func checkForSuspensionViolation(from statement: Statement) throws {
-        try $isSuspended.read { isSuspended in
+        let needsAbort = try isSuspendedMutex.withLock { isSuspended in
             guard isSuspended else {
-                return
+                return false
             }
             
             if try journalMode() == "wal" && statement.isReadonly {
@@ -1195,7 +1198,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // Those are not read-only:
                 // - INSERT ...
                 // - BEGIN IMMEDIATE TRANSACTION
-                return
+                return false
             }
             
             if statement.releasesDatabaseLock {
@@ -1204,9 +1207,14 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // - ROLLBACK
                 // - ROLLBACK TRANSACTION TO SAVEPOINT
                 // - RELEASE SAVEPOINT
-                return
+                return false
             }
             
+            // Assume statement can acquire a write lock: abort.
+            return true
+        }
+        
+        if needsAbort {
             // Attempt at releasing an eventual lock with ROLLBACk,
             // as explained in Database.suspend().
             //

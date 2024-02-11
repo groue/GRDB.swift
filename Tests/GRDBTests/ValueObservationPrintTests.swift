@@ -4,9 +4,10 @@ import Dispatch
 
 class ValueObservationPrintTests: GRDBTestCase {
     class TestStream: TextOutputStream {
-        @LockedBox var strings: [String] = []
+        private var stringsMutex: Mutex<[String]> = Mutex([])
+        var strings: [String] { stringsMutex.value }
         func write(_ string: String) {
-            strings.append(string)
+            stringsMutex.value.append(string)
         }
     }
     
