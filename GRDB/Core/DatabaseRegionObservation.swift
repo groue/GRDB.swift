@@ -214,9 +214,11 @@ extension DatabasePublishers {
         }
     }
     
-    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
+    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable
     where Downstream.Failure == Error, Downstream.Input == Database
     {
+        // @unchecked because `cancellable` and `state` are protected by `lock`.
+
         private struct WaitingForDemand {
             let downstream: Downstream
             let writer: any DatabaseWriter
