@@ -88,6 +88,7 @@
     - migrations
     - AsyncValueObservation
 - [ ] GRDB7 JSONB https://hachyderm.io/@jason_abbott/111908186742242971#.
+- [ ] GRDB7: stop exporting CSQLite https://github.com/groue/GRDB.swift/issues/642#issuecomment-1937347696
     
 
 
