@@ -138,7 +138,7 @@ extension SQLOrdering {
 /// ### Supporting Type
 ///
 /// - ``SQLOrdering``
-public protocol SQLOrderingTerm {
+public protocol SQLOrderingTerm: Sendable {
     /// Returns an SQL ordering.
     var sqlOrdering: SQLOrdering { get }
 }

@@ -301,7 +301,7 @@ enum SQLCount {
 ///
 /// - ``AllColumns``
 /// - ``SQLSelection``
-public protocol SQLSelectable {
+public protocol SQLSelectable: Sendable {
     /// Returns an SQL selection.
     var sqlSelection: SQLSelection { get }
 }

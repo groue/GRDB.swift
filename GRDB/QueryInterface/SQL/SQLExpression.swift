@@ -2109,7 +2109,7 @@ extension SQLExpression {
 /// A type that can be used as an SQL expression.
 ///
 /// Related SQLite documentation <https://www.sqlite.org/syntax/expr.html>
-public protocol SQLExpressible {
+public protocol SQLExpressible: Sendable {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
 }
