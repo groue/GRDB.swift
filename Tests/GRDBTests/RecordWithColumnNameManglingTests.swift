@@ -13,7 +13,7 @@ class BadlyMangledStuff : Record {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    @Sendable static func setup(inDatabase db: Database) throws {
         try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
     }
     
