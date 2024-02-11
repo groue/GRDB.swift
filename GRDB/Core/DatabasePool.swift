@@ -62,17 +62,15 @@ public final class DatabasePool {
         // an opened transaction.
         readerConfiguration.allowsUnsafeTransactions = false
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [readerConfiguration] index in
                 return try SerializedDatabase(
                     path: path,
                     configuration: readerConfiguration,
                     defaultLabel: "GRDB.DatabasePool",
-                    purpose: "reader.\(readerCount)")
+                    purpose: "reader.\(index)")
             })
         
         // Set up journal mode unless readonly
