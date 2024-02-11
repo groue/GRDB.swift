@@ -1078,7 +1078,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, all signed and unsigned integer types, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), [Decimal](#nsnumber-nsdecimalnumber-and-decimal), NSNull, [NSNumber](#nsnumber-nsdecimalnumber-and-decimal), NSString, URL, [UUID](#uuid).
+- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), [Decimal](#nsnumber-nsdecimalnumber-and-decimal), NSNull, [NSNumber](#nsnumber-nsdecimalnumber-and-decimal), URL, [UUID](#uuid).
     
 - **CoreGraphics**: CGFloat.
 
