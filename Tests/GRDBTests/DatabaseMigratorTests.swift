@@ -122,7 +122,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "")
-            migrator.asyncMigrate(writer, completion: { dbResult in
+            migrator.asyncMigrate(writer, completion: { [migrator2] dbResult in
                 // No migration error
                 let db = try! dbResult.get()
                 
@@ -789,13 +789,13 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         
-        var witness = 1
+        let mutex = Mutex(0)
         migrator.registerMigration("1") { db in
+            let value = mutex.increment()
             try db.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY);
                 INSERT INTO t1(id) VALUES (?)
-                """, arguments: [witness])
-            witness += 1
+                """, arguments: [value])
         }
         
         let dbQueue = try makeDatabaseQueue()

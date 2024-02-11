@@ -15,7 +15,7 @@ private class Person : Record {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    @Sendable static func setup(inDatabase db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE persons (
                 id INTEGER PRIMARY KEY,
