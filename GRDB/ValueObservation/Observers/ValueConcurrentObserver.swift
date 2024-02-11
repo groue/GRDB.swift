@@ -18,7 +18,10 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler> {
+final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler>: @unchecked Sendable {
+    // @unchecked because mutable state is protected by various locks and
+    // serial dispatch queues. See "Mutable State" below.
+    
     // MARK: - Configuration
     //
     // Configuration is not mutable.
@@ -72,7 +75,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     //   be notified. See error catching clauses.
     
     /// Ability to access the database
-    private struct DatabaseAccess {
+    private struct DatabaseAccess: Sendable {
         /// The observed DatabasePool.
         let dbPool: DatabasePool
         
@@ -102,7 +105,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     }
     
     /// The fetching state for observation of constant regions.
-    enum FetchingState {
+    enum FetchingState: Sendable {
         /// No need to fetch.
         case idle
         
@@ -115,13 +118,13 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     }
     
     /// Ability to notify observation events
-    private struct NotificationCallbacks {
+    private struct NotificationCallbacks: Sendable {
         let events: ValueObservationEvents
-        let onChange: (Reducer.Value) -> Void
+        let onChange: @Sendable (Reducer.Value) -> Void
     }
     
     /// Relationship with the `TransactionObserver` protocol
-    private struct ObservationState {
+    private struct ObservationState: Sendable {
         var region: DatabaseRegion?
         var isModified = false
         
@@ -161,7 +164,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler

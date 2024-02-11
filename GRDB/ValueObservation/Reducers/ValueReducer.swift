@@ -36,7 +36,7 @@ public protocol _ValueReducer {
 /// ### Support
 ///
 /// - ``ValueReducers``
-public protocol ValueReducer: _ValueReducer {
+public protocol ValueReducer: _ValueReducer, Sendable {
     /// Fetches database values upon changes in an observed database region.
     ///
     /// This method must does not depend on the state of the reducer.

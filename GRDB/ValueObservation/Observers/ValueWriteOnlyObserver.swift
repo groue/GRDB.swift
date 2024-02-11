@@ -21,8 +21,11 @@ import Foundation
 final class ValueWriteOnlyObserver<
     Writer: DatabaseWriter,
     Reducer: ValueReducer,
-    Scheduler: ValueObservationScheduler>
+    Scheduler: ValueObservationScheduler>: @unchecked Sendable
 {
+    // @unchecked because mutable state is protected by various locks and
+    // serial dispatch queues. See "Mutable State" below.
+    
     // MARK: - Configuration
     //
     // Configuration is not mutable.
@@ -76,7 +79,7 @@ final class ValueWriteOnlyObserver<
     //   be notified. See error catching clauses.
     
     /// Ability to access the database
-    private struct DatabaseAccess {
+    private struct DatabaseAccess: Sendable {
         /// The observed DatabaseWriter.
         let writer: Writer
         
@@ -110,13 +113,13 @@ final class ValueWriteOnlyObserver<
     }
     
     /// Ability to notify observation events
-    private struct NotificationCallbacks {
+    private struct NotificationCallbacks: Sendable {
         let events: ValueObservationEvents
-        let onChange: (Reducer.Value) -> Void
+        let onChange: @Sendable (Reducer.Value) -> Void
     }
     
     /// Relationship with the `TransactionObserver` protocol
-    private struct ObservationState {
+    private struct ObservationState: Sendable {
         var region: DatabaseRegion?
         var isModified = false
         
@@ -150,7 +153,7 @@ final class ValueWriteOnlyObserver<
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler

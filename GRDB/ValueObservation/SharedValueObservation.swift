@@ -1,7 +1,7 @@
 import Foundation
 
 /// The extent of the shared subscription to a ``SharedValueObservation``.
-public enum SharedValueObservationExtent {
+public enum SharedValueObservationExtent: Sendable {
     /// The ``SharedValueObservation`` starts a single database observation,
     /// which stops when the `SharedValueObservation` is deallocated and all
     /// subscriptions terminated.
@@ -167,7 +167,8 @@ extension ValueObservation {
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element> {
+public final class SharedValueObservation<Element: Sendable>: @unchecked Sendable {
+    // @unchecked because `clients` is protected by `lock`.
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
     private let startObservation: ValueObservationStart<Element>
@@ -179,11 +180,11 @@ public final class SharedValueObservation<Element> {
     private var cancellable: AnyDatabaseCancellable?
     private var lastResult: Result<Element, Error>?
     
-    private final class Client {
-        var onError: (Error) -> Void
-        var onChange: (Element) -> Void
+    private final class Client: Sendable {
+        let onError: @Sendable (Error) -> Void
+        let onChange: @Sendable (Element) -> Void
         
-        init(onError: @escaping (Error) -> Void, onChange: @escaping (Element) -> Void) {
+        init(onError: @escaping @Sendable (Error) -> Void, onChange: @escaping @Sendable (Element) -> Void) {
             self.onError = onError
             self.onChange = onChange
         }
@@ -224,8 +225,8 @@ public final class SharedValueObservation<Element> {
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Element) -> Void)
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
         synchronized {
