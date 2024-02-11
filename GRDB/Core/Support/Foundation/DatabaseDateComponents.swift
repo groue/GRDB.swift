@@ -4,7 +4,7 @@ import Foundation
 public struct DatabaseDateComponents {
     
     /// The SQLite formats for date components.
-    public enum Format: String {
+    public enum Format: String, Sendable {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"
