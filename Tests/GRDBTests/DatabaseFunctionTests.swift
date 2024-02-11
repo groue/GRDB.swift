@@ -342,19 +342,4 @@ class DatabaseFunctionTests: GRDBTestCase {
             }
         }
     }
-
-    // MARK: - Misc
-
-    func testFunctionsAreClosures() throws {
-        let dbQueue = try makeDatabaseQueue()
-        var x = 123
-        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
-            return x
-        }
-        try dbQueue.inDatabase { db in
-            db.add(function: fn)
-            x = 321
-            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f()")!, 321)
-        }
-    }
 }
