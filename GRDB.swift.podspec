@@ -18,6 +18,7 @@ Pod::Spec.new do |s|
   
   s.subspec 'standard' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/grdb_config.h'
+    ss.resources = 'GRDB/PrivacyInfo.xcprivacy'
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
     ss.xcconfig = {
@@ -27,6 +28,7 @@ Pod::Spec.new do |s|
   
   s.subspec 'SQLCipher' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/SQLCipher_config.h'
+    ss.resources = 'GRDB/PrivacyInfo.xcprivacy'
     ss.framework = 'Foundation'
     ss.dependency 'SQLCipher', '>= 3.4.2'
     ss.xcconfig = {
