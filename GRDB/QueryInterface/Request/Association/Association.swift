@@ -33,7 +33,7 @@ import Foundation
 ///
 /// - ``ForeignKey``
 /// - ``Inflections``
-public protocol Association: DerivableRequest {
+public protocol Association: DerivableRequest, Sendable {
     // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
     // type safety:
     //
