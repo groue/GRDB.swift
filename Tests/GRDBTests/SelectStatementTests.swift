@@ -139,9 +139,9 @@ class SelectStatementTests : GRDBTestCase {
     func testCachedSelectStatementStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var needsThrow = false
+            @Mutex var needsThrow = false
             db.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
-                if needsThrow {
+                if $needsThrow.wrappedValue {
                     throw DatabaseError(message: "boom")
                 }
                 return "success"

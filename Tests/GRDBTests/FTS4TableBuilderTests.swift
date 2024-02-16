@@ -272,16 +272,16 @@ class FTS4TableBuilderTests: GRDBTestCase {
     
     func testFTS4Compression() throws {
         // Based on https://github.com/groue/GRDB.swift/issues/369
-        var compressCalled = false
-        var uncompressCalled = false
+        @Mutex var compressCalled = false
+        @Mutex var uncompressCalled = false
         
         dbConfiguration.prepareDatabase { db in
             db.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
-                compressCalled = true
+                $compressCalled.withLock { $0 = true }
                 return dbValues[0]
             }))
             db.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
-                uncompressCalled = true
+                $uncompressCalled.withLock { $0 = true }
                 return dbValues[0]
             }))
         }

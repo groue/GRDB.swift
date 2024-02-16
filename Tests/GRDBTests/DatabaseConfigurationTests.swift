@@ -6,10 +6,10 @@ class DatabaseConfigurationTests: GRDBTestCase {
     
     func testPrepareDatabase() throws {
         // prepareDatabase is called when connection opens
-        var connectionCount = 0
+        @Mutex var connectionCount = 0
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            connectionCount += 1
+            $connectionCount.increment()
         }
         
         _ = try DatabaseQueue(configuration: configuration)
@@ -35,12 +35,14 @@ class DatabaseConfigurationTests: GRDBTestCase {
     
     func testPrepareDatabaseError() throws {
         struct TestError: Error { }
-        var error: TestError?
+        @Mutex var error: TestError?
         
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            if let error {
-                throw error
+            try $error.withLock { error in
+                if let error {
+                    throw error
+                }
             }
         }
         

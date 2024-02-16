@@ -3,8 +3,8 @@ import XCTest
 @testable import GRDB
 
 // Support for Database.logError
-var lastResultCode: ResultCode? = nil
-var lastMessage: String? = nil
+nonisolated(unsafe) var lastResultCode: ResultCode? = nil
+nonisolated(unsafe) var lastMessage: String? = nil
 let logErrorSetup: Void = {
     let lock = NSLock()
     Database.logError = { (resultCode, message) in

@@ -244,9 +244,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
         
-        var busyCallbackCalled = false
+        @Mutex var busyCallbackCalled = false
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            $busyCallbackCalled.withLock { $0 = true }
             s2.signal()
             return true
         }
@@ -384,9 +384,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      COMMIT
         // COMMIT
         
-        var busyCallbackCalled = false
+        @Mutex var busyCallbackCalled = false
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            $busyCallbackCalled.withLock { $0 = true }
             s3.signal()
             return true
         }

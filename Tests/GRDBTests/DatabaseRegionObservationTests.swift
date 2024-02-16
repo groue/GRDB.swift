@@ -2,6 +2,7 @@ import XCTest
 import GRDB
 
 class DatabaseRegionObservationTests: GRDBTestCase {
+    @MainActor
     func testDatabaseRegionObservation_FullDatabase() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -15,12 +16,12 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: .fullDatabase)
         
-        var count = 0
+        @Mutex var count = 0
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                $count.increment()
                 notificationExpectation.fulfill()
             })
         
@@ -68,6 +69,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testDatabaseRegionObservationVariadic() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -84,12 +86,12 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: request1, request2)
         
-        var count = 0
+        @Mutex var count = 0
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                $count.increment()
                 notificationExpectation.fulfill()
             })
         
@@ -110,6 +112,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testDatabaseRegionObservationArray() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -126,12 +129,12 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: [request1, request2])
         
-        var count = 0
+        @Mutex var count = 0
         let cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                count += 1
+                $count.increment()
                 notificationExpectation.fulfill()
             })
         
@@ -152,6 +155,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testDatabaseRegionDefaultCancellation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
@@ -162,13 +166,13 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         
-        var count = 0
+        @Mutex var count = 0
         do {
             let cancellable = observation.start(
                 in: dbQueue,
                 onError: { XCTFail("Unexpected error: \($0)") },
                 onChange: { db in
-                    count += 1
+                    $count.increment()
                     notificationExpectation.fulfill()
                 })
             
@@ -190,6 +194,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         XCTAssertEqual(count, 2)
     }
     
+    @MainActor
     func testDatabaseRegionExtentNextTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
@@ -200,18 +205,23 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         
-        var count = 0
-        var cancellable: AnyDatabaseCancellable?
-        cancellable = observation.start(
+        struct Context {
+            var count = 0
+            var cancellable: AnyDatabaseCancellable?
+        }
+        @Mutex var context = Context()
+        context.cancellable = observation.start(
             in: dbQueue,
             onError: { XCTFail("Unexpected error: \($0)") },
             onChange: { db in
-                cancellable?.cancel()
-                count += 1
+                $context.withLock {
+                    $0.cancellable?.cancel()
+                    $0.count += 1
+                }
                 notificationExpectation.fulfill()
             })
         
-        try withExtendedLifetime(cancellable) {
+        try withExtendedLifetime(context) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
             }
@@ -221,7 +231,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             }
             waitForExpectations(timeout: 1, handler: nil)
             
-            XCTAssertEqual(count, 1)
+            XCTAssertEqual(context.count, 1)
         }
     }
 

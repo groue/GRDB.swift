@@ -199,14 +199,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     }
     
     func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReadOnlyConnections_is_false() throws {
-        var persistentConnectionCount = 0
+        @Mutex var persistentConnectionCount = 0
         
         dbConfiguration.SQLiteConnectionDidOpen = {
-            persistentConnectionCount += 1
+            $persistentConnectionCount.increment()
         }
         
         dbConfiguration.SQLiteConnectionDidClose = {
-            persistentConnectionCount -= 1
+            $persistentConnectionCount.decrement()
         }
         
         dbConfiguration.persistentReadOnlyConnections = false
@@ -222,14 +222,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     }
     
     func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReadOnlyConnections_is_true() throws {
-        var persistentConnectionCount = 0
+        @Mutex var persistentConnectionCount = 0
         
         dbConfiguration.SQLiteConnectionDidOpen = {
-            persistentConnectionCount += 1
+            $persistentConnectionCount.increment()
         }
         
         dbConfiguration.SQLiteConnectionDidClose = {
-            persistentConnectionCount -= 1
+            $persistentConnectionCount.decrement()
         }
         
         dbConfiguration.persistentReadOnlyConnections = true

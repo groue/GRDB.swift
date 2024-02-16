@@ -130,24 +130,26 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
+        @Mutex var results: [Int] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var regions: [DatabaseRegion] = []
+        @Mutex var regions: [DatabaseRegion] = []
         let observation = ValueObservation
             .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             }
-            .handleEvents(willTrackRegion: { regions.append($0) })
+            .handleEvents(willTrackRegion: { region in
+                $regions.withLock { $0.append(region) }
+            })
         
         let observer = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                $results.withLock { $0.append(count) }
                 notificationExpectation.fulfill()
         })
         
@@ -181,25 +183,27 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
         }
         
-        var results: [Int] = []
+        @Mutex var results: [Int] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var regions: [DatabaseRegion] = []
+        @Mutex var regions: [DatabaseRegion] = []
         let observation = ValueObservation
             .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             }
-            .handleEvents(willTrackRegion: { regions.append($0) })
+            .handleEvents(willTrackRegion: { region in
+                $regions.withLock { $0.append(region) }
+            })
         
         let observer = observation.start(
             in: dbQueue,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
+                $results.withLock { $0.append(count) }
                 notificationExpectation.fulfill()
         })
         

@@ -8,9 +8,9 @@ class TransactionDateTests: GRDBTestCase {
             Date(),
             Date.distantFuture,
         ]
-        var dateIterator = dates.makeIterator()
+        @Mutex var dateIterator = dates.makeIterator()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            $dateIterator.withLock { $0.next()! }
         }
         
         var collectedDates: [Date] = []
@@ -28,9 +28,9 @@ class TransactionDateTests: GRDBTestCase {
             Date(),
             Date.distantFuture,
         ]
-        var dateIterator = dates.makeIterator()
+        @Mutex var dateIterator = dates.makeIterator()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            $dateIterator.withLock { $0.next()! }
         }
         
         var collectedDates: [Date] = []
@@ -51,9 +51,9 @@ class TransactionDateTests: GRDBTestCase {
             Date(),
             Date.distantFuture,
         ]
-        var dateIterator = dates.makeIterator()
+        @Mutex var dateIterator = dates.makeIterator()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            $dateIterator.withLock { $0.next()! }
         }
         
         var collectedDates: [Date] = []
@@ -74,9 +74,9 @@ class TransactionDateTests: GRDBTestCase {
             Date(),
             Date.distantFuture,
         ]
-        var dateIterator = dates.makeIterator()
+        @Mutex var dateIterator = dates.makeIterator()
         dbConfiguration.transactionClock = .custom { _ in
-            dateIterator.next()!
+            $dateIterator.withLock { $0.next()! }
         }
         
         var collectedDates: [Date] = []
@@ -107,8 +107,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        dbConfiguration.transactionClock = .custom { _ in .distantPast }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -119,7 +118,6 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
         try dbQueue.write { db in
             do {
                 var player = Player(name: "Arthur")
@@ -152,8 +150,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        @Mutex var currentDate = Date.distantPast
+        dbConfiguration.transactionClock = .custom { _ in $currentDate.wrappedValue }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -198,8 +196,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        @Mutex var currentDate = Date.distantPast
+        dbConfiguration.transactionClock = .custom { _ in $currentDate.wrappedValue }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -251,8 +249,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        @Mutex var currentDate = Date.distantPast
+        dbConfiguration.transactionClock = .custom { _ in $currentDate.wrappedValue }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -303,8 +301,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        dbConfiguration.transactionClock = .custom { _ in .distantPast }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -315,7 +312,6 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
         try dbQueue.write { db in
             var player = Player(name: "Arthur", isInserted: false)
             try player.insert(db)
@@ -354,8 +350,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        var currentDate = Date.distantPast
-        dbConfiguration.transactionClock = .custom { _ in currentDate }
+        dbConfiguration.transactionClock = .custom { _ in .distantPast }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -366,7 +361,6 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate = Date.distantPast
         try dbQueue.write { db in
             let player = Player(name: "Arthur")
             try player.insert(db)

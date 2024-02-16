@@ -114,11 +114,13 @@ class DatabaseTraceTests : GRDBTestCase {
     }
     
     func testTraceFromConfigurationWithDefaultOptions() throws {
-        var events: [String] = []
+        @Mutex var events: [String] = []
         var configuration = Configuration()
         configuration.prepareDatabase { db in
             db.trace { event in
-                events.append("SQL: \(event)")
+                $events.withLock {
+                    $0.append("SQL: \(event)")
+                }
             }
         }
         let dbQueue = try makeDatabaseQueue(configuration: configuration)
@@ -134,12 +136,14 @@ class DatabaseTraceTests : GRDBTestCase {
     }
     
     func testTraceFromConfigurationWithPublicStatementArguments() throws {
-        var events: [String] = []
+        @Mutex var events: [String] = []
         var configuration = Configuration()
         configuration.publicStatementArguments = true
         configuration.prepareDatabase { db in
             db.trace { event in
-                events.append("SQL: \(event)")
+                $events.withLock {
+                    $0.append("SQL: \(event)")
+                }
             }
         }
         let dbQueue = try makeDatabaseQueue(configuration: configuration)

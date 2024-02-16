@@ -116,10 +116,13 @@ class DatabaseMigratorTests : GRDBTestCase {
                     """)
             }
             
-            var migrator2 = migrator
-            migrator2.registerMigration("destroyPersons") { db in
-                try db.execute(sql: "DROP TABLE pets")
-            }
+            let migrator2: DatabaseMigrator = {
+                var migrator2 = migrator
+                migrator2.registerMigration("destroyPersons") { db in
+                    try db.execute(sql: "DROP TABLE pets")
+                }
+                return migrator2
+            }()
             
             let expectation = self.expectation(description: "")
             migrator.asyncMigrate(writer, completion: { dbResult in
@@ -789,13 +792,15 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         
-        var witness = 1
+        @Mutex var witness = 1
         migrator.registerMigration("1") { db in
-            try db.execute(sql: """
-                CREATE TABLE t1(id INTEGER PRIMARY KEY);
-                INSERT INTO t1(id) VALUES (?)
-                """, arguments: [witness])
-            witness += 1
+            try $witness.withLock { witness in
+                try db.execute(sql: """
+                    CREATE TABLE t1(id INTEGER PRIMARY KEY);
+                    INSERT INTO t1(id) VALUES (?)
+                    """, arguments: [witness])
+                witness += 1
+            }
         }
         
         let dbQueue = try makeDatabaseQueue()

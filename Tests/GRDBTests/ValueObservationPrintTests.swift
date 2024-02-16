@@ -410,16 +410,18 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        @Mutex var needsChange = true
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
-                if needsChange {
-                    needsChange = false
-                    try dbPool.write { db in
-                        try db.execute(sql: """
-                        INSERT INTO player DEFAULT VALUES;
-                        DELETE FROM player;
-                        """)
+                try $needsChange.withLock { needsChange in
+                    if needsChange {
+                        needsChange = false
+                        try dbPool.write { db in
+                            try db.execute(sql: """
+                                INSERT INTO player DEFAULT VALUES;
+                                DELETE FROM player;
+                                """)
+                        }
                     }
                 }
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
@@ -461,16 +463,18 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        @Mutex var needsChange = true
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
-                if needsChange {
-                    needsChange = false
-                    try dbPool.write { db in
-                        try db.execute(sql: """
-                        INSERT INTO player DEFAULT VALUES;
-                        DELETE FROM player;
-                        """)
+                try $needsChange.withLock { needsChange in
+                    if needsChange {
+                        needsChange = false
+                        try dbPool.write { db in
+                            try db.execute(sql: """
+                                INSERT INTO player DEFAULT VALUES;
+                                DELETE FROM player;
+                                """)
+                        }
                     }
                 }
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
