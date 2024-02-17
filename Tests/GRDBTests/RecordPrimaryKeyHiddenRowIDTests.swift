@@ -84,7 +84,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", migrate: Person.setup)
+        migrator.registerMigration("createPerson") {
+            try Person.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

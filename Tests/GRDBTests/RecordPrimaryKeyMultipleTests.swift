@@ -61,7 +61,9 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createCitizenship", migrate: Citizenship.setup)
+        migrator.registerMigration("createCitizenship") {
+            try Citizenship.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

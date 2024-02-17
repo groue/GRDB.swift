@@ -18,7 +18,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id")
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchAll),
+            ValueObservation.trackingConstantRegion { try request.fetchAll($0) },
             records: [
                 [],
                 [Player(id: 1, name: "foo")],
@@ -71,7 +71,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC")
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchOne),
+            ValueObservation.trackingConstantRegion { try request.fetchOne($0) },
             records: [
                 nil,
                 Player(id: 1, name: "foo"),

@@ -49,7 +49,9 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setup)
+        migrator.registerMigration("createMinimalSingle") {
+            try MinimalSingle.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

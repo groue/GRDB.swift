@@ -52,7 +52,9 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalRowID", migrate: MinimalRowID.setup)
+        migrator.registerMigration("createMinimalRowID") {
+            try MinimalRowID.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

@@ -50,7 +50,9 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEmail", migrate: Email.setup)
+        migrator.registerMigration("createEmail") {
+            try Email.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

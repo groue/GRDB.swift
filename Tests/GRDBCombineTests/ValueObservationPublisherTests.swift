@@ -34,7 +34,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer)
             let recorder = publisher.record()
             
@@ -79,7 +79,7 @@ class ValueObservationPublisherTests : XCTestCase {
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
             let cancellable = ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer)
                 .sink(
                     receiveCompletion: { _ in },
@@ -138,7 +138,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer, scheduling: .immediate)
             let recorder = publisher.record()
             
@@ -191,7 +191,7 @@ class ValueObservationPublisherTests : XCTestCase {
                 })
             
             let observationCancellable = ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer, scheduling: .immediate)
                 .subscribe(testSubject)
             
@@ -284,7 +284,7 @@ class ValueObservationPublisherTests : XCTestCase {
                     receiveValue: { _ in expectation.fulfill() })
             
             ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer)
                 .subscribe(subscriber)
             
@@ -321,7 +321,7 @@ class ValueObservationPublisherTests : XCTestCase {
             })
             
             ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer)
                 .subscribe(subscriber)
             
@@ -360,7 +360,7 @@ class ValueObservationPublisherTests : XCTestCase {
                     receiveValue: { _ in expectation.fulfill() })
             
             ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer, scheduling: .immediate /* make sure we get the initial db state */)
                 .subscribe(subscriber)
             
@@ -404,7 +404,7 @@ class ValueObservationPublisherTests : XCTestCase {
                 })
             
             ValueObservation
-                .trackingConstantRegion(Player.fetchCount)
+                .trackingConstantRegion { try Player.fetchCount($0) }
                 .publisher(in: writer, scheduling: .immediate /* make sure we get two db states */)
                 .subscribe(subscriber)
             

@@ -6,7 +6,7 @@ class ValueObservationRowTests: GRDBTestCase {
         let request = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id")
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchAll),
+            ValueObservation.trackingConstantRegion { try request.fetchAll($0) },
             records: [
                 [],
                 [["id":1, "name":"foo"]],
@@ -29,7 +29,9 @@ class ValueObservationRowTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchAll).removeDuplicates(),
+            ValueObservation
+                .trackingConstantRegion { try request.fetchAll($0) }
+                .removeDuplicates(),
             records: [
                 [],
                 [["id":1, "name":"foo"]],
@@ -55,7 +57,7 @@ class ValueObservationRowTests: GRDBTestCase {
         let request = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC")
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchOne),
+            ValueObservation.trackingConstantRegion { try request.fetchOne($0) },
             records: [
                 nil,
                 ["id":1, "name":"foo"],
@@ -80,7 +82,9 @@ class ValueObservationRowTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchOne).removeDuplicates(),
+            ValueObservation
+                .trackingConstantRegion { try request.fetchOne($0) }
+                .removeDuplicates(),
             records: [
                 nil,
                 ["id":1, "name":"foo"],
@@ -106,7 +110,9 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testFTS4Observation() throws {
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll),
+            ValueObservation.trackingConstantRegion {
+                try SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll($0)
+            },
             records: [
                 [],
                 [["content":"foo"]]],
@@ -120,7 +126,9 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testSynchronizedFTS4Observation() throws {
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll),
+            ValueObservation.trackingConstantRegion {
+                try SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll($0)
+            },
             records: [
                 [],
                 [["content":"foo"]]],
@@ -141,11 +149,13 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testJoinedFTS4Observation() throws {
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(SQLRequest<Row>(sql: """
-                SELECT document.* FROM document
-                JOIN ft_document ON ft_document.rowid = document.id
-                WHERE ft_document MATCH 'foo'
-                """).fetchAll),
+            ValueObservation.trackingConstantRegion {
+                try SQLRequest<Row>(sql: """
+                    SELECT document.* FROM document
+                    JOIN ft_document ON ft_document.rowid = document.id
+                    WHERE ft_document MATCH 'foo'
+                    """).fetchAll($0)
+            },
             records: [
                 [],
                 [["id":1]]],

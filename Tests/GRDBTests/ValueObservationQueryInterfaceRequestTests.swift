@@ -76,7 +76,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = ValueObservation.trackingConstantRegion(request.fetchOne)
+        let observation = ValueObservation.trackingConstantRegion { try request.fetchOne($0) }
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.writeWithoutTransaction(performDatabaseModifications)
@@ -113,7 +113,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = ValueObservation.trackingConstantRegion(request.fetchAll)
+        let observation = ValueObservation.trackingConstantRegion { try request.fetchAll($0) }
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.writeWithoutTransaction(performDatabaseModifications)
@@ -171,7 +171,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchOne),
+            ValueObservation.trackingConstantRegion { try request.fetchOne($0) },
             records: [
                 nil,
                 ParentInfo(
@@ -240,7 +240,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            ValueObservation.trackingConstantRegion(request.fetchAll),
+            ValueObservation.trackingConstantRegion { try request.fetchAll($0) },
             records: [
                 [],
                 [

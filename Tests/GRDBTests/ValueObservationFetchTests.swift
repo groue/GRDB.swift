@@ -196,7 +196,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     func testRemoveDuplicates() throws {
         try assertValueObservation(
             ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
+                .trackingConstantRegion { try Table("t").fetchCount($0) }
                 .removeDuplicates(),
             records: [0, 1, 2],
             setup: { db in
@@ -213,7 +213,7 @@ class ValueObservationFetchTests: GRDBTestCase {
         try assertValueObservation(
             ValueObservation
                 .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
-                .removeDuplicates(by: ==),
+                .removeDuplicates { $0 == $1 },
             records: [0, 1, 2],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")

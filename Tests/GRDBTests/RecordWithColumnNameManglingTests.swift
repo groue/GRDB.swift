@@ -48,7 +48,9 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setup)
+        migrator.registerMigration("createBadlyMangledStuff") {
+            try BadlyMangledStuff.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     

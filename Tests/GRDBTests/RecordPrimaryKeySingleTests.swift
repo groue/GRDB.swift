@@ -51,7 +51,9 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPet", migrate: Pet.setup)
+        migrator.registerMigration("createPet") {
+            try Pet.setup(inDatabase: $0)
+        }
         try migrator.migrate(dbWriter)
     }
     
