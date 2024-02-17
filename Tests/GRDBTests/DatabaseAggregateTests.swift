@@ -521,8 +521,8 @@ class DatabaseAggregateTests: GRDBTestCase {
     
     func testDeallocationAfterSuccess() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
+            nonisolated(unsafe) static var onInit: (() -> ())?
+            nonisolated(unsafe) static var onDeinit: (() -> ())?
             init() { Aggregate.onInit?() }
             deinit { Aggregate.onDeinit?() }
             func step(_ dbValues: [DatabaseValue]) { }
@@ -552,8 +552,8 @@ class DatabaseAggregateTests: GRDBTestCase {
     
     func testDeallocationAfterStepError() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
+            nonisolated(unsafe) static var onInit: (() -> ())?
+            nonisolated(unsafe) static var onDeinit: (() -> ())?
             init() { Aggregate.onInit?() }
             deinit { Aggregate.onDeinit?() }
             func step(_ dbValues: [DatabaseValue]) throws {
@@ -585,8 +585,8 @@ class DatabaseAggregateTests: GRDBTestCase {
     
     func testDeallocationAfterResultError() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
+            nonisolated(unsafe) static var onInit: (() -> ())?
+            nonisolated(unsafe) static var onDeinit: (() -> ())?
             init() { Aggregate.onInit?() }
             deinit { Aggregate.onDeinit?() }
             func step(_ dbValues: [DatabaseValue]) { }
