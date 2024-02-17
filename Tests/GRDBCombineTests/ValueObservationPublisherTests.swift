@@ -21,6 +21,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     // MARK: - Default Scheduler
     
+    @MainActor
     func testDefaultSchedulerChangesNotifications() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -63,6 +64,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testDefaultSchedulerFirstValueIsEmittedAsynchronously() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -96,6 +98,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testDefaultSchedulerError() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -122,6 +125,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     // MARK: - Immediate Scheduler
     
+    @MainActor
     func testImmediateSchedulerChangesNotifications() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -164,6 +168,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testImmediateSchedulerEmitsFirstValueSynchronously() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -200,6 +205,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testImmediateSchedulerError() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -256,6 +262,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
     }
     
+    @MainActor
     func testDemandNoneReceivesNoElement() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -291,6 +298,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testDemandOneReceivesOneElement() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -329,6 +337,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testDemandOneDoesNotReceiveTwoElements() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -371,6 +380,7 @@ class ValueObservationPublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
     
+    @MainActor
     func testDemandTwoReceivesTwoElements() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -417,6 +427,7 @@ class ValueObservationPublisherTests : XCTestCase {
     // MARK: - Regression Tests
     
     /// Regression test for https://github.com/groue/GRDB.swift/issues/1194
+    @MainActor
     func testIssue1194() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")

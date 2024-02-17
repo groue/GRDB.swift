@@ -19,6 +19,7 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
 
 class DatabaseRegionObservationPublisherTests : XCTestCase {
     
+    @MainActor
     func testChangesNotifications() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -60,6 +61,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
     //
     // TODO: do the same, but asynchronously. If this is too hard, update the
     // public API so that users can easily do it.
+    @MainActor
     func testPrependInitialDatabaseSync() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")

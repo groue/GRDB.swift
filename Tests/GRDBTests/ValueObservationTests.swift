@@ -1034,6 +1034,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // An attempt at finding a regression test for <https://github.com/groue/GRDB.swift/issues/1362>
+    @MainActor
     func testManyObservations() throws {
         // We'll start many observations
         let observationCount = 100
@@ -1092,6 +1093,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // An attempt at finding a regression test for <https://github.com/groue/GRDB.swift/issues/1362>
+    @MainActor
     func testManyObservationsWithLongConcurrentWrite() throws {
         // We'll start many observations
         let observationCount = 100
@@ -1157,6 +1159,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1362>
+    @MainActor
     func testIssue1362() throws {
         func test(_ writer: some DatabaseWriter) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE s(id INTEGER PRIMARY KEY AUTOINCREMENT)") }

@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import XCTest
 
+@MainActor
 final class Test<Context> {
     // Raise the repeatCount in order to help spotting flaky tests.
     private let repeatCount: Int

@@ -21,6 +21,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisher() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -48,6 +49,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherValue() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -75,6 +77,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherError() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -98,6 +101,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
+    @MainActor
     func testWritePublisherErrorRollbacksTransaction() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -131,6 +135,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherIsAsynchronous() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -167,6 +172,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherDefaultScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -205,6 +211,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherCustomScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -246,6 +253,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // TODO: Fix flaky test with both pool and on-disk queue:
     // - Expectation timeout
+    @MainActor
     func testWriteThenReadPublisher() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -273,6 +281,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWriteThenReadPublisherIsReadonly() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -298,6 +307,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWriteThenReadPublisherWriteError() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -321,6 +331,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
         try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
+    @MainActor
     func testWriteThenReadPublisherWriteErrorRollbacksTransaction() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -358,6 +369,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // TODO: Fix flaky test with both pool and on-disk queue:
     // - Expectation timeout
+    @MainActor
     func testWriteThenReadPublisherReadError() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
@@ -385,6 +397,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // Regression test against deadlocks created by concurrent completion
     // and cancellations triggered by .switchToLatest().prefix(1)
+    @MainActor
     func testDeadlockPrevention() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
