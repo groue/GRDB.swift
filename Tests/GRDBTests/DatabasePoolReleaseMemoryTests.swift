@@ -247,115 +247,78 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         dbPool.releaseMemory()
         XCTAssertEqual(persistentConnectionCount, 2) // writer + reader
     }
+    
+    @MainActor
+    func test_write_database_access_retains_connection_but_not_database_pool() throws {
+        let expectation = self.expectation(description: "")
+        class Context: @unchecked Sendable {
+            weak var weakPool: DatabasePool?
+            init(livingPool: DatabasePool? = nil) {
+                self.weakPool = livingPool
+            }
+        }
+        let context = Context(livingPool: nil)
 
-    func testBlocksRetainConnection() throws {
-        struct Context {
-            var openConnectionCount = 0
-            var totalOpenConnectionCount = 0
-        }
-        @Mutex var context = Context()
-        
-        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
-            $context.withLock {
-                $0.totalOpenConnectionCount += 1
-                $0.openConnectionCount += 1
-            }
-        }
-        
-        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
-            $context.withLock {
-                $0.openConnectionCount -= 1
-            }
-        }
-        
-        // Block 1                  Block 2
-        //                          read {
-        //                              >
-        let s1 = DispatchSemaphore(value: 0)
-        // dbPool = nil
-        // >
-        let s2 = DispatchSemaphore(value: 0)
-        //                              use database
-        //                          }
-        
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbPool: DatabasePool? = try! self.makeDatabasePool()
-            try! dbPool!.write { db in
-                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            }
+        do {
+            let dbPool: DatabasePool = try makeDatabasePool()
+            context.weakPool = dbPool
             
-            let block1 = { () in
-                _ = s1.wait(timeout: .distantFuture)
-                dbPool = nil
-                s2.signal()
+            dbPool.asyncWriteWithoutTransaction { db in
+                XCTAssertNil(context.weakPool)
+                try! XCTAssertEqual(Int.fetchOne(db, sql: "SELECT 1"), 1)
+                expectation.fulfill()
             }
-            let block2 = { [weak dbPool] () in
-                if let dbPool {
-                    try! dbPool.read { db in
-                        s1.signal()
-                        _ = s2.wait(timeout: .distantFuture)
-                        XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items"), 0)
-                    }
-                } else {
-                    XCTFail("expect non nil dbPool")
-                }
-            }
-            return (block1, block2)
-        }()
-        let blocks = [block1, block2]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-            blocks[index]()
         }
-        
-        // one writer, one reader
-        XCTAssertEqual(context.totalOpenConnectionCount, 2)
-        
-        // All connections are closed
-        XCTAssertEqual(context.openConnectionCount, 0)
+        wait(for: [expectation])
     }
     
-    func testStatementDoNotRetainDatabaseConnection() throws {
-        // Block 1                  Block 2
-        //                          create statement INSERT
-        //                          >
-        let s1 = DispatchSemaphore(value: 0)
-        // dbPool = nil
-        // >
-        let s2 = DispatchSemaphore(value: 0)
-        //                          dbPool is nil
-        
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbPool: DatabasePool? = try! self.makeDatabasePool()
-            let block1 = { () in
-                _ = s1.wait(timeout: .distantFuture)
-                dbPool = nil
-                s2.signal()
+    @MainActor
+    func test_read_database_access_retains_connection_but_not_database_pool() throws {
+        let expectation = self.expectation(description: "")
+        class Context: @unchecked Sendable {
+            weak var weakPool: DatabasePool?
+            init(livingPool: DatabasePool? = nil) {
+                self.weakPool = livingPool
             }
-            let block2 = { [weak dbPool] () in
-                var statement: Statement? = nil
-                do {
-                    if let dbPool {
-                        do {
-                            try dbPool.write { db in
-                                statement = try db.makeStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                                s1.signal()
-                            }
-                        } catch {
-                            XCTFail("error: \(error)")
-                        }
-                    } else {
-                        XCTFail("expect non nil dbPool")
-                    }
-                }
-                _ = s2.wait(timeout: .distantFuture)
-                XCTAssertTrue(statement != nil)
-                XCTAssertTrue(dbPool == nil)
+        }
+        let context = Context(livingPool: nil)
+
+        do {
+            let dbPool: DatabasePool = try makeDatabasePool()
+            context.weakPool = dbPool
+            
+            dbPool.asyncRead { db in
+                XCTAssertNil(context.weakPool)
+                try! XCTAssertEqual(Int.fetchOne(db.get(), sql: "SELECT 1"), 1)
+                expectation.fulfill()
             }
-            return (block1, block2)
-        }()
-        let blocks = [block1, block2]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-            blocks[index]()
+        }
+        wait(for: [expectation])
+    }
+
+    func test_write_statement_does_not_retain_database_pool() throws {
+        var dbPool: DatabasePool? = try makeDatabasePool()
+        weak var weakPool = dbPool
+        let statement = try dbPool?.write { db in
+            try db.makeStatement(sql: "SELECT 1")
+        }
+        withExtendedLifetime(statement) {
+            XCTAssertNotNil(weakPool)
+            dbPool = nil
+            XCTAssertNil(weakPool)
+        }
+    }
+
+    func test_read_statement_does_not_retain_database_pool() throws {
+        var dbPool: DatabasePool? = try makeDatabasePool()
+        weak var weakPool = dbPool
+        let statement = try dbPool?.read { db in
+            try db.makeStatement(sql: "SELECT 1")
+        }
+        withExtendedLifetime(statement) {
+            XCTAssertNotNil(weakPool)
+            dbPool = nil
+            XCTAssertNil(weakPool)
         }
     }
 }

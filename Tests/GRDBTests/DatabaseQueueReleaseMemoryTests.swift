@@ -34,116 +34,41 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         // All connections are closed
         XCTAssertEqual(context.openConnectionCount, 0)
     }
+    
+    @MainActor
+    func test_database_access_retains_connection_but_not_database_queue() throws {
+        let expectation = self.expectation(description: "")
+        class Context: @unchecked Sendable {
+            weak var weakQueue: DatabaseQueue?
+            init(livingQueue: DatabaseQueue? = nil) {
+                self.weakQueue = livingQueue
+            }
+        }
+        let context = Context(livingQueue: nil)
 
-    func testBlocksRetainConnection() throws {
-        struct Context {
-            var openConnectionCount = 0
-            var totalOpenConnectionCount = 0
-        }
-        @Mutex var context = Context()
-        
-        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
-            $context.withLock {
-                $0.totalOpenConnectionCount += 1
-                $0.openConnectionCount += 1
-            }
-        }
-        
-        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
-            $context.withLock {
-                $0.openConnectionCount -= 1
-            }
-        }
-        
-        // Block 1                  Block 2
-        //                          inDatabase {
-        //                              >
-        let s1 = DispatchSemaphore(value: 0)
-        // dbQueue = nil
-        // >
-        let s2 = DispatchSemaphore(value: 0)
-        //                              use database
-        //                          }
-        
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
-            try! dbQueue!.write { db in
-                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            }
+        do {
+            let dbQueue: DatabaseQueue = try makeDatabaseQueue()
+            context.weakQueue = dbQueue
             
-            let block1 = { () in
-                _ = s1.wait(timeout: .distantFuture)
-                dbQueue = nil
-                s2.signal()
+            dbQueue.asyncWriteWithoutTransaction { db in
+                XCTAssertNil(context.weakQueue)
+                try! XCTAssertEqual(Int.fetchOne(db, sql: "SELECT 1"), 1)
+                expectation.fulfill()
             }
-            let block2 = { [weak dbQueue] () in
-                if let dbQueue {
-                    try! dbQueue.write { db in
-                        s1.signal()
-                        _ = s2.wait(timeout: .distantFuture)
-                        XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items"), 0)
-                    }
-                } else {
-                    XCTFail("expect non nil dbQueue")
-                }
-            }
-            return (block1, block2)
-        }()
-        let blocks = [block1, block2]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-            blocks[index]()
         }
-        
-        // one writer
-        XCTAssertEqual(context.totalOpenConnectionCount, 1)
-        
-        // All connections are closed
-        XCTAssertEqual(context.openConnectionCount, 0)
+        wait(for: [expectation])
     }
     
-    func testStatementDoNotRetainDatabaseConnection() throws {
-        // Block 1                  Block 2
-        //                          create statement INSERT
-        //                          >
-        let s1 = DispatchSemaphore(value: 0)
-        // dbQueue = nil
-        // >
-        let s2 = DispatchSemaphore(value: 0)
-        //                          dbQueue is nil
-        
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
-            var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
-            
-            let block1 = { () in
-                _ = s1.wait(timeout: .distantFuture)
-                dbQueue = nil
-                s2.signal()
-            }
-            let block2 = { [weak dbQueue] () in
-                var statement: Statement? = nil
-                do {
-                    if let dbQueue {
-                        do {
-                            try dbQueue.write { db in
-                                statement = try db.makeStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                                s1.signal()
-                            }
-                        } catch {
-                            XCTFail("error: \(error)")
-                        }
-                    } else {
-                        XCTFail("expect non nil dbQueue")
-                    }
-                }
-                _ = s2.wait(timeout: .distantFuture)
-                XCTAssertTrue(statement != nil)
-                XCTAssertTrue(dbQueue == nil)
-            }
-            return (block1, block2)
-        }()
-        let blocks = [block1, block2]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-            blocks[index]()
+    func test_statement_does_not_retain_database_queue() throws {
+        var dbQueue: DatabaseQueue? = try makeDatabaseQueue()
+        weak var weakQueue = dbQueue
+        let statement = try dbQueue?.write { db in
+            try db.makeStatement(sql: "SELECT 1")
+        }
+        withExtendedLifetime(statement) {
+            XCTAssertNotNil(weakQueue)
+            dbQueue = nil
+            XCTAssertNil(weakQueue)
         }
     }
 }
