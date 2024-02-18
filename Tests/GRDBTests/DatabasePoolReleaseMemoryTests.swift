@@ -165,7 +165,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         let s3 = DispatchSemaphore(value: 0)
         // end                      end                     releaseMemory
         
-        let block1 = { () in
+        let block1 = { @Sendable in
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -176,7 +176,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2 = { @Sendable in
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
@@ -186,7 +186,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block3 = { () in
+        let block3 = { @Sendable in
             _ = s3.wait(timeout: .distantFuture)
             dbPool.releaseMemory()
         }

@@ -155,7 +155,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let s4 = DispatchSemaphore(value: 0)
         // table exists: false
 
-        let block1 = { () in
+        let block1 = { @Sendable in
             try! dbPool.writeWithoutTransaction { db in
                 try db.execute(sql: "CREATE TABLE foo(id INTEGER PRIMARY KEY)")
                 // warm cache
@@ -173,7 +173,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertNil(db.schemaCache[.main].primaryKey("foo"))
             }
         }
-        let block2 = { () in
+        let block2 = { @Sendable in
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
