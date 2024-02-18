@@ -2775,7 +2775,9 @@ let player = try decoder.decode(Player.self, from: jsonData)
 
 ```swift
 extension Player: FetchableRecord {
-    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "database row"]
+    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+        [decoderName: "database row"]
+    }
 }
 
 // prints "Decoded from database row"
@@ -2783,6 +2785,17 @@ let player = try Player.fetchOne(db, ...)
 ```
 
 > **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
+>
+> If the compiler emits a warning about the static property 'databaseEncodingUserInfo' being concurrency-unsafe, turn the stored (`static let`) property into a computed (`static var`) one:
+>
+> ```swift
+> extension Player: FetchableRecord {
+>     // No concurrency warning with a computed property:  
+>     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+>         [decoderName: "database row"]
+>     }
+> }
+> ```
 
 
 ### Tip: Derive Columns from Coding Keys

@@ -89,7 +89,9 @@ public protocol EncodableRecord {
     ///
     /// struct Player: PersistableRecord, Encodable {
     ///     // Customize the encoder name when encoding a database row
-    ///     static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    ///     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [encoderName: "Database"]
+    ///     }
     ///
     ///     func encode(to encoder: Encoder) throws {
     ///         // Print the encoder name
