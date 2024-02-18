@@ -81,7 +81,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        @Mutex var concurrencyError: DatabaseError? = nil
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -94,7 +94,9 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s4.signal()
-                concurrencyError = error
+                $concurrencyError.withLock {
+                    $0 = error
+                }
             }
             catch {
                 XCTFail("\(error)")
@@ -140,7 +142,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        @Mutex var concurrencyError: DatabaseError? = nil
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -150,7 +152,9 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s2.signal()
-                concurrencyError = error
+                $concurrencyError.withLock {
+                    $0 = error
+                }
             }
             catch {
                 XCTFail("\(error)")
@@ -196,7 +200,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        @Mutex var concurrencyError: DatabaseError? = nil
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -206,7 +210,9 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s2.signal()
-                concurrencyError = error
+                $concurrencyError.withLock {
+                    $0 = error
+                }
             }
             catch {
                 XCTFail("\(error)")

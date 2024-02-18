@@ -4,20 +4,22 @@ import XCTest
 class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     
     func testDatabasePoolDeinitClosesAllConnections() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        struct Context {
+            var openConnectionCount = 0
+            var totalOpenConnectionCount = 0
+        }
+        @Mutex var context = Context()
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
+            $context.withLock {
+                $0.totalOpenConnectionCount += 1
+                $0.openConnectionCount += 1
             }
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
+            $context.withLock {
+                $0.openConnectionCount -= 1
             }
         }
         
@@ -35,10 +37,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // One reader, one writer
-        XCTAssertEqual(totalOpenConnectionCount, 2)
+        XCTAssertEqual(context.totalOpenConnectionCount, 2)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(context.openConnectionCount, 0)
     }
 
 #if os(iOS)
@@ -122,20 +124,22 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
 
     func test_DatabasePool_releaseMemory_closes_reader_connections() throws {
         // A complicated test setup that opens multiple reader connections.
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        struct Context {
+            var openConnectionCount = 0
+            var totalOpenConnectionCount = 0
+        }
+        @Mutex var context = Context()
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
+            $context.withLock {
+                $0.totalOpenConnectionCount += 1
+                $0.openConnectionCount += 1
             }
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
+            $context.withLock {
+                $0.openConnectionCount -= 1
             }
         }
         
@@ -192,20 +196,20 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // Two readers, one writer
-        XCTAssertEqual(totalOpenConnectionCount, 3)
+        XCTAssertEqual(context.totalOpenConnectionCount, 3)
         
         // Writer is still open
-        XCTAssertEqual(openConnectionCount, 1)
+        XCTAssertEqual(context.openConnectionCount, 1)
     }
     
     func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReadOnlyConnections_is_false() throws {
         @Mutex var persistentConnectionCount = 0
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
             $persistentConnectionCount.increment()
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
             $persistentConnectionCount.decrement()
         }
         
@@ -224,11 +228,11 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReadOnlyConnections_is_true() throws {
         @Mutex var persistentConnectionCount = 0
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
             $persistentConnectionCount.increment()
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
             $persistentConnectionCount.decrement()
         }
         
@@ -245,20 +249,22 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     }
 
     func testBlocksRetainConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        struct Context {
+            var openConnectionCount = 0
+            var totalOpenConnectionCount = 0
+        }
+        @Mutex var context = Context()
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
+            $context.withLock {
+                $0.totalOpenConnectionCount += 1
+                $0.openConnectionCount += 1
             }
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
+            $context.withLock {
+                $0.openConnectionCount -= 1
             }
         }
         
@@ -302,10 +308,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // one writer, one reader
-        XCTAssertEqual(totalOpenConnectionCount, 2)
+        XCTAssertEqual(context.totalOpenConnectionCount, 2)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(context.openConnectionCount, 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {

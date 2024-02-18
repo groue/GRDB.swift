@@ -4,20 +4,22 @@ import XCTest
 class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
     
     func testDatabaseQueueDeinitClosesConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        struct Context {
+            var openConnectionCount = 0
+            var totalOpenConnectionCount = 0
+        }
+        @Mutex var context = Context()
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
+            $context.withLock {
+                $0.totalOpenConnectionCount += 1
+                $0.openConnectionCount += 1
             }
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
+            $context.withLock {
+                $0.openConnectionCount -= 1
             }
         }
         
@@ -27,27 +29,29 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // One reader, one writer
-        XCTAssertEqual(totalOpenConnectionCount, 1)
+        XCTAssertEqual(context.totalOpenConnectionCount, 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(context.openConnectionCount, 0)
     }
 
     func testBlocksRetainConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        struct Context {
+            var openConnectionCount = 0
+            var totalOpenConnectionCount = 0
+        }
+        @Mutex var context = Context()
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
+        dbConfiguration.SQLiteConnectionDidOpen = { @Sendable in
+            $context.withLock {
+                $0.totalOpenConnectionCount += 1
+                $0.openConnectionCount += 1
             }
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
+        dbConfiguration.SQLiteConnectionDidClose = { @Sendable in
+            $context.withLock {
+                $0.openConnectionCount -= 1
             }
         }
         
@@ -91,10 +95,10 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // one writer
-        XCTAssertEqual(totalOpenConnectionCount, 1)
+        XCTAssertEqual(context.totalOpenConnectionCount, 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(context.openConnectionCount, 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
