@@ -91,6 +91,7 @@ class PoolTests: XCTestCase {
         fourth.release(.reuse)
     }
     
+    @MainActor
     func testBarrierLocksElements() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -130,6 +131,7 @@ class PoolTests: XCTestCase {
         XCTAssertEqual(element, 1)
     }
     
+    @MainActor
     func testBarrierIsLockedByOneUsedElementOutOfOne() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -162,6 +164,7 @@ class PoolTests: XCTestCase {
         second.release(.reuse)
     }
     
+    @MainActor
     func testBarrierIsLockedByOneUsedElementOutOfTwo() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -199,6 +202,7 @@ class PoolTests: XCTestCase {
         third.release(.reuse)
     }
     
+    @MainActor
     func testBarrierIsLockedByTwoUsedElementsOutOfTwo() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -234,6 +238,7 @@ class PoolTests: XCTestCase {
         third.release(.reuse)
     }
 
+    @MainActor
     func testBarrierRemoveAll() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true

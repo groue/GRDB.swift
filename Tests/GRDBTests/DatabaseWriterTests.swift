@@ -39,6 +39,7 @@ class DatabaseWriterTests : GRDBTestCase {
         }
     }
     
+    @MainActor
     func testAsyncWriteWithoutTransactionSuccess() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -64,6 +65,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testAsyncWriteWithoutTransactionError() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -89,6 +91,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testAsyncWriteSuccess() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -118,6 +121,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testAsyncWriteError() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")

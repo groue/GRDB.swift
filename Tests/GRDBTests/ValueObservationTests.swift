@@ -28,6 +28,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testErrorCompletesTheObservation() throws {
         struct TestError: Error { }
         
@@ -79,6 +80,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testViewOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -116,6 +118,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testPragmaTableOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -324,6 +327,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Snapshot Optimization
     
+    @MainActor
     func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -366,6 +370,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testDisallowedSnapshotOptimizationWithImmediateScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -408,6 +413,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testAllowedSnapshotOptimizationWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -460,6 +466,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testAllowedSnapshotOptimizationWithImmediateScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -584,6 +591,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Cancellation
     
+    @MainActor
     func testCancellableLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -637,6 +645,7 @@ class ValueObservationTests: GRDBTestCase {
         XCTAssertEqual(context.changesCount, 2)
     }
     
+    @MainActor
     func testCancellableExplicitCancellation() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -689,6 +698,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testCancellableInvalidation1() throws {
         struct Context {
             var shouldStopObservation = false
@@ -741,6 +751,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func testCancellableInvalidation2() throws {
         struct Context {
             var shouldStopObservation = false

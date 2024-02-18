@@ -42,6 +42,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
     }
 
+    @MainActor
     func testDatabaseRegionObservation_ImmediateCancellation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

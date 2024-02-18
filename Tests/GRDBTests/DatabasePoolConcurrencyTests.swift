@@ -966,6 +966,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testTargetQueue() throws {
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
@@ -990,6 +991,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         waitForExpectations(timeout: 2, handler: nil)
     }
     
+    @MainActor
     func testWriteTargetQueue() throws {
         func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
@@ -1214,6 +1216,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(count, 0)
     }
     
+    @MainActor
     func testAsyncConcurrentReadError() throws {
         // Necessary for this test to run as quickly as possible
         dbConfiguration.readonlyBusyMode = .immediateError
@@ -1241,6 +1244,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     // MARK: - Barrier
     
+    @MainActor
     func testBarrierLocksReads() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -1284,6 +1288,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(fetchedValue, 1)
     }
     
+    @MainActor
     func testBarrierIsLockedByOneUnfinishedRead() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
