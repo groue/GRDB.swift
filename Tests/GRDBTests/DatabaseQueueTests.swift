@@ -153,9 +153,11 @@ class DatabaseQueueTests: GRDBTestCase {
     
     @MainActor
     func testTargetQueue() throws {
-        func test(targetQueue: DispatchQueue) throws {
+        let dbConfiguration = self.dbConfiguration!
+        @Sendable nonisolated func test(targetQueue: DispatchQueue) throws {
+            var dbConfiguration = dbConfiguration
             dbConfiguration.targetQueue = targetQueue
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(configuration: dbConfiguration)
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
@@ -178,10 +180,12 @@ class DatabaseQueueTests: GRDBTestCase {
     
     @MainActor
     func testWriteTargetQueue() throws {
-        func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
+        let dbConfiguration = self.dbConfiguration!
+        @Sendable nonisolated func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
+            var dbConfiguration = dbConfiguration
             dbConfiguration.targetQueue = targetQueue // unused
             dbConfiguration.writeTargetQueue = writeTargetQueue
-            let dbQueue = try makeDatabaseQueue()
+            let dbQueue = try makeDatabaseQueue(configuration: dbConfiguration)
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(writeTargetQueue))
             }
