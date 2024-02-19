@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - Mutex
+
 /// A Mutex protects a value with an NSLock.
 @propertyWrapper
 final class Mutex<T> {
@@ -57,3 +59,9 @@ extension Mutex where T: Numeric {
 }
 
 extension Mutex: @unchecked Sendable where T: Sendable { }
+
+// MARK: - UncheckedSendable
+
+struct UncheckedSendable<T>: @unchecked Sendable {
+    let value: T
+}

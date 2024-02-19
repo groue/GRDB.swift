@@ -4,7 +4,8 @@ import XCTest
 
 // MARK: - ValueObservationRecorder
 
-public class ValueObservationRecorder<Value> {
+public class ValueObservationRecorder<Value>: @unchecked Sendable {
+    // @unchecked because internal state is protected by lock.
     private struct RecorderExpectation {
         var expectation: XCTestExpectation
         var remainingCount: Int? // nil for error expectation
@@ -36,7 +37,7 @@ public class ValueObservationRecorder<Value> {
     
     // Internal for testability.
     func onChange(_ value: Value) {
-        return synchronized {
+        synchronized {
             if state.error != nil {
                 // This is possible with ValueObservation, but not supported by ValueObservationRecorder
                 XCTFail("ValueObservationRecorder got unexpected value after error: \(String(reflecting: value))")
@@ -66,7 +67,7 @@ public class ValueObservationRecorder<Value> {
     
     // Internal for testability.
     func onError(_ error: Error) {
-        return synchronized {
+        synchronized {
             if state.error != nil {
                 // This is possible with ValueObservation, but not supported by ValueObservationRecorder
                 XCTFail("f got unexpected error after error: \(String(describing: error))")
@@ -220,8 +221,8 @@ extension ValueObservation {
     public func record(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: ((Error) -> Void)? = nil,
-        onChange: ((Reducer.Value) -> Void)? = nil)
+        onError: (@Sendable (Error) -> Void)? = nil,
+        onChange: (@Sendable (Reducer.Value) -> Void)? = nil)
     -> ValueObservationRecorder<Reducer.Value>
     where Reducer: ValueReducer
     {
@@ -353,11 +354,17 @@ extension XCTestCase {
 // MARK: - GRDBTestCase + ValueObservationExpectation
 
 extension GRDBTestCase {
+    /// A support type used by tests of ValueObservation
+    private struct TestContext<Value: Sendable>: Sendable {
+        var valueCount = 0
+        var value: Value?
+    }
+    
     func assertValueObservation<Reducer: ValueReducer>(
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
-        recordedUpdates: @escaping (Database) throws -> Void,
+        recordedUpdates: @escaping @Sendable (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)
         throws
@@ -366,19 +373,21 @@ extension GRDBTestCase {
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: some ValueObservationScheduler,
-            testValueDispatching: @escaping () -> Void) throws
+            testValueDispatching: @escaping @Sendable () -> Void) throws
         {
             func testRecordingEqualWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var value: Reducer.Value?
+                @Mutex var value: Reducer.Value?
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
-                    onChange: {
+                    onChange: { value in
                         testValueDispatching()
-                        value = $0
-                })
+                        $value.withLock {
+                            $0 = value
+                        }
+                    })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
@@ -398,24 +407,26 @@ extension GRDBTestCase {
             func testRecordingEqualWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var valueCount = 0
-                var value: Reducer.Value?
+                @Mutex var context = TestContext<Reducer.Value>()
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
-                    onChange: { [unowned writer] in
+                    onChange: { [unowned writer] value in
                         testValueDispatching()
-                        valueCount += 1
-                        if valueCount == 1 {
-                            // Perform writes after initial value
+                        // Perform writes after initial value
+                        let initialValue = $context.withLock {
+                            $0.valueCount += 1
+                            $0.value = value
+                            return $0.valueCount == 1
+                        }
+                        if initialValue {
                             try! writer.writeWithoutTransaction(recordedUpdates)
                         }
-                        value = $0
-                })
+                    })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(context.value)
                 }
                 
                 let expectation = recorder.next(expectedValues.count)
@@ -428,14 +439,16 @@ extension GRDBTestCase {
             func testRecordingMatchWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var value: Reducer.Value?
+                @Mutex var value: Reducer.Value? = nil
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
-                    onChange: {
+                    onChange: { value in
                         testValueDispatching()
-                        value = $0
-                })
+                        $value.withLock {
+                            $0 = value
+                        }
+                    })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
@@ -473,24 +486,26 @@ extension GRDBTestCase {
             func testRecordingMatchWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var valueCount = 0
-                var value: Reducer.Value?
+                @Mutex var context = TestContext<Reducer.Value>()
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
-                    onChange: { [unowned writer] in
+                    onChange: { [unowned writer] value in
                         testValueDispatching()
-                        valueCount += 1
-                        if valueCount == 1 {
-                            // Perform writes after initial value
+                        // Perform writes after initial value
+                        let initialValue = $context.withLock {
+                            $0.valueCount += 1
+                            $0.value = value
+                            return $0.valueCount == 1
+                        }
+                        if initialValue {
                             try! writer.writeWithoutTransaction(recordedUpdates)
                         }
-                        value = $0
-                })
+                    })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(context.value)
                 }
                 
                 let recordedValues: [Reducer.Value]
@@ -534,34 +549,34 @@ extension GRDBTestCase {
         }
         
         do {
-            let key = DispatchSpecificKey<()>()
-            DispatchQueue.main.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            DispatchQueue.main.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .immediate,
-                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
         
         do {
-            let key = DispatchSpecificKey<()>()
-            DispatchQueue.main.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            DispatchQueue.main.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: .main),
-                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
         
         do {
             let queue = DispatchQueue(label: "custom")
-            let key = DispatchSpecificKey<()>()
-            queue.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            queue.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: queue),
-                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
     }
     
@@ -576,7 +591,7 @@ extension GRDBTestCase {
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: some ValueObservationScheduler,
-            testErrorDispatching: @escaping () -> Void) throws
+            testErrorDispatching: @escaping @Sendable () -> Void) throws
         {
             func test(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
@@ -600,34 +615,34 @@ extension GRDBTestCase {
         }
         
         do {
-            let key = DispatchSpecificKey<()>()
-            DispatchQueue.main.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            DispatchQueue.main.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .immediate,
-                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
         
         do {
-            let key = DispatchSpecificKey<()>()
-            DispatchQueue.main.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            DispatchQueue.main.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: .main),
-                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
         
         do {
             let queue = DispatchQueue(label: "custom")
-            let key = DispatchSpecificKey<()>()
-            queue.setSpecific(key: key, value: ())
+            let key = UncheckedSendable(value: DispatchSpecificKey<()>())
+            queue.setSpecific(key: key.value, value: ())
             
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: queue),
-                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key.value)) })
         }
     }
 }
