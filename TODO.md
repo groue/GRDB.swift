@@ -90,6 +90,87 @@
 - [ ] GRDB7 JSONB https://hachyderm.io/@jason_abbott/111908186742242971#.
 - [ ] GRDB7: stop exporting CSQLite https://github.com/groue/GRDB.swift/issues/642#issuecomment-1937347696
 - [ ] GRDB7: AsyncValueObservation: experiment with an immediate scheduler that does not hop to the main queue.
+- [ ] GRDB7: Question Sendability of SQLExpressible et al. If we can copy Sendable representations in requests, it's not needed.
+- [ ] GRDB7: Raise the minimum watchOS target https://github.com/groue/GRDB.swift/issues/1472#issuecomment-1960696836
+- [ ] GRDB7: Consider putting a Task cancellation handler on async methods.
+- [ ] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
+- [ ] GRDB7: Sendable conformances
+    - [ ] anydatabasecancellable
+    - [ ] anydatabaseregionconvertible
+    - [ ] anyfetchrequest
+    - [ ] anysqljsonexpressible
+    - [ ] association
+    - [ ] associationaggregate
+    - [ ] associationtomany
+    - [ ] asyncvalueobservation
+    - [ ] asyncvalueobservation/iterator
+    - [ ] asyncvalueobservationscheduler
+    - [ ] belongstoassociation
+    - [ ] columnexpression
+    - [ ] commontableexpression
+    - [ ] configuration
+    - [ ] customtransactionclock
+    - [ ] database/busymode
+    - [ ] databaseaggregate
+    - [ ] databasecancellable
+    - [ ] databasecollation
+    - [ ] databasecolumndecodingstrategy
+    - [ ] databasecolumnencodingstrategy
+    - [ ] databasedatadecodingstrategy
+    - [ ] databasedataencodingstrategy
+    - [ ] databasedatedecodingstrategy
+    - [ ] databasedateencodingstrategy
+    - [ ] databasefunction
+    - [ ] databasefuture
+    - [ ] databasemigrator
+    - [ ] databasepublishers/databaseregion
+    - [ ] databasepublishers/migrate
+    - [ ] databasepublishers/read
+    - [ ] databasepublishers/value
+    - [ ] databasepublishers/write
+    - [ ] databaseregionobservation
+    - [ ] databaseuuidencodingstrategy
+    - [ ] defaulttransactionclock
+    - [ ] fetchablerecorddecoder
+    - [ ] fetchrequest
+    - [ ] filtercursor
+    - [ ] fts5customtokenizer
+    - [ ] fts5tokenizer
+    - [ ] fts5wrappertokenizer
+    - [ ] hasmanyassociation
+    - [ ] hasmanythroughassociation
+    - [ ] hasoneassociation
+    - [ ] hasonethroughassociation
+    - [ ] insertionsuccess
+    - [ ] joinassociation
+    - [ ] persistencecontainer
+    - [ ] persistencesuccess
+    - [ ] queryinterfacerequest
+    - [ ] record
+    - [ ] renamecolumnadapter
+    - [ ] row/prefetchedrowsview
+    - [ ] row/scopestreeview
+    - [ ] row/scopesview
+    - [ ] rowadapter
+    - [ ] scopeadapter
+    - [ ] sharedvalueobservation
+    - [ ] sql
+    - [ ] sqlexpressible
+    - [ ] sqlexpression
+    - [ ] sqlinterpolation
+    - [ ] sqljsonexpressible
+    - [ ] sqlordering
+    - [ ] sqlorderingterm
+    - [ ] sqlrequest
+    - [ ] sqlselectable
+    - [ ] sqlselection
+    - [ ] sqlspecificexpressible
+    - [ ] sqlsubquery
+    - [ ] sqlsubqueryable
+    - [ ] tablealias
+    - [ ] transactionclock
+    - [ ] valueobservation
+    - [ ] valueobservationscheduler
 
 
 ## Unsure if necessary
