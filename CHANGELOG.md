@@ -122,6 +122,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1496](https://github.com/groue/GRDB.swift/pull/1496) by [@danielepantaleone](https://github.com/danielepantaleone): Add privacy manifest file.
+
+    A `PrivacyInfo.xcprivacy` resource was added to the GRDB SPM package and Xcode projects. It declares that GRDB does not collect anything. 
+
 ## 6.24.2
 
 Released January 21, 2024
