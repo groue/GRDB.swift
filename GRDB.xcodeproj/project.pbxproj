@@ -157,6 +157,7 @@
 		5653EB0C20944C7C00F46237 /* HasManyAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EAFB20944C7B00F46237 /* HasManyAssociation.swift */; };
 		5653EB2120944C7C00F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB0220944C7C00F46237 /* HasOneAssociation.swift */; };
 		5653EC122098738B00F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC0B2098738B00F46237 /* SQLGenerationContext.swift */; };
+		565498612B8B815500585804 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 648704AD2B7E66390036480B /* PrivacyInfo.xcprivacy */; };
 		5656A7FF22946B34001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A7F822946B33001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift */; };
 		5656A81E2295B12F001FF3FF /* SQLAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A81D2295B12F001FF3FF /* SQLAssociation.swift */; };
 		5656A8AD2295BFD7001FF3FF /* TableRecord+Association.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8A92295BFD5001FF3FF /* TableRecord+Association.swift */; };
@@ -1875,6 +1876,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				565498612B8B815500585804 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
