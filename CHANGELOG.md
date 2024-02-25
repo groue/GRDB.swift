@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.25.x` Releases - [6.25.0](#6250)
 - `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241) - [6.24.2](#6242)
 - `6.23.x` Releases - [6.23.0](#6230)
 - `6.22.x` Releases - [6.22.0](#6220)
@@ -122,7 +123,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.25.0
+
+Released February 25, 2024
 
 - **New**: [#1496](https://github.com/groue/GRDB.swift/pull/1496) by [@danielepantaleone](https://github.com/danielepantaleone): Add privacy manifest file.
 
