@@ -1910,7 +1910,7 @@ extension Database {
     ///
     /// For more information, see
     /// [Datatypes In SQLite](https://www.sqlite.org/datatype3.html).
-    public struct ColumnType: RawRepresentable, Hashable {
+    public struct ColumnType: RawRepresentable, Hashable, Sendable {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
