@@ -123,6 +123,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1503](https://github.com/groue/GRDB.swift/pull/1503) by [@simba909](https://github.com/simba909): Conform Database.ColumnType to Sendable
+
 ## 6.25.0
 
 Released February 25, 2024
