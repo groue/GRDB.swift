@@ -1,5 +1,5 @@
 /// Table creation options.
-public struct TableOptions: OptionSet {
+public struct TableOptions: OptionSet, Sendable {
     public let rawValue: Int
     
     public init(rawValue: Int) { self.rawValue = rawValue }
@@ -753,3 +753,8 @@ public final class TableDefinition {
         literalConstraints.append(literal)
     }
 }
+
+// Explicit non-conformance to Sendable: `TableDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension TableDefinition: Sendable { }

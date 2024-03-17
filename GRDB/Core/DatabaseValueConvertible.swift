@@ -222,6 +222,11 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension DatabaseValueCursor: Sendable { }
+
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
 /// cursors, arrays, or single values:
 ///

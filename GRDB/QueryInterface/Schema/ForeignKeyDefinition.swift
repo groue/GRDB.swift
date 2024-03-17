@@ -104,3 +104,8 @@ public final class ForeignKeyDefinition {
         throw DatabaseError.noSuchTable(name)
     }
 }
+
+// Explicit non-conformance to Sendable: `ForeignKeyDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension ForeignKeyDefinition: Sendable { }

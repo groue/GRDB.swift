@@ -1729,6 +1729,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
 }
 
+// Explicit non-conformance to Sendable: `Database` must be used from a
+// serialized database access dispatch queue (see `SerializedDatabase`).
+@available(*, unavailable)
+extension Database: Sendable { }
+
 #if SQLITE_HAS_CODEC
 extension Database {
     
@@ -1854,7 +1859,7 @@ extension Database {
     /// The available checkpoint modes.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/wal_checkpoint_v2.html>
-    public enum CheckpointMode: CInt {
+    public enum CheckpointMode: CInt, Sendable {
         /// The `SQLITE_CHECKPOINT_PASSIVE` mode.
         case passive = 0
         
@@ -1873,7 +1878,7 @@ extension Database {
     /// Related SQLite documentation:
     /// - <https://www.sqlite.org/datatype3.html#collating_sequences>
     /// - <https://www.sqlite.org/datatype3.html#collation>
-    public struct CollationName: RawRepresentable, Hashable {
+    public struct CollationName: RawRepresentable, Hashable, Sendable {
         public let rawValue: String
         
         /// Creates a collation name.
@@ -1962,7 +1967,7 @@ extension Database {
     /// An SQLite conflict resolution.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_conflict.html>
-    public enum ConflictResolution: String {
+    public enum ConflictResolution: String, Sendable {
         /// The `ROLLBACK` conflict resolution.
         case rollback = "ROLLBACK"
         
@@ -1982,7 +1987,7 @@ extension Database {
     /// A foreign key action.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/foreignkeys.html>
-    public enum ForeignKeyAction: String {
+    public enum ForeignKeyAction: String, Sendable {
         /// The `CASCADE` foreign key action.
         case cascade = "CASCADE"
         
@@ -2005,7 +2010,7 @@ extension Database {
     /// ``Database/trace(options:_:)`` method.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/c_trace.html>
-    public struct TracingOptions: OptionSet {
+    public struct TracingOptions: OptionSet, Sendable {
         /// The raw trace event code.
         public let rawValue: CInt
         
@@ -2138,7 +2143,7 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
     @frozen
-    public enum TransactionCompletion {
+    public enum TransactionCompletion: Sendable {
         case commit
         case rollback
     }
@@ -2146,7 +2151,7 @@ extension Database {
     /// A transaction kind.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>.
-    public enum TransactionKind: String {
+    public enum TransactionKind: String, Sendable {
         /// The `DEFERRED` transaction kind.
         case deferred = "DEFERRED"
         
@@ -2179,3 +2184,13 @@ extension Database {
         }
     }
 }
+
+// Explicit non-conformance to Sendable: a trace event contains transient
+// information.
+@available(*, unavailable)
+extension Database.TraceEvent: Sendable { }
+
+// Explicit non-conformance to Sendable: a trace event contains transient
+// information.
+@available(*, unavailable)
+extension Database.TraceEvent.Statement: Sendable { }

@@ -378,7 +378,7 @@ extension RowAdapter {
 ///
 /// This limit adapter may turn out useful in some narrow use cases. You'll
 /// be happy to find it when you need it.
-public struct EmptyRowAdapter: RowAdapter {
+public struct EmptyRowAdapter: RowAdapter, Sendable {
     /// Creates an `EmptyRowAdapter`.
     public init() { }
     
@@ -403,7 +403,7 @@ public struct EmptyRowAdapter: RowAdapter {
 ///
 /// Note that columns that are not present in the dictionary are not present
 /// in the resulting adapted row.
-public struct ColumnMapping: RowAdapter {
+public struct ColumnMapping: RowAdapter, Sendable {
     /// A dictionary from mapped column names to column names in a base row.
     let mapping: [String: String]
     
@@ -444,7 +444,7 @@ public struct ColumnMapping: RowAdapter {
 /// // [c:2, d: 3]
 /// try Row.fetchOne(db, sql: sql, adapter: adapter)!
 /// ```
-public struct SuffixRowAdapter: RowAdapter {
+public struct SuffixRowAdapter: RowAdapter, Sendable {
     /// The suffix index
     let index: Int
     
@@ -473,7 +473,7 @@ public struct SuffixRowAdapter: RowAdapter {
 /// // [b:1 c:2]
 /// try Row.fetchOne(db, sql: sql, adapter: adapter)
 /// ```
-public struct RangeRowAdapter: RowAdapter {
+public struct RangeRowAdapter: RowAdapter, Sendable {
     /// The range
     let range: CountableRange<Int>
     

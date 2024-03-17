@@ -324,7 +324,7 @@ extension SQLSelection: SQLSelectable {
 ///     let players = try Player.select(AllColumns()).fetchAll(db)
 /// }
 /// ```
-public struct AllColumns {
+public struct AllColumns: Sendable {
     /// The `*` selection.
     public init() { }
 }

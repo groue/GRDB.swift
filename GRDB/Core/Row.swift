@@ -245,6 +245,12 @@ public final class Row {
     }
 }
 
+// Explicit non-conformance to Sendable: a row contains transient
+// information. TODO GRDB7: split non sendable statement rows from sendable
+// copied rows.
+@available(*, unavailable)
+extension Row: Sendable { }
+
 extension Row {
     
     // MARK: - Columns
@@ -1377,6 +1383,11 @@ public final class RowCursor: DatabaseCursor {
     public func _element(sqliteStatement: SQLiteStatement) -> Row { _row }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension RowCursor: Sendable { }
+
 extension Row {
     
     // MARK: - Fetching From Prepared Statement
@@ -2059,7 +2070,7 @@ typealias RowIndex = Row.Index
 
 extension Row {
     /// An index to a (column, value) pair in a ``Row``.
-    public struct Index {
+    public struct Index: Sendable {
         let index: Int
         init(_ index: Int) { self.index = index }
     }

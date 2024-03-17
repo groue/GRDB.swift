@@ -138,7 +138,7 @@
 /// ### Database Observation Support
 ///
 /// - ``databaseRegion(_:)``
-public struct Table<RowDecoder> {
+public struct Table<RowDecoder>: Sendable {
     /// The table name.
     public var tableName: String
     

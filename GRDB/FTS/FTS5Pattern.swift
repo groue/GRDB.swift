@@ -16,7 +16,7 @@
 /// - ``init(matchingAnyTokenIn:)``
 /// - ``init(matchingPhrase:)``
 /// - ``init(matchingPrefixPhrase:)``
-public struct FTS5Pattern {
+public struct FTS5Pattern: Sendable {
     
     /// The raw pattern string.
     ///

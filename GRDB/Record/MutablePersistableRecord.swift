@@ -348,7 +348,7 @@ extension MutablePersistableRecord {
 /// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
 /// See <https://www.sqlite.org/lang_conflict.html>
-public struct PersistenceConflictPolicy {
+public struct PersistenceConflictPolicy: Sendable {
     /// The conflict resolution algorithm for insertions
     public let conflictResolutionForInsert: Database.ConflictResolution
     

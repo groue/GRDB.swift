@@ -161,3 +161,8 @@ public final class TableAlteration {
         alterations.append(.drop(name))
     }
 }
+
+// Explicit non-conformance to Sendable: `TableAlteration` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension TableAlteration: Sendable { }

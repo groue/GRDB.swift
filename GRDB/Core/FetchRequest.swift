@@ -152,6 +152,11 @@ public struct PreparedRequest {
     }
 }
 
+// Explicit non-conformance to Sendable: `PreparedRequest` contains
+// a statement.
+@available(*, unavailable)
+extension PreparedRequest: Sendable { }
+
 extension PreparedRequest: Refinable { }
 
 // MARK: - AdaptedFetchRequest

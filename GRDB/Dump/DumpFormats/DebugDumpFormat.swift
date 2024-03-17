@@ -17,7 +17,7 @@ import Foundation
 /// // Craig|200
 /// try db.dumpRequest(Player.all(), format: .debug())
 /// ```
-public struct DebugDumpFormat {
+public struct DebugDumpFormat: Sendable {
     /// A boolean value indicating if column labels are printed as the first
     /// line of output.
     public var header: Bool

@@ -76,7 +76,7 @@ extension ValueObservationScheduler where Self == AsyncValueObservationScheduler
 /// A scheduler that notifies all values on the main `DispatchQueue`. The
 /// first value is immediately notified when the `ValueObservation`
 /// is started.
-public struct ImmediateValueObservationScheduler: ValueObservationScheduler {
+public struct ImmediateValueObservationScheduler: ValueObservationScheduler, Sendable {
     public init() { }
     
     public func immediateInitialValue() -> Bool {

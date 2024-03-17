@@ -313,6 +313,11 @@ public final class FTS4TableDefinition {
     }
 }
 
+// Explicit non-conformance to Sendable: `FTS4TableDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension FTS4TableDefinition: Sendable { }
+
 /// Describes a column in an ``FTS4`` virtual table.
 ///
 /// You get instances of `FTS4ColumnDefinition` when you create an ``FTS4``
@@ -376,6 +381,11 @@ public final class FTS4ColumnDefinition {
         return self
     }
 }
+
+// Explicit non-conformance to Sendable: `FTS4ColumnDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension FTS4ColumnDefinition: Sendable { }
 
 extension Database {
     /// Deletes the synchronization triggers for a synchronized FTS4 table.
