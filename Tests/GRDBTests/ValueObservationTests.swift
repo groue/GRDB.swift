@@ -1268,5 +1268,33 @@ class ValueObservationTests: GRDBTestCase {
             onChange: { _ in
             })
     }
-
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1500>
+    func testIssue1500() throws {
+        let pool = try makeDatabasePool()
+        
+        try pool.read { db in
+            _ = try db.tableExists("t")
+        }
+        
+        try pool.write { db in
+            try db.create(table: "t") { t in
+                t.column("a")
+            }
+        }
+        
+        _ = ValueObservation
+            .trackingConstantRegion { db in
+                try db.tableExists("t")
+            }
+            .start(
+                in: pool,
+                scheduling: .immediate,
+                onError: { error in
+                    XCTFail("Unexpected error \(error)")
+                },
+                onChange: { value in
+                    XCTAssertEqual(value, true)
+                })
+    }
 }
