@@ -29,7 +29,7 @@
 /// - ``tokenize(_:withTokenizer:)``
 public struct FTS3 {
     /// Options for Latin script characters.
-    public enum Diacritics {
+    public enum Diacritics: Sendable {
         /// Do not remove diacritics from Latin script characters. This option
         /// matches the `remove_diacritics=0` tokenizer argument.
         ///
@@ -183,3 +183,8 @@ public final class FTS3TableDefinition {
         columns.append(name)
     }
 }
+
+// Explicit non-conformance to Sendable: `FTS3TableDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension FTS3TableDefinition: Sendable { }

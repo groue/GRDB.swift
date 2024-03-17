@@ -308,7 +308,7 @@ extension Database {
 }
 
 /// Options for printing table names.
-public enum DumpTableHeaderOptions {
+public enum DumpTableHeaderOptions: Sendable {
     /// Table names are only printed when several tables are printed.
     case automatic
 

@@ -13,7 +13,7 @@ import Foundation
 /// // score = 1000
 /// try db.dumpRequest(Player.all(), format: .line())
 /// ```
-public struct LineDumpFormat {
+public struct LineDumpFormat: Sendable {
     /// The string to print for NULL values.
     public var nullValue: String
     

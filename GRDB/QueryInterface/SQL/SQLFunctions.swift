@@ -408,7 +408,7 @@ extension SQLSpecificExpressible {
 /// A date modifier for SQLite date functions.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
-public enum SQLDateModifier: SQLSpecificExpressible {
+public enum SQLDateModifier: SQLSpecificExpressible, Sendable {
     /// Adds the specified amount of seconds
     case second(Double)
     

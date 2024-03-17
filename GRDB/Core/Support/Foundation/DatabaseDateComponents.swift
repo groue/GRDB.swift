@@ -1,10 +1,10 @@
 import Foundation
 
 /// A database value that holds date components.
-public struct DatabaseDateComponents {
+public struct DatabaseDateComponents: Sendable {
     
     /// The SQLite formats for date components.
-    public enum Format: String {
+    public enum Format: String, Sendable {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"

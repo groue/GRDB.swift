@@ -7,6 +7,7 @@ extension FetchableRecord where Self: Decodable {
     }
 }
 
+// TODO GRDB7: make it a final class, and Sendable.
 /// An object that decodes fetchable records from database rows.
 ///
 /// The example below shows how to decode an instance of a simple `Player`

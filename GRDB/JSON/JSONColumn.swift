@@ -73,7 +73,7 @@
 /// >         .fetchAll(db)
 /// > }
 /// > ```
-public struct JSONColumn: ColumnExpression, SQLJSONExpressible {
+public struct JSONColumn: ColumnExpression, SQLJSONExpressible, Sendable {
     public var name: String
     
     /// Creates a `JSONColumn` given its name.

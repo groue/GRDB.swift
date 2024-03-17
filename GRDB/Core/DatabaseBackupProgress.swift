@@ -1,7 +1,7 @@
 /// Describe the progress of a database backup.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/c3ref/backup_finish.html>
-public struct DatabaseBackupProgress {
+public struct DatabaseBackupProgress: Sendable {
     /// The number of pages still to be backed up.
     ///
     /// It is the result of the `sqlite3_backup_remaining` function.
