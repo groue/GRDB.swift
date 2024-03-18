@@ -340,3 +340,51 @@ extension DatabaseValueConvertibleEncodableTests {
         }
     }
 }
+
+// MARK: - Super Encoders
+
+extension DatabaseValueConvertibleEncodableTests {
+    func testSuperEncoder() throws {
+        // Gets compiler-synthesized `Codable` impl
+        class CodableSup: Codable, DatabaseValueConvertible {
+            var x: Int
+            init(_ x: Int) { self.x = x }
+        }
+
+        // We have to override init(from:) and encode(to:) to avoid inheriting them
+        class CodableSub: CodableSup {
+            var y: Int
+            init(_ x: Int, _ y: Int) { self.y = y; super.init(x) }
+
+            private enum CodingKeys: String, CodingKey {
+                case y
+            }
+
+            required init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                y = try container.decode(Int.self, forKey: .y)
+
+                // This will effectively fetch a nested container for key "super", then return a `Decoder` wrapping it
+                let superDecoder = try container.superDecoder()
+                try super.init(from: superDecoder)
+            }
+
+            override func encode(to encoder: any Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(y, forKey: .y)
+
+                // This will effectively create a nested container for key "super", then return an `Encoder` wrapping it
+                let superEncoder = container.superEncoder()
+                try super.encode(to: superEncoder)
+            }
+        }
+        
+        do {
+            let dbValue = CodableSup(42).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"x":42}"#)
+            
+            let dbValue2 = CodableSub(42, 500).databaseValue
+            XCTAssertEqual(dbValue2.storage.value as! String, #"{"super":{"x":42},"y":500}"#)
+        }
+    }
+}
