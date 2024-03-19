@@ -521,21 +521,6 @@ extension Database {
         .function("JSON_ARRAY_LENGTH", [value.sqlExpression, path.sqlExpression])
     }
     
-    /// The `JSON_ERROR_POSITION` SQL function.
-    ///
-    /// For example:
-    ///
-    /// ```swift
-    /// // JSON_ERROR_POSITION(info)
-    /// Database.jsonErrorPosition(Column("info"))
-    /// ```
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jerr>
-    @available(iOS 9999, macOS 9999, tvOS 9999, watchOS 9999, *)
-    public static func jsonErrorPosition(_ value: some SQLExpressible) -> SQLExpression {
-        .function("JSON_ERROR_POSITION", [value.sqlExpression])
-    }
-    
     /// The `JSON_EXTRACT` SQL function.
     ///
     /// For example:
