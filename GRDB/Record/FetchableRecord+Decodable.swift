@@ -591,9 +591,19 @@ extension DatabaseDataDecodingStrategy {
     
     fileprivate func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Data {
         if let sqliteStatement = row.sqliteStatement {
+            let statementIndex = CInt(index)
+            
+            if sqlite3_column_type(sqliteStatement, statementIndex) == SQLITE_NULL {
+                throw RowDecodingError.valueMismatch(
+                    Data.self,
+                    sqliteStatement: sqliteStatement,
+                    index: statementIndex,
+                    context: RowDecodingContext(row: row, key: .columnIndex(index)))
+            }
+            
             return try decode(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: CInt(index),
+                atUncheckedIndex: statementIndex,
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         } else {
             return try decode(
@@ -690,6 +700,16 @@ extension DatabaseDateDecodingStrategy {
     
     fileprivate func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Date {
         if let sqliteStatement = row.sqliteStatement {
+            let statementIndex = CInt(index)
+            
+            if sqlite3_column_type(sqliteStatement, statementIndex) == SQLITE_NULL {
+                throw RowDecodingError.valueMismatch(
+                    Date.self,
+                    sqliteStatement: sqliteStatement,
+                    index: statementIndex,
+                    context: RowDecodingContext(row: row, key: .columnIndex(index)))
+            }
+            
             return try decode(
                 fromStatement: sqliteStatement,
                 atUncheckedIndex: CInt(index),
