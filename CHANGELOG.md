@@ -128,6 +128,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1503](https://github.com/groue/GRDB.swift/pull/1503) by [@simba909](https://github.com/simba909): Conform Database.ColumnType to Sendable
 - **New**: [#1510](https://github.com/groue/GRDB.swift/pull/1510) by [@groue](https://github.com/groue): Add Sendable conformances and unavailabilities
 - **New**: [#1511](https://github.com/groue/GRDB.swift/pull/1511) by [@groue](https://github.com/groue): Database schema dump
+- **New**: [#1515](https://github.com/groue/GRDB.swift/pull/1515) by [@groue](https://github.com/groue): Support for the CAST SQLite function
 - **Fixed**: [#1508](https://github.com/groue/GRDB.swift/pull/1508) by [@groue](https://github.com/groue): Fix ValueObservation mishandling of database schema modification
 
 ## 6.25.0
