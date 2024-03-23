@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private func cast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
+private func myCast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
     SQL("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
 
@@ -19,7 +19,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
             
             do {
-                let request = Record.select(cast(Column("text"), as: .blob))
+                let request = Record.select(myCast(Column("text"), as: .blob))
                 let dbValue = try DatabaseValue.fetchOne(db, request)!
                 switch dbValue.storage {
                 case .blob:
@@ -30,7 +30,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
                 XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\" LIMIT 1")
             }
             do {
-                let request = Record.select(cast(Column("text"), as: .blob) && true)
+                let request = Record.select(myCast(Column("text"), as: .blob) && true)
                 _ = try DatabaseValue.fetchOne(db, request)!
                 XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) AND 1 FROM \"records\" LIMIT 1")
             }
