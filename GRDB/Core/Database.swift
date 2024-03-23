@@ -115,6 +115,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``trace(options:_:)``
 /// - ``CheckpointMode``
 /// - ``DatabaseBackupProgress``
+/// - ``StorageClass``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
 public final class Database: CustomStringConvertible, CustomDebugStringConvertible {
@@ -2004,6 +2005,32 @@ extension Database {
     
     /// An error log function that takes an error code and message.
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    
+    /// An SQLite storage class.
+    ///
+    /// For more information, see
+    /// [Datatypes In SQLite](https://www.sqlite.org/datatype3.html).
+    public struct StorageClass: RawRepresentable, Hashable, Sendable {
+        /// The SQL for the storage class (`"INTEGER"`, `"REAL"`, etc.)
+        public let rawValue: String
+        
+        /// Creates an SQL storage class.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+        
+        /// The `INTEGER` storage class.
+        public static let integer = StorageClass(rawValue: "INTEGER")
+        
+        /// The `REAL` storage class.
+        public static let real = StorageClass(rawValue: "REAL")
+        
+        /// The `TEXT` storage class.
+        public static let text = StorageClass(rawValue: "TEXT")
+        
+        /// The `BLOB` storage class.
+        public static let blob = StorageClass(rawValue: "BLOB")
+    }
     
     /// An option for the SQLite tracing feature.
     ///
