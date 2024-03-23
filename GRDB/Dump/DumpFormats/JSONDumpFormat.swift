@@ -27,7 +27,7 @@ import Foundation
 /// encoder.outputFormatting = .prettyPrinted
 /// try db.dumpRequest(Player.all(), format: .json(encoder))
 /// ```
-public struct JSONDumpFormat {
+public struct JSONDumpFormat: Sendable {
     /// The default `JSONEncoder` for database values.
     ///
     /// It is configured so that blob values (`Data`) are encoded in the

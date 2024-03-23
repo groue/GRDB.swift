@@ -358,11 +358,6 @@ final class JSONExpressionsTests: GRDBTestCase {
         guard sqlite3_libversion_number() >= 3042000 else {
             throw XCTSkip("JSON_ERROR_JSON is not available")
         }
-#else
-        guard #available(iOS 9999, macOS 9999, tvOS 9999, watchOS 9999, *) else {
-            throw XCTSkip("JSON_ERROR_JSON is not available")
-        }
-#endif
         
         try makeDatabaseQueue().inDatabase { db in
             try db.create(table: "player") { t in
@@ -385,6 +380,9 @@ final class JSONExpressionsTests: GRDBTestCase {
                 SELECT JSON_ERROR_POSITION("info") FROM "player"
                 """)
         }
+#else
+        throw XCTSkip("JSON_ERROR_JSON is not available")
+#endif
     }
     
     func test_Database_jsonExtract_atPath() throws {

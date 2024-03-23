@@ -854,6 +854,11 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension RecordCursor: Sendable { }
+
 // MARK: - DatabaseDataDecodingStrategy
 
 /// `DatabaseDataDecodingStrategy` specifies how `FetchableRecord` types that

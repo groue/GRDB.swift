@@ -4,7 +4,7 @@ import Foundation
 /// Flags that tell SQLite how to register a token.
 ///
 /// See the `FTS5_TOKEN_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
-public struct FTS5TokenFlags: OptionSet {
+public struct FTS5TokenFlags: OptionSet, Sendable {
     public let rawValue: CInt
     
     public init(rawValue: CInt) {

@@ -263,14 +263,130 @@ extension FetchableRecordDecodableTests {
 
 extension FetchableRecordDecodableTests {
 
+    func testStructWithData() throws {
+        struct StructWithData : FetchableRecord, Decodable {
+            let data: Data
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let data = "foo".data(using: .utf8)
+            
+            do {
+                let value = try StructWithData(row: ["data": data])
+                XCTAssertEqual(value.data, data)
+            }
+            
+            do {
+                let value = try dbQueue.read {
+                    try StructWithData.fetchOne($0, sql: "SELECT ? AS data", arguments: [data])!
+                }
+                XCTAssertEqual(value.data, data)
+            }
+        }
+        do {
+            do {
+                _ = try StructWithData(row: ["data": nil])
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                    could not decode Data from database value NULL - \
+                    column: "data", \
+                    column index: 0, \
+                    row: [data:NULL]
+                    """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
+            
+            do {
+                try dbQueue.read {
+                    _ = try StructWithData.fetchOne($0, sql: "SELECT NULL AS data")
+                }
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                    could not decode Data from database value NULL - \
+                    column: "data", \
+                    column index: 0, \
+                    row: [data:NULL], \
+                    sql: `SELECT NULL AS data`, \
+                    arguments: []
+                    """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
+        }
+    }
+
     func testStructWithDate() throws {
         struct StructWithDate : FetchableRecord, Decodable {
             let date: Date
         }
         
-        let date = Date()
-        let value = try StructWithDate(row: ["date": date])
-        XCTAssert(abs(value.date.timeIntervalSince(date)) < 0.001)
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let date = Date()
+            
+            do {
+                let value = try StructWithDate(row: ["date": date])
+                XCTAssert(abs(value.date.timeIntervalSince(date)) < 0.001)
+            }
+            
+            do {
+                let value = try dbQueue.read {
+                    try StructWithDate.fetchOne($0, sql: "SELECT ? AS date", arguments: [date])!
+                }
+                XCTAssert(abs(value.date.timeIntervalSince(date)) < 0.001)
+            }
+        }
+        do {
+            do {
+                _ = try StructWithDate(row: ["date": nil])
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                    could not decode Date from database value NULL - \
+                    column: "date", \
+                    column index: 0, \
+                    row: [date:NULL]
+                    """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
+            
+            do {
+                try dbQueue.read {
+                    _ = try StructWithDate.fetchOne($0, sql: "SELECT NULL AS date")
+                }
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                    could not decode Date from database value NULL - \
+                    column: "date", \
+                    column index: 0, \
+                    row: [date:NULL], \
+                    sql: `SELECT NULL AS date`, \
+                    arguments: []
+                    """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
+        }
     }
     
     func testStructWithURL() throws {

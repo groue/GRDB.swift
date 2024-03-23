@@ -147,5 +147,4 @@ The `->` and `->>` SQL operators are available on the ``SQLJSONExpressible`` pro
 
 ### Validate JSON values at the SQL level
 
-- ``Database/jsonErrorPosition(_:)``
 - ``Database/jsonIsValid(_:)``

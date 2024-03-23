@@ -42,7 +42,7 @@ import Foundation
 /// - ``hasCompletedMigrations(_:)``
 public struct DatabaseMigrator {
     /// Controls how a migration handle foreign keys constraints.
-    public enum ForeignKeyChecks {
+    public enum ForeignKeyChecks: Sendable {
         /// The migration runs with disabled foreign keys.
         ///
         /// Foreign keys are checked right before changes are committed on disk,

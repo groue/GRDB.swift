@@ -46,7 +46,9 @@ class WALSnapshotTransaction {
             // Open a long-lived transaction, and enter snapshot isolation
             self.walSnapshot = try reader.sync(allowingLongLivedTransaction: true) { db in
                 try db.beginTransaction(.deferred)
-                try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
+                // This also acquires snapshot isolation because checking
+                // database schema performs a read access.
+                try db.clearSchemaCacheIfNeeded()
                 return try WALSnapshot(db)
             }
             self.reader = reader

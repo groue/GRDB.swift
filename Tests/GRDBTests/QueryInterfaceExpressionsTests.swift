@@ -1526,7 +1526,15 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.select(average(Col.age / 2, filter: Col.age > 0))),
             "SELECT AVG(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
     }
-
+    
+    func testCastExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(cast(Col.name, as: .blob))),
+            "SELECT CAST(\"name\" AS BLOB) FROM \"readers\"")
+    }
+    
     func testLengthExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         

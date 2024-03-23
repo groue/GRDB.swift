@@ -44,7 +44,7 @@ public struct FTS5 {
     /// tokenizer argument.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#unicode61_tokenizer>
-    public enum Diacritics {
+    public enum Diacritics: Sendable {
         /// Do not remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=0" tokenizer argument.
         case keep
@@ -492,6 +492,11 @@ public final class FTS5TableDefinition {
     }
 }
 
+// Explicit non-conformance to Sendable: `FTS5TableDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension FTS5TableDefinition: Sendable { }
+
 /// Describes a column in an ``FTS5`` virtual table.
 ///
 /// You get instances of `FTS5ColumnDefinition` when you create an ``FTS5``
@@ -533,6 +538,11 @@ public final class FTS5ColumnDefinition {
         return self
     }
 }
+
+// Explicit non-conformance to Sendable: `FTS5ColumnDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension FTS5ColumnDefinition: Sendable { }
 
 extension Column {
     /// The ``FTS5`` rank column.

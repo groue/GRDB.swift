@@ -37,6 +37,7 @@ import Dispatch
 ///
 /// - ``dumpContent(format:to:)``
 /// - ``dumpRequest(_:format:to:)``
+/// - ``dumpSchema(to:)``
 /// - ``dumpSQL(_:format:to:)``
 /// - ``dumpTables(_:format:tableHeader:stableOrder:to:)``
 /// - ``DumpFormat``

@@ -2661,7 +2661,7 @@ Aggregates can be modified and combined with Swift operators:
     let request = Team.annotated(with: Team.players.min(Column("score")) ?? 0)
     ```
 
-- SQL functions `ABS` and `LENGTH` are available as the `abs` and `length` Swift functions:
+- SQL functions `ABS`, `CAST`, and `LENGTH` are available as the `abs`, `cast`, and `length` Swift functions:
 
     <details>
         <summary>SQL</summary>

@@ -135,7 +135,7 @@ extension Database {
     }
     
     /// The extent of the observation performed by a ``TransactionObserver``.
-    public enum TransactionObservationExtent {
+    public enum TransactionObservationExtent: Sendable {
         /// Observation lasts until observer is deallocated.
         case observerLifetime
         /// Observation lasts until the next transaction.
@@ -1056,7 +1056,7 @@ struct StatementObservation {
 /// See the ``TransactionObserver/observes(eventsOfKind:)`` method in the
 /// ``TransactionObserver`` protocol for more information.
 @frozen
-public enum DatabaseEventKind {
+public enum DatabaseEventKind: Sendable {
     /// The insertion of a row in a database table.
     case insert(tableName: String)
     
@@ -1109,7 +1109,7 @@ protocol DatabaseEventProtocol {
 /// ``TransactionObserver`` protocol for more information.
 public struct DatabaseEvent {
     /// An event kind.
-    public enum Kind: CInt {
+    public enum Kind: CInt, Sendable {
         /// An insertion event
         case insert = 18 // SQLITE_INSERT
         
@@ -1172,6 +1172,11 @@ public struct DatabaseEvent {
                 tableNameCString: tableNameCString))
     }
 }
+
+// Explicit non-conformance to Sendable: this type can't be made Sendable
+// until GRDB7 where we can distinguish between a transient event and its copy.
+@available(*, unavailable)
+extension DatabaseEvent: Sendable { }
 
 extension DatabaseEvent: DatabaseEventProtocol {
     func send(to observer: TransactionObservation) {

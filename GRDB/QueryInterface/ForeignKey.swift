@@ -80,7 +80,7 @@
 ///         using: Book.translatorForeignKey)
 /// }
 /// ```
-public struct ForeignKey: Equatable {
+public struct ForeignKey: Equatable, Sendable {
     var originColumns: [String]
     var destinationColumns: [String]?
     

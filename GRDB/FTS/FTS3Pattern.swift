@@ -16,7 +16,7 @@
 /// - ``init(matchingAllTokensIn:)``
 /// - ``init(matchingAnyTokenIn:)``
 /// - ``init(matchingPhrase:)``
-public struct FTS3Pattern {
+public struct FTS3Pattern: Sendable {
     /// The raw pattern string.
     ///
     /// It is guaranteed to be a valid FTS3/4 pattern.
