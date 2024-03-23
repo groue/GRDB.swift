@@ -130,6 +130,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1511](https://github.com/groue/GRDB.swift/pull/1511) by [@groue](https://github.com/groue): Database schema dump
 - **New**: [#1515](https://github.com/groue/GRDB.swift/pull/1515) by [@groue](https://github.com/groue): Support for the CAST SQLite function
 - **Fixed**: [#1508](https://github.com/groue/GRDB.swift/pull/1508) by [@groue](https://github.com/groue): Fix ValueObservation mishandling of database schema modification
+- **Fixed**: [#1512](https://github.com/groue/GRDB.swift/issues/1512): Decoding errors are now correctly reported when decoding NULL into a non-optional property of type `Data` or `Date`.
 
 ## 6.25.0
 
