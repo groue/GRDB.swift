@@ -835,7 +835,7 @@ extension AssociationAggregate {
     }
 }
 
-// MARK: - IFNULL(...)
+// MARK: - Functions
 
 extension AssociationAggregate {
     /// The `IFNULL` SQL function.
@@ -854,8 +854,6 @@ extension AssociationAggregate {
     }
 }
 
-// MARK: - ABS(...)
-
 /// The `ABS` SQL function.
 public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 -> AssociationAggregate<RowDecoder>
@@ -863,7 +861,18 @@ public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
     aggregate.map(abs)
 }
 
-// MARK: - LENGTH(...)
+/// The `CAST` SQL function.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_expr.html#castexpr>
+public func cast<RowDecoder>(
+    _ aggregate: AssociationAggregate<RowDecoder>,
+    as storageClass: Database.StorageClass)
+-> AssociationAggregate<RowDecoder>
+{
+    aggregate
+        .map { cast($0, as: storageClass) }
+        .with { $0.key = aggregate.key } // Preserve key
+}
 
 /// The `LENGTH` SQL function.
 public func length<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)

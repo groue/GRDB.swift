@@ -274,6 +274,10 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
         XCTAssertFalse((Column("a") - 2.databaseValue).isConstantInRequest)
         XCTAssertFalse((1.databaseValue - Column("a")).isConstantInRequest)
         
+        // CAST
+        XCTAssertTrue(cast(1.databaseValue, as: .real).isConstantInRequest)
+        XCTAssertFalse(cast(Column("a"), as: .real).isConstantInRequest)
+
         // SQLExpressionCollate
         XCTAssertTrue("foo".databaseValue.collating(.binary).isConstantInRequest)
         XCTAssertFalse(Column("a").collating(.binary).isConstantInRequest)

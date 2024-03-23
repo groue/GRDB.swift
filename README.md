@@ -4291,6 +4291,17 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     
     For more information about the functions `dateTime` and `julianDay`, see [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html).
 
+- `CAST`
+
+    Use the `cast` Swift function:
+    
+    ```swift
+    // SELECT (CAST(wins AS REAL) / games) AS successRate FROM player
+    Player.select((cast(winsColumn, as: .real) / gamesColumn).forKey("successRate"))
+    ```
+    
+    See [CAST expressions](https://www.sqlite.org/lang_expr.html#castexpr) for more information about SQLite conversions.
+
 - `IFNULL`
     
     Use the Swift `??` operator:

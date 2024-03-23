@@ -1511,6 +1511,30 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
+    func testCast() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: cast(Team.players.count, as: .real))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, CAST(COUNT(DISTINCT "player"."id") AS REAL) AS "playerCount" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: cast(Team.players.count, as: .real).forKey("foo"))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, CAST(COUNT(DISTINCT "player"."id") AS REAL) AS "foo" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
     func testLength() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
