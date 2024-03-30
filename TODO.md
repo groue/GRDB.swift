@@ -95,7 +95,7 @@
 - [X] GRDB7: Sendable: BusyCallback (e0d8e20b)
 - [X] GRDB7: Sendable: BusyMode (e0d8e20b)
 - [X] GRDB7: Sendable: TransactionClock (f7dc72a5)
-- [ ] GRDB7: Sendable: Configuration (54ffb21f)
+- [X] GRDB7: Sendable: Configuration (54ffb21f)
 - [ ] GRDB7: Sendable: DatabaseDataEncodingStrategy (264d7fb5)
 - [ ] GRDB7: Sendable: DatabaseDateEncodingStrategy (264d7fb5)
 - [ ] GRDB7: Sendable: DatabaseColumnEncodingStrategy (264d7fb5)
