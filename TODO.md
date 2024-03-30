@@ -106,7 +106,7 @@
 - [X] GRDB7: Sendable: DatabaseFunction (6e691fe7)
 - [X] GRDB7: Sendable: DatabaseMigrator (22114ad4)
 - [X] GRDB7: Not Sendable: FilterCursor (b26e9709)
-- [ ] GRDB7: Sendable: RowAdapter (d138af26)
+- [X] GRDB7: Sendable: RowAdapter (d138af26)
 - [ ] GRDB7: Sendable: ValueObservationScheduler (8429eb68)
 - [X] GRDB7: Sendable: DatabaseCollation (4d9d67dd)
 - [ ] GRDB7: Sendable: LogErrorFunction (f362518d)
