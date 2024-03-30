@@ -145,7 +145,7 @@
     - [ ] persistencecontainer
     - [ ] persistencesuccess
     - [ ] queryinterfacerequest
-    - [ ] record
+    - [-] record
     - [X] renamecolumnadapter
     - [ ] row/prefetchedrowsview
     - [ ] row/scopestreeview
