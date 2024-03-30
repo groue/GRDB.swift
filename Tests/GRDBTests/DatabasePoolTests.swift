@@ -397,7 +397,7 @@ class DatabasePoolTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch DatabaseError.SQLITE_BUSY { }
         }
-        XCTAssert(lastMessage!.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        XCTAssert(lastSQLiteDiagnostic.value!.message.contains("unfinalized statement: SELECT * FROM sqlite_master"))
         
         // Database is not closed: no error
         try dbPool.write { db in
@@ -427,7 +427,7 @@ class DatabasePoolTests: GRDBTestCase {
         //
         // The first comes from GRDB, and the second, depending on the SQLite
         // version, from `sqlite3_close_v2()`. Write the test so that it always pass:
-        XCTAssert(lastMessage!.contains("unfinalized statement"))
+        XCTAssert(lastSQLiteDiagnostic.value!.message.contains("unfinalized statement"))
         
         // Database is in a zombie state.
         // In the zombie state, access throws SQLITE_MISUSE
