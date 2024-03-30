@@ -1282,14 +1282,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   Use ``inSavepoint(_:)`` instead.
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil).
+    ///     - kind: The transaction type.
     ///
-    ///       If nil, and the database connection is read-only, the transaction
-    ///       kind is ``TransactionKind/deferred``.
-    ///
-    ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is the ``Configuration/defaultTransactionKind``
-    ///       of the ``configuration``.
+    ///       If nil, the transaction kind is DEFERRED when the current
+    ///       database access is read-only, and IMMEDIATE otherwise.
     ///     - operations: A function that executes SQL statements and returns
     ///       either ``TransactionCompletion/commit`` or ``TransactionCompletion/rollback``.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
@@ -1413,8 +1409,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             // By default, top level SQLite savepoints open a
             // deferred transaction.
             //
-            // But GRDB database configuration mandates a default transaction
-            // kind that we have to honor.
+            // But GRDB prefers immediate transactions for writes.
             //
             // Besides, starting some (?) SQLCipher/SQLite version, SQLite has a
             // bug. Returning 1 from `sqlite3_commit_hook` does not leave the
@@ -1504,16 +1499,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// - parameters:
     ///     - kind: The transaction type (default nil).
     ///
-    ///       If nil, and the database connection is read-only, the transaction
-    ///       kind is ``TransactionKind/deferred``.
-    ///
-    ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is the ``Configuration/defaultTransactionKind``
-    ///       of the ``configuration``.
+    ///       If nil, the transaction kind is DEFERRED when the current
+    ///       database access is read-only, and IMMEDIATE otherwise.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         // SQLite throws an error for non-deferred transactions when read-only.
-        let kind = kind ?? (isReadOnly ? .deferred : configuration.defaultTransactionKind)
+        // We prefer immediate transactions for writes, so that write
+        // transactions can not overlap. This reduces the opportunity for
+        // SQLITE_BUSY, which is immediately thrown whenever a transaction
+        // is upgraded after an initial read and a concurrent processes
+        // has acquired the write lock beforehand. This SQLITE_BUSY error
+        // can not be avoided with a busy timeout.
+        //
+        // See <https://github.com/groue/GRDB.swift/issues/1483>.
+        let kind = kind ?? (isReadOnly ? .deferred : .immediate)
         try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(sqlite3_get_autocommit(sqliteConnection) == 0)
     }

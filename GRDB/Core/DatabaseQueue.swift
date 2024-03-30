@@ -352,9 +352,10 @@ extension DatabaseQueue: DatabaseWriter {
     /// ```
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is the ``Configuration/defaultTransactionKind`` of the
-    ///       the ``configuration``.
+    ///     - kind: The transaction type (default nil).
+    ///
+    ///       If nil, the transaction kind is DEFERRED when the database
+    ///       connection is read-only, and IMMEDIATE otherwise.
     ///     - updates: A function that updates the database.
     /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func inTransaction(

@@ -369,8 +369,6 @@ class DatabaseQueueTests: GRDBTestCase {
     func test_busy_timeout_and_IMMEDIATE_transactions_do_prevent_SQLITE_BUSY() throws {
         var configuration = dbConfiguration!
         // Test fails when this line is commented
-        configuration.defaultTransactionKind = .immediate
-        // Test fails when this line is commented
         configuration.busyMode = .timeout(10)
         
         let dbQueue = try makeDatabaseQueue(filename: "test")

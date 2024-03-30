@@ -242,10 +242,6 @@ public final class DatabaseSnapshotPool {
         // DatabaseSnapshotPool is read-only.
         configuration.readonly = true
         
-        // DatabaseSnapshotPool uses deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        configuration.defaultTransactionKind = .deferred
-        
         // DatabaseSnapshotPool keeps a long-lived transaction.
         configuration.allowsUnsafeTransactions = true
         
