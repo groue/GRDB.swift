@@ -109,7 +109,7 @@
     - [ ] belongstoassociation
     - [ ] columnexpression
     - [ ] commontableexpression
-    - [ ] configuration
+    - [X] configuration
     - [X] customtransactionclock
     - [X] database/busymode
     - [ ] databaseaggregate

@@ -87,7 +87,7 @@ class GRDBTestCase: XCTestCase {
         dbConfiguration = Configuration()
         
         // Test that database are deallocated in a clean state
-        dbConfiguration.SQLiteConnectionWillClose = { sqliteConnection in
+        dbConfiguration.onConnectionWillClose { sqliteConnection in
             // https://www.sqlite.org/capi3ref.html#sqlite3_close:
             // > If sqlite3_close_v2() is called on a database connection that still
             // > has outstanding prepared statements, BLOB handles, and/or
