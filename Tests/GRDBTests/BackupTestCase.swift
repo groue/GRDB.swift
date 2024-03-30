@@ -84,7 +84,7 @@ class BackupTestCase: GRDBTestCase {
         let sourceDbPageCount = try setupBackupSource(source)
         try setupBackupDestination(destination)
 
-        try source.write { sourceDb in
+        try source.read { sourceDb in
             try destination.barrierWriteWithoutTransaction { destDb in
                 XCTAssertThrowsError(
                     try sourceDb.backup(to: destDb, pagesPerStep: 1) { progress in
@@ -102,7 +102,7 @@ class BackupTestCase: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT id FROM items")!, 1)
         }
 
-        try source.write { dbSource in
+        try source.read { dbSource in
             try destination.barrierWriteWithoutTransaction { dbDest in
                 var progressCount: Int = 1
                 var isCompleted: Bool = false

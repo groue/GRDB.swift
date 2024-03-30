@@ -118,10 +118,6 @@ public final class DatabasePool {
         
         configuration.readonly = true
         
-        // Readers use deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        configuration.defaultTransactionKind = .deferred
-        
         // <https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode>
         // > But there are some obscure cases where a query against a WAL-mode
         // > database can return SQLITE_BUSY, so applications should be prepared
@@ -787,9 +783,10 @@ extension DatabasePool: DatabaseWriter {
     ///
     /// - precondition: This method is not reentrant.
     /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is the ``Configuration/defaultTransactionKind`` of the
-    ///       the ``configuration``.
+    ///     - kind: The transaction type (default nil).
+    ///
+    ///       If nil, the transaction kind is DEFERRED when the database
+    ///       connection is read-only, and IMMEDIATE otherwise.
     ///     - updates: A function that updates the database.
     /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func writeInTransaction(

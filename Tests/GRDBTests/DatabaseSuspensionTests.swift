@@ -507,7 +507,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                 try db.execute(sql: "SELECT * FROM sqlite_master")
                 XCTAssertEqual(db.journalModeCache, "wal")
             }
-            try dbPool.write { db in
+            dbPool.writeWithoutTransaction { db in
                 XCTAssertEqual(db.journalModeCache, "wal")
             }
             try dbPool.read { db in

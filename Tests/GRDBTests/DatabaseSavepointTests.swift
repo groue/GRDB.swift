@@ -96,226 +96,8 @@ class DatabaseSavepointTests: GRDBTestCase {
             XCTAssertThrowsError(try db.execute(sql: "COMMIT"))
         }
     }
-
-    func testReleaseTopLevelSavepointFromDatabaseWithDefaultDeferredTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .deferred
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                return .commit
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item3")
-        }
-        
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "COMMIT TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item3')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 3)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
-        #endif
-    }
-
-    func testRollbackTopLevelSavepointFromDatabaseWithDefaultDeferredTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .deferred
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                return .rollback
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item3")
-        }
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "ROLLBACK TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item3')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item3"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 3)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
-        #endif
-    }
-
-    func testNestedSavepointFromDatabaseWithDefaultDeferredTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .deferred
-        let dbQueue = try makeDatabaseQueue()
-        let observer = Observer()
-        dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                try db.inSavepoint {
-                    XCTAssertTrue(db.isInsideTransaction)
-                    try insertItem(db, name: "item3")
-                    return .commit
-                }
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item4")
-                return .commit
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item5")
-        }
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item3')",
-            "RELEASE SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item4')",
-            "COMMIT TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item5')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 5)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
-        #endif
-        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
-        observer.reset()
-        
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                try db.inSavepoint {
-                    XCTAssertTrue(db.isInsideTransaction)
-                    try insertItem(db, name: "item3")
-                    return .commit
-                }
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item4")
-                return .rollback
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item5")
-        }
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item3')",
-            "RELEASE SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item4')",
-            "ROLLBACK TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item5')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 5)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
-        #endif
-        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
-        observer.reset()
-        
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                try db.inSavepoint {
-                    XCTAssertTrue(db.isInsideTransaction)
-                    try insertItem(db, name: "item3")
-                    return .rollback
-                }
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item4")
-                return .commit
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item5")
-        }
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item3')",
-            "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
-            "RELEASE SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item4')",
-            "COMMIT TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item5')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 4)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
-        #endif
-        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
-        observer.reset()
-        
-        sqlQueries.removeAll()
-        try dbQueue.writeWithoutTransaction { db in
-            try insertItem(db, name: "item1")
-            try db.inSavepoint {
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item2")
-                try db.inSavepoint {
-                    XCTAssertTrue(db.isInsideTransaction)
-                    try insertItem(db, name: "item3")
-                    return .rollback
-                }
-                XCTAssertTrue(db.isInsideTransaction)
-                try insertItem(db, name: "item4")
-                return .rollback
-            }
-            XCTAssertFalse(db.isInsideTransaction)
-            try insertItem(db, name: "item5")
-        }
-        XCTAssertEqual(sqlQueries, [
-            "INSERT INTO items (name) VALUES ('item1')",
-            "BEGIN DEFERRED TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item2')",
-            "SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item3')",
-            "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
-            "RELEASE SAVEPOINT grdb",
-            "INSERT INTO items (name) VALUES ('item4')",
-            "ROLLBACK TRANSACTION",
-            "INSERT INTO items (name) VALUES ('item5')"
-            ])
-        XCTAssertEqual(try fetchAllItemNames(dbQueue), ["item1", "item5"])
-        XCTAssertEqual(observer.allRecordedEvents.count, 4)
-        #if SQLITE_ENABLE_PREUPDATE_HOOK
-            XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
-        #endif
-        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
-        observer.reset()
-    }
-
-    func testReleaseTopLevelSavepointFromDatabaseWithDefaultImmediateTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .immediate
+    
+    func testReleaseTopLevelSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
@@ -344,8 +126,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #endif
     }
 
-    func testRollbackTopLevelSavepointFromDatabaseWithDefaultImmediateTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .immediate
+    func testRollbackTopLevelSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
@@ -374,8 +155,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #endif
     }
 
-    func testNestedSavepointFromDatabaseWithDefaultImmediateTransactions() throws {
-        dbConfiguration.defaultTransactionKind = .immediate
+    func testNestedSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
