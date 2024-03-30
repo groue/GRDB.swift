@@ -4,21 +4,16 @@ import XCTest
 class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
     
     func testDatabaseQueueDeinitClosesConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        let openConnectionCountMutex = Mutex(0)
+        let totalOpenConnectionCountMutex = Mutex(0)
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
-            }
+        dbConfiguration.onConnectionDidOpen {
+            totalOpenConnectionCountMutex.increment()
+            openConnectionCountMutex.increment()
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
-            }
+        dbConfiguration.onConnectionDidClose {
+            openConnectionCountMutex.decrement()
         }
         
         do {
@@ -27,28 +22,23 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // One reader, one writer
-        XCTAssertEqual(totalOpenConnectionCount, 1)
+        XCTAssertEqual(totalOpenConnectionCountMutex.value, 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(openConnectionCountMutex.value, 0)
     }
-
+    
     func testBlocksRetainConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        var totalOpenConnectionCount = 0
+        let openConnectionCountMutex = Mutex(0)
+        let totalOpenConnectionCountMutex = Mutex(0)
         
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                totalOpenConnectionCount += 1
-                openConnectionCount += 1
-            }
+        dbConfiguration.onConnectionDidOpen {
+            totalOpenConnectionCountMutex.increment()
+            openConnectionCountMutex.increment()
         }
         
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
-            }
+        dbConfiguration.onConnectionDidClose {
+            openConnectionCountMutex.decrement()
         }
         
         // Block 1                  Block 2
@@ -91,10 +81,10 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // one writer
-        XCTAssertEqual(totalOpenConnectionCount, 1)
+        XCTAssertEqual(totalOpenConnectionCountMutex.value, 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCount, 0)
+        XCTAssertEqual(openConnectionCountMutex.value, 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
