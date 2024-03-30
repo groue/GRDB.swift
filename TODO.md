@@ -94,7 +94,7 @@
 - [X] GRDB7: Replace LockedBox with Mutex (00ccab06)
 - [X] GRDB7: Sendable: BusyCallback (e0d8e20b)
 - [X] GRDB7: Sendable: BusyMode (e0d8e20b)
-- [ ] GRDB7: Sendable: TransactionClock (f7dc72a5)
+- [X] GRDB7: Sendable: TransactionClock (f7dc72a5)
 - [ ] GRDB7: Sendable: Configuration (54ffb21f)
 - [ ] GRDB7: Sendable: DatabaseDataEncodingStrategy (264d7fb5)
 - [ ] GRDB7: Sendable: DatabaseDateEncodingStrategy (264d7fb5)
