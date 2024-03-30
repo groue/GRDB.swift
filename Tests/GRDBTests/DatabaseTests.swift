@@ -505,16 +505,54 @@ class DatabaseTests : GRDBTestCase {
         try dbQueue.inTransaction { db in .commit }
     }
     
+    func testImplicitTransactionManagement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.read { db in
+            XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
+        }
+        
+        try dbQueue.write { db in
+            XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
+        }
+        
+        try dbQueue.writeWithoutTransaction { db in
+            try db.beginTransaction()
+            XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
+            try db.rollback()
+            XCTAssertEqual(lastSQLQuery, "ROLLBACK TRANSACTION")
+            
+            try db.inSavepoint {
+                XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
+                return .commit
+            }
+            XCTAssertEqual(lastSQLQuery, "COMMIT TRANSACTION")
+
+            try db.readOnly {
+                try db.beginTransaction()
+                XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
+                try db.rollback()
+                XCTAssertEqual(lastSQLQuery, "ROLLBACK TRANSACTION")
+                
+                try db.inSavepoint {
+                    XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
+                    return .rollback
+                }
+                XCTAssertEqual(lastSQLQuery, "ROLLBACK TRANSACTION")
+            }
+        }
+    }
+
     func testExplicitTransactionManagement() throws {
         let dbQueue = try makeDatabaseQueue()
         
         try dbQueue.writeWithoutTransaction { db in
-            try db.beginTransaction()
+            try db.beginTransaction(.deferred)
             XCTAssertEqual(lastSQLQuery, "BEGIN DEFERRED TRANSACTION")
-            try db.rollback()
-            XCTAssertEqual(lastSQLQuery, "ROLLBACK TRANSACTION")
-            try db.beginTransaction(.immediate)
-            XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
+            try db.commit()
+            XCTAssertEqual(lastSQLQuery, "COMMIT TRANSACTION")
+            try db.beginTransaction(.exclusive)
+            XCTAssertEqual(lastSQLQuery, "BEGIN EXCLUSIVE TRANSACTION")
             try db.commit()
             XCTAssertEqual(lastSQLQuery, "COMMIT TRANSACTION")
         }
@@ -561,7 +599,6 @@ class DatabaseTests : GRDBTestCase {
     }
     
     func testReadOnlyTransaction() throws {
-        dbConfiguration.defaultTransactionKind = .immediate
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
