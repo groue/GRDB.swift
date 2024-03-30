@@ -238,28 +238,6 @@ public struct Configuration {
     
     // MARK: - Transactions
     
-    /// The default kind of write transactions.
-    ///
-    /// The default is ``Database/TransactionKind/deferred``.
-    ///
-    /// You can change the default transaction kind. For example, you can force
-    /// all write transactions to be `IMMEDIATE`:
-    ///
-    /// ```swift
-    /// var config = Configuration()
-    /// config.defaultTransactionKind = .immediate
-    /// let dbQueue = try DatabaseQueue(configuration: config)
-    ///
-    /// // BEGIN IMMEDIATE TRANSACTION; ...; COMMIT TRANSACTION;
-    /// try dbQueue.write { db in ... }
-    /// ```
-    ///
-    /// This property is ignored for read-only transactions. Those always open
-    /// `DEFERRED` SQLite transactions.
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
-    public var defaultTransactionKind: Database.TransactionKind = .deferred
-    
     /// A boolean value indicating whether it is valid to leave a transaction
     /// opened at the end of a database access method.
     ///
