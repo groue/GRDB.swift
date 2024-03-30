@@ -69,7 +69,7 @@ public struct FTS5 {
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
-        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
+        @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.27+
         case remove
         #endif
     }
@@ -130,7 +130,7 @@ public struct FTS5 {
         return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         #else
         // GRDB is linked against the system SQLite.
-        if #available(macOS 10.14, watchOS 5, *) { // SQLite 3.20+
+        if #available(macOS 10.14, *) { // SQLite 3.20+
             return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         } else {
             return api_v1(db)

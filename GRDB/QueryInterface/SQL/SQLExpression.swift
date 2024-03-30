@@ -1989,7 +1989,7 @@ struct SQLAggregateFunctionInvocation {
     var arguments: [SQLExpression]
     var isDistinct = false
     var ordering: SQLOrdering? = nil // SQLite 3.44.0+
-    var filter: SQLExpression? = nil // @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) SQLite 3.30+
+    var filter: SQLExpression? = nil // @available(iOS 14, macOS 10.16, tvOS 14, *) SQLite 3.30+
     
     /// A boolean value indicating if a function is known to return a
     /// JSON value.
@@ -2328,13 +2328,13 @@ extension SQLSpecificExpressible {
     }
     #elseif !GRDBCIPHER
     /// An ordering term for ascending order (nulls last).
-    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+    @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
     /// An ordering term for descending order (nulls first).
-    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+    @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }

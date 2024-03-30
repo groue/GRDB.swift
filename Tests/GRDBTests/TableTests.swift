@@ -117,7 +117,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 struct Player: Identifiable { var id: Int64 }
                 let t = Table<Player>("player")
                 
@@ -129,7 +129,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 struct Player: Identifiable { var id: Int64? }
                 let t = Table<Player>("player")
                 
@@ -806,7 +806,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -821,7 +821,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -920,7 +920,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
 
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -930,7 +930,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
