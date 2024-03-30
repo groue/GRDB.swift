@@ -10,7 +10,8 @@ import SQLite3
 import Dispatch
 import Foundation
 
-public struct Configuration {
+// TODO: remove @unchecked when DispatchQoS is Sendable
+public struct Configuration: @unchecked Sendable {
     
     // MARK: - Misc options
     
@@ -195,7 +196,7 @@ public struct Configuration {
     
     // MARK: - Managing SQLite Connections
     
-    private var setups: [(Database) throws -> Void] = []
+    private var setups: [@Sendable (Database) throws -> Void] = []
     
     /// Defines a function to run whenever an SQLite connection is opened.
     ///
@@ -232,7 +233,7 @@ public struct Configuration {
     ///
     /// On newly created databases files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
-    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+    public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
     }
     
@@ -432,9 +433,25 @@ public struct Configuration {
     /// through a `SerializedDatabase`.
     var threadingMode = Database.ThreadingMode.default
     
-    var SQLiteConnectionDidOpen: (() -> Void)?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
-    var SQLiteConnectionDidClose: (() -> Void)?
+    private(set) var SQLiteConnectionDidOpen: (@Sendable () -> Void)?
+    private(set) var SQLiteConnectionWillClose: (@Sendable (SQLiteConnection) -> Void)?
+    private(set) var SQLiteConnectionDidClose: (@Sendable () -> Void)?
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidOpen(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidOpen = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionWillClose(_ callback: @escaping @Sendable (SQLiteConnection) -> Void) {
+        SQLiteConnectionWillClose = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidClose(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidClose = callback
+    }
+    
     var SQLiteOpenFlags: CInt {
         var flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         if sqlite3_libversion_number() >= 3037000 {

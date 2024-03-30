@@ -378,7 +378,7 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         
         let parallelWritesCount = 50
-        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { index in
+        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { [configuration] index in
             let dbQueue = try! makeDatabaseQueue(filename: "test", configuration: configuration)
             try! dbQueue.write { db in
                 _ = try Table("test").fetchCount(db)
