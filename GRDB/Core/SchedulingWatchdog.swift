@@ -22,7 +22,7 @@ import Dispatch
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
 final class SchedulingWatchdog {
-    private static let watchDogKey = DispatchSpecificKey<SchedulingWatchdog>()
+    nonisolated(unsafe) private static let watchDogKey = DispatchSpecificKey<SchedulingWatchdog>()
     private(set) var allowedDatabases: [Database]
     var databaseObservationBroker: DatabaseObservationBroker?
     

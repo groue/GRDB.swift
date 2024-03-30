@@ -67,7 +67,7 @@ extension Dictionary {
 }
 
 extension DispatchQueue {
-    private static var mainKey: DispatchSpecificKey<()> = {
+    nonisolated(unsafe) private static let mainKey: DispatchSpecificKey<()> = {
         let key = DispatchSpecificKey<()>()
         DispatchQueue.main.setSpecific(key: key, value: ())
         return key
