@@ -110,7 +110,7 @@
     - [ ] columnexpression
     - [ ] commontableexpression
     - [ ] configuration
-    - [ ] customtransactionclock
+    - [X] customtransactionclock
     - [X] database/busymode
     - [ ] databaseaggregate
     - [ ] databasecancellable
@@ -131,7 +131,7 @@
     - [ ] databasepublishers/write
     - [ ] databaseregionobservation
     - [ ] databaseuuidencodingstrategy
-    - [ ] defaulttransactionclock
+    - [X] defaulttransactionclock
     - [ ] fetchablerecorddecoder
     - [ ] fetchrequest
     - [ ] filtercursor
@@ -169,7 +169,7 @@
     - [ ] sqlsubquery
     - [ ] sqlsubqueryable
     - [ ] tablealias
-    - [ ] transactionclock
+    - [X] transactionclock
     - [ ] valueobservation
     - [ ] valueobservationscheduler
 
