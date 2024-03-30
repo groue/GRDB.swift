@@ -94,6 +94,7 @@
 - [X] GRDB7: Raise the minimum watchOS target https://github.com/groue/GRDB.swift/issues/1472#issuecomment-1960696836
 - [ ] GRDB7: Consider putting a Task cancellation handler on async methods.
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
+- [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Sendable conformances
     - [X] anydatabasecancellable
     - [ ] anydatabaseregionconvertible
@@ -121,7 +122,6 @@
     - [X] databasedatedecodingstrategy
     - [X] databasedateencodingstrategy
     - [ ] databasefunction
-    - [ ] databasefuture
     - [ ] databasemigrator
     - [ ] databasepublishers/databaseregion
     - [ ] databasepublishers/migrate

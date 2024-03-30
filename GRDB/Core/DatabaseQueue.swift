@@ -266,19 +266,6 @@ extension DatabaseQueue: DatabaseReader {
         try writer.reentrantSync(value)
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        // DatabaseQueue can't perform parallel reads.
-        // Perform a blocking read instead.
-        return DatabaseFuture(Result {
-            // Check that we're on the writer queue, as documented
-            try writer.execute { db in
-                try db.isolated(readOnly: true) {
-                    try value(db)
-                }
-            }
-        })
-    }
-    
     public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
