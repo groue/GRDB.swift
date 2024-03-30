@@ -10,7 +10,7 @@ import Foundation
 ///
 /// - ``DefaultTransactionClock``
 /// - ``CustomTransactionClock``
-public protocol TransactionClock {
+public protocol TransactionClock: Sendable {
     /// Returns the date of the current transaction.
     ///
     /// This function is called whenever a transaction starts - precisely
@@ -36,7 +36,7 @@ extension TransactionClock where Self == CustomTransactionClock {
     ///
     /// It is also called when the ``Database/transactionDate`` property is
     /// called, and the database connection is not in a transaction.
-    public static func custom(_ now: @escaping (Database) throws -> Date) -> Self {
+    public static func custom(_ now: @escaping @Sendable (Database) throws -> Date) -> Self {
         CustomTransactionClock(now)
     }
 }
@@ -53,9 +53,9 @@ public struct DefaultTransactionClock: TransactionClock {
 
 /// A custom transaction clock.
 public struct CustomTransactionClock: TransactionClock {
-    let _now: (Database) throws -> Date
+    let _now: @Sendable (Database) throws -> Date
     
-    public init(_ now: @escaping (Database) throws -> Date) {
+    public init(_ now: @escaping @Sendable (Database) throws -> Date) {
         self._now = now
     }
     
