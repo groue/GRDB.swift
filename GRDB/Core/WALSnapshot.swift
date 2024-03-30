@@ -1,4 +1,13 @@
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import CSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// An instance of WALSnapshot records the state of a WAL mode database for some
 /// specific point in history.
 ///

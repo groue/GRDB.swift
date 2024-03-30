@@ -89,7 +89,7 @@
 
 - [X] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
 - [ ] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
-- [ ] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
+- [X] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
 - [ ] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
 - [ ] GRDB7: Replace LockedBox with Mutex (00ccab06)
 - [ ] GRDB7: Sendable: BusyCallback (e0d8e20b)
