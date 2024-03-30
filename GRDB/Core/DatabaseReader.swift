@@ -458,7 +458,7 @@ extension DatabaseReader {
     /// - parameter value: A closure which accesses the database.
     /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func read<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncRead { result in
@@ -504,7 +504,7 @@ extension DatabaseReader {
     /// - parameter value: A closure which accesses the database.
     /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func unsafeRead<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncUnsafeRead { result in
@@ -549,7 +549,7 @@ extension DatabaseReader {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter value: A closure which accesses the database.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         value: @escaping (Database) throws -> Output)
@@ -567,7 +567,7 @@ extension DatabaseReader {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension DatabasePublishers {
     /// A publisher that reads from the database.
     ///
@@ -586,7 +586,7 @@ extension DatabasePublishers {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
         .init(upstream: eraseToAnyPublisher())

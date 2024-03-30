@@ -23,7 +23,7 @@ private struct RecordWithUUID<Strategy: StrategyProvider>: EncodableRecord, Enco
     var uuid: UUID
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithUUID: Identifiable {
     var id: UUID { uuid }
 }
@@ -33,7 +33,7 @@ private struct RecordWithOptionalUUID<Strategy: StrategyProvider>: EncodableReco
     var uuid: UUID?
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithOptionalUUID: Identifiable {
     var id: UUID? { uuid }
 }
@@ -184,7 +184,7 @@ extension DatabaseUUIDEncodingStrategyTests {
     }
     
     func testFilterID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Identifiable not available")
         }
         
@@ -303,7 +303,7 @@ extension DatabaseUUIDEncodingStrategyTests {
     }
     
     func testDeleteID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Identifiable not available")
         }
         
