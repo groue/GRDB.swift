@@ -7,5 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = try! DatabaseQueue()
         _ = FTS5()
         _ = sqlite3_preupdate_new(nil, 0, nil)
+        let sqliteVersion = String(cString: sqlite3_libversion())
+        print(sqliteVersion)
     }
 }

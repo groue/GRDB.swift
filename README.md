@@ -1612,10 +1612,11 @@ For more information, see [`tableExists(_:)`](https://swiftpackageindex.com/grou
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-Those functions are embedded right into the GRDB module, regardless of the underlying SQLite implementation (system SQLite, [SQLCipher](#encryption), or [custom SQLite build]):
+To access the C SQLite functions from SQLCipher or the system SQLite, you need to perform an extra import:
 
 ```swift
-import GRDB
+import SQLite3   // System SQLite
+import SQLCipher // SQLCipher
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```

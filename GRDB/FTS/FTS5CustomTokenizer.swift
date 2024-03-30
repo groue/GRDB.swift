@@ -1,4 +1,13 @@
 #if SQLITE_ENABLE_FTS5
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import CSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// A type that implements a custom tokenizer for the ``FTS5`` full-text engine.
 ///
 /// See [FTS5 Tokenizers](https://github.com/groue/GRDB.swift/blob/master/Documentation/FTS5Tokenizers.md)
