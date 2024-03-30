@@ -122,8 +122,14 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``logError``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``
+///
+/// ### Supporting Types
+///
+/// - ``BusyCallback``
+/// - ``BusyMode``
 /// - ``CheckpointMode``
 /// - ``DatabaseBackupProgress``
+/// - ``LogErrorFunction``
 /// - ``StorageClass``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
@@ -143,8 +149,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The error logging function.
     ///
+    /// SQLite can be configured to invoke a callback function containing
+    /// an error code and a terse error message whenever anomalies occur.
+    ///
+    /// This global error callback must be configured early in the lifetime
+    /// of your application:
+    ///
+    /// ```swift
+    /// Database.logError = { (resultCode, message) in
+    ///     NSLog("%@", "SQLite error \(resultCode): \(message)")
+    /// }
+    /// ```
+    ///
+    /// - warning: Database.logError must be set before any database
+    ///   connection is opened. This includes the connections that your
+    ///   application opens with GRDB, but also connections opened by
+    ///   other tools, such as third-party libraries. Setting it after a
+    ///   connection has been opened is an SQLite misuse, and has no effect.
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -1830,7 +1854,7 @@ extension Database {
     
     // MARK: - Database-Related Types
     
-    /// See BusyMode and <https://www.sqlite.org/c3ref/busy_handler.html>
+    /// See ``BusyMode`` and <https://www.sqlite.org/c3ref/busy_handler.html>
     public typealias BusyCallback = @Sendable (_ numberOfTries: Int) -> Bool
     
     /// When there are several connections to a database, a connection may try
@@ -2019,7 +2043,7 @@ extension Database {
     }
     
     /// An error log function that takes an error code and message.
-    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    public typealias LogErrorFunction = @Sendable (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// An SQLite storage class.
     ///

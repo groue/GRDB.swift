@@ -458,7 +458,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch DatabaseError.SQLITE_BUSY { }
         }
-        XCTAssert(lastMessage!.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        XCTAssert(lastSQLiteDiagnostic.value!.message.contains("unfinalized statement: SELECT * FROM sqlite_master"))
         
         // Database is not closed: no error
         try dbQueue.inDatabase { db in
