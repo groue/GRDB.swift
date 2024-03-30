@@ -115,12 +115,12 @@
     - [ ] databaseaggregate
     - [ ] databasecancellable
     - [ ] databasecollation
-    - [ ] databasecolumndecodingstrategy
-    - [ ] databasecolumnencodingstrategy
-    - [ ] databasedatadecodingstrategy
-    - [ ] databasedataencodingstrategy
-    - [ ] databasedatedecodingstrategy
-    - [ ] databasedateencodingstrategy
+    - [X] databasecolumndecodingstrategy
+    - [X] databasecolumnencodingstrategy
+    - [X] databasedatadecodingstrategy
+    - [X] databasedataencodingstrategy
+    - [X] databasedatedecodingstrategy
+    - [X] databasedateencodingstrategy
     - [ ] databasefunction
     - [ ] databasefuture
     - [ ] databasemigrator
@@ -130,7 +130,7 @@
     - [ ] databasepublishers/value
     - [ ] databasepublishers/write
     - [ ] databaseregionobservation
-    - [ ] databaseuuidencodingstrategy
+    - [X] databaseuuidencodingstrategy
     - [X] defaulttransactionclock
     - [ ] fetchablerecorddecoder
     - [ ] fetchrequest
