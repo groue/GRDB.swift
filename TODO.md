@@ -147,12 +147,12 @@
     - [ ] persistencesuccess
     - [ ] queryinterfacerequest
     - [ ] record
-    - [ ] renamecolumnadapter
+    - [X] renamecolumnadapter
     - [ ] row/prefetchedrowsview
     - [ ] row/scopestreeview
     - [ ] row/scopesview
-    - [ ] rowadapter
-    - [ ] scopeadapter
+    - [X] rowadapter
+    - [X] scopeadapter
     - [ ] sharedvalueobservation
     - [ ] sql
     - [ ] sqlexpressible
