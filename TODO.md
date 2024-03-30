@@ -111,7 +111,7 @@
     - [ ] commontableexpression
     - [ ] configuration
     - [ ] customtransactionclock
-    - [ ] database/busymode
+    - [X] database/busymode
     - [ ] databaseaggregate
     - [ ] databasecancellable
     - [ ] databasecollation
