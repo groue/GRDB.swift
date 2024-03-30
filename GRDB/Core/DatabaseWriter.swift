@@ -38,9 +38,7 @@ import Dispatch
 ///
 /// ### Reading from the Latest Committed Database State
 ///
-/// - ``concurrentRead(_:)``
 /// - ``spawnConcurrentRead(_:)``
-/// - ``DatabaseFuture``
 ///
 /// ### Unsafe Methods
 ///
@@ -250,49 +248,6 @@ public protocol DatabaseWriter: DatabaseReader {
     func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T
     
     // MARK: - Reading from Database
-    
-    /// Schedules read-only database operations for execution, and returns a
-    /// future value.
-    ///
-    /// This method must be called from the writer dispatch queue, outside of
-    /// any transaction. You'll get a fatal error otherwise.
-    ///
-    /// Database operations performed by the `value` closure are isolated in a
-    /// transaction: they do not see changes performed by eventual concurrent
-    /// writes (even writes performed by other processes).
-    ///
-    /// They see the database in the state left by the last updates performed
-    /// by the database writer.
-    ///
-    /// To access the fetched results, you call the ``DatabaseFuture/wait()``
-    /// method of the returned future, on any dispatch queue.
-    ///
-    /// In the example below, the number of players is fetched concurrently with
-    /// the player insertion. Yet the future is guaranteed to return zero:
-    ///
-    /// ```swift
-    /// try writer.writeWithoutTransaction { db in
-    ///     // Delete all players
-    ///     try Player.deleteAll()
-    ///
-    ///     // Count players concurrently
-    ///     let future = writer.concurrentRead { db in
-    ///         return try Player.fetchCount()
-    ///     }
-    ///
-    ///     // Insert a player
-    ///     try Player(...).insert(db)
-    ///
-    ///     // Guaranteed to be zero
-    ///     let count = try future.wait()
-    /// }
-    /// ```
-    ///
-    /// - note: Usage of this method is discouraged, because waiting on the
-    ///   returned ``DatabaseFuture`` blocks a thread. You may prefer
-    ///   ``spawnConcurrentRead(_:)`` instead.
-    /// - parameter value: A closure which accesses the database.
-    func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T>
     
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
     /// Schedules read-only database operations for execution.
@@ -924,49 +879,6 @@ extension Publisher where Failure == Error {
 }
 #endif
 
-/// A future database value.
-///
-/// You get instances of `DatabaseFuture` from the `DatabaseWriter`
-/// ``DatabaseWriter/concurrentRead(_:)`` method. For example:
-///
-/// ```swift
-/// let futureCount: Future<Int> = try writer.writeWithoutTransaction { db in
-///     try Player(...).insert()
-///
-///     // Count players concurrently
-///     return writer.concurrentRead { db in
-///         return try Player.fetchCount()
-///     }
-/// }
-///
-/// let count: Int = try futureCount.wait()
-/// ```
-public class DatabaseFuture<Value> {
-    private var consumed = false
-    private let _wait: () throws -> Value
-    
-    init(_ wait: @escaping () throws -> Value) {
-        _wait = wait
-    }
-    
-    init(_ result: Result<Value, Error>) {
-        _wait = result.get
-    }
-    
-    /// Blocks the current thread until the value is available, and returns it.
-    ///
-    /// It is a programmer error to call this method several times.
-    ///
-    /// - throws: Any error that prevented the value from becoming available.
-    public func wait() throws -> Value {
-        // Not thread-safe and quick and dirty.
-        // Goal is that users learn not to call this method twice.
-        GRDBPrecondition(consumed == false, "DatabaseFuture.wait() must be called only once")
-        consumed = true
-        return try _wait()
-    }
-}
-
 /// A type-erased database writer.
 ///
 /// An instance of `AnyDatabaseWriter` forwards its operations to an underlying
@@ -1054,10 +966,6 @@ extension AnyDatabaseWriter: DatabaseWriter {
     
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.unsafeReentrantWrite(updates)
-    }
-    
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        base.concurrentRead(value)
     }
     
     public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {

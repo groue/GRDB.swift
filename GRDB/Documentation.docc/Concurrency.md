@@ -277,31 +277,7 @@ let newPlayerCount = try dbPool.write { db in
 }
 ```
 
-➡️ The synchronous solution is the ``DatabaseWriter/concurrentRead(_:)`` method. It must be called from within a write access, outside of any transaction. It returns a ``DatabaseFuture`` which you consume any time later, with the ``DatabaseFuture/wait()`` method:
-
-```swift
-let future: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
-    // Increment the number of players
-    try db.inTransaction {
-        try Player(...).insert(db)
-        return .commit
-    }
-    
-    // <- Not in a transaction here
-    return dbPool.concurrentRead { db
-        try Player.fetchCount(db)
-    }
-}
-
-do {
-    // Handle the new player count - guaranteed greater than zero
-    let newPlayerCount = try future.wait()
-} catch {
-    // Handle error
-}
-```
-
-🔀 The asynchronous version of `concurrentRead` is ``DatabasePool/asyncConcurrentRead(_:)``:
+🔀 The solution is ``DatabasePool/asyncConcurrentRead(_:)``. It must be called from within a write access, outside of any transaction:
 
 ```swift
 try dbPool.writeWithoutTransaction { db in
@@ -324,10 +300,9 @@ try dbPool.writeWithoutTransaction { db in
 }
 ```
 
-Both ``DatabaseWriter/concurrentRead(_:)`` and ``DatabasePool/asyncConcurrentRead(_:)`` block until they can guarantee their closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes this closure.
+The ``DatabasePool/asyncConcurrentRead(_:)`` method blocks until it can guarantee its closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes the closure.
 
 In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
-
 
 ![DatabasePool Concurrent Read](DatabasePoolConcurrentRead.png)
 
