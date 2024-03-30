@@ -102,7 +102,7 @@
 - [ ] GRDB7: Sendable: DatabaseDataDecodingStrategy (264d7fb5)
 - [ ] GRDB7: Sendable: DatabaseDateDecodingStrategy (264d7fb5)
 - [ ] GRDB7: Sendable: DatabaseColumnDecodingStrategy (264d7fb5)
-- [ ] GRDB7/BREAKING: Remove DatabaseFuture and concurrentRead (05f7d3c8)
+- [X] GRDB7/BREAKING: Remove DatabaseFuture and concurrentRead (05f7d3c8)
 - [ ] GRDB7: Sendable: DatabaseFunction (6e691fe7)
 - [ ] GRDB7: Sendable: DatabaseMigrator (22114ad4)
 - [ ] GRDB7: Not Sendable: FilterCursor (b26e9709)
