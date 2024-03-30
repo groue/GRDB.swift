@@ -132,7 +132,7 @@
     - [X] defaulttransactionclock
     - [ ] fetchablerecorddecoder
     - [ ] fetchrequest
-    - [ ] filtercursor
+    - [-] filtercursor
     - [ ] fts5customtokenizer
     - [ ] fts5tokenizer
     - [ ] fts5wrappertokenizer

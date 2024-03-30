@@ -865,6 +865,10 @@ public final class FilterCursor<Base: Cursor> {
     }
 }
 
+// Explicit non-conformance to Sendable.
+@available(*, unavailable)
+extension FilterCursor: Sendable { }
+
 extension FilterCursor: Cursor {
     public func next() throws -> Base.Element? {
         while let element = try base.next() {
