@@ -122,11 +122,11 @@
     - [X] databasedateencodingstrategy
     - [X] databasefunction
     - [X] databasemigrator
-    - [ ] databasepublishers/databaseregion
-    - [ ] databasepublishers/migrate
-    - [ ] databasepublishers/read
-    - [ ] databasepublishers/value
-    - [ ] databasepublishers/write
+    - [-] databasepublishers/databaseregion
+    - [-] databasepublishers/migrate
+    - [-] databasepublishers/read
+    - [-] databasepublishers/value
+    - [-] databasepublishers/write
     - [ ] databaseregionobservation
     - [X] databaseuuidencodingstrategy
     - [X] defaulttransactionclock
