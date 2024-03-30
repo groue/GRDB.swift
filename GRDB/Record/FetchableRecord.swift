@@ -880,7 +880,7 @@ extension RecordCursor: Sendable { }
 ///     var myData: Data
 /// }
 /// ```
-public enum DatabaseDataDecodingStrategy {
+public enum DatabaseDataDecodingStrategy: Sendable {
     /// Decodes `Data` columns from SQL blobs and UTF8 text.
     case deferredToData
     
@@ -889,7 +889,7 @@ public enum DatabaseDataDecodingStrategy {
     /// If the database value does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
-    case custom((DatabaseValue) -> Data?)
+    case custom(@Sendable (DatabaseValue) -> Data?)
 }
 
 // MARK: - DatabaseDateDecodingStrategy
@@ -906,7 +906,7 @@ public enum DatabaseDataDecodingStrategy {
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
 ///     }
-public enum DatabaseDateDecodingStrategy {
+public enum DatabaseDateDecodingStrategy: Sendable {
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It decodes numeric values as a number of seconds since Epoch
@@ -947,7 +947,7 @@ public enum DatabaseDateDecodingStrategy {
     /// If the database value  does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
-    case custom((DatabaseValue) -> Date?)
+    case custom(@Sendable (DatabaseValue) -> Date?)
 }
 
 // MARK: - DatabaseColumnDecodingStrategy
@@ -964,7 +964,7 @@ public enum DatabaseDateDecodingStrategy {
 ///         // Decoded from the player_id column
 ///         var playerID: Int
 ///     }
-public enum DatabaseColumnDecodingStrategy {
+public enum DatabaseColumnDecodingStrategy: Sendable {
     /// A key decoding strategy that doesn’t change key names during decoding.
     case useDefaultKeys
     
@@ -972,7 +972,7 @@ public enum DatabaseColumnDecodingStrategy {
     case convertFromSnakeCase
     
     /// A key decoding strategy defined by the closure you supply.
-    case custom((String) -> CodingKey)
+    case custom(@Sendable (String) -> CodingKey)
     
     func key<K: CodingKey>(forColumn column: String) -> K? {
         switch self {
