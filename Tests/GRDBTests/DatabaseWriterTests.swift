@@ -204,7 +204,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 
     func testVacuumInto() throws {
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("VACUUM INTO is not available")
         }
         // Prevent SQLCipher failures
@@ -275,7 +275,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -295,7 +295,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -318,7 +318,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -341,7 +341,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -359,7 +359,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -375,7 +375,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // async + vacuum into
+    @available(iOS 14, macOS 10.16, tvOS 14, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
         // Prevent SQLCipher failures
         guard sqlite3_libversion_number() >= 3027000 else {
@@ -406,7 +406,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     /// A test related to <https://github.com/groue/GRDB.swift/issues/1456>
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncWriteThenRead() async throws {
         /// An async read performed after an async write should see the write.
         func test(_ dbWriter: some DatabaseWriter) async throws {

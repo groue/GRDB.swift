@@ -17,7 +17,7 @@
 
 **Latest release**: April 21, 2024 • [version 6.27.0](https://github.com/groue/GRDB.swift/tree/v6.27.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
-**Requirements**: iOS 12.0+ / macOS 10.13+ / tvOS 12.0+ / visionOS 1.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 15.3+
+**Requirements**: iOS 12.0+ / macOS 10.13+ / tvOS 12.0+ / visionOS 1.0+ / watchOS 7.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 15.3+
 
 **Contact**:
 

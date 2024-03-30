@@ -41,7 +41,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -153,7 +153,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -209,7 +209,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
 
     func testEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -235,7 +235,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -262,7 +262,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherDefaultScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         
@@ -291,7 +291,7 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherCustomScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
         }
         

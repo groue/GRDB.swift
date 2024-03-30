@@ -17,7 +17,7 @@ private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension Player: Identifiable { }
 
 private enum Columns: String, ColumnExpression {
@@ -56,7 +56,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                 UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
                 """)
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
                 try Player.filter(id: 1).updateAll(db, assignment)
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" = 1

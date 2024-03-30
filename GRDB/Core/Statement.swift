@@ -146,7 +146,7 @@ public final class Statement {
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
 #else
-        if #available(macOS 10.14, watchOS 5, *) { // SQLite 3.20+
+        if #available(macOS 10.14, *) { // SQLite 3.20+
             code = sqlite3_prepare_v3(
                 database.sqliteConnection, statementStart, -1, prepFlags,
                 &sqliteStatement, statementEnd)

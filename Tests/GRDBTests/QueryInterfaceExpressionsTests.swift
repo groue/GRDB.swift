@@ -1512,7 +1512,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #endif
@@ -1561,7 +1561,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #endif
@@ -1594,7 +1594,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #endif
@@ -1627,7 +1627,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #endif
@@ -1684,7 +1684,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #endif

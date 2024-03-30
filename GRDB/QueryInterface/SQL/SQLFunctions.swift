@@ -34,7 +34,7 @@ public func average(
 /// // AVG(length) FILTER (WHERE length > 0)
 /// average(Column("length"), filter: Column("length") > 0)
 /// ```
-@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+@available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
 public func average(
     _ value: some SQLSpecificExpressible,
     filter: some SQLSpecificExpressible)
@@ -145,7 +145,7 @@ public func max(
 /// // MAX(score) FILTER (WHERE score < 0)
 /// max(Column("score"), filter: Column("score") < 0)
 /// ```
-@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+@available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
 public func max(
     _ value: some SQLSpecificExpressible,
     filter: some SQLSpecificExpressible)
@@ -190,7 +190,7 @@ public func min(
 /// // MIN(score) FILTER (WHERE score > 0)
 /// min(Column("score"), filter: Column("score") > 0)
 /// ```
-@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+@available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
 public func min(
     _ value: some SQLSpecificExpressible,
     filter: some SQLSpecificExpressible)
@@ -248,7 +248,7 @@ public func sum(
 /// See also ``total(_:)``.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
-@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+@available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
 public func sum(
     _ value: some SQLSpecificExpressible,
     filter: some SQLSpecificExpressible)
@@ -312,7 +312,7 @@ public func total(
 /// See also ``total(_:)``.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
-@available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.30+
+@available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
 public func total(
     _ value: some SQLSpecificExpressible,
     filter: some SQLSpecificExpressible)
