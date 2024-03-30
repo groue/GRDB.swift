@@ -11,7 +11,7 @@ import Foundation
 /// - ``immediate``
 /// - ``AsyncValueObservationScheduler``
 /// - ``ImmediateValueObservationScheduler``
-public protocol ValueObservationScheduler {
+public protocol ValueObservationScheduler: Sendable {
     /// Returns whether the initial value should be immediately notified.
     ///
     /// If the result is true, then this method was called on the main thread.

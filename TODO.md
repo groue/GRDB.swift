@@ -170,7 +170,7 @@
     - [ ] tablealias
     - [X] transactionclock
     - [ ] valueobservation
-    - [ ] valueobservationscheduler
+    - [X] valueobservationscheduler
 
 
 ## Unsure if necessary
