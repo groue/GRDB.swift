@@ -109,7 +109,7 @@
 - [X] GRDB7: Sendable: RowAdapter (d138af26)
 - [ ] GRDB7: Sendable: ValueObservationScheduler (8429eb68)
 - [X] GRDB7: Sendable: DatabaseCollation (4d9d67dd)
-- [ ] GRDB7: Sendable: LogErrorFunction (f362518d)
+- [X] GRDB7: Sendable: LogErrorFunction (f362518d)
 - [ ] GRDB7: Sendable: ReadWriteBox (57a86a0e)
 - [ ] GRDB7: Sendable: Pool (f13b2d2e)
 - [ ] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)

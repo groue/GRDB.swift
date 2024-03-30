@@ -12,15 +12,15 @@ import XCTest
 @testable import GRDB
 
 // Support for Database.logError
-var lastResultCode: ResultCode? = nil
-var lastMessage: String? = nil
+struct SQLiteDiagnostic {
+    var resultCode: ResultCode
+    var message: String
+}
+private let lastSQLiteDiagnosticMutex = Mutex<SQLiteDiagnostic?>(nil)
+var lastSQLiteDiagnostic: SQLiteDiagnostic? { lastSQLiteDiagnosticMutex.load() }
 let logErrorSetup: Void = {
-    let lock = NSLock()
     Database.logError = { (resultCode, message) in
-        lock.lock()
-        defer { lock.unlock() }
-        lastResultCode = resultCode
-        lastMessage = message
+        lastSQLiteDiagnosticMutex.store(SQLiteDiagnostic(resultCode: resultCode, message: message))
     }
 }()
 
