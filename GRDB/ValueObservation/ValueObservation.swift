@@ -74,15 +74,15 @@ enum ValueObservationTrackingMode {
 }
 
 struct ValueObservationEvents: Refinable {
-    var willStart: (() -> Void)?
-    var willTrackRegion: ((DatabaseRegion) -> Void)?
-    var databaseDidChange: (() -> Void)?
-    var didFail: ((Error) -> Void)?
-    var didCancel: (() -> Void)?
+    var willStart: (@Sendable () -> Void)?
+    var willTrackRegion: (@Sendable (DatabaseRegion) -> Void)?
+    var databaseDidChange: (@Sendable () -> Void)?
+    var didFail: (@Sendable (Error) -> Void)?
+    var didCancel: (@Sendable () -> Void)?
 }
 
 typealias ValueObservationStart<T> = (
-    _ onError: @escaping (Error) -> Void,
+    _ onError: @escaping @Sendable (Error) -> Void,
     _ onChange: @escaping (T) -> Void)
 -> AnyDatabaseCancellable
 
@@ -138,7 +138,7 @@ extension ValueObservation: Refinable {
     public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: @escaping (Error) -> Void,
+        onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     where Reducer: ValueReducer
@@ -175,13 +175,13 @@ extension ValueObservation: Refinable {
     /// - returns: A `ValueObservation` that performs the specified closures
     ///   when ValueObservation events occur.
     public func handleEvents(
-        willStart: (() -> Void)? = nil,
-        willFetch: (() -> Void)? = nil,
-        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
-        databaseDidChange: (() -> Void)? = nil,
-        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
-        didFail: ((Error) -> Void)? = nil,
-        didCancel: (() -> Void)? = nil)
+        willStart: (@Sendable () -> Void)? = nil,
+        willFetch: (@Sendable () -> Void)? = nil,
+        willTrackRegion: (@Sendable (DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (@Sendable () -> Void)? = nil,
+        didReceiveValue: (@Sendable (Reducer.Value) -> Void)? = nil,
+        didFail: (@Sendable (Error) -> Void)? = nil,
+        didCancel: (@Sendable () -> Void)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
