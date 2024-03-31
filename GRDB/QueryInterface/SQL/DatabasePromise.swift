@@ -23,7 +23,7 @@
 /// see SQLRelation.filterPromise.
 struct DatabasePromise<T> {
     /// Returns the resolved value.
-    let resolve: (Database) throws -> T
+    let resolve: @Sendable (Database) throws -> T
     
     /// Creates a promise that resolves to a value.
     init(value: T) {
@@ -31,12 +31,12 @@ struct DatabasePromise<T> {
     }
     
     /// Creates a promise from a closure.
-    init(_ resolve: @escaping (Database) throws -> T) {
+    init(_ resolve: @escaping @Sendable (Database) throws -> T) {
         self.resolve = resolve
     }
     
     /// Returns a promise whose value is transformed by the given closure.
-    func map<U>(_ transform: @escaping (T) throws -> U) -> DatabasePromise<U> {
+    func map<U>(_ transform: @escaping @Sendable (T) throws -> U) -> DatabasePromise<U> {
         DatabasePromise<U> { db in
             try transform(resolve(db))
         }
