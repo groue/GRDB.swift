@@ -39,7 +39,7 @@
 ///
 /// - ``append(literal:)``
 /// - ``append(sql:arguments:)``
-public struct SQL {
+public struct SQL: Sendable {
     /// `SQL.Element` is a component of an `SQL` literal.
     ///
     /// Elements can be qualified with table aliases, and this is how `SQL`

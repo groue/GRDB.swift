@@ -124,8 +124,8 @@
 - [ ] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
 - [X] GRDB7: Sendable: DatabasePromise (05899228, 5a2c15b8)
 - [X] GRDB7: Sendable: TableAlias (f2b0b186)
-- [ ] GRDB7: Sendable: SQLRelation (9545bf70)
-- [ ] GRDB7: Sendable: SQL (ac33856f)
+- [X] GRDB7: Sendable: SQLRelation (9545bf70)
+- [X] GRDB7: Sendable: SQL (ac33856f)
 - [ ] GRDB7: Split Row.swift (2ce8a619)
 - [ ] GRDB7: Cleanup ValueReducer (6c73b1c5)
 - [X] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
