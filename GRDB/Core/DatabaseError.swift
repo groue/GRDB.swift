@@ -415,6 +415,10 @@ extension DatabaseError {
     static func connectionIsClosed() -> Self {
         DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
     }
+    
+    static func snapshotIsLost() -> Self {
+        DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
+    }
 }
 
 // Support for `catch DatabaseError.SQLITE_XXX`

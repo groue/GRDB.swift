@@ -113,7 +113,7 @@
 - [X] GRDB7: Sendable: ReadWriteBox (57a86a0e)
 - [X] GRDB7: Sendable: Pool (f13b2d2e)
 - [X] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
-- [ ] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
+- [X] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
 - [ ] GRDB7: sending closures for SerializedDatabase
 - [ ] GRDB7: sending closures for ValueObservationScheduler
 - [ ] GRDB7: Sendable closures for ValueObservation.handleEvents
@@ -130,7 +130,7 @@
 - [ ] GRDB7: Cleanup ValueReducer (6c73b1c5)
 - [X] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
 - [ ] GRDB7: Enable Strict Concurrency Checks (6aa43ded)
-- [ ] GRDB7: Sendable: OrderedDictionary (e022c35b)
+- [X] GRDB7: Sendable: OrderedDictionary (e022c35b)
 - [ ] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
 - [ ] GRDB7: Sendable: DatabaseRegionConvertible (b4677ded)
 - [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
