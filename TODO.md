@@ -96,6 +96,9 @@
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Sendable conformances
+    - [ ] SerializedDatabase Sendable async closure
+        - [X] OnDemandFuture Sendable async closure
+        - [ ] WALSnapshotTransaction refactor
     - [X] anydatabasecancellable
     - [ ] anydatabaseregionconvertible
     - [ ] anyfetchrequest
