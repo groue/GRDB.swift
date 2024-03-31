@@ -97,7 +97,7 @@
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Merge `_ValueReducer` into `ValueReducer`
 - [ ] GRDB7: Sendable conformances
-    - [ ] SerializedDatabase Sendable async closure
+    - [X] SerializedDatabase Sendable async closure
         - [X] OnDemandFuture Sendable async closure
         - [X] WALSnapshotTransaction refactor
     - [X] anydatabasecancellable

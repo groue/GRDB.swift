@@ -208,12 +208,12 @@ class DatabaseReaderTests : GRDBTestCase {
         func test(_ dbReader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
             let semaphore = DispatchSemaphore(value: 0)
-            var count: Int?
+            let countMutex: Mutex<Int?> = Mutex(nil)
             dbReader.asyncRead { dbResult in
                 // Make sure this block executes asynchronously
                 semaphore.wait()
                 do {
-                    count = try Int.fetchOne(dbResult.get(), sql: "SELECT COUNT(*) FROM sqlite_master")
+                    countMutex.value = try Int.fetchOne(dbResult.get(), sql: "SELECT COUNT(*) FROM sqlite_master")
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -222,7 +222,7 @@ class DatabaseReaderTests : GRDBTestCase {
             semaphore.signal()
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertNotNil(count)
+            XCTAssertNotNil(countMutex.value)
         }
         
         try test(makeDatabaseQueue())

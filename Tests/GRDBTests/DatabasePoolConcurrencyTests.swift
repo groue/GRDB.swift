@@ -1078,13 +1078,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testAsyncConcurrentReadOpensATransaction() throws {
         let dbPool = try makeDatabasePool()
-        var isInsideTransaction: Bool? = nil
+        let isInsideTransactionMutex: Mutex<Bool?> = Mutex(nil)
         let expectation = self.expectation(description: "read")
         dbPool.writeWithoutTransaction { db in
             dbPool.asyncConcurrentRead { dbResult in
                 do {
                     let db = try dbResult.get()
-                    isInsideTransaction = db.isInsideTransaction
+                    isInsideTransactionMutex.value = db.isInsideTransaction
                     do {
                         try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
                         XCTFail("Expected error")
@@ -1097,7 +1097,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(isInsideTransaction, true)
+        XCTAssertEqual(isInsideTransactionMutex.value, true)
     }
     
     func testAsyncConcurrentReadOutsideOfTransaction() throws {
@@ -1120,14 +1120,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         //                              <
         //                              }
         
-        var count: Int? = nil
+        let countMutex: Mutex<Int?> = Mutex(nil)
         let expectation = self.expectation(description: "read")
         try dbPool.writeWithoutTransaction { db in
             dbPool.asyncConcurrentRead { dbResult in
                 do {
                     _ = s1.wait(timeout: .distantFuture)
                     let db = try dbResult.get()
-                    count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
+                    countMutex.value = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -1137,14 +1137,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             s1.signal()
         }
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(count, 0)
+        XCTAssertEqual(countMutex.value, 0)
     }
     
     func testAsyncConcurrentReadError() throws {
         // Necessary for this test to run as quickly as possible
         dbConfiguration.readonlyBusyMode = .immediateError
         let dbPool = try makeDatabasePool()
-        var readError: DatabaseError? = nil
+        let readErrorMutex: Mutex<DatabaseError?> = Mutex(nil)
         let expectation = self.expectation(description: "read")
         try dbPool.writeWithoutTransaction { db in
             try db.execute(sql: "PRAGMA locking_mode=EXCLUSIVE")
@@ -1156,12 +1156,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                         XCTFail("Unexpected result: \(dbResult)")
                         return
                 }
-                readError = dbError
+                readErrorMutex.value = dbError
                 expectation.fulfill()
             }
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(readError!.resultCode, .SQLITE_BUSY)
-            XCTAssertEqual(readError!.message!, "database is locked")
+            let readError = try XCTUnwrap(readErrorMutex.value)
+            XCTAssertEqual(readError.resultCode, .SQLITE_BUSY)
+            XCTAssertEqual(readError.message, "database is locked")
         }
     }
     
