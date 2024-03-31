@@ -95,10 +95,11 @@
 - [ ] GRDB7: Consider putting a Task cancellation handler on async methods.
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
+- [ ] GRDB7: Merge `_ValueReducer` into `ValueReducer`
 - [ ] GRDB7: Sendable conformances
     - [ ] SerializedDatabase Sendable async closure
         - [X] OnDemandFuture Sendable async closure
-        - [ ] WALSnapshotTransaction refactor
+        - [X] WALSnapshotTransaction refactor
     - [X] anydatabasecancellable
     - [ ] anydatabaseregionconvertible
     - [ ] anyfetchrequest

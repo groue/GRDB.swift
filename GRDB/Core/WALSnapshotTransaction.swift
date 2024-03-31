@@ -3,9 +3,28 @@
 ///
 /// `WALSnapshotTransaction` **takes ownership** of its reader
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
-class WALSnapshotTransaction {
-    private let reader: SerializedDatabase
-    private let release: (_ isInsideTransaction: Bool) -> Void
+final class WALSnapshotTransaction: @unchecked Sendable {
+    // @unchecked because `databaseAccess` is protected by a mutex.
+    
+    private struct DatabaseAccess {
+        let reader: SerializedDatabase
+        let release: @Sendable (_ isInsideTransaction: Bool) -> Void
+        
+        // MUST be called only once
+        func commitAndRelease() {
+            // WALSnapshotTransaction may be deinitialized in the dispatch
+            // queue of its reader: allow reentrancy.
+            let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false) { db in
+                try? db.commit()
+                return db.isInsideTransaction
+            }
+            release(isInsideTransaction)
+        }
+    }
+    
+    // TODO: consider using the serialized DispatchQueue of reader instead of a lock.
+    /// nil when closed
+    private let databaseAccessMutex: Mutex<DatabaseAccess?>
     
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
@@ -36,10 +55,11 @@ class WALSnapshotTransaction {
     ///   is no longer used.
     init(
         onReader reader: SerializedDatabase,
-        release: @escaping (_ isInsideTransaction: Bool) -> Void)
+        release: @escaping @Sendable (_ isInsideTransaction: Bool) -> Void)
     throws
     {
         assert(reader.configuration.readonly)
+        let databaseAccess = DatabaseAccess(reader: reader, release: release)
         
         do {
             // Open a long-lived transaction, and enter snapshot isolation
@@ -50,44 +70,56 @@ class WALSnapshotTransaction {
                 try db.clearSchemaCacheIfNeeded()
                 return try WALSnapshot(db)
             }
-            self.reader = reader
-            self.release = release
+            self.databaseAccessMutex = Mutex(databaseAccess)
         } catch {
             // self is not initialized, so deinit will not run.
-            Self.commitAndRelease(reader: reader, release: release)
+            databaseAccess.commitAndRelease()
             throw error
         }
     }
     
     deinit {
-        Self.commitAndRelease(reader: reader, release: release)
+        close()
     }
     
     /// Executes database operations in the snapshot transaction, and
     /// returns their result after they have finished executing.
-    func read<T>(_ value: (Database) throws -> T) rethrows -> T {
-        // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
-        try reader.sync(value)
+    func read<T>(_ value: (Database) throws -> T) throws -> T {
+        try databaseAccessMutex.withLock { databaseAccess in
+            guard let databaseAccess else {
+                throw DatabaseError.snapshotIsLost()
+            }
+            
+            // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
+            return try databaseAccess.reader.sync(value)
+        }
     }
     
     /// Schedules database operations for execution, and
     /// returns immediately.
-    func asyncRead(_ value: @escaping (Database) -> Void) {
-        // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
-        reader.async(value)
+    func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+        databaseAccessMutex.withLock { databaseAccess in
+            guard let databaseAccess else {
+                value(.failure(DatabaseError.snapshotIsLost()))
+                return
+            }
+            
+            databaseAccess.reader.async { db in
+                // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
+                // At least check if self was closed:
+                if self.databaseAccessMutex.value == nil {
+                    value(.failure(DatabaseError.snapshotIsLost()))
+                }
+                value(.success(db))
+            }
+        }
     }
     
-    private static func commitAndRelease(
-        reader: SerializedDatabase,
-        release: (_ isInsideTransaction: Bool) -> Void)
-    {
-        // WALSnapshotTransaction may be deinitialized in the dispatch
-        // queue of its reader: allow reentrancy.
-        let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false) { db in
-            try? db.commit()
-            return db.isInsideTransaction
+    func close() {
+        databaseAccessMutex.withLock { databaseAccess in
+            databaseAccess?.commitAndRelease()
+            databaseAccess = nil
         }
-        release(isInsideTransaction)
     }
 }
 #endif
