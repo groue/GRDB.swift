@@ -213,7 +213,9 @@ class StatementArgumentsSink {
 /// See ``TableRequest/aliased(_:)`` for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-public class TableAlias {
+public class TableAlias: @unchecked Sendable {
+    // This Sendable conformance is transient. TableAlias IS NOT really Sendable.
+    // TODO: GRDB7 Make TableAlias really Sendable
     private enum Impl {
         /// A TableAlias is undefined when it is created by the GRDB user:
         ///
