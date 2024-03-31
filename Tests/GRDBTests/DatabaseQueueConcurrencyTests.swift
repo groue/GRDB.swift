@@ -334,22 +334,22 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var rows1: [Row]?
-        var rows2: [Row]?
+        let count1Mutex: Mutex<Int?> = Mutex(nil)
+        let count2Mutex: Mutex<Int?> = Mutex(nil)
         queue.async(group: group) {
             try! dbQueue2.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
-                rows1 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
+                count1Mutex.value = try Table("stuffs").fetchCount(db)
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                rows2 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
+                count2Mutex.value = try Table("stuffs").fetchCount(db)
             }
         }
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertEqual(rows1!.count, 0) // uncommitted changes are not visible
-        XCTAssertEqual(rows2!.count, 1) // committed changes are visible
+        XCTAssertEqual(count1Mutex.value, 0) // uncommitted changes are not visible
+        XCTAssertEqual(count2Mutex.value, 1) // committed changes are visible
     }
 
     func testReaderInDeferredTransactionDuringDefaultTransaction() throws {
