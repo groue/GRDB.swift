@@ -555,11 +555,9 @@ extension DatabaseReader {
         value: @escaping (Database) throws -> Output)
     -> DatabasePublishers.Read<Output>
     {
-        Deferred {
-            Future { fulfill in
-                self.asyncRead { dbResult in
-                    fulfill(dbResult.flatMap { db in Result { try value(db) } })
-                }
+        OnDemandFuture { fulfill in
+            self.asyncRead { dbResult in
+                fulfill(dbResult.flatMap { db in Result { try value(db) } })
             }
         }
         .receiveValues(on: scheduler)

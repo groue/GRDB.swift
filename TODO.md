@@ -112,7 +112,7 @@
 - [X] GRDB7: Sendable: LogErrorFunction (f362518d)
 - [X] GRDB7: Sendable: ReadWriteBox (57a86a0e)
 - [X] GRDB7: Sendable: Pool (f13b2d2e)
-- [ ] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
+- [X] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
 - [ ] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
 - [ ] GRDB7: sending closures for SerializedDatabase
 - [ ] GRDB7: sending closures for ValueObservationScheduler
