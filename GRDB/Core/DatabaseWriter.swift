@@ -772,6 +772,7 @@ extension DatabaseWriter {
         .eraseToWritePublisher()
     }
     
+    // TODO: GRDB7 Can SE-0430 avoid the T: Sendable constraint?
     /// Returns a publisher that publishes one value and completes.
     ///
     /// The database is not accessed until subscription. Value and completion
@@ -826,7 +827,7 @@ extension DatabaseWriter {
         updates: @escaping @Sendable (Database) throws -> T,
         thenRead value: @escaping @Sendable (Database, T) throws -> Output)
     -> DatabasePublishers.Write<Output>
-    where S: Scheduler
+    where S: Scheduler, T: Sendable
     {
         OnDemandFuture { fulfill in
             self.asyncWriteWithoutTransaction { db in
