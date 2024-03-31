@@ -352,10 +352,11 @@ extension ValueConcurrentObserver {
                 let initialFetchTransaction = try result.get()
                 // Second async jump because that's how
                 // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
-                initialFetchTransaction.asyncRead { db in
+                initialFetchTransaction.asyncRead { dbResult in
                     do {
                         let fetchedValue: Reducer.Fetched
                         let initialRegion: DatabaseRegion
+                        let db = try dbResult.get()
                         
                         switch self.trackingMode {
                         case let .constantRegion(regions):
@@ -429,11 +430,9 @@ extension ValueConcurrentObserver {
         // checkpointed. That's why we'll keep `initialFetchTransaction`
         // alive until the comparison is done.
         //
-        // However, we want to release `initialFetchTransaction` as soon as
+        // However, we want to close `initialFetchTransaction` as soon as
         // possible, so that the reader connection it holds becomes
-        // available for other reads. It will be released when this optional
-        // is set to nil:
-        var initialFetchTransaction: WALSnapshotTransaction? = initialFetchTransaction
+        // available for other reads.
         
         databaseAccess.dbPool.asyncWriteWithoutTransaction { writerDB in
             let events = self.lock.synchronized { self.notificationCallbacks?.events }
@@ -446,7 +445,7 @@ extension ValueConcurrentObserver {
                     // Was the database modified since the initial fetch?
                     let isModified: Bool
                     if let currentWALSnapshot = try? WALSnapshot(writerDB) {
-                        let ordering = initialFetchTransaction!.walSnapshot.compare(currentWALSnapshot)
+                        let ordering = initialFetchTransaction.walSnapshot.compare(currentWALSnapshot)
                         assert(ordering <= 0, "Unexpected snapshot ordering")
                         isModified = ordering < 0
                     } else {
@@ -454,9 +453,9 @@ extension ValueConcurrentObserver {
                         isModified = true
                     }
                     
-                    // Comparison done: end the WAL snapshot transaction
+                    // Comparison done: close the WAL snapshot transaction
                     // and release its reader connection.
-                    initialFetchTransaction = nil
+                    initialFetchTransaction.close()
                     
                     if isModified {
                         events.databaseDidChange?()
