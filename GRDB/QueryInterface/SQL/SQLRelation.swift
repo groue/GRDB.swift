@@ -90,7 +90,7 @@
 ///         // JOIN passport ON passport.citizenId = citizens.id
 ///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...);
 ///         Country.including(all: Country.citizens)
-struct SQLRelation {
+struct SQLRelation: Sendable {
     struct Child: Refinable {
         enum Kind {
             // Record.including(optional: association)
@@ -672,7 +672,7 @@ struct SQLLimit {
 
 // MARK: - SQLSource
 
-struct SQLSource {
+struct SQLSource: Sendable {
     var tableName: String
     var alias: TableAlias?
     
@@ -691,7 +691,7 @@ struct SQLSource {
 
 extension SQLRelation {
     /// SQLRelation.Ordering provides the order clause to SQLRelation.
-    struct Ordering {
+    struct Ordering: Sendable {
         private enum Element {
             case terms(DatabasePromise<[SQLOrdering]>)
             case ordering(SQLRelation.Ordering)
