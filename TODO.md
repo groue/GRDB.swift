@@ -171,7 +171,7 @@
     - [ ] sqlspecificexpressible
     - [ ] sqlsubquery
     - [ ] sqlsubqueryable
-    - [ ] tablealias
+    - [!] tablealias
     - [X] transactionclock
     - [ ] valueobservation
     - [X] valueobservationscheduler
