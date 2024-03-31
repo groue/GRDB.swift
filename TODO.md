@@ -157,18 +157,18 @@
     - [X] rowadapter
     - [X] scopeadapter
     - [ ] sharedvalueobservation
-    - [ ] sql
+    - [X] sql
     - [ ] sqlexpressible
-    - [ ] sqlexpression
+    - [X] sqlexpression
     - [ ] sqlinterpolation
     - [ ] sqljsonexpressible
-    - [ ] sqlordering
+    - [X] sqlordering
     - [ ] sqlorderingterm
     - [ ] sqlrequest
     - [ ] sqlselectable
-    - [ ] sqlselection
+    - [X] sqlselection
     - [ ] sqlspecificexpressible
-    - [ ] sqlsubquery
+    - [X] sqlsubquery
     - [ ] sqlsubqueryable
     - [!] tablealias
     - [X] transactionclock
