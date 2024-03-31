@@ -58,7 +58,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func selectWhenConnected(
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
     
     /// Appends result columns to the selected columns.
     ///
@@ -78,7 +80,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func annotatedWhenConnected(
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
 }
 
 extension SelectionRequest {
@@ -240,7 +244,9 @@ public protocol FilteredRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func filterWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension FilteredRequest {
@@ -729,7 +735,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter expressions: A closure that accepts a database connection
     ///   and returns an array of SQL expressions.
-    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
+    func groupWhenConnected(
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible]
+    ) -> Self
     
     /// Filters the aggregated groups with a boolean SQL expression.
     ///
@@ -753,7 +761,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func havingWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension AggregatingRequest {
@@ -934,7 +944,9 @@ public protocol OrderedRequest {
     ///
     /// - parameter orderings: A closure that accepts a database connection and
     ///   returns an array of SQL ordering terms.
-    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
+    func orderWhenConnected(
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm]
+    ) -> Self
     
     /// Returns a request with reversed ordering.
     ///

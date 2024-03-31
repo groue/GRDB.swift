@@ -187,7 +187,7 @@ extension SQLRelation {
     /// Convenience factory methods which selects all rows from a table.
     static func all(
         fromTable tableName: String,
-        selection: @escaping (Database) -> [SQLSelection] = { _ in [.allColumns] })
+        selection: @escaping @Sendable (Database) -> [SQLSelection] = { _ in [.allColumns] })
     -> Self
     {
         SQLRelation(
@@ -197,7 +197,7 @@ extension SQLRelation {
 }
 
 extension SQLRelation: Refinable {
-    func selectWhenConnected(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+    func selectWhenConnected(_ selection: @escaping @Sendable (Database) throws -> [SQLSelection]) -> Self {
         with {
             $0.selectionPromise = DatabasePromise(selection)
         }
@@ -228,7 +228,7 @@ extension SQLRelation: Refinable {
             }
     }
     
-    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+    func annotatedWhenConnected(with selection: @escaping @Sendable (Database) throws -> [SQLSelection]) -> Self {
         with {
             let old = $0.selectionPromise
             $0.selectionPromise = DatabasePromise { db in
@@ -242,7 +242,7 @@ extension SQLRelation: Refinable {
         annotatedWhenConnected(with: { _ in selection })
     }
     
-    func filterWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+    func filterWhenConnected(_ predicate: @escaping @Sendable (Database) throws -> SQLExpression) -> Self {
         with {
             if let old = $0.filterPromise {
                 $0.filterPromise = DatabasePromise { db in
@@ -259,7 +259,7 @@ extension SQLRelation: Refinable {
         filterWhenConnected { _ in predicate }
     }
     
-    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
+    func orderWhenConnected(_ orderings: @escaping @Sendable (Database) throws -> [SQLOrdering]) -> Self {
         with {
             $0.ordering = SQLRelation.Ordering(orderings: orderings)
         }
@@ -313,13 +313,13 @@ extension SQLRelation: Refinable {
         }
     }
     
-    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+    func groupWhenConnected(_ expressions: @escaping @Sendable (Database) throws -> [SQLExpression]) -> Self {
         with {
             $0.groupPromise = DatabasePromise(expressions)
         }
     }
     
-    func havingWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+    func havingWhenConnected(_ predicate: @escaping @Sendable (Database) throws -> SQLExpression) -> Self {
         with {
             if let old = $0.havingExpressionPromise {
                 $0.havingExpressionPromise = DatabasePromise { db in
@@ -740,7 +740,7 @@ extension SQLRelation {
                 isReversed: false)
         }
         
-        init(orderings: @escaping (Database) throws -> [SQLOrdering]) {
+        init(orderings: @escaping @Sendable (Database) throws -> [SQLOrdering]) {
             self.init(
                 elements: [.terms(DatabasePromise(orderings))],
                 isReversed: false)

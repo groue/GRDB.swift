@@ -118,7 +118,7 @@ extension QueryInterfaceRequest: FetchRequest {
 
 extension QueryInterfaceRequest: SelectionRequest {
     public func selectWhenConnected(
-        _ selection: @escaping (Database) throws -> [any SQLSelectable])
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable])
     -> Self
     {
         with {
@@ -282,7 +282,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     }
     
     public func annotatedWhenConnected(
-        with selection: @escaping (Database) throws -> [any SQLSelectable])
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable])
     -> Self
     {
         with {
@@ -295,7 +295,7 @@ extension QueryInterfaceRequest: SelectionRequest {
 
 extension QueryInterfaceRequest: FilteredRequest {
     public func filterWhenConnected(
-        _ predicate: @escaping (Database) throws -> any SQLExpressible)
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible)
     -> Self
     {
         with {
@@ -308,7 +308,7 @@ extension QueryInterfaceRequest: FilteredRequest {
 
 extension QueryInterfaceRequest: OrderedRequest {
     public func orderWhenConnected(
-        _ orderings: @escaping (Database) throws -> [any SQLOrderingTerm])
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm])
     -> Self
     {
         with {
@@ -355,7 +355,7 @@ extension QueryInterfaceRequest: OrderedRequest {
 
 extension QueryInterfaceRequest: AggregatingRequest {
     public func groupWhenConnected(
-        _ expressions: @escaping (Database) throws -> [any SQLExpressible])
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible])
     -> Self
     {
         with {
@@ -366,7 +366,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
     
     public func havingWhenConnected(
-        _ predicate: @escaping (Database) throws -> any SQLExpressible)
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible)
     -> Self
     {
         with {
