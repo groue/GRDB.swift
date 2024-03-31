@@ -318,7 +318,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
             return try reader.reentrantSync { db in
                 let result = try value(db)
                 if snapshotIsLost(db) {
-                    throw DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
+                    throw DatabaseError.snapshotIsLost()
                 }
                 return result
             }
