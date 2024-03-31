@@ -179,7 +179,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the barrier access to the database.
-    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void)
+    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void)
     
     /// Schedules database operations for execution, and returns immediately.
     ///
@@ -211,7 +211,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   <doc:Concurrency#Rule-2:-Mind-your-transactions> for more information.
     ///
     /// - parameter updates: A closure which accesses the database.
-    func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+    func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -295,7 +295,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void)
 }
 
 extension DatabaseWriter {
@@ -381,8 +381,8 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - parameter completion: A closure called with the transaction result.
     public func asyncWrite<T>(
-        _ updates: @escaping (Database) throws -> T,
-        completion: @escaping (Database, Result<T, Error>) -> Void)
+        _ updates: @escaping @Sendable (Database) throws -> T,
+        completion: @escaping @Sendable (Database, Result<T, Error>) -> Void)
     {
         asyncWriteWithoutTransaction { db in
             do {
@@ -563,7 +563,7 @@ extension DatabaseWriter {
     ///   would happen while establishing the database access or committing
     ///   the transaction.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func write<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func write<T>(_ updates: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWrite(updates, completion: { _, result in
                 continuation.resume(with: result)
@@ -601,7 +601,7 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which accesses the database.
     /// - throws: The error thrown by `updates`.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func writeWithoutTransaction<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func writeWithoutTransaction<T>(_ updates: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWriteWithoutTransaction { db in
                 do {
@@ -654,7 +654,7 @@ extension DatabaseWriter {
     /// - throws: The error thrown by `updates`.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func barrierWriteWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T)
+        _ updates: @escaping @Sendable (Database) throws -> T)
     async throws -> T
     {
         try await withUnsafeThrowingContinuation { continuation in
@@ -758,7 +758,7 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        updates: @escaping (Database) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> Output)
     -> DatabasePublishers.Write<Output>
     {
         OnDemandFuture { fulfill in
@@ -823,8 +823,8 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func writePublisher<S, T, Output>(
         receiveOn scheduler: S = DispatchQueue.main,
-        updates: @escaping (Database) throws -> T,
-        thenRead value: @escaping (Database, T) throws -> Output)
+        updates: @escaping @Sendable (Database) throws -> T,
+        thenRead value: @escaping @Sendable (Database, T) throws -> Output)
     -> DatabasePublishers.Write<Output>
     where S: Scheduler
     {
@@ -840,7 +840,7 @@ extension DatabaseWriter {
                     fulfill(.failure(error))
                     return
                 }
-                self.spawnConcurrentRead { dbResult in
+                self.spawnConcurrentRead { [updatesValue] dbResult in
                     fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
                 }
             }
@@ -915,7 +915,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.asyncRead(value)
     }
     
@@ -924,7 +924,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.asyncUnsafeRead(value)
     }
     
@@ -956,11 +956,11 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.asyncBarrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
     
@@ -968,7 +968,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.unsafeReentrantWrite(updates)
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.spawnConcurrentRead(value)
     }
 }

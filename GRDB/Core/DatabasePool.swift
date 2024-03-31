@@ -251,7 +251,9 @@ extension DatabasePool {
             // has freed its memory. That's better than nothing.
             releaseMemoryEventually()
             writer.async { _ in
-                application.endBackgroundTask(task)
+                DispatchQueue.main.async {
+                    application.endBackgroundTask(task)
+                }
             }
         }
     }
@@ -351,7 +353,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -395,7 +397,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -440,7 +442,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         asyncConcurrentRead(value)
     }
     
@@ -481,7 +483,7 @@ extension DatabasePool: DatabaseReader {
     /// ```
     ///
     /// - parameter value: A function that accesses the database.
-    public func asyncConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -640,7 +642,9 @@ extension DatabasePool: DatabaseReader {
     ///
     /// - important: The `completion` argument is executed in a serial
     ///   dispatch queue, so make sure you use the transaction asynchronously.
-    func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+    func asyncWALSnapshotTransaction(
+        _ completion: @escaping @Sendable (Result<WALSnapshotTransaction, Error>) -> Void
+    ) {
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -731,7 +735,7 @@ extension DatabasePool: DatabaseWriter {
         }
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -785,7 +789,7 @@ extension DatabasePool: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
         writer.async(updates)
     }
 }
