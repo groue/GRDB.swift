@@ -17,11 +17,11 @@ public protocol ValueObservationScheduler: Sendable {
     /// If the result is true, then this method was called on the main thread.
     func immediateInitialValue() -> Bool
     
-    func schedule(_ action: @escaping () -> Void)
+    func schedule(_ action: @escaping @Sendable () -> Void)
 }
 
 extension ValueObservationScheduler {
-    func scheduleInitial(_ action: @escaping () -> Void) {
+    func scheduleInitial(_ action: @escaping @Sendable () -> Void) {
         if immediateInitialValue() {
             action()
         } else {
@@ -42,7 +42,7 @@ public struct AsyncValueObservationScheduler: ValueObservationScheduler {
     
     public func immediateInitialValue() -> Bool { false }
     
-    public func schedule(_ action: @escaping () -> Void) {
+    public func schedule(_ action: @escaping @Sendable () -> Void) {
         queue.async(execute: action)
     }
 }
@@ -90,7 +90,7 @@ public struct ImmediateValueObservationScheduler: ValueObservationScheduler, Sen
         return true
     }
     
-    public func schedule(_ action: @escaping () -> Void) {
+    public func schedule(_ action: @escaping @Sendable () -> Void) {
         DispatchQueue.main.async(execute: action)
     }
 }
