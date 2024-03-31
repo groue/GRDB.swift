@@ -237,9 +237,7 @@ class DatabasePoolTests: GRDBTestCase {
         let group = DispatchGroup()
         
         // The maximum number of threads we could witness
-        var maxThreadCount: CInt = 0
-        let lock = NSLock()
-        
+        let maxThreadCountMutex: Mutex<CInt> = Mutex(0)
         for _ in (0..<numberOfConcurrentReads) {
             group.enter()
             pool.asyncUnsafeRead { result in
@@ -248,15 +246,15 @@ class DatabasePoolTests: GRDBTestCase {
                 }
                 
                 let threadsCount = getThreadsCount()
-                lock.lock()
-                maxThreadCount = max(maxThreadCount, threadsCount)
-                lock.unlock()
+                maxThreadCountMutex.withLock { count in
+                    count = max(count, threadsCount)
+                }
                 
                 group.leave()
             }
         }
         group.wait()
-        XCTAssert(maxThreadCount < 50)
+        XCTAssert(maxThreadCountMutex.value < 50)
 #endif
     }
     
@@ -279,9 +277,7 @@ class DatabasePoolTests: GRDBTestCase {
         let group = DispatchGroup()
         
         // The maximum number of threads we could witness
-        var maxThreadCount: CInt = 0
-        let lock = NSLock()
-        
+        let maxThreadCountMutex: Mutex<CInt> = Mutex(0)
         for _ in (0..<numberOfConcurrentReads) {
             group.enter()
             pool.asyncRead { result in
@@ -290,15 +286,15 @@ class DatabasePoolTests: GRDBTestCase {
                 }
                 
                 let threadsCount = getThreadsCount()
-                lock.lock()
-                maxThreadCount = max(maxThreadCount, threadsCount)
-                lock.unlock()
-                
+                maxThreadCountMutex.withLock { count in
+                    count = max(count, threadsCount)
+                }
+
                 group.leave()
             }
         }
         group.wait()
-        XCTAssert(maxThreadCount < 50)
+        XCTAssert(maxThreadCountMutex.value < 50)
 #endif
     }
     

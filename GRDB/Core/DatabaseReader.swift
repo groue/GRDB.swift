@@ -214,7 +214,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -285,7 +285,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void)
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -459,7 +459,7 @@ extension DatabaseReader {
     /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func read<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func read<T>(_ value: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncRead { result in
                 do {
@@ -505,7 +505,7 @@ extension DatabaseReader {
     /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
     ///   would happen while establishing the database access.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func unsafeRead<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
+    public func unsafeRead<T>(_ value: @escaping @Sendable (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncUnsafeRead { result in
                 do {
@@ -552,7 +552,7 @@ extension DatabaseReader {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        value: @escaping (Database) throws -> Output)
+        value: @escaping @Sendable (Database) throws -> Output)
     -> DatabasePublishers.Read<Output>
     {
         OnDemandFuture { fulfill in
@@ -676,7 +676,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.asyncRead(value)
     }
     
@@ -685,7 +685,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         base.asyncUnsafeRead(value)
     }
     
@@ -756,7 +756,7 @@ extension DatabaseSnapshotReader {
     }
     
     // There is no such thing as an unsafe access to a snapshot.
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         asyncRead(value)
     }
 }

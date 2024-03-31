@@ -150,7 +150,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
         try reader.sync(block)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         reader.async { value(.success($0)) }
     }
     
@@ -158,7 +158,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
         try reader.sync(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
         reader.async { value(.success($0)) }
     }
     
