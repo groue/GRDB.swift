@@ -137,9 +137,9 @@
     - [ ] fetchablerecorddecoder
     - [ ] fetchrequest
     - [-] filtercursor
-    - [ ] fts5customtokenizer
-    - [ ] fts5tokenizer
-    - [ ] fts5wrappertokenizer
+    - [-] fts5customtokenizer
+    - [-] fts5tokenizer
+    - [-] fts5wrappertokenizer
     - [ ] hasmanyassociation
     - [ ] hasmanythroughassociation
     - [ ] hasoneassociation
