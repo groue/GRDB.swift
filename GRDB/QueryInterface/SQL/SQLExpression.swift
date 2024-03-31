@@ -34,7 +34,7 @@
 /// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_expr.html>
-public struct SQLExpression {
+public struct SQLExpression: Sendable {
     private var impl: Impl
     
     /// The preferred interpretation of the expression in JSON

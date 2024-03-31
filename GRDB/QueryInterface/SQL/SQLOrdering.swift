@@ -12,7 +12,7 @@
 /// function arguments, prefer the ``SQLOrderingTerm`` protocol.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/syntax/ordering-term.html>
-public struct SQLOrdering {
+public struct SQLOrdering: Sendable {
     private var impl: Impl
     
     private enum Impl {

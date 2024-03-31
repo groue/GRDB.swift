@@ -15,7 +15,7 @@
 /// function arguments, prefer the ``SQLSelectable`` protocol.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/syntax/result-column.html>
-public struct SQLSelection {
+public struct SQLSelection: Sendable {
     private var impl: Impl
     
     /// The private implementation of the public `SQLSelection`.
