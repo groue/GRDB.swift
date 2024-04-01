@@ -25,7 +25,7 @@ class Email : Record, Hashable {
         "emails"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         email = row["email"]
         label = row["label"]
         try super.init(row: row)

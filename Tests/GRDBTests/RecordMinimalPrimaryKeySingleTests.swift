@@ -21,7 +21,7 @@ class MinimalSingle: Record, Hashable {
         "minimalSingles"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         UUID = row["UUID"]
         try super.init(row: row)
     }

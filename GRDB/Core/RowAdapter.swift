@@ -83,7 +83,7 @@ import Foundation
 /// }
 ///
 /// extension PlayerInfo: FetchableRecord {
-///     init(row: Row) {
+///     init(row: some RowProtocol) {
 ///         player = row["player"]
 ///         team = row["team"]
 ///     }
@@ -698,7 +698,7 @@ struct AdaptedRowImpl: RowImpl {
     
     var count: Int { mapping._layoutColumns.count }
     
-    var isFetched: Bool { base.isFetched }
+    var isFetched: Bool { base._isFetched }
     
     func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView {
         Row.ScopesView(row: base, scopes: adapter._scopes, prefetchedRows: prefetchedRows)
@@ -720,7 +720,7 @@ struct AdaptedRowImpl: RowImpl {
     throws -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try Value.fastDecode(fromRow: base, atUncheckedIndex: mappedIndex)
+        return try base._fastDecode(Value.self, atUncheckedIndex: mappedIndex)
     }
     
     func withUnsafeData<T>(atUncheckedIndex index: Int, _ body: (Data?) throws -> T) throws -> T {

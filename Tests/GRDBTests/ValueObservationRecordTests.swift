@@ -8,7 +8,7 @@ private struct Player: Equatable {
 
 extension Player: TableRecord, FetchableRecord {
     static let databaseTableName = "t"
-    init(row: Row) {
+    init(row: some RowProtocol) {
         self.init(id: row["id"], name: row["name"])
     }
 }

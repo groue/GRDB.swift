@@ -1121,7 +1121,7 @@ struct Link: FetchableRecord {
     var url: URL
     var isVerified: Bool
     
-    init(row: Row) {
+    init(row: some RowProtocol) {
         url = row["url"]
         isVerified = row["verified"]
     }
@@ -1876,7 +1876,7 @@ Details follow:
 ```swift
 protocol FetchableRecord {
     /// Row initializer
-    init(row: Row) throws
+    init(row: some RowProtocol) throws
 }
 ```
 
@@ -1890,7 +1890,7 @@ struct Place {
 }
 
 extension Place : FetchableRecord {
-    init(row: Row) {
+    init(row: some RowProtocol) {
         id = row["id"]
         title = row["title"]
         coordinate = CLLocationCoordinate2D(
@@ -1908,7 +1908,7 @@ extension Place : FetchableRecord {
         case id, title, latitude, longitude
     }
     
-    init(row: Row) {
+    init(row: some RowProtocol) {
         id = row[Columns.id]
         title = row[Columns.title]
         coordinate = CLLocationCoordinate2D(
@@ -2839,7 +2839,7 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.favorite]
@@ -3210,7 +3210,7 @@ extension Place: TableRecord {
 // Fetching methods
 extension Place: FetchableRecord {
     /// Creates a record from a database row
-    init(row: Row) {
+    init(row: some RowProtocol) {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.isFavorite]
@@ -3291,7 +3291,7 @@ extension Place: TableRecord {
 // Fetching methods
 extension Place: FetchableRecord {
     /// Creates a record from a database row
-    init(row: Row) {
+    init(row: some RowProtocol) {
         // For high performance, use numeric indexes that match the
         // order of Place.databaseSelection
         id = row[0]
@@ -3343,7 +3343,7 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.isFavorite]

@@ -30,7 +30,7 @@ private class Citizenship : Record, Hashable {
         "citizenships"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         personName = row["personName"]
         countryName = row["countryName"]
         native = row["native"]

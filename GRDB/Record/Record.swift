@@ -41,8 +41,8 @@ open class Record {
     public init() { }
     
     /// Creates a Record from a row.
-    public required init(row: Row) throws {
-        if row.isFetched {
+    public required init(row: some RowProtocol) throws {
+        if row._isFetched {
             // Take care of the hasDatabaseChanges flag.
             //
             // Row may be a reused row which will turn invalid as soon as the

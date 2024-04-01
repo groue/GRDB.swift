@@ -6,7 +6,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         struct Record: FetchableRecord {
             var name: String
 
-            init(row: Row) throws {
+            init(row: some RowProtocol) throws {
                 name = try row.decode(forKey: "name")
             }
         }
@@ -122,7 +122,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         struct Record: FetchableRecord {
             var value: Value
 
-            init(row: Row) throws {
+            init(row: some RowProtocol) throws {
                 value = try row.decode(forKey: "value")
             }
         }

@@ -10,7 +10,7 @@ private struct Book {
 }
 
 extension Book : FetchableRecord {
-    init(row: Row) {
+    init(row: some RowProtocol) {
         id = row[.rowID]
         title = row["title"]
         author = row["author"]

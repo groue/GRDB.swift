@@ -31,7 +31,7 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]
@@ -69,7 +69,7 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
     
     // Record
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         value = row["value"]
         try super.init(row: row)
     }
@@ -99,7 +99,7 @@ private class PersonWithModifiedCaseColumns: Record {
         "persons"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["ID"]
         age = row["AGE"]
         name = row["NAME"]

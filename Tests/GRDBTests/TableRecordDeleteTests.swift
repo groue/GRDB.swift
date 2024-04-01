@@ -439,7 +439,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             struct Player: MutablePersistableRecord, FetchableRecord {
                 static let team = belongsTo(Team.self)
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
-                init(row: Row) { preconditionFailure("should not be called") }
+                init(row: some RowProtocol) { preconditionFailure("should not be called") }
             }
             
             struct Team: MutablePersistableRecord, FetchableRecord {
@@ -447,7 +447,7 @@ class TableRecordDeleteTests: GRDBTestCase {
                 static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
                 static let players = hasMany(Player.self)
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
-                init(row: Row) { preconditionFailure("should not be called") }
+                init(row: some RowProtocol) { preconditionFailure("should not be called") }
             }
             
             try db.create(table: "team") { t in
@@ -605,11 +605,11 @@ class TableRecordDeleteTests: GRDBTestCase {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord, FetchableRecord {
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
-                init(row: Row) { preconditionFailure("should not be called") }
+                init(row: some RowProtocol) { preconditionFailure("should not be called") }
             }
             struct Passport: MutablePersistableRecord, FetchableRecord {
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
-                init(row: Row) { preconditionFailure("should not be called") }
+                init(row: some RowProtocol) { preconditionFailure("should not be called") }
             }
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")

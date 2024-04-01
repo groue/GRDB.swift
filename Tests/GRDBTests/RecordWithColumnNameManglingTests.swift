@@ -23,7 +23,7 @@ class BadlyMangledStuff : Record {
         "stuffs"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
         id = row["mangled_id"]

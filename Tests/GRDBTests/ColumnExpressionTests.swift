@@ -22,7 +22,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.name, Columns.score]
             
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 // Test row subscript
                 id = row[Columns.id]
                 name = row[Columns.name]
@@ -58,7 +58,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
@@ -82,7 +82,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.name, Columns.score]
             
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 // Test row subscript
                 id = row[Columns.id]
                 name = row[Columns.name]
@@ -118,7 +118,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             

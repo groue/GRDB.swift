@@ -129,44 +129,19 @@ extension DatabaseValueConvertible {
 // MARK: - Conversions
 
 extension DatabaseValueConvertible {
-    static func decode(
-        fromDatabaseValue dbValue: DatabaseValue,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Self
-    {
-        if let value = fromDatabaseValue(dbValue) {
+    @inlinable
+    public static func _decode(
+        databaseValue: DatabaseValue,
+        context: @autoclosure () -> _RowDecodingContext
+    ) throws -> Self {
+        if let value = fromDatabaseValue(databaseValue) {
             return value
         } else {
-            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: databaseValue)
         }
-    }
-    
-    static func decode(
-        fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: CInt,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Self
-    {
-        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-        return try decode(fromDatabaseValue: dbValue, context: context())
-    }
-    
-    @usableFromInline
-    static func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self {
-        if let sqliteStatement = row.sqliteStatement {
-            return try decode(
-                fromStatement: sqliteStatement,
-                atUncheckedIndex: CInt(index),
-                context: RowDecodingContext(row: row, key: .columnIndex(index)))
-        }
-        return try decode(
-            fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
-            context: RowDecodingContext(row: row, key: .columnIndex(index)))
-    }
-    
-    @usableFromInline
-    static func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self? {
-        try Optional<Self>.decode(fromRow: row, atUncheckedIndex: index)
     }
 }
 
@@ -215,10 +190,9 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     }
     
     public func _element(sqliteStatement: SQLiteStatement) throws -> Value {
-        try Value.decode(
-            fromStatement: sqliteStatement,
-            atUncheckedIndex: columnIndex,
-            context: RowDecodingContext(statement: _statement, index: Int(columnIndex)))
+        try Value._decode(
+            databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: columnIndex),
+            context: _RowDecodingContext(statement: _statement, index: Int(columnIndex)))
     }
 }
 

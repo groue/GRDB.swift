@@ -69,27 +69,3 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
         }
     }
 }
-
-// MARK: - Conversions
-
-extension Data {
-    static func fastDecodeNoCopy(
-        fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: CInt,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Data
-    {
-        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL else {
-            throw RowDecodingError.valueMismatch(
-                Data.self,
-                sqliteStatement: sqliteStatement,
-                index: index,
-                context: context())
-        }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, index) else {
-            return Data()
-        }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, index))
-        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
-    }
-}

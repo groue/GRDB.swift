@@ -31,7 +31,7 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]
@@ -64,7 +64,7 @@ private class MinimalPersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         extra = row["extra"]
         try super.init(row: row)
     }
@@ -85,7 +85,7 @@ private class PersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         extra = row["extra"]
         try super.init(row: row)
     }

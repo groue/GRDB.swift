@@ -83,7 +83,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Test that view v is included in the request region
-        let request = SQLRequest<Row>(sql: "SELECT name FROM v ORDER BY id")
+        let request = SQLRequest(sql: "SELECT name FROM v ORDER BY id")
         try dbQueue.inDatabase { db in
             let region = try request.databaseRegion(db)
             XCTAssertEqual(region.description, "t(id,name),v(id,name)")

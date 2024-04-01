@@ -32,7 +32,7 @@ private class Person : Record, Hashable {
         "persons"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]

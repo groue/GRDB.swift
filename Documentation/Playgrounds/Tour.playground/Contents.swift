@@ -75,7 +75,7 @@ struct Place {
 
 // Adopt FetchableRecord
 extension Place : FetchableRecord {
-    init(row: Row) {
+    init(row: some RowProtocol) {
         id = row["id"]
         title = row["title"]
         favorite = row["favorite"]

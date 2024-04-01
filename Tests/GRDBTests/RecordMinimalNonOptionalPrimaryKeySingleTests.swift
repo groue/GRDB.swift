@@ -23,7 +23,7 @@ private class MinimalNonOptionalPrimaryKeySingle: Record, Hashable {
         "minimalSingles"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["id"]
         try super.init(row: row)
     }

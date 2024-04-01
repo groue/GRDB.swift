@@ -13,7 +13,7 @@ private class Reader : Record {
         super.init()
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         self.id = row["id"]
         self.name = row["name"]
         self.age = row["age"]

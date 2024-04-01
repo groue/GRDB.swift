@@ -25,7 +25,7 @@ private struct AWithRequiredC: FetchableRecord {
     var a: A
     var c: C
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         a = try A(row: row)
         c = row["c"]
     }
@@ -35,7 +35,7 @@ private struct AWithOptionalC: FetchableRecord {
     var a: A
     var c: C?
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         a = try A(row: row)
         c = row["c"]
     }
@@ -46,7 +46,7 @@ private struct AWithRequiredBAndOptionalC: FetchableRecord {
     var b: B
     var c: C?
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         a = try A(row: row)
         b = row["b"]
         c = row["c"]
@@ -57,7 +57,7 @@ private struct AWithCName: FetchableRecord {
     var a: A
     var cName: String?
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         a = try A(row: row)
         cName = row["cName"]
     }
@@ -68,7 +68,7 @@ private struct AWithRequiredBNameAndOptionalCName: FetchableRecord {
     var bName: String
     var cName: String?
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         a = try A(row: row)
         bName = row["bName"]
         cName = row["cName"]

@@ -22,7 +22,7 @@ class MinimalRowID : Record, Hashable {
         "minimalRowIDs"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         id = row["id"]
         try super.init(row: row)
     }

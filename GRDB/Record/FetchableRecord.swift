@@ -113,7 +113,7 @@ public protocol FetchableRecord {
     ///
     /// - throws: An error is thrown if the record can't be decoded from the
     ///   database row.
-    init(row: Row) throws
+    init(row: some RowProtocol) throws
     
     // MARK: - Customizing the Format of Database Columns
     
@@ -257,6 +257,13 @@ extension FetchableRecord {
     /// ``DatabaseColumnDecodingStrategy/useDefaultKeys``.
     public static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy {
         .useDefaultKeys
+    }
+}
+
+extension FetchableRecord {
+    #warning("TODO: document")
+    public init(row columnsWithValues: KeyValuePairs<String, (any DatabaseValueConvertible)?>) throws {
+        try self.init(row: Row(columnsWithValues: columnsWithValues))
     }
 }
 

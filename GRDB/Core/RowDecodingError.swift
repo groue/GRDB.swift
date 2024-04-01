@@ -8,8 +8,7 @@ import SQLite3
 #endif
 
 /// A key that is used to decode a value in a row
-@usableFromInline
-enum RowKey: Hashable, Sendable {
+public enum _RowKey: Hashable, Sendable {
     /// A column name
     case columnName(String)
     
@@ -38,7 +37,7 @@ enum RowDecodingError: Error {
         var row: Row { Row(impl: rowImpl) }
         
         /// Nil for RowDecodingError.keyNotFound, in order to avoid redundancy
-        let key: RowKey?
+        let key: _RowKey?
         
         /// The SQL query
         let sql: String?
@@ -46,7 +45,7 @@ enum RowDecodingError: Error {
         /// The SQL query arguments
         let statementArguments: StatementArguments?
         
-        init(decodingContext: RowDecodingContext, debugDescription: String) {
+        init(decodingContext: _RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
             self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
             self.key = decodingContext.key
@@ -55,7 +54,7 @@ enum RowDecodingError: Error {
         }
     }
     
-    case keyNotFound(RowKey, Context)
+    case keyNotFound(_RowKey, Context)
     case valueMismatch(Any.Type, Context)
     
     var context: Context {
@@ -68,9 +67,10 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
+    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
-        context: RowDecodingContext,
+        context: _RowDecodingContext,
         databaseValue: DatabaseValue)
     -> Self
     {
@@ -88,7 +88,7 @@ enum RowDecodingError: Error {
         _ type: Any.Type,
         sqliteStatement: SQLiteStatement,
         index: CInt,
-        context: RowDecodingContext)
+        context: _RowDecodingContext)
     -> Self
     {
         valueMismatch(
@@ -107,14 +107,14 @@ enum RowDecodingError: Error {
     {
         valueMismatch(
             type,
-            context: RowDecodingContext(statement: statement, index: index),
+            context: _RowDecodingContext(statement: statement, index: index),
             databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: CInt(index)))
     }
     
     /// Convenience method that builds the `column not found: <column>`
     /// error message.
     @usableFromInline
-    static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
+    static func columnNotFound(_ columnName: String, context: _RowDecodingContext) -> Self {
         keyNotFound(
             .columnName(columnName),
             RowDecodingError.Context(decodingContext: context, debugDescription: """
@@ -123,39 +123,20 @@ enum RowDecodingError: Error {
     }
 }
 
-@usableFromInline
-struct RowDecodingContext {
+public struct _RowDecodingContext {
     /// The row that is decoded
     let row: Row
     
-    let key: RowKey?
+    let key: _RowKey?
     
     /// The SQL query
     let sql: String?
     
     /// The SQL query arguments
     let statementArguments: StatementArguments?
-    
-    @usableFromInline
-    init(row: Row, key: RowKey? = nil) {
-        if let statement = row.statement {
-            self.key = key
-            self.row = row.copy()
-            self.sql = statement.sql
-            self.statementArguments = statement.arguments
-        } else if let sqliteStatement = row.sqliteStatement {
-            self.key = key
-            self.row = row.copy()
-            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
-            self.statementArguments = nil // Can't rebuild them
-        } else {
-            self.key = key
-            self.row = row.copy()
-            self.sql = nil
-            self.statementArguments = nil
-        }
-    }
-    
+}
+
+extension _RowDecodingContext {
     /// Convenience initializer
     @usableFromInline
     init(statement: Statement, index: Int) {

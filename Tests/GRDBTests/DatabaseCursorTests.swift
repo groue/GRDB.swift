@@ -312,7 +312,7 @@ class DatabaseCursorTests: GRDBTestCase {
     
     // Profiling test
     func testRecordCursorStep() throws {
-        struct S: FetchableRecord { init(row: Row) { } }
+        struct S: FetchableRecord { init(row: some RowProtocol) { } }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let cursor: RecordCursor<S> = try S.fetchCursor(db, sql: profilingSQL)
@@ -322,7 +322,7 @@ class DatabaseCursorTests: GRDBTestCase {
     
     // Profiling test
     func testRecordCursorForEach() throws {
-        struct S: FetchableRecord { init(row: Row) { } }
+        struct S: FetchableRecord { init(row: some RowProtocol) { } }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let cursor: RecordCursor<S> = try S.fetchCursor(db, sql: profilingSQL)

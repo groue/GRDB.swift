@@ -32,7 +32,7 @@ import SQLite3
 ///     var name: String
 ///     var score: Int
 ///
-///     init(row: Row) {
+///     init(row: some RowProtocol) {
 ///         // Optimized
 ///         name = row["name"]
 ///         score = row["score"]
@@ -136,62 +136,21 @@ extension StatementColumnConvertible {
 
 // MARK: - Conversions
 
-extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    @usableFromInline
-    /* private */ static func _valueMismatch(
-        fromStatement sqliteStatement: SQLiteStatement,
+extension StatementColumnConvertible {
+    @inlinable
+    public static func _fastDecode(
+        sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: CInt,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Never
-    {
-        throw RowDecodingError.valueMismatch(
-            Self.self,
-            sqliteStatement: sqliteStatement,
-            index: index,
-            context: context())
-    }
-    
-    @inline(__always)
-    @inlinable
-    static func fastDecode(
-        fromRow row: Row,
-        atUncheckedIndex index: Int)
-    throws -> Self
-    {
-        if let sqliteStatement = row.sqliteStatement {
-            return try fastDecode(
-                fromStatement: sqliteStatement,
-                atUncheckedIndex: CInt(index),
-                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        context: @autoclosure () -> _RowDecodingContext
+    ) throws -> Self {
+        guard let value = fromStatement(sqliteStatement, atUncheckedIndex: index) else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
         }
-        // Support for fast decoding from adapted rows
-        return try row.fastDecode(Self.self, atUncheckedIndex: index)
-    }
-    
-    @inline(__always)
-    @inlinable
-    static func fastDecode(
-        fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: CInt,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Self
-    {
-        if let value = fromStatement(sqliteStatement, atUncheckedIndex: index) {
-            return value
-        } else {
-            try _valueMismatch(fromStatement: sqliteStatement, atUncheckedIndex: index, context: context())
-        }
-    }
-    
-    // Support for Decodable
-    @inline(__always)
-    @inlinable
-    static func fastDecodeIfPresent(
-        fromRow row: Row,
-        atUncheckedIndex index: Int)
-    throws -> Self?
-    {
-        try Optional<Self>.fastDecode(fromRow: row, atUncheckedIndex: index)
+        return value
     }
 }
 
@@ -243,10 +202,10 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
     
     @inlinable
     public func _element(sqliteStatement: SQLiteStatement) throws -> Value {
-        try Value.fastDecode(
-            fromStatement: sqliteStatement,
+        try Value._fastDecode(
+            sqliteStatement: sqliteStatement,
             atUncheckedIndex: columnIndex,
-            context: RowDecodingContext(statement: _statement, index: Int(columnIndex)))
+            context: _RowDecodingContext(statement: _statement, index: Int(columnIndex)))
     }
 }
 

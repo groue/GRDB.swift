@@ -288,7 +288,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 case id, firstName, lastName
             }
             
-            required init(row: Row) throws {
+            required init(row: some RowProtocol) throws {
                 id = row[Columns.id]
                 firstName = row[Columns.firstName]
                 lastName = row[Columns.lastName]

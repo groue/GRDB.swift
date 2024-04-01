@@ -104,15 +104,15 @@ private class UserPersistableRecord2 : PersistableRecord {
 // MARK: - FetchableRecord
 
 private struct UserFetchableRecord1 : FetchableRecord {
-    init(row: Row) { }
+    init(row: some RowProtocol) { }
 }
 
 private class UserFetchableRecord2 : FetchableRecord {
-    required init(row: Row) { }
+    required init(row: some RowProtocol) { }
 }
 
 private struct UserFetchableRecord3 : FetchableRecord {
-    init(row: Row) throws { }
+    init(row: some RowProtocol) throws { }
 }
 
 // MARK: - StatementColumnConvertible

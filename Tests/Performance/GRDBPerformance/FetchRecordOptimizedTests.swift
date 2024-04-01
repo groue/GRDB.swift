@@ -16,7 +16,7 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
     var i8: Int
     var i9: Int
     
-    init(row: Row) {
+    init(row: some RowProtocol) {
         i0 = row[0]
         i1 = row[1]
         i2 = row[2]

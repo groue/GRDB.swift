@@ -7,7 +7,7 @@ private struct Fetched: Hashable{
 }
 
 extension Fetched : FetchableRecord {
-    init(row: Row) {
+    init(row: some RowProtocol) {
         firstName = row["firstName"]
         lastName = row["lastName"]
     }

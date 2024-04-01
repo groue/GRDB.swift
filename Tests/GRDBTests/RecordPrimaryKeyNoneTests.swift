@@ -28,7 +28,7 @@ private class Item : Record, Hashable {
         "items"
     }
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         name = row["name"]
         email = row["email"]
         try super.init(row: row)

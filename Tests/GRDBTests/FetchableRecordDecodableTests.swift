@@ -39,17 +39,17 @@ extension FetchableRecordDecodableTests {
         }
     }
     
-    func testCustomFetchableRecord() {
+    func testCustomFetchableRecord() throws {
         struct Struct : FetchableRecord, Decodable {
             let value: String
             
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 value = (row["value"] as String) + " (FetchableRecord)"
             }
         }
         
         do {
-            let s = Struct(row: ["value": "foo"])
+            let s = try Struct(row: ["value": "foo"])
             XCTAssertEqual(s.value, "foo (FetchableRecord)")
         }
     }
@@ -900,7 +900,7 @@ extension FetchableRecordDecodableTests {
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
                 "optionalDates2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -916,7 +916,7 @@ extension FetchableRecordDecodableTests {
                 "REQUIREDDATES": "[128000]",
                 "OPTIONALDATES": "[null, 128000]",
                 "OPTIONALDATES2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -932,7 +932,7 @@ extension FetchableRecordDecodableTests {
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
                 "optionalDates2": nil,
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -946,7 +946,7 @@ extension FetchableRecordDecodableTests {
                 "requiredId": 1,
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -962,7 +962,7 @@ extension FetchableRecordDecodableTests {
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
                 "optionalDates2": "[128000]",
-            ])
+            ] as Row)
             XCTFail("Expected error")
         } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
             XCTAssertEqual(column, "requiredId")
@@ -996,7 +996,7 @@ extension FetchableRecordDecodableTests {
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
                 "optional_dates2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -1012,7 +1012,7 @@ extension FetchableRecordDecodableTests {
                 "REQUIRED_DATES": "[128000]",
                 "OPTIONAL_DATES": "[null, 128000]",
                 "OPTIONAL_DATES2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -1028,7 +1028,7 @@ extension FetchableRecordDecodableTests {
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
                 "optional_dates2": nil,
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -1042,7 +1042,7 @@ extension FetchableRecordDecodableTests {
                 "required_id": 1,
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -1059,7 +1059,7 @@ extension FetchableRecordDecodableTests {
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
                 "optionalDates2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -1075,7 +1075,7 @@ extension FetchableRecordDecodableTests {
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
                 "optional_dates2": "[128000]",
-            ])
+            ] as Row)
             XCTFail("Expected error")
         } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
             XCTAssertEqual(column, "requiredId")
@@ -1092,7 +1092,7 @@ extension FetchableRecordDecodableTests {
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
                 "optional_dates2": "[128000]",
-            ])
+            ] as Row)
             XCTFail("Expected error")
         } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
             XCTAssertEqual(column, "requiredID")
@@ -1130,7 +1130,7 @@ extension FetchableRecordDecodableTests {
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
                 "_optionalDates2": "[128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: "test1",
@@ -1146,7 +1146,7 @@ extension FetchableRecordDecodableTests {
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
                 "_optionalDates2": nil,
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -1160,7 +1160,7 @@ extension FetchableRecordDecodableTests {
                 "_requiredId": 1,
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
-            ])
+            ] as Row)
             XCTAssertEqual(record, Record(
                             requiredId: 1,
                             optionalName: nil,
@@ -1176,7 +1176,7 @@ extension FetchableRecordDecodableTests {
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
                 "_optionalDates2": "[128000]",
-            ])
+            ] as Row)
             XCTFail("Expected error")
         } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
             XCTAssertEqual(column, "requiredId")
@@ -1493,7 +1493,7 @@ extension FetchableRecordDecodableTests {
         //   all optionals decode missing keys are nil. This is because GRDB
         //   records accept rows with missing columns, and b and c may want to
         //   decode columns.
-        _ = try FetchableRecordDecoder().decode(Composed.self, from: [:])
+        _ = try FetchableRecordDecoder().decode(Composed.self, from: Row())
     }
     
     // This is a regression test for https://github.com/groue/GRDB.swift/issues/664
@@ -1505,7 +1505,7 @@ extension FetchableRecordDecodableTests {
             var b: B
         }
         do {
-            _ = try FetchableRecordDecoder().decode(Composed.self, from: [:])
+            _ = try FetchableRecordDecoder().decode(Composed.self, from: Row())
             XCTFail("Expected error")
         } catch DecodingError.keyNotFound {
             // a or b can not be decoded because only one key is allowed to be missing
@@ -1631,7 +1631,7 @@ extension FetchableRecordDecodableTests {
                 self.isFetched = false
             }
             
-            init(row: Row) throws {
+            init(row: some RowProtocol) throws {
                 self = try FetchableRecordDecoder().decode(Player.self, from: row)
                 self.isFetched = true
             }

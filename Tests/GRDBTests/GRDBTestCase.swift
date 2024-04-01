@@ -181,7 +181,7 @@ class GRDBTestCase: XCTestCase {
         line: UInt = #line)
     throws
     {
-        let request: SQLRequest<Row> = "SELECT \(expression)"
+        let request = SQLRequest(literal: "SELECT \(expression)")
         try assertEqualSQL(db, request, "SELECT \(sql)", file: file, line: line)
     }
     

@@ -97,7 +97,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var b: B
             var c: C
             var d: D
-            init(row: Row) throws {
+            init(row: some RowProtocol) throws {
                 a = try A(row: row)
                 b = row["b"]
                 c = row["c"]
@@ -174,7 +174,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
         struct CustomA: FetchableRecord, Decodable {
             var id: Int64
             var custom: Bool?
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 id = row["id"]
                 custom = true
             }
@@ -183,7 +183,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var id: Int64
             var aid: Int64
             var custom: Bool?
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 id = row["id"]
                 aid = row["aid"]
                 custom = true
@@ -194,7 +194,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var aid: Int64?
             var bid: Int64?
             var custom: Bool?
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 id = row["id"]
                 aid = row["aid"]
                 bid = row["bid"]
@@ -205,7 +205,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var id: Int64
             var bid: Int64
             var custom: Bool?
-            init(row: Row) {
+            init(row: some RowProtocol) {
                 id = row["id"]
                 bid = row["bid"]
                 custom = true

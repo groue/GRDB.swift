@@ -15,11 +15,11 @@ class EmptyRecordWithoutInitializer : Record {
 //        let name: String?
 //    }
 
-// What happens with a mutable property, and init(row: Row)?
+// What happens with a mutable property, and init(row: some RowProtocol)?
 class RecordWithMutablePropertyAndRowInitializer : Record {
     var name: String?
     
-    required init(row: Row) throws {
+    required init(row: some RowProtocol) throws {
         try super.init(row: row)    // super.init(row: row) is required
         self.name = "toto"          // property can be set before or after super.init
     }
@@ -34,7 +34,7 @@ class RecordWithMutablePropertyAndEmptyInitializer : Record {
         self.name = "toto"          // property can be set before or after super.init
     }
     
-    required init(row: Row) throws { // init(row) is required
+    required init(row: some RowProtocol) throws { // init(row) is required
         try super.init(row: row)     // super.init(row: row) is required
     }
 }
@@ -48,7 +48,7 @@ class RecordWithMutablePropertyAndCustomInitializer : Record {
         super.init()                // super.init() is required
     }
 
-    required init(row: Row) throws { // init(row) is required
+    required init(row: some RowProtocol) throws { // init(row) is required
         try super.init(row: row)     // super.init(row: row) is required
     }
 }
@@ -57,7 +57,7 @@ class RecordWithMutablePropertyAndCustomInitializer : Record {
 class RecordWithImmutableProperty : Record {
     let initializedFromRow: Bool
     
-    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+    required init(row: some RowProtocol) throws { // An initializer is required, and the minimum is init(row)
         initializedFromRow = true    // property must be set before super.init(row: row)
         try super.init(row: row)     // super.init(row: row) is required
     }
@@ -72,7 +72,7 @@ class RecordWithPedigree : Record {
         super.init()                // super.init() is required
     }
     
-    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+    required init(row: some RowProtocol) throws { // An initializer is required, and the minimum is init(row)
         initializedFromRow = true    // property must be set before super.init(row: row)
         try super.init(row: row)     // super.init(row: row) is required
     }
@@ -87,7 +87,7 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
         super.init()                // super.init() is required
     }
     
-    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+    required init(row: some RowProtocol) throws { // An initializer is required, and the minimum is init(row)
         initializedFromRow = true    // property must be set before super.init(row: row)
         try super.init(row: row)     // super.init(row: row) is required
     }
@@ -97,7 +97,7 @@ class RecordInitializersTests : GRDBTestCase {
     
     func testFetchedRecordAreInitializedFromRow() throws {
         
-        // Here we test that Record.init(row: Row) can be overridden independently from Record.init().
+        // Here we test that Record.init(row: row) can be overridden independently from Record.init().
         // People must be able to perform some initialization work when fetching records from the database.
         
         XCTAssertFalse(RecordWithPedigree().initializedFromRow)

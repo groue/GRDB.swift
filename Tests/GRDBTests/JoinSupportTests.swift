@@ -84,7 +84,7 @@ private struct FlatModel: FetchableRecord {
     var t3: T3?
     var t5count: Int
     
-    init(row: Row) {
+    init(row: some RowProtocol) {
         self.t1 = row[Scopes.t1]
         self.t2Left = row[Scopes.t2Left]
         self.t2Right = row[Scopes.t2Right]

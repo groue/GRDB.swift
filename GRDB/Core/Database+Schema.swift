@@ -1072,7 +1072,7 @@ public struct ColumnInfo: FetchableRecord, Sendable {
     /// For columns that are not part of the primary key, it is zero.
     public let primaryKeyIndex: Int
     
-    public init(row: Row) {
+    public init(row: some RowProtocol) {
         cid = row["cid"]
         name = row["name"]
         type = row["type"]
@@ -1238,7 +1238,7 @@ public struct ForeignKeyViolation: Sendable {
 }
 
 extension ForeignKeyViolation: FetchableRecord {
-    public init(row: Row) {
+    public init(row: some RowProtocol) {
         originTable = row[0]
         originRowID = row[1]
         destinationTable = row[2]
@@ -1481,7 +1481,7 @@ struct TableInfo: FetchableRecord {
     var hasRowID: Bool
     var strict: Bool
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         switch row[0] as String {
         case "main":
             schemaID = .main
@@ -1515,7 +1515,7 @@ struct SchemaObject: Hashable, FetchableRecord {
     var tbl_name: String?
     var sql: String?
     
-    init(row: Row) throws {
+    init(row: some RowProtocol) throws {
         // "rootpage" column is not always there: avoid using numerical indexes
         type = row["type"]
         name = row["name"]
