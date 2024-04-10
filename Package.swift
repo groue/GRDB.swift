@@ -38,8 +38,8 @@ let package = Package(
     platforms: [
         .iOS(.v11),
         .macOS(.v10_13),
-        .tvOS(.v11),
-        .watchOS(.v4),
+        // .tvOS(.v11),
+        // .watchOS(.v4),
     ],
     products: [
         .library(name: "CSQLite", targets: ["CSQLite"]),
