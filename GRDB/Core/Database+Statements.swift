@@ -361,6 +361,11 @@ public class SQLStatementCursor {
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension SQLStatementCursor: Sendable { }
+
 extension SQLStatementCursor: Cursor {
     public func next() throws -> Statement? {
         guard offset < cString.count - 1 /* trailing \0 */ else {

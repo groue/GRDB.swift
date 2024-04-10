@@ -21,7 +21,9 @@
 /// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
-final class WALSnapshot: Sendable {
+final class WALSnapshot: @unchecked Sendable {
+    // @unchecked because sqlite3_snapshot has no threading requirements.
+    // <https://www.sqlite.org/c3ref/snapshot.html>
     let sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
     
     init(_ db: Database) throws {

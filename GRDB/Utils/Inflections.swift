@@ -31,7 +31,7 @@ extension String {
 /// A type that controls GRDB string inflections.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-public struct Inflections {
+public struct Inflections: Sendable {
     private var pluralizeRules: [(NSRegularExpression, String)] = []
     private var singularizeRules: [(NSRegularExpression, String)] = []
     private var uncountablesRegularExpressions: [String: NSRegularExpression] = [:]

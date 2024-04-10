@@ -623,6 +623,11 @@ public final class Statement {
     }
 }
 
+// Explicit non-conformance to Sendable: statements must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension Statement: Sendable { }
+
 extension Statement: CustomStringConvertible {
     public var description: String {
         SchedulingWatchdog.allows(database) ? sql : "Statement"

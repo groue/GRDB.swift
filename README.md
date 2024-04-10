@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: December 1, 2023 • [version 6.23.0](https://github.com/groue/GRDB.swift/tree/v6.23.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: March 23, 2024 • [version 6.26.0](https://github.com/groue/GRDB.swift/tree/v6.26.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
@@ -4290,6 +4290,17 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     ```
     
     For more information about the functions `dateTime` and `julianDay`, see [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html).
+
+- `CAST`
+
+    Use the `cast` Swift function:
+    
+    ```swift
+    // SELECT (CAST(wins AS REAL) / games) AS successRate FROM player
+    Player.select((cast(winsColumn, as: .real) / gamesColumn).forKey("successRate"))
+    ```
+    
+    See [CAST expressions](https://www.sqlite.org/lang_expr.html#castexpr) for more information about SQLite conversions.
 
 - `IFNULL`
     

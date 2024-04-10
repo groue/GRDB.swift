@@ -289,4 +289,106 @@ class ColumnInfoTests: GRDBTestCase {
             _ = try db.columns(in: "t1")
         }
     }
+    
+    func testUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id INTEGER)")
+            do {
+                _ = try db.columns(in: "t", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testSpecifiedMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id INTEGER)")
+            let columns = try db.columns(in: "t")
+            XCTAssertEqual(columns.count, 1)
+            XCTAssertEqual(columns[0].name, "id")
+            XCTAssertEqual(columns[0].type, "INTEGER")
+        }
+    }
+    
+    func testSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id2 TEXT)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id1 INTEGER)")
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            let columnsMain = try db.columns(in: "t", in: "main")
+            XCTAssertEqual(columnsMain.count, 1)
+            XCTAssertEqual(columnsMain[0].name, "id1")
+            XCTAssertEqual(columnsMain[0].type, "INTEGER")
+            
+            let columnsAttached = try db.columns(in: "t", in: "attached")
+            XCTAssertEqual(columnsAttached.count, 1)
+            XCTAssertEqual(columnsAttached[0].name, "id2")
+            XCTAssertEqual(columnsAttached[0].type, "TEXT")
+        }
+    }
+    
+    // The `t` table in the attached database should never
+    // be found unless explicitly specified as it is after
+    // `main.t` in resolution order.
+    func testUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id2 TEXT)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id1 INTEGER)")
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            let columnsMain = try db.columns(in: "t")
+            XCTAssertEqual(columnsMain.count, 1)
+            XCTAssertEqual(columnsMain[0].name, "id1")
+            XCTAssertEqual(columnsMain[0].type, "INTEGER")
+        }
+    }
+    
+    func testUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id2 TEXT)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            let columnsMain = try db.columns(in: "t")
+            XCTAssertEqual(columnsMain.count, 1)
+            XCTAssertEqual(columnsMain[0].name, "id2")
+            XCTAssertEqual(columnsMain[0].type, "TEXT")
+        }
+    }
 }

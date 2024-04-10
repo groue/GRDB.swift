@@ -93,4 +93,119 @@ class IndexInfoTests: GRDBTestCase {
             }
         }
     }
+    
+    func testUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndex ON player (name);
+                """)
+            do {
+                _ = try db.indexes(on: "player", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testSpecifiedMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndex ON player (name);
+                """)
+            let indexes = try db.indexes(on: "player", in: "main")
+            XCTAssertEqual(indexes.count, 1)
+            XCTAssertEqual(indexes[0].name, "columnIndex")
+        }
+    }
+    
+    func testSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndexAttached ON player (name);
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndex ON player (name);
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            let mainIndexes = try db.indexes(on: "player", in: "main")
+            XCTAssertEqual(mainIndexes.count, 1)
+            XCTAssertEqual(mainIndexes[0].name, "columnIndex")
+            
+            let attachedIndexes = try db.indexes(on: "player", in: "attached")
+            XCTAssertEqual(attachedIndexes.count, 1)
+            XCTAssertEqual(attachedIndexes[0].name, "columnIndexAttached")
+        }
+    }
+    
+    // The `player` table in the attached database should never
+    // be found unless explicitly specified as it is after
+    // `main.player` in resolution order.
+    func testUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndexAttached ON player (name);
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndex ON player (name);
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            let mainIndexes = try db.indexes(on: "player")
+            XCTAssertEqual(mainIndexes.count, 1)
+            XCTAssertEqual(mainIndexes[0].name, "columnIndex")
+        }
+    }
+    
+    func testUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE INDEX columnIndexAttached ON player (name);
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            let attachedIndexes = try db.indexes(on: "player", in: "attached")
+            XCTAssertEqual(attachedIndexes.count, 1)
+            XCTAssertEqual(attachedIndexes[0].name, "columnIndexAttached")
+        }
+    }
 }

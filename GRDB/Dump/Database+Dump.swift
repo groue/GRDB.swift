@@ -12,7 +12,7 @@ extension Database {
     ///     // Prints
     ///     // 1|Arthur|500
     ///     // 2|Barbara|1000
-    ///     db.dumpSQL("SELECT * FROM player ORDER BY id")
+    ///     try db.dumpSQL("SELECT * FROM player ORDER BY id")
     /// }
     /// ```
     ///
@@ -40,7 +40,7 @@ extension Database {
     ///     // Prints
     ///     // 1|Arthur|500
     ///     // 2|Barbara|1000
-    ///     db.dumpRequest(Player.orderByPrimaryKey())
+    ///     try db.dumpRequest(Player.orderByPrimaryKey())
     /// }
     /// ```
     ///
@@ -72,7 +72,7 @@ extension Database {
     ///     // team
     ///     // 1|Red
     ///     // 2|Blue
-    ///     db.dumpTables(["player", "team"])
+    ///     try db.dumpTables(["player", "team"])
     /// }
     /// ```
     ///
@@ -111,7 +111,7 @@ extension Database {
     ///
     /// ```swift
     /// try dbQueue.read { db in
-    ///     db.dumpContent()
+    ///     try db.dumpContent()
     /// }
     /// ```
     ///
@@ -129,6 +129,9 @@ extension Database {
     ///
     /// > Note: Internal SQLite and GRDB schema objects are not recorded
     /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
     ///
     /// - Parameters:
     ///   - format: The output format.
@@ -141,6 +144,40 @@ extension Database {
     {
         var dumpStream = DumpStream(stream)
         try _dumpContent(format: format, to: &dumpStream)
+    }
+    
+    /// Prints the schema of the database.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     try db.dumpSchema()
+    /// }
+    /// ```
+    ///
+    /// This prints the database schema. For example:
+    ///
+    /// ```
+    /// sqlite_master
+    /// CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT, score INTEGER)
+    /// ```
+    ///
+    /// > Note: Internal SQLite and GRDB schema objects are not recorded
+    /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
+    ///
+    /// - Parameters:
+    ///   - stream: A stream for text output, which directs output to the
+    ///     console by default.
+    public func dumpSchema(
+        to stream: (any TextOutputStream)? = nil)
+    throws
+    {
+        var dumpStream = DumpStream(stream)
+        try _dumpSchema(to: &dumpStream)
     }
 }
 
@@ -239,6 +276,26 @@ extension Database {
         to stream: inout DumpStream)
     throws
     {
+        try _dumpSchema(to: &stream)
+        stream.margin()
+        
+        let tables = try String
+            .fetchAll(self, sql: """
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'table'
+                ORDER BY name COLLATE NOCASE
+                """)
+            .filter {
+                try !ignoresObject(named: $0)
+            }
+        try _dumpTables(tables, format: format, tableHeader: .always, stableOrder: true, to: &stream)
+    }
+    
+    func _dumpSchema(
+        to stream: inout DumpStream)
+    throws
+    {
         stream.writeln("sqlite_master")
         let sqlRows = try Row.fetchAll(self, sql: """
             SELECT sql || ';', name
@@ -252,30 +309,46 @@ extension Database {
             """)
         for row in sqlRows {
             let name: String = row[1]
-            if Database.isSQLiteInternalTable(name) || Database.isGRDBInternalTable(name) {
+            if try ignoresObject(named: name) {
                 continue
             }
             stream.writeln(row[0])
         }
-        
-        let tables = try String
-            .fetchAll(self, sql: """
-                SELECT name
-                FROM sqlite_master
-                WHERE type = 'table'
-                ORDER BY name COLLATE NOCASE
-                """)
-            .filter {
-                !(Database.isSQLiteInternalTable($0) || Database.isGRDBInternalTable($0))
+    }
+    
+    private func ignoresObject(named name: String) throws -> Bool {
+        if Database.isSQLiteInternalTable(name) { return true }
+        if Database.isGRDBInternalTable(name) { return true }
+        if try isShadowTable(name) { return true }
+        return false
+    }
+    
+    private func isShadowTable(_ tableName: String) throws -> Bool {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Maybe SQLCipher is too old: check actual version
+        if sqlite3_libversion_number() >= 3037000 {
+            guard let table = try table(tableName) else {
+                // Not a table
+                return false
             }
-        if tables.isEmpty { return }
-        stream.write("\n")
-        try _dumpTables(tables, format: format, tableHeader: .always, stableOrder: true, to: &stream)
+            return table.kind == .shadow
+        }
+#else
+        if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
+            guard let table = try table(tableName) else {
+                // Not a table
+                return false
+            }
+            return table.kind == .shadow
+        }
+#endif
+        // Don't know
+        return false
     }
 }
 
 /// Options for printing table names.
-public enum DumpTableHeaderOptions {
+public enum DumpTableHeaderOptions: Sendable {
     /// Table names are only printed when several tables are printed.
     case automatic
 

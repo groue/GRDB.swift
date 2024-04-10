@@ -7,7 +7,7 @@ extension DatabaseReader {
     /// // Prints
     /// // 1|Arthur|500
     /// // 2|Barbara|1000
-    /// dbQueue.dumpSQL("SELECT * FROM player ORDER BY id")
+    /// try dbQueue.dumpSQL("SELECT * FROM player ORDER BY id")
     /// ```
     ///
     /// - Parameters:
@@ -34,7 +34,7 @@ extension DatabaseReader {
     /// // Prints
     /// // 1|Arthur|500
     /// // 2|Barbara|1000
-    /// dbQueue.dumpRequest(Player.orderByPrimaryKey())
+    /// try dbQueue.dumpRequest(Player.orderByPrimaryKey())
     /// ```
     ///
     /// - Parameters:
@@ -65,7 +65,7 @@ extension DatabaseReader {
     /// // team
     /// // 1|Red
     /// // 2|Blue
-    /// dbQueue.dumpTables(["player", "team"])
+    /// try dbQueue.dumpTables(["player", "team"])
     /// ```
     ///
     /// - Parameters:
@@ -103,7 +103,7 @@ extension DatabaseReader {
     /// For example:
     ///
     /// ```swift
-    /// dbQueue.dumpContent()
+    /// try dbQueue.dumpContent()
     /// ```
     ///
     /// This prints the database schema as well as the content of all
@@ -120,6 +120,9 @@ extension DatabaseReader {
     ///
     /// > Note: Internal SQLite and GRDB schema objects are not recorded
     /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
     ///
     /// - Parameters:
     ///   - format: The output format.
@@ -132,6 +135,39 @@ extension DatabaseReader {
     {
         try unsafeReentrantRead { db in
             try db.dumpContent(format: format, to: stream)
+        }
+    }
+    
+    /// Prints the schema of the database.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.dumpSchema()
+    /// ```
+    ///
+    /// This prints the database schema. For example:
+    ///
+    /// ```
+    /// sqlite_master
+    /// CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT, score INTEGER)
+    /// ```
+    ///
+    /// > Note: Internal SQLite and GRDB schema objects are not recorded
+    /// > (those with a name that starts with "sqlite_" or "grdb_").
+    /// >
+    /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
+    /// > not recorded, starting SQLite 3.37+.
+    ///
+    /// - Parameters:
+    ///   - stream: A stream for text output, which directs output to the
+    ///     console by default.
+    public func dumpSchema(
+        to stream: (any TextOutputStream)? = nil)
+    throws
+    {
+        try unsafeReentrantRead { db in
+            try db.dumpSchema(to: stream)
         }
     }
 }

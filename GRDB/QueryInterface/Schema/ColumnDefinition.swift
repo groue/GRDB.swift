@@ -76,7 +76,7 @@ public final class ColumnDefinition {
     /// The kind of a generated column.
     ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html#virtual_versus_stored_columns>
-    public enum GeneratedColumnQualification {
+    public enum GeneratedColumnQualification: Sendable {
         /// A `VIRTUAL` generated column.
         case virtual
         /// A `STORED` generated column.
@@ -565,3 +565,8 @@ public final class ColumnDefinition {
         }
     }
 }
+
+// Explicit non-conformance to Sendable: `ColumnDefinition` is a mutable
+// class and there is no known reason for making it thread-safe.
+@available(*, unavailable)
+extension ColumnDefinition: Sendable { }

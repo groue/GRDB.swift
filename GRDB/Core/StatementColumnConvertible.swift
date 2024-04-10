@@ -241,6 +241,11 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension FastDatabaseValueCursor: Sendable { }
+
 /// Types that adopt both DatabaseValueConvertible and
 /// StatementColumnConvertible can be efficiently initialized from
 /// database values.

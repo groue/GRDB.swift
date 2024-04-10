@@ -57,6 +57,20 @@ public func average(_ value: some SQLSpecificExpressible) -> SQLExpression {
 }
 #endif
 
+/// The `CAST` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // CAST(value AS REAL)
+/// cast(Column("value"), as: .real)
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_expr.html#castexpr>
+public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Database.StorageClass) -> SQLExpression {
+    .cast(expression.sqlExpression, as: storageClass)
+}
+
 /// The `COUNT` SQL function.
 ///
 /// For example:
@@ -408,7 +422,7 @@ extension SQLSpecificExpressible {
 /// A date modifier for SQLite date functions.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
-public enum SQLDateModifier: SQLSpecificExpressible {
+public enum SQLDateModifier: SQLSpecificExpressible, Sendable {
     /// Adds the specified amount of seconds
     case second(Double)
     

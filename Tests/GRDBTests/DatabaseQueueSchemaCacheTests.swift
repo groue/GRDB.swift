@@ -150,7 +150,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
     }
     
     func testMainShadowedByAttachedDatabase() throws {
-        #if SQLITE_HAS_CODEC
+        #if GRDBCIPHER_USE_ENCRYPTION
         // Avoid error due to key not being provided:
         // file is not a database - while executing `ATTACH DATABASE...`
         throw XCTSkip("This test does not support encrypted databases")
@@ -227,6 +227,173 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
             // Attached2 no longer shadows main
             try db.execute(sql: "DETACH DATABASE attached2")
             try XCTAssertFalse(db.tableExists("item"))
+        }
+    }
+    
+    func testTableExistsThrowsWhenUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+            do {
+                _ = try db.tableExists("t", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+            do {
+                _ = try db.viewExists("v", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+            do {
+                _ = try db.triggerExists("tr", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testExistsWithSpecifiedMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+            let tableExists = try db.tableExists("t", in: "main")
+            let viewExists = try db.viewExists("v", in: "main")
+            let triggerExists = try db.triggerExists("tr", in: "main")
+            XCTAssertTrue(tableExists)
+            XCTAssertTrue(viewExists)
+            XCTAssertTrue(triggerExists)
+        }
+    }
+    
+    func testNotExistsWithSpecifiedMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let tableExists = try db.tableExists("t", in: "main")
+            let viewExists = try db.viewExists("v", in: "main")
+            let triggerExists = try db.triggerExists("tr", in: "main")
+            XCTAssertFalse(tableExists)
+            XCTAssertFalse(viewExists)
+            XCTAssertFalse(triggerExists)
+        }
+    }
+    
+    func testExistsWithSpecifiedSchemaWithEntityNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            let tableExistsInMain = try db.tableExists("t", in: "main")
+            let viewExistsInMain = try db.viewExists("v", in: "main")
+            let triggerExistsInMain = try db.triggerExists("tr", in: "main")
+            XCTAssertTrue(tableExistsInMain)
+            XCTAssertTrue(viewExistsInMain)
+            XCTAssertTrue(triggerExistsInMain)
+            
+            let tableExistsInAttached = try db.tableExists("t", in: "attached")
+            let viewExistsInAttached = try db.viewExists("v", in: "attached")
+            let triggerExistsInAttached = try db.triggerExists("tr", in: "attached")
+            XCTAssertTrue(tableExistsInAttached)
+            XCTAssertTrue(viewExistsInAttached)
+            XCTAssertTrue(triggerExistsInAttached)
+        }
+    }
+    
+    func testExistsWithUnspecifiedSchemaWithEntityNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            // Some entity with the name exists, but we can't prove from this information which one
+            // it's getting. `true` is still the correct result.
+            let tableExists = try db.tableExists("t")
+            let viewExists = try db.viewExists("v")
+            let triggerExists = try db.triggerExists("tr")
+            XCTAssertTrue(tableExists)
+            XCTAssertTrue(viewExists)
+            XCTAssertTrue(triggerExists)
+        }
+    }
+    
+    func testExistsWithUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+               CREATE TABLE t (id INTEGER);
+               CREATE VIEW v AS SELECT * FROM t;
+               CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END;
+               """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            let tableExists = try db.tableExists("t")
+            let viewExists = try db.viewExists("v")
+            let triggerExists = try db.triggerExists("tr")
+            XCTAssertTrue(tableExists)
+            XCTAssertTrue(viewExists)
+            XCTAssertTrue(triggerExists)
         }
     }
 }

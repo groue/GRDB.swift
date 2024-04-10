@@ -92,7 +92,7 @@ extension ColumnExpression where Self == Column {
 ///
 /// - ``init(_:)-5grmu``
 /// - ``init(_:)-7xc4z``
-public struct Column {
+public struct Column: Sendable {
     /// The hidden rowID column.
     public static let rowID = Column("rowid")
     

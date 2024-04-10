@@ -24,7 +24,7 @@
 /// ### Instantiating Tokenizers
 ///
 /// - ``Database/makeTokenizer(_:)``
-public struct FTS5TokenizerDescriptor {
+public struct FTS5TokenizerDescriptor: Sendable {
     /// The tokenizer components.
     ///
     /// For example:

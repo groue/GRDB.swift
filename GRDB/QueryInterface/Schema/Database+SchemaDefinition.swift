@@ -681,7 +681,7 @@ extension Database {
 }
 
 /// View creation options
-public struct ViewOptions: OptionSet {
+public struct ViewOptions: OptionSet, Sendable {
     public let rawValue: Int
     
     public init(rawValue: Int) { self.rawValue = rawValue }

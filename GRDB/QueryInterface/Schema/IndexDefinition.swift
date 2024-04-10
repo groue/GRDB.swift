@@ -7,7 +7,7 @@ struct IndexDefinition {
 }
 
 /// Index creation options
-public struct IndexOptions: OptionSet {
+public struct IndexOptions: OptionSet, Sendable {
     public let rawValue: Int
     
     public init(rawValue: Int) { self.rawValue = rawValue }

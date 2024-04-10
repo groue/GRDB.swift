@@ -55,6 +55,7 @@ let package = Package(
             name: "GRDB",
             dependencies: ["CSQLite"],
             path: "GRDB",
+            resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
             swiftSettings: swiftSettings),
         .testTarget(

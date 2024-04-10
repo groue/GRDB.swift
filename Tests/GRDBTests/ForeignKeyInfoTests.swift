@@ -12,6 +12,8 @@ class ForeignKeyInfoTests: GRDBTestCase {
         }
     }
     
+    // MARK: Foreign key info
+    
     func testForeignKeys() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -67,6 +69,120 @@ class ForeignKeyInfoTests: GRDBTestCase {
             }
         }
     }
+    
+    func testUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children1 (parentId REFERENCES parents1)")
+            do {
+                _ = try db.foreignKeys(on: "children1", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testSpecifiedMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children1 (parentId REFERENCES parents1)")
+ 
+            do {
+                let foreignKeys = try db.foreignKeys(on: "children1", in: "main")
+                XCTAssertEqual(foreignKeys.count, 1)
+                assertEqual(foreignKeys[0], ForeignKeyInfo(id: foreignKeys[0].id, destinationTable: "parents1", mapping: [(origin: "parentId", destination: "id")]))
+            }
+        }
+    }
+    
+    func testSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children (parentId REFERENCES parents2)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children (parentId REFERENCES parents1)")
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let foreignKeys = try db.foreignKeys(on: "children", in: "attached")
+                XCTAssertEqual(foreignKeys.count, 1)
+                assertEqual(foreignKeys[0], ForeignKeyInfo(id: foreignKeys[0].id, destinationTable: "parents2", mapping: [(origin: "parentId", destination: "id")]))
+            }
+        }
+    }
+    
+    // The `children` table in the attached database should not
+    // be found unless explicitly specified as it is after
+    // `main.children` in resolution order.
+    func testUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children (parentId REFERENCES parents2)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children (parentId REFERENCES parents1)")
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let foreignKeys = try db.foreignKeys(on: "children")
+                XCTAssertEqual(foreignKeys.count, 1)
+                assertEqual(foreignKeys[0], ForeignKeyInfo(id: foreignKeys[0].id, destinationTable: "parents1", mapping: [(origin: "parentId", destination: "id")]))
+            }
+        }
+    }
+    
+    func testUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents2 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children2 (parentId REFERENCES parents2)")
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE children1 (parentId REFERENCES parents1)")
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let foreignKeys = try db.foreignKeys(on: "children2")
+                XCTAssertEqual(foreignKeys.count, 1)
+                assertEqual(foreignKeys[0], ForeignKeyInfo(id: foreignKeys[0].id, destinationTable: "parents2", mapping: [(origin: "parentId", destination: "id")]))
+            }
+        }
+    }
+    
+    
+    // MARK: Foreign key violations
     
     func testForeignKeyViolations() throws {
         try makeDatabaseQueue().writeWithoutTransaction { db in
@@ -218,6 +334,188 @@ class ForeignKeyInfoTests: GRDBTestCase {
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.message, "FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b)")
                 XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b)")
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsUnknownSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: "CREATE TABLE parent (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE child (parentId REFERENCES parent)")
+            do {
+                _ = try db.foreignKeyViolations(in: "child", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "invalid")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such schema: invalid")
+                XCTAssertEqual(error.description, "SQLite error 1: no such schema: invalid")
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsMainSchema() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (13, '1');
+                """)
+            do {
+                let violations = try Array(db.foreignKeyViolations(in: "child", in: "main"))
+                XCTAssertEqual(violations.count, 1)
+            }
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "main")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsInSpecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (10, '1');
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child", in: "attached"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 20 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child", in: "attached")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    // The `child` table in the attached database should not
+    // be found unless explicitly specified as it is after
+    // `main.child` in resolution order.
+    func testForeignKeyViolationsInUnspecifiedSchemaWithTableNameCollisions() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (10, '1');
+                """)
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 10 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
+            }
+        }
+    }
+    
+    func testForeignKeyViolationsInUnspecifiedSchemaFindsAttachedDatabase() throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not support encrypted databases")
+        #endif
+        
+        let attached = try makeDatabaseQueue(filename: "attached1")
+        try attached.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
+                CREATE TABLE child(id INTEGER NOT NULL PRIMARY KEY, parentId TEXT REFERENCES parent(id));
+                PRAGMA foreign_keys = OFF;
+                INSERT INTO child (id, parentId) VALUES (20, '1');
+                """)
+        }
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.inDatabase { db in
+            try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
+            
+            do {
+                let violations = try Array(try db.foreignKeyViolations(in: "child"))
+                XCTAssertEqual(violations.count, 1)
+                if let violation = violations.first(where: { $0.originRowID == 20 }) {
+                    XCTAssertEqual(violation.originTable, "child")
+                    XCTAssertEqual(violation.destinationTable, "parent")
+                } else {
+                    XCTFail("Missing violation")
+                }
+            }
+            
+            do {
+                _ = try db.checkForeignKeys(in: "child")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY, error.extendedResultCode)
             }
         }
     }

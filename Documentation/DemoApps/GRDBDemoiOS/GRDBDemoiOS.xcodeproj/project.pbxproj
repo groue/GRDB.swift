@@ -640,7 +640,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -660,7 +660,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -677,7 +677,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -694,7 +694,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -832,7 +832,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -849,7 +849,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

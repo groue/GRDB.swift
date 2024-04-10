@@ -90,6 +90,11 @@ public struct SQLExpression {
         /// A literal SQL expression
         case literal(SQL)
         
+        /// The `CAST(expr AS storage-class)` expression.
+        ///
+        /// See <https://www.sqlite.org/lang_expr.html#castexpr>.
+        indirect case cast(SQLExpression, Database.StorageClass)
+        
         /// The `BETWEEN` and `NOT BETWEEN` operators.
         ///
         ///     <expression> BETWEEN <lowerBound> AND <upperBound>
@@ -224,6 +229,9 @@ public struct SQLExpression {
             case let .literal(sqlLiteral):
                 return .literal(sqlLiteral.qualified(with: alias))
                 
+            case let .cast(expression, storageClass):
+                return .cast(expression.qualified(with: alias), storageClass)
+                
             case let .between(
                 expression: expression,
                 lowerBound: lowerBound,
@@ -315,7 +323,7 @@ public struct SQLExpression {
     ///     1000.databaseValue]
     /// let request = Player.select(values.joined(operator: .add))
     /// ```
-    public struct AssociativeBinaryOperator: Hashable {
+    public struct AssociativeBinaryOperator: Hashable, Sendable {
         /// The SQL operator
         let sql: String
         
@@ -1092,6 +1100,13 @@ extension SQLExpression {
         self.init(impl: .isEmpty(expression, isNegated: isNegated))
     }
     
+    /// The `CAST(expr AS storage-class)` expression.
+    ///
+    /// See <https://www.sqlite.org/lang_expr.html#castexpr>.
+    static func cast(_ expression: SQLExpression, as storageClass: Database.StorageClass) -> Self {
+        self.init(impl: .cast(expression, storageClass))
+    }
+    
     // MARK: Deferred
     
     // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
@@ -1268,6 +1283,9 @@ extension SQLExpression {
                 resultSQL = "(\(resultSQL))"
             }
             return resultSQL
+            
+        case let .cast(expression, storageClass):
+            return try "CAST(\(expression.sql(context, wrappedInParenthesis: false)) AS \(storageClass.rawValue))"
             
         case let .between(expression: expression, lowerBound: lowerBound, upperBound: upperBound, isNegated: isNegated):
             var resultSQL = try """
@@ -1821,6 +1839,9 @@ extension SQLExpression {
         case let .rowValue(expressions),
              let .associativeBinary(_, expressions):
             return expressions.allSatisfy(\.isConstantInRequest)
+            
+        case let .cast(expression, _):
+            return expression.isConstantInRequest
             
         case let .between(expression: expression, lowerBound: lowerBound, upperBound: upperBound, isNegated: _):
             return expression.isConstantInRequest
