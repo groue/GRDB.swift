@@ -1736,8 +1736,8 @@ extension FetchableRecordDecodableTests {
             }
         }
         
-        let row = try makeDatabaseQueue().read { db in
-            try Row.fetchOne(
+        try makeDatabaseQueue().read { db in
+            let row = try Row.fetchOne(
                 db, sql: """
                     SELECT 1 AS a, -- main row
                            2 AS b, -- not exposed
@@ -1753,21 +1753,164 @@ extension FetchableRecordDecodableTests {
                             "nestedScope2": RangeRowAdapter(4..<5),
                         ]),
                     ]))!
+            
+            row.prefetchedRows.setRows([], forKeyPath: ["prefetchedRows1"])
+            row.prefetchedRows.setRows([Row()], forKeyPath: ["topLevelScope2", "prefetchedRows2"])
+            // Check test setup
+            XCTAssertEqual(row.debugDescription, """
+                ▿ [a:1]
+                  unadapted: [a:1 b:2 c:3 d:4 e:5]
+                  - topLevelScope1: [c:3]
+                  - topLevelScope2: []
+                    - nestedScope1: [d:4]
+                    - nestedScope2: [e:5]
+                    + prefetchedRows2: 1 row
+                  + prefetchedRows1: 0 row
+                  + prefetchedRows2: 1 row
+                """)
+            
+            // Test keyed container
+            _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
         }
-        row.prefetchedRows.setRows([], forKeyPath: ["prefetchedRows1"])
-        row.prefetchedRows.setRows([Row()], forKeyPath: ["topLevelScope2", "prefetchedRows2"])
-        XCTAssertEqual(row.debugDescription, """
-            ▿ [a:1]
-              unadapted: [a:1 b:2 c:3 d:4 e:5]
-              - topLevelScope1: [c:3]
-              - topLevelScope2: []
-                - nestedScope1: [d:4]
-                - nestedScope2: [e:5]
-                + prefetchedRows2: 1 row
-              + prefetchedRows1: 0 row
-              + prefetchedRows2: 1 row
-            """)
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1531>
+    func test_decodeNil_and_containsKey() throws {
+        struct Witness: Decodable, FetchableRecord {
+            struct NestedRecord: Decodable, FetchableRecord { }
+            
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: AnyCodingKey.self)
+                
+                // column
+                do {
+                    let key = AnyCodingKey("a")
+                    let nilDecoded = try container.decodeNil(forKey: key)
+                    let value = try container.decodeIfPresent(Int.self, forKey: key)
+                    XCTAssertTrue(nilDecoded == (value == nil))
+                    XCTAssertTrue(container.contains(key))
+                }
+                
+                // scope
+                do {
+                    let key = AnyCodingKey("nested")
+                    let nilDecoded = try container.decodeNil(forKey: key)
+                    let value = try container.decodeIfPresent(NestedRecord.self, forKey: key)
+                    XCTAssertTrue(nilDecoded == (value == nil))
+                    XCTAssertTrue(container.contains(key))
+                }
+                
+                // missing key
+                do {
+                    let key = AnyCodingKey("missing")
+                    try XCTAssertTrue(container.decodeNil(forKey: key))
+                    try XCTAssertNil(container.decodeIfPresent(Int.self, forKey: key))
+                    try XCTAssertNil(container.decodeIfPresent(NestedRecord.self, forKey: key))
+                    XCTAssertFalse(container.contains(key))
+                }
+            }
+        }
         
-        _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+        try makeDatabaseQueue().read { db in
+            do {
+                let row = try Row.fetchOne(
+                    db, sql: """
+                        SELECT 1 AS a, 2 AS b
+                        """,
+                    adapter: ScopeAdapter([
+                        "nested": RangeRowAdapter(1..<2),
+                    ]))!
+                
+                // Check test setup
+                XCTAssertEqual(row.debugDescription, """
+                ▿ [a:1 b:2]
+                  unadapted: [a:1 b:2]
+                  - nested: [b:2]
+                """)
+                
+                // Test keyed container
+                _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+            }
+            
+            do {
+                let row = try Row.fetchOne(
+                    db, sql: """
+                        SELECT NULL AS a, NULL AS b
+                        """,
+                    adapter: ScopeAdapter([
+                        "nested": RangeRowAdapter(1..<2),
+                    ]))!
+                
+                // Check test setup
+                XCTAssertEqual(row.debugDescription, """
+                ▿ [a:NULL b:NULL]
+                  unadapted: [a:NULL b:NULL]
+                  - nested: [b:NULL]
+                """)
+                
+                // Test keyed container
+                _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+            }
+        }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1531>
+    func test_decodeNil_when_scope_and_column_have_the_same_name() throws {
+        struct Witness: Decodable, FetchableRecord {
+            struct NestedRecord: Decodable, FetchableRecord { }
+            
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: AnyCodingKey.self)
+                
+                let key = AnyCodingKey("a")
+                let nilDecoded = try container.decodeNil(forKey: key)
+                let intValue = try container.decodeIfPresent(Int.self, forKey: key)
+                let recordValue = try container.decodeIfPresent(NestedRecord.self, forKey: key)
+                XCTAssertTrue(nilDecoded == (intValue == nil))
+                XCTAssertTrue(nilDecoded == (recordValue == nil))
+            }
+        }
+        
+        try makeDatabaseQueue().read { db in
+            do {
+                let row = try Row.fetchOne(
+                    db, sql: """
+                        SELECT 1 AS a
+                        """,
+                    adapter: ScopeAdapter([
+                        "a": SuffixRowAdapter(fromIndex: 0),
+                    ]))!
+                
+                // Check test setup
+                XCTAssertEqual(row.debugDescription, """
+                ▿ [a:1]
+                  unadapted: [a:1]
+                  - a: [a:1]
+                """)
+                
+                // Test keyed container
+                _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+            }
+            
+            do {
+                let row = try Row.fetchOne(
+                    db, sql: """
+                        SELECT NULL AS a
+                        """,
+                    adapter: ScopeAdapter([
+                        "a": SuffixRowAdapter(fromIndex: 0),
+                    ]))!
+                
+                // Check test setup
+                XCTAssertEqual(row.debugDescription, """
+                ▿ [a:NULL]
+                  unadapted: [a:NULL]
+                  - a: [a:NULL]
+                """)
+                
+                // Test keyed container
+                _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+            }
+        }
     }
 }
