@@ -175,15 +175,25 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func decodeNil(forKey key: Key) throws -> Bool {
             let row = decoder.row
-            if let column = try? decodeColumn(forKey: key), row[column] != nil {
+            
+            // Column?
+            if let column = try? decodeColumn(forKey: key),
+               let index = row.index(forColumn: column)
+            {
+                return row.hasNull(atIndex: index)
+            }
+            
+            // Scope?
+            if let scopedRow = row.scopesTree[key.stringValue] {
+                return scopedRow.containsNonNullValue == false
+            }
+            
+            // Prefetched Rows?
+            if let prefetchedRows = row.prefetchedRows[key.stringValue] {
                 return false
             }
-            if row.scopesTree[key.stringValue] != nil {
-                return false
-            }
-            if row.prefetchedRows[key.stringValue] != nil {
-                return false
-            }
+            
+            // Unknown key
             return true
         }
         
