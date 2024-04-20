@@ -13,8 +13,9 @@ The topics covered in this demo are:
 
 - How to setup a database in an iOS app.
 - How to define a simple [Codable Record](../../../README.md#codable-records).
-- How to track database changes and animate a SwiftUI List with an async sequence built from [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
+- How to track database changes and animate a SwiftUI List with [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation) Combine publishers.
 - How to apply the recommendations of [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices).
+- How to perform `async` database accesses.
 - How to feed SwiftUI previews with a transient database.
 
 **Files of interest:**
