@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56071DE22BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071DE12BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift */; };
+		56071DE32BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071DE12BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift */; };
 		561F38E12AC891890051EEE9 /* JSONExpressionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38DF2AC891890051EEE9 /* JSONExpressionsTests.swift */; };
 		561F38E22AC891890051EEE9 /* JSONExpressionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38DF2AC891890051EEE9 /* JSONExpressionsTests.swift */; };
 		561F38E32AC891890051EEE9 /* JSONColumnTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38E02AC891890051EEE9 /* JSONColumnTests.swift */; };
@@ -503,6 +505,7 @@
 /* Begin PBXFileReference section */
 		04298D834C818285823558AB /* Pods-GRDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.release.xcconfig"; sourceTree = "<group>"; };
 		47C5D1B9AFFE795AA1D6EA5D /* Pods-GRDBTestsEncrypted.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.release.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.release.xcconfig"; sourceTree = "<group>"; };
+		56071DE12BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SingletonUserDefaultsTest.swift; sourceTree = "<group>"; };
 		561F38DF2AC891890051EEE9 /* JSONExpressionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONExpressionsTests.swift; sourceTree = "<group>"; };
 		561F38E02AC891890051EEE9 /* JSONColumnTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONColumnTests.swift; sourceTree = "<group>"; };
 		561F38FD2AC9CE870051EEE9 /* DatabaseDataEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataEncodingStrategyTests.swift; sourceTree = "<group>"; };
@@ -1038,6 +1041,7 @@
 				56419F5B24A54098004967E1 /* SelectStatementTests.swift */,
 				567B5C0B2AD32A0000629622 /* SharedValueObservationTests.swift */,
 				567B5C0A2AD32A0000629622 /* SingletonRecordTest.swift */,
+				56071DE12BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift */,
 				567B5C0C2AD32A0000629622 /* SQLExpressionIsConstantTests.swift */,
 				56419F1C24A54094004967E1 /* SQLExpressionLiteralTests.swift */,
 				567B5C0D2AD32A0000629622 /* SQLIdentifyingColumnsTests.swift */,
@@ -1465,6 +1469,7 @@
 				5641A04424A540A1004967E1 /* FTS3TokenizerTests.swift in Sources */,
 				5641A14024A540A2004967E1 /* RecordPrimaryKeyRowIDTests.swift in Sources */,
 				561F38FF2AC9CE870051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */,
+				56071DE22BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift in Sources */,
 				5641A08A24A540A1004967E1 /* EncryptionTests.swift in Sources */,
 				5641A11E24A540A1004967E1 /* IndexInfoTests.swift in Sources */,
 				56419FEC24A540A1004967E1 /* FTS4TableBuilderTests.swift in Sources */,
@@ -1712,6 +1717,7 @@
 				5641A04524A540A1004967E1 /* FTS3TokenizerTests.swift in Sources */,
 				5641A14124A540A2004967E1 /* RecordPrimaryKeyRowIDTests.swift in Sources */,
 				561F39002AC9CE870051EEE9 /* DatabaseDataEncodingStrategyTests.swift in Sources */,
+				56071DE32BD3DDA5000802B6 /* SingletonUserDefaultsTest.swift in Sources */,
 				5641A08B24A540A1004967E1 /* EncryptionTests.swift in Sources */,
 				5641A11F24A540A1004967E1 /* IndexInfoTests.swift in Sources */,
 				56419FED24A540A1004967E1 /* FTS4TableBuilderTests.swift in Sources */,
