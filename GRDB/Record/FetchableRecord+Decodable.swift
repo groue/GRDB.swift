@@ -147,6 +147,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         lazy var allKeys: [Key] = {
             let row = decoder.row
+            // TODO: test when _columnForKey is not nil
             var keys = _columnForKey.map { Set($0.keys) } ?? Set(row.columnNames)
             keys.formUnion(row.scopesTree.names)
             keys.formUnion(row.prefetchedRows.keys)
@@ -376,7 +377,35 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key)
         throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
         {
-            fatalError("not implemented")
+            let row = decoder.row
+            
+            // Column?
+            if let column = try? decodeColumn(forKey: key),
+               let index = row.index(forColumn: column)
+            {
+                // We need a JSON container, but how do we create one?
+                throw DecodingError.typeMismatch(
+                    KeyedDecodingContainer<NestedKey>.self,
+                    DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "not implemented: building a nested JSON container for the column '\(column)'"))
+            }
+            
+            // Scope?
+            if let scopedRow = row.scopesTree[key.stringValue] {
+                return KeyedDecodingContainer(KeyedContainer<NestedKey>(decoder: _RowDecoder(
+                    row: scopedRow,
+                    codingPath: codingPath + [key],
+                    columnDecodingStrategy: decoder.columnDecodingStrategy)))
+            }
+            
+            // Don't look for prefetched rows: those need a unkeyed container.
+            
+            throw DecodingError.typeMismatch(
+                KeyedDecodingContainer<NestedKey>.self,
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "No keyed container found for key '\(key)'"))
         }
         
         func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {

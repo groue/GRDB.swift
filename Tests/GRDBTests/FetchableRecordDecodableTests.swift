@@ -1652,3 +1652,122 @@ extension FetchableRecordDecodableTests {
         }
     }
 }
+
+// MARK: - KeyedContainer tests
+
+extension FetchableRecordDecodableTests {
+    struct AnyCodingKey: CodingKey {
+        var stringValue: String
+        var intValue: Int? { nil }
+        
+        init(_ key: String) {
+            self.stringValue = key
+        }
+        
+        init(stringValue: String) {
+            self.stringValue = stringValue
+        }
+        
+        init?(intValue: Int) {
+            return nil
+        }
+    }
+    
+    func test_allKeys_and_containsKey() throws {
+        struct Witness: Decodable, FetchableRecord {
+            init(from decoder: any Decoder) throws {
+                // Top
+                let container = try decoder.container(keyedBy: AnyCodingKey.self)
+                do {
+                    // Test allKeys
+                    let allKeys = container.allKeys
+                    XCTAssertEqual(Set(allKeys.map(\.stringValue)), [
+                        "a",
+                        "topLevelScope1",
+                        "topLevelScope2",
+                        "nestedScope1",
+                        "nestedScope2",
+                        "prefetchedRows1",
+                        "prefetchedRows2"])
+
+                    // Test contains(_:)
+                    for key in allKeys {
+                        XCTAssertTrue(container.contains(key))
+                    }
+                    XCTAssertFalse(container.contains(AnyCodingKey("b")))
+                    XCTAssertFalse(container.contains(AnyCodingKey("c")))
+                }
+                
+                // topLevelScope1
+                let topLevelScope1Container = try container.nestedContainer(
+                    keyedBy: AnyCodingKey.self,
+                    forKey: AnyCodingKey("topLevelScope1"))
+                do {
+                    // Test allKeys
+                    let allKeys = topLevelScope1Container.allKeys
+                    XCTAssertEqual(Set(allKeys.map(\.stringValue)), [
+                        "c",
+                    ])
+
+                    // Test contains(_:)
+                    for key in allKeys {
+                        XCTAssertTrue(topLevelScope1Container.contains(key))
+                    }
+                }
+                
+                // topLevelScope2
+                let topLevelScope2Container = try container.nestedContainer(
+                    keyedBy: AnyCodingKey.self,
+                    forKey: AnyCodingKey("topLevelScope2"))
+                do {
+                    // Test allKeys
+                    let allKeys = topLevelScope2Container.allKeys
+                    XCTAssertEqual(Set(allKeys.map(\.stringValue)), [
+                        "nestedScope2",
+                        "nestedScope1",
+                        "prefetchedRows2",
+                    ])
+
+                    // Test contains(_:)
+                    for key in allKeys {
+                        XCTAssertTrue(topLevelScope2Container.contains(key))
+                    }
+                }
+            }
+        }
+        
+        let row = try makeDatabaseQueue().read { db in
+            try Row.fetchOne(
+                db, sql: """
+                    SELECT 1 AS a, -- main row
+                           2 AS b, -- not exposed
+                           3 AS c, -- scope topLevelScope1
+                           4 AS d, -- scope topLevelScope2.nestedScope1
+                           5 AS e  -- scope topLevelScope2.nestedScope2
+                    """,
+                adapter: RangeRowAdapter(0..<1)
+                    .addingScopes([
+                        "topLevelScope1": RangeRowAdapter(2..<3),
+                        "topLevelScope2": EmptyRowAdapter().addingScopes([
+                            "nestedScope1": RangeRowAdapter(3..<4),
+                            "nestedScope2": RangeRowAdapter(4..<5),
+                        ]),
+                    ]))!
+        }
+        row.prefetchedRows.setRows([], forKeyPath: ["prefetchedRows1"])
+        row.prefetchedRows.setRows([Row()], forKeyPath: ["topLevelScope2", "prefetchedRows2"])
+        XCTAssertEqual(row.debugDescription, """
+            ▿ [a:1]
+              unadapted: [a:1 b:2 c:3 d:4 e:5]
+              - topLevelScope1: [c:3]
+              - topLevelScope2: []
+                - nestedScope1: [d:4]
+                - nestedScope2: [e:5]
+                + prefetchedRows2: 1 row
+              + prefetchedRows1: 0 row
+              + prefetchedRows2: 1 row
+            """)
+        
+        _ = try FetchableRecordDecoder().decode(Witness.self, from: row)
+    }
+}
