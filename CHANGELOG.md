@@ -124,6 +124,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: [#1533](https://github.com/groue/GRDB.swift/pull/1533) by [@groue](https://github.com/groue): Fix a bug in Decodable support
+
 ## 6.26.0
 
 Released March 23, 2024
