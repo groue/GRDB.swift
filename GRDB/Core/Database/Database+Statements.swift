@@ -10,9 +10,6 @@ import SQLite3
 import Foundation
 
 extension Database {
-    
-    // MARK: - Statements
-    
     /// Returns a new prepared statement that can be reused.
     ///
     /// For example:
