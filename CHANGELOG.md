@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.27.x` Releases - [6.27.0](#6270)
 - `6.26.x` Releases - [6.26.0](#6260)
 - `6.25.x` Releases - [6.25.0](#6250)
 - `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241) - [6.24.2](#6242)
@@ -124,7 +125,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 6.27.0
+
+Released April 21, 2024
 
 - **Fixed**: [#1533](https://github.com/groue/GRDB.swift/pull/1533) by [@groue](https://github.com/groue): Fix a bug in Decodable support
 - **Documentation Update**: [#1534](https://github.com/groue/GRDB.swift/pull/1534) The [Single-Row Tables](Documentation/SingleRowTables.md) guide was updated with guidance about default configuration values.
