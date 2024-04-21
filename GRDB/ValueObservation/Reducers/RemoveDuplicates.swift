@@ -67,7 +67,7 @@ extension ValueReducers {
     /// previously observed value.
     ///
     /// See ``ValueObservation/removeDuplicates()``.
-    public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer {
+    public struct RemoveDuplicates<Base: _ValueReducer>: ValueReducer {
         private var base: Base
         private var previousValue: Base.Value?
         private var predicate: (Base.Value, Base.Value) -> Bool
@@ -75,6 +75,10 @@ extension ValueReducers {
         init(_ base: Base, predicate: @escaping (Base.Value, Base.Value) -> Bool) {
             self.base = base
             self.predicate = predicate
+        }
+        
+        public func _fetch(_ db: Database) throws -> Base.Fetched {
+            try base._fetch(db)
         }
         
         public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {
@@ -88,11 +92,5 @@ extension ValueReducers {
             self.previousValue = value
             return value
         }
-    }
-}
-
-extension ValueReducers.RemoveDuplicates: ValueReducer where Base: ValueReducer {
-    public func _fetch(_ db: Database) throws -> Base.Fetched {
-        try base._fetch(db)
     }
 }

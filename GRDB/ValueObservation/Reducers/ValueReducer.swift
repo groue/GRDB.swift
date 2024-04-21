@@ -6,6 +6,11 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
+    /// Fetches database values upon changes in an observed database region.
+    ///
+    /// This method must does not depend on the state of the reducer.
+    func _fetch(_ db: Database) throws -> Fetched
+    
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.
     ///
@@ -26,17 +31,15 @@ public protocol _ValueReducer {
 /// A `ValueReducer` fetches and transforms the database values
 /// observed by a ``ValueObservation``.
 ///
+/// Do not declare new conformances to `ValueReducer`. Only the built-in
+/// conforming types are valid.
+///
 /// ## Topics
 ///
-/// ### Support
+/// ### Supporting Types
 ///
 /// - ``ValueReducers``
-public protocol ValueReducer: _ValueReducer {
-    /// Fetches database values upon changes in an observed database region.
-    ///
-    /// This method must does not depend on the state of the reducer.
-    func _fetch(_ db: Database) throws -> Fetched
-}
+public protocol ValueReducer: _ValueReducer { }
 
 /// A namespace for concrete types that adopt the ``ValueReducer`` protocol.
 public enum ValueReducers { }

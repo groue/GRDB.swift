@@ -26,11 +26,11 @@ extension ValueObservation {
 }
 
 extension ValueReducers {
-    /// A `ValueReducer` whose values consist of those in a `Base` reduced
+    /// A `ValueReducer` whose values consist of those in a `Base` reducer
     /// passed through a transform function.
     ///
     /// See ``ValueObservation/map(_:)``.
-    public struct Map<Base: _ValueReducer, Value>: _ValueReducer {
+    public struct Map<Base: _ValueReducer, Value>: ValueReducer {
         private var base: Base
         private let transform: (Base.Value) throws -> Value
         
@@ -39,15 +39,13 @@ extension ValueReducers {
             self.transform = transform
         }
         
+        public func _fetch(_ db: Database) throws -> Base.Fetched {
+            try base._fetch(db)
+        }
+        
         public mutating func _value(_ fetched: Base.Fetched) throws -> Value? {
             guard let value = try base._value(fetched) else { return nil }
             return try transform(value)
         }
-    }
-}
-
-extension ValueReducers.Map: ValueReducer where Base: ValueReducer {
-    public func _fetch(_ db: Database) throws -> Base.Fetched {
-        try base._fetch(db)
     }
 }

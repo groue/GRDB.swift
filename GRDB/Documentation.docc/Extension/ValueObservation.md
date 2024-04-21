@@ -313,6 +313,6 @@ When needed, you can help GRDB optimize observations and reduce database content
 - ``handleEvents(willStart:willFetch:willTrackRegion:databaseDidChange:didReceiveValue:didFail:didCancel:)``
 - ``print(_:to:)``
 
-### Support
+### Supporting Types
 
 - ``ValueReducer``
