@@ -637,6 +637,26 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    // Test for the use case described in <https://github.com/groue/GRDB.swift/discussions/1517>
+    func testEncryptedDatabaseCanBeAttached() throws {
+        // Create encrypted db
+        var config = Configuration()
+        config.prepareDatabase { db in
+            try db.usePassphrase("secret")
+        }
+        let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite", configuration: config)
+        try encryptedDBQueue.write { db in
+            try db.execute(sql: "CREATE TABLE t(a)")
+        }
+        
+        let attachingDBQueue = try makeDatabaseQueue()
+        try attachingDBQueue.inDatabase { db in
+            try db.execute(sql: "ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+            let count = try Table("t").fetchCount(db)
+            XCTAssertEqual(count, 0)
+        }
+    }
+    
     func testExportPlainTextDatabaseToEncryptedDatabase() throws {
         // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
         do {

@@ -80,6 +80,8 @@ By default, `ValueObservation` notifies a fresh value whenever any component of 
 
 By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main dispatch queue, asynchronously. This can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
 
+By default, `ValueObservation` fetches a fresh value immediately after a change is committed in the database. In particular, modifying the database on the main thread triggers a fetch on the main thread as well. This behavior can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
+
 `ValueObservation` may coalesce subsequent changes into a single notification.
 
 `ValueObservation` may notify consecutive identical values. You can filter out the undesired duplicates with the ``removeDuplicates()`` method.
@@ -117,16 +119,45 @@ It is very useful in graphic applications, because you can configure views right
 The `immediate` scheduling requires that the observation starts from the main dispatch queue (a fatal error is raised otherwise):
 
 ```swift
-let cancellable = observation.start(in: dbQueue, scheduling: .immediate) { error in
-    // Called on the main dispatch queue
-} onChange: { value in
-    // Called on the main dispatch queue
-    print("Fresh value", value)
-}
+// Immediate scheduling notifies
+// the initial value right on subscription.
+let cancellable = observation
+    .start(in: dbQueue, scheduling: .immediate) { error in
+        // Called on the main dispatch queue
+    } onChange: { value in
+        // Called on the main dispatch queue
+        print("Fresh value", value)
+    }
 // <- Here "Fresh value" has already been printed.
 ```
 
-The other built-in scheduler ``ValueObservationScheduler/async(onQueue:)`` asynchronously schedules values and errors on the dispatch queue of your choice.
+The other built-in scheduler ``ValueObservationScheduler/async(onQueue:)`` asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
+
+```swift
+// Async scheduling notifies all values
+// on the specified dispatch queue.
+let myQueue: DispatchQueue
+let cancellable = observation
+    .start(in: dbQueue, scheduling: .async(myQueue)) { error in
+        // Called asynchronously on myQueue
+    } onChange: { value in
+        // Called asynchronously on myQueue
+        print("Fresh value", value)
+    }
+```
+
+As described above, the `scheduling` argument controls the execution of the change and error callbacks. You also have some control on the execution of the database fetch:
+
+- With the `.immediate` scheduling, the initial fetch is always performed synchronously, on the main thread, when the observation starts, so that the initial value can be notified immediately.
+
+- With the default `.async` scheduling, the initial fetch is always performed asynchronouly. It never blocks the main thread.
+
+- By default, fresh values are fetched immediately after the database was changed. In particular, modifying the database on the main thread triggers a fetch on the main thread as well.
+
+    To change this behavior, and guarantee that fresh values are never fetched from the main thread, you need a ``DatabasePool`` and an optimized observation created with the ``tracking(regions:fetch:)`` or ``trackingConstantRegion(_:)`` methods. Make sure you read the documentation of those methods, or you might write an observation that misses some database changes.
+
+    It is possible to use a ``DatabasePool`` in the application, and an in-memory ``DatabaseQueue`` in tests and Xcode previews, with the common protocol ``DatabaseWriter``.
+
 
 ## ValueObservation Sharing
 
@@ -237,7 +268,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 >
 > The `map` operator performs its job without blocking database accesses, and without blocking the main thread.
 
-> Tip: When the observation tracks a constant database region, create an optimized observation with the ``trackingConstantRegion(_:)`` method. See the documentation of this method for more information about what constitutes a "constant region", and the nature of the optimization.
+> Tip: When the observation tracks a constant database region, create an optimized observation with the ``tracking(regions:fetch:)`` or ``trackingConstantRegion(_:)`` methods. Make sure you read the documentation of those methods, or you might write an observation that misses some database changes.
 
 **Truncating WAL checkpoints impact ValueObservation.** Such checkpoints are performed with ``Database/checkpoint(_:on:)`` or [`PRAGMA wal_checkpoint`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint). When an observation is started on a ``DatabasePool``, from a database that has a missing or empty [wal file](https://www.sqlite.org/tempfiles.html#write_ahead_log_wal_files), the observation will always notify two values when it starts, even if the database content is not changed. This is a consequence of the impossibility to create the [wal snapshot](https://www.sqlite.org/c3ref/snapshot_get.html) needed for detecting that no changes were performed during the observation startup. If your application performs truncating checkpoints, you will avoid this behavior if you recreate a non-empty wal file before starting observations. To do so, perform any kind of no-op transaction (such a creating and dropping a dummy table).
 
