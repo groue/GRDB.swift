@@ -189,7 +189,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             }
             
             // Prefetched Rows?
-            if let prefetchedRows = row.prefetchedRows[key.stringValue] {
+            if row.prefetchedRows[key.stringValue] != nil {
                 return false
             }
             
@@ -391,7 +391,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             
             // Column?
             if let column = try? decodeColumn(forKey: key),
-               let index = row.index(forColumn: column)
+               row.index(forColumn: column) != nil
             {
                 // We need a JSON container, but how do we create one?
                 throw DecodingError.typeMismatch(
