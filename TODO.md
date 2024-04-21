@@ -97,7 +97,7 @@
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
-- [ ] GRDB7: Merge `_ValueReducer` into `ValueReducer`
+- [X] GRDB7: Cleanup `ValueReducer`
 - [ ] GRDB7: Sendable conformances
     - [X] SerializedDatabase Sendable async closure
         - [X] OnDemandFuture Sendable async closure
