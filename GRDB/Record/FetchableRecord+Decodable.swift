@@ -398,7 +398,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                     KeyedDecodingContainer<NestedKey>.self,
                     DecodingError.Context(
                         codingPath: codingPath,
-                        debugDescription: "not implemented: building a nested JSON container for the column '\(column)'"))
+                        debugDescription: """
+                            not implemented: building a nested JSON container for the column '\(column)'
+                            """))
             }
             
             // Scope?
