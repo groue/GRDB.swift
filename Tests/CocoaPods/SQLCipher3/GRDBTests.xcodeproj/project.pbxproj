@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		5603CECF2AC8636E00CF097D /* JSONExpressionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CECE2AC8636E00CF097D /* JSONExpressionsTests.swift */; };
 		5603CED02AC8636E00CF097D /* JSONExpressionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5603CECE2AC8636E00CF097D /* JSONExpressionsTests.swift */; };
+		56071DE52BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071DE42BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift */; };
+		56071DE62BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071DE42BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift */; };
 		561F38DD2AC891710051EEE9 /* JSONColumnTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38DC2AC891710051EEE9 /* JSONColumnTests.swift */; };
 		561F38DE2AC891710051EEE9 /* JSONColumnTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38DC2AC891710051EEE9 /* JSONColumnTests.swift */; };
 		561F38F92AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */; };
@@ -502,6 +504,7 @@
 		04298D834C818285823558AB /* Pods-GRDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.release.xcconfig"; sourceTree = "<group>"; };
 		47C5D1B9AFFE795AA1D6EA5D /* Pods-GRDBTestsEncrypted.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.release.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.release.xcconfig"; sourceTree = "<group>"; };
 		5603CECE2AC8636E00CF097D /* JSONExpressionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONExpressionsTests.swift; sourceTree = "<group>"; };
+		56071DE42BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SingletonUserDefaultsTest.swift; sourceTree = "<group>"; };
 		561F38DC2AC891710051EEE9 /* JSONColumnTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONColumnTests.swift; sourceTree = "<group>"; };
 		561F38F72AC9CE6D0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataDecodingStrategyTests.swift; sourceTree = "<group>"; };
 		561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataEncodingStrategyTests.swift; sourceTree = "<group>"; };
@@ -1034,6 +1037,7 @@
 				56419CFA24A5405A004967E1 /* SelectStatementTests.swift */,
 				567B5C282AD32A2D00629622 /* SharedValueObservationTests.swift */,
 				567B5C1E2AD32A2D00629622 /* SingletonRecordTest.swift */,
+				56071DE42BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift */,
 				567B5C232AD32A2D00629622 /* SQLExpressionIsConstantTests.swift */,
 				56419CCA24A54056004967E1 /* SQLExpressionLiteralTests.swift */,
 				567B5C1D2AD32A2D00629622 /* SQLIdentifyingColumnsTests.swift */,
@@ -1459,6 +1463,7 @@
 				56419E0324A54062004967E1 /* SchedulingWatchdogTests.swift in Sources */,
 				56419E7D24A54063004967E1 /* DropWhileCursorTests.swift in Sources */,
 				56419EBD24A54063004967E1 /* AssociationHasOneThroughSQLDerivationTests.swift in Sources */,
+				56071DE52BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift in Sources */,
 				56419E8F24A54063004967E1 /* AssociationHasManySQLTests.swift in Sources */,
 				5641A1A424A540D6004967E1 /* Support.swift in Sources */,
 				5641A1BC24A540D6004967E1 /* PublisherExpectation.swift in Sources */,
@@ -1706,6 +1711,7 @@
 				56419E0424A54062004967E1 /* SchedulingWatchdogTests.swift in Sources */,
 				56419E7E24A54063004967E1 /* DropWhileCursorTests.swift in Sources */,
 				56419EBE24A54063004967E1 /* AssociationHasOneThroughSQLDerivationTests.swift in Sources */,
+				56071DE62BD3DDB5000802B6 /* SingletonUserDefaultsTest.swift in Sources */,
 				56419E9024A54063004967E1 /* AssociationHasManySQLTests.swift in Sources */,
 				5641A1A524A540D6004967E1 /* Support.swift in Sources */,
 				5641A1BD24A540D6004967E1 /* PublisherExpectation.swift in Sources */,

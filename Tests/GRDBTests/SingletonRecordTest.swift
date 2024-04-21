@@ -31,7 +31,7 @@ extension AppConfiguration: FetchableRecord, PersistableRecord {
     
     /// Returns the persisted configuration, or the default one if the
     /// database table is empty.
-    static func fetch(_ db: Database) throws -> AppConfiguration {
+    static func find(_ db: Database) throws -> AppConfiguration {
         try fetchOne(db) ?? .default
     }
 }
@@ -54,7 +54,7 @@ class SingletonRecordTest: GRDBTestCase {
             // Given
             try createEmptyAppConfigurationTable(db)
             // When
-            let config = try AppConfiguration.fetch(db)
+            let config = try AppConfiguration.find(db)
             // Then
             XCTAssertEqual(config.text, "default")
         }
@@ -66,7 +66,7 @@ class SingletonRecordTest: GRDBTestCase {
             try createEmptyAppConfigurationTable(db)
             try AppConfiguration(text: "initial").insert(db)
             // When
-            let config = try AppConfiguration.fetch(db)
+            let config = try AppConfiguration.find(db)
             // Then
             XCTAssertEqual(config.text, "initial")
         }
@@ -79,7 +79,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").insert(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -93,7 +93,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").insert(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -106,7 +106,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").update(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -120,7 +120,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").update(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -131,12 +131,12 @@ class SingletonRecordTest: GRDBTestCase {
             // Given
             try createEmptyAppConfigurationTable(db)
             // When
-            var config = try AppConfiguration.fetch(db)
+            var config = try AppConfiguration.find(db)
             try config.updateChanges(db) {
                 $0.text = "test"
             }
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -148,12 +148,12 @@ class SingletonRecordTest: GRDBTestCase {
             try createEmptyAppConfigurationTable(db)
             try AppConfiguration(text: "initial").insert(db)
             // When
-            var config = try AppConfiguration.fetch(db)
+            var config = try AppConfiguration.find(db)
             try config.updateChanges(db) {
                 $0.text = "test"
             }
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -166,7 +166,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").save(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -180,7 +180,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").save(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -203,7 +203,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").upsert(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
@@ -227,7 +227,7 @@ class SingletonRecordTest: GRDBTestCase {
             // When
             try AppConfiguration(text: "test").upsert(db)
             // Then
-            try XCTAssertEqual(AppConfiguration.fetch(db).text, "test")
+            try XCTAssertEqual(AppConfiguration.find(db).text, "test")
             let row = try XCTUnwrap(Row.fetchOne(db, sql: "SELECT * FROM appConfiguration"))
             XCTAssertEqual(row, ["id": 1, "text": "test"])
         }
