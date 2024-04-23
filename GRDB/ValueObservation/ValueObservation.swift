@@ -476,9 +476,11 @@ extension DatabasePublishers {
         }
     }
     
-    private class ValueSubscription<Downstream: Subscriber>: Subscription
+    private final class ValueSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable
     where Downstream.Failure == Error
     {
+        // @unchecked Sendable because state is protected by `lock`.
+        
         private struct WaitingForDemand {
             let downstream: Downstream
             let start: ValueObservationStart<Downstream.Input>
