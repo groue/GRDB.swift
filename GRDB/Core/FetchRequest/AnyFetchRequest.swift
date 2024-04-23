@@ -49,7 +49,8 @@ extension AnyFetchRequest: FetchRequest {
 }
 
 // Class-based type erasure, so that we preserve full type information.
-private class FetchRequestEraser: FetchRequest {
+private class FetchRequestEraser: @unchecked Sendable {
+    // @unchecked Sendable because abstract.
     typealias RowDecoder = Void
     
     var sqlSubquery: SQLSubquery {
@@ -65,7 +66,8 @@ private class FetchRequestEraser: FetchRequest {
     }
 }
 
-private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser {
+private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser, @unchecked Sendable {
+    // @unchecked Sendable because Request is Sendable, and superclass is @unchecked Sendable
     let request: Request
     
     init(request: Request) {
