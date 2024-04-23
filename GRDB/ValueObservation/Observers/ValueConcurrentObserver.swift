@@ -18,7 +18,12 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler> {
+final class ValueConcurrentObserver<
+    Reducer: ValueReducer,
+    Scheduler: ValueObservationScheduler>: @unchecked Sendable
+{
+    // @unchecked Sendable: see Mutable State below.
+    
     // MARK: - Configuration
     //
     // Configuration is not mutable.
@@ -72,7 +77,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
     //   be notified. See error catching clauses.
     
     /// Ability to access the database
-    private struct DatabaseAccess {
+    private struct DatabaseAccess: Sendable {
         /// The observed DatabasePool.
         let dbPool: DatabasePool
         
