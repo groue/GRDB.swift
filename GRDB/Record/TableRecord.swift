@@ -791,4 +791,4 @@ public typealias PersistenceError = RecordError
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval
-private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
+nonisolated(unsafe) private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
