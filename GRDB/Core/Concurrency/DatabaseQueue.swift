@@ -169,16 +169,20 @@ extension DatabaseQueue {
             return
         }
         
-        let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
-        if task == .invalid {
-            // Release memory synchronously
-            releaseMemory()
-        } else {
-            // Release memory asynchronously
-            writer.async { db in
-                db.releaseMemory()
-                DispatchQueue.main.async {
-                    application.endBackgroundTask(task)
+        // `UIApplication.beginBackgroundTask(expirationHandler:)` is MainActor-isolated.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            let taskId: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
+            if taskId == .invalid {
+                releaseMemory()
+            } else {
+                // Release memory asynchronously
+                writer.async { db in
+                    db.releaseMemory()
+                    DispatchQueue.main.async {
+                        application.endBackgroundTask(taskId)
+                    }
                 }
             }
         }

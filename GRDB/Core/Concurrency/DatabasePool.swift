@@ -243,24 +243,28 @@ extension DatabasePool {
             return
         }
         
-        let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
-        if task == .invalid {
-            // Release memory synchronously
-            releaseMemory()
-        } else {
-            // Release memory eventually.
-            //
-            // We don't know when reader connections will be closed (because
-            // they may be currently in use), so we don't quite know when
-            // reader memory will be freed (which would be the ideal timing for
-            // ending our background task).
-            //
-            // So let's just end the background task after the writer connection
-            // has freed its memory. That's better than nothing.
-            releaseMemoryEventually()
-            writer.async { _ in
-                DispatchQueue.main.async {
-                    application.endBackgroundTask(task)
+        // `UIApplication.beginBackgroundTask(expirationHandler:)` is MainActor-isolated.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            let taskId = application.beginBackgroundTask(expirationHandler: nil)
+            if taskId == .invalid {
+                releaseMemory()
+            } else {
+                // Release memory eventually.
+                //
+                // We don't know when reader connections will be closed (because
+                // they may be currently in use), so we don't quite know when
+                // reader memory will be freed (which would be the ideal timing for
+                // ending our background task).
+                //
+                // So let's just end the background task after the writer connection
+                // has freed its memory. That's better than nothing.
+                releaseMemoryEventually()
+                writer.async { _ in
+                    DispatchQueue.main.async {
+                        application.endBackgroundTask(taskId)
+                    }
                 }
             }
         }
