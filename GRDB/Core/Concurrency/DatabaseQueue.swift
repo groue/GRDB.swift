@@ -142,17 +142,25 @@ extension DatabaseQueue {
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
     private func setupMemoryManagement() {
-        let center = NotificationCenter.default
-        center.addObserver(
-            self,
-            selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)),
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
-        center.addObserver(
-            self,
-            selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)),
-            name: UIApplication.didEnterBackgroundNotification,
-            object: nil)
+        // Avoid compiler warning due to <https://github.com/apple/swift/issues/72456>
+        // > Main actor-isolated class property 'didReceiveMemoryWarningNotification'
+        // > can not be referenced from a non-isolated context; this is an
+        // > error in Swift 6.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            let center = NotificationCenter.default
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)),
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)),
+                name: UIApplication.didEnterBackgroundNotification,
+                object: nil)
+        }
     }
     
     @objc
