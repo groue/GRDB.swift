@@ -46,7 +46,7 @@ extension DatabaseRegionObservation {
     private enum ObservationState {
         case cancelled
         case pending
-        case started(DatabaseRegionObserver)
+        case started(StrongReference<DatabaseRegionObserver>)
     }
     
     /// Starts observing the database.
@@ -111,7 +111,7 @@ extension DatabaseRegionObservation {
                     // the observer.
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     
-                    state = .started(observer)
+                    state = .started(StrongReference(observer))
                 }
             } catch {
                 onError(error)

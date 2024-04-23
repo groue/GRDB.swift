@@ -194,3 +194,15 @@ extension NSLocking {
 #if !canImport(ObjectiveC)
 @inlinable func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result { try body() }
 #endif
+
+/// A Sendable strong reference to an object.
+///
+/// This type hides its retained object in order to provide the
+/// Sendable guarantee.
+class StrongReference<Value: AnyObject>: @unchecked Sendable {
+    private let value: Value
+    
+    init(_ value: Value) {
+        self.value = value
+    }
+}
