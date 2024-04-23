@@ -42,4 +42,25 @@ extension Mutex where T: Numeric {
     }
 }
 
+extension Mutex where T == Bool {
+    /// Sets the flag to false, and returns whether it was true.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let needsStuffMutex = Mutex(true)
+    ///
+    /// if needsStuffMutex.wasNeeded {
+    ///     // do stuff
+    /// }
+    /// ```
+    var wasNeeded: Bool {
+        withLock { bool in
+            let wasNeeded = bool
+            bool = false
+            return wasNeeded
+        }
+    }
+}
+
 extension Mutex: @unchecked Sendable where T: Sendable { }
