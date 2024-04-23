@@ -172,11 +172,13 @@ class StatementArgumentsSink {
     private(set) var arguments: StatementArguments
     private let rawSQL: Bool
     
+    // The compiler does not know that when `rawSQL` is true, the instance
+    // is immutable, and thus Sendable.
     /// A sink which turns all argument values into SQL literals.
     ///
     /// The `"WHERE name = \("O'Brien")"` SQL literal is turned into the
     /// `WHERE name = 'O''Brien'` SQL.
-    static let literalValues = StatementArgumentsSink(rawSQL: true)
+    nonisolated(unsafe) static let literalValues = StatementArgumentsSink(rawSQL: true)
     
     private init(rawSQL: Bool) {
         self.arguments = []
