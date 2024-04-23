@@ -103,7 +103,7 @@
         - [X] OnDemandFuture Sendable async closure
         - [X] WALSnapshotTransaction refactor
     - [X] anydatabasecancellable
-    - [ ] anydatabaseregionconvertible
+    - [X] anydatabaseregionconvertible
     - [ ] anyfetchrequest
     - [ ] anysqljsonexpressible
     - [ ] association
@@ -176,6 +176,9 @@
     - [X] transactionclock
     - [ ] valueobservation
     - [X] valueobservationscheduler
+    - [ ] ValueWriteOnlyObserver (needed so that it can conform to DatabaseCancellable)
+        - [ ] ValueObservationTrackingMode
+            - [X] DatabaseRegionConvertible
 
 
 ## Unsure if necessary

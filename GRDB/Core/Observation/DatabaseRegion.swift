@@ -416,7 +416,7 @@ private struct TableRegion: Equatable {
 /// ### Supporting Types
 ///
 ///  - ``AnyDatabaseRegionConvertible``
-public protocol DatabaseRegionConvertible {
+public protocol DatabaseRegionConvertible: Sendable {
     /// Returns a database region.
     ///
     /// - parameter db: A database connection.
@@ -437,14 +437,15 @@ extension DatabaseRegion: DatabaseRegionConvertible {
 
 /// A type-erased DatabaseRegionConvertible
 public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
-    let _region: (Database) throws -> DatabaseRegion
+    let _region: @Sendable (Database) throws -> DatabaseRegion
     
-    public init(_ region: @escaping (Database) throws -> DatabaseRegion) {
+    public init(_ region: @escaping @Sendable (Database) throws -> DatabaseRegion) {
         _region = region
     }
     
     public init(_ region: some DatabaseRegionConvertible) {
-        _region = region.databaseRegion
+        // TODO: simplify when <https://github.com/apple/swift/issues/71541> is resolved.
+        _region = { try region.databaseRegion($0) }
     }
     
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
