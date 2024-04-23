@@ -122,7 +122,7 @@ final class ValueConcurrentObserver<
     /// Ability to notify observation events
     private struct NotificationCallbacks {
         let events: ValueObservationEvents
-        let onChange: (Reducer.Value) -> Void
+        let onChange: @Sendable (Reducer.Value) -> Void
     }
     
     /// Relationship with the `TransactionObserver` protocol
@@ -166,7 +166,7 @@ final class ValueConcurrentObserver<
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler

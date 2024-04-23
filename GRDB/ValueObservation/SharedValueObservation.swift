@@ -181,9 +181,9 @@ public final class SharedValueObservation<Element> {
     
     private final class Client {
         var onError: (Error) -> Void
-        var onChange: (Element) -> Void
+        var onChange: @Sendable (Element) -> Void
         
-        init(onError: @escaping (Error) -> Void, onChange: @escaping (Element) -> Void) {
+        init(onError: @escaping (Error) -> Void, onChange: @escaping @Sendable (Element) -> Void) {
             self.onError = onError
             self.onChange = onChange
         }
@@ -225,7 +225,7 @@ public final class SharedValueObservation<Element> {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         onError: @escaping (Error) -> Void,
-        onChange: @escaping (Element) -> Void)
+        onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
         synchronized {

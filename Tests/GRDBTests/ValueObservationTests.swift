@@ -368,18 +368,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(observedCountsMutex.value, [0, 0])
         }
     }
     
@@ -407,18 +407,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(observedCountsMutex.value, [0, 0])
         }
     }
     
@@ -456,18 +456,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(observedCountsMutex.value, expectedCounts)
         }
     }
     
@@ -505,18 +505,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(observedCountsMutex.value, expectedCounts)
         }
     }
     
@@ -598,7 +598,7 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        let changesCountMutex = Mutex(0)
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -609,65 +609,21 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and deallocate cancellable after second change
-        var cancellable: (any DatabaseCancellable)?
-        cancellable = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable = nil
-                }
-                notificationExpectation.fulfill()
-            })
-        
-        // notified
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        
-        // not notified
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        
-        // Avoid "Variable 'cancellable' was written to, but never read" warning
-        _ = cancellable
-        
-        waitForExpectations(timeout: 2, handler: nil)
-        XCTAssertEqual(changesCount, 2)
-    }
-    
-    func testCancellableExplicitCancellation() throws {
-        // We need something to change
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        // Track reducer process
-        var changesCount = 0
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        // Create an observation
-        let observation = ValueObservation.trackingConstantRegion {
-            try Int.fetchOne($0, sql: "SELECT * FROM t")
-        }
-        
-        // Start observation and cancel cancellable after second change
-        var cancellable: (any DatabaseCancellable)!
-        cancellable = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
-                    cancellable.cancel()
-                }
-                notificationExpectation.fulfill()
-            })
-        
-        try withExtendedLifetime(cancellable) {
+        let cancellableMutex: Mutex<(any DatabaseCancellable)?> = Mutex(nil)
+        try withExtendedLifetime(cancellableMutex) {
+            cancellableMutex.value = observation.start(
+                in: dbQueue,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in
+                    changesCountMutex.withLock { changesCount in
+                        changesCount += 1
+                        if changesCount == 2 {
+                            cancellableMutex.value = nil
+                        }
+                    }
+                    notificationExpectation.fulfill()
+                })
+            
             // notified
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -679,7 +635,54 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(changesCount, 2)
+        }
+        XCTAssertEqual(changesCountMutex.value, 2)
+    }
+    
+    func testCancellableExplicitCancellation() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer process
+        let changesCountMutex = Mutex(0)
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        // Create an observation
+        let observation = ValueObservation.trackingConstantRegion {
+            try Int.fetchOne($0, sql: "SELECT * FROM t")
+        }
+        
+        // Start observation and cancel cancellable after second change
+        let cancellableMutex: Mutex<(any DatabaseCancellable)?> = Mutex(nil)
+        try withExtendedLifetime(cancellableMutex) {
+            cancellableMutex.value = observation.start(
+                in: dbQueue,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in
+                    changesCountMutex.withLock { changesCount in
+                        changesCount += 1
+                        if changesCount == 2 {
+                            cancellableMutex.value?.cancel()
+                        }
+                    }
+                    notificationExpectation.fulfill()
+                })
+            
+            // notified
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            // not notified
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 2, handler: nil)
+            XCTAssertEqual(changesCountMutex.value, 2)
         }
     }
     

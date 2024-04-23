@@ -310,7 +310,7 @@ extension DatabaseQueue: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     {
         if configuration.readonly {
