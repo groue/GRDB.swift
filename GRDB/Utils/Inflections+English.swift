@@ -43,8 +43,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extension Inflections {
-    /// The default inflections
-    public static var `default`: Inflections = {
+    /// The default inflections.
+    ///
+    /// - warning: The returned value is `Sendable` and thread-safe, but the
+    ///   global variable is not. Do not change its value concurrently with
+    ///   database operations.
+    nonisolated(unsafe) public static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
