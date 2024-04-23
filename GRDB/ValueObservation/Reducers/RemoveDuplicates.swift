@@ -77,8 +77,8 @@ extension ValueReducers {
             self.predicate = predicate
         }
         
-        public func _fetch(_ db: Database) throws -> Base.Fetched {
-            try base._fetch(db)
+        public func _makeFetcher() -> Base.Fetcher {
+            base._makeFetcher()
         }
         
         public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {

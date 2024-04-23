@@ -267,7 +267,9 @@ extension ValueObservation: Refinable {
     where Reducer: ValueReducer
     {
         var reducer = makeReducer()
-        guard let value = try reducer._value(reducer._fetch(db)) else {
+        let fetcher = reducer._makeFetcher()
+        let fetchedValue = try fetcher.fetch(db)
+        guard let value = try reducer._value(fetchedValue) else {
             fatalError("Broken contract: reducer has no initial value")
         }
         return value
