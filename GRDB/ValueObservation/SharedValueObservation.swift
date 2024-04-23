@@ -262,10 +262,15 @@ public final class SharedValueObservation<Element>: @unchecked Sendable {
                     { [weak self] element in
                         self?.handleChange(element)
                     })
-            } else if let result = lastResult {
+            } else if let lastResult {
                 // Notify last result as an initial value
+                
+                // Safe because result is not used beyond its transfer to sheduler
+                // FIXME: improve when SE-0430 is shipped.
+                nonisolated(unsafe) let lastResult = lastResult
+                
                 scheduler.scheduleInitial {
-                    switch result {
+                    switch lastResult {
                     case let .failure(error):
                         onError(error)
                     case let .success(value):

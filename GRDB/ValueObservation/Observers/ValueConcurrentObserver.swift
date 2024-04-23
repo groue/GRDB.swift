@@ -359,7 +359,10 @@ extension ValueConcurrentObserver {
                 // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
                 initialFetchTransaction.asyncRead { dbResult in
                     do {
-                        let fetchedValue: Reducer.Fetched
+                        // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                        // FIXME: improve when SE-0430 is shipped.
+                        nonisolated(unsafe) let fetchedValue: Reducer.Fetched
+                        
                         let initialRegion: DatabaseRegion
                         let db = try dbResult.get()
                         
@@ -383,9 +386,13 @@ extension ValueConcurrentObserver {
                             guard isNotifying else { return /* Cancelled */ }
                             
                             do {
-                                guard let initialValue = try self.reducer._value(fetchedValue) else {
+                                guard let _initialValue = try self.reducer._value(fetchedValue) else {
                                     fatalError("Broken contract: reducer has no initial value")
                                 }
+
+                                // Safe because initialValue is not used beyond its transfer to scheduler
+                                // FIXME: improve when SE-0430 is shipped.
+                                nonisolated(unsafe) let initialValue = _initialValue
                                 
                                 // Notify
                                 self.scheduler.schedule {
@@ -466,7 +473,9 @@ extension ValueConcurrentObserver {
                         events.databaseDidChange?()
                         
                         // Fetch
-                        let fetchedValue: Reducer.Fetched
+                        // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                        // FIXME: improve when SE-0430 is shipped.
+                        nonisolated(unsafe) let fetchedValue: Reducer.Fetched
                         
                         switch self.trackingMode {
                         case .constantRegion:
@@ -497,6 +506,10 @@ extension ValueConcurrentObserver {
                                 
                                 // Notify
                                 if let value {
+                                    // Safe because value is not used beyond its transfer to scheduler
+                                    // FIXME: improve when SE-0430 is shipped.
+                                    nonisolated(unsafe) let value = value
+                                    
                                     self.scheduler.schedule {
                                         let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                                         guard let onChange else { return /* Cancelled */ }
@@ -588,7 +601,10 @@ extension ValueConcurrentObserver {
             
             do {
                 // Fetch
-                let fetchedValue: Reducer.Fetched
+                // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                // FIXME: improve when SE-0430 is shipped.
+                nonisolated(unsafe) let fetchedValue: Reducer.Fetched
+                
                 let initialRegion: DatabaseRegion
                 let db = try dbResult.get()
                 switch self.trackingMode {
@@ -611,9 +627,13 @@ extension ValueConcurrentObserver {
                     guard isNotifying else { return /* Cancelled */ }
                     
                     do {
-                        guard let initialValue = try self.reducer._value(fetchedValue) else {
+                        guard let _initialValue = try self.reducer._value(fetchedValue) else {
                             fatalError("Broken contract: reducer has no initial value")
                         }
+                        
+                        // Safe because initialValue is not used beyond its transfer to scheduler
+                        // FIXME: improve when SE-0430 is shipped.
+                        nonisolated(unsafe) let initialValue = _initialValue
                         
                         // Notify
                         self.scheduler.schedule {
@@ -648,7 +668,10 @@ extension ValueConcurrentObserver {
             do {
                 try writerDB.isolated(readOnly: true) {
                     // Fetch
-                    let fetchedValue: Reducer.Fetched
+                    // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                    // FIXME: improve when SE-0430 is shipped.
+                    nonisolated(unsafe) let fetchedValue: Reducer.Fetched
+                    
                     let observedRegion: DatabaseRegion
                     switch self.trackingMode {
                     case .constantRegion:
@@ -680,6 +703,10 @@ extension ValueConcurrentObserver {
                             
                             // Notify
                             if let value {
+                                // Safe because value is not used beyond its transfer to scheduler
+                                // FIXME: improve when SE-0430 is shipped.
+                                nonisolated(unsafe) let value = value
+                                
                                 self.scheduler.schedule {
                                     let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                                     guard let onChange else { return /* Cancelled */ }
@@ -828,6 +855,10 @@ extension ValueConcurrentObserver: TransactionObserver {
     }
     
     private func reduce(_ fetchResult: Result<Reducer.Fetched, Error>) {
+        // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+        // FIXME: improve when SE-0430 is shipped.
+        nonisolated(unsafe) let fetchResult = fetchResult
+        
         reduceQueue.async {
             do {
                 let fetchedValue = try fetchResult.get()
@@ -839,6 +870,10 @@ extension ValueConcurrentObserver: TransactionObserver {
                 
                 // Notify value
                 if let value {
+                    // Safe because value is not used beyond its transfer to scheduler
+                    // FIXME: improve when SE-0430 is shipped.
+                    nonisolated(unsafe) let value = value
+                    
                     self.scheduler.schedule {
                         let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                         guard let onChange else { return /* Cancelled */ }
