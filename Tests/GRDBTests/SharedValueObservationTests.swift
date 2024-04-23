@@ -39,12 +39,12 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value: Int?
+                let valueMutex = Mutex<Int?>(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { valueMutex.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(valueMutex.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -52,12 +52,12 @@ class SharedValueObservationTests: GRDBTestCase {
             }
             
             do {
-                var value: Int?
+                let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { valueMutex.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(valueMutex.value, 0)
                 XCTAssertEqual(log.flush(), [])
                 
                 cancellable.cancel()
@@ -91,21 +91,21 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value1: Int?
-                var value2: Int?
+                let value1Mutex: Mutex<Int?> = Mutex(nil)
+                let value2Mutex: Mutex<Int?> = Mutex(nil)
                 let cancellable1 = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
                     onChange: { value in
-                        value1 = value
+                        value1Mutex.value = value
                         _ = sharedObservation!.start(
                             onError: { XCTFail("Unexpected error \($0)") },
                             onChange: { value in
-                                value2 = value
+                                value2Mutex.value = value
                             })
                     })
                 
-                XCTAssertEqual(value1, 0)
-                XCTAssertEqual(value2, 0)
+                XCTAssertEqual(value1Mutex.value, 0)
+                XCTAssertEqual(value2Mutex.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable1.cancel()
@@ -175,12 +175,12 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
             do {
-                var value: Int?
+                let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { valueMutex.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(valueMutex.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -188,12 +188,12 @@ class SharedValueObservationTests: GRDBTestCase {
             }
             
             do {
-                var value: Int?
+                let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { value = $0 })
+                    onChange: { valueMutex.value = $0 })
                 
-                XCTAssertEqual(value, 0)
+                XCTAssertEqual(valueMutex.value, 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -226,21 +226,21 @@ class SharedValueObservationTests: GRDBTestCase {
         
         // We want to control when the shared observation is deallocated
         withExtendedLifetime(sharedObservation) { sharedObservation in
-            var value1: Int?
-            var value2: Int?
+            let value1Mutex: Mutex<Int?> = Mutex(nil)
+            let value2Mutex: Mutex<Int?> = Mutex(nil)
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: { value in
-                    value1 = value
+                    value1Mutex.value = value
                     _ = sharedObservation!.start(
                         onError: { XCTFail("Unexpected error \($0)") },
                         onChange: { value in
-                            value2 = value
+                            value2Mutex.value = value
                         })
                 })
             
-            XCTAssertEqual(value1, 0)
-            XCTAssertEqual(value2, 0)
+            XCTAssertEqual(value1Mutex.value, 0)
+            XCTAssertEqual(value2Mutex.value, 0)
             XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable1.cancel()
@@ -273,40 +273,40 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         try withExtendedLifetime(sharedObservation) { sharedObservation in
             // --- Start observation 1
-            var values1: [Int] = []
+            let values1Mutex: Mutex<[Int]> = Mutex([])
             let exp1 = expectation(description: "")
             exp1.expectedFulfillmentCount = 2
             exp1.assertForOverFulfill = false
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values1.append($0)
+                onChange: { value in
+                    values1Mutex.withLock { $0.append(value) }
                     exp1.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1, [0, 1])
+            XCTAssertEqual(values1Mutex.value, [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
             
             // --- Start observation 2
-            var values2: [Int] = []
+            let values2Mutex: Mutex<[Int]> = Mutex([])
             let exp2 = expectation(description: "")
             exp2.expectedFulfillmentCount = 2
             exp2.assertForOverFulfill = false
             let cancellable2 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values2.append($0)
+                onChange: { value in
+                    values2Mutex.withLock { $0.append(value) }
                     exp2.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2])
+            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
+            XCTAssertEqual(values2Mutex.value, [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -314,22 +314,22 @@ class SharedValueObservationTests: GRDBTestCase {
             XCTAssertEqual(log.flush(), [])
             
             // --- Start observation 3
-            var values3: [Int] = []
+            let values3Mutex: Mutex<[Int]> = Mutex([])
             let exp3 = expectation(description: "")
             exp3.expectedFulfillmentCount = 2
             exp3.assertForOverFulfill = false
             let cancellable3 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values3.append($0)
+                onChange: { value in
+                    values3Mutex.withLock { $0.append(value) }
                     exp3.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2, 3])
-            XCTAssertEqual(values3, [2, 3])
+            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
+            XCTAssertEqual(values2Mutex.value, [1, 2, 3])
+            XCTAssertEqual(values3Mutex.value, [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
@@ -355,7 +355,8 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         let log = Log()
-        var sharedObservation: SharedValueObservation<Int>? = ValueObservation
+        let sharedObservationMutex: Mutex<SharedValueObservation<Int>?> = Mutex(nil)
+        sharedObservationMutex.value = ValueObservation
             .tracking(Table("player").fetchCount)
             .print(to: log)
             .shared(
@@ -367,11 +368,11 @@ class SharedValueObservationTests: GRDBTestCase {
         // ---
         let exp = expectation(description: "")
         exp.expectedFulfillmentCount = 3
-        let cancellable = sharedObservation!.start(
+        let cancellable = sharedObservationMutex.value!.start(
             onError: { XCTFail("Unexpected error \($0)") },
             onChange: { value in
                 // Early release
-                sharedObservation = nil
+                sharedObservationMutex.value = nil
                 
                 switch value {
                 case 0:
@@ -452,40 +453,40 @@ class SharedValueObservationTests: GRDBTestCase {
         // We want to control when the shared observation is deallocated
         try withExtendedLifetime(sharedObservation) { sharedObservation in
             // --- Start observation 1
-            var values1: [Int] = []
+            let values1Mutex: Mutex<[Int]> = Mutex([])
             let exp1 = expectation(description: "")
             exp1.expectedFulfillmentCount = 2
             exp1.assertForOverFulfill = false
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values1.append($0)
+                onChange: { value in
+                    values1Mutex.withLock { $0.append(value) }
                     exp1.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1, [0, 1])
+            XCTAssertEqual(values1Mutex.value, [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
             
             // --- Start observation 2
-            var values2: [Int] = []
+            let values2Mutex: Mutex<[Int]> = Mutex([])
             let exp2 = expectation(description: "")
             exp2.expectedFulfillmentCount = 2
             exp2.assertForOverFulfill = false
             let cancellable2 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values2.append($0)
+                onChange: { value in
+                    values2Mutex.withLock { $0.append(value) }
                     exp2.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2])
+            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
+            XCTAssertEqual(values2Mutex.value, [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -493,22 +494,22 @@ class SharedValueObservationTests: GRDBTestCase {
             XCTAssertEqual(log.flush(), [])
             
             // --- Start observation 3
-            var values3: [Int] = []
+            let values3Mutex: Mutex<[Int]> = Mutex([])
             let exp3 = expectation(description: "")
             exp3.expectedFulfillmentCount = 2
             exp3.assertForOverFulfill = false
             let cancellable3 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
-                onChange: {
-                    values3.append($0)
+                onChange: { value in
+                    values3Mutex.withLock { $0.append(value) }
                     exp3.fulfill()
                 })
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1, [0, 1, 2])
-            XCTAssertEqual(values2, [1, 2, 3])
-            XCTAssertEqual(values3, [2, 3])
+            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
+            XCTAssertEqual(values2Mutex.value, [1, 2, 3])
+            XCTAssertEqual(values3Mutex.value, [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
