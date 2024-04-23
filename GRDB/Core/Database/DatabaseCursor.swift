@@ -49,7 +49,7 @@
 /// [`sqlite3_reset`](https://www.sqlite.org/c3ref/reset.html) when the cursor
 /// is created, and when it is deallocated. Don't share the same prepared
 /// statement between two cursors!
-public protocol DatabaseCursor: Cursor {
+public protocol DatabaseCursor<Element>: Cursor {
     /// Must be initialized to false.
     var _isDone: Bool { get set }
     
