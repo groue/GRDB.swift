@@ -394,13 +394,13 @@ extension DatabaseDateDecodingStrategyTests {
                 switch error {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
-            could not decode Date from database value "Yesterday" - \
-            column: "date", \
-            column index: 0, \
-            row: [date:"Yesterday"], \
-            sql: `SELECT ? AS date`, \
-            arguments: ["Yesterday"]
-            """)
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"], \
+                        sql: `SELECT ? AS date`, \
+                        arguments: ["Yesterday"]
+                        """)
                 default:
                     XCTFail("Unexpected Error")
                 }

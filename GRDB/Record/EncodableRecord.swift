@@ -540,12 +540,6 @@ public enum DatabaseDateEncodingStrategy: Sendable {
     /// Encodes the result of the user-provided function
     case custom(@Sendable (Date) -> (any DatabaseValueConvertible)?)
     
-    private static let iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = .withInternetDateTime
-        return formatter
-    }()
-    
     func encode(_ date: Date) -> DatabaseValue {
         switch self {
         case .deferredToDate:
@@ -559,7 +553,13 @@ public enum DatabaseDateEncodingStrategy: Sendable {
         case .secondsSince1970:
             return Int64(floor(date.timeIntervalSince1970)).databaseValue
         case .iso8601:
-            return Self.iso8601Formatter.string(from: date).databaseValue
+            if #available(*, iOS 15, macOS 12, tvOS 15, watchOS 8) {
+                return Date.ISO8601FormatStyle().format(date).databaseValue
+            } else {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = .withInternetDateTime
+                return formatter.string(from: date).databaseValue
+            }
         case .formatted(let formatter):
             return formatter.string(from: date).databaseValue
         case .custom(let format):
