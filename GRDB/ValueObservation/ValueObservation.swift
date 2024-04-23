@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: _ValueReducer> {
+public struct ValueObservation<Reducer: _ValueReducer>: Sendable {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
@@ -30,10 +30,10 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
-    var makeReducer: () -> Reducer
+    var makeReducer: @Sendable () -> Reducer
     
     /// Returns a ValueObservation with a transformed reducer.
-    func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
+    func mapReducer<R>(_ transform: @escaping @Sendable (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             events: events,
