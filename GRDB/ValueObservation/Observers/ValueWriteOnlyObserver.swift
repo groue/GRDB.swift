@@ -21,8 +21,10 @@ import Foundation
 final class ValueWriteOnlyObserver<
     Writer: DatabaseWriter,
     Reducer: ValueReducer,
-    Scheduler: ValueObservationScheduler>
+    Scheduler: ValueObservationScheduler>: @unchecked Sendable
 {
+    // @unchecked Sendable: see Mutable State below.
+    
     // MARK: - Configuration
     //
     // Configuration is not mutable.

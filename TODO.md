@@ -176,8 +176,8 @@
     - [X] transactionclock
     - [ ] valueobservation
     - [X] valueobservationscheduler
-    - [ ] ValueWriteOnlyObserver (needed so that it can conform to DatabaseCancellable)
-        - [ ] ValueObservationTrackingMode
+    - [X] ValueWriteOnlyObserver (needed so that it can conform to DatabaseCancellable)
+        - [X] ValueObservationTrackingMode
             - [X] DatabaseRegionConvertible
 
 
