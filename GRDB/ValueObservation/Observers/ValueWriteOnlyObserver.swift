@@ -85,18 +85,18 @@ final class ValueWriteOnlyObserver<
         /// If true, database values are fetched from a read-only access.
         private let readOnly: Bool
         
-        /// A reducer that fetches database values.
-        private let reducer: Reducer
+        /// The fetcher that fetches database values.
+        private let fetcher: Reducer.Fetcher
         
-        init(writer: Writer, readOnly: Bool, reducer: Reducer) {
+        init(writer: Writer, readOnly: Bool, fetcher: Reducer.Fetcher) {
             self.writer = writer
             self.readOnly = readOnly
-            self.reducer = reducer
+            self.fetcher = fetcher
         }
         
         func fetch(_ db: Database) throws -> Reducer.Fetched {
             try db.isolated(readOnly: readOnly) {
-                try reducer._fetch(db)
+                try fetcher.fetch(db)
             }
         }
         
@@ -104,7 +104,7 @@ final class ValueWriteOnlyObserver<
             var region = DatabaseRegion()
             let fetchedValue = try db.isolated(readOnly: readOnly) {
                 try db.recordingSelection(&region) {
-                    try reducer._fetch(db)
+                    try fetcher.fetch(db)
                 }
             }
             return try (fetchedValue, region.observableRegion(db))
@@ -162,9 +162,9 @@ final class ValueWriteOnlyObserver<
         self.databaseAccess = DatabaseAccess(
             writer: writer,
             readOnly: readOnly,
-            // ValueReducer semantics guarantees that reducer._fetch
+            // ValueReducer semantics guarantees that the fetcher
             // is independent from the reducer state
-            reducer: reducer)
+            fetcher: reducer._makeFetcher())
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
         self.reduceQueue = DispatchQueue(
