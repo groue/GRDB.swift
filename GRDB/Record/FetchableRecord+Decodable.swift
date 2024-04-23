@@ -619,12 +619,6 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     }
 }
 
-private let iso8601Formatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = .withInternetDateTime
-    return formatter
-}()
-
 extension DatabaseDataDecodingStrategy {
     fileprivate func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Data? {
         if let sqliteStatement = row.sqliteStatement {
@@ -799,13 +793,26 @@ extension DatabaseDateDecodingStrategy {
             return Date(timeIntervalSince1970: timeInterval / 1000.0)
         case .iso8601:
             let string = String(sqliteStatement: sqliteStatement, index: index)
-            guard let date = iso8601Formatter.date(from: string) else {
-                throw RowDecodingError.valueMismatch(
-                    Date.self,
-                    context: context(),
-                    databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+            if #available(*, iOS 15, macOS 12, tvOS 15, watchOS 8) {
+                do {
+                    return try Date.ISO8601FormatStyle().parse(string)
+                } catch {
+                    throw RowDecodingError.valueMismatch(
+                        Date.self,
+                        context: context(),
+                        databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+                }
+            } else {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = .withInternetDateTime
+                guard let date = formatter.date(from: string) else {
+                    throw RowDecodingError.valueMismatch(
+                        Date.self,
+                        context: context(),
+                        databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+                }
+                return date
             }
-            return date
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
@@ -883,9 +890,21 @@ extension DatabaseDateDecodingStrategy {
                 .fromDatabaseValue(dbValue)
                 .map { Date(timeIntervalSince1970: $0 / 1000.0) }
         case .iso8601:
-            return String
-                .fromDatabaseValue(dbValue)
-                .flatMap { iso8601Formatter.date(from: $0) }
+            if #available(*, iOS 15, macOS 12, tvOS 15, watchOS 8) {
+                return String
+                    .fromDatabaseValue(dbValue)
+                    .flatMap {
+                        try? Date.ISO8601FormatStyle().parse($0)
+                    }
+            } else {
+                return String
+                    .fromDatabaseValue(dbValue)
+                    .flatMap {
+                        let formatter = ISO8601DateFormatter()
+                        formatter.formatOptions = .withInternetDateTime
+                        return formatter.date(from: $0)
+                    }
+            }
         case .formatted(let formatter):
             return String
                 .fromDatabaseValue(dbValue)
