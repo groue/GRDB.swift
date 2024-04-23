@@ -132,6 +132,11 @@ extension ValueObservation {
     }
 }
 
+typealias SendableValueObservationStart<T> = @Sendable (
+    _ onError: @escaping @Sendable (Error) -> Void,
+    _ onChange: @escaping @Sendable (T) -> Void)
+-> AnyDatabaseCancellable
+
 /// A shared value observation spares database resources by sharing a single
 /// underlying ``ValueObservation`` subscription.
 ///
@@ -167,10 +172,13 @@ extension ValueObservation {
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element> {
+public final class SharedValueObservation<Element>: @unchecked Sendable {
+    // @unchecked Sendable: mutable state is protected by `lock`.
+    
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
-    private let startObservation: ValueObservationStart<Element>
+    private let startObservation: SendableValueObservationStart<Element>
+    // TODO: make it a regular lock, and stop performing side effects from the critical section.
     private let lock = NSRecursiveLock() // support synchronous observation events
     
     // protected by lock
@@ -179,11 +187,11 @@ public final class SharedValueObservation<Element> {
     private var cancellable: AnyDatabaseCancellable?
     private var lastResult: Result<Element, Error>?
     
-    private final class Client {
-        var onError: (Error) -> Void
-        var onChange: @Sendable (Element) -> Void
+    private final class Client: Sendable {
+        let onError: @Sendable (Error) -> Void
+        let onChange: @Sendable (Element) -> Void
         
-        init(onError: @escaping (Error) -> Void, onChange: @escaping @Sendable (Element) -> Void) {
+        init(onError: @escaping @Sendable (Error) -> Void, onChange: @escaping @Sendable (Element) -> Void) {
             self.onError = onError
             self.onChange = onChange
         }
@@ -192,7 +200,7 @@ public final class SharedValueObservation<Element> {
     fileprivate init(
         scheduling scheduler: some ValueObservationScheduler,
         extent: SharedValueObservationExtent,
-        startObservation: @escaping ValueObservationStart<Element>)
+        startObservation: @escaping SendableValueObservationStart<Element>)
     {
         self.scheduler = scheduler
         self.extent = extent
@@ -224,7 +232,7 @@ public final class SharedValueObservation<Element> {
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        onError: @escaping (Error) -> Void,
+        onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
