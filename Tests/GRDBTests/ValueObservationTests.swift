@@ -64,10 +64,10 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            var nextError: Error? = nil // If not null, observation throws an error
+            let nextErrorMutex: Mutex<Error?> = Mutex(nil) // If not null, observation throws an error
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
-                if let error = nextError {
+                if let error = nextErrorMutex.value {
                     throw error
                 }
             }
@@ -82,7 +82,7 @@ class ValueObservationTests: GRDBTestCase {
                 },
                 onChange: {
                     XCTAssertFalse(didFailMutex.value)
-                    nextError = TestError()
+                    nextErrorMutex.value = TestError()
                     notificationExpectation.fulfill()
                     // Trigger another change
                     try! dbWriter.writeWithoutTransaction { db in
@@ -353,10 +353,9 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if needsChangeMutex.wasNeeded {
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -393,10 +392,9 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if needsChangeMutex.wasNeeded {
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -433,10 +431,9 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if needsChangeMutex.wasNeeded {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -483,10 +480,9 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
-            if needsChange {
-                needsChange = false
+            if needsChangeMutex.wasNeeded {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
