@@ -36,7 +36,7 @@ public final class AnyDatabaseCancellable: DatabaseCancellable, @unchecked Senda
     }
     
     /// Creates a cancellable object that forwards cancellation to `base`.
-    public convenience init(_ base: some DatabaseCancellable) {
+    public convenience init(_ base: some DatabaseCancellable & Sendable) {
         self.init {
             base.cancel()
         }
