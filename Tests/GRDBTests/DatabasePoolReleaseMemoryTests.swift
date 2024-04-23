@@ -62,9 +62,16 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         try dbPool.read { _ in }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        //
+        // Do it async because DatabasePool has to register asynchronously,
+        // just in case it would not be created on the main thread, in order
+        // to comply to @MainActor-isolation of didReceiveMemoryWarningNotification
+        // 🙄
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+        }
         
         // Postcondition: reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -90,9 +97,16 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         try dbPool.read { _ in }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        //
+        // Do it async because DatabasePool has to register asynchronously,
+        // just in case it would not be created on the main thread, in order
+        // to comply to @MainActor-isolation of didReceiveMemoryWarningNotification
+        // 🙄
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+        }
         
         // Postcondition: no reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -111,15 +125,27 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil)
+        //
+        // Do it async because DatabasePool has to register asynchronously,
+        // just in case it would not be created on the main thread, in order
+        // to comply to @MainActor-isolation of didReceiveMemoryWarningNotification
+        // 🙄
+        let expectation = self.expectation(description: "")
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil)
+            
+            // Make sure we can read
+            try! dbPool.read { _ in }
+            
+            // Cleanup
+            semaphore.signal()
+            
+            expectation.fulfill()
+        }
         
-        // Make sure we can read
-        try dbPool.read { _ in }
-        
-        // Cleanup
-        semaphore.signal()
+        waitForExpectations(timeout: 0.5)
     }
     
 #endif
