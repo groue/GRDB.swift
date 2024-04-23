@@ -273,29 +273,33 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[InsertQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.value[self] {
             return sql
         }
-        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
-        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
-        default:
-            sql = """
-            INSERT OR \(onConflict.rawValue) \
-            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
+        
+        return Self.cacheLock.withLock { cache in
+            let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+            let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            default:
+                sql = """
+                INSERT OR \(onConflict.rawValue) \
+                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 
@@ -309,30 +313,34 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[UpdateQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.value[self] {
             return sql
         }
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
-        default:
-            sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+        
+        return Self.cacheLock.withLock { cache in
+            let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
+            let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                    UPDATE \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            default:
+                sql = """
+                    UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 

@@ -37,7 +37,7 @@ import Dispatch
 ///     got 3
 final class Pool<T: Sendable>: Sendable {
     private class Item: @unchecked Sendable {
-        // @unchecked because `isAvailable` is protected by `content`.
+        // @unchecked because `isAvailable` is protected by `contentLock`.
         let element: T
         var isAvailable: Bool
         
@@ -59,7 +59,7 @@ final class Pool<T: Sendable>: Sendable {
     typealias ElementAndRelease = (element: T, release: @Sendable (PoolCompletion) -> Void)
     
     private let makeElement: @Sendable (Int) throws -> T
-    private let content = ReadWriteBox(wrappedValue: Content(items: [], createdCount: 0))
+    private let contentLock = ReadWriteLock(Content(items: [], createdCount: 0))
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue
@@ -93,7 +93,7 @@ final class Pool<T: Sendable>: Sendable {
             itemsSemaphore.wait()
             itemsGroup.enter()
             do {
-                let item = try content.update { content -> Item in
+                let item = try contentLock.withLock { content -> Item in
                     if let item = content.items.first(where: \.isAvailable) {
                         item.isAvailable = false
                         return item
@@ -142,7 +142,7 @@ final class Pool<T: Sendable>: Sendable {
     }
     
     private func release(_ item: Item, completion: PoolCompletion) {
-        content.update { content in
+        contentLock.withLock { content in
             switch completion {
             case .reuse:
                 // This is why Item is a class, not a struct: so that we can
@@ -162,7 +162,7 @@ final class Pool<T: Sendable>: Sendable {
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary dispatch queue.
     func forEach(_ body: (T) throws -> Void) rethrows {
-        try content.read { content in
+        try contentLock.read { content in
             for item in content.items {
                 try body(item.element)
             }
@@ -172,7 +172,7 @@ final class Pool<T: Sendable>: Sendable {
     /// Removes all elements from the pool.
     /// Currently used elements won't be reused.
     func removeAll() {
-        content.update { $0.items.removeAll() }
+        contentLock.withLock { $0.items.removeAll() }
     }
     
     /// Blocks until no element is used, and runs the `barrier` function before
