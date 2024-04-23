@@ -254,10 +254,14 @@ extension ValueWriteOnlyObserver {
         writer.asyncWriteWithoutTransaction { db in
             do {
                 // Fetch & Start observing the database
-                guard let fetchedValue = try self.fetchAndStartObservation(db) else {
+                guard let _fetchedValue = try self.fetchAndStartObservation(db) else {
                     return /* Cancelled */
                 }
                 
+                // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                // FIXME: improve when SE-0430 is shipped.
+                nonisolated(unsafe) let fetchedValue = _fetchedValue
+
                 // Reduce
                 //
                 // Reducing is performed asynchronously, so that we do not lock
@@ -270,10 +274,14 @@ extension ValueWriteOnlyObserver {
                     guard isNotifying else { return /* Cancelled */ }
                     
                     do {
-                        guard let initialValue = try self.reducer._value(fetchedValue) else {
+                        guard let _initialValue = try self.reducer._value(fetchedValue) else {
                             fatalError("Broken contract: reducer has no initial value")
                         }
                         
+                        // Safe because initialValue is not used beyond its transfer to scheduler
+                        // FIXME: improve when SE-0430 is shipped.
+                        nonisolated(unsafe) let initialValue = _initialValue
+
                         // Notify
                         self.scheduler.schedule {
                             let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
@@ -382,7 +390,9 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         
         do {
             // Fetch
-            let fetchedValue: Reducer.Fetched
+            // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+            // FIXME: improve when SE-0430 is shipped.
+            nonisolated(unsafe) let fetchedValue: Reducer.Fetched
             
             switch trackingMode {
             case .constantRegion, .constantRegionRecordedFromSelection:
@@ -417,6 +427,10 @@ extension ValueWriteOnlyObserver: TransactionObserver {
                     
                     // Notify value
                     if let value {
+                        // Safe because value is not used beyond its transfer to scheduler
+                        // FIXME: improve when SE-0430 is shipped.
+                        nonisolated(unsafe) let value = value
+                        
                         self.scheduler.schedule {
                             let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
                             guard let onChange else { return /* Cancelled */ }

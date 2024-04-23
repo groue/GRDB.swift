@@ -8,7 +8,16 @@ extension ValueObservation {
     public func removeDuplicates(by predicate: @escaping (Reducer.Value, Reducer.Value) -> Bool)
     -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
-        mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
+        // This is safe-ish, because predicate will only be used serially,
+        // in the reducer queue of ValueObservation observers.
+        //
+        // Yet we can't guarantee that it won't be used concurrently.
+        //
+        // But if we don't accept a non-sendable closure, we can't deal
+        // with Equatable.==... YOLO!!!
+        nonisolated(unsafe) let predicate = predicate
+        
+        return mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
     }
 }
 

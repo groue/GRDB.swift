@@ -625,11 +625,13 @@ extension DatabaseReader {
                 let result = dbResult.flatMap { db in
                     Result { try observation.fetchInitialValue(db) }
                 }
+                // Safe because result is not used beyond its transfer to sheduler
+                let resultWrapper = UncheckedSendableWrapper(value: result)
                 
                 scheduler.schedule {
                     if cancellable.isCancelled { return }
                     do {
-                        try onChange(result.get())
+                        try onChange(resultWrapper.value.get())
                     } catch {
                         observation.events.didFail?(error)
                     }
