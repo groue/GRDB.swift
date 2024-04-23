@@ -18,7 +18,7 @@ extension ValueObservation {
     ///
     /// - parameter transform: A closure that takes one value as its parameter
     ///   and returns a new value.
-    public func map<T>(_ transform: @escaping (Reducer.Value) throws -> T)
+    public func map<T>(_ transform: @escaping @Sendable (Reducer.Value) throws -> T)
     -> ValueObservation<ValueReducers.Map<Reducer, T>>
     {
         mapReducer { ValueReducers.Map($0, transform) }
