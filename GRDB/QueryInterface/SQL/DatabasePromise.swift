@@ -26,7 +26,7 @@ struct DatabasePromise<T> {
     let resolve: @Sendable (Database) throws -> T
     
     /// Creates a promise that resolves to a value.
-    init(value: T) {
+    init(value: T) where T: Sendable {
         self.resolve = { _ in value }
     }
     
