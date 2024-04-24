@@ -796,7 +796,7 @@ extension SQLRelation {
 ///     // SELECT * FROM book WHERE author.id = 1
 ///     //                          ~~~~~~~~~~~~~
 ///     author.request(for: Author.books)
-enum SQLAssociationCondition {
+enum SQLAssociationCondition: Sendable {
     /// A condition based on a foreign key.
     case foreignKey(SQLForeignKeyCondition)
     
@@ -814,7 +814,7 @@ enum SQLAssociationCondition {
     ///         player[Column("id")] == bonus[Column("playerID")]
     ///     })
     ///     Player.with(bonus).joining(required: association)
-    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
+    case expression(@Sendable (_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
     
     /// The condition that does not constrain the two associated tables
     /// in any way.

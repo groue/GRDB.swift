@@ -385,7 +385,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
@@ -421,7 +421,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Destination.Type,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
@@ -458,7 +458,7 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Table<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
