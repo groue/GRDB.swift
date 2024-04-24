@@ -1,5 +1,5 @@
 /// A case-preserving, case-insensitive identifier
-/// that matches the ASCII version of sqlite3_stricmp
+/// that intends to match the ASCII version of sqlite3_stricmp.
 struct CaseInsensitiveIdentifier: Hashable {
     private let lowercased: String
     let rawValue: String
