@@ -314,6 +314,7 @@
 		56C0539D22ACEECD0029D27D /* RemoveDuplicates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538F22ACEECD0029D27D /* RemoveDuplicates.swift */; };
 		56C7A6AE1D2DFF6100EFB0C2 /* FoundationNSDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98E1B6001C600A2F135 /* FoundationNSDateTests.swift */; };
 		56C9EB9B2495324700FE5D55 /* grdb_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 56C9EB9A2495324700FE5D55 /* grdb_config.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		56CB43A42BD9884A001C8ED9 /* PersistenceContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CB43A22BD9884A001C8ED9 /* PersistenceContainer.swift */; };
 		56CC9234201E009000CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */; };
 		56CC923B201E033400CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */; };
 		56CC9249201E058900CB597E /* DropFirstCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9248201E058900CB597E /* DropFirstCursorTests.swift */; };
@@ -834,6 +835,7 @@
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
 		56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLiteCustom/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56C9EB9A2495324700FE5D55 /* grdb_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grdb_config.h; path = SQLiteCustom/grdb_config.h; sourceTree = "<group>"; };
+		56CB43A22BD9884A001C8ED9 /* PersistenceContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistenceContainer.swift; sourceTree = "<group>"; };
 		56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC923A201E033400CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC9248201E058900CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
@@ -1721,6 +1723,7 @@
 				56D110E328AFC90800E64463 /* PersistableRecord+Insert.swift */,
 				56D110E428AFC90800E64463 /* PersistableRecord+Save.swift */,
 				56FA0C4028B20ADB00B2DFF7 /* PersistableRecord+Upsert.swift */,
+				56CB43A22BD9884A001C8ED9 /* PersistenceContainer.swift */,
 				56A238A11B9C753B0082EB20 /* Record.swift */,
 				560D92461C672C4B00F4F92B /* TableRecord.swift */,
 			);
@@ -2115,6 +2118,7 @@
 				5656A8732295BD56001FF3FF /* QueryInterfaceRequest.swift in Sources */,
 				566B91151FA4C3F50012D5B0 /* DatabaseCollation.swift in Sources */,
 				566A86CD2BD57A0100D5562E /* PreparedRequest.swift in Sources */,
+				56CB43A42BD9884A001C8ED9 /* PersistenceContainer.swift in Sources */,
 				5674A7041F307FCD0095F066 /* DatabaseValueConvertible+ReferenceConvertible.swift in Sources */,
 				566A86BE2BD57A0100D5562E /* SQLInterpolation.swift in Sources */,
 				563082EA2430B6CD00C14A05 /* DatabaseCancellable.swift in Sources */,
