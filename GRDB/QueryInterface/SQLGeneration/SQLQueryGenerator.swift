@@ -547,7 +547,7 @@ struct SQLQueryGenerator: Refinable {
 ///     ORDER BY ... -- ordering
 ///     LIMIT ...    -- limit
 
-private struct SQLQualifiedRelation {
+private struct SQLQualifiedRelation: Sendable {
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
         joins.reduce(into: [source.alias].compactMap { $0 }) {
