@@ -252,7 +252,7 @@ extension EncodableRecord {
     ///   database representation.
     public var databaseDictionary: [String: DatabaseValue] {
         get throws {
-            try Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+            try Dictionary(uniqueKeysWithValues: PersistenceContainer(self))
         }
     }
 }
@@ -330,19 +330,30 @@ extension EncodableRecord {
 ///
 /// `PersistenceContainer` is the argument of the
 /// ``EncodableRecord/encode(to:)-k9pf`` method.
-public struct PersistenceContainer {
-    // fileprivate for Row(_:PersistenceContainer)
+public struct PersistenceContainer: Sendable {
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    fileprivate var storage: OrderedDictionary<String, (any DatabaseValueConvertible)?>
+    private var storage: OrderedDictionary<CaseInsensitiveIdentifier, DatabaseValue>
     
     /// The value associated with the given column.
+    ///
+    /// The setter accepts any ``DatabaseValueConvertible`` type, but the
+    /// getter always returns a ``DatabaseValue``.
     public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
-        get { self[caseInsensitive: column] }
-        set { storage.updateValue(newValue, forKey: column) }
+        get {
+            storage[CaseInsensitiveIdentifier(rawValue: column)]
+        }
+        set {
+            storage.updateValue(
+                newValue?.databaseValue ?? .null,
+                forKey: CaseInsensitiveIdentifier(rawValue: column))
+        }
     }
     
     /// The value associated with the given column.
+    ///
+    /// The setter accepts any ``DatabaseValueConvertible`` type, but the
+    /// getter always returns a ``DatabaseValue``.
     public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         get { self[column.name] }
         set { self[column.name] = newValue }
@@ -372,70 +383,43 @@ public struct PersistenceContainer {
     }
     
     /// Columns stored in the container, ordered like values.
-    var columns: [String] { Array(storage.keys) }
+    var columns: [String] { storage.keys.map(\.rawValue) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [(any DatabaseValueConvertible)?] { Array(storage.values) }
+    var values: [DatabaseValue] { storage.values }
     
-    /// Accesses the value associated with the given column, in a
-    /// case-insensitive fashion.
-    subscript(caseInsensitive column: String) -> (any DatabaseValueConvertible)? {
-        get {
-            if let value = storage[column] {
-                return value
-            }
-            let lowercaseColumn = column.lowercased()
-            for (key, value) in storage where key.lowercased() == lowercaseColumn {
-                return value
-            }
-            return nil
-        }
-        set {
-            if storage[column] != nil {
-                storage[column] = newValue
-                return
-            }
-            let lowercaseColumn = column.lowercased()
-            for key in storage.keys where key.lowercased() == lowercaseColumn {
-                storage[key] = newValue
-                return
-            }
-            
-            storage[column] = newValue
-        }
-    }
-    
-    // Returns nil if column is not defined
-    func value(forCaseInsensitiveColumn column: String) -> DatabaseValue? {
-        let lowercaseColumn = column.lowercased()
-        for (key, value) in storage where key.lowercased() == lowercaseColumn {
-            return value?.databaseValue ?? .null
-        }
-        return nil
-    }
-    
-    var isEmpty: Bool { storage.isEmpty }
-    
-    /// An iterator over the (column, value) pairs
-    func makeIterator() -> IndexingIterator<OrderedDictionary<String, (any DatabaseValueConvertible)?>> {
-        storage.makeIterator()
+    /// Returns ``DatabaseValue/null`` if column is not defined
+    func databaseValue(at column: String) -> DatabaseValue {
+        storage[CaseInsensitiveIdentifier(rawValue: column)] ?? .null
     }
     
     @usableFromInline
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
-        var newValueIterator = makeIterator()
+        var newValueIterator = storage.makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
-            while let (column, newValue) = newValueIterator.next() {
-                let oldValue = container[caseInsensitive: column]
-                let oldDbValue = oldValue?.databaseValue ?? .null
-                let newDbValue = newValue?.databaseValue ?? .null
+            while let (column, newDbValue) = newValueIterator.next() {
+                let oldDbValue = container.storage[column] ?? .null
                 if newDbValue != oldDbValue {
-                    return (column, oldDbValue)
+                    return (column.rawValue, oldDbValue)
                 }
             }
             return nil
         }
+    }
+}
+
+extension PersistenceContainer: RandomAccessCollection {
+    public typealias Index = Int
+    
+    public var startIndex: Int { storage.startIndex }
+    
+    public var endIndex: Int { storage.endIndex }
+    
+    /// Returns the (column, value) pair at given index.
+    public subscript(position: Int) -> (String, DatabaseValue) {
+        let element = storage[position]
+        return (element.key.rawValue, element.value)
     }
 }
 
@@ -445,7 +429,7 @@ extension Row {
     }
     
     convenience init(_ container: PersistenceContainer) {
-        self.init(Dictionary(container.storage))
+        self.init(impl: ArrayRowImpl(columns: container.lazy.map { ($0, $1) }))
     }
 }
 

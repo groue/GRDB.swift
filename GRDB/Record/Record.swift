@@ -201,8 +201,7 @@ open class Record {
         var newValueIterator = try PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
-            while let (column, newValue) = newValueIterator.next() {
-                let newDbValue = newValue?.databaseValue ?? .null
+            while let (column, newDbValue) = newValueIterator.next() {
                 guard let oldRow, let oldDbValue: DatabaseValue = oldRow[column] else {
                     return (column, nil)
                 }

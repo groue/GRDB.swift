@@ -763,7 +763,7 @@ extension TableRecord where Self: EncodableRecord {
             
             let container = try PersistenceContainer(db, self)
             let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
-                ($0, container[caseInsensitive: $0]?.databaseValue ?? .null)
+                ($0, container.databaseValue(at: $0))
             })
             return RecordError.recordNotFound(
                 databaseTableName: databaseTableName,
