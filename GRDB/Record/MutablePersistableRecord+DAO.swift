@@ -142,7 +142,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -173,7 +173,7 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         let updatedValues = updatedColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         
         let query = UpdateQuery(
@@ -193,7 +193,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -212,7 +212,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -229,7 +229,7 @@ final class DAO<Record: MutablePersistableRecord> {
     /// Throws a RecordError.recordNotFound error
     func recordNotFound() throws -> Never {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
-            ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
+            ($0, persistenceContainer.databaseValue(at: $0))
         })
         throw RecordError.recordNotFound(
             databaseTableName: databaseTableName,

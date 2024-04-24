@@ -409,7 +409,7 @@ extension MutablePersistableRecord {
         let primaryKeyInfo = try db.primaryKey(databaseTableName)
         let container = try PersistenceContainer(db, self)
         let primaryKey = Dictionary(uniqueKeysWithValues: primaryKeyInfo.columns.map {
-            ($0, container[caseInsensitive: $0]?.databaseValue ?? .null)
+            ($0, container.databaseValue(at: $0))
         })
         if primaryKey.allSatisfy({ $0.value.isNull }) {
             return nil
