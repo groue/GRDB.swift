@@ -567,6 +567,19 @@ extension TableRecord where Self: EncodableRecord {
             fatalError("Not implemented: request association without any foreign key")
             
         case let .foreignKey(foreignKey):
+            // Build the sendable persistence container before building the
+            // request, and catch the eventual error in a Result, so that it
+            // is thrown later, when the request is executed. This allows
+            // this method to not throw:
+            //
+            // extension Player {
+            //   // We don't want this property to have a throwing getter:
+            //   var team: QueryInterfaceRequest<Team> {
+            //     request(for: Player.team)
+            //   }
+            // }
+            let persistenceContainer = Result { try PersistenceContainer(self) }
+            
             let destinationRelation = association
                 ._sqlAssociation
                 .with {
@@ -574,7 +587,7 @@ extension TableRecord where Self: EncodableRecord {
                         // Filter the pivot on self
                         try foreignKey
                             .joinMapping(db, from: Self.databaseTableName)
-                            .joinExpression(leftRows: [PersistenceContainer(db, self)])
+                            .joinExpression(leftRows: [persistenceContainer.get()])
                     }
                 }
                 .destinationRelation()
