@@ -104,7 +104,8 @@ extension SelectionRequest {
     ///     .select([Column("score")])
     /// ```
     public func select(_ selection: [any SQLSelectable]) -> Self {
-        selectWhenConnected { _ in selection }
+        let selection = selection.map(\.sqlSelection)
+        return selectWhenConnected { _ in selection }
     }
     
     /// Defines the result columns.
@@ -190,7 +191,8 @@ extension SelectionRequest {
     /// let request = Player.all().annotated(with: [totalScore])
     /// ```
     public func annotated(with selection: [any SQLSelectable]) -> Self {
-        annotatedWhenConnected(with: { _ in selection })
+        let selection = selection.map(\.sqlSelection)
+        return annotatedWhenConnected(with: { _ in selection })
     }
     
     /// Appends result columns to the selected columns.
@@ -263,7 +265,8 @@ extension FilteredRequest {
     /// let request = Player.all().filter(Column("name") == name)
     /// ```
     public func filter(_ predicate: some SQLSpecificExpressible) -> Self {
-        filterWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return filterWhenConnected { _ in predicate }
     }
     
     /// Filters the fetched rows with an SQL string.
@@ -551,6 +554,11 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             return none()
         }
         
+        // Turn key values into sendable DatabaseValue
+        let keys = keys.map { key in
+            key.mapValues { $0?.databaseValue ?? .null }
+        }
+        
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
             try keys
@@ -784,7 +792,8 @@ extension AggregatingRequest {
     ///
     /// - parameter expressions: An array of SQL expressions.
     public func group(_ expressions: [any SQLExpressible]) -> Self {
-        groupWhenConnected { _ in expressions }
+        let expressions = expressions.map(\.sqlExpression)
+        return groupWhenConnected { _ in expressions }
     }
     
     /// Returns an aggregate request grouped on the given SQL expressions.
@@ -859,7 +868,8 @@ extension AggregatingRequest {
     ///     .having(max(Column("score")) > 1000)
     /// ```
     public func having(_ predicate: some SQLExpressible) -> Self {
-        havingWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return havingWhenConnected { _ in predicate }
     }
     
     /// Filters the aggregated groups with an SQL string.
@@ -1008,7 +1018,8 @@ extension OrderedRequest {
     ///     .order(Column("name"))
     /// ```
     public func order(_ orderings: any SQLOrderingTerm...) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL ordering terms.
@@ -1030,7 +1041,8 @@ extension OrderedRequest {
     ///     .order([Column("name")])
     /// ```
     public func order(_ orderings: [any SQLOrderingTerm]) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL string.
