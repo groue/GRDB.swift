@@ -140,7 +140,7 @@
 - [?] GRDB7: DatabasePublishers.ValueSubscription
 - [X] GRDB7: Sendable: ValueObservation (93f6f982)
 - [?] GRDB7: Not Sendable: SharedValueObservation
-- [ ] GRDB7: doc (c0838cf9)
+- [X] GRDB7: doc (c0838cf9)
 - [X] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
 - [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
 - [X] GRDB7: Sendable: Association (b06aaee4)
