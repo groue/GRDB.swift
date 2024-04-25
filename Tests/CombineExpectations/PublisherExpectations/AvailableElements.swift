@@ -46,7 +46,8 @@ extension PublisherExpectations {
         }
         
         /// A waiter that waits but never fails
-        private class Waiter: XCTWaiter, XCTWaiterDelegate {
+        private class Waiter: XCTWaiter, XCTWaiterDelegate, @unchecked Sendable {
+            // @unchecked Sendable because super class is.
             init() {
                 super.init(delegate: nil)
                 delegate = self
