@@ -107,8 +107,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -119,7 +119,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate.value = Date.distantPast
+        currentDateMutex.store(Date.distantPast)
         try dbQueue.write { db in
             do {
                 var player = Player(name: "Arthur")
@@ -152,8 +152,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -164,14 +164,14 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate.value = Date.distantPast
+        currentDateMutex.store(Date.distantPast)
         try dbQueue.write { db in
             var player = Player(name: "Arthur")
             try player.insert(db)
         }
         
         let newTransactionDate = Date()
-        currentDate.value = newTransactionDate
+        currentDateMutex.store(newTransactionDate)
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             
@@ -198,8 +198,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -210,14 +210,14 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate.value = Date.distantPast
+        currentDateMutex.store(Date.distantPast)
         try dbQueue.write { db in
             var player = Player(name: "Arthur")
             try player.insert(db)
         }
         
         let newTransactionDate = Date()
-        currentDate.value = newTransactionDate
+        currentDateMutex.store(newTransactionDate)
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             
@@ -251,8 +251,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -267,7 +267,7 @@ class TransactionDateTests: GRDBTestCase {
         }
         
         let newTransactionDate = Date()
-        currentDate.value = newTransactionDate
+        currentDateMutex.store(newTransactionDate)
         try dbQueue.write { db in
             var player = try Player.find(db, key: 1)
             try player.touch(db)
@@ -303,8 +303,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -315,7 +315,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate.value = Date.distantPast
+        currentDateMutex.store(Date.distantPast)
         try dbQueue.write { db in
             var player = Player(name: "Arthur", isInserted: false)
             try player.insert(db)
@@ -354,8 +354,8 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        let currentDate = Mutex(Date.distantPast)
-        dbConfiguration.transactionClock = .custom { _ in currentDate.value }
+        let currentDateMutex = Mutex(Date.distantPast)
+        dbConfiguration.transactionClock = .custom { _ in currentDateMutex.load() }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -366,7 +366,7 @@ class TransactionDateTests: GRDBTestCase {
             }
         }
         
-        currentDate.value = Date.distantPast
+        currentDateMutex.store(Date.distantPast)
         try dbQueue.write { db in
             let player = Player(name: "Arthur")
             try player.insert(db)

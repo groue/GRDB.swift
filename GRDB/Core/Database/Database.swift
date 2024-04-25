@@ -1181,7 +1181,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See suspend().
     func resume() {
-        isSuspendedMutex.value = false
+        isSuspendedMutex.store(false)
     }
     
     /// Support for `checkForSuspensionViolation(from:)`

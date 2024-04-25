@@ -22,23 +22,23 @@ class DatabaseConfigurationTests: GRDBTestCase {
         }
         
         _ = try DatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCountMutex.value, 1)
+        XCTAssertEqual(connectionCountMutex.load(), 1)
         
         _ = try makeDatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCountMutex.value, 2)
+        XCTAssertEqual(connectionCountMutex.load(), 2)
         
         let pool = try makeDatabasePool(configuration: configuration)
-        XCTAssertEqual(connectionCountMutex.value, 3)
+        XCTAssertEqual(connectionCountMutex.load(), 3)
         
         try pool.read { _ in }
-        XCTAssertEqual(connectionCountMutex.value, 4)
+        XCTAssertEqual(connectionCountMutex.load(), 4)
         
         try pool.makeSnapshot().read { _ in }
-        XCTAssertEqual(connectionCountMutex.value, 5)
+        XCTAssertEqual(connectionCountMutex.load(), 5)
         
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try pool.makeSnapshotPool().read { _ in }
-        XCTAssertEqual(connectionCountMutex.value, 6)
+        XCTAssertEqual(connectionCountMutex.load(), 6)
 #endif
     }
     
@@ -48,7 +48,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            if let error = errorMutex.value {
+            if let error = errorMutex.load() {
                 throw error
             }
         }
@@ -56,36 +56,36 @@ class DatabaseConfigurationTests: GRDBTestCase {
         // TODO: what about in-memory DatabaseQueue???
         
         do {
-            errorMutex.value = TestError()
+            errorMutex.store(TestError())
             _ = try makeDatabaseQueue(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            errorMutex.value = TestError()
+            errorMutex.store(TestError())
             _ = try makeDatabasePool(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            errorMutex.value = nil
+            errorMutex.store(nil)
             let pool = try makeDatabasePool(configuration: configuration)
             
             do {
-                errorMutex.value = TestError()
+                errorMutex.store(TestError())
                 try pool.read { _ in }
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
             do {
-                errorMutex.value = TestError()
+                errorMutex.store(TestError())
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             do {
-                errorMutex.value = TestError()
+                errorMutex.store(TestError())
                 _ = try pool.makeSnapshotPool()
                 XCTFail("Expected TestError")
             } catch is TestError { }

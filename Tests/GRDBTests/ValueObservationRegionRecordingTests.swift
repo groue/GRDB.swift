@@ -166,9 +166,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(resultsMutex.value, [0, 1, 2, 3])
+            XCTAssertEqual(resultsMutex.load(), [0, 1, 2, 3])
             
-            XCTAssertEqual(regionsMutex.value.map(\.description), [
+            XCTAssertEqual(regionsMutex.load().map(\.description), [
                 "a(value),source(name)",
                 "b(value),source(name)"])
         }
@@ -222,9 +222,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(resultsMutex.value, [0, 1, 2, 3])
+            XCTAssertEqual(resultsMutex.load(), [0, 1, 2, 3])
             
-            XCTAssertEqual(regionsMutex.value.map(\.description), [
+            XCTAssertEqual(regionsMutex.load().map(\.description), [
                 "a(value),source(name)",
                 "b(value),source(name)"])
         }

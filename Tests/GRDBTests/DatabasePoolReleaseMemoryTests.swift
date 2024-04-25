@@ -39,10 +39,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // One reader, one writer
-        XCTAssertEqual(totalOpenConnectionCountMutex.value, 2)
+        XCTAssertEqual(totalOpenConnectionCountMutex.load(), 2)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCountMutex.value, 0)
+        XCTAssertEqual(openConnectionCountMutex.load(), 0)
     }
     
 #if os(iOS)
@@ -217,10 +217,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // Two readers, one writer
-        XCTAssertEqual(totalOpenConnectionCountMutex.value, 3)
+        XCTAssertEqual(totalOpenConnectionCountMutex.load(), 3)
         
         // Writer is still open
-        XCTAssertEqual(openConnectionCountMutex.value, 1)
+        XCTAssertEqual(openConnectionCountMutex.load(), 1)
     }
     
     func test_DatabasePool_releaseMemory_closes_reader_connections_when_persistentReadOnlyConnections_is_false() throws {
@@ -237,13 +237,13 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         dbConfiguration.persistentReadOnlyConnections = false
         
         let dbPool = try makeDatabasePool()
-        XCTAssertEqual(persistentConnectionCountMutex.value, 1) // writer
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 1) // writer
         
         try dbPool.read { _ in }
-        XCTAssertEqual(persistentConnectionCountMutex.value, 2) // writer + reader
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 2) // writer + reader
         
         dbPool.releaseMemory()
-        XCTAssertEqual(persistentConnectionCountMutex.value, 1) // writer
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 1) // writer
     }
     
     func test_DatabasePool_releaseMemory_does_not_close_reader_connections_when_persistentReadOnlyConnections_is_true() throws {
@@ -260,13 +260,13 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         dbConfiguration.persistentReadOnlyConnections = true
         
         let dbPool = try makeDatabasePool()
-        XCTAssertEqual(persistentConnectionCountMutex.value, 1) // writer
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 1) // writer
         
         try dbPool.read { _ in }
-        XCTAssertEqual(persistentConnectionCountMutex.value, 2) // writer + reader
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 2) // writer + reader
         
         dbPool.releaseMemory()
-        XCTAssertEqual(persistentConnectionCountMutex.value, 2) // writer + reader
+        XCTAssertEqual(persistentConnectionCountMutex.load(), 2) // writer + reader
     }
     
     func testBlocksRetainConnection() throws {
@@ -322,10 +322,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // one writer, one reader
-        XCTAssertEqual(totalOpenConnectionCountMutex.value, 2)
+        XCTAssertEqual(totalOpenConnectionCountMutex.load(), 2)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCountMutex.value, 0)
+        XCTAssertEqual(openConnectionCountMutex.load(), 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {

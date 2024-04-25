@@ -187,7 +187,7 @@ class UpdateStatementTests : GRDBTestCase {
             let statement = try db.makeStatement(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             try statement.execute()
         }
-        XCTAssertEqual(indexMutex.value, 3 + 3)
+        XCTAssertEqual(indexMutex.load(), 3 + 3)
     }
 
     func testExecuteNothing() throws {

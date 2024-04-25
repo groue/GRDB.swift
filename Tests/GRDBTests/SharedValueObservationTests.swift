@@ -42,9 +42,9 @@ class SharedValueObservationTests: GRDBTestCase {
                 let valueMutex = Mutex<Int?>(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { valueMutex.value = $0 })
+                    onChange: { valueMutex.store($0) })
                 
-                XCTAssertEqual(valueMutex.value, 0)
+                XCTAssertEqual(valueMutex.load(), 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -55,9 +55,9 @@ class SharedValueObservationTests: GRDBTestCase {
                 let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { valueMutex.value = $0 })
+                    onChange: { valueMutex.store($0) })
                 
-                XCTAssertEqual(valueMutex.value, 0)
+                XCTAssertEqual(valueMutex.load(), 0)
                 XCTAssertEqual(log.flush(), [])
                 
                 cancellable.cancel()
@@ -96,16 +96,16 @@ class SharedValueObservationTests: GRDBTestCase {
                 let cancellable1 = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
                     onChange: { value in
-                        value1Mutex.value = value
+                        value1Mutex.store(value)
                         _ = sharedObservation!.start(
                             onError: { XCTFail("Unexpected error \($0)") },
                             onChange: { value in
-                                value2Mutex.value = value
+                                value2Mutex.store(value)
                             })
                     })
                 
-                XCTAssertEqual(value1Mutex.value, 0)
-                XCTAssertEqual(value2Mutex.value, 0)
+                XCTAssertEqual(value1Mutex.load(), 0)
+                XCTAssertEqual(value2Mutex.load(), 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable1.cancel()
@@ -178,9 +178,9 @@ class SharedValueObservationTests: GRDBTestCase {
                 let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { valueMutex.value = $0 })
+                    onChange: { valueMutex.store($0) })
                 
-                XCTAssertEqual(valueMutex.value, 0)
+                XCTAssertEqual(valueMutex.load(), 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -191,9 +191,9 @@ class SharedValueObservationTests: GRDBTestCase {
                 let valueMutex: Mutex<Int?> = Mutex(nil)
                 let cancellable = sharedObservation!.start(
                     onError: { XCTFail("Unexpected error \($0)") },
-                    onChange: { valueMutex.value = $0 })
+                    onChange: { valueMutex.store($0) })
                 
-                XCTAssertEqual(valueMutex.value, 0)
+                XCTAssertEqual(valueMutex.load(), 0)
                 XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 
                 cancellable.cancel()
@@ -231,16 +231,16 @@ class SharedValueObservationTests: GRDBTestCase {
             let cancellable1 = sharedObservation!.start(
                 onError: { XCTFail("Unexpected error \($0)") },
                 onChange: { value in
-                    value1Mutex.value = value
+                    value1Mutex.store(value)
                     _ = sharedObservation!.start(
                         onError: { XCTFail("Unexpected error \($0)") },
                         onChange: { value in
-                            value2Mutex.value = value
+                            value2Mutex.store(value)
                         })
                 })
             
-            XCTAssertEqual(value1Mutex.value, 0)
-            XCTAssertEqual(value2Mutex.value, 0)
+            XCTAssertEqual(value1Mutex.load(), 0)
+            XCTAssertEqual(value2Mutex.load(), 0)
             XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable1.cancel()
@@ -286,7 +286,7 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1])
+            XCTAssertEqual(values1Mutex.load(), [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
@@ -305,8 +305,8 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
-            XCTAssertEqual(values2Mutex.value, [1, 2])
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -327,9 +327,9 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
-            XCTAssertEqual(values2Mutex.value, [1, 2, 3])
-            XCTAssertEqual(values3Mutex.value, [2, 3])
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2, 3])
+            XCTAssertEqual(values3Mutex.load(), [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
@@ -356,23 +356,23 @@ class SharedValueObservationTests: GRDBTestCase {
         
         let log = Log()
         let sharedObservationMutex: Mutex<SharedValueObservation<Int>?> = Mutex(nil)
-        sharedObservationMutex.value = ValueObservation
+        sharedObservationMutex.store(ValueObservation
             .tracking(Table("player").fetchCount)
             .print(to: log)
             .shared(
                 in: dbQueue,
                 scheduling: .async(onQueue: .main),
-                extent: .observationLifetime)
+                extent: .observationLifetime))
         XCTAssertEqual(log.flush(), [])
         
         // ---
         let exp = expectation(description: "")
         exp.expectedFulfillmentCount = 3
-        let cancellable = sharedObservationMutex.value!.start(
+        let cancellable = sharedObservationMutex.load()!.start(
             onError: { XCTFail("Unexpected error \($0)") },
             onChange: { value in
                 // Early release
-                sharedObservationMutex.value = nil
+                sharedObservationMutex.store(nil)
                 
                 switch value {
                 case 0:
@@ -466,7 +466,7 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp1], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1])
+            XCTAssertEqual(values1Mutex.load(), [0, 1])
             XCTAssertEqual(log.flush(), [
                 "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "value: 1"])
@@ -485,8 +485,8 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp2], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
-            XCTAssertEqual(values2Mutex.value, [1, 2])
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
             
             // --- Stop observation 1
@@ -507,9 +507,9 @@ class SharedValueObservationTests: GRDBTestCase {
             
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             wait(for: [exp3], timeout: 1)
-            XCTAssertEqual(values1Mutex.value, [0, 1, 2])
-            XCTAssertEqual(values2Mutex.value, [1, 2, 3])
-            XCTAssertEqual(values3Mutex.value, [2, 3])
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2, 3])
+            XCTAssertEqual(values3Mutex.load(), [2, 3])
             XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
             
             // --- Stop observation 2
@@ -543,7 +543,7 @@ class SharedValueObservationTests: GRDBTestCase {
         let fetchErrorMutex: Mutex<Error?> = Mutex(nil)
         let publisher = ValueObservation
             .tracking { db -> Int in
-                if let error = fetchErrorMutex.value { throw error }
+                if let error = fetchErrorMutex.load() { throw error }
                 return try Table("player").fetchCount(db)
             }
             .print(to: log)
@@ -557,7 +557,7 @@ class SharedValueObservationTests: GRDBTestCase {
             try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
             try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
             
-            fetchErrorMutex.value = TestError()
+            fetchErrorMutex.store(TestError())
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
@@ -574,7 +574,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         do {
-            fetchErrorMutex.value = nil
+            fetchErrorMutex.store(nil)
             let recorder = publisher.record()
             if case .finished = try wait(for: recorder.completion, timeout: 1) { XCTFail("Expected error") }
             XCTAssertEqual(log.flush(), [])
@@ -599,7 +599,7 @@ class SharedValueObservationTests: GRDBTestCase {
         let fetchErrorMutex: Mutex<Error?> = Mutex(nil)
         let publisher = ValueObservation
             .tracking { db -> Int in
-                if let error = fetchErrorMutex.value { throw error }
+                if let error = fetchErrorMutex.load() { throw error }
                 return try Table("player").fetchCount(db)
             }
             .print(to: log)
@@ -613,7 +613,7 @@ class SharedValueObservationTests: GRDBTestCase {
             try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
             try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
             
-            fetchErrorMutex.value = TestError()
+            fetchErrorMutex.store(TestError())
             try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
             
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
@@ -630,7 +630,7 @@ class SharedValueObservationTests: GRDBTestCase {
         }
         
         do {
-            fetchErrorMutex.value = nil
+            fetchErrorMutex.store(nil)
             let recorder = publisher.record()
             try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
             XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 1"])

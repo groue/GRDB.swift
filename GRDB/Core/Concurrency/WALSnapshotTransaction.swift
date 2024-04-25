@@ -107,7 +107,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             databaseAccess.reader.async { db in
                 // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
                 // At least check if self was closed:
-                if self.databaseAccessMutex.value == nil {
+                if self.databaseAccessMutex.load() == nil {
                     value(.failure(DatabaseError.snapshotIsLost()))
                 }
                 value(.success(db))

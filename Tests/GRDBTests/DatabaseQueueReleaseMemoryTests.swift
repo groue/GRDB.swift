@@ -22,10 +22,10 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // One reader, one writer
-        XCTAssertEqual(totalOpenConnectionCountMutex.value, 1)
+        XCTAssertEqual(totalOpenConnectionCountMutex.load(), 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCountMutex.value, 0)
+        XCTAssertEqual(openConnectionCountMutex.load(), 0)
     }
     
     func testBlocksRetainConnection() throws {
@@ -81,10 +81,10 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         }
         
         // one writer
-        XCTAssertEqual(totalOpenConnectionCountMutex.value, 1)
+        XCTAssertEqual(totalOpenConnectionCountMutex.load(), 1)
         
         // All connections are closed
-        XCTAssertEqual(openConnectionCountMutex.value, 0)
+        XCTAssertEqual(openConnectionCountMutex.load(), 0)
     }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
