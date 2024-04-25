@@ -88,6 +88,7 @@
 - [ ] GRDB7/concurrency
     - migrations
     - AsyncValueObservation
+- [ ] GRDB7 consider replacing global record strategies with functions that accept a column: think JSON/JSONB, etc.
 - [ ] GRDB7 JSONB https://hachyderm.io/@jason_abbott/111908186742242971#.
 - [X] GRDB7: stop exporting CSQLite https://github.com/groue/GRDB.swift/issues/642#issuecomment-1937347696
 - [ ] GRDB7: AsyncValueObservation: experiment with an immediate scheduler that does not hop to the main queue.
