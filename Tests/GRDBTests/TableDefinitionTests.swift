@@ -204,7 +204,7 @@ class TableDefinitionTests: GRDBTestCase {
     func testColumnIndexed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "test") { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
@@ -219,7 +219,7 @@ class TableDefinitionTests: GRDBTestCase {
     func testColumnIndexedInheritsIfNotExistsFlag() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "test", options: [.ifNotExists]) { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
@@ -733,7 +733,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.add(column: "b", .text)
                 t.add(column: "c", .integer).notNull().defaults(to: 1)
@@ -760,7 +760,7 @@ class TableDefinitionTests: GRDBTestCase {
                     t.column("a", .text)
                 }
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.alter(table: "hiddenRowIdTable") { t in
                     t.add(column: "ref").references("hiddenRowIdTable")
                 }
@@ -775,7 +775,7 @@ class TableDefinitionTests: GRDBTestCase {
                     t.column("a", .text)
                 }
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.alter(table: "explicitPrimaryKey") { t in
                     t.add(column: "ref").references("explicitPrimaryKey")
                 }
@@ -816,7 +816,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.rename(column: "a", to: "b")
                 t.add(column: "c")
@@ -870,7 +870,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("c", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.add(column: "d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.add(column: "e", .text).generatedAs(sql: "substr(c,b,b+1)", .virtual)
@@ -904,7 +904,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.drop(column: "b")
             }

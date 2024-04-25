@@ -602,7 +602,7 @@ class DatabaseTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.inSavepoint { .commit }
                 try db.inTransaction { .commit }
                 try db.inTransaction(.immediate) { .commit }
@@ -610,7 +610,7 @@ class DatabaseTests : GRDBTestCase {
             }
             
             try db.readOnly {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.inSavepoint { .commit }
                 try db.inTransaction { .commit }
                 XCTAssertEqual(Set(sqlQueries), ["BEGIN DEFERRED TRANSACTION", "COMMIT TRANSACTION"])

@@ -63,17 +63,25 @@ class GRDBTestCase: XCTestCase {
     // The default path for database pool directory
     private var dbDirectoryPath: String!
     
-    let _sqlQueriesMutex: Mutex<[String]> = Mutex([])
+    private let sqlQueriesMutex: Mutex<[String]> = Mutex([])
     
     // TODO: this property is dangerous because it does not expose its critical section
-    // Automatically updated by default dbConfiguration
+    /// All SQL queries executed since the beginning of the test.
     var sqlQueries: [String] {
-        get { _sqlQueriesMutex.load() }
-        set { _sqlQueriesMutex.store(newValue) }
+        sqlQueriesMutex.load()
     }
     
-    // Automatically updated by default dbConfiguration
-    var lastSQLQuery: String? { sqlQueries.last }
+    /// Clears the SQL queries executed since the beginning of the test.
+    func clearSQLQueries() {
+        sqlQueriesMutex.withLock {
+            $0 = []
+        }
+    }
+    
+    /// The last SQL query executed by the test.
+    var lastSQLQuery: String? {
+        sqlQueriesMutex.withLock { $0.last }
+    }
     
     override func setUp() {
         super.setUp()
@@ -117,9 +125,11 @@ class GRDBTestCase: XCTestCase {
             }
         }
         
-        dbConfiguration.prepareDatabase { db in
+        dbConfiguration.prepareDatabase { [sqlQueriesMutex] db in
             db.trace { event in
-                self.sqlQueries.append(event.expandedDescription)
+                sqlQueriesMutex.withLock {
+                    $0.append(event.expandedDescription)
+                }
             }
             
             #if GRDBCIPHER_USE_ENCRYPTION
@@ -127,7 +137,7 @@ class GRDBTestCase: XCTestCase {
             #endif
         }
         
-        sqlQueries = []
+        sqlQueriesMutex.withLock { $0 = [] }
     }
     
     override func tearDown() {

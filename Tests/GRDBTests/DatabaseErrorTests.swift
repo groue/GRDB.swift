@@ -17,7 +17,7 @@ class DatabaseErrorTests: GRDBTestCase {
             try dbQueue.inTransaction { db in
                 try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY)")
                 try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                 XCTFail()
                 return .commit
@@ -44,7 +44,7 @@ class DatabaseErrorTests: GRDBTestCase {
                         XCTAssertTrue(db.isInsideTransaction)
                         try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY)")
                         try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
-                        sqlQueries.removeAll()
+                        clearSQLQueries()
                         try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                         XCTFail()
                         return .commit

@@ -376,7 +376,7 @@ extension DatabaseDateEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
@@ -396,7 +396,7 @@ extension DatabaseDateEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
