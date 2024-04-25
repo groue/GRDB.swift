@@ -127,7 +127,7 @@ class DatabaseTraceTests : GRDBTestCase {
                 CREATE table t(a);
                 INSERT INTO t (a) VALUES (?)
                 """, arguments: [1])
-            XCTAssertEqual(eventsMutex.value.suffix(2), [
+            XCTAssertEqual(eventsMutex.load().suffix(2), [
                 "SQL: CREATE table t(a)",
                 "SQL: INSERT INTO t (a) VALUES (?)"])
         }
@@ -148,7 +148,7 @@ class DatabaseTraceTests : GRDBTestCase {
                 CREATE table t(a);
                 INSERT INTO t (a) VALUES (?)
                 """, arguments: [1])
-            XCTAssertEqual(eventsMutex.value.suffix(2), [
+            XCTAssertEqual(eventsMutex.load().suffix(2), [
                 "SQL: CREATE table t(a)",
                 "SQL: INSERT INTO t (a) VALUES (1)"])
         }

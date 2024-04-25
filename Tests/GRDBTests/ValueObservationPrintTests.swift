@@ -4,10 +4,9 @@ import Dispatch
 
 class ValueObservationPrintTests: GRDBTestCase {
     class TestStream: TextOutputStream {
-        private var stringsMutex: Mutex<[String]> = Mutex([])
-        var strings: [String] { stringsMutex.value }
+        var strings: [String] = []
         func write(_ string: String) {
-            stringsMutex.value.append(string)
+            strings.append(string)
         }
     }
     

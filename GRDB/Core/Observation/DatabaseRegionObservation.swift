@@ -98,7 +98,7 @@ extension DatabaseRegionObservation {
                 let region = try observedRegion(db).observableRegion(db)
                 stateMutex.withLock { state in
                     let observer = DatabaseRegionObserver(region: region, onChange: {
-                        if case .cancelled = stateMutex.value {
+                        if case .cancelled = stateMutex.load() {
                             return
                         }
                         onChange($0)
@@ -122,7 +122,7 @@ extension DatabaseRegionObservation {
             // Deallocates the transaction observer. This makes sure that the
             // `onChange` callback will never be called again, because the
             // observation was started with the `.observerLifetime` extent.
-            stateMutex.value = .cancelled
+            stateMutex.store(.cancelled)
         }
     }
 }

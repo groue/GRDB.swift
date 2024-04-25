@@ -1084,7 +1084,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             dbPool.asyncConcurrentRead { dbResult in
                 do {
                     let db = try dbResult.get()
-                    isInsideTransactionMutex.value = db.isInsideTransaction
+                    isInsideTransactionMutex.store(db.isInsideTransaction)
                     do {
                         try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
                         XCTFail("Expected error")
@@ -1097,7 +1097,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(isInsideTransactionMutex.value, true)
+        XCTAssertEqual(isInsideTransactionMutex.load(), true)
     }
     
     func testAsyncConcurrentReadOutsideOfTransaction() throws {
@@ -1127,7 +1127,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     _ = s1.wait(timeout: .distantFuture)
                     let db = try dbResult.get()
-                    countMutex.value = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
+                    try countMutex.store(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!)
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -1137,7 +1137,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             s1.signal()
         }
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(countMutex.value, 0)
+        XCTAssertEqual(countMutex.load(), 0)
     }
     
     func testAsyncConcurrentReadError() throws {
@@ -1156,11 +1156,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                         XCTFail("Unexpected result: \(dbResult)")
                         return
                 }
-                readErrorMutex.value = dbError
+                readErrorMutex.store(dbError)
                 expectation.fulfill()
             }
             waitForExpectations(timeout: 1, handler: nil)
-            let readError = try XCTUnwrap(readErrorMutex.value)
+            let readError = try XCTUnwrap(readErrorMutex.load())
             XCTAssertEqual(readError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(readError.message, "database is locked")
         }

@@ -5,15 +5,10 @@ final class Mutex<T> {
     private var _value: T
     private var lock = NSLock()
     
-    var value: T {
-        get { withLock { $0 } }
-        set { withLock { $0 = newValue } }
-    }
-    
     init(_ value: T) {
         _value = value
     }
-
+    
     /// Runs the provided closure while holding a lock on the value.
     ///
     /// - parameter body: A closure that can modify the value.
@@ -21,6 +16,17 @@ final class Mutex<T> {
         lock.lock()
         defer { lock.unlock() }
         return try body(&_value)
+    }
+}
+
+// Inspired by <https://forums.swift.org/t/se-0433-synchronous-mutual-exclusion-lock/71174/58>
+extension Mutex {
+    func load() -> T {
+        withLock { $0 }
+    }
+    
+    func store(_ value: T) {
+        withLock { $0 = value }
     }
 }
 

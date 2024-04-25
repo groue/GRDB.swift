@@ -16,10 +16,10 @@ struct SQLiteDiagnostic {
     var resultCode: ResultCode
     var message: String
 }
-let lastSQLiteDiagnostic = Mutex<SQLiteDiagnostic?>(nil)
+let lastSQLiteDiagnosticMutex = Mutex<SQLiteDiagnostic?>(nil)
 let logErrorSetup: Void = {
     Database.logError = { (resultCode, message) in
-        lastSQLiteDiagnostic.value = SQLiteDiagnostic(resultCode: resultCode, message: message)
+        lastSQLiteDiagnosticMutex.store(SQLiteDiagnostic(resultCode: resultCode, message: message))
     }
 }()
 
@@ -65,10 +65,11 @@ class GRDBTestCase: XCTestCase {
     
     let _sqlQueriesMutex: Mutex<[String]> = Mutex([])
     
+    // TODO: this property is dangerous because it does not expose its critical section
     // Automatically updated by default dbConfiguration
     var sqlQueries: [String] {
-        get { _sqlQueriesMutex.value }
-        set { _sqlQueriesMutex.value = newValue }
+        get { _sqlQueriesMutex.load() }
+        set { _sqlQueriesMutex.store(newValue) }
     }
     
     // Automatically updated by default dbConfiguration

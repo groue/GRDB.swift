@@ -277,11 +277,11 @@ class FTS4TableBuilderTests: GRDBTestCase {
         
         dbConfiguration.prepareDatabase { db in
             db.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
-                compressCalledMutex.value = true
+                compressCalledMutex.store(true)
                 return dbValues[0]
             }))
             db.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
-                uncompressCalledMutex.value = true
+                uncompressCalledMutex.store(true)
                 return dbValues[0]
             }))
         }
@@ -296,12 +296,12 @@ class FTS4TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, compress=\"zipit\", uncompress=\"unzipit\")")
             
             try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["abc"])
-            XCTAssertTrue(compressCalledMutex.value)
+            XCTAssertTrue(compressCalledMutex.load())
         }
         
         try dbPool.read { db in
             _ = try Row.fetchOne(db, sql: "SELECT * FROM documents")
-            XCTAssertTrue(uncompressCalledMutex.value)
+            XCTAssertTrue(uncompressCalledMutex.load())
         }
     }
 }

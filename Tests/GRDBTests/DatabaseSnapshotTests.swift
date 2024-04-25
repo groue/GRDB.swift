@@ -424,7 +424,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch DatabaseError.SQLITE_BUSY { }
         }
-        XCTAssert(lastSQLiteDiagnostic.value!.message.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        XCTAssert(lastSQLiteDiagnosticMutex.load()!.message.contains("unfinalized statement: SELECT * FROM sqlite_master"))
         
         // Database is not closed: no error
         try snapshot.read { db in
