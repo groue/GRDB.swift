@@ -480,7 +480,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     func testUpdateAllWithoutAssignmentDoesNotAccessTheDatabase() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try XCTAssertEqual(Player.updateAll(db, []), 0)
             try XCTAssertEqual(Player.all().updateAll(db, []), 0)
             XCTAssert(sqlQueries.isEmpty)

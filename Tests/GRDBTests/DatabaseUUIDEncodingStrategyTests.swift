@@ -357,7 +357,7 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalUUID<StrategyDeferredToUUID>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
@@ -377,7 +377,7 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalUUID<StrategyUppercaseString>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
@@ -397,7 +397,7 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalUUID<StrategyLowercaseString>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

@@ -20,7 +20,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -99,7 +99,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child", options: .ifNotExists) { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -155,7 +155,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").unique()
@@ -197,7 +197,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", indexed: false)
@@ -239,7 +239,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").notNull()
@@ -295,7 +295,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", onDelete: .cascade, onUpdate: .setNull, deferred: true)
@@ -411,7 +411,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -494,7 +494,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child", options: .ifNotExists) { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -556,7 +556,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").unique()
@@ -604,7 +604,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", indexed: false)
@@ -652,7 +652,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").notNull()
@@ -714,7 +714,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 t.primaryKey("id", .integer)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", onDelete: .cascade, onUpdate: .setNull, deferred: true)
@@ -757,7 +757,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
     func testTable_belongsTo_singleColumnPrimaryKey_autoreference_singular() throws {
         try makeDatabaseQueue().inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.create(table: "employee") { t in
                     t.autoIncrementedPrimaryKey("id")
                     t.column("a")
@@ -786,7 +786,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.create(table: "node") { t in
                     t.primaryKey { t.column("code") }
                     t.column("a")
@@ -820,7 +820,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
     func testTable_belongsTo_singleColumnPrimaryKey_autoreference_plural() throws {
         try makeDatabaseQueue().inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.create(table: "employees") { t in
                     t.autoIncrementedPrimaryKey("id")
                     t.column("a")
@@ -849,7 +849,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.create(table: "nodes") { t in
                     t.primaryKey { t.column("code") }
                     t.column("a")
@@ -913,7 +913,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -1025,7 +1025,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child", options: .ifNotExists) { t in
                 t.column("a")
                 t.belongsTo("parent")
@@ -1107,7 +1107,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").unique()
@@ -1189,7 +1189,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", indexed: false)
@@ -1257,7 +1257,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent").notNull()
@@ -1339,7 +1339,7 @@ class ForeignKeyDefinitionTests: GRDBTestCase {
                 }
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "child") { t in
                 t.column("a")
                 t.belongsTo("parent", onDelete: .cascade, onUpdate: .setNull, deferred: true)

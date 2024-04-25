@@ -180,7 +180,7 @@ class DerivableRequestTests: GRDBTestCase {
                     .forKey("fullName")))
                           
             // ... for one table
-            sqlQueries.removeAll()
+            clearSQLQueries()
             let authorNames = try Author.all()
                 .orderByFullName()
                 .fetchAll(db)
@@ -192,7 +192,7 @@ class DerivableRequestTests: GRDBTestCase {
                 "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             let reversedAuthorNames = try Author.all()
                 .orderByFullName()
                 .reversed()
@@ -205,7 +205,7 @@ class DerivableRequestTests: GRDBTestCase {
                 "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* unorderedAuthors */ = try Author.all()
                 .orderByFullName()
                 .unordered()
@@ -214,7 +214,7 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "author"
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* stableOrderAuthors */ = try Author.all()
                 .withStableOrder()
                 .fetchAll(db)
@@ -222,7 +222,7 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "author" ORDER BY "id"
                 """)
 
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* stableOrderAuthors */ = try Author.all()
                 .orderByFullName()
                 .withStableOrder()
@@ -232,7 +232,7 @@ class DerivableRequestTests: GRDBTestCase {
                 """)
             
             // ... for one view
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* authorViewNames */ = try Table("authorView").all()
                 .order(Column("fullName"))
                 .fetchAll(db)
@@ -241,7 +241,7 @@ class DerivableRequestTests: GRDBTestCase {
                 ORDER BY "fullName"
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* reversedAuthorViewNames */ = try Table("authorView").all()
                 .order(Column("fullName"))
                 .reversed()
@@ -251,7 +251,7 @@ class DerivableRequestTests: GRDBTestCase {
                 ORDER BY "fullName" DESC
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* unorderedAuthorViews */ = try Table("authorView").all()
                 .order(Column("fullName"))
                 .unordered()
@@ -260,7 +260,7 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "authorView"
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* stableOrderAuthorViews */ = try Table("authorView").all()
                 .withStableOrder()
                 .fetchAll(db)
@@ -268,7 +268,7 @@ class DerivableRequestTests: GRDBTestCase {
                 SELECT * FROM "authorView" ORDER BY 1, 2, 3, 4, 5
                 """)
 
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* stableOrderAuthorViews */ = try Table("authorView").all()
                 .order(Column("fullName"))
                 .withStableOrder()
@@ -278,7 +278,7 @@ class DerivableRequestTests: GRDBTestCase {
                 """)
             
             // ... for two tables (2)
-            sqlQueries.removeAll()
+            clearSQLQueries()
             let bookTitles = try Book
                 .joining(required: Book.author.orderByFullName())
                 .orderByTitle()
@@ -294,7 +294,7 @@ class DerivableRequestTests: GRDBTestCase {
                 "author"."firstName" COLLATE swiftLocalizedCaseInsensitiveCompare
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             let reversedBookTitles = try Book
                 .joining(required: Book.author.orderByFullName())
                 .orderByTitle()
@@ -311,7 +311,7 @@ class DerivableRequestTests: GRDBTestCase {
                 "author"."firstName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* unorderedBooks */ = try Book
                 .joining(required: Book.author.orderByFullName())
                 .orderByTitle()
@@ -322,7 +322,7 @@ class DerivableRequestTests: GRDBTestCase {
                 JOIN "author" ON "author"."id" = "book"."authorId"
                 """)
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             _ /* stableOrderBooks */ = try Book
                 .joining(required: Book.author.orderByFullName())
                 .orderByTitle()
@@ -346,7 +346,7 @@ class DerivableRequestTests: GRDBTestCase {
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let request = Author.all().selectCountry()
                 let authorCountries = try Set(String.fetchAll(db, request))
                 XCTAssertEqual(authorCountries, ["FR", "US"])
@@ -356,7 +356,7 @@ class DerivableRequestTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let request = Book.including(required: Book.author.selectCountry())
                 _ = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, """
@@ -373,7 +373,7 @@ class DerivableRequestTests: GRDBTestCase {
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let frenchBookTitles = try Book.all()
                     .filter(authorCountry: "FR")
                     .order(Column("title"))
@@ -389,7 +389,7 @@ class DerivableRequestTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let frenchAuthorFullNames = try Author
                     .joining(required: Author.books.filter(authorCountry: "FR"))
                     .order(Column("firstName"))
@@ -436,7 +436,7 @@ class DerivableRequestTests: GRDBTestCase {
             
             // matchingFts4
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let title = try Book.all()
                     .matchingFts4(FTS3Pattern(rawPattern: "moby dick"))
                     .fetchOne(db)
@@ -448,7 +448,7 @@ class DerivableRequestTests: GRDBTestCase {
                     LIMIT 1
                     """))
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let fullName = try Author
                     .joining(required: Author.books.matchingFts4(FTS3Pattern(rawPattern: "moby dick")))
                     .fetchOne(db)
@@ -465,7 +465,7 @@ class DerivableRequestTests: GRDBTestCase {
             #if SQLITE_ENABLE_FTS5
             // matchingFts5
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let title = try Book.all()
                     .matchingFts5(FTS3Pattern(rawPattern: "cote swann"))
                     .fetchOne(db)
@@ -477,7 +477,7 @@ class DerivableRequestTests: GRDBTestCase {
                     LIMIT 1
                     """))
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let fullName = try Author
                     .joining(required: Author.books.matchingFts5(FTS3Pattern(rawPattern: "cote swann")))
                     .fetchOne(db)

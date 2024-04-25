@@ -1340,7 +1340,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let fullPlayer = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
                 
@@ -1389,7 +1389,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)!
@@ -1442,7 +1442,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
@@ -1479,7 +1479,7 @@ extension PersistableRecordTests {
             do {
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
@@ -1515,7 +1515,7 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
@@ -1565,7 +1565,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1602,7 +1602,7 @@ extension PersistableRecordTests {
             do {
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
                 }
@@ -1638,7 +1638,7 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1974,7 +1974,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let player = FullPlayer(id: 1, name: "Arthur", score: 1000)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2018,7 +2018,7 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let player = FullPlayer(id: 1, name: "Barbara", score: 100)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2077,7 +2077,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let fullPlayer = try partialPlayer.upsertAndFetch(db, as: FullPlayer.self)
                 

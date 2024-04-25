@@ -830,7 +830,7 @@ class TableTests: GRDBTestCase {
                     DELETE FROM "country" WHERE "code" = 'FR'
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<Country>("country").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
                 
@@ -939,7 +939,7 @@ class TableTests: GRDBTestCase {
                     SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try XCTAssertFalse(Table<Country>("country").exists(db, id: nil))
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

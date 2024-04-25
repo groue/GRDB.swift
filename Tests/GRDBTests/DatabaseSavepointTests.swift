@@ -101,7 +101,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
@@ -130,7 +130,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
@@ -159,7 +159,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let observer = Observer()
         dbQueue.add(transactionObserver: observer)
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
@@ -196,7 +196,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
@@ -233,7 +233,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {
@@ -271,7 +271,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
-        sqlQueries.removeAll()
+        clearSQLQueries()
         try dbQueue.writeWithoutTransaction { db in
             try insertItem(db, name: "item1")
             try db.inSavepoint {

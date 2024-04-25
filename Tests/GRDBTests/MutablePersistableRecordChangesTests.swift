@@ -319,14 +319,14 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             try record.insert(db)
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) { _ in }
                 XCTAssertFalse(modified)
                 XCTAssert(sqlQueries.isEmpty)
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Arthur"
                 }
@@ -335,7 +335,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = nil
                 }
@@ -346,7 +346,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Bob"
                     $0.lastName = "Johnson"
@@ -391,14 +391,14 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             try record.insert(db)
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) { _ in }
                 XCTAssertFalse(modified)
                 XCTAssert(sqlQueries.isEmpty)
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Arthur"
                 }
@@ -407,7 +407,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = nil
                 }
@@ -418,7 +418,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Bob"
                     $0.lastName = "Johnson"
@@ -457,14 +457,14 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             try record.insert(db)
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) { _ in }
                 XCTAssertFalse(modified)
                 XCTAssert(sqlQueries.isEmpty)
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Arthur"
                 }
@@ -473,7 +473,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = nil
                 }
@@ -484,7 +484,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Bob"
                     $0.lastName = "Johnson"
@@ -519,14 +519,14 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             try record.insert(db)
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) { _ in }
                 XCTAssertFalse(modified)
                 XCTAssert(sqlQueries.isEmpty)
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Arthur"
                 }
@@ -535,7 +535,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = nil
                 }
@@ -546,7 +546,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let modified = try record.updateChanges(db) {
                     $0.firstName = "Bob"
                     $0.lastName = "Johnson"
