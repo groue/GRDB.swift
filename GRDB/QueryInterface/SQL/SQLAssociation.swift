@@ -49,7 +49,7 @@
 ///             through: Pivot1.hasMany(Pivot2.self),
 ///             via: Pivot2.belongsTo(Destination.self)))
 ///     Origin.including(required: association)
-public struct _SQLAssociation {
+public struct _SQLAssociation: Sendable {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
     var keyPath: [String] { steps.map(\.keyName) }
