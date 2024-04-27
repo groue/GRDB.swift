@@ -10,18 +10,6 @@ import SQLite3
 import XCTest
 import GRDB
 
-private final class TestStream: TextOutputStream {
-    var output: String
-    
-    init() {
-        output = ""
-    }
-    
-    func write(_ string: String) {
-        output.append(string)
-    }
-}
-
 private struct Player: Codable, MutablePersistableRecord {
     static let team = belongsTo(Team.self)
     var id: Int64?
@@ -1305,7 +1293,6 @@ final class DatabaseDumpTests: GRDBTestCase {
             
             let stream = TestStream()
             try db.dumpSchema(to: stream)
-            print(stream.output)
             XCTAssertEqual(stream.output, """
                 sqlite_master
                 CREATE TABLE "document" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "body");
@@ -1340,7 +1327,6 @@ final class DatabaseDumpTests: GRDBTestCase {
         try dbQueue.read { db in
             let stream = TestStream()
             try db.dumpSchema(to: stream)
-            print(stream.output)
             XCTAssertEqual(stream.output, """
                 sqlite_master
                 CREATE TABLE "player" ("id" INTEGER PRIMARY KEY AUTOINCREMENT);
@@ -1509,7 +1495,6 @@ final class DatabaseDumpTests: GRDBTestCase {
             
             let stream = TestStream()
             try db.dumpContent(to: stream)
-            print(stream.output)
             XCTAssertEqual(stream.output, """
                 sqlite_master
                 CREATE TABLE "document" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "body");
@@ -1550,7 +1535,6 @@ final class DatabaseDumpTests: GRDBTestCase {
         try dbQueue.read { db in
             let stream = TestStream()
             try db.dumpContent(to: stream)
-            print(stream.output)
             XCTAssertEqual(stream.output, """
                 sqlite_master
                 CREATE TABLE "player" ("id" INTEGER PRIMARY KEY AUTOINCREMENT);

@@ -278,3 +278,28 @@ struct AnyValueReducerFetcher<Fetched>: _ValueReducerFetcher {
 
 // Assume this is correct :-/
 extension XCTestExpectation: @unchecked Sendable { }
+
+final class TestStream: TextOutputStream, Sendable {
+    private let stringsMutex: Mutex<[String]> = Mutex([])
+    
+    func write(_ string: String) {
+        stringsMutex.withLock { $0.append(string) }
+    }
+    
+    var strings: [String] {
+        stringsMutex.load()
+    }
+    
+    var output: String {
+        strings.joined()
+    }
+
+    @discardableResult
+    func flush() -> [String] {
+        stringsMutex.withLock { strings in
+            let result = strings
+            strings = []
+            return result
+        }
+    }
+}
