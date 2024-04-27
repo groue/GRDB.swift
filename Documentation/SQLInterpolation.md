@@ -395,7 +395,9 @@ This chapter lists all kinds of supported interpolations.
     
     struct AltPlayer: TableRecord {
         static let databaseTableName = "player"
-        static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+        static var databaseSelection: [any SQLSelectable] {
+            [Column("id"), Column("name")]
+        }
     }
     
     // SELECT player.id, player.name FROM player

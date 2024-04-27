@@ -309,7 +309,9 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             struct AltPlayer: TableRecord {
-                static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+                static var databaseSelection: [any SQLSelectable] {
+                    [Column("id"), Column("name")]
+                }
             }
             do {
                 let query: SQL = """

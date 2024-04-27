@@ -134,15 +134,16 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
-    ///     static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [AllColumns()]
+    ///     }
     /// }
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection: [any SQLSelectable] = [
-    ///         Column("id"),
-    ///         Column("name"),
-    ///     ]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Column("id"), Column("name")]
+    ///     }
     /// }
     ///
     /// // SELECT * FROM player
@@ -156,6 +157,19 @@ public protocol TableRecord {
     /// > explicitly declared as `[any SQLSelectable]`. If it is not, the
     /// > Swift compiler may silently miss the protocol requirement,
     /// > resulting in sticky `SELECT *` requests.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseSelection' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[any SQLSelectable]' may have shared
+    /// > // mutable state.
+    /// > static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
 }
 
@@ -243,7 +257,9 @@ extension TableRecord {
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection = [Column("id"), Column("name")]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Column("id"), Column("name")]
+    ///     }
     /// }
     ///
     /// try dbQueue.write { db in
