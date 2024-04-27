@@ -4,7 +4,9 @@ import XCTest
 
 // MARK: - ValueObservationRecorder
 
-public class ValueObservationRecorder<Value> {
+public class ValueObservationRecorder<Value>: @unchecked Sendable {
+    // @unchecked Sendable because mutable state is protected with `lock`.
+    
     private struct RecorderExpectation {
         var expectation: XCTestExpectation
         var remainingCount: Int? // nil for error expectation
