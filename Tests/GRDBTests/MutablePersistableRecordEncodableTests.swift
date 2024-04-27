@@ -655,9 +655,12 @@ extension MutablePersistableRecordEncodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
         }
         
-        static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [
-            testKeyRoot: "GRDB root",
-            testKeyNested: "GRDB nested"]
+        static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
+            [
+                testKeyRoot: "GRDB root",
+                testKeyNested: "GRDB nested",
+            ]
+        }
         
         static func databaseJSONEncoder(for column: String) -> JSONEncoder {
             let encoder = JSONEncoder()
@@ -814,7 +817,9 @@ extension MutablePersistableRecordEncodableTests {
 
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
             static let databaseTableName = "t1"
-            static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [CodingUserInfoKey.testKey: "correct"]
+            static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
+                [CodingUserInfoKey.testKey: "correct"]
+            }
             let nested: NestedStruct?
         }
 

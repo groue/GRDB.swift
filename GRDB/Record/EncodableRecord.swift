@@ -89,7 +89,9 @@ public protocol EncodableRecord {
     ///
     /// struct Player: PersistableRecord, Encodable {
     ///     // Customize the encoder name when encoding a database row
-    ///     static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    ///     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [encoderName: "Database"]
+    ///     }
     ///
     ///     func encode(to encoder: Encoder) throws {
     ///         // Print the encoder name
@@ -108,6 +110,23 @@ public protocol EncodableRecord {
     /// encoder.userInfo = [encoderName: "JSON"]
     /// let data = try encoder.encode(player)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseEncodingUserInfo` property is
+    /// > explicitly declared as `[CodingUserInfoKey: Any]`. If it is not,
+    /// > the Swift compiler may silently miss the protocol requirement.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseEncodingUserInfo' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[CodingUserInfoKey: Any]' may have shared
+    /// > // mutable state.
+    /// > static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    /// > ```
     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// Returns the `JSONEncoder` that encodes the value for a given column.
