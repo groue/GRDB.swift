@@ -2797,7 +2797,9 @@ let player = try decoder.decode(Player.self, from: jsonData)
 
 ```swift
 extension Player: FetchableRecord {
-    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "database row"]
+    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+        [decoderName: "database row"]
+    }
 }
 
 // prints "Decoded from database row"

@@ -1361,9 +1361,12 @@ extension FetchableRecordDecodableTests {
             context = decoder.userInfo[testKeyRoot] as? String
         }
 
-        static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [
-            testKeyRoot: "GRDB root",
-            testKeyNested: "GRDB column or scope"]
+        static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+            [
+                testKeyRoot: "GRDB root",
+                testKeyNested: "GRDB column or scope",
+            ]
+        }
         
         static func databaseJSONDecoder(for column: String) -> JSONDecoder {
             let decoder = JSONDecoder()
@@ -1666,7 +1669,9 @@ extension FetchableRecordDecodableTests {
 
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
             static let databaseTableName = "t1"
-            static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [CodingUserInfoKey.testKey: "correct"]
+            static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+                [CodingUserInfoKey.testKey: "correct"]
+            }
             let nested: NestedStruct?
         }
 

@@ -129,7 +129,9 @@ public protocol FetchableRecord {
     /// // A FetchableRecord + Decodable record
     /// struct Player: FetchableRecord, Decodable {
     ///     // Customize the decoder name when decoding a database row
-    ///     static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    ///     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [decoderName: "Database"]
+    ///     }
     ///
     ///     init(from decoder: Decoder) throws {
     ///         // Print the decoder name
@@ -146,6 +148,23 @@ public protocol FetchableRecord {
     /// decoder.userInfo = [decoderName: "JSON"]
     /// let player = try decoder.decode(Player.self, from: ...)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseDecodingUserInfo` property is
+    /// > explicitly declared as `[CodingUserInfoKey: Any]`. If it is not,
+    /// > the Swift compiler may silently miss the protocol requirement.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseDecodingUserInfo' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[CodingUserInfoKey: Any]' may have shared
+    /// > // mutable state.
+    /// > static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    /// > ```
     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// Returns the `JSONDecoder` that decodes the value for a given column.
