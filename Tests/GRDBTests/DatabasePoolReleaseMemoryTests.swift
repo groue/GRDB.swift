@@ -189,7 +189,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         let s3 = DispatchSemaphore(value: 0)
         // end                      end                     releaseMemory
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -200,7 +200,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
@@ -210,7 +210,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block3 = { () in
+        let block3: @Sendable () -> Void = {
             _ = s3.wait(timeout: .distantFuture)
             dbPool.releaseMemory()
         }
@@ -295,18 +295,18 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         //                              use database
         //                          }
         
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
+        let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
             var dbPool: DatabasePool? = try! self.makeDatabasePool()
             try! dbPool!.write { db in
                 try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
-            let block1 = { () in
+            let block1: @Sendable () -> Void = {
                 _ = s1.wait(timeout: .distantFuture)
                 dbPool = nil
                 s2.signal()
             }
-            let block2 = { [weak dbPool] () in
+            let block2: @Sendable () -> Void = { [weak dbPool] () in
                 if let dbPool {
                     try! dbPool.read { db in
                         s1.signal()
@@ -341,14 +341,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         let s2 = DispatchSemaphore(value: 0)
         //                          dbPool is nil
         
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
+        let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
             var dbPool: DatabasePool? = try! self.makeDatabasePool()
-            let block1 = { () in
+            let block1: @Sendable () -> Void = {
                 _ = s1.wait(timeout: .distantFuture)
                 dbPool = nil
                 s2.signal()
             }
-            let block2 = { [weak dbPool] () in
+            let block2: @Sendable () -> Void = { [weak dbPool] () in
                 var statement: Statement? = nil
                 do {
                     if let dbPool {

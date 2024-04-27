@@ -273,7 +273,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                 })
             }
             
-            let block1 = {
+            let block1: @Sendable () -> Void = {
                 do {
                     _ = try dbQueue.inDatabase {
                         try Row.fetchAll($0, sql: "SELECT wait()")
@@ -285,7 +285,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                     XCTFail("Unexpected error: \(error)")
                 }
             }
-            let block2 = {
+            let block2: @Sendable () -> Void = {
                 semaphore1.wait()
                 dbQueue.suspend()
                 semaphore2.signal()
@@ -315,7 +315,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                 return nil
             })
         }
-        let block1 = {
+        let block1: @Sendable () -> Void = {
             do {
                 try dbQueue.inTransaction { db in
                     do {
@@ -332,7 +332,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                 XCTFail("Unexpected error: \(error)")
             }
         }
-        let block2 = {
+        let block2: @Sendable () -> Void = {
             semaphore1.wait()
             dbQueue.suspend()
             semaphore2.signal()
@@ -359,7 +359,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                     return nil
                 })
             }
-            let block1 = {
+            let block1: @Sendable () -> Void = {
                 do {
                     try dbQueue.write { db in
                         try db.execute(sql: "INSERT INTO t SELECT wait()")
@@ -374,7 +374,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                     XCTFail("Unexpected error: \(error)")
                 }
             }
-            let block2 = {
+            let block2: @Sendable () -> Void = {
                 semaphore1.wait()
                 dbQueue.suspend()
                 semaphore2.signal()
@@ -404,7 +404,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                     return nil
                 })
             }
-            let block1 = {
+            let block1: @Sendable () -> Void = {
                 do {
                     try dbQueue.write { db in
                         do {
@@ -435,7 +435,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
                     XCTFail("Unexpected error: \(error)")
                 }
             }
-            let block2 = {
+            let block2: @Sendable () -> Void = {
                 semaphore1.wait()
                 dbQueue.suspend()
                 semaphore2.signal()

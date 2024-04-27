@@ -48,7 +48,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
         // step                     end
         // end
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -59,7 +59,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)

@@ -282,7 +282,7 @@ class DatabaseQueueTests: GRDBTestCase {
         let s3 = DispatchSemaphore(value: 0)
         //                              COMMIT
 
-        let block1 = {
+        let block1: @Sendable () -> Void = {
             try! dbQueue1.inDatabase { db in
                 try db.inTransaction(.deferred) {
                     try db.execute(sql: "SELECT * FROM sqlite_master")
@@ -300,7 +300,7 @@ class DatabaseQueueTests: GRDBTestCase {
             }
         }
         
-        let block2 = {
+        let block2: @Sendable () -> Void = {
             try! dbQueue2.inDatabase { db in
                 s1.wait()
                 try db.inTransaction(.deferred) {
@@ -336,7 +336,7 @@ class DatabaseQueueTests: GRDBTestCase {
         // WRITE -> SQLITE_BUSY because write lock can't be acquired,
         // even though DB2 does no longer hold any lock.
 
-        let block1 = {
+        let block1: @Sendable () -> Void = {
             try! dbQueue1.inDatabase { db in
                 try db.inTransaction(.deferred) {
                     try db.execute(sql: "SELECT * FROM sqlite_master")
@@ -353,7 +353,7 @@ class DatabaseQueueTests: GRDBTestCase {
             }
         }
         
-        let block2 = {
+        let block2: @Sendable () -> Void = {
             try! dbQueue2.inDatabase { db in
                 s1.wait()
                 try db.execute(sql: "CREATE TABLE test2(a)")

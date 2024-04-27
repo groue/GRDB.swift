@@ -35,7 +35,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
@@ -49,7 +49,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(sql: "END")
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
@@ -97,7 +97,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
@@ -112,7 +112,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(sql: "END")
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
@@ -162,7 +162,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
@@ -176,7 +176,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(sql: "END")
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
             let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
@@ -278,14 +278,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let s1 = DispatchSemaphore(value: 0)
         //                                  dbPool.read // throws
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.writeWithoutTransaction { db in
                 try db.execute(sql: "PRAGMA locking_mode=EXCLUSIVE")
                 try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 s1.signal()
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             do {
                 try dbPool.read { _ in }
@@ -326,7 +326,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // end                          }
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -337,7 +337,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -376,7 +376,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // end
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -386,7 +386,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -426,7 +426,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // end
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -436,7 +436,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -476,7 +476,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // SELECT COUNT(*) FROM items -> 0
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -489,7 +489,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 try dbPool.writeWithoutTransaction { db in
@@ -527,7 +527,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // SELECT COUNT(*) FROM items -> 0
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
                 s1.signal()
@@ -535,7 +535,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -578,7 +578,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         //                              SELECT COUNT(*) FROM items -> 1
         //                              }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             do {
                 try dbPool.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
@@ -593,7 +593,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTFail("error: \(error)")
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
@@ -638,7 +638,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         //                              SELECT COUNT(*) FROM items -> 0
         //                              }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             do {
                 try dbPool.writeInTransaction(.immediate) { db in
                     try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
@@ -654,7 +654,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTFail("error: \(error)")
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
@@ -695,7 +695,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // SELECT COUNT(*) FROM items -> 0
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.unsafeRead { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -706,7 +706,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -746,7 +746,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // end
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.unsafeRead { db in
                 let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
@@ -756,7 +756,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -792,7 +792,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // SELECT COUNT(*) FROM items -> 1
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.unsafeRead { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
                 s1.signal()
@@ -800,7 +800,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 defer { s2.signal() }
@@ -885,7 +885,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 XCTAssertEqual(db.configuration.label, nil)
                 XCTAssertEqual(db.description, "GRDB.DatabasePool.reader.1")
@@ -899,7 +899,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 _ = s2.wait(timeout: .distantFuture)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 _ = s2.signal()
@@ -933,7 +933,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.read { db in
                 XCTAssertEqual(db.configuration.label, "Toreador")
                 XCTAssertEqual(db.description, "Toreador.reader.1")
@@ -947,7 +947,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 _ = s2.wait(timeout: .distantFuture)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 _ = s2.signal()
