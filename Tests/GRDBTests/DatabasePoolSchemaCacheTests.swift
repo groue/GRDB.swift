@@ -113,14 +113,14 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
 //        let s1 = DispatchSemaphore(value: 0)
 //        //                                      SELECT 1 FROM items WHERE id = 1
 //
-//        let block1 = { () in
+//        let block1: @Sendable () -> Void = {
 //            try! dbPool.read { db in
 //                let stmt = try! db.cachedStatement(sql: "SELECT * FROM items")
 //                XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
 //                s1.signal()
 //            }
 //        }
-//        let block2 = { () in
+//        let block2: @Sendable () -> Void = {
 //            try! dbPool.read { db in
 //                _ = s1.wait(timeout: .distantFuture)
 //                let stmt = try! db.cachedStatement(sql: "SELECT * FROM items")
@@ -155,7 +155,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let s4 = DispatchSemaphore(value: 0)
         // table exists: false
 
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             try! dbPool.writeWithoutTransaction { db in
                 try db.execute(sql: "CREATE TABLE foo(id INTEGER PRIMARY KEY)")
                 // warm cache
@@ -173,7 +173,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertNil(db.schemaCache[.main].primaryKey("foo"))
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.

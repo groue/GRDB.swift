@@ -51,18 +51,18 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         //                              use database
         //                          }
         
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
+        let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
             var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             try! dbQueue!.write { db in
                 try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
-            let block1 = { () in
+            let block1: @Sendable () -> Void = {
                 _ = s1.wait(timeout: .distantFuture)
                 dbQueue = nil
                 s2.signal()
             }
-            let block2 = { [weak dbQueue] () in
+            let block2: @Sendable () -> Void = { [weak dbQueue] () in
                 if let dbQueue {
                     try! dbQueue.write { db in
                         s1.signal()
@@ -97,15 +97,15 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         let s2 = DispatchSemaphore(value: 0)
         //                          dbQueue is nil
         
-        let (block1, block2) = { () -> (() -> (), () -> ()) in
+        let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
             var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             
-            let block1 = { () in
+            let block1: @Sendable () -> Void = {
                 _ = s1.wait(timeout: .distantFuture)
                 dbQueue = nil
                 s2.signal()
             }
-            let block2 = { [weak dbQueue] () in
+            let block2: @Sendable () -> Void = { [weak dbQueue] () in
                 var statement: Statement? = nil
                 do {
                     if let dbQueue {

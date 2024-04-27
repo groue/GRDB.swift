@@ -189,7 +189,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         // SELECT COUNT(*) FROM items -> 0
         // }
         
-        let block1 = { () in
+        let block1: @Sendable () -> Void = {
             let snapshot = try! dbPool.makeSnapshot()
             try! snapshot.read { db in
                 s1.signal()
@@ -202,7 +202,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
-        let block2 = { () in
+        let block2: @Sendable () -> Void = {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 try dbPool.writeWithoutTransaction { db in

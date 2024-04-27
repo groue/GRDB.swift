@@ -183,14 +183,14 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         // end                          end
         // }
         
-        let block1: () -> Void = {
+        let block1: @Sendable () -> Void = {
             try! snapshot.read { db -> Void in
                 try XCTAssertEqual(counter.value(db), 1)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
             }
         }
-        let block2: () -> Void = {
+        let block2: @Sendable () -> Void = {
             _ = s1.wait(timeout: .distantFuture)
             try! snapshot.read { db -> Void in
                 try XCTAssertEqual(counter.value(db), 1)
