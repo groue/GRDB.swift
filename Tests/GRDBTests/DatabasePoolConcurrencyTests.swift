@@ -968,7 +968,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     @MainActor
     func testTargetQueue() throws {
-        func test(targetQueue: DispatchQueue) throws {
+        @Sendable func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
             let dbPool = try makeDatabasePool()
             try dbPool.write { _ in
@@ -993,7 +993,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     @MainActor
     func testWriteTargetQueue() throws {
-        func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
+        @Sendable func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
             dbConfiguration.writeTargetQueue = writeTargetQueue
             let dbPool = try makeDatabasePool()
