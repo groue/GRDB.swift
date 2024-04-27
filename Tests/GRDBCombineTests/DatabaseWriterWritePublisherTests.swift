@@ -131,6 +131,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherIsAsynchronous() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
@@ -167,6 +168,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherDefaultScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
@@ -205,6 +207,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testWritePublisherCustomScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")

@@ -156,6 +156,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testReadPublisherIsAsynchronous() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
@@ -196,6 +197,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testReadPublisherDefaultScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
@@ -236,6 +238,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     
     // MARK: -
     
+    @MainActor
     func testReadPublisherCustomScheduler() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")

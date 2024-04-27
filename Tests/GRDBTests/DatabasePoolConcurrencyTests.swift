@@ -966,6 +966,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testTargetQueue() throws {
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
@@ -990,6 +991,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         waitForExpectations(timeout: 2, handler: nil)
     }
     
+    @MainActor
     func testWriteTargetQueue() throws {
         func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
@@ -1076,6 +1078,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     // MARK: - AsyncConcurrentRead
     
+    @MainActor
     func testAsyncConcurrentReadOpensATransaction() throws {
         let dbPool = try makeDatabasePool()
         let isInsideTransactionMutex: Mutex<Bool?> = Mutex(nil)
@@ -1100,6 +1103,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(isInsideTransactionMutex.load(), true)
     }
     
+    @MainActor
     func testAsyncConcurrentReadOutsideOfTransaction() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -1140,6 +1144,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(countMutex.load(), 0)
     }
     
+    @MainActor
     func testAsyncConcurrentReadError() throws {
         // Necessary for this test to run as quickly as possible
         dbConfiguration.readonlyBusyMode = .immediateError
@@ -1151,23 +1156,24 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             dbPool.asyncConcurrentRead { dbResult in
                 guard case let .failure(error) = dbResult,
-                    let dbError = error as? DatabaseError
-                    else {
-                        XCTFail("Unexpected result: \(dbResult)")
-                        return
+                      let dbError = error as? DatabaseError
+                else {
+                    XCTFail("Unexpected result: \(dbResult)")
+                    return
                 }
                 readErrorMutex.store(dbError)
                 expectation.fulfill()
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            let readError = try XCTUnwrap(readErrorMutex.load())
-            XCTAssertEqual(readError.resultCode, .SQLITE_BUSY)
-            XCTAssertEqual(readError.message, "database is locked")
         }
+        waitForExpectations(timeout: 1, handler: nil)
+        let readError = try XCTUnwrap(readErrorMutex.load())
+        XCTAssertEqual(readError.resultCode, .SQLITE_BUSY)
+        XCTAssertEqual(readError.message, "database is locked")
     }
     
     // MARK: - Barrier
     
+    @MainActor
     func testBarrierLocksReads() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true
@@ -1211,6 +1217,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(fetchedValue, 1)
     }
     
+    @MainActor
     func testBarrierIsLockedByOneUnfinishedRead() throws {
         let expectation = self.expectation(description: "lock")
         expectation.isInverted = true

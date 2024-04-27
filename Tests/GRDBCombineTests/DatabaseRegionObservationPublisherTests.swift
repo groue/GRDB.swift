@@ -60,6 +60,7 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
     //
     // TODO: do the same, but asynchronously. If this is too hard, update the
     // public API so that users can easily do it.
+    @MainActor
     func testPrependInitialDatabaseSync() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Combine is not available")
