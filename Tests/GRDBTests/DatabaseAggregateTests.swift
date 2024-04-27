@@ -521,99 +521,137 @@ class DatabaseAggregateTests: GRDBTestCase {
     
     func testDeallocationAfterSuccess() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
-            init() { Aggregate.onInit?() }
-            deinit { Aggregate.onDeinit?() }
+            struct Allocations {
+                var totalCount: Int
+                var aliveCount: Int
+            }
+            static let allocationsMutex = Mutex(Allocations(totalCount: 0, aliveCount: 0))
+            
+            init() {
+                Self.allocationsMutex.withLock {
+                    $0.totalCount += 1
+                    $0.aliveCount += 1
+                }
+            }
+            
+            deinit {
+                Self.allocationsMutex.withLock {
+                    $0.aliveCount -= 1
+                }
+            }
+            
             func step(_ dbValues: [DatabaseValue]) { }
             func finalize() -> (any DatabaseValueConvertible)? { nil }
-        }
-        var allocationCount = 0
-        var aliveCount = 0
-        Aggregate.onInit = {
-            allocationCount += 1
-            aliveCount += 1
-        }
-        Aggregate.onDeinit = {
-            aliveCount -= 1
         }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
             db.add(function: fn)
-            XCTAssertEqual(allocationCount, 0)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 0)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
+            
             try db.execute(sql: "SELECT f()")
-            XCTAssertEqual(allocationCount, 1)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 1)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
         }
     }
     
     func testDeallocationAfterStepError() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
-            init() { Aggregate.onInit?() }
-            deinit { Aggregate.onDeinit?() }
+            struct Allocations {
+                var totalCount: Int
+                var aliveCount: Int
+            }
+            static let allocationsMutex = Mutex(Allocations(totalCount: 0, aliveCount: 0))
+            
+            init() {
+                Self.allocationsMutex.withLock {
+                    $0.totalCount += 1
+                    $0.aliveCount += 1
+                }
+            }
+            
+            deinit {
+                Self.allocationsMutex.withLock {
+                    $0.aliveCount -= 1
+                }
+            }
+            
             func step(_ dbValues: [DatabaseValue]) throws {
                 throw DatabaseError(message: "boo")
             }
             func finalize() -> (any DatabaseValueConvertible)? { fatalError() }
-        }
-        var allocationCount = 0
-        var aliveCount = 0
-        Aggregate.onInit = {
-            allocationCount += 1
-            aliveCount += 1
-        }
-        Aggregate.onDeinit = {
-            aliveCount -= 1
         }
         
         let dbQueue = try makeDatabaseQueue()
         dbQueue.inDatabase { db in
             let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
             db.add(function: fn)
-            XCTAssertEqual(allocationCount, 0)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 0)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
+            
             _ = try? db.execute(sql: "SELECT f()")
-            XCTAssertEqual(allocationCount, 1)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 1)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
         }
     }
     
     func testDeallocationAfterResultError() throws {
         final class Aggregate : DatabaseAggregate {
-            static var onInit: (() -> ())?
-            static var onDeinit: (() -> ())?
-            init() { Aggregate.onInit?() }
-            deinit { Aggregate.onDeinit?() }
+            struct Allocations {
+                var totalCount: Int
+                var aliveCount: Int
+            }
+            static let allocationsMutex = Mutex(Allocations(totalCount: 0, aliveCount: 0))
+            
+            init() {
+                Self.allocationsMutex.withLock {
+                    $0.totalCount += 1
+                    $0.aliveCount += 1
+                }
+            }
+            
+            deinit {
+                Self.allocationsMutex.withLock {
+                    $0.aliveCount -= 1
+                }
+            }
+            
             func step(_ dbValues: [DatabaseValue]) { }
             func finalize() throws -> (any DatabaseValueConvertible)? {
                 throw DatabaseError(message: "boo")
             }
         }
         
-        var allocationCount = 0
-        var aliveCount = 0
-        Aggregate.onInit = {
-            allocationCount += 1
-            aliveCount += 1
-        }
-        Aggregate.onDeinit = {
-            aliveCount -= 1
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         dbQueue.inDatabase { db in
             let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
             db.add(function: fn)
-            XCTAssertEqual(allocationCount, 0)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 0)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
+            
             _ = try? db.execute(sql: "SELECT f()")
-            XCTAssertEqual(allocationCount, 1)
-            XCTAssertEqual(aliveCount, 0)
+            do {
+                let allocations = Aggregate.allocationsMutex.load()
+                XCTAssertEqual(allocations.totalCount, 1)
+                XCTAssertEqual(allocations.aliveCount, 0)
+            }
         }
     }
 }
