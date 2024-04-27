@@ -46,6 +46,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     }
     
 #if os(iOS)
+    @MainActor
     func testDatabasePoolReleasesMemoryOnPressureEvent() throws {
         // Create a database pool, and expect a reader connection to be closed
         let expectation = self.expectation(description: "Reader connection closed")
@@ -79,6 +80,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testDatabasePoolDoesNotReleaseMemoryOnPressureEventIfDisabled() throws {
         // Create a database pool, and do not expect any reader connection to be closed
         let expectation = self.expectation(description: "Reader connection closed")
@@ -115,6 +117,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/pull/1253#issuecomment-1177166630>
+    @MainActor
     func testDatabasePoolDoesNotPreventConcurrentReadsOnPressureEvent() throws {
         let dbPool = try makeDatabasePool()
         

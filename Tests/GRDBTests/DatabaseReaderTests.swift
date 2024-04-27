@@ -220,6 +220,7 @@ class DatabaseReaderTests : GRDBTestCase {
     
     // MARK: - AsyncRead
     
+    @MainActor
     func testAsyncRead() throws {
         func test(_ dbReader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
@@ -249,6 +250,7 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
+    @MainActor
     func testAsyncReadPreventsDatabaseModification() throws {
         func test(_ dbReader: some DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")

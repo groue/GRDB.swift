@@ -22,6 +22,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     
     // MARK: - Readonly
     
+    @MainActor
     func test_readonly_success_asynchronousScheduling() throws {
         let dbPool = try makeDatabasePool(filename: "test")
         try dbPool.write { db in
@@ -59,6 +60,7 @@ class ValueObservationPrintTests: GRDBTestCase {
 #endif
     }
     
+    @MainActor
     func test_readonly_success_immediateScheduling() throws {
         let dbPool = try makeDatabasePool(filename: "test")
         try dbPool.write { db in
@@ -96,6 +98,7 @@ class ValueObservationPrintTests: GRDBTestCase {
 #endif
     }
     
+    @MainActor
     func test_readonly_failure_asynchronousScheduling() throws {
         struct TestError: Error { }
         let dbPool = try makeDatabasePool(filename: "test")
@@ -134,6 +137,7 @@ class ValueObservationPrintTests: GRDBTestCase {
 #endif
     }
     
+    @MainActor
     func test_readonly_failure_immediateScheduling() throws {
         struct TestError: Error { }
         let dbPool = try makeDatabasePool(filename: "test")
@@ -174,6 +178,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     
     // MARK: - Writeonly
     
+    @MainActor
     func test_writeonly_success_asynchronousScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
@@ -216,6 +221,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func test_writeonly_success_immediateScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
@@ -258,6 +264,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func test_writeonly_immediateFailure_asynchronousScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let logger = TestStream()
@@ -285,6 +292,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func test_writeonly_immediateFailure_immediateScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             let logger = TestStream()
@@ -312,6 +320,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func test_writeonly_lateFailure_asynchronousScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
@@ -355,6 +364,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @MainActor
     func test_writeonly_lateFailure_immediateScheduling() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write { db in
@@ -400,6 +410,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     
     // MARK: - Concurrent
     
+    @MainActor
     func test_concurrent_success_asynchronousScheduling() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -450,6 +461,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func test_concurrent_success_immediateScheduling() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -498,6 +510,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     
     // MARK: - Varying Database Region
     
+    @MainActor
     func test_varyingRegion() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -554,6 +567,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     
     // MARK: - Variations
     
+    @MainActor
     func test_prefix() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -588,6 +602,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
     }
 
+    @MainActor
     func test_chain() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -624,6 +639,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func test_handleEvents() throws {
         func waitFor<R: ValueReducer>(_ observation: ValueObservation<R>) throws {
             let dbQueue = try makeDatabaseQueue()

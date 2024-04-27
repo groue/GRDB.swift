@@ -119,6 +119,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             onChange: { (int: Int, string: String) in }) // <- destructure
     }
     
+    @MainActor
     func testVaryingRegionTrackingImmediateScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -174,6 +175,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testVaryingRegionTrackingAsyncScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

@@ -151,6 +151,7 @@ class DatabaseQueueTests: GRDBTestCase {
         }
     }
     
+    @MainActor
     func testTargetQueue() throws {
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
@@ -175,6 +176,7 @@ class DatabaseQueueTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    @MainActor
     func testWriteTargetQueue() throws {
         func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue // unused
