@@ -234,7 +234,9 @@ extension ValueObservation: Refinable {
         to stream: TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let streamMutex = Mutex(stream ?? PrintOutputStream())
+        // Safe because we don't escape the stream from the mutex
+        let streamMutex = UnsafeSendableMutex(stream ?? PrintOutputStream())
+        
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         return handleEvents(
             willStart: {
