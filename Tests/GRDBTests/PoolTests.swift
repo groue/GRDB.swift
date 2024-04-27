@@ -99,7 +99,7 @@ class PoolTests: XCTestCase {
         expectation.isInverted = true
         
         let pool = makeCounterPool(maximumCount: 1)
-        var element: Int?
+        let elementMutex: Mutex<Int?> = Mutex(nil)
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
         let s3 = DispatchSemaphore(value: 0)
@@ -116,7 +116,7 @@ class PoolTests: XCTestCase {
             s1.wait()
             
             let first = try! pool.get()
-            element = first.element
+            elementMutex.store(first.element)
             first.release(.reuse)
             expectation.fulfill()
             s3.signal()
@@ -130,7 +130,7 @@ class PoolTests: XCTestCase {
         
         // Wait for get() to complete
         s3.wait()
-        XCTAssertEqual(element, 1)
+        XCTAssertEqual(elementMutex.load(), 1)
     }
     
     @MainActor
