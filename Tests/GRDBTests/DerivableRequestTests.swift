@@ -39,7 +39,7 @@ private struct BookFts4: TableRecord { }
 private struct BookFts5: TableRecord { }
 #endif
 
-private var libraryMigrator: DatabaseMigrator = {
+private let libraryMigrator: DatabaseMigrator = {
     var migrator = DatabaseMigrator()
     migrator.registerMigration("library") { db in
         try db.create(table: "author") { t in
