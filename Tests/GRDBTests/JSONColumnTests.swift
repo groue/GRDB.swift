@@ -28,7 +28,7 @@ final class JSONColumnTests: GRDBTestCase {
                 static let info = JSONColumn(CodingKeys.info)
             }
             
-            static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.info]
+            static var databaseSelection: [any SQLSelectable] { [Columns.id, Columns.info] }
         }
         
         let dbQueue = try makeDatabaseQueue()

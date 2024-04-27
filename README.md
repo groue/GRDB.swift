@@ -3280,12 +3280,15 @@ extension Place: TableRecord {
     }
     
     /// Arrange the selected columns and lock their order
-    static let databaseSelection: [any SQLSelectable] = [
-        Columns.id,
-        Columns.title,
-        Columns.favorite,
-        Columns.latitude,
-        Columns.longitude]
+    static var databaseSelection: [any SQLSelectable] {
+        [
+            Columns.id,
+            Columns.title,
+            Columns.favorite,
+            Columns.latitude,
+            Columns.longitude,
+        ]
+    }
 }
 
 // Fetching methods
@@ -3973,12 +3976,12 @@ The default selection for a record type is controlled by the `databaseSelection`
 ```swift
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+    static var databaseSelection: [any SQLSelectable] { [Column("id"), Column("name")] }
 }
 
 struct ExtendedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
 }
 
 // SELECT id, name FROM player
