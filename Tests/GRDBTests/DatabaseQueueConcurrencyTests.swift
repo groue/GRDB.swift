@@ -81,7 +81,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        let concurrencyErrorMutex: Mutex<DatabaseError?> = Mutex(nil)
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -94,7 +94,7 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s4.signal()
-                concurrencyError = error
+                concurrencyErrorMutex.store(error)
             }
             catch {
                 XCTFail("\(error)")
@@ -103,7 +103,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError {
+        if let concurrencyError = concurrencyErrorMutex.load() {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
         } else {
@@ -140,7 +140,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        let concurrencyErrorMutex: Mutex<DatabaseError?> = Mutex(nil)
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -150,7 +150,7 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s2.signal()
-                concurrencyError = error
+                concurrencyErrorMutex.store(error)
             }
             catch {
                 XCTFail("\(error)")
@@ -159,7 +159,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError {
+        if let concurrencyError = concurrencyErrorMutex.load() {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
         } else {
@@ -196,7 +196,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var concurrencyError: DatabaseError? = nil
+        let concurrencyErrorMutex: Mutex<DatabaseError?> = Mutex(nil)
         queue.async(group: group) {
             do {
                 _ = s1.wait(timeout: .distantFuture)
@@ -206,7 +206,7 @@ class ConcurrencyTests: GRDBTestCase {
             }
             catch let error as DatabaseError {
                 s2.signal()
-                concurrencyError = error
+                concurrencyErrorMutex.store(error)
             }
             catch {
                 XCTFail("\(error)")
@@ -215,7 +215,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        if let concurrencyError {
+        if let concurrencyError = concurrencyErrorMutex.load() {
             XCTAssertEqual(concurrencyError.resultCode, .SQLITE_BUSY)
             XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
         } else {

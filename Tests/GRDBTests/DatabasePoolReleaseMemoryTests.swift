@@ -296,7 +296,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         //                          }
         
         let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
-            var dbPool: DatabasePool? = try! self.makeDatabasePool()
+            nonisolated(unsafe) var dbPool: DatabasePool? = try! self.makeDatabasePool()
+            
             try! dbPool!.write { db in
                 try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
@@ -342,7 +343,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         //                          dbPool is nil
         
         let (block1, block2) = { () -> (@Sendable () -> (), @Sendable () -> ()) in
-            var dbPool: DatabasePool? = try! self.makeDatabasePool()
+            nonisolated(unsafe) var dbPool: DatabasePool? = try! self.makeDatabasePool()
+            
             let block1: @Sendable () -> Void = {
                 _ = s1.wait(timeout: .distantFuture)
                 dbPool = nil

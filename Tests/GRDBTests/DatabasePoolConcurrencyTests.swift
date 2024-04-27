@@ -1182,7 +1182,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
         }
-        var fetchedValue: Int?
+        let fetchedValueMutex: Mutex<Int?> = Mutex(nil)
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
         let s3 = DispatchSemaphore(value: 0)
@@ -1199,9 +1199,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // Wait for barrier to start
             s1.wait()
             
-            fetchedValue = try! dbPool.read { db in
+            let fetchedValue = try! dbPool.read { db in
                 try Int.fetchOne(db, sql: "SELECT id FROM items")!
             }
+            fetchedValueMutex.store(fetchedValue)
             expectation.fulfill()
             s3.signal()
         }
@@ -1214,7 +1215,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         // Wait for read to complete
         s3.wait()
-        XCTAssertEqual(fetchedValue, 1)
+        XCTAssertEqual(fetchedValueMutex.load(), 1)
     }
     
     @MainActor
