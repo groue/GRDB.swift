@@ -1,18 +1,6 @@
 import XCTest
 import GRDB
 
-private final class TestStream: TextOutputStream {
-    var output: String
-    
-    init() {
-        output = ""
-    }
-    
-    func write(_ string: String) {
-        output.append(string)
-    }
-}
-
 final class DatabaseQueueInMemoryCopyTests: GRDBTestCase {
     private func makeSourceDatabase() throws -> DatabaseQueue {
         let dbQueue = try makeDatabaseQueue()

@@ -3,13 +3,6 @@ import Dispatch
 @testable import GRDB
 
 class ValueObservationPrintTests: GRDBTestCase {
-    class TestStream: TextOutputStream {
-        var strings: [String] = []
-        func write(_ string: String) {
-            strings.append(string)
-        }
-    }
-    
     /// Helps dealing with various SQLite versions
     private func region(sql: String, in dbReader: some DatabaseReader) throws -> String {
         try dbReader.read { db in

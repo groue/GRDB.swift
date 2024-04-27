@@ -176,13 +176,6 @@ class ValueObservationTests: GRDBTestCase {
     // MARK: - Constant Explicit Region
     
     func testTrackingExplicitRegion() throws {
-        class TestStream: TextOutputStream {
-            var strings: [String] = []
-            func write(_ string: String) {
-                strings.append(string)
-            }
-        }
-        
         // Test behavior with DatabaseQueue, DatabasePool, etc
         do {
             try assertValueObservation(

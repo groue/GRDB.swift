@@ -1,18 +1,6 @@
 import XCTest
 import GRDB
 
-private final class TestStream: TextOutputStream {
-    var output: String
-    
-    init() {
-        output = ""
-    }
-    
-    func write(_ string: String) {
-        output.append(string)
-    }
-}
-
 private struct Player: Codable, MutablePersistableRecord {
     var id: Int64?
     var name: String
