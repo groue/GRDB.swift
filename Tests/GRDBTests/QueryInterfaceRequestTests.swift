@@ -21,8 +21,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     override func setUp() {
         super.setUp()
-        dbConfiguration.prepareDatabase { db in
-            db.add(collation: self.collation)
+        dbConfiguration.prepareDatabase { [collation] db in
+            db.add(collation: collation)
         }
     }
     
