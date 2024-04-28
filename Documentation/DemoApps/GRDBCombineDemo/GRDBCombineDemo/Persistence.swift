@@ -17,11 +17,6 @@ extension AppDatabase {
                 appropriateFor: nil, create: true)
             let directoryURL = appSupportURL.appendingPathComponent("Database", isDirectory: true)
             
-            // Support for tests: delete the database if requested
-            if CommandLine.arguments.contains("-reset") {
-                try? fileManager.removeItem(at: directoryURL)
-            }
-            
             // Create the database folder if needed
             try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
             
@@ -34,18 +29,7 @@ extension AppDatabase {
                 configuration: AppDatabase.makeConfiguration())
             
             // Create the AppDatabase
-            let appDatabase = try AppDatabase(dbPool)
-            
-            // Prepare the database with test fixtures if requested
-            if CommandLine.arguments.contains("-fixedTestData") {
-                try appDatabase.createPlayersForUITests()
-            } else {
-                // Otherwise, populate the database if it is empty, for better
-                // demo purpose.
-                try appDatabase.createRandomPlayersIfEmpty()
-            }
-            
-            return appDatabase
+            return try AppDatabase(dbPool)
         } catch {
             // Replace this implementation with code to handle the error appropriately.
             // fatalError() causes the application to generate a crash log and terminate.

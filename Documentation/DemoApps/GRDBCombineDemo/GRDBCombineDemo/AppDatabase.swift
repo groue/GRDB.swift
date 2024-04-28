@@ -41,7 +41,7 @@ struct AppDatabase {
 // MARK: - Database Configuration
 
 extension AppDatabase {
-    private static let sqlLogger = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "SQL")
+    private static let sqlLogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SQL")
     
     /// Returns a database configuration suited for `PlayerRepository`.
     ///
@@ -62,12 +62,12 @@ extension AppDatabase {
         // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/trace(options:_:)>
         if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
             config.prepareDatabase { db in
-                db.trace {
+                db.trace { event in
                     // It's ok to log statements publicly. Sensitive
                     // information (statement arguments) are not logged
                     // unless config.publicStatementArguments is set
                     // (see below).
-                    os_log("%{public}@", log: sqlLogger, type: .debug, String(describing: $0))
+                    sqlLogger.debug("\(String(describing: event))")
                 }
             }
         }
@@ -82,6 +82,9 @@ extension AppDatabase {
         return config
     }
 }
+
+// Safe according to <https://forums.developer.apple.com/forums/thread/747816>
+extension Logger: @unchecked Sendable { }
 
 // MARK: - Database Migrations
 
