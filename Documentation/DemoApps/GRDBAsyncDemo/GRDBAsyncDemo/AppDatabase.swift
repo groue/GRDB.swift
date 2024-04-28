@@ -1,6 +1,6 @@
 import Foundation
 import GRDB
-import os.log
+@preconcurrency import os.log
 
 /// A database of players.
 ///
