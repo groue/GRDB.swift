@@ -1,4 +1,5 @@
 // Inspired by https://github.com/groue/CombineExpectations
+@preconcurrency import Dispatch // avoid warning about non-Sendable DispatchSpecificKey 🙄
 import XCTest
 @testable import GRDB
 
