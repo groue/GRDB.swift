@@ -1,25 +1,7 @@
 import XCTest
 import GRDB
 
-class ConcurrencyTests: GRDBTestCase {
-    var busyCallback: Database.BusyCallback?
-    
-    override func setUp() {
-        super.setUp()
-        
-        self.busyCallback = nil
-        let busyCallback: Database.BusyCallback = { numberOfTries in
-            if let busyCallback = self.busyCallback {
-                return busyCallback(numberOfTries)
-            } else {
-                // Default give up
-                return false
-            }
-        }
-        
-        dbConfiguration.busyMode = .callback(busyCallback)
-    }
-    
+class DatabaseQueueConcurrencyTests: GRDBTestCase {
     func testWrappedReadWrite() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -224,17 +206,6 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testBusyCallback() throws {
-        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
-        #if GRDBCIPHER_USE_ENCRYPTION
-            // Work around SQLCipher bug when two connections are open to the
-            // same empty database: make sure the database is not empty before
-            // running this test
-            try dbQueue1.inDatabase { db in
-                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
-            }
-        #endif
-        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
-        
         // Queue 1                              Queue 2
         // BEGIN EXCLUSIVE TRANSACTION
         let s1 = DispatchSemaphore(value: 0)
@@ -244,12 +215,24 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
         
+        var config = dbConfiguration!
         let busyCallbackCalledMutex = Mutex(false)
-        self.busyCallback = { n in
+        config.busyMode = .callback { numberOfTries in
             busyCallbackCalledMutex.store(true)
             s2.signal()
             return true
         }
+        
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+        #if GRDBCIPHER_USE_ENCRYPTION
+            // Work around SQLCipher bug when two connections are open to the
+            // same empty database: make sure the database is not empty before
+            // running this test
+            try dbQueue1.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            }
+        #endif
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
         
         let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
         let group = DispatchGroup()
@@ -353,17 +336,6 @@ class ConcurrencyTests: GRDBTestCase {
     }
 
     func testReaderInDeferredTransactionDuringDefaultTransaction() throws {
-        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
-        #if GRDBCIPHER_USE_ENCRYPTION
-            // Work around SQLCipher bug when two connections are open to the
-            // same empty database: make sure the database is not empty before
-            // running this test
-            try dbQueue1.inDatabase { db in
-                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
-            }
-        #endif
-        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
-        
         // The `SELECT * FROM stuffs` statement of Queue 2 prevents Queue 1
         // from committing with SQLITE_BUSY.
         //
@@ -384,12 +356,24 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      COMMIT
         // COMMIT
         
+        var config = dbConfiguration!
         let busyCallbackCalledMutex = Mutex(false)
-        self.busyCallback = { n in
+        config.busyMode = .callback { numberOfTries in
             busyCallbackCalledMutex.store(true)
             s3.signal()
             return true
         }
+        
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+        #if GRDBCIPHER_USE_ENCRYPTION
+            // Work around SQLCipher bug when two connections are open to the
+            // same empty database: make sure the database is not empty before
+            // running this test
+            try dbQueue1.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            }
+        #endif
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
         
         try dbQueue1.inDatabase { db in
             try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
