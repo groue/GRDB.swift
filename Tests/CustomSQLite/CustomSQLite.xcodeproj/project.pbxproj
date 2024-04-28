@@ -30,20 +30,6 @@
 			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
 			remoteInfo = GRDBCustomSQLiteOSXTests;
 		};
-		56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
-			remoteInfo = GRDBCustomSQLiteiOS;
-		};
-		56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
-			remoteInfo = GRDBCustomSQLiteiOSTests;
-		};
 		56F5F6E52349F24D00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
@@ -142,8 +128,6 @@
 			children = (
 				56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */,
 				56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */,
-				56F5F6E22349F22A00C4D9F7 /* GRDB.framework */,
-				56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -228,22 +212,8 @@
 		56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBOSXTests.xctest;
+			path = GRDBCustomTests.xctest;
 			remoteRef = 56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		56F5F6E22349F22A00C4D9F7 /* GRDB.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = GRDB.framework;
-			remoteRef = 56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBiOSTests.xctest;
-			remoteRef = 56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -349,6 +319,7 @@
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -403,6 +374,7 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
