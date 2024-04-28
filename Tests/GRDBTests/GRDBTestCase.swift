@@ -27,30 +27,44 @@ class GRDBTestCase: XCTestCase {
     // The default configuration for tests
     var dbConfiguration: Configuration!
     
-    // Builds a database queue based on dbConfiguration
-    func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
-        try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
+    /// Returns a test database builder.
+    ///
+    /// - Parameters:
+    ///   - configuration: If nil, dbConfiguration is used.
+    func makeDatabaseBuilder(
+        configuration: Configuration? = nil
+    ) -> TestDatabaseBuilder {
+        TestDatabaseBuilder(
+            directoryPath: dbDirectoryPath,
+            configuration: configuration ?? dbConfiguration)
     }
     
-    // Builds a database queue
-    func makeDatabaseQueue(filename: String? = nil, configuration: Configuration) throws -> DatabaseQueue {
-        try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
-        let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
+    /// Builds a database queue, and calls `setup(_:)`.
+    ///
+    /// - Parameters:
+    ///   - filename: If nil, a unique file name is used.
+    ///   - configuration: If nil, dbConfiguration is used.
+    func makeDatabaseQueue(
+        filename: String? = nil,
+        configuration: Configuration? = nil
+    ) throws -> DatabaseQueue {
+        let builder = makeDatabaseBuilder(configuration: configuration ?? dbConfiguration)
+        let dbQueue = try builder.makeDatabaseQueue(filename: filename)
         try setup(dbQueue)
         return dbQueue
     }
     
-    // Builds a database pool based on dbConfiguration
-    func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
-        try makeDatabasePool(filename: filename, configuration: dbConfiguration)
-    }
-    
-    // Builds a database pool
-    func makeDatabasePool(filename: String? = nil, configuration: Configuration) throws -> DatabasePool {
-        try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
-        let dbPool = try DatabasePool(path: dbPath, configuration: configuration)
+    /// Builds a database queue, and calls `setup(_:)`.
+    ///
+    /// - Parameters:
+    ///   - filename: If nil, a unique file name is used.
+    ///   - configuration: If nil, dbConfiguration is used.
+    func makeDatabasePool(
+        filename: String? = nil,
+        configuration: Configuration? = nil
+    ) throws -> DatabasePool {
+        let builder = makeDatabaseBuilder(configuration: configuration ?? dbConfiguration)
+        let dbPool = try builder.makeDatabasePool(filename: filename)
         try setup(dbPool)
         return dbPool
     }
@@ -219,6 +233,35 @@ class GRDBTestCase: XCTestCase {
             try request.makeStatement(db).makeCursor().next()
             return lastSQLQuery!
         }
+    }
+}
+
+struct TestDatabaseBuilder: Sendable {
+    fileprivate var directoryPath: String
+    fileprivate var configuration: Configuration
+    
+    func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
+        try FileManager.default.createDirectory(
+            atPath: directoryPath,
+            withIntermediateDirectories: true,
+            attributes: nil)
+        
+        let filename = filename ?? ProcessInfo.processInfo.globallyUniqueString
+        let dbPath = (directoryPath as NSString).appendingPathComponent(filename)
+        
+        return try DatabaseQueue(path: dbPath, configuration: configuration)
+    }
+    
+    func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
+        try FileManager.default.createDirectory(
+            atPath: directoryPath,
+            withIntermediateDirectories: true,
+            attributes: nil)
+        
+        let filename = filename ?? ProcessInfo.processInfo.globallyUniqueString
+        let dbPath = (directoryPath as NSString).appendingPathComponent(filename)
+        
+        return try DatabasePool(path: dbPath, configuration: configuration)
     }
 }
 
