@@ -153,9 +153,14 @@ class DatabaseQueueTests: GRDBTestCase {
     
     @MainActor
     func testTargetQueue() throws {
-        @Sendable func test(targetQueue: DispatchQueue) throws {
-            dbConfiguration.targetQueue = targetQueue
-            let dbQueue = try makeDatabaseQueue()
+        // background queue
+        do {
+            let targetQueue = DispatchQueue.global(qos: .background)
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            
+            let dbQueue = try makeDatabaseQueue(configuration: config)
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
@@ -164,24 +169,41 @@ class DatabaseQueueTests: GRDBTestCase {
             }
         }
         
-        // background queue
-        try test(targetQueue: .global(qos: .background))
-        
         // main queue
-        let expectation = self.expectation(description: "main")
-        DispatchQueue.global(qos: .default).async {
-            try! test(targetQueue: .main)
-            expectation.fulfill()
+        do {
+            let targetQueue = DispatchQueue.main
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            
+            let builder = makeDatabaseBuilder(configuration: config)
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                let dbQueue = try! builder.makeDatabaseQueue()
+                try! dbQueue.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                try! dbQueue.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                expectation.fulfill()
+            }
+            waitForExpectations(timeout: 2, handler: nil)
         }
-        waitForExpectations(timeout: 1, handler: nil)
     }
     
     @MainActor
     func testWriteTargetQueue() throws {
-        @Sendable func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
-            dbConfiguration.targetQueue = targetQueue // unused
-            dbConfiguration.writeTargetQueue = writeTargetQueue
-            let dbQueue = try makeDatabaseQueue()
+        // background queue
+        do {
+            let targetQueue = DispatchQueue.global(qos: .background)
+            let writeTargetQueue = DispatchQueue.global(qos: .background)
+
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue // unused
+            config.writeTargetQueue = writeTargetQueue
+
+            let dbQueue = try makeDatabaseQueue(configuration: config)
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(writeTargetQueue))
             }
@@ -190,16 +212,29 @@ class DatabaseQueueTests: GRDBTestCase {
             }
         }
         
-        // background queue
-        try test(targetQueue: .global(qos: .background), writeTargetQueue: DispatchQueue(label: "writer"))
-        
         // main queue
-        let expectation = self.expectation(description: "main")
-        DispatchQueue.global(qos: .default).async {
-            try! test(targetQueue: .main, writeTargetQueue: .main)
-            expectation.fulfill()
+        do {
+            let targetQueue = DispatchQueue.main
+            let writeTargetQueue = DispatchQueue.main
+
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue // unused
+            config.writeTargetQueue = writeTargetQueue
+
+            let builder = makeDatabaseBuilder(configuration: config)
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                let dbQueue = try! builder.makeDatabaseQueue()
+                try! dbQueue.write { _ in
+                    dispatchPrecondition(condition: .onQueue(writeTargetQueue))
+                }
+                try! dbQueue.read { _ in
+                    dispatchPrecondition(condition: .onQueue(writeTargetQueue))
+                }
+                expectation.fulfill()
+            }
+            waitForExpectations(timeout: 2, handler: nil)
         }
-        waitForExpectations(timeout: 1, handler: nil)
     }
     
     func testWriteTargetQueueReadOnly() throws {
@@ -380,8 +415,9 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         
         let parallelWritesCount = 50
-        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { [configuration] index in
-            let dbQueue = try! makeDatabaseQueue(filename: "test", configuration: configuration)
+        let builder = makeDatabaseBuilder(configuration: configuration)
+        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { index in
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test")
             try! dbQueue.write { db in
                 _ = try Table("test").fetchCount(db)
                 try db.execute(sql: "INSERT INTO test VALUES (1)")

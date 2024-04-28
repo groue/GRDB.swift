@@ -35,8 +35,9 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
+        let builder = makeDatabaseBuilder()
         let block1: @Sendable () -> Void = {
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
                 try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
@@ -51,7 +52,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 try db.execute(sql: "INSERT INTO moves VALUES (1)")
@@ -97,8 +98,9 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
+        let builder = makeDatabaseBuilder()
         let block1: @Sendable () -> Void = {
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
@@ -114,7 +116,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
                 try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
                 s1.signal()
@@ -162,8 +164,9 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         let s0 = DispatchSemaphore(value: 0)
+        let builder = makeDatabaseBuilder()
         let block1: @Sendable () -> Void = {
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             s0.signal() // Avoid "database is locked" error: don't open the two databases at the same time
             try! dbQueue.writeWithoutTransaction { db in
                 try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
@@ -178,7 +181,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         let block2: @Sendable () -> Void = {
             _ = s0.wait(timeout: .distantFuture) // Avoid "database is locked" error: don't open the two databases at the same time
-            let dbQueue = try! self.makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue = try! builder.makeDatabaseQueue(filename: "test.sqlite")
             try! dbQueue.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
@@ -968,9 +971,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     @MainActor
     func testTargetQueue() throws {
-        @Sendable func test(targetQueue: DispatchQueue) throws {
-            dbConfiguration.targetQueue = targetQueue
-            let dbPool = try makeDatabasePool()
+        // background queue
+        do {
+            let targetQueue = DispatchQueue.global(qos: .background)
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            
+            let dbPool = try makeDatabasePool(configuration: config)
             try dbPool.write { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
@@ -979,24 +987,41 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         
-        // background queue
-        try test(targetQueue: .global(qos: .background))
-        
         // main queue
-        let expectation = self.expectation(description: "main")
-        DispatchQueue.global(qos: .default).async {
-            try! test(targetQueue: .main)
-            expectation.fulfill()
+        do {
+            let targetQueue = DispatchQueue.main
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            
+            let builder = makeDatabaseBuilder(configuration: config)
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                let dbPool = try! builder.makeDatabasePool()
+                try! dbPool.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                try! dbPool.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                expectation.fulfill()
+            }
+            waitForExpectations(timeout: 2, handler: nil)
         }
-        waitForExpectations(timeout: 2, handler: nil)
     }
     
     @MainActor
     func testWriteTargetQueue() throws {
-        @Sendable func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
-            dbConfiguration.targetQueue = targetQueue
-            dbConfiguration.writeTargetQueue = writeTargetQueue
-            let dbPool = try makeDatabasePool()
+        // background queue
+        do {
+            let targetQueue = DispatchQueue.global(qos: .background)
+            let writeTargetQueue = DispatchQueue(label: "writer")
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            config.writeTargetQueue = writeTargetQueue
+            
+            let dbPool = try makeDatabasePool(configuration: config)
             try dbPool.write { _ in
                 dispatchPrecondition(condition: .onQueue(writeTargetQueue))
             }
@@ -1005,16 +1030,29 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
         
-        // background queue
-        try test(targetQueue: .global(qos: .background), writeTargetQueue: DispatchQueue(label: "writer"))
-        
         // main queue
-        let expectation = self.expectation(description: "main")
-        DispatchQueue.global(qos: .default).async {
-            try! test(targetQueue: .main, writeTargetQueue: .main)
-            expectation.fulfill()
+        do {
+            let targetQueue = DispatchQueue.main
+            let writeTargetQueue = DispatchQueue.main
+            
+            var config = dbConfiguration!
+            config.targetQueue = targetQueue
+            config.writeTargetQueue = writeTargetQueue
+            
+            let builder = makeDatabaseBuilder(configuration: config)
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                let dbPool = try! builder.makeDatabasePool()
+                try! dbPool.write { _ in
+                    dispatchPrecondition(condition: .onQueue(writeTargetQueue))
+                }
+                try! dbPool.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                expectation.fulfill()
+            }
+            waitForExpectations(timeout: 2, handler: nil)
         }
-        waitForExpectations(timeout: 2, handler: nil)
     }
     
     func testWriteTargetQueueReadOnly() throws {
