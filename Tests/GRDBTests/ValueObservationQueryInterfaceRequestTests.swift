@@ -31,7 +31,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
-    private func performDatabaseModifications(_ db: Database) throws {
+    private let performDatabaseModifications: @Sendable (Database) throws -> Void = { db in
         try db.inTransaction {
             try db.execute(sql: """
                 INSERT INTO parent (id, name) VALUES (1, 'foo');
