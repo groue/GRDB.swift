@@ -26,9 +26,9 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     
     override func setUp() {
         super.setUp()
-        dbConfiguration.prepareDatabase { db in
-            db.add(collation: self.collation)
-            db.add(function: self.customFunction)
+        dbConfiguration.prepareDatabase { [collation, customFunction] db in
+            db.add(collation: collation)
+            db.add(function: customFunction)
         }
     }
     
