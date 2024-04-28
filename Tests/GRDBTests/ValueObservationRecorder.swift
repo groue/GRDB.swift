@@ -222,8 +222,8 @@ extension ValueObservation {
     public func record(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: ((Error) -> Void)? = nil,
-        onChange: ((Reducer.Value) -> Void)? = nil)
+        onError: (@Sendable (Error) -> Void)? = nil,
+        onChange: (@Sendable (Reducer.Value) -> Void)? = nil)
     -> ValueObservationRecorder<Reducer.Value>
     where Reducer: ValueReducer
     {
@@ -234,11 +234,11 @@ extension ValueObservation {
             onError: { [weak recorder] in
                 onError?($0)
                 recorder?.onError($0)
-        },
+            },
             onChange: { [weak recorder] in
                 onChange?($0)
                 recorder?.onChange($0)
-        })
+            })
         recorder.receive(cancellable)
         return recorder
     }
@@ -359,32 +359,31 @@ extension GRDBTestCase {
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
-        recordedUpdates: @escaping (Database) throws -> Void,
+        recordedUpdates: @escaping @Sendable (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)
-        throws
-        where Reducer.Value: Equatable
+    throws where Reducer.Value: Equatable, Reducer.Value: Sendable
     {
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: some ValueObservationScheduler,
-            testValueDispatching: @escaping () -> Void) throws
+            testValueDispatching: @escaping @Sendable () -> Void) throws
         {
             func testRecordingEqualWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var value: Reducer.Value?
+                let valueMutex: Mutex<Reducer.Value?> = Mutex(nil)
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
                     onChange: {
                         testValueDispatching()
-                        value = $0
+                        valueMutex.store($0)
                 })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(valueMutex.load())
                 }
                 
                 // Perform writes after start
@@ -400,24 +399,23 @@ extension GRDBTestCase {
             func testRecordingEqualWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var valueCount = 0
-                var value: Reducer.Value?
+                let valueCountMutex = Mutex(0)
+                let valueMutex: Mutex<Reducer.Value?> = Mutex(nil)
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
                     onChange: { [unowned writer] in
                         testValueDispatching()
-                        valueCount += 1
-                        if valueCount == 1 {
+                        if valueCountMutex.increment() == 1 {
                             // Perform writes after initial value
                             try! writer.writeWithoutTransaction(recordedUpdates)
                         }
-                        value = $0
+                        valueMutex.store($0)
                 })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(valueMutex.load())
                 }
                 
                 let expectation = recorder.next(expectedValues.count)
@@ -430,18 +428,18 @@ extension GRDBTestCase {
             func testRecordingMatchWhenWriteAfterStart(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var value: Reducer.Value?
+                let valueMutex: Mutex<Reducer.Value?> = Mutex(nil)
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
                     onChange: {
                         testValueDispatching()
-                        value = $0
+                        valueMutex.store($0)
                 })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(valueMutex.load())
                 }
                 
                 try writer.writeWithoutTransaction(recordedUpdates)
@@ -475,24 +473,23 @@ extension GRDBTestCase {
             func testRecordingMatchWhenWriteAfterFirstValue(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
                 
-                var valueCount = 0
-                var value: Reducer.Value?
+                let valueCountMutex = Mutex(0)
+                let valueMutex: Mutex<Reducer.Value?> = Mutex(nil)
                 let recorder = observation.record(
                     in: writer,
                     scheduling: scheduler,
                     onChange: { [unowned writer] in
                         testValueDispatching()
-                        valueCount += 1
-                        if valueCount == 1 {
+                        if valueCountMutex.increment() == 1 {
                             // Perform writes after initial value
                             try! writer.writeWithoutTransaction(recordedUpdates)
                         }
-                        value = $0
+                        valueMutex.store($0)
                 })
                 
                 // Test that initial value is set when scheduler is immediate
                 if scheduler.immediateInitialValue() {
-                    XCTAssertNotNil(value)
+                    XCTAssertNotNil(valueMutex.load())
                 }
                 
                 let recordedValues: [Reducer.Value]
@@ -578,7 +575,7 @@ extension GRDBTestCase {
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: some ValueObservationScheduler,
-            testErrorDispatching: @escaping () -> Void) throws
+            testErrorDispatching: @escaping @Sendable () -> Void) throws
         {
             func test(writer: some DatabaseWriter) throws {
                 try writer.write(setup)
