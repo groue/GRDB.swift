@@ -138,7 +138,8 @@
 		56537C6A1BA8871A00E87787 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1400;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1540;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					56537C711BA8871A00E87787 = {
