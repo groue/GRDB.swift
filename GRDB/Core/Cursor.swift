@@ -195,6 +195,56 @@ extension Set {
         // database cursors.
         try cursor.forEach { insert($0) }
     }
+    
+    /// Returns a new set with the elements of both this set and the
+    /// given cursor.
+    ///
+    /// If the set already contains one or more elements that are also in
+    /// the cursor, the existing members are kept. If the cursor contains
+    /// multiple instances of equivalent elements, only the first instance
+    /// is kept.
+    ///
+    /// - parameter cursor: A cursor of elements.
+    /// - returns: A new set with the unique elements of this set
+    ///   and `cursor`.
+    public func union(_ cursor: some Cursor<Element>) throws -> Set<Element> {
+        var result = self
+        try result.formUnion(cursor)
+        return result
+    }
+
+    /// Inserts the elements of the given cursor into the set.
+    ///
+    /// If the set already contains one or more elements that are also in
+    /// the cursor, the existing members are kept. If the cursor contains
+    /// multiple instances of equivalent elements, only the first instance
+    /// is kept.
+    ///
+    /// - parameter cursor: A cursor of elements.
+    public mutating func formUnion(_ cursor: some Cursor<Element>) throws {
+        while let element = try cursor.next() {
+            insert(element)
+        }
+    }
+    
+    /// Returns a new set with the elements that are common to both this set
+    /// and the given cursor.
+    ///
+    /// - parameter cursor: A cursor of elements.
+    /// - returns: A new set.
+    public func intersection(_ cursor: some Cursor<Element>) throws -> Set<Element> {
+        var result = self
+        try result.formIntersection(cursor)
+        return result
+    }
+
+    /// Removes the elements of the set that aren’t also in the
+    /// given cursor.
+    ///
+    /// - parameter cursor: A cursor of elements.
+    public mutating func formIntersection(_ cursor: some Cursor<Element>) throws {
+        try formIntersection(Set(cursor))
+    }
 }
 
 extension Sequence {

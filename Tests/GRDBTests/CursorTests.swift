@@ -223,6 +223,32 @@ class CursorTests: GRDBTestCase {
             let set = try Set(cursor, minimumCapacity: 100)
             XCTAssertEqual(set, [1, 2, 3])
         }
+        
+        do {
+            let cursor = AnyCursor([1, 2, 1, 3])
+            let set: Set<Int> = [1, 4]
+            try XCTAssertEqual(set.union(cursor), [1, 2, 3, 4])
+        }
+        
+        do {
+            let cursor = AnyCursor([1, 2, 1, 3])
+            var set: Set<Int> = [1, 4]
+            try set.formUnion(cursor)
+            XCTAssertEqual(set, [1, 2, 3, 4])
+        }
+        
+        do {
+            let cursor = AnyCursor([1, 2, 1, 3])
+            let set: Set<Int> = [1, 3, 4]
+            try XCTAssertEqual(set.intersection(cursor), [1, 3])
+        }
+        
+        do {
+            let cursor = AnyCursor([1, 2, 1, 3])
+            var set: Set<Int> = [1, 3, 4]
+            try set.formIntersection(cursor)
+            XCTAssertEqual(set, [1, 3])
+        }
     }
     
     func testDictionaryGrouping() throws {
