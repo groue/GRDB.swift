@@ -2343,7 +2343,7 @@ See [Persistence Methods], [Upsert](#upsert), and [`updateChanges` methods](#the
 
 **Batch operations** can return updated or deleted values:
 
-> **Warning**: Make sure you check the [documentation of the `RETURNING` clause](https://www.sqlite.org/lang_returning.html), which describes important limitations and caveats for batch operations.
+> **Warning**: Make sure you check the [documentation of the `RETURNING` clause](https://www.sqlite.org/lang_returning.html#limitations_and_caveats), which describes important limitations and caveats for batch operations.
 
 ```swift
 let request = Player.filter(...)...

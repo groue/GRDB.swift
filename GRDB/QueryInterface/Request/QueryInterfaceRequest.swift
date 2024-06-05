@@ -528,7 +528,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter selection: The returned columns (must not be empty).
@@ -561,7 +561,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: A ``RecordCursor`` over the deleted records.
@@ -588,7 +588,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: An array of deleted records.
@@ -614,7 +614,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: A set of deleted records.
@@ -640,7 +640,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter selection: The returned columns (must not be empty).
@@ -674,7 +674,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: A ``RecordCursor`` over the deleted records.
@@ -702,7 +702,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: An array of deleted records.
@@ -729,7 +729,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - returns: A set of deleted records.
@@ -844,7 +844,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -893,7 +893,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -930,7 +930,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -962,7 +962,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -996,7 +996,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -1046,7 +1046,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -1084,7 +1084,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
@@ -1117,7 +1117,7 @@ extension QueryInterfaceRequest {
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
     ///   clause, which describes important limitations and caveats:
-    ///   <https://www.sqlite.org/lang_returning.html>.
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
