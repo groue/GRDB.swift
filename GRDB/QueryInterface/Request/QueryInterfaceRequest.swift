@@ -61,6 +61,7 @@
 /// ### Batch Delete
 ///
 /// - ``deleteAll(_:)``
+/// - ``deleteAndFetchIds(_:)``
 /// - ``deleteAndFetchCursor(_:)``
 /// - ``deleteAndFetchAll(_:)``
 /// - ``deleteAndFetchSet(_:)``
@@ -625,6 +626,41 @@ extension QueryInterfaceRequest {
     {
         try Set(deleteAndFetchCursor(db))
     }
+
+    /// Executes a `DELETE RETURNING` statement and returns the set of
+    /// deleted ids.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // Fetch the ids of deleted players
+    /// // DELETE FROM player RETURNING id
+    /// let request = Player.all()
+    /// let deletedPlayerIds = try request.deleteAndFetchIds(db)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of deleted ids.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) // Identifiable
+    public func deleteAndFetchIds(_ db: Database)
+    throws -> Set<RowDecoder.ID>
+    where RowDecoder: TableRecord & Identifiable,
+    RowDecoder.ID: Hashable & DatabaseValueConvertible & StatementColumnConvertible
+    {
+        let primaryKey = try db.primaryKey(RowDecoder.databaseTableName)
+        GRDBPrecondition(
+            primaryKey.columns.count == 1,
+            "Fetching id requires a single-column primary key in the table \(databaseTableName)")
+        
+        let statement = try deleteAndFetchStatement(db, selection: [Column(primaryKey.columns[0])])
+        
+        return try RowDecoder.ID.fetchSet(statement)
+    }
 #else
     /// Returns a `DELETE RETURNING` prepared statement.
     ///
@@ -740,6 +776,41 @@ extension QueryInterfaceRequest {
     where RowDecoder: FetchableRecord & TableRecord & Hashable
     {
         try Set(deleteAndFetchCursor(db))
+    }
+
+    /// Executes a `DELETE RETURNING` statement and returns the set of
+    /// deleted ids.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // Fetch the ids of deleted players
+    /// // DELETE FROM player RETURNING id
+    /// let request = Player.all()
+    /// let deletedPlayerIds = try request.deleteAndFetchIds(db)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of deleted ids.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func deleteAndFetchIds(_ db: Database)
+    throws -> Set<RowDecoder.ID>
+    where RowDecoder: TableRecord & Identifiable,
+    RowDecoder.ID: Hashable & DatabaseValueConvertible & StatementColumnConvertible
+    {
+        let primaryKey = try db.primaryKey(RowDecoder.databaseTableName)
+        GRDBPrecondition(
+            primaryKey.columns.count == 1,
+            "Fetching id requires a single-column primary key in the table \(databaseTableName)")
+        
+        let statement = try deleteAndFetchStatement(db, selection: [Column(primaryKey.columns[0])])
+        
+        return try RowDecoder.ID.fetchSet(statement)
     }
 #endif
 }
