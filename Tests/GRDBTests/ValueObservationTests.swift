@@ -748,6 +748,53 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    func testIssue1550() throws {
+        func test(_ writer: some DatabaseWriter) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            // Start observing
+            var counts: [Int] = []
+            let cancellable = ValueObservation
+                .trackingConstantRegion { try Table("t").fetchCount($0) }
+                .start(in: writer) { error in
+                    XCTFail("Unexpected error: \(error)")
+                } onChange: { count in
+                    counts.append(count)
+                }
+            
+            // Perform a write after cancellation, but before the
+            // observation could schedule the removal of its transaction
+            // observer from the writer dispatch queue.
+            let semaphore = DispatchSemaphore(value: 0)
+            writer.asyncWriteWithoutTransaction { db in
+                semaphore.wait()
+                do {
+                    try db.execute(sql: "INSERT INTO t(id) VALUES (NULL)")
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            }
+            cancellable.cancel()
+            semaphore.signal()
+            
+            // Wait until a second write could run, after the observation
+            // has removed its transaction observer from the writer
+            // dispatch queue.
+            let secondWriteExpectation = expectation(description: "cancelled")
+            writer.asyncWriteWithoutTransaction { _ in
+                secondWriteExpectation.fulfill()
+            }
+            wait(for: [secondWriteExpectation], timeout: 5)
+            
+            // We should not have been notified of the first write, because
+            // it was performed after cancellation.
+            XCTAssertFalse(counts.contains(1))
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
     func testIssue1209() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write {
