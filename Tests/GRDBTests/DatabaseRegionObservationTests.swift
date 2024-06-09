@@ -2,6 +2,18 @@ import XCTest
 import GRDB
 
 class DatabaseRegionObservationTests: GRDBTestCase {
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testAnyDatabaseWriter(writer: any DatabaseWriter) throws {
+        let observation = DatabaseRegionObservation(tracking: .fullDatabase)
+        
+        _ = observation.start(in: writer, onError: { _ in }, onChange: { _ in })
+        
+        if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            _ = observation.publisher(in: writer)
+        }
+    }
+    
     func testDatabaseRegionObservation_FullDatabase() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

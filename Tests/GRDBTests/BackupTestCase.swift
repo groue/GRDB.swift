@@ -139,4 +139,13 @@ class BackupTestCase: GRDBTestCase {
             XCTAssertFalse(try db.tableExists("items"))
         }
     }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testBackupToAnyDatabaseWriter(
+        _ reader: some DatabaseReader,
+        destination: any DatabaseWriter
+    ) throws {
+        try reader.backup(to: destination)
+    }
 }

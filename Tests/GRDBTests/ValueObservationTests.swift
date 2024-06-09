@@ -3,6 +3,33 @@ import Dispatch
 @testable import GRDB
 
 class ValueObservationTests: GRDBTestCase {
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testStartFromAnyDatabaseReader(reader: any DatabaseReader) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .start(in: reader, onError: { _ in }, onChange: { })
+    }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testStartFromAnyDatabaseWriter(writer: any DatabaseWriter) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .start(in: writer, onError: { _ in }, onChange: { })
+    }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    func testValuesFromAnyDatabaseWriter(writer: any DatabaseWriter) {
+        func observe<T>(
+            fetch: @Sendable @escaping (Database) throws -> T
+        ) throws -> AsyncValueObservation<T> {
+            ValueObservation.tracking(fetch).values(in: writer)
+        }
+    }
+    
     func testImmediateError() throws {
         struct TestError: Error { }
         
