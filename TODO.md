@@ -100,27 +100,28 @@
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 - [X] GRDB7: Cleanup `ValueReducer`
+- [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
 - [ ] GRDB7: Sendable conformances
     - [X] SerializedDatabase Sendable async closure
         - [X] OnDemandFuture Sendable async closure
         - [X] WALSnapshotTransaction refactor
     - [X] anydatabasecancellable
     - [X] anydatabaseregionconvertible
-    - [ ] anyfetchrequest
+    - [X] anyfetchrequest
     - [ ] anysqljsonexpressible
-    - [ ] association
+    - [X] association
     - [ ] associationaggregate
-    - [ ] associationtomany
+    - [X] associationtomany
     - [ ] asyncvalueobservation
     - [ ] asyncvalueobservation/iterator
-    - [ ] asyncvalueobservationscheduler
+    - [X] asyncvalueobservationscheduler
     - [ ] belongstoassociation
     - [ ] columnexpression
     - [ ] commontableexpression
     - [X] configuration
     - [X] customtransactionclock
     - [X] database/busymode
-    - [ ] databasecancellable
+    - [X] databasecancellable
     - [X] databasecollation
     - [X] databasecolumndecodingstrategy
     - [X] databasecolumnencodingstrategy
@@ -139,7 +140,7 @@
     - [X] databaseuuidencodingstrategy
     - [X] defaulttransactionclock
     - [ ] fetchablerecorddecoder
-    - [ ] fetchrequest
+    - [X] fetchrequest
     - [-] filtercursor
     - [-] fts5customtokenizer
     - [-] fts5tokenizer
@@ -149,10 +150,10 @@
     - [ ] hasoneassociation
     - [ ] hasonethroughassociation
     - [ ] insertionsuccess
-    - [ ] joinassociation
-    - [ ] persistencecontainer
+    - [X] joinassociation
+    - [X] persistencecontainer
     - [ ] persistencesuccess
-    - [ ] queryinterfacerequest
+    - [X] queryinterfacerequest
     - [-] record
     - [X] renamecolumnadapter
     - [ ] row/prefetchedrowsview
@@ -160,7 +161,7 @@
     - [ ] row/scopesview
     - [X] rowadapter
     - [X] scopeadapter
-    - [ ] sharedvalueobservation
+    - [X] sharedvalueobservation
     - [X] sql
     - [ ] sqlexpressible
     - [X] sqlexpression
@@ -168,7 +169,7 @@
     - [ ] sqljsonexpressible
     - [X] sqlordering
     - [ ] sqlorderingterm
-    - [ ] sqlrequest
+    - [X] sqlrequest
     - [ ] sqlselectable
     - [X] sqlselection
     - [ ] sqlspecificexpressible
@@ -176,7 +177,7 @@
     - [ ] sqlsubqueryable
     - [!] tablealias
     - [X] transactionclock
-    - [ ] valueobservation
+    - [X] valueobservation
     - [X] valueobservationscheduler
     - [X] ValueWriteOnlyObserver (needed so that it can conform to DatabaseCancellable)
         - [X] ValueObservationTrackingMode
