@@ -2,6 +2,8 @@ included:
   - ../GRDB
 
 disabled_rules:
+  # colon does not play well with the ternaty operator :-/
+  - colon
   - comment_spacing
   - cyclomatic_complexity
   - duplicate_enum_cases
