@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: _ValueReducer>: Sendable {
+public struct ValueObservation<Reducer: ValueReducer>: Sendable {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access

@@ -76,7 +76,7 @@ extension ValueReducers {
     /// previously observed value.
     ///
     /// See ``ValueObservation/removeDuplicates()``.
-    public struct RemoveDuplicates<Base: _ValueReducer>: ValueReducer {
+    public struct RemoveDuplicates<Base: ValueReducer>: ValueReducer {
         private var base: Base
         private var previousValue: Base.Value?
         private var predicate: (Base.Value, Base.Value) -> Bool
