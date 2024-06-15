@@ -4,7 +4,7 @@ extension ValueReducers {
     ///
     /// See ``ValueObservation/handleEvents(willStart:willFetch:willTrackRegion:databaseDidChange:didReceiveValue:didFail:didCancel:)``
     /// and ``ValueObservation/print(_:to:)``.
-    public struct Trace<Base: _ValueReducer>: ValueReducer {
+    public struct Trace<Base: ValueReducer>: ValueReducer {
         public struct _Fetcher: _ValueReducerFetcher {
             let base: Base.Fetcher
             let willFetch: @Sendable () -> Void
