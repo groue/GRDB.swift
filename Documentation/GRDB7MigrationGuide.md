@@ -4,3 +4,10 @@
 -static met databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 +static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
 ```
+
+---
+
+// Warning: Converting non-sendable function value to '@Sendable (Database) throws -> sending [Player]' may introduce data races
+ValueObservation.tracking(Player.fetchAll())
+
+-> Enable `SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES` in Build Settings
