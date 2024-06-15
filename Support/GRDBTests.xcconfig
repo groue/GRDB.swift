@@ -1,0 +1,4 @@
+#include "GRDBBase.xcconfig"
+
+// TODO: move to GRDBBase.xcconfig once https://github.com/apple/swift/issues/73313 is fixed.
+OTHER_SWIFT_FLAGS = $(inherited) -enable-upcoming-feature InferSendableFromCaptures

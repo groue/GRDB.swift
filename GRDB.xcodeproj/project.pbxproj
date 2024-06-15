@@ -815,7 +815,7 @@
 		56BF2281241781C5003D86EB /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
 		56C48E731C9A9923005DF1D9 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
-		56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
+		56C494401ED7255500CC72AF /* GRDBBase.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBBase.xcconfig; sourceTree = "<group>"; };
 		56CB43A02BD9880D001C8ED9 /* PersistenceContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceContainer.swift; sourceTree = "<group>"; };
 		56CC922B201DFFB900CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC9242201E034D00CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
@@ -862,6 +862,7 @@
 		56F0B98E1B6001C600A2F135 /* FoundationNSDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSDateTests.swift; sourceTree = "<group>"; };
 		56F34FB924B094B6007513FC /* SQLExpressionIsConstantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLExpressionIsConstantTests.swift; sourceTree = "<group>"; };
 		56F34FC124B0A0B7007513FC /* SQLIdentifyingColumnsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLIdentifyingColumnsTests.swift; sourceTree = "<group>"; };
+		56F3B70A2C1DB120001A6C5B /* GRDBTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBTests.xcconfig; sourceTree = "<group>"; };
 		56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
 		56F61DD0283D344D00AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDBTests-Bridging-Header.h"; path = "GRDBTests/GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DD3283D344E00AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
@@ -1864,7 +1865,8 @@
 				56C48E731C9A9923005DF1D9 /* module.modulemap */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
 				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
-				56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */,
+				56C494401ED7255500CC72AF /* GRDBBase.xcconfig */,
+				56F3B70A2C1DB120001A6C5B /* GRDBTests.xcconfig */,
 			);
 			name = "Supporting Files";
 			path = ../Support;
@@ -2452,7 +2454,7 @@
 /* Begin XCBuildConfiguration section */
 		56E5D8021B4D422E00430942 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 56F3B70A2C1DB120001A6C5B /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -2482,7 +2484,7 @@
 		};
 		56E5D8031B4D422E00430942 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 56F3B70A2C1DB120001A6C5B /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;

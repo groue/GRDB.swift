@@ -79,7 +79,10 @@ let package = Package(
                 .copy("GRDBTests/Issue1383.sqlite"),
             ],
             cSettings: cSettings,
-            swiftSettings: swiftSettings)
+            swiftSettings: swiftSettings + [
+                // TODO: move to base settings once https://github.com/apple/swift/issues/73313 is fixed.
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+            ])
     ],
     swiftLanguageVersions: [.v5]
 )

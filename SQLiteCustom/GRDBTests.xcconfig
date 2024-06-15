@@ -3,10 +3,13 @@
 
 CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
 
-#include "GRDBDeploymentTarget.xcconfig"
+#include "GRDBBase.xcconfig"
 // Build once to generate this file:
 #include "GRDBCustomSQLite-USER.xcconfig"
 #include "src/SQLiteLib-USER.xcconfig"
 
 OTHER_CFLAGS = -DUSING_BUILTIN_SQLITE -DGRDBCUSTOMSQLITE $(CUSTOM_SQLLIBRARY_CFLAGS)        // Do not modify.
 OTHER_SWIFT_FLAGS = -D USING_BUILTIN_SQLITE -D GRDBCUSTOMSQLITE $(CUSTOM_OTHER_SWIFT_FLAGS)  // Do not modify.
+
+// TODO: move to GRDBBase.xcconfig once https://github.com/apple/swift/issues/73313 is fixed.
+OTHER_SWIFT_FLAGS = $(inherited) -enable-upcoming-feature InferSendableFromCaptures

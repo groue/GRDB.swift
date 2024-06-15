@@ -13,3 +13,5 @@ OTHER_SWIFT_FLAGS = $(inherited) -D SQLITE_ENABLE_FTS5
 // https://twitter.com/olebegemann/status/1421144304127463427?lang=en
 // Those as commented out by default, until minimum support Xcode version can handle them.
 // OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
+
+SWIFT_STRICT_CONCURRENCY = complete

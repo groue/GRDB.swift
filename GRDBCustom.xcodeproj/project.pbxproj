@@ -833,7 +833,7 @@
 		56C0538E22ACEECD0029D27D /* Map.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Map.swift; sourceTree = "<group>"; };
 		56C0538F22ACEECD0029D27D /* RemoveDuplicates.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoveDuplicates.swift; sourceTree = "<group>"; };
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
-		56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLiteCustom/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
+		56C494421ED726C500CC72AF /* GRDBBase.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBBase.xcconfig; path = SQLiteCustom/GRDBBase.xcconfig; sourceTree = "<group>"; };
 		56C9EB9A2495324700FE5D55 /* grdb_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grdb_config.h; path = SQLiteCustom/grdb_config.h; sourceTree = "<group>"; };
 		56CB43A22BD9884A001C8ED9 /* PersistenceContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistenceContainer.swift; sourceTree = "<group>"; };
 		56CC9231201DFFF600CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
@@ -904,7 +904,7 @@
 		F3BA805A1CFB2BB2003DC1BA /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3BA809B1CFB2F6F003DC1BA /* GRDBCustomTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCustomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3BA813A1CFB3402003DC1BA /* GRDBCustomSQLite-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDBCustomSQLite-USER.xcconfig"; path = "SQLiteCustom/GRDBCustomSQLite-USER.xcconfig"; sourceTree = "<group>"; };
-		F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDBCustomSQLite-Testing.xcconfig"; path = "SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig"; sourceTree = "<group>"; };
+		F3BA813B1CFB3770003DC1BA /* GRDBTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBTests.xcconfig; path = SQLiteCustom/GRDBTests.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1890,8 +1890,8 @@
 				F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */,
 				F3BA7FEF1CFB23BF003DC1BA /* module.modulemap */,
 				F3BA7FEE1CFB23B7003DC1BA /* GRDB.xcconfig */,
-				F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */,
-				56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */,
+				56C494421ED726C500CC72AF /* GRDBBase.xcconfig */,
+				F3BA813B1CFB3770003DC1BA /* GRDBTests.xcconfig */,
 				F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */,
 				EED476F41CFD174D0026A4EC /* Customize */,
 			);
@@ -2707,7 +2707,7 @@
 		};
 		F3BA80A41CFB2F6F003DC1BA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -2738,7 +2738,7 @@
 		};
 		F3BA80A51CFB2F6F003DC1BA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
