@@ -35,7 +35,7 @@ extension String {
 }
 
 public final class Statement {
-    enum TransactionEffect {
+    enum TransactionEffect: Equatable {
         case beginTransaction
         case commitTransaction
         case rollbackTransaction
