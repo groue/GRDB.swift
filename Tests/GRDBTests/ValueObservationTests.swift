@@ -805,13 +805,13 @@ class ValueObservationTests: GRDBTestCase {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Start observing
-            var counts: [Int] = []
+            let observedCountsMutex: Mutex<[Int]> = Mutex([])
             let cancellable = ValueObservation
                 .trackingConstantRegion { try Table("t").fetchCount($0) }
                 .start(in: writer) { error in
                     XCTFail("Unexpected error: \(error)")
                 } onChange: { count in
-                    counts.append(count)
+                    observedCountsMutex.withLock { $0.append(count) }
                 }
             
             // Perform a write after cancellation, but before the
@@ -840,7 +840,7 @@ class ValueObservationTests: GRDBTestCase {
             
             // We should not have been notified of the first write, because
             // it was performed after cancellation.
-            XCTAssertFalse(counts.contains(1))
+            XCTAssertFalse(observedCountsMutex.load().contains(1))
         }
         
         try test(makeDatabaseQueue())
