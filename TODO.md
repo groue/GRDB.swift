@@ -96,7 +96,7 @@
 - [ ] GRDB7: AsyncValueObservation: experiment with an immediate scheduler that does not hop to the main queue.
 - [ ] GRDB7: Question Sendability of SQLExpressible et al. If we can copy Sendable representations in requests, it's not needed.
 - [X] GRDB7: Raise the minimum watchOS target https://github.com/groue/GRDB.swift/issues/1472#issuecomment-1960696836
-- [ ] GRDB7: Consider putting a Task cancellation handler on async methods.
+- [X] GRDB7: Consider putting a Task cancellation handler on async methods.
 - [X] GRDB7: All writes should be immediate, right? https://github.com/groue/GRDB.swift/pull/1485#issuecomment-1953793553
 - [X] GRDB7: Remove concurrenRead and DatabaseFuture
 - [ ] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
