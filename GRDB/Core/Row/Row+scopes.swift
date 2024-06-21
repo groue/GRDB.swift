@@ -458,7 +458,7 @@ extension Row {
         ///
         /// See ``Row/scopesTree`` for more information.
         ///
-        /// - parameter key: An association key.
+        /// - parameter name: The name of a scope.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {

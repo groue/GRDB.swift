@@ -1292,8 +1292,8 @@ extension Table {
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   The `left` and `right` arguments are `TableAlias` for the joined
+    ///   tables.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,

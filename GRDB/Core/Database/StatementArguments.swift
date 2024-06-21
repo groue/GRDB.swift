@@ -48,7 +48,8 @@
 /// ## Concatenating Arguments
 ///
 /// Several arguments can be concatenated and mixed with the
-/// ``append(contentsOf:)`` method and the `+`, `&+`, `+=` operators:
+/// ``StatementArguments/append(contentsOf:)`` method and the `+`, `&+`,
+/// `+=` operators:
 ///
 /// ```swift
 /// var arguments: StatementArguments = ["Arthur"]
@@ -68,8 +69,8 @@
 /// arguments += ["name": "Barbara"]
 /// ```
 ///
-/// On the other side, `&+` and ``append(contentsOf:)`` allow overriding
-/// named arguments:
+/// On the other side, `&+` and ``StatementArguments/append(contentsOf:)``
+/// allow overriding named arguments:
 ///
 /// ```swift
 /// var arguments: StatementArguments = ["name": "Arthur"]

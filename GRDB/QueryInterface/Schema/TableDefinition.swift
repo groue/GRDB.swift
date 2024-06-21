@@ -136,7 +136,8 @@ public final class TableDefinition {
     /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
     /// - <https://www.sqlite.org/lang_createtable.html#rowid>
     ///
-    /// - parameter conflictResolution: An optional conflict resolution
+    /// - parameter name: The name of the primary key column.
+    /// - parameter conflictResolution: An optional conflict resolution.
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: `self` so that you can further refine the column definition.
     @discardableResult
@@ -163,6 +164,8 @@ public final class TableDefinition {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
+    /// - parameter conflictResolution: An optional conflict resolution.
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: A ``ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult
@@ -313,7 +316,7 @@ public final class TableDefinition {
     ///   for more information.
     ///
     /// - parameter columns: The primary key columns.
-    /// - parameter conflictResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution.
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func primaryKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         guard primaryKeyConstraint == nil else {
@@ -355,7 +358,7 @@ public final class TableDefinition {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - parameter columns: The unique key columns.
-    /// - parameter conflictResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution.
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         uniqueKeyConstraints.append(KeyConstraint(columns: columns, conflictResolution: conflictResolution))
