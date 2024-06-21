@@ -381,6 +381,8 @@ extension SharedValueObservation {
     ///     print("Fresh players: \(players)")
     /// }
     /// ```
+    ///
+    /// - parameter bufferingPolicy: See `AsyncThrowingStream`.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func values(bufferingPolicy: AsyncValueObservation<Element>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Element>

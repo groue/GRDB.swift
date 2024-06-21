@@ -297,6 +297,7 @@ extension ValueObservation {
     /// ```
     ///
     /// - parameter reader: A DatabaseReader.
+    /// - parameter bufferingPolicy: See `AsyncThrowingStream`.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func values(
         in reader: some DatabaseReader,

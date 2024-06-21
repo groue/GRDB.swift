@@ -38,7 +38,7 @@ extension DatabaseReader {
     /// ```
     ///
     /// - Parameters:
-    ///   - request : The executed request.
+    ///   - request: The executed request.
     ///   - format: The output format.
     ///   - stream: A stream for text output, which directs output to the
     ///     console by default.

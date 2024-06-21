@@ -113,7 +113,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html>
     ///
     /// - parameters:
-    ///     - name: The table name.
+    ///     - tableName: The table name.
     ///     - ifNotExists: If false (the default), an error is thrown if the
     ///       table already exists. Otherwise, the table is created unless it
     ///       already exists.

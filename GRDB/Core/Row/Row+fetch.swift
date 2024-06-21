@@ -33,8 +33,7 @@ extension Row {
     /// elements are undefined.
     ///
     /// - parameters:
-    ///     - db: A database connection.
-    ///     - sql: An SQL string.
+    ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A ``RowCursor`` over fetched rows.

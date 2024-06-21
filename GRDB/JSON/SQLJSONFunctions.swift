@@ -712,7 +712,7 @@ extension Database {
     ///
     /// - Parameters:
     ///   - value: A JSON value.
-    ///   - paths: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
+    ///   - path: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public static func jsonRemove(_ value: some SQLExpressible, atPath path: some SQLExpressible) -> SQLExpression {
         .function("JSON_REMOVE", [value.sqlExpression, path.sqlExpression])
@@ -768,7 +768,7 @@ extension Database {
     ///
     /// - Parameters:
     ///   - value: A JSON value.
-    ///   - paths: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
+    ///   - path: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public static func jsonType(_ value: some SQLExpressible, atPath path: some SQLExpressible) -> SQLExpression {
         .function("JSON_TYPE", [value.sqlExpression, path.sqlExpression])

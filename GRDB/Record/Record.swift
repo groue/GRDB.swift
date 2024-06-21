@@ -280,6 +280,7 @@ open class Record {
     /// your implementation.
     ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The updated columns.
     open func willUpdate(_ db: Database, columns: Set<String>) throws { }
     
     /// Called around the record update.
@@ -347,7 +348,7 @@ open class Record {
     /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter update: A function that updates the record. Its result is
+    /// - parameter save: A function that saves the record. Its result is
     ///   reserved for GRDB usage.
     open func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
         _ = try save()
