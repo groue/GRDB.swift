@@ -751,6 +751,13 @@ extension DatabasePool: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func writeWithoutTransaction<T>(
+        _ updates: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         guard let readerPool else {
@@ -758,6 +765,33 @@ extension DatabasePool: DatabaseWriter {
         }
         return try readerPool.barrier {
             try writer.sync(updates)
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func barrierWriteWithoutTransaction<T>(
+        _ updates: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        // Prevent compiler warning with an unchecked Sendable wrapper, due
+        // to <https://github.com/apple/swift/issues/73315>.
+        // FIXME: remove the closure copy when <https://github.com/apple/swift/issues/74457> is fixed.
+        let updates: (Database) throws -> T = updates
+        let updatesWrapper = UncheckedSendableWrapper(value: updates)
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            asyncBarrierWriteWithoutTransaction { dbResult in
+                do {
+                    try dbAccess.checkCancellation()
+                    let db = try dbResult.get()
+                    let result = try dbAccess.inDatabase(db) {
+                        try updatesWrapper.value(db)
+                    }
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
     
