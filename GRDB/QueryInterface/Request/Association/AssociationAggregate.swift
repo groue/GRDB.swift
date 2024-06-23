@@ -368,7 +368,7 @@ extension AssociationToMany {
 /// - ``abs(_:)-43n8v``
 /// - ``cast(_:as:)-63ttx``
 /// - ``length(_:)-9dr2v``
-public struct AssociationAggregate<RowDecoder> {
+public struct AssociationAggregate<RowDecoder>: Sendable {
     fileprivate let preparation: AssociationAggregatePreparation<RowDecoder>
     
     /// The SQL name for the value of this aggregate. See forKey(_:).
@@ -463,7 +463,7 @@ extension AssociationAggregate: Refinable {
 ///
 /// We could have used a generic closure instead of this class... if only Swift
 /// would support generic closures.
-private class AssociationAggregatePreparation<RowDecoder> {
+private class AssociationAggregatePreparation<RowDecoder>: @unchecked Sendable {
     func prepare(_ request: inout some DerivableRequest<RowDecoder>) -> SQLExpression {
         fatalError("subclass must override")
     }
@@ -471,7 +471,8 @@ private class AssociationAggregatePreparation<RowDecoder> {
 
 /// Prepares a request so that it can use association aggregates.
 private class BasePreparation<Association: AssociationToMany>:
-    AssociationAggregatePreparation<Association.OriginRowDecoder>
+    AssociationAggregatePreparation<Association.OriginRowDecoder>,
+    @unchecked Sendable
 {
     private let association: Association
     private let expression: SQLExpression
@@ -500,13 +501,16 @@ private class BasePreparation<Association: AssociationToMany>:
 }
 
 /// Transforms the expression of an aggregate.
-private class MapPreparation<RowDecoder>: AssociationAggregatePreparation<RowDecoder> {
+private class MapPreparation<RowDecoder>:
+    AssociationAggregatePreparation<RowDecoder>,
+    @unchecked Sendable
+{
     private let base: AssociationAggregatePreparation<RowDecoder>
-    private let transform: (SQLExpression) -> SQLExpression
+    private let transform: @Sendable (SQLExpression) -> SQLExpression
     
     init(
         base: AssociationAggregatePreparation<RowDecoder>,
-        transform: @escaping (SQLExpression) -> SQLExpression)
+        transform: @escaping @Sendable (SQLExpression) -> SQLExpression)
     {
         self.base = base
         self.transform = transform
@@ -519,21 +523,24 @@ private class MapPreparation<RowDecoder>: AssociationAggregatePreparation<RowDec
 
 extension AssociationAggregate {
     /// Transforms the expression, and does not preserve key.
-    fileprivate func map(_ transform: @escaping (SQLExpression) -> SQLExpression) -> Self {
+    fileprivate func map(_ transform: @escaping @Sendable (SQLExpression) -> SQLExpression) -> Self {
         AssociationAggregate(preparation: MapPreparation(base: preparation, transform: transform))
     }
 }
 
 /// Combines the expressions of two aggregates.
-private class CombinePreparation<RowDecoder>: AssociationAggregatePreparation<RowDecoder> {
+private class CombinePreparation<RowDecoder>: 
+    AssociationAggregatePreparation<RowDecoder>,
+    @unchecked Sendable
+{
     private let lhs: AssociationAggregatePreparation<RowDecoder>
     private let rhs: AssociationAggregatePreparation<RowDecoder>
-    private let combine: (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression
+    private let combine: @Sendable (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression
     
     init(
         _ lhs: AssociationAggregatePreparation<RowDecoder>,
         _ rhs: AssociationAggregatePreparation<RowDecoder>,
-        combine: @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
+        combine: @escaping @Sendable (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
     {
         self.lhs = lhs
         self.rhs = rhs
@@ -551,7 +558,7 @@ private class CombinePreparation<RowDecoder>: AssociationAggregatePreparation<Ro
 private func combine<RowDecoder>(
     _ lhs: AssociationAggregate<RowDecoder>,
     _ rhs: AssociationAggregate<RowDecoder>,
-    with combine: @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
+    with combine: @escaping @Sendable (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
 -> AssociationAggregate<RowDecoder>
 {
     AssociationAggregate(preparation: CombinePreparation(lhs.preparation, rhs.preparation, combine: combine))
@@ -573,37 +580,41 @@ extension AssociationAggregate {
     
     /// The `AND` SQL operator.
     public static func && (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: &&)
+        combine(lhs, rhs, with: { $0 && $1 })
     }
     
     // TODO: test
     /// The `AND` SQL operator.
     public static func && (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 && rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 && rhs }
     }
     
     // TODO: test
     /// The `AND` SQL operator.
     public static func && (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs && $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs && $0 }
     }
     
     
     /// The `OR` SQL operator.
     public static func || (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: ||)
+        combine(lhs, rhs, with: { $0 || $1 })
     }
     
     // TODO: test
     /// The `OR` SQL operator.
     public static func || (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 || rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 || rhs }
     }
     
     // TODO: test
     /// The `OR` SQL operator.
     public static func || (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs || $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs || $0 }
     }
 }
 
@@ -612,7 +623,7 @@ extension AssociationAggregate {
 extension AssociationAggregate {
     /// The `=` SQL operator.
     public static func == (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: ==)
+        combine(lhs, rhs, with: { $0 == $1 })
     }
     
     /// The `=` SQL operator.
@@ -620,7 +631,8 @@ extension AssociationAggregate {
     /// When the right operand is nil, `IS NULL` is used instead of the
     /// `=` operator.
     public static func == (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
-        lhs.map { $0 == rhs }
+        let rhs = rhs?.sqlExpression
+        return lhs.map { $0 == rhs }
     }
     
     /// The `=` SQL operator.
@@ -628,7 +640,8 @@ extension AssociationAggregate {
     /// When the left operand is nil, `IS NULL` is used instead of the
     /// `=` operator.
     public static func == (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
-        rhs.map { lhs == $0 }
+        let lhs = lhs?.sqlExpression
+        return rhs.map { lhs == $0 }
     }
     
     /// The `=` SQL operator.
@@ -643,7 +656,7 @@ extension AssociationAggregate {
     
     /// The `<>` SQL operator.
     public static func != (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: !=)
+        combine(lhs, rhs, with: { $0 != $1 })
     }
     
     /// The `<>` SQL operator.
@@ -651,7 +664,8 @@ extension AssociationAggregate {
     /// When the right operand is nil, `IS NOT NULL` is used instead of the
     /// `<>` operator.
     public static func != (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
-        lhs.map { $0 != rhs }
+        let rhs = rhs?.sqlExpression
+        return lhs.map { $0 != rhs }
     }
     
     /// The `<>` SQL operator.
@@ -659,7 +673,8 @@ extension AssociationAggregate {
     /// When the left operand is nil, `IS NOT NULL` is used instead of the
     /// `<>` operator.
     public static func != (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
-        rhs.map { lhs != $0 }
+        let lhs = lhs?.sqlExpression
+        return rhs.map { lhs != $0 }
     }
     
     /// The `<>` SQL operator.
@@ -674,32 +689,36 @@ extension AssociationAggregate {
     
     /// The `IS` SQL operator.
     public static func === (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: ===)
+        combine(lhs, rhs, with: { $0 === $1 })
     }
     
     /// The `IS` SQL operator.
     public static func === (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
-        lhs.map { $0 === rhs }
+        let rhs = rhs?.sqlExpression
+        return lhs.map { $0 === rhs }
     }
     
     /// The `IS` SQL operator.
     public static func === (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
-        rhs.map { lhs === $0 }
+        let lhs = lhs?.sqlExpression
+        return rhs.map { lhs === $0 }
     }
     
     /// The `IS NOT` SQL operator.
     public static func !== (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: !==)
+        combine(lhs, rhs, with: { $0 !== $1 })
     }
     
     /// The `IS NOT` SQL operator.
     public static func !== (lhs: Self, rhs: (any SQLExpressible)?) -> Self {
-        lhs.map { $0 !== rhs }
+        let rhs = rhs?.sqlExpression
+        return lhs.map { $0 !== rhs }
     }
     
     /// The `IS NOT` SQL operator.
     public static func !== (lhs: (any SQLExpressible)?, rhs: Self) -> Self {
-        rhs.map { lhs !== $0 }
+        let lhs = lhs?.sqlExpression
+        return rhs.map { lhs !== $0 }
     }
 }
 
@@ -708,62 +727,70 @@ extension AssociationAggregate {
 extension AssociationAggregate {
     /// The `<=` SQL operator.
     public static func <= (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: <=)
+        combine(lhs, rhs, with: { $0 <= $1 })
     }
     
     /// The `<=` SQL operator.
     public static func <= (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 <= rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 <= rhs }
     }
     
     /// The `<=` SQL operator.
     public static func <= (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs <= $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs <= $0 }
     }
     
     /// The `<` SQL operator.
     public static func < (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: <)
+        combine(lhs, rhs, with: { $0 < $1 })
     }
     
     /// The `<` SQL operator.
     public static func < (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 < rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 < rhs }
     }
     
     /// The `<` SQL operator.
     public static func < (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs < $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs < $0 }
     }
     
     /// The `>` SQL operator.
     public static func > (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: >)
+        combine(lhs, rhs, with: { $0 > $1 })
     }
     
     /// The `>` SQL operator.
     public static func > (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 > rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 > rhs }
     }
     
     /// The `>` SQL operator.
     public static func > (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs > $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs > $0 }
     }
     
     /// The `>=` SQL operator.
     public static func >= (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: >=)
+        combine(lhs, rhs, with: { $0 >= $1 })
     }
     
     /// The `>=` SQL operator.
     public static func >= (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 >= rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 >= rhs }
     }
     
     /// The `>=` SQL operator.
     public static func >= (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs >= $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs >= $0 }
     }
 }
 
@@ -777,62 +804,70 @@ extension AssociationAggregate {
     
     /// The `+` SQL operator.
     public static func + (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: +)
+        combine(lhs, rhs, with: { $0 + $1 })
     }
     
     /// The `+` SQL operator.
     public static func + (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 + rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 + rhs }
     }
     
     /// The `+` SQL operator.
     public static func + (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs + $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs + $0 }
     }
     
     /// The `-` SQL operator.
     public static func - (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: -)
+        combine(lhs, rhs, with: { $0 - $1 })
     }
     
     /// The `-` SQL operator.
     public static func - (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 - rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 - rhs }
     }
     
     /// The `-` SQL operator.
     public static func - (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs - $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs - $0 }
     }
     
     /// The `*` SQL operator.
     public static func * (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: *)
+        combine(lhs, rhs, with: { $0 * $1 })
     }
     
     /// The `*` SQL operator.
     public static func * (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 * rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 * rhs }
     }
     
     /// The `*` SQL operator.
     public static func * (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs * $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs * $0 }
     }
     
     /// The `/` SQL operator.
     public static func / (lhs: Self, rhs: Self) -> Self {
-        combine(lhs, rhs, with: /)
+        combine(lhs, rhs, with: { $0 / $1 })
     }
     
     /// The `/` SQL operator.
     public static func / (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs.map { $0 / rhs }
+        let rhs = rhs.sqlExpression
+        return lhs.map { $0 / rhs }
     }
     
     /// The `/` SQL operator.
     public static func / (lhs: some SQLExpressible, rhs: Self) -> Self {
-        rhs.map { lhs / $0 }
+        let lhs = lhs.sqlExpression
+        return rhs.map { lhs / $0 }
     }
 }
 
@@ -849,7 +884,8 @@ extension AssociationAggregate {
     ///
     /// The returned aggregate has the same key as the input.
     public static func ?? (lhs: Self, rhs: some SQLExpressible) -> Self {
-        lhs
+        let rhs = rhs.sqlExpression
+        return lhs
             .map { $0 ?? rhs }
             .with { $0.key = lhs.key } // Preserve key
     }
@@ -859,7 +895,7 @@ extension AssociationAggregate {
 public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 -> AssociationAggregate<RowDecoder>
 {
-    aggregate.map(abs)
+    aggregate.map { abs($0) }
 }
 
 /// The `CAST` SQL function.
@@ -879,5 +915,5 @@ public func cast<RowDecoder>(
 public func length<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
 -> AssociationAggregate<RowDecoder>
 {
-    aggregate.map(length)
+    aggregate.map { length($0) }
 }
