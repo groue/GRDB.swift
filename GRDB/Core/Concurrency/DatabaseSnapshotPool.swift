@@ -293,7 +293,9 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func asyncRead(
+        _ value: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -303,8 +305,11 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
             do {
                 let (reader, releaseReader) = try result.get()
                 // Second async jump because that's how `Pool.async` has to be used.
+                // Prevent compiler warning with an unchecked Sendable wrapper, due
+                // to <https://github.com/apple/swift/issues/73315>.
+                let valueWrapper = UncheckedSendableWrapper(value: value)
                 reader.async { db in
-                    value(.success(db))
+                    valueWrapper.value(.success(db))
                     releaseReader(self.poolCompletion(db))
                 }
             } catch {

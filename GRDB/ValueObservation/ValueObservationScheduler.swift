@@ -17,11 +17,11 @@ public protocol ValueObservationScheduler: Sendable {
     /// If the result is true, then this method was called on the main thread.
     func immediateInitialValue() -> Bool
     
-    func schedule(_ action: @escaping @Sendable () -> Void)
+    func schedule(_ action: sending @escaping () -> Void)
 }
 
 extension ValueObservationScheduler {
-    func scheduleInitial(_ action: @escaping @Sendable () -> Void) {
+    func scheduleInitial(_ action: sending @escaping () -> Void) {
         if immediateInitialValue() {
             action()
         } else {
@@ -42,8 +42,15 @@ public struct AsyncValueObservationScheduler: ValueObservationScheduler {
     
     public func immediateInitialValue() -> Bool { false }
     
-    public func schedule(_ action: @escaping @Sendable () -> Void) {
-        queue.async(execute: action)
+    public func schedule(_ action: sending @escaping () -> Void) {
+        // DispatchQueue does not accept a sending closure yet, as
+        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
+        // So let's wrap the closure in a Sendable wrapper.
+        let action = UncheckedSendableWrapper(value: action)
+        
+        queue.async {
+            action.value()
+        }
     }
 }
 
@@ -90,8 +97,15 @@ public struct ImmediateValueObservationScheduler: ValueObservationScheduler, Sen
         return true
     }
     
-    public func schedule(_ action: @escaping @Sendable () -> Void) {
-        DispatchQueue.main.async(execute: action)
+    public func schedule(_ action: sending @escaping () -> Void) {
+        // DispatchQueue does not accept a sending closure yet, as
+        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
+        // So let's wrap the closure in a Sendable wrapper.
+        let action = UncheckedSendableWrapper(value: action)
+        
+        DispatchQueue.main.async {
+            action.value()
+        }
     }
 }
 
