@@ -365,7 +365,9 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func asyncRead(
+        _ value: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -375,6 +377,9 @@ extension DatabasePool: DatabaseReader {
             do {
                 let (reader, releaseReader) = try result.get()
                 // Second async jump because that's how `Pool.async` has to be used.
+                // Prevent compiler warning with an unchecked Sendable wrapper, due
+                // to <https://github.com/apple/swift/issues/73315>.
+                let valueWrapper = UncheckedSendableWrapper(value: value)
                 reader.async { db in
                     defer {
                         try? db.commit() // Ignore commit error
@@ -384,9 +389,9 @@ extension DatabasePool: DatabaseReader {
                         // The block isolation comes from the DEFERRED transaction.
                         try db.beginTransaction(.deferred)
                         try db.clearSchemaCacheIfNeeded()
-                        value(.success(db))
+                        valueWrapper.value(.success(db))
                     } catch {
-                        value(.failure(error))
+                        valueWrapper.value(.failure(error))
                     }
                 }
             } catch {
@@ -409,7 +414,9 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncUnsafeRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -419,15 +426,18 @@ extension DatabasePool: DatabaseReader {
             do {
                 let (reader, releaseReader) = try result.get()
                 // Second async jump because that's how `Pool.async` has to be used.
+                // Prevent compiler warning with an unchecked Sendable wrapper, due
+                // to <https://github.com/apple/swift/issues/73315>.
+                let valueWrapper = UncheckedSendableWrapper(value: value)
                 reader.async { db in
                     defer {
                         releaseReader(.reuse)
                     }
                     do {
                         try db.clearSchemaCacheIfNeeded()
-                        value(.success(db))
+                        valueWrapper.value(.success(db))
                     } catch {
-                        value(.failure(error))
+                        valueWrapper.value(.failure(error))
                     }
                 }
             } catch {
@@ -454,7 +464,9 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func spawnConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(
+        _ value: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         asyncConcurrentRead(value)
     }
     
@@ -495,7 +507,9 @@ extension DatabasePool: DatabaseReader {
     /// ```
     ///
     /// - parameter value: A function that accesses the database.
-    public func asyncConcurrentRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func asyncConcurrentRead(
+        _ value: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -747,7 +761,9 @@ extension DatabasePool: DatabaseWriter {
         }
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping @Sendable (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(
+        _ updates: sending @escaping (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -801,7 +817,9 @@ extension DatabasePool: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping @Sendable (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(
+        _ updates: sending @escaping (Database) -> Void
+    ) {
         writer.async(updates)
     }
 }

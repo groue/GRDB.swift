@@ -206,3 +206,8 @@ class StrongReference<Value: AnyObject>: @unchecked Sendable {
         self.value = value
     }
 }
+
+/// Helps compiler accept valid code it can't validate.
+struct UncheckedSendableWrapper<Value>: @unchecked Sendable {
+    let value: Value
+}

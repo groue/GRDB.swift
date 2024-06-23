@@ -7,6 +7,8 @@ import PackageDescription
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
     .enableUpcomingFeature("StrictConcurrency"),
+    .enableExperimentalFeature("RegionBasedIsolation"),
+    .enableExperimentalFeature("TransferringArgsAndResults"),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []

@@ -15,3 +15,5 @@ OTHER_SWIFT_FLAGS = $(inherited) -D SQLITE_ENABLE_FTS5
 // OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
 
 SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_UPCOMING_FEATURE_REGION_BASED_ISOLATION = YES
+OTHER_SWIFT_FLAGS = $(inherited) -enable-experimental-feature TransferringArgsAndResults

@@ -2,18 +2,18 @@ extension ValueReducers {
     /// A `ValueReducer` that perform database fetches.
     public struct Fetch<Value>: ValueReducer {
         public struct _Fetcher: _ValueReducerFetcher {
-            let _fetch: @Sendable (Database) throws -> Value
+            let _fetch: @Sendable (Database) throws -> sending Value
             
-            public func fetch(_ db: Database) throws -> Value {
+            public func fetch(_ db: Database) throws -> sending Value {
                 assert(db.isInsideTransaction, "Fetching in a non-isolated way is illegal")
                 return try _fetch(db)
             }
         }
         
-        private let _fetch: @Sendable (Database) throws -> Value
+        private let _fetch: @Sendable (Database) throws -> sending Value
         
         /// Creates a reducer which passes raw fetched values through.
-        init(fetch: @escaping @Sendable (Database) throws -> Value) {
+        init(fetch: @escaping @Sendable (Database) throws -> sending Value) {
             self._fetch = fetch
         }
         
