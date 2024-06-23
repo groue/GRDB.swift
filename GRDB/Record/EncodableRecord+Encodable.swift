@@ -150,7 +150,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
                     // eventually perform JSON decoding.
                     // TODO: possible optimization: avoid this conversion to string,
                     // and store raw data bytes as an SQLite string
-                    let jsonString = String(data: jsonData, encoding: .utf8)!
+                    let jsonString = String(decoding: jsonData, as: UTF8.self)
                     persist(jsonString, forKey: key)
                 }
             }
