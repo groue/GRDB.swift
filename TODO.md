@@ -113,7 +113,7 @@
     - [X] association
     - [X] associationaggregate
     - [X] associationtomany
-    - [ ] asyncvalueobservation
+    - [X] asyncvalueobservation
     - [ ] asyncvalueobservation/iterator
     - [X] asyncvalueobservationscheduler
     - [ ] belongstoassociation

@@ -81,7 +81,7 @@ struct ValueObservationEvents: Refinable {
     var didCancel: (@Sendable () -> Void)?
 }
 
-typealias ValueObservationStart<T> = (
+typealias ValueObservationStart<T> = @Sendable (
     _ onError: @escaping @Sendable (Error) -> Void,
     _ onChange: @escaping @Sendable (T) -> Void)
 -> AnyDatabaseCancellable
@@ -339,7 +339,8 @@ extension ValueObservation {
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
 @available(iOS 13, macOS 10.15, tvOS 13, *)
-public struct AsyncValueObservation<Element>: AsyncSequence {
+public struct AsyncValueObservation<Element>: AsyncSequence, @unchecked Sendable {
+    // @unchecked Sendable because of `BufferingPolicy`.
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
     
