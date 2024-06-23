@@ -150,6 +150,13 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
         try reader.sync(block)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        try await reader.execute(value)
+    }
+    
     public func asyncRead(
         _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
@@ -160,10 +167,15 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
         try reader.sync(value)
     }
     
-    public func asyncUnsafeRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
-    ) {
-        reader.async { value(.success($0)) }
+    // There is no such thing as an unsafe access to a snapshot.
+    // We can't provide this as a default implementation in
+    // `DatabaseSnapshotReader`,  because of
+    // <https://github.com/apple/swift/issues/74469>.
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        try await read(value)
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {

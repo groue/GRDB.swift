@@ -11,3 +11,7 @@
 ValueObservation.tracking(Player.fetchAll())
 
 -> Enable `SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES` in Build Settings
+
+---
+
+Task cancellation is now honored (exclusively in async accesses)
