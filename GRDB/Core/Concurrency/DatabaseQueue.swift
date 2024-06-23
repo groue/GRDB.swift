@@ -247,6 +247,17 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        try await writer.execute { db in
+            try db.isolated(readOnly: true) {
+                try value(db)
+            }
+        }
+    }
+    
     public func asyncRead(
         _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
@@ -272,6 +283,13 @@ extension DatabaseQueue: DatabaseReader {
     
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try writer.sync(value)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        try await writer.execute(value)
     }
     
     public func asyncUnsafeRead(

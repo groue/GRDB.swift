@@ -365,6 +365,50 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        // Prevent compiler warning with an unchecked Sendable wrapper, due
+        // to <https://github.com/apple/swift/issues/73315>.
+        // FIXME: remove the closure copy when <https://github.com/apple/swift/issues/74457> is fixed.
+        let value: (Database) throws -> T = value
+        let valueWrapper = UncheckedSendableWrapper(value: value)
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                // The block isolation comes from the DEFERRED transaction.
+                                try db.beginTransaction(.deferred)
+                                try db.clearSchemaCacheIfNeeded()
+                                return try valueWrapper.value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
     public func asyncRead(
         _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
@@ -410,6 +454,47 @@ extension DatabasePool: DatabaseReader {
             try reader.sync { db in
                 try db.clearSchemaCacheIfNeeded()
                 return try value(db)
+            }
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: sending @escaping (Database) throws -> sending T
+    ) async throws -> sending T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        // Prevent compiler warning with an unchecked Sendable wrapper, due
+        // to <https://github.com/apple/swift/issues/73315>.
+        // FIXME: remove the closure copy when <https://github.com/apple/swift/issues/74457> is fixed.
+        let value: (Database) throws -> T = value
+        let valueWrapper = UncheckedSendableWrapper(value: value)
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                try db.clearSchemaCacheIfNeeded()
+                                return try valueWrapper.value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
