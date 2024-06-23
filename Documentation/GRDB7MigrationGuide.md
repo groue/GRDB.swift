@@ -15,3 +15,8 @@ ValueObservation.tracking(Player.fetchAll())
 ---
 
 Task cancellation is now honored (exclusively in async accesses)
+
+---
+
+CSQLite was renamed GRDBSQLite.
+
