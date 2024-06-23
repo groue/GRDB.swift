@@ -462,7 +462,7 @@ extension DatabaseRegion {
         }
     }
     
-    static func union(_ regions: [any DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
+    static func union(_ regions: [any DatabaseRegionConvertible]) -> @Sendable (Database) throws -> DatabaseRegion {
         return { db in
             try regions.reduce(into: DatabaseRegion()) { union, region in
                 try union.formUnion(region.databaseRegion(db))
