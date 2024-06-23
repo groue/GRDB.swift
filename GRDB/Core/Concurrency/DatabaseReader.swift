@@ -213,8 +213,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// later use.
     ///
     /// - parameter value: A closure which accesses the database.
-    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
-    ///   would happen while establishing the database access.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `value`, or
+    ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func read<T>(
         _ value: sending @escaping (Database) throws -> sending T
@@ -319,8 +320,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - warning: Attempts to write in the database may succeed.
     ///
     /// - parameter value: A closure which accesses the database.
-    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
-    ///   would happen while establishing the database access.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `value`, or
+    ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func unsafeRead<T>(
         _ value: sending @escaping (Database) throws -> sending T

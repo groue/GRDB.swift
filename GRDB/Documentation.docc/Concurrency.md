@@ -103,6 +103,8 @@ try dbQueue.write { db in
     
     Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
 
+    The `async` database access methods honor task cancellation. Once the task is cancelled, reads and writes throw `CancellationError`, and any current transaction is rollbacked. 
+
 - **Combine publishers**
     
     For example:

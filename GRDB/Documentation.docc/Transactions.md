@@ -142,15 +142,20 @@ try dbQueue.writeWithoutTransaction { db
 }
 ```
 
-Transactions can't be left opened unless the ``Configuration/allowsUnsafeTransactions`` configuration flag is set:
+When performing manual transaction management, take care that a transaction can not be left opened at the end of a database access:
 
 ```swift
-// fatal error: A transaction has been left opened at the end of a database access
+// fatal error: A transaction has been left
+// opened at the end of a database access.
 try dbQueue.writeWithoutTransaction { db in
     try db.execute(sql: "BEGIN TRANSACTION")
     // <- no commit or rollback
 }
 ```
+
+Generally speaking, make sure you perform a rollback when a commit throws an error. The `async` database access methods honor task cancellation: in a cancelled task, all commits throw `CancellationError`, but rollbacks do not.
+
+Applications that need to perform several database accesses in a long-lived transaction can use the ``Configuration/allowsUnsafeTransactions`` configuration flag.
 
 It is possible to ask if a transaction is currently opened:
 
