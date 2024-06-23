@@ -116,7 +116,7 @@
     - [X] asyncvalueobservation
     - [ ] asyncvalueobservation/iterator
     - [X] asyncvalueobservationscheduler
-    - [ ] belongstoassociation
+    - [X] belongstoassociation
     - [ ] columnexpression
     - [ ] commontableexpression
     - [X] configuration
@@ -137,7 +137,7 @@
     - [-] databasepublishers/read
     - [-] databasepublishers/value
     - [-] databasepublishers/write
-    - [ ] databaseregionobservation
+    - [X] databaseregionobservation
     - [X] databaseuuidencodingstrategy
     - [X] defaulttransactionclock
     - [ ] fetchablerecorddecoder
