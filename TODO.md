@@ -111,7 +111,7 @@
     - [X] anyfetchrequest
     - [ ] anysqljsonexpressible
     - [X] association
-    - [ ] associationaggregate
+    - [X] associationaggregate
     - [X] associationtomany
     - [ ] asyncvalueobservation
     - [ ] asyncvalueobservation/iterator
