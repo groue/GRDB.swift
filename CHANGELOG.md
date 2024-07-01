@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.27.x` Releases - [6.27.0](#6270)
 - `6.26.x` Releases - [6.26.0](#6260)
 - `6.25.x` Releases - [6.25.0](#6250)
 - `6.24.x` Releases - [6.24.0](#6240) - [6.24.1](#6241) - [6.24.2](#6242)
@@ -123,6 +124,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.27.0
+
+Released April 21, 2024
+
+- **Fixed**: [#1533](https://github.com/groue/GRDB.swift/pull/1533) by [@groue](https://github.com/groue): Fix a bug in Decodable support
+- **Documentation Update**: [#1534](https://github.com/groue/GRDB.swift/pull/1534) The [Single-Row Tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/singlerowtables) guide was updated with guidance about default configuration values.
+- **Documentation Update**: [#1535](https://github.com/groue/GRDB.swift/pull/1535) The [ValueObservation Scheduling](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation#ValueObservation-Scheduling) documentation chapter explains the default behavior of `ValueObservation` fetches, and explains how to make sure they are never performed on the main thread.
 
 ## 6.26.0
 

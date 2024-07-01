@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: March 23, 2024 • [version 6.26.0](https://github.com/groue/GRDB.swift/tree/v6.26.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: April 21, 2024 • [version 6.27.0](https://github.com/groue/GRDB.swift/tree/v6.27.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 

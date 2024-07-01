@@ -820,6 +820,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Reports the database region to ``ValueObservation``.
     ///
+    /// Calling this method does not fetch any database values. It just
+    /// helps optimizing `ValueObservation`. See
+    /// ``ValueObservation/trackingConstantRegion(_:)`` for more
+    /// information, and some examples of usage.
+    ///
     /// For example:
     ///
     /// ```swift
@@ -831,12 +836,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// }
     /// ```
     ///
-    /// See ``ValueObservation/trackingConstantRegion(_:)`` for some examples
-    /// of region reporting.
-    ///
-    /// This method has no effect on a ``ValueObservation`` created with an
-    /// explicit list of tracked regions. In the example below, only the
-    /// `player` table is tracked:
+    /// This method has no effect on a `ValueObservation` created with
+    /// ``ValueObservation/tracking(regions:fetch:)``. In the example below,
+    /// only the `player` table is tracked:
     ///
     /// ```swift
     /// // Observes the 'player' table only

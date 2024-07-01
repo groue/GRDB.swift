@@ -595,12 +595,18 @@ extension ValueObservation {
     /// Creates an optimized `ValueObservation` that notifies the fetched value
     /// whenever it changes.
     ///
-    /// The optimization reduces database contention by not blocking database
-    /// writes when the fresh value is fetched.
+    /// Unlike observations created with ``tracking(_:)``, the returned
+    /// observation can reduce database contention, by not blocking
+    /// database writes when fresh values are fetched. It can also avoid
+    /// fetching fresh values from the main thread, after the database was
+    /// modified on the main thread.
     ///
-    /// The optimization is only applied when the observation is started from a
-    /// ``DatabasePool``. You can start such an observation from a
-    /// ``DatabaseQueue``, but the optimization will not be applied.
+    /// Those scheduling optimizations are only applied when the observation
+    /// is started from a ``DatabasePool``. You can start such an
+    /// observation from a ``DatabaseQueue``, but the optimizations will not
+    /// be applied. The notified values will be the same, though. This makes
+    /// it possible to use a pool in the main application, and an in-memory
+    /// queue in tests and Xcode previews.
     ///
     /// **Precondition**: The `fetch` function must perform requests that fetch
     /// from a single and constant database region. This region is made of
@@ -623,7 +629,7 @@ extension ValueObservation {
     ///
     /// // Tracks the 'score' column in the 'player' table
     /// let observation = ValueObservation.trackingConstantRegion { db -> Int? in
-    ///     try Player.select(max(Column("score"))).fetchOne(db)
+    ///     try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player")
     /// }
     ///
     /// // Tracks both the 'player' and 'team' tables
@@ -634,73 +640,93 @@ extension ValueObservation {
     /// }
     /// ```
     ///
-    /// Observations that do not track a constant region must not use this
-    /// method. Use ``tracking(_:)`` instead, or else some changes will not
-    /// be notified.
+    /// **Observations that do not track a constant database region must not
+    /// use this method, because some changes may not be notified to
+    /// the application.**
     ///
-    /// For example, the observations below do not track a constant region, and
-    /// must not be optimized:
+    /// For example, the observations below do not track a constant region.
+    /// They are correctly defined with ``tracking(_:)``, since
+    /// `trackingConstantRegion(_:)` is unsuited:
     ///
     /// ```swift
-    /// // Does not always track the same row in the player table.
-    /// let observation = ValueObservation.tracking { db -> Player? in
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     return try Player.fetchOne(db, id: pref.favoritePlayerId)
+    /// // Does not always track the same row in the 'player' table:
+    /// let observation = ValueObservation.tracking { db -> Player in
+    ///     let config = try AppConfiguration.find(db)
+    ///     let playerId: Int64 = config.favoritePlayerId
+    ///     return try Player.find(db, id: playerId)
     /// }
     ///
-    /// // Does not always track the 'user' table.
-    /// let observation = ValueObservation.tracking { db -> [User] in
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     let playerIds: [Int64] = pref.favoritePlayerIds // may be empty
+    /// // Does not always track the 'player' table, or not always the same
+    /// // rows in the 'player' table:
+    /// let observation = ValueObservation.tracking { db -> [Player] in
+    ///     let config = try AppConfiguration.find(db)
+    ///     let playerIds: [Int64] = config.favoritePlayerIds
+    ///     // Not only playerIds can change, but when it is empty,
+    ///     // the player table is not tracked at all.
     ///     return try Player.fetchAll(db, ids: playerIds)
     /// }
     ///
     /// // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
     /// let observation = ValueObservation.tracking { db -> Int in
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     switch pref.selection {
-    ///     case .food: return try Food.fetchCount(db)
-    ///     case .beverage: return try Beverage.fetchCount(db)
+    ///     let config = try AppConfiguration.find(db)
+    ///     switch config.selection {
+    ///     case .food:
+    ///         return try Food.fetchCount(db)
+    ///     case .beverage:
+    ///         return try Beverage.fetchCount(db)
     ///     }
     /// }
     /// ```
     ///
-    /// You can turn them into optimized observations of a constant region with
-    /// the ``Database/registerAccess(to:)`` method:
+    /// Since only observations of a constant region can achieve important
+    /// scheduling optimizations (such as the guarantee that fresh values
+    /// are never fetched from the main thread –
+    /// see <doc:ValueObservation#ValueObservation-Scheduling>), you can
+    /// always create one:
     ///
-    /// ```swift
-    /// let observation = ValueObservation.trackingConstantRegion { db -> Player? in
-    ///     // Track all players so that the observed region does not depend on
-    ///     // the rowid of the favorite player.
-    ///     try db.registerAccess(to: Player.all())
+    /// - With ``tracking(regions:fetch:)``, you provide all tracked
+    ///   region(s) when the observation is created:
     ///
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     return try Player.fetchOne(db, id: pref.favoritePlayerId)
-    /// }
+    ///     ```swift
+    ///     // Optimized observation that explicitly tracks the
+    ///     // 'appConfiguration', 'food', and 'beverage' tables:
+    ///     let observation = ValueObservation.tracking(
+    ///         regions: [
+    ///             AppConfiguration.all(),
+    ///             Food.all(),
+    ///             Beverage.all(),
+    ///         ],
+    ///         fetch: { db -> Int in
+    ///             let config = try AppConfiguration.find(db)
+    ///             switch config.selection {
+    ///             case .food:
+    ///                 return try Food.fetchCount(db)
+    ///             case .beverage:
+    ///                 return try Beverage.fetchCount(db)
+    ///             }
+    ///         })
+    ///     ```
     ///
-    /// let observation = ValueObservation.trackingConstantRegion { db -> [User] in
-    ///     // Track all players so that the observed region does not change
-    ///     // even if there is no favorite player at all.
-    ///     try db.registerAccess(to: Player.all())
+    /// - With ``Database/registerAccess(to:)``, you extend the list of
+    ///   tracked region(s) from the fetching closure:
     ///
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     let playerIds: [Int64] = pref.favoritePlayerIds // may be empty
-    ///     return try Player.fetchAll(db, ids: playerIds)
-    /// }
+    ///     ```swift
+    ///     // Optimized observation that implicitly tracks the
+    ///     // 'appConfiguration' table, and explicitly tracks 'food'
+    ///     // and 'beverage':
+    ///     let observation = ValueObservation.trackingConstantRegion { db -> Int in
+    ///         try db.registerAccess(to: Food.all())
+    ///         try db.registerAccess(to: Beverage.all())
     ///
-    /// let observation = ValueObservation.trackingConstantRegion { db -> Int in
-    ///     // Track foods and beverages so that the observed region does not
-    ///     // depend on preferences.
-    ///     try db.registerAccess(to: Food.all())
-    ///     try db.registerAccess(to: Beverage.all())
-    ///
-    ///     let pref = try Preference.fetchOne(db) ?? .default
-    ///     switch pref.selection {
-    ///     case .food: return try Food.fetchCount(db)
-    ///     case .beverage: return try Beverage.fetchCount(db)
+    ///         let config = try AppConfiguration.find(db)
+    ///         switch config.selection {
+    ///         case .food:
+    ///             return try Food.fetchCount(db)
+    ///         case .beverage:
+    ///             return try Beverage.fetchCount(db)
+    ///         }
     ///     }
-    /// }
-    /// ```
+    ///     ```
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func trackingConstantRegion<Value>(
@@ -757,6 +783,19 @@ extension ValueObservation {
     ///     region: Player.all(), Team.all(),
     ///     fetch: { db in ... })
     /// ```
+    ///
+    /// Unlike observations created with ``tracking(_:)``, the returned
+    /// observation can reduce database contention, by not blocking
+    /// database writes when fresh values are fetched. It can also avoid
+    /// fetching fresh values from the main thread, after the database was
+    /// modified on the main thread.
+    ///
+    /// Those scheduling optimizations are only applied when the observation
+    /// is started from a ``DatabasePool``. You can start such an
+    /// observation from a ``DatabaseQueue``, but the optimizations will not
+    /// be applied. The notified values will be the same, though. This makes
+    /// it possible to use a pool in the main application, and an in-memory
+    /// queue in tests and Xcode previews.
     ///
     /// - parameter region: A region to observe.
     /// - parameter otherRegions: A list of supplementary regions
@@ -816,6 +855,19 @@ extension ValueObservation {
     ///     regions: [Player.all(), Team.all()],
     ///     fetch: { db in ... })
     /// ```
+    ///
+    /// Unlike observations created with ``tracking(_:)``, the returned
+    /// observation can reduce database contention, by not blocking
+    /// database writes when fresh values are fetched. It can also avoid
+    /// fetching fresh values from the main thread, after the database was
+    /// modified on the main thread.
+    ///
+    /// Those scheduling optimizations are only applied when the observation
+    /// is started from a ``DatabasePool``. You can start such an
+    /// observation from a ``DatabaseQueue``, but the optimizations will not
+    /// be applied. The notified values will be the same, though. This makes
+    /// it possible to use a pool in the main application, and an in-memory
+    /// queue in tests and Xcode previews.
     ///
     /// - parameter regions: An array of observed regions.
     /// - parameter fetch: The closure that fetches the observed value.

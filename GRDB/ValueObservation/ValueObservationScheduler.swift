@@ -66,6 +66,10 @@ extension ValueObservationScheduler where Self == AsyncValueObservationScheduler
     ///         print("fresh players: \(players)")
     ///     })
     /// ```
+    ///
+    /// - warning: Make sure you provide a serial queue, because a
+    ///   concurrent one such as `DispachQueue.global(qos: .default)` would
+    ///   mess with the ordering of fresh value notifications.
     public static func async(onQueue queue: DispatchQueue) -> AsyncValueObservationScheduler {
         AsyncValueObservationScheduler(queue: queue)
     }
