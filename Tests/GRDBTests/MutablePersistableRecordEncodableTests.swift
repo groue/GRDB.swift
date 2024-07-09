@@ -83,6 +83,47 @@ extension MutablePersistableRecordEncodableTests {
             XCTAssertEqual(string, "foo (MutablePersistableRecord)")
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1565>
+    func testSingleValueContainer() throws {
+        struct Struct: Encodable {
+            let value: String
+        }
+        
+        struct Wrapper<Model: Encodable>: MutablePersistableRecord, Encodable {
+            static var databaseTableName: String { "t1" }
+            var model: Model
+            var otherValue: String
+            
+            enum CodingKeys: String, CodingKey {
+                case otherValue
+            }
+            
+            func encode(to encoder: any Encoder) throws {
+                var modelContainer = encoder.singleValueContainer()
+                try modelContainer.encode(model)
+                
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(otherValue, forKey: .otherValue)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("value", .text)
+                t.column("otherValue", .text)
+            }
+            
+            var value = Wrapper(model: Struct(value: "foo"), otherValue: "bar")
+            try assert(value, isEncodedIn: ["value": "foo", "otherValue": "bar"])
+            
+            try value.insert(db)
+            let row = try Row.fetchOne(db, sql: "SELECT value, otherValue FROM t1")!
+            XCTAssertEqual(row[0], "foo")
+            XCTAssertEqual(row[1], "bar")
+        }
+    }
 }
 
 // MARK: - Different kinds of single-value properties
