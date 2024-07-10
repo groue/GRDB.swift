@@ -224,7 +224,11 @@ extension RecordEncoder: SingleValueEncodingContainer {
     }
     
     func encode<T>(_ value: T) throws where T : Encodable {
-        try value.encode(to: self)
+        if let record = value as? EncodableRecord {
+            try record.encode(to: &_persistenceContainer)
+        } else {
+            try value.encode(to: self)
+        }
     }
 }
 
