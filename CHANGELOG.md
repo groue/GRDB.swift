@@ -130,6 +130,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1570](https://github.com/groue/GRDB.swift/pull/1570) by [@groue](https://github.com/groue): Support single-value encoding
 - **New**: Added `QueryInterfaceRequest.deleteAndFetchIds(_:)` which returns the set of deleted ids.
 - **New**: Added `Set` methods `union`, `formUnion`, `intersection` and `formIntersection` that accept a cursor.
+- **New**: `DatabaseUUIDEncodingStrategy` is Sendable.
 
 ## 6.27.0
 
