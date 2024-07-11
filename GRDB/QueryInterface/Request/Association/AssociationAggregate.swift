@@ -366,6 +366,7 @@ extension AssociationToMany {
 /// ### Top-Level Functions
 ///
 /// - ``abs(_:)-43n8v``
+/// - ``cast(_:as:)-63ttx``
 /// - ``length(_:)-9dr2v``
 public struct AssociationAggregate<RowDecoder> {
     fileprivate let preparation: AssociationAggregatePreparation<RowDecoder>

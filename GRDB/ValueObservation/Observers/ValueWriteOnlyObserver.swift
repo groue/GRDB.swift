@@ -448,6 +448,8 @@ extension ValueWriteOnlyObserver: DatabaseCancellable {
         // Notify cancellation
         let (events, writer) = lock.synchronized {
             let events = notificationCallbacks?.events
+            // Set callbacks to nil so that we can't notify anything after
+            // the cancellation.
             notificationCallbacks = nil
             return (events, databaseAccess?.writer)
         }

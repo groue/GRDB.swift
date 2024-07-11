@@ -2,6 +2,12 @@ import XCTest
 import GRDB
 
 class DatabaseMigratorTests : GRDBTestCase {
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testMigrateAnyDatabaseWriter(writer: any DatabaseWriter) throws {
+        let migrator = DatabaseMigrator()
+        try migrator.migrate(writer)
+    }
     
     func testEmptyMigratorSync() throws {
         func test(writer: some DatabaseWriter) throws {

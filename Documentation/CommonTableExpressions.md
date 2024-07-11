@@ -251,7 +251,7 @@ let rightCTE = ...
 let association = LeftRecord.association(
     to: rightCTE, 
     on: { left, right in
-        left[Column("x")] = right[Column("y")]
+        left[Column("x")] == right[Column("y")]
     })
 ```
 
