@@ -585,7 +585,7 @@ public enum DatabaseDateEncodingStrategy {
 ///     var uuid: UUID
 /// }
 /// ```
-public enum DatabaseUUIDEncodingStrategy {
+public enum DatabaseUUIDEncodingStrategy: Sendable {
     /// The strategy that uses formatting from the UUID type.
     ///
     /// It encodes UUIDs as 16-bytes data blobs.
