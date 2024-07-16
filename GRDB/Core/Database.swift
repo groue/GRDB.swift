@@ -2101,6 +2101,10 @@ extension Database {
             ///   information from leaking in unexpected locations, so use this
             ///   property with care.
             public var expandedSQL: String {
+                if let unexpandedSQL {
+                    let sql = String(cString: unexpandedSQL)
+                    if sql.hasSuffix("--") { return sql }
+                }
                 guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
                     return ""
                 }
