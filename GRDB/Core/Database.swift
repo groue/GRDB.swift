@@ -2103,7 +2103,7 @@ extension Database {
             public var expandedSQL: String {
                 if let unexpandedSQL {
                     let sql = String(cString: unexpandedSQL)
-                    if sql.hasSuffix("--") { return sql }
+                    if sql.hasPrefix("--") { return sql }
                 }
                 guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
                     return ""
