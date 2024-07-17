@@ -2083,7 +2083,8 @@ extension Database {
             /// ```
             public var sql: String {
                 if let unexpandedSQL {
-                    return String(cString: unexpandedSQL).trimmedSQLStatement
+                    let sql = String(cString: unexpandedSQL)
+                    return sql.hasPrefix("--") ? sql : sql.trimmedSQLStatement
                 } else {
                     return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
                 }
