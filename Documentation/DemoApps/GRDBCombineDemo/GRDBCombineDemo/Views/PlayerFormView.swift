@@ -33,15 +33,16 @@ extension PlayerForm {
     }
 }
 
-struct PlayerFormView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            PlayerFormView(form: .constant(PlayerForm(
-                name: "",
-                score: "")))
-            PlayerFormView(form: .constant(PlayerForm(
-                name: Player.randomName(),
-                score: "\(Player.randomScore())")))
-        }
-    }
+// MARK: - Previews
+
+#Preview("Empty") {
+    PlayerFormView(form: .constant(PlayerForm(
+        name: "",
+        score: "")))
+}
+
+#Preview("Prefilled") {
+    PlayerFormView(form: .constant(PlayerForm(
+        name: Player.randomName(),
+        score: "\(Player.randomScore())")))
 }

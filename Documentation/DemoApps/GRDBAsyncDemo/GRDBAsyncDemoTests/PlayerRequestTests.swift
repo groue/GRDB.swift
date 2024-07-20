@@ -16,7 +16,7 @@ class PlayerRequestTests: XCTestCase {
         
         // When we fetch players ordered by name
         let playerRequest = PlayerRequest(ordering: .byName)
-        let players = try dbQueue.read(playerRequest.fetchValue)
+        let players = try dbQueue.read(playerRequest.fetch)
         
         // Then the players are the two players ordered by name
         XCTAssertEqual(players, [player1, player2])
@@ -35,7 +35,7 @@ class PlayerRequestTests: XCTestCase {
         
         // When we fetch players ordered by score
         let playerRequest = PlayerRequest(ordering: .byScore)
-        let players = try dbQueue.read(playerRequest.fetchValue)
+        let players = try dbQueue.read(playerRequest.fetch)
         
         // Then the players are the two players ordered by score descending
         XCTAssertEqual(players, [player2, player1])

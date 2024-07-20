@@ -46,14 +46,14 @@ private struct PlayerRow: View {
     }
 }
 
-struct PlayerList_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            PlayerList(players: [
-                Player(id: 1, name: "Arthur", score: 100),
-                Player(id: 2, name: "Barbara", score: 1000),
-            ])
-                .navigationTitle("Preview")
-        }
+// MARK: - Previews
+
+#Preview {
+    NavigationView {
+        PlayerList(players: [
+            Player(id: 1, name: "Arthur", score: 100),
+            Player(id: 2, name: "Barbara", score: 1000),
+        ])
+        .navigationTitle("Preview")
     }
 }
