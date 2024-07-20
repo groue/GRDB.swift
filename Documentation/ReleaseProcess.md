@@ -18,8 +18,10 @@ To release a new GRDB version:
     - README.md
     - Support/Info.plist
 - Commit and tag
-- Check tag authors: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
-- Push to the master & development branch
+- Look for undesired tags: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
+- Push to the `master` branch
+- Push to the `development` branch
+- Push to the `GRDB6` branch
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
 - Update [performance comparison](https://github.com/groue/GRDB.swift/wiki/Performance):
 
