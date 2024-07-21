@@ -43,7 +43,7 @@ struct AppView: View {
                             stopEditing()
                         }))
                 .toolbar { toolbarContent }
-                .onChange(of: players) { players in
+                .onChange(of: players) {
                     if players.isEmpty {
                         stopEditing()
                     }
@@ -141,14 +141,14 @@ private struct ToggleOrderingButton: View {
     }
 }
 
-struct AppView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // Preview the default, empty database
-            AppView()
-            
-            // Preview a database of random players
-            AppView().environment(\.appDatabase, .random())
-        }
-    }
+// MARK: - Previews
+
+#Preview("Empty") {
+    // Preview the default, empty database
+    AppView()
+}
+
+#Preview("Populated") {
+    // Preview a database of random players
+    AppView().appDatabase(.random())
 }

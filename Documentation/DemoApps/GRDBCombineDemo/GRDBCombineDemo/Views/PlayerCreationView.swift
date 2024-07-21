@@ -43,8 +43,8 @@ struct PlayerCreationView: View {
     }
 }
 
-struct PlayerCreationSheet_Previews: PreviewProvider {
-    static var previews: some View {
-        PlayerCreationView()
-    }
+// MARK: - Previews
+
+#Preview {
+    PlayerCreationView()
 }
