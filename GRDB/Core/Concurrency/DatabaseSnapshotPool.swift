@@ -318,9 +318,11 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
                             releaseReader(self.poolCompletion(db))
                         }
                         do {
-                            let result = try dbAccess.inDatabase(db) {
+                            let _result = try dbAccess.inDatabase(db) {
                                 try valueWrapper.value(db)
                             }
+                            // Safe because result is not used beyond its transfer to continuation
+                            nonisolated(unsafe) let result = _result
                             continuation.resume(returning: result)
                         } catch {
                             continuation.resume(throwing: error)

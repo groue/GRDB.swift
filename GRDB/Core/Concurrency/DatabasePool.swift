@@ -391,12 +391,14 @@ extension DatabasePool: DatabaseReader {
                             releaseReader(.reuse)
                         }
                         do {
-                            let result = try dbAccess.inDatabase(db) {
+                            let _result = try dbAccess.inDatabase(db) {
                                 // The block isolation comes from the DEFERRED transaction.
                                 try db.beginTransaction(.deferred)
                                 try db.clearSchemaCacheIfNeeded()
                                 return try valueWrapper.value(db)
                             }
+                            // Safe because result is not used beyond its transfer to continuation
+                            nonisolated(unsafe) let result = _result
                             continuation.resume(returning: result)
                         } catch {
                             continuation.resume(throwing: error)
@@ -483,10 +485,12 @@ extension DatabasePool: DatabaseReader {
                             releaseReader(.reuse)
                         }
                         do {
-                            let result = try dbAccess.inDatabase(db) {
+                            let _result = try dbAccess.inDatabase(db) {
                                 try db.clearSchemaCacheIfNeeded()
                                 return try valueWrapper.value(db)
                             }
+                            // Safe because result is not used beyond its transfer to continuation
+                            nonisolated(unsafe) let result = _result
                             continuation.resume(returning: result)
                         } catch {
                             continuation.resume(throwing: error)
@@ -869,9 +873,11 @@ extension DatabasePool: DatabaseWriter {
                 do {
                     try dbAccess.checkCancellation()
                     let db = try dbResult.get()
-                    let result = try dbAccess.inDatabase(db) {
+                    let _result = try dbAccess.inDatabase(db) {
                         try updatesWrapper.value(db)
                     }
+                    // Safe because result is not used beyond its transfer to continuation
+                    nonisolated(unsafe) let result = _result
                     continuation.resume(returning: result)
                 } catch {
                     continuation.resume(throwing: error)

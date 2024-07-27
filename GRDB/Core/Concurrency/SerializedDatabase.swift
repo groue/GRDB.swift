@@ -260,9 +260,11 @@ final class SerializedDatabase {
         return try await dbAccess.withCancellableContinuation { continuation in
             self.async { db in
                 do {
-                    let result = try dbAccess.inDatabase(db) {
+                    let _result = try dbAccess.inDatabase(db) {
                         try blockWrapper.value(db)
                     }
+                    // Safe because result is not used beyond its transfer to continuation
+                    nonisolated(unsafe) let result = _result
                     continuation.resume(returning: result)
                 } catch {
                     continuation.resume(throwing: error)
