@@ -124,19 +124,14 @@ final class Pool<T: Sendable>: Sendable {
     func asyncGet(
         _ execute: sending @escaping (Result<ElementAndRelease, Error>) -> Void
     ) {
-        // DispatchQueue does not accept a sending closure yet, as
-        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
-        // So let's wrap the closure in a Sendable wrapper.
-        let execute = UncheckedSendableWrapper(value: execute)
-        
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum
         // > executing blocks on the concurrent queue. Any other tasks the user
         // > enqueues will sit inertly on the serial queue waiting to be
         // > executed, and won’t cause new threads to be started.
-        semaphoreWaitingQueue.async {
-            execute.value(Result { try self.get() })
+        semaphoreWaitingQueue.asyncSending {
+            execute(Result { try self.get() })
         }
     }
     
@@ -196,14 +191,9 @@ final class Pool<T: Sendable>: Sendable {
     func asyncBarrier(
         execute barrier: sending @escaping () -> Void
     ) {
-        // DispatchQueue does not accept a sending closure yet, as
-        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
-        // So let's wrap the closure in a Sendable wrapper.
-        let barrier = UncheckedSendableWrapper(value: barrier)
-        
-        barrierQueue.async(flags: [.barrier]) {
+        barrierQueue.asyncSending(flags: [.barrier]) {
             self.itemsGroup.wait()
-            barrier.value()
+            barrier()
         }
     }
 }

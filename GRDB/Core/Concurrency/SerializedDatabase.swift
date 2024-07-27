@@ -226,13 +226,8 @@ final class SerializedDatabase {
     func async(
         _ block: sending @escaping (Database) -> Void
     ) {
-        // DispatchQueue does not accept a sending closure yet, as
-        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
-        // So let's wrap the closure in a Sendable wrapper.
-        let block = UncheckedSendableWrapper(value: block)
-        
-        queue.async {
-            block.value(self.db)
+        queue.asyncSending {
+            block(self.db)
             self.preconditionNoUnsafeTransactionLeft(self.db)
         }
     }

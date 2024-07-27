@@ -1,3 +1,4 @@
+import Dispatch
 import Foundation
 
 // MARK: - Public
@@ -204,6 +205,22 @@ class StrongReference<Value: AnyObject>: @unchecked Sendable {
     
     init(_ value: Value) {
         self.value = value
+    }
+}
+
+extension DispatchQueue {
+    func asyncSending(
+        flags: DispatchWorkItemFlags = [],
+        execute work: sending @escaping () -> Void
+    ) {
+        // DispatchQueue does not accept a sending closure yet, as
+        // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
+        // So let's wrap the closure in a Sendable wrapper.
+        let work = UncheckedSendableWrapper(value: work)
+        
+        self.async {
+            work.value()
+        }
     }
 }
 
