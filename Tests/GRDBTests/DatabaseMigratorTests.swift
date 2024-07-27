@@ -25,14 +25,14 @@ class DatabaseMigratorTests : GRDBTestCase {
         func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let migrator = DatabaseMigrator()
-            migrator.asyncMigrate(writer, completion: { dbResult in
+            migrator.asyncMigrate(writer) { dbResult in
                 // No migration error
                 let db = try! dbResult.get()
                 
                 // Write access
                 try! db.execute(sql: "CREATE TABLE t(a)")
                 expectation.fulfill()
-            })
+            }
             waitForExpectations(timeout: 5, handler: nil)
         }
         
@@ -130,7 +130,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "")
-            migrator.asyncMigrate(writer, completion: { [migrator2] dbResult in
+            migrator.asyncMigrate(writer) { [migrator2] dbResult in
                 // No migration error
                 let db = try! dbResult.get()
                 
@@ -145,7 +145,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     XCTAssertFalse(try! db.tableExists("pets"))
                     expectation.fulfill()
                 })
-            })
+            }
             waitForExpectations(timeout: 5, handler: nil)
         }
         
@@ -416,7 +416,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         do {
             let expectation = self.expectation(description: "")
             let dbQueue = try makeDatabaseQueue()
-            migrator.asyncMigrate(dbQueue, completion: { dbResult in
+            migrator.asyncMigrate(dbQueue) { dbResult in
                 // The first migration should be committed.
                 // The second migration should be rollbacked.
                 
@@ -436,7 +436,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     
                     expectation.fulfill()
                 }
-            })
+            }
             waitForExpectations(timeout: 5, handler: nil)
         }
     }
