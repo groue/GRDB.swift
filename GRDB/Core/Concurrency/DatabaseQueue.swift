@@ -468,7 +468,7 @@ extension DatabaseQueue: DatabaseWriter {
     public func asyncWriteWithoutTransaction(
         _ updates: sending @escaping (Database) -> Void
     ) {
-        writer.async(updates)
+        writer.async(execute: updates)
     }
 }
 

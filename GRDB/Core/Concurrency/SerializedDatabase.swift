@@ -224,10 +224,10 @@ final class SerializedDatabase {
     
     /// Schedules database operations for execution, and returns immediately.
     func async(
-        _ block: sending @escaping (Database) -> Void
+        execute work: sending @escaping (Database) -> Void
     ) {
         queue.asyncSending {
-            block(self.db)
+            work(self.db)
             self.preconditionNoUnsafeTransactionLeft(self.db)
         }
     }
