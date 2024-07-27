@@ -9,6 +9,7 @@ var swiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("StrictConcurrency"),
     .enableExperimentalFeature("RegionBasedIsolation"),
     .enableExperimentalFeature("TransferringArgsAndResults"),
+    .enableUpcomingFeature("InferSendableFromCaptures"),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
@@ -81,10 +82,7 @@ let package = Package(
                 .copy("GRDBTests/Issue1383.sqlite"),
             ],
             cSettings: cSettings,
-            swiftSettings: swiftSettings + [
-                // TODO: move to base settings once https://github.com/apple/swift/issues/73313 is fixed.
-                .enableUpcomingFeature("InferSendableFromCaptures"),
-            ])
+            swiftSettings: swiftSettings)
     ],
     swiftLanguageVersions: [.v5]
 )
