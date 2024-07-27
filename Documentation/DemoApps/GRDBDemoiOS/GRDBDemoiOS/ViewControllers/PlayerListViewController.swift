@@ -136,7 +136,7 @@ class PlayerListViewController: UITableViewController {
         }
         
         playersCancellable = ValueObservation
-            .tracking(request.fetchAll(_:))
+            .tracking { db in try request.fetchAll(db) }
             .start(
                 in: AppDatabase.shared.reader,
                 // Immediate scheduling feeds the data source right on subscription,
@@ -145,8 +145,10 @@ class PlayerListViewController: UITableViewController {
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self else { return }
-                    self.configureTitle(from: players)
-                    self.configureDataSource(from: players)
+                    MainActor.assumeIsolated {
+                        self.configureTitle(from: players)
+                        self.configureDataSource(from: players)
+                    }
                 })
     }
 }
