@@ -285,7 +285,7 @@ extension FetchRequest {
 }
 
 /// A type-erased ValueReducer.
-struct AnyValueReducer<Fetched, Value>: ValueReducer {
+struct AnyValueReducer<Fetched, Value: Sendable>: ValueReducer {
     private var __fetch: @Sendable (Database) throws -> Fetched
     private var __value: (Fetched) -> Value?
     

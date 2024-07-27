@@ -13,13 +13,8 @@ extension ValueObservationSchedulers {
         public func immediateInitialValue() -> Bool { false }
         
         public func schedule(_ action: sending @escaping () -> Void) {
-            // DispatchQueue does not accept a sending closure yet, as
-            // discussed at <https://forums.swift.org/t/how-can-i-use-region-based-isolation/71426/5>.
-            // So let's wrap the closure in a Sendable wrapper.
-            let action = UncheckedSendableWrapper(value: action)
-            
-            queue.async {
-                action.value()
+            queue.asyncSending {
+                action()
             }
         }
     }

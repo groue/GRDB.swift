@@ -172,7 +172,7 @@ typealias SendableValueObservationStart<T> = @Sendable (
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element>: @unchecked Sendable {
+public final class SharedValueObservation<Element: Sendable>: @unchecked Sendable {
     // @unchecked Sendable: mutable state is protected by `lock`.
     
     private let scheduler: any ValueObservationScheduler
@@ -264,10 +264,6 @@ public final class SharedValueObservation<Element>: @unchecked Sendable {
                     })
             } else if let lastResult {
                 // Notify last result as an initial value
-                
-                // Safe because result is not used beyond its transfer to sheduler
-                // FIXME: improve when SE-0430 is shipped.
-                nonisolated(unsafe) let lastResult = lastResult
                 
                 scheduler.scheduleInitial {
                     switch lastResult {

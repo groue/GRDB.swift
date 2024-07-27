@@ -16,7 +16,7 @@ public protocol _ValueReducer {
     associatedtype Fetcher: _ValueReducerFetcher
     
     /// The type of observed values
-    associatedtype Value
+    associatedtype Value: Sendable
     
     /// The type of fetched database values
     typealias Fetched = Fetcher.Fetched

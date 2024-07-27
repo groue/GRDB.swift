@@ -360,7 +360,6 @@ extension ValueConcurrentObserver {
                 initialFetchTransaction.asyncRead { dbResult in
                     do {
                         // Safe because fetchedValue is not used beyond its transfer to reduceQueue
-                        // FIXME: improve when SE-0430 is shipped.
                         nonisolated(unsafe) let fetchedValue: Reducer.Fetched
                         
                         let initialRegion: DatabaseRegion
@@ -381,29 +380,7 @@ extension ValueConcurrentObserver {
                         //
                         // Reducing is performed asynchronously, so that we do not lock
                         // a database dispatch queue longer than necessary.
-                        self.reduceQueue.async {
-                            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-                            guard isNotifying else { return /* Cancelled */ }
-                            
-                            do {
-                                guard let _initialValue = try self.reducer._value(fetchedValue) else {
-                                    fatalError("Broken contract: reducer has no initial value")
-                                }
-
-                                // Safe because initialValue is not used beyond its transfer to scheduler
-                                // FIXME: improve when SE-0430 is shipped.
-                                nonisolated(unsafe) let initialValue = _initialValue
-                                
-                                // Notify
-                                self.scheduler.schedule {
-                                    let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                                    guard let onChange else { return /* Cancelled */ }
-                                    onChange(initialValue)
-                                }
-                            } catch {
-                                self.notifyError(error)
-                            }
-                        }
+                        self.asyncReduceInitialFetchedValue(fetchedValue)
                         
                         // Start observation
                         self.asyncStartObservation(
@@ -422,6 +399,28 @@ extension ValueConcurrentObserver {
                 self.asyncStartWithoutWALSnapshot(from: databaseAccess)
             } catch {
                 self.notifyError(error)
+            }
+        }
+    }
+    
+    private func asyncReduceInitialFetchedValue(_ fetchedValue: sending Reducer.Fetched) {
+        reduceQueue.asyncSending { [self] in
+            let isNotifying = lock.synchronized { notificationCallbacks != nil }
+            guard isNotifying else { return /* Cancelled */ }
+            
+            do {
+                guard let initialValue = try reducer._value(fetchedValue) else {
+                    fatalError("Broken contract: reducer has no initial value")
+                }
+                
+                // Notify
+                scheduler.schedule { [self] in
+                    let onChange = lock.synchronized { notificationCallbacks?.onChange }
+                    guard let onChange else { return /* Cancelled */ }
+                    onChange(initialValue)
+                }
+            } catch {
+                notifyError(error)
             }
         }
     }
@@ -474,7 +473,6 @@ extension ValueConcurrentObserver {
                         
                         // Fetch
                         // Safe because fetchedValue is not used beyond its transfer to reduceQueue
-                        // FIXME: improve when SE-0430 is shipped.
                         nonisolated(unsafe) let fetchedValue: Reducer.Fetched
                         
                         switch self.trackingMode {
@@ -497,33 +495,7 @@ extension ValueConcurrentObserver {
                         //
                         // Important: reduceQueue.async guarantees the same ordering
                         // between transactions and notifications!
-                        self.reduceQueue.async {
-                            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-                            guard isNotifying else { return /* Cancelled */ }
-                            
-                            do {
-                                let value = try self.reducer._value(fetchedValue)
-                                
-                                // Notify
-                                if let value {
-                                    // Safe because value is not used beyond its transfer to scheduler
-                                    // FIXME: improve when SE-0430 is shipped.
-                                    nonisolated(unsafe) let value = value
-                                    
-                                    self.scheduler.schedule {
-                                        let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                                        guard let onChange else { return /* Cancelled */ }
-                                        onChange(value)
-                                    }
-                                }
-                            } catch {
-                                let dbPool = self.lock.synchronized { self.databaseAccess?.dbPool }
-                                dbPool?.asyncWriteWithoutTransaction { writerDB in
-                                    self.stopDatabaseObservation(writerDB)
-                                }
-                                self.notifyError(error)
-                            }
-                        }
+                        self.asyncReduceFetchedValue(fetchedValue)
                     } else {
                         events.willTrackRegion?(initialRegion)
                         self.startObservation(writerDB, observedRegion: initialRegion)
@@ -531,6 +503,30 @@ extension ValueConcurrentObserver {
                 }
             } catch {
                 self.notifyError(error)
+            }
+        }
+    }
+    
+    private func asyncReduceFetchedValue(_ fetchedValue: sending Reducer.Fetched) {
+        reduceQueue.asyncSending { [self] in
+            let isNotifying = lock.synchronized { notificationCallbacks != nil }
+            guard isNotifying else { return /* Cancelled */ }
+            
+            do {
+                // Notify
+                if let value = try reducer._value(fetchedValue) {
+                    scheduler.schedule { [self] in
+                        let onChange = lock.synchronized { notificationCallbacks?.onChange }
+                        guard let onChange else { return /* Cancelled */ }
+                        onChange(value)
+                    }
+                }
+            } catch {
+                let dbPool = lock.synchronized { databaseAccess?.dbPool }
+                dbPool?.asyncWriteWithoutTransaction { [self] writerDB in
+                    stopDatabaseObservation(writerDB)
+                }
+                notifyError(error)
             }
         }
     }
@@ -602,7 +598,6 @@ extension ValueConcurrentObserver {
             do {
                 // Fetch
                 // Safe because fetchedValue is not used beyond its transfer to reduceQueue
-                // FIXME: improve when SE-0430 is shipped.
                 nonisolated(unsafe) let fetchedValue: Reducer.Fetched
                 
                 let initialRegion: DatabaseRegion
@@ -622,29 +617,7 @@ extension ValueConcurrentObserver {
                 //
                 // Reducing is performed asynchronously, so that we do not lock
                 // a database dispatch queue longer than necessary.
-                self.reduceQueue.async {
-                    let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-                    guard isNotifying else { return /* Cancelled */ }
-                    
-                    do {
-                        guard let _initialValue = try self.reducer._value(fetchedValue) else {
-                            fatalError("Broken contract: reducer has no initial value")
-                        }
-                        
-                        // Safe because initialValue is not used beyond its transfer to scheduler
-                        // FIXME: improve when SE-0430 is shipped.
-                        nonisolated(unsafe) let initialValue = _initialValue
-                        
-                        // Notify
-                        self.scheduler.schedule {
-                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                            guard let onChange else { return /* Cancelled */ }
-                            onChange(initialValue)
-                        }
-                    } catch {
-                        self.notifyError(error)
-                    }
-                }
+                self.asyncReduceInitialFetchedValue(fetchedValue)
                 
                 // Start observation
                 self.asyncStartObservationWithoutWALSnapshot(
@@ -669,7 +642,6 @@ extension ValueConcurrentObserver {
                 try writerDB.isolated(readOnly: true) {
                     // Fetch
                     // Safe because fetchedValue is not used beyond its transfer to reduceQueue
-                    // FIXME: improve when SE-0430 is shipped.
                     nonisolated(unsafe) let fetchedValue: Reducer.Fetched
                     
                     let observedRegion: DatabaseRegion
@@ -691,36 +663,7 @@ extension ValueConcurrentObserver {
                     //
                     // Reducing is performed asynchronously, so that we do not lock
                     // the writer dispatch queue longer than necessary.
-                    //
-                    // Important: reduceQueue.async guarantees the same ordering
-                    // between transactions and notifications!
-                    self.reduceQueue.async {
-                        let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
-                        guard isNotifying else { return /* Cancelled */ }
-                        
-                        do {
-                            let value = try self.reducer._value(fetchedValue)
-                            
-                            // Notify
-                            if let value {
-                                // Safe because value is not used beyond its transfer to scheduler
-                                // FIXME: improve when SE-0430 is shipped.
-                                nonisolated(unsafe) let value = value
-                                
-                                self.scheduler.schedule {
-                                    let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                                    guard let onChange else { return /* Cancelled */ }
-                                    onChange(value)
-                                }
-                            }
-                        } catch {
-                            let dbPool = self.lock.synchronized { self.databaseAccess?.dbPool }
-                            dbPool?.asyncWriteWithoutTransaction { writerDB in
-                                self.stopDatabaseObservation(writerDB)
-                            }
-                            self.notifyError(error)
-                        }
-                    }
+                    self.asyncReduceFetchedValue(fetchedValue)
                 }
             } catch {
                 self.notifyError(error)
@@ -793,15 +736,18 @@ extension ValueConcurrentObserver: TransactionObserver {
             // Conclusion: fetch from the writer connection, and update the
             // tracked region.
             do {
-                let (fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(writerDB)
+                let (_fetchedValue, observedRegion) = try databaseAccess.fetchRecordingObservedRegion(writerDB)
                 
                 // Don't spam the user with region tracking events: wait for an actual change
                 if let willTrackRegion = events.willTrackRegion, observedRegion != observationState.region {
                     willTrackRegion(observedRegion)
                 }
                 
+                // Safe because fetchedValue is not used beyond its transfer to reduceQueue
+                nonisolated(unsafe) let fetchedResult: Result<Reducer.Fetched, Error> = .success(_fetchedValue)
+                
                 observationState.region = observedRegion
-                reduce(.success(fetchedValue))
+                asyncReduceFetchedResult(fetchedResult)
             } catch {
                 stopDatabaseObservation(writerDB)
                 notifyError(error)
@@ -828,14 +774,16 @@ extension ValueConcurrentObserver: TransactionObserver {
     
     private func asyncFetch(databaseAccess: DatabaseAccess) {
         databaseAccess.dbPool.asyncRead { [self] dbResult in
-            let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
+            let isNotifying = lock.synchronized { notificationCallbacks != nil }
             guard isNotifying else { return /* Cancelled */ }
             
-            let fetchResult = dbResult.flatMap { db in
+            // Safe because fetchedResult is not used beyond its transfer to reduceQueue
+            nonisolated(unsafe) let fetchedResult: Result<Reducer.Fetched, Error>
+            fetchedResult = dbResult.flatMap { db in
                 Result { try databaseAccess.fetch(db) }
             }
             
-            self.reduce(fetchResult)
+            asyncReduceFetchedResult(fetchedResult)
             
             fetchingStateMutex.withLock { state in
                 switch state {
@@ -854,38 +802,28 @@ extension ValueConcurrentObserver: TransactionObserver {
         }
     }
     
-    private func reduce(_ fetchResult: Result<Reducer.Fetched, Error>) {
-        // Safe because fetchedValue is not used beyond its transfer to reduceQueue
-        // FIXME: improve when SE-0430 is shipped.
-        nonisolated(unsafe) let fetchResult = fetchResult
-        
-        reduceQueue.async {
+    private func asyncReduceFetchedResult(_ fetchedResult: sending Result<Reducer.Fetched, Error>) {
+        reduceQueue.asyncSending { [self] in
             do {
-                let fetchedValue = try fetchResult.get()
+                let fetchedValue = try fetchedResult.get()
                 
-                let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
+                let isNotifying = lock.synchronized { notificationCallbacks != nil }
                 guard isNotifying else { return /* Cancelled */ }
                 
-                let value = try self.reducer._value(fetchedValue)
-                
-                // Notify value
-                if let value {
-                    // Safe because value is not used beyond its transfer to scheduler
-                    // FIXME: improve when SE-0430 is shipped.
-                    nonisolated(unsafe) let value = value
-                    
-                    self.scheduler.schedule {
-                        let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                // Notify
+                if let value = try reducer._value(fetchedValue) {
+                    scheduler.schedule { [self] in
+                        let onChange = lock.synchronized { notificationCallbacks?.onChange }
                         guard let onChange else { return /* Cancelled */ }
                         onChange(value)
                     }
                 }
             } catch {
-                let dbPool = self.lock.synchronized { self.databaseAccess?.dbPool }
-                dbPool?.asyncWriteWithoutTransaction { writerDB in
-                    self.stopDatabaseObservation(writerDB)
+                let dbPool = lock.synchronized { databaseAccess?.dbPool }
+                dbPool?.asyncWriteWithoutTransaction { [self] writerDB in
+                    stopDatabaseObservation(writerDB)
                 }
-                self.notifyError(error)
+                notifyError(error)
             }
         }
     }

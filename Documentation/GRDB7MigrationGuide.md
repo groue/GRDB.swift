@@ -20,3 +20,6 @@ Task cancellation is now honored (exclusively in async accesses)
 
 CSQLite was renamed GRDBSQLite.
 
+---
+
+ValueObservation requires Sendable values

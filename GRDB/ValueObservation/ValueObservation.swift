@@ -81,7 +81,7 @@ struct ValueObservationEvents: Refinable {
     var didCancel: (@Sendable () -> Void)?
 }
 
-typealias ValueObservationStart<T> = @Sendable (
+typealias ValueObservationStart<T: Sendable> = @Sendable (
     _ onError: @escaping @Sendable (Error) -> Void,
     _ onChange: @escaping @Sendable (T) -> Void)
 -> AnyDatabaseCancellable
@@ -339,7 +339,7 @@ extension ValueObservation {
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
 @available(iOS 13, macOS 10.15, tvOS 13, *)
-public struct AsyncValueObservation<Element>: AsyncSequence, @unchecked Sendable {
+public struct AsyncValueObservation<Element: Sendable>: AsyncSequence, @unchecked Sendable {
     // @unchecked Sendable because of `BufferingPolicy`.
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
@@ -464,7 +464,7 @@ extension DatabasePublishers {
     ///
     /// You build such a publisher from ``ValueObservation``
     /// or ``SharedValueObservation``.
-    public struct Value<Output>: Publisher {
+    public struct Value<Output: Sendable>: Publisher {
         public typealias Failure = Error
         private let start: ValueObservationStart<Output>
         
@@ -481,7 +481,7 @@ extension DatabasePublishers {
     }
     
     private final class ValueSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable
-    where Downstream.Failure == Error
+    where Downstream.Input: Sendable, Downstream.Failure == Error
     {
         // @unchecked Sendable because state is protected by `lock`.
         

@@ -30,7 +30,7 @@ extension ValueReducers {
     /// passed through a transform function.
     ///
     /// See ``ValueObservation/map(_:)``.
-    public struct Map<Base: _ValueReducer, Value>: ValueReducer {
+    public struct Map<Base: _ValueReducer, Value: Sendable>: ValueReducer {
         private var base: Base
         private let transform: (Base.Value) throws -> Value
         
