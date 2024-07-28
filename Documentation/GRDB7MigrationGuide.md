@@ -30,4 +30,4 @@ Strategies
 
 - databaseDataEncodingStrategy(for:)
 - databaseDateEncodingStrategy(for:)
-
+- databaseUUIDEncodingStrategy(for:)

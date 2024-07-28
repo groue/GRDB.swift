@@ -491,9 +491,17 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     // Don't hit the database
                     return none()
                 }
-                let strategy = recordType.databaseUUIDEncodingStrategy
-                let expressions = uuids.map { strategy.encode($0).sqlExpression }
-                return filterWhenConnected(keys: { _ in expressions })
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseUUIDEncodingStrategy(for: column)
+                    let expressions = uuids.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             }
         }
         

@@ -126,7 +126,9 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
             let dbValue = Record.databaseDateEncodingStrategy(for: column).encode(date)
             _persistenceContainer[column] = dbValue
         } else if let uuid = value as? UUID {
-            persist(Record.databaseUUIDEncodingStrategy.encode(uuid), forKey: key)
+            let column = keyEncodingStrategy.column(forKey: key)
+            let dbValue = Record.databaseUUIDEncodingStrategy(for: column).encode(uuid)
+            _persistenceContainer[column] = dbValue
         } else if let value = value as? any DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
             persist(value.databaseValue, forKey: key)
