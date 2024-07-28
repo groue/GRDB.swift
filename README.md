@@ -2686,7 +2686,7 @@ protocol FetchableRecord {
 
 protocol EncodableRecord {
     static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy
     static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 ```

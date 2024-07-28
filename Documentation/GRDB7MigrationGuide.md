@@ -29,3 +29,5 @@ ValueObservation requires Sendable values
 Strategies
 
 - databaseDataEncodingStrategy(for:)
+- databaseDateEncodingStrategy(for:)
+
