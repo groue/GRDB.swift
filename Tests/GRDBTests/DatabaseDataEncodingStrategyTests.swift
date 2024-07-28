@@ -19,7 +19,9 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithData<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { Strategy.strategy }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        Strategy.strategy
+    }
     var data: Data
 }
 
@@ -29,7 +31,9 @@ extension RecordWithData: Identifiable {
 }
 
 private struct RecordWithOptionalData<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { Strategy.strategy }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        Strategy.strategy
+    }
     var data: Data?
 }
 

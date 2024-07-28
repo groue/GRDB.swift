@@ -23,3 +23,9 @@ CSQLite was renamed GRDBSQLite.
 ---
 
 ValueObservation requires Sendable values
+
+---
+
+Strategies
+
+- databaseDataEncodingStrategy(for:)
