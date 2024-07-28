@@ -20,8 +20,7 @@ import Foundation // For JSONEncoder
 /// ### Configuring Persistence for the Standard Encodable Protocol
 ///
 /// - ``databaseColumnEncodingStrategy-5sx4v``
-/// - ``databaseDataEncodingStrategy-9y0c7``
-/// - ``databaseDateEncodingStrategy-2gtc1``
+/// - ``databaseDataEncodingStrategy(for:)``
 /// - ``databaseEncodingUserInfo-8upii``
 /// - ``databaseJSONEncoder(for:)-6x62c``
 /// - ``databaseUUIDEncodingStrategy-2t96q``
@@ -127,13 +126,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+    ///     static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+    ///         .text
+    ///     }
     ///
     ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
     ///     var jsonData: Data
     /// }
     /// ```
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { get }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy
     
     /// The strategy for encoding `Date` columns.
     ///
@@ -221,7 +222,7 @@ extension EncodableRecord {
     
     /// Returns the default strategy for encoding `Data` columns:
     /// ``DatabaseDataEncodingStrategy/deferredToData``.
-    public static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy {
+    public static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
         .deferredToData
     }
     
@@ -460,7 +461,9 @@ extension Row {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+///     static func databaseDataEncodingStrategy(for column: Column) -> DatabaseDataEncodingStrategy {
+///         .text
+///     }
 ///
 ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
 ///     var jsonData: Data
