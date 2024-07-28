@@ -465,9 +465,17 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     // Don't hit the database
                     return none()
                 }
-                let strategy = recordType.databaseDateEncodingStrategy
-                let expressions = dates.map { strategy.encode($0).sqlExpression }
-                return filterWhenConnected(keys: { _ in expressions })
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseDateEncodingStrategy(for: column)
+                    let expressions = dates.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
                 let uuids = keys.compactMap { ($0 as! UUID?) }
                 if uuids.isEmpty {

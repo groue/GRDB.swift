@@ -21,6 +21,7 @@ import Foundation // For JSONEncoder
 ///
 /// - ``databaseColumnEncodingStrategy-5sx4v``
 /// - ``databaseDataEncodingStrategy(for:)``
+/// - ``databaseDateEncodingStrategy(for:)``
 /// - ``databaseEncodingUserInfo-8upii``
 /// - ``databaseJSONEncoder(for:)-6x62c``
 /// - ``databaseUUIDEncodingStrategy-2t96q``
@@ -146,13 +147,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Encoded as an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy
     
     /// The strategy for encoding `UUID` columns.
     ///
@@ -228,7 +231,7 @@ extension EncodableRecord {
     
     /// Returns the default strategy for encoding `Date` columns:
     /// ``DatabaseDateEncodingStrategy/deferredToDate``.
-    public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
+    public static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
         .deferredToDate
     }
     
@@ -505,7 +508,9 @@ public enum DatabaseDataEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {`
+///         .timeIntervalSince1970
+///     }
 ///
 ///     // Encoded as an epoch timestamp
 ///     var creationDate: Date
