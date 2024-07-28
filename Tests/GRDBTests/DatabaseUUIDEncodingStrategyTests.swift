@@ -19,7 +19,10 @@ private enum StrategyLowercaseString: StrategyProvider {
 }
 
 private struct RecordWithUUID<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { Strategy.strategy }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+        Strategy.strategy
+    }
+    
     var uuid: UUID
 }
 
@@ -29,7 +32,10 @@ extension RecordWithUUID: Identifiable {
 }
 
 private struct RecordWithOptionalUUID<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { Strategy.strategy }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+        Strategy.strategy
+    }
+    
     var uuid: UUID?
 }
 

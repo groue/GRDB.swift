@@ -22,9 +22,9 @@ import Foundation // For JSONEncoder
 /// - ``databaseColumnEncodingStrategy-5sx4v``
 /// - ``databaseDataEncodingStrategy(for:)``
 /// - ``databaseDateEncodingStrategy(for:)``
-/// - ``databaseEncodingUserInfo-8upii``
 /// - ``databaseJSONEncoder(for:)-6x62c``
-/// - ``databaseUUIDEncodingStrategy-2t96q``
+/// - ``databaseUUIDEncodingStrategy(for:)``
+/// - ``databaseEncodingUserInfo-8upii``
 /// - ``DatabaseColumnEncodingStrategy``
 /// - ``DatabaseDataEncodingStrategy``
 /// - ``DatabaseDateEncodingStrategy``
@@ -167,13 +167,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    ///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+    ///         .uppercaseString
+    ///     }
     ///
     ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     ///     var uuid: UUID
     /// }
     /// ```
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy
     
     /// The strategy for converting coding keys to column names.
     ///
@@ -237,7 +239,7 @@ extension EncodableRecord {
     
     /// Returns the default strategy for encoding `UUID` columns:
     /// ``DatabaseUUIDEncodingStrategy/deferredToUUID``.
-    public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
+    public static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
         .deferredToUUID
     }
     
@@ -587,7 +589,9 @@ public enum DatabaseDateEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {`
+///         .uppercaseString
+///     }
 ///
 ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///     var uuid: UUID
