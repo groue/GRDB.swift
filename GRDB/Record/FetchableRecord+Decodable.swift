@@ -62,7 +62,7 @@ extension FetchableRecord where Self: Decodable {
 ///
 /// - ``FetchableRecord/databaseColumnDecodingStrategy-6uefz``
 /// - ``FetchableRecord/databaseDataDecodingStrategy(for:)``
-/// - ``FetchableRecord/databaseDateDecodingStrategy-78y03``
+/// - ``FetchableRecord/databaseDateDecodingStrategy(for:)``
 /// - ``FetchableRecord/databaseDecodingUserInfo-77jim``
 /// - ``FetchableRecord/databaseJSONDecoder(for:)-7lmxd``
 public class FetchableRecordDecoder {
@@ -289,9 +289,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                         .databaseDataDecodingStrategy(for: column)
                         .decodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if type == Date.self {
-                    return try R.databaseDateDecodingStrategy.decodeIfPresent(
-                        fromRow: row,
-                        atUncheckedIndex: index) as! T?
+                    return try R
+                        .databaseDateDecodingStrategy(for: column)
+                        .decodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
                     return try type.fastDecodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if let type = T.self as? any DatabaseValueConvertible.Type {
@@ -338,7 +338,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                         .databaseDataDecodingStrategy(for: column)
                         .decode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if type == Date.self {
-                    return try R.databaseDateDecodingStrategy.decode(fromRow: row, atUncheckedIndex: index) as! T
+                    return try R
+                        .databaseDateDecodingStrategy(for: column)
+                        .decode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
                     return try type.fastDecode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if let type = T.self as? any DatabaseValueConvertible.Type {
@@ -660,7 +662,10 @@ extension ColumnDecoder: SingleValueDecodingContainer {
                 .databaseDataDecodingStrategy(for: columnName)
                 .decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if type == Date.self {
-            return try R.databaseDateDecodingStrategy.decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
+            let columnName = row.impl.columnName(atUncheckedIndex: columnIndex)
+            return try R
+                .databaseDateDecodingStrategy(for: columnName)
+                .decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
             return try type.fastDecode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if let type = T.self as? any DatabaseValueConvertible.Type {

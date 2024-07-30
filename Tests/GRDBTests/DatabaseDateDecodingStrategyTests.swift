@@ -47,12 +47,18 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+        Strategy.strategy
+    }
+    
     var date: Date
 }
 
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+        Strategy.strategy
+    }
+    
     var date: Date?
 }
 

@@ -2681,7 +2681,7 @@ Those behaviors can be overridden:
 ```swift
 protocol FetchableRecord {
     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
 }
 
 protocol EncodableRecord {

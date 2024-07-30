@@ -90,7 +90,7 @@ import Foundation
 ///
 /// - ``databaseColumnDecodingStrategy-6uefz``
 /// - ``databaseDataDecodingStrategy(for:)``
-/// - ``databaseDateDecodingStrategy-78y03``
+/// - ``databaseDateDecodingStrategy(for:)``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
 /// - ``databaseDecodingUserInfo-77jim``
 /// - ``DatabaseColumnDecodingStrategy``
@@ -209,13 +209,15 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Decoded from an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
     
     /// The strategy for converting column names to coding keys.
     ///
@@ -270,7 +272,7 @@ extension FetchableRecord {
     
     /// The default strategy for decoding `Date` columns is
     /// ``DatabaseDateDecodingStrategy/deferredToDate``.
-    public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
+    public static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
         .deferredToDate
     }
     
@@ -916,7 +918,9 @@ public enum DatabaseDataDecodingStrategy: Sendable {
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+///         static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+///             .timeIntervalSince1970
+///         }
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
