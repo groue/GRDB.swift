@@ -366,16 +366,19 @@ GRDB can be installed as a framework, or a static library.
 Due to an [issue](https://github.com/CocoaPods/CocoaPods/issues/11839) in CocoaPods, it is currently not possible to deploy new versions of GRDB to CocoaPods. The last version available on CocoaPods is 6.24.1. To install later versions of GRDB using CocoaPods, use one of the following workarounds:
 
 - Depend on the `GRDB6` branch. This is more or less equivalent to what `pod 'GRDB.swift', '~> 6.0'` would normally do, if CocoaPods would accept new GRDB versions to be published:
-```ruby
+
+    ```ruby
     # Can't use semantic versioning due to https://github.com/CocoaPods/CocoaPods/issues/11839
     pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift.git', branch: 'GRDB6'
-```
+    ```
+
 - Depend on a specific version explicitly (Replace the tag with the version you want to use):
-```ruby
+
+    ```ruby
     # Can't use semantic versioning due to https://github.com/CocoaPods/CocoaPods/issues/11839
     # Replace the tag with the tag that you want to use.
     pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift.git', tag: 'v6.29.0' 
-```
+    ```
 
 ## Carthage
 
