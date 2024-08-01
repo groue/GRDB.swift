@@ -2,6 +2,22 @@ import XCTest
 import GRDB
 
 class SharedValueObservationTests: GRDBTestCase {
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testInitFromAnyDatabaseReader(reader: any DatabaseReader) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .shared(in: reader)
+    }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testInitFromAnyDatabaseWriter(writer: any DatabaseWriter) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .shared(in: writer)
+    }
+    
     func test_immediate_observationLifetime() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in

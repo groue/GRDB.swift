@@ -1913,4 +1913,70 @@ extension FetchableRecordDecodableTests {
             }
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1572>
+    func testSingleValueContainer() throws {
+        struct Struct: Decodable {
+            let value: String
+        }
+        
+        struct Wrapper<Model: Decodable>: FetchableRecord, Decodable {
+            var model: Model
+            var otherValue: String
+            
+            enum CodingKeys: String, CodingKey {
+                case otherValue
+            }
+            
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                otherValue = try container.decode(String.self, forKey: . otherValue)
+                
+                let singleValueContainer = try decoder.singleValueContainer()
+                model = try singleValueContainer.decode(Model.self)
+            }
+        }
+        
+        let row = Row(["value": "foo", "otherValue": "bar"])
+        
+        let wrapper = try Wrapper<Struct>(row: row)
+        XCTAssertEqual(wrapper.model.value, "foo")
+        XCTAssertEqual(wrapper.otherValue, "bar")
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1572>
+    // Here we test that `FetchableRecord` takes precedence over `Decodable`
+    // when a record is encoded with a `SingleValueEncodingContainer`.
+    func testSingleValueContainerWithFetchableRecord() throws {
+        struct Struct: Decodable, FetchableRecord {
+            let value: String
+            
+            init(row: Row) throws {
+                value = row["actualValue"]
+            }
+        }
+        
+        struct Wrapper<Model: Decodable>: FetchableRecord, Decodable {
+            var model: Model
+            var otherValue: String
+            
+            enum CodingKeys: String, CodingKey {
+                case otherValue
+            }
+            
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                otherValue = try container.decode(String.self, forKey: . otherValue)
+                
+                let singleValueContainer = try decoder.singleValueContainer()
+                model = try singleValueContainer.decode(Model.self)
+            }
+        }
+        
+        let row = Row(["value": "foo", "otherValue": "bar", "actualValue": "test"])
+        
+        let wrapper = try Wrapper<Struct>(row: row)
+        XCTAssertEqual(wrapper.model.value, "test")
+        XCTAssertEqual(wrapper.otherValue, "bar")
+    }
 }

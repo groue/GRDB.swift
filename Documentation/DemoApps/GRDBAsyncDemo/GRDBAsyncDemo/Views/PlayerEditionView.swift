@@ -15,7 +15,7 @@ struct PlayerEditionView: View {
     
     var body: some View {
         PlayerFormView(form: $form)
-            .onChange(of: isPresented) { isPresented in
+            .onChange(of: isPresented) {
                 // Save when back button is pressed
                 if !isPresented {
                     Task {
@@ -30,11 +30,11 @@ struct PlayerEditionView: View {
     }
 }
 
-struct PlayerEditionView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            PlayerEditionView(player: Player.makeRandom())
-                .navigationBarTitle("Player Edition")
-        }
+// MARK: - Previews
+
+#Preview {
+    NavigationView {
+        PlayerEditionView(player: Player.makeRandom())
+            .navigationBarTitle("Player Edition")
     }
 }

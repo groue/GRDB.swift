@@ -7,6 +7,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
+- `6.29.x` Releases - [6.29.0](#6290)
+- `6.28.x` Releases - [6.28.0](#6280)
 - `6.27.x` Releases - [6.27.0](#6270)
 - `6.26.x` Releases - [6.26.0](#6260)
 - `6.25.x` Releases - [6.25.0](#6250)
@@ -124,6 +126,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.29.0
+
+Released July 20, 2024
+
+- **New**: [#1574](https://github.com/groue/GRDB.swift/pull/1574) by [@sroebert](https://github.com/sroebert): Support for single value decoding (the complement of [#1570](https://github.com/groue/GRDB.swift/pull/1570) shipped in 6.28.0)
+- **New**: [#1575](https://github.com/groue/GRDB.swift/pull/1575) by [@Jason-Abbott](https://github.com/Jason-Abbott): Show comments when tracing expanded statements
+
+## 6.28.0
+
+Released July 11, 2024
+
+- **New**: [#1570](https://github.com/groue/GRDB.swift/pull/1570) by [@groue](https://github.com/groue): Support single-value encoding
+- **New**: Added `QueryInterfaceRequest.deleteAndFetchIds(_:)` which returns the set of deleted ids.
+- **New**: Added `Set` methods `union`, `formUnion`, `intersection` and `formIntersection` that accept a cursor.
+- **New**: `DatabaseUUIDEncodingStrategy` is Sendable.
 
 ## 6.27.0
 

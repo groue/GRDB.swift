@@ -3,6 +3,33 @@ import Dispatch
 @testable import GRDB
 
 class ValueObservationTests: GRDBTestCase {
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testStartFromAnyDatabaseReader(reader: any DatabaseReader) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .start(in: reader, onError: { _ in }, onChange: { })
+    }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    func testStartFromAnyDatabaseWriter(writer: any DatabaseWriter) {
+        _ = ValueObservation
+            .trackingConstantRegion { _ in }
+            .start(in: writer, onError: { _ in }, onChange: { })
+    }
+    
+    // Test passes if it compiles.
+    // See <https://github.com/groue/GRDB.swift/issues/1541>
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    func testValuesFromAnyDatabaseWriter(writer: any DatabaseWriter) {
+        func observe<T>(
+            fetch: @Sendable @escaping (Database) throws -> T
+        ) throws -> AsyncValueObservation<T> {
+            ValueObservation.tracking(fetch).values(in: writer)
+        }
+    }
+    
     func testImmediateError() throws {
         struct TestError: Error { }
         
@@ -742,6 +769,53 @@ class ValueObservationTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             waitForExpectations(timeout: 2, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testIssue1550() throws {
+        func test(_ writer: some DatabaseWriter) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            // Start observing
+            var counts: [Int] = []
+            let cancellable = ValueObservation
+                .trackingConstantRegion { try Table("t").fetchCount($0) }
+                .start(in: writer) { error in
+                    XCTFail("Unexpected error: \(error)")
+                } onChange: { count in
+                    counts.append(count)
+                }
+            
+            // Perform a write after cancellation, but before the
+            // observation could schedule the removal of its transaction
+            // observer from the writer dispatch queue.
+            let semaphore = DispatchSemaphore(value: 0)
+            writer.asyncWriteWithoutTransaction { db in
+                semaphore.wait()
+                do {
+                    try db.execute(sql: "INSERT INTO t(id) VALUES (NULL)")
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            }
+            cancellable.cancel()
+            semaphore.signal()
+            
+            // Wait until a second write could run, after the observation
+            // has removed its transaction observer from the writer
+            // dispatch queue.
+            let secondWriteExpectation = expectation(description: "cancelled")
+            writer.asyncWriteWithoutTransaction { _ in
+                secondWriteExpectation.fulfill()
+            }
+            wait(for: [secondWriteExpectation], timeout: 5)
+            
+            // We should not have been notified of the first write, because
+            // it was performed after cancellation.
+            XCTAssertFalse(counts.contains(1))
         }
         
         try test(makeDatabaseQueue())

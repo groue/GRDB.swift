@@ -865,6 +865,8 @@ extension ValueConcurrentObserver: DatabaseCancellable {
         // Notify cancellation
         let (events, dbPool): (ValueObservationEvents?, DatabasePool?) = lock.synchronized {
             let events = notificationCallbacks?.events
+            // Set callbacks to nil so that we can't notify anything after
+            // the cancellation.
             notificationCallbacks = nil
             return (events, databaseAccess?.dbPool)
         }

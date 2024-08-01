@@ -34,18 +34,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        // @itaiferber on https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/11
-        //
-        // > Encoding a value into a single-value container is equivalent to
-        // > encoding the value directly into the encoder, with the primary
-        // > difference being the above: encoding into the encoder writes the
-        // > contents of a type into the encoder, while encoding to a
-        // > single-value container gives the encoder a chance to intercept the
-        // > type as a whole.
-        //
-        // Wait for somebody hitting this fatal error so that we can write a
-        // meaningful regression test.
-        fatalError("single value encoding is not supported")
+        self
     }
     
     private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
@@ -165,6 +154,80 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
                     persist(jsonString, forKey: key)
                 }
             }
+        }
+    }
+}
+
+extension RecordEncoder: SingleValueEncodingContainer {
+    private func unsupportedSingleValueEncoding() {
+        fatalError("Can't encode a single value in a database row.")
+    }
+    
+    func encodeNil() throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Bool) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: String) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Double) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Float) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Int) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Int8) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Int16) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Int32) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: Int64) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: UInt) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: UInt8) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: UInt16) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: UInt32) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode(_ value: UInt64) throws {
+        unsupportedSingleValueEncoding()
+    }
+    
+    func encode<T>(_ value: T) throws where T : Encodable {
+        if let record = value as? EncodableRecord {
+            try record.encode(to: &_persistenceContainer)
+        } else {
+            try value.encode(to: self)
         }
     }
 }

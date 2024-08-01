@@ -17,6 +17,7 @@
 
 ## Features
 
+- [ ] Detect when `ColumnExpression.noOverwrite` excludes a non-existing column. Code is in DOA.upsertStatement()`. We should not silently ignore non-existing columns, as demonstrated by <https://github.com/groue/GRDB.swift/issues/1539>.  
 - [ ] Can Swift 5.5 help us with `select(.all)` (request of RowDecoder), `select(.id)` (request of RowDecoder.ID), `select(.rowid)` (request of Int64)?
 - [ ] Direct access to statement for bindings
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)

@@ -83,6 +83,97 @@ extension MutablePersistableRecordEncodableTests {
             XCTAssertEqual(string, "foo (MutablePersistableRecord)")
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1565>
+    func testSingleValueContainer() throws {
+        struct Struct: Encodable {
+            let value: String
+        }
+        
+        struct Wrapper<Model: Encodable>: MutablePersistableRecord, Encodable {
+            static var databaseTableName: String { "t1" }
+            var model: Model
+            var otherValue: String
+            
+            enum CodingKeys: String, CodingKey {
+                case otherValue
+            }
+            
+            func encode(to encoder: any Encoder) throws {
+                var modelContainer = encoder.singleValueContainer()
+                try modelContainer.encode(model)
+                
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(otherValue, forKey: .otherValue)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("value", .text)
+                t.column("otherValue", .text)
+            }
+            
+            var value = Wrapper(model: Struct(value: "foo"), otherValue: "bar")
+            try assert(value, isEncodedIn: ["value": "foo", "otherValue": "bar"])
+            
+            try value.insert(db)
+            let row = try Row.fetchOne(db, sql: "SELECT value, otherValue FROM t1")!
+            XCTAssertEqual(row[0], "foo")
+            XCTAssertEqual(row[1], "bar")
+        }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1565>
+    // Here we test that `EncodableRecord` takes precedence over `Encodable`
+    // when a record is encoded with a `SingleValueEncodingContainer`.
+    func testSingleValueContainerWithEncodableRecord() throws {
+        struct Struct: Encodable, EncodableRecord {
+            let value: String
+            
+            func encode(to container: inout PersistenceContainer) throws {
+                container["column1"] = "test"
+                container["column2"] = 12
+            }
+        }
+        
+        struct Wrapper<Model: Encodable>: MutablePersistableRecord, Encodable {
+            static var databaseTableName: String { "t1" }
+            var model: Model
+            var otherValue: String
+            
+            enum CodingKeys: String, CodingKey {
+                case otherValue
+            }
+            
+            func encode(to encoder: any Encoder) throws {
+                var modelContainer = encoder.singleValueContainer()
+                try modelContainer.encode(model)
+                
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(otherValue, forKey: .otherValue)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("column1", .text)
+                t.column("column2", .integer)
+                t.column("otherValue", .text)
+            }
+            
+            var value = Wrapper(model: Struct(value: "foo"), otherValue: "bar")
+            try assert(value, isEncodedIn: ["column1": "test", "column2": 12, "otherValue": "bar"])
+            
+            try value.insert(db)
+            let row = try Row.fetchOne(db, sql: "SELECT column1, column2, otherValue FROM t1")!
+            XCTAssertEqual(row[0], "test")
+            XCTAssertEqual(row[1], 12)
+            XCTAssertEqual(row[2], "bar")
+        }
+    }
 }
 
 // MARK: - Different kinds of single-value properties

@@ -2083,7 +2083,8 @@ extension Database {
             /// ```
             public var sql: String {
                 if let unexpandedSQL {
-                    return String(cString: unexpandedSQL).trimmedSQLStatement
+                    let sql = String(cString: unexpandedSQL)
+                    return sql.hasPrefix("--") ? sql : sql.trimmedSQLStatement
                 } else {
                     return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
                 }
@@ -2101,6 +2102,10 @@ extension Database {
             ///   information from leaking in unexpected locations, so use this
             ///   property with care.
             public var expandedSQL: String {
+                if let unexpandedSQL {
+                    let sql = String(cString: unexpandedSQL)
+                    if sql.hasPrefix("--") { return sql }
+                }
                 guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
                     return ""
                 }
