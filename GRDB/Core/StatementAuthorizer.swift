@@ -1,8 +1,8 @@
-#if os(Linux)
+#if canImport(string_h)
+import string_h
+#elseif os(Linux)
 import Glibc
-#endif
-
-#if canImport(Darwin)
+#elseif os(macOS) || os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
 import Darwin
 #endif
 
