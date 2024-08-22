@@ -5743,9 +5743,7 @@ Open a read-only connection to your resource:
 // HOW TO open a read-only connection to a database resource
 
 // Get the path to the database resource.
-if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
-
-if let dbPath {
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite") {
     // If the resource exists, open a read-only connection.
     // Writes are disallowed because resources can not be modified. 
     var config = Configuration()
