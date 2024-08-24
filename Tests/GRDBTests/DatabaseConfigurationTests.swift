@@ -27,7 +27,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         try pool.makeSnapshot().read { _ in }
         XCTAssertEqual(connectionCount, 5)
         
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try pool.makeSnapshotPool().read { _ in }
         XCTAssertEqual(connectionCount, 6)
 #endif
@@ -74,7 +74,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             do {
                 error = TestError()
                 _ = try pool.makeSnapshotPool()
