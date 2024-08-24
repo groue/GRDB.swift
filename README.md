@@ -348,7 +348,7 @@ GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in dou
 
 > **Note**: Linux is not currently supported.
 >
-> **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
+> **Warning**: Due to an Xcode bug, you will get "No such module 'GRDBSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) and [#1424](https://github.com/groue/GRDB.swift/issues/1424#issuecomment-1774088155) for more information.
 
 
 ## CocoaPods
@@ -1632,10 +1632,11 @@ For more information, see [`tableExists(_:)`](https://swiftpackageindex.com/grou
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-Those functions are embedded right into the GRDB module, regardless of the underlying SQLite implementation (system SQLite, [SQLCipher](#encryption), or [custom SQLite build]):
+To access the C SQLite functions from SQLCipher or the system SQLite, you need to perform an extra import:
 
 ```swift
-import GRDB
+import SQLite3   // System SQLite
+import SQLCipher // SQLCipher
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
