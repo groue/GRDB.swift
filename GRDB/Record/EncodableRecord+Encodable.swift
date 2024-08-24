@@ -223,7 +223,7 @@ extension RecordEncoder: SingleValueEncodingContainer {
         unsupportedSingleValueEncoding()
     }
     
-    func encode<T>(_ value: T) throws where T : Encodable {
+    func encode<T>(_ value: T) throws where T: Encodable {
         if let record = value as? EncodableRecord {
             try record.encode(to: &_persistenceContainer)
         } else {
