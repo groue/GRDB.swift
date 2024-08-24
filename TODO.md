@@ -87,6 +87,65 @@
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 - [ ] What can we do with `cross-module-optimization`? See https://github.com/apple/swift-homomorphic-encryption
 
+- [ ] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
+- [ ] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
+- [ ] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
+- [ ] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
+- [ ] GRDB7: Replace LockedBox with Mutex (00ccab06)
+- [ ] GRDB7: Sendable: BusyCallback (e0d8e20b)
+- [ ] GRDB7: Sendable: BusyMode (e0d8e20b)
+- [ ] GRDB7: Sendable: TransactionClock (f7dc72a5)
+- [ ] GRDB7: Sendable: Configuration (54ffb21f)
+- [ ] GRDB7: Sendable: DatabaseDataEncodingStrategy (264d7fb5)
+- [ ] GRDB7: Sendable: DatabaseDateEncodingStrategy (264d7fb5)
+- [ ] GRDB7: Sendable: DatabaseColumnEncodingStrategy (264d7fb5)
+- [ ] GRDB7: Sendable: DatabaseDataDecodingStrategy (264d7fb5)
+- [ ] GRDB7: Sendable: DatabaseDateDecodingStrategy (264d7fb5)
+- [ ] GRDB7: Sendable: DatabaseColumnDecodingStrategy (264d7fb5)
+- [ ] GRDB7/BREAKING: Remove DatabaseFuture and concurrentRead (05f7d3c8)
+- [ ] GRDB7: Sendable: DatabaseFunction (6e691fe7)
+- [ ] GRDB7: Sendable: DatabaseMigrator (22114ad4)
+- [ ] GRDB7: Not Sendable: FilterCursor (b26e9709)
+- [ ] GRDB7: Sendable: RowAdapter (d138af26)
+- [ ] GRDB7: Sendable: ValueObservationScheduler (8429eb68)
+- [ ] GRDB7: Sendable: DatabaseCollation (4d9d67dd)
+- [ ] GRDB7: Sendable: LogErrorFunction (f362518d)
+- [ ] GRDB7: Sendable: ReadWriteBox (57a86a0e)
+- [ ] GRDB7: Sendable: Pool (f13b2d2e)
+- [ ] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
+- [ ] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
+- [ ] GRDB7: sending closures for SerializedDatabase
+- [ ] GRDB7: sending closures for ValueObservationScheduler
+- [ ] GRDB7: Sendable closures for ValueObservation.handleEvents
+- [ ] GRDB7: Not Sendable: Record (make it explicit if subclasses can be made sendable)
+- [ ] GRDB7: Not Sendable: databasepublishers/databaseregion, migrate, read, value, write
+- [ ] GRDB7: Sendable closures for writePublisher
+- [ ] GRDB7: Sendable closures for readPublisher
+- [ ] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
+- [ ] GRDB7: Sendable: DatabasePromise (05899228, 5a2c15b8)
+- [ ] GRDB7: Sendable: TableAlias (f2b0b186)
+- [ ] GRDB7: Sendable: SQLRelation (9545bf70)
+- [ ] GRDB7: Sendable: SQL (ac33856f)
+- [ ] GRDB7: Split Row.swift (2ce8a619)
+- [ ] GRDB7: Cleanup ValueReducer (6c73b1c5)
+- [ ] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
+- [ ] GRDB7: Enable Strict Concurrency Checks (6aa43ded)
+- [ ] GRDB7: Sendable: OrderedDictionary (e022c35b)
+- [ ] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
+- [ ] GRDB7: Sendable: DatabaseRegionConvertible (b4677ded)
+- [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
+- [ ] GRDB7: Sendable: ValueWriteOnlyObserver (ff2a7548)
+- [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65)
+- [ ] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
+- [ ] GRDB7: ValueObservation closures
+- [?] GRDB7: DatabasePublishers.ValueSubscription
+- [ ] GRDB7: Sendable: ValueObservation (93f6f982)
+- [?] GRDB7: Not Sendable: SharedValueObservation
+- [ ] GRDB7: doc (c0838cf9)
+- [ ] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
+- [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
+
+- [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
 ## Unsure if necessary
 
