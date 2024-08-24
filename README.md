@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: August 7, 2024 • [version 6.29.1](https://github.com/groue/GRDB.swift/tree/v6.29.1) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: August 24, 2024 • [version 6.29.2](https://github.com/groue/GRDB.swift/tree/v6.29.2) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
@@ -5743,9 +5743,7 @@ Open a read-only connection to your resource:
 // HOW TO open a read-only connection to a database resource
 
 // Get the path to the database resource.
-if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
-
-if let dbPath {
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite") {
     // If the resource exists, open a read-only connection.
     // Writes are disallowed because resources can not be modified. 
     var config = Configuration()

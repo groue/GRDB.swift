@@ -124,8 +124,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - SQLite C API
     
-    // TODO: make it non optional, since one can't get a `Database` instance
-    // after `close()`.
     /// The raw SQLite connection, suitable for the SQLite C API.
     ///
     /// The result is nil after the database has been successfully closed with
@@ -1923,7 +1921,6 @@ extension Database {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
-        // TODO: GRDB7 make it an failable initializer that returns nil when rawValue is empty (or blank).
         /// Creates an SQL column type.
         public init(rawValue: String) {
             self.rawValue = rawValue

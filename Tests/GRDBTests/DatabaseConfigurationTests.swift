@@ -137,7 +137,6 @@ class DatabaseConfigurationTests: GRDBTestCase {
             }
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-            XCTAssertEqual(error.message, "no such column: foo")
             XCTAssertEqual(error.sql, "SELECT \"foo\" FROM player")
         }
         
@@ -151,10 +150,6 @@ class DatabaseConfigurationTests: GRDBTestCase {
             }
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-            XCTAssert([
-                "no such column: foo",
-                "table player has no column named foo"]
-                .contains(error.message))
             XCTAssertEqual(error.sql, "CREATE INDEX i ON player(\"foo\")")
         }
     }

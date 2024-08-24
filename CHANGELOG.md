@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 6.x Releases
 
-- `6.29.x` Releases - [6.29.0](#6290) - [6.29.1](#6291)
+- `6.29.x` Releases - [6.29.0](#6290) - [6.29.1](#6291) - [6.29.2](#6292)
 - `6.28.x` Releases - [6.28.0](#6280)
 - `6.27.x` Releases - [6.27.0](#6270)
 - `6.26.x` Releases - [6.26.0](#6260)
@@ -126,6 +126,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.29.2
+
+Released August 24, 2024
+
+- **New**: [#1593](https://github.com/groue/GRDB.swift/pull/1593) by [@mingchen](https://github.com/mingchen): Fix sample code in README
 
 ## 6.29.1
 
