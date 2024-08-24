@@ -205,11 +205,8 @@ This extra API can be activated in two ways:
 
 1. Use the GRDB.swift CocoaPod with a custom compilation option, as below.
 
-    It uses the system SQLite, which is compiled with `SQLITE_ENABLE_PREUPDATE_HOOK` support, but only on iOS 11.0+ (we don't know the minimum version of macOS, tvOS, watchOS):
-
     ```ruby
     pod 'GRDB.swift'
-    platform :ios, '11.0' # or above
 
     post_install do |installer|
       installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
