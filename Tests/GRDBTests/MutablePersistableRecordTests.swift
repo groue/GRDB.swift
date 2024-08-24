@@ -1261,7 +1261,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let player = FullPlayer(id: nil, name: "Arthur", score: 1000)
-            let insertedPlayer = try XCTUnwrap(player.insertAndFetch(db))
+            let insertedPlayer = try player.insertAndFetch(db)
             XCTAssertEqual(insertedPlayer.id, 1)
             XCTAssertEqual(insertedPlayer.name, "Arthur")
             XCTAssertEqual(insertedPlayer.score, 1000)
@@ -1284,7 +1284,7 @@ extension MutablePersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 var partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.insertAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
@@ -1423,7 +1423,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let player = FullPlayer(id: nil, name: "Arthur", score: 1000)
-            let savedPlayer = try XCTUnwrap(player.saveAndFetch(db))
+            let savedPlayer = try player.saveAndFetch(db)
             XCTAssertEqual(savedPlayer.id, 1)
             XCTAssertEqual(savedPlayer.name, "Arthur")
             XCTAssertEqual(savedPlayer.score, 1000)
@@ -1446,7 +1446,7 @@ extension MutablePersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 var partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
                 XCTAssert(sqlQueries.contains("""
@@ -1483,7 +1483,7 @@ extension MutablePersistableRecordTests {
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
                 sqlQueries.removeAll()
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
@@ -1521,7 +1521,7 @@ extension MutablePersistableRecordTests {
             do {
                 sqlQueries.removeAll()
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
                 XCTAssert(sqlQueries.contains("""
@@ -1709,7 +1709,7 @@ extension MutablePersistableRecordTests {
             player.name = "Barbara"
             
             do {
-                let updatedPlayer = try XCTUnwrap(player.updateAndFetch(db))
+                let updatedPlayer = try player.updateAndFetch(db)
                 XCTAssertEqual(updatedPlayer.id, 1)
                 XCTAssertEqual(updatedPlayer.name, "Barbara")
                 XCTAssertEqual(updatedPlayer.score, 1000)
@@ -1760,7 +1760,7 @@ extension MutablePersistableRecordTests {
             player.name = "Barbara"
             
             do {
-                let updatedPlayer = try XCTUnwrap(player.updateAndFetch(db, as: PartialPlayer.self))
+                let updatedPlayer = try player.updateAndFetch(db, as: PartialPlayer.self)
                 XCTAssertEqual(updatedPlayer.id, 1)
                 XCTAssertEqual(updatedPlayer.name, "Barbara")
             }
@@ -2041,11 +2041,15 @@ extension MutablePersistableRecordTests {
             try player.insert(db)
             
             do {
-                let updatedRow = try player.updateChangesAndFetch(
+                // Update with no change
+                let update = try player.updateChangesAndFetch(
                     db, selection: [AllColumns()],
-                    fetch: { statement in try Row.fetchOne(statement) },
+                    fetch: { statement in
+                        XCTFail("Should not be called")
+                        return "ignored"
+                    },
                     modify: { $0.name = "Barbara" })
-                XCTAssertNil(updatedRow)
+                XCTAssertNil(update)
             }
             
             do {

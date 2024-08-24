@@ -29,6 +29,7 @@ import Foundation
 /// - ``exists(_:id:)``
 /// - ``exists(_:key:)-60hf2``
 /// - ``exists(_:key:)-6ha6``
+/// - ``recordNotFound(_:)``
 ///
 /// ### Throwing Record Not Found Errors
 ///
@@ -697,6 +698,15 @@ extension TableRecord {
 public enum RecordError: Error {
     /// A record does not exist in the database.
     ///
+    /// This error can be thrown from methods that update, such as
+    /// ``MutablePersistableRecord/update(_:onConflict:)``. In this case,
+    /// the error means that the database was not changed.
+    ///
+    /// It can also be thrown from methods that inserts or update with a
+    /// `RETURNING` clause, and the `IGNORE` conflict policy. In this case,
+    /// the error notifies that a conflict has prevented the change from
+    /// being applied.
+    ///
     /// - parameters:
     ///     - databaseTableName: The table of the missing record.
     ///     - key: The key of the missing record (column and values).
@@ -737,6 +747,30 @@ extension TableRecord {
         RecordError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key.mapValues { $0?.databaseValue ?? .null })
+    }
+}
+
+extension TableRecord where Self: EncodableRecord {
+    /// Returns an error that tells that the record does not exist in
+    /// the database.
+    ///
+    /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
+    ///   any error that prevented the `RecordError` from being constructed.
+    public func recordNotFound(_ db: Database) -> any Error {
+        do {
+            let databaseTableName = type(of: self).databaseTableName
+            let primaryKey = try db.primaryKey(databaseTableName)
+            
+            let container = try PersistenceContainer(db, self)
+            let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
+                ($0, container[caseInsensitive: $0]?.databaseValue ?? .null)
+            })
+            return RecordError.recordNotFound(
+                databaseTableName: databaseTableName,
+                key: key)
+        } catch {
+            return error
+        }
     }
 }
 
