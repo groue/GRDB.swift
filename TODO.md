@@ -87,7 +87,7 @@
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 - [ ] What can we do with `cross-module-optimization`? See https://github.com/apple/swift-homomorphic-encryption
 
-- [ ] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
+- [X] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
 - [ ] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
 - [ ] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
 - [ ] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
