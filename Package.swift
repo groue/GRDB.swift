@@ -79,5 +79,5 @@ let package = Package(
             cSettings: cSettings,
             swiftSettings: swiftSettings)
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageModes: [.v5]
 )
