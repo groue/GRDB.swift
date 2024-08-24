@@ -318,7 +318,7 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
@@ -454,7 +454,7 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
@@ -740,7 +740,7 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns an error for a record that does not exist in the database.
     ///

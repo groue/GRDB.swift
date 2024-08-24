@@ -1,4 +1,4 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 import XCTest
 import GRDB
 
@@ -220,7 +220,7 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         try XCTAssertEqual(dbPool.read(counter.value), 2)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_read_async() async throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)            // 0

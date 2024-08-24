@@ -1,7 +1,7 @@
 #if canImport(Combine)
 import XCTest
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension PublisherExpectations {
     /// A publisher expectation which waits for the timeout to expire, or
     /// the recorded publisher to complete.
@@ -46,7 +46,7 @@ extension PublisherExpectations {
         }
         
         /// A waiter that waits but never fails
-        private class Waiter: XCTWaiter, XCTWaiterDelegate {
+        private class Waiter: XCTWaiter, XCTWaiterDelegate, @unchecked Sendable {
             init() {
                 super.init(delegate: nil)
                 delegate = self
