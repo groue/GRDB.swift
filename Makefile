@@ -19,6 +19,9 @@ XCRUN := $(shell command -v xcrun)
 XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
 
 ifdef TOOLCHAIN
+  # Look for the toolchain identifier in the CFBundleIdentifier key of its Info.plist:
+  # TOOLCHAIN=org.swift.600202404221a make test
+  
   # If TOOLCHAIN is specified, add xcodebuild parameter
   XCODEBUILD += -toolchain $(TOOLCHAIN)
   
