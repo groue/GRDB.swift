@@ -9,7 +9,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         _ = observation.start(in: writer, onError: { _ in }, onChange: { _ in })
         
-        if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+        if #available(iOS 13, macOS 10.15, tvOS 13, *) {
             _ = observation.publisher(in: writer)
         }
     }

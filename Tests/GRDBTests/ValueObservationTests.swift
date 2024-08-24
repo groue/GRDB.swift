@@ -21,7 +21,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testValuesFromAnyDatabaseWriter(writer: any DatabaseWriter) {
         func observe<T>(
             fetch: @Sendable @escaping (Database) throws -> T
@@ -873,7 +873,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Async Await
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_prefix() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -911,7 +911,7 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_prefix_immediate_scheduling() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -949,7 +949,7 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_break() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -991,7 +991,7 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_immediate_break() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -1030,7 +1030,7 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_cancelled() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change

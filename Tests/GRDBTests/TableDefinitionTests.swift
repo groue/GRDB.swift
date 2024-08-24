@@ -797,7 +797,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, tvOS 13, *) else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #endif
@@ -825,7 +825,7 @@ class TableDefinitionTests: GRDBTestCase {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
+        guard #available(iOS 13, tvOS 13, *) else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #endif
