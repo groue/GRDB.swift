@@ -34,10 +34,10 @@ let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
     platforms: [
-        .iOS(.v11),
+        .iOS(.v12),
         .macOS(.v10_13),
-        .tvOS(.v11),
-        .watchOS(.v4),
+        .tvOS(.v12),
+        .watchOS(.v7),
     ],
     products: [
         .library(name: "CSQLite", targets: ["CSQLite"]),
