@@ -670,9 +670,6 @@ extension Cursor where Element: Equatable {
 extension Cursor where Element: Comparable {
     /// Returns the maximum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
     /// - Returns: The cursor's maximum element, according to
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.
@@ -682,9 +679,6 @@ extension Cursor where Element: Comparable {
     
     /// Returns the minimum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
     /// - Returns: The cursor's minimum element, according to
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.

@@ -296,6 +296,8 @@ extension ValueObservation {
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
+    /// - parameter bufferingPolicy: see the documntation
+    ///   of `AsyncThrowingStream`.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func values(
         in reader: some DatabaseReader,

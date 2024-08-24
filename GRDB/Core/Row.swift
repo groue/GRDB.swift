@@ -1424,8 +1424,7 @@ extension Row {
     /// elements are undefined.
     ///
     /// - parameters:
-    ///     - db: A database connection.
-    ///     - sql: An SQL string.
+    ///     - statement: The statement to iterate.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A ``RowCursor`` over fetched rows.
@@ -1713,7 +1712,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A ``RowCursor`` over fetched rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RowCursor {
@@ -1744,7 +1743,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
@@ -1776,7 +1775,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
@@ -1812,7 +1811,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
@@ -2191,7 +2190,7 @@ extension Row {
         ///
         /// See ``Row/scopesTree`` for more information.
         ///
-        /// - parameter key: An association key.
+        /// - parameter name: The scope name.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {

@@ -193,6 +193,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Default implementation does nothing.
     ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The updated columns.
     func willUpdate(_ db: Database, columns: Set<String>) throws
     
     /// Persistence callback called around the record update.
@@ -253,7 +254,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter update: A function that updates the record. Its result is
+    /// - parameter save: A function that saves the record. Its result is
     ///   reserved for GRDB usage.
     func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws
     
