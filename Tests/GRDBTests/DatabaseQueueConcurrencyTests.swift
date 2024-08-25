@@ -244,9 +244,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
         
-        var busyCallbackCalled = false
+        let busyCallbackCalledMutex = Mutex(false)
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            busyCallbackCalledMutex.store(true)
             s2.signal()
             return true
         }
@@ -283,7 +283,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertTrue(busyCallbackCalled)
+        XCTAssertTrue(busyCallbackCalledMutex.load())
     }
 
     func testReaderDuringDefaultTransaction() throws {
@@ -384,9 +384,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      COMMIT
         // COMMIT
         
-        var busyCallbackCalled = false
+        let busyCallbackCalledMutex = Mutex(false)
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            busyCallbackCalledMutex.store(true)
             s3.signal()
             return true
         }
@@ -431,6 +431,6 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertTrue(busyCallbackCalled)
+        XCTAssertTrue(busyCallbackCalledMutex.load())
     }
 }
