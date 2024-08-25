@@ -443,45 +443,80 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? any EncodableRecord.Type {
             if Sequence.Element.self == Data.self || Sequence.Element.self == Optional<Data>.self {
-                let strategy = recordType.databaseDataEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Data?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
+                let datas = keys.compactMap { ($0 as! Data?) }
+                if datas.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseDataEncodingStrategy(for: column)
+                    let expressions = datas.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             } else if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
-                let strategy = recordType.databaseDateEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
+                let dates = keys.compactMap { ($0 as! Date?) }
+                if dates.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseDateEncodingStrategy(for: column)
+                    let expressions = dates.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
-                let strategy = recordType.databaseUUIDEncodingStrategy
-                let keys = keys.map { ($0 as! UUID?).map(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
+                let uuids = keys.compactMap { ($0 as! UUID?) }
+                if uuids.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseUUIDEncodingStrategy(for: column)
+                    let expressions = uuids.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             }
         }
         
-        return filter(rawKeys: keys)
+        let expressions = keys.map { $0.sqlExpression }
+        if expressions.isEmpty {
+            // Don't hit the database
+            return none()
+        }
+        return filterWhenConnected(keys: { _ in expressions })
     }
     
     /// Creates a request filtered by primary key.
     ///
     ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(rawKeys: [1, 2, 3])
+    ///     let request = try Player...filterWhenConnected(keys: { db in [1, 2, 3] })
     ///
     /// - parameter keys: A collection of primary keys
-    func filter<Keys>(rawKeys: Keys) -> Self
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
-        // change the SQLite results anyway.
-        let expressions = rawKeys.map {
-            $0.databaseValue.sqlExpression
-        }
-        
-        if expressions.isEmpty {
-            // Don't hit the database
-            return none()
-        }
-        
+    fileprivate func filterWhenConnected(keys: @escaping @Sendable (Database) throws -> [SQLExpression]) -> Self {
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
+            // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
+            // change the SQLite results anyway.
+            let expressions = try keys(db)
+            
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,

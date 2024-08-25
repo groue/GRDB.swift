@@ -92,7 +92,9 @@ struct Team: Codable {
 extension Team: FetchableRecord, PersistableRecord {
     // Support SQLite JSON functions and operators
     // by storing JSON data as database text:
-    static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        .text
+    }
 }
 ```
 

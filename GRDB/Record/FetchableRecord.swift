@@ -89,10 +89,10 @@ import Foundation
 /// ### Configuring Row Decoding for the Standard Decodable Protocol
 ///
 /// - ``databaseColumnDecodingStrategy-6uefz``
-/// - ``databaseDataDecodingStrategy-71bh1``
-/// - ``databaseDateDecodingStrategy-78y03``
-/// - ``databaseDecodingUserInfo-77jim``
+/// - ``databaseDataDecodingStrategy(for:)``
+/// - ``databaseDateDecodingStrategy(for:)``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
+/// - ``databaseDecodingUserInfo-77jim``
 /// - ``DatabaseColumnDecodingStrategy``
 /// - ``DatabaseDataDecodingStrategy``
 /// - ``DatabaseDateDecodingStrategy``
@@ -165,18 +165,20 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
-    ///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
-    ///             return nil
+    ///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+    ///         .custom { dbValue
+    ///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+    ///                 return nil
+    ///             }
+    ///             return Data(base64Encoded: base64Data)
     ///         }
-    ///         return Data(base64Encoded: base64Data)
     ///     }
     ///
     ///     // Decoded from both database base64 strings and blobs
     ///     var myData: Data
     /// }
     /// ```
-    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { get }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy
 
     /// The strategy for decoding `Date` columns.
     ///
@@ -188,13 +190,15 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Decoded from an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
     
     /// The strategy for converting column names to coding keys.
     ///
@@ -243,13 +247,13 @@ extension FetchableRecord {
     
     /// The default strategy for decoding `Data` columns is
     /// ``DatabaseDataDecodingStrategy/deferredToData``.
-    public static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy {
+    public static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
         .deferredToData
     }
     
     /// The default strategy for decoding `Date` columns is
     /// ``DatabaseDateDecodingStrategy/deferredToDate``.
-    public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
+    public static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
         .deferredToDate
     }
     
@@ -865,11 +869,13 @@ extension RecordCursor: Sendable { }
 ///
 /// ```swift
 /// struct Player: FetchableRecord, Decodable {
-///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
-///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
-///             return nil
+///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+///         .custom { dbValue
+///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+///                 return nil
+///             }
+///             return Data(base64Encoded: base64Data)
 ///         }
-///         return Data(base64Encoded: base64Data)
 ///     }
 ///
 ///     // Decoded from both database base64 strings and blobs
@@ -897,7 +903,9 @@ public enum DatabaseDataDecodingStrategy {
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+///         static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+///             .timeIntervalSince1970
+///         }
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp

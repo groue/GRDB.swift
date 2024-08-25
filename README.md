@@ -2700,14 +2700,14 @@ Those behaviors can be overridden:
 
 ```swift
 protocol FetchableRecord {
-    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { get }
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
 }
 
 protocol EncodableRecord {
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { get }
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy
 }
 ```
 
@@ -2727,7 +2727,10 @@ So make sure that those are properly encoded in your requests. For example:
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
     // UUIDs are stored as strings
-    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+        .uppercaseString
+    }
+    
     var id: UUID
     ...
 }

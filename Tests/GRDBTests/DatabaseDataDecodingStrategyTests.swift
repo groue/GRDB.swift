@@ -20,12 +20,18 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithData<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { Strategy.strategy }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+        Strategy.strategy
+    }
+    
     var data: Data
 }
 
 private struct RecordWithOptionalData<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { Strategy.strategy }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+        Strategy.strategy
+    }
+    
     var data: Data?
 }
 

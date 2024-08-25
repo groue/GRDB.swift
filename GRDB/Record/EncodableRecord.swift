@@ -20,11 +20,11 @@ import Foundation // For JSONEncoder
 /// ### Configuring Persistence for the Standard Encodable Protocol
 ///
 /// - ``databaseColumnEncodingStrategy-5sx4v``
-/// - ``databaseDataEncodingStrategy-9y0c7``
-/// - ``databaseDateEncodingStrategy-2gtc1``
-/// - ``databaseEncodingUserInfo-8upii``
+/// - ``databaseDataEncodingStrategy(for:)``
+/// - ``databaseDateEncodingStrategy(for:)``
 /// - ``databaseJSONEncoder(for:)-6x62c``
-/// - ``databaseUUIDEncodingStrategy-2t96q``
+/// - ``databaseUUIDEncodingStrategy(for:)``
+/// - ``databaseEncodingUserInfo-8upii``
 /// - ``DatabaseColumnEncodingStrategy``
 /// - ``DatabaseDataEncodingStrategy``
 /// - ``DatabaseDateEncodingStrategy``
@@ -127,13 +127,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+    ///     static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+    ///         .text
+    ///     }
     ///
     ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
     ///     var jsonData: Data
     /// }
     /// ```
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { get }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy
     
     /// The strategy for encoding `Date` columns.
     ///
@@ -145,13 +147,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Encoded as an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy
     
     /// The strategy for encoding `UUID` columns.
     ///
@@ -163,13 +167,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    ///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+    ///         .uppercaseString
+    ///     }
     ///
     ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     ///     var uuid: UUID
     /// }
     /// ```
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy
     
     /// The strategy for converting coding keys to column names.
     ///
@@ -221,19 +227,19 @@ extension EncodableRecord {
     
     /// Returns the default strategy for encoding `Data` columns:
     /// ``DatabaseDataEncodingStrategy/deferredToData``.
-    public static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy {
+    public static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
         .deferredToData
     }
     
     /// Returns the default strategy for encoding `Date` columns:
     /// ``DatabaseDateEncodingStrategy/deferredToDate``.
-    public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
+    public static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
         .deferredToDate
     }
     
     /// Returns the default strategy for encoding `UUID` columns:
     /// ``DatabaseUUIDEncodingStrategy/deferredToUUID``.
-    public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
+    public static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
         .deferredToUUID
     }
     
@@ -460,7 +466,9 @@ extension Row {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+///     static func databaseDataEncodingStrategy(for column: Column) -> DatabaseDataEncodingStrategy {
+///         .text
+///     }
 ///
 ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
 ///     var jsonData: Data
@@ -502,7 +510,9 @@ public enum DatabaseDataEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {`
+///         .timeIntervalSince1970
+///     }
 ///
 ///     // Encoded as an epoch timestamp
 ///     var creationDate: Date
@@ -579,7 +589,9 @@ public enum DatabaseDateEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {`
+///         .uppercaseString
+///     }
 ///
 ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///     var uuid: UUID

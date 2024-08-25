@@ -46,7 +46,9 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+        Strategy.strategy
+    }
     var date: Date
 }
 
@@ -56,7 +58,9 @@ extension RecordWithDate: Identifiable {
 }
 
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+        Strategy.strategy
+    }
     var date: Date?
 }
 

@@ -121,6 +121,92 @@ extension FetchableRecordDecodableTests {
         }
     }
     
+    func testSingleValueDataProperty() throws {
+        struct Value : Decodable {
+            let data: Data
+            
+            init(from decoder: Decoder) throws {
+                data = try decoder.singleValueContainer().decode(Data.self)
+            }
+        }
+        
+        struct Struct : FetchableRecord, Decodable {
+            static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+                if column == "value" {
+                    return .custom { _ in Data([1, 2, 3]) }
+                } else {
+                    return .deferredToData
+                }
+            }
+            let value: Value
+            let optionalValue: Value?
+        }
+        
+        do {
+            // No null values
+            let s = try Struct(row: ["value": "foo", "optionalValue": "bar"])
+            XCTAssertEqual(s.value.data, Data([1, 2, 3]))
+            XCTAssertEqual(s.optionalValue?.data, Data([98, 97, 114]))
+        }
+        
+        do {
+            // Null values
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
+            XCTAssertEqual(s.value.data, Data([1, 2, 3]))
+            XCTAssertNil(s.optionalValue)
+        }
+        
+        do {
+            // Missing and extra values
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
+            XCTAssertEqual(s.value.data, Data([1, 2, 3]))
+            XCTAssertNil(s.optionalValue)
+        }
+    }
+    
+    func testSingleValueDateProperty() throws {
+        struct Value : Decodable {
+            let date: Date
+            
+            init(from decoder: Decoder) throws {
+                date = try decoder.singleValueContainer().decode(Date.self)
+            }
+        }
+        
+        struct Struct : FetchableRecord, Decodable {
+            static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+                if column == "value" {
+                    return .custom { _ in Date(timeIntervalSince1970: 0) }
+                } else {
+                    return .deferredToDate
+                }
+            }
+            let value: Value
+            let optionalValue: Value?
+        }
+        
+        do {
+            // No null values
+            let s = try Struct(row: ["value": "foo", "optionalValue": "2001-01-01 00:00:00"])
+            XCTAssertEqual(s.value.date, Date(timeIntervalSince1970: 0))
+            XCTAssertEqual(s.optionalValue?.date, Date(timeIntervalSinceReferenceDate: 0))
+        }
+        
+        do {
+            // Null values
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
+            XCTAssertEqual(s.value.date, Date(timeIntervalSince1970: 0))
+            XCTAssertNil(s.optionalValue)
+        }
+        
+        do {
+            // Missing and extra values
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
+            XCTAssertEqual(s.value.date, Date(timeIntervalSince1970: 0))
+            XCTAssertNil(s.optionalValue)
+        }
+    }
+
     func testNonTrivialSingleValueDecodableProperty() throws {
         struct NestedValue : Decodable {
             let string: String
