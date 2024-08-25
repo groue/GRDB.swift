@@ -213,6 +213,15 @@ class DatabaseCursorTests: GRDBTestCase {
 //        }
     }
     
+    // This test passes if it compiles
+    func testAssociatedType() throws {
+        func accept(_ cursor: some DatabaseCursor<String>) { }
+        func useCursor(_ db: Database) throws {
+            let cursor = try String.fetchCursor(db, sql: "SELECT 'foo'")
+            accept(cursor)
+        }
+    }
+    
     // For profiling tests
     let profilingSQL = """
         WITH RECURSIVE

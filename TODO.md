@@ -128,7 +128,7 @@
 - [ ] GRDB7: Sendable: SQL (ac33856f)
 - [ ] GRDB7: Split Row.swift (2ce8a619)
 - [ ] GRDB7: Cleanup ValueReducer (6c73b1c5)
-- [ ] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
+- [X] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
 - [ ] GRDB7: Enable Strict Concurrency Checks (6aa43ded)
 - [ ] GRDB7: Sendable: OrderedDictionary (e022c35b)
 - [ ] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
