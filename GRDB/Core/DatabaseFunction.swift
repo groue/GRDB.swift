@@ -29,16 +29,20 @@ import SQLite3
 /// - ``localizedUppercase``
 /// - ``lowercase``
 /// - ``uppercase``
-public final class DatabaseFunction: Hashable, Sendable {
-    // SQLite identifies functions by (name + argument count)
-    private struct Identity: Hashable {
+public final class DatabaseFunction: Hashable, Identifiable, Sendable {
+    /// The identifier of an SQLite function.
+    ///
+    /// SQLite identifies functions by their name and argument count.
+    public struct ID: Hashable, Sendable {
         let name: String
         let nArg: CInt // -1 for variadic functions
     }
     
-    /// The name of the SQL function
-    public var name: String { identity.name }
-    private let identity: Identity
+    /// The name of the SQL function.
+    public var name: String { id.name }
+    
+    /// The identifier of the SQL function.
+    public let id: ID
     let isPure: Bool
     private let kind: Kind
     private var eTextRep: CInt { (SQLITE_UTF8 | (isPure ? SQLITE_DETERMINISTIC : 0)) }
@@ -84,7 +88,7 @@ public final class DatabaseFunction: Hashable, Sendable {
         pure: Bool = false,
         function: @escaping @Sendable ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
-        self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
+        self.id = ID(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
         self.isPure = pure
         self.kind = .function { (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in
@@ -148,7 +152,7 @@ public final class DatabaseFunction: Hashable, Sendable {
         pure: Bool = false,
         aggregate: Aggregate.Type)
     {
-        self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
+        self.id = ID(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
         self.isPure = pure
         self.kind = .aggregate { Aggregate() }
     }
@@ -207,8 +211,8 @@ public final class DatabaseFunction: Hashable, Sendable {
         
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            identity.name,
-            identity.nArg,
+            id.name,
+            id.nArg,
             eTextRep,
             definitionP,
             kind.xFunc,
@@ -230,8 +234,8 @@ public final class DatabaseFunction: Hashable, Sendable {
     func uninstall(in db: Database) {
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            identity.name,
-            identity.nArg,
+            id.name,
+            id.nArg,
             eTextRep,
             nil, nil, nil, nil, nil)
         
@@ -426,12 +430,12 @@ public final class DatabaseFunction: Hashable, Sendable {
 
 extension DatabaseFunction {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(identity)
+        hasher.combine(id)
     }
     
     /// Two functions are equal if they share the same name and arity.
     public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        lhs.identity == rhs.identity
+        lhs.id == rhs.id
     }
 }
 
