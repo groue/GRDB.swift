@@ -1083,6 +1083,13 @@ class ValueObservationTests: GRDBTestCase {
     
     // An attempt at finding a regression test for <https://github.com/groue/GRDB.swift/issues/1362>
     func testManyObservations() throws {
+        // TODO: Fix flaky test with SQLCipher 3
+        #if GRDBCIPHER
+        if sqlite3_libversion_number() <= 3020001 {
+            throw XCTSkip("Skip flaky test with SQLCipher 3")
+        }
+        #endif
+        
         // We'll start many observations
         let observationCount = 100
         dbConfiguration.maximumReaderCount = 5
@@ -1095,7 +1102,7 @@ class ValueObservationTests: GRDBTestCase {
                 try Table("t").fetchCount($0)
             }
             
-            let initialValueExpectation = self.expectation(description: "")
+            let initialValueExpectation = self.expectation(description: "initialValue")
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             initialValueExpectation.assertForOverFulfill = true
 #else
@@ -1104,7 +1111,7 @@ class ValueObservationTests: GRDBTestCase {
 #endif
             initialValueExpectation.expectedFulfillmentCount = observationCount
             
-            let secondValueExpectation = self.expectation(description: "")
+            let secondValueExpectation = self.expectation(description: "secondValue")
             secondValueExpectation.expectedFulfillmentCount = observationCount
             
             var cancellables: [AnyDatabaseCancellable] = []

@@ -42,7 +42,14 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool) // 0
         try dbPool.write(counter.increment)       // 1
-        let snapshot = try dbPool.write { db in try DatabaseSnapshotPool(db) } // locked at 1
+        // We can't open a DatabaseSnapshotPool from an IMMEDIATE
+        // transaction (as documented by sqlite3_snapshot_get). So we
+        // force a DEFERRED transaction:
+        var snapshot: DatabaseSnapshotPool!
+        try dbPool.writeInTransaction(.deferred) { db in
+            snapshot = try DatabaseSnapshotPool(db) // locked at 1
+            return .commit
+        }
         try dbPool.write(counter.increment)       // 2
         
         try XCTAssertEqual(dbPool.read(counter.value), 2)
@@ -55,7 +62,9 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool) // 0
         try dbPool.write(counter.increment)       // 1
-        let snapshot = try dbPool.writeWithoutTransaction { db in try DatabaseSnapshotPool(db) } // locked at 1
+        let snapshot = try dbPool.writeWithoutTransaction { db in
+            try DatabaseSnapshotPool(db)          // locked at 1
+        }
         try dbPool.write(counter.increment)       // 2
         
         try XCTAssertEqual(dbPool.read(counter.value), 2)

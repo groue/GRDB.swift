@@ -214,6 +214,8 @@ SQLite savepoints are more than nested transactions, though. For advanced uses, 
 
 SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred (the default), immediate, and exclusive.
 
+By default, GRDB opens DEFERRED transaction for reads, and IMMEDIATE transactions for writes.
+
 The transaction kind can be chosen for individual transaction:
 
 ```swift
@@ -221,21 +223,4 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 // BEGIN EXCLUSIVE TRANSACTION ...
 try dbQueue.inTransaction(.exclusive) { db in ... }
-```
-
-It is also possible to configure the ``Configuration/defaultTransactionKind``:
-
-```swift
-var config = Configuration()
-config.defaultTransactionKind = .immediate
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-
-// BEGIN IMMEDIATE TRANSACTION ...
-try dbQueue.write { db in ... }
-
-// BEGIN IMMEDIATE TRANSACTION ...
-try dbQueue.inTransaction { db in ... }
 ```
