@@ -29,7 +29,7 @@ import SQLite3
 /// - ``localizedUppercase``
 /// - ``lowercase``
 /// - ``uppercase``
-public final class DatabaseFunction: Hashable, Identifiable, Sendable {
+public final class DatabaseFunction: Identifiable, Sendable {
     /// The identifier of an SQLite function.
     ///
     /// SQLite identifies functions by their name and argument count.
@@ -425,17 +425,6 @@ public final class DatabaseFunction: Hashable, Identifiable, Sendable {
         } else {
             sqlite3_result_error(sqliteContext, "\(error)", -1)
         }
-    }
-}
-
-extension DatabaseFunction {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    /// Two functions are equal if they share the same name and arity.
-    public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        lhs.id == rhs.id
     }
 }
 

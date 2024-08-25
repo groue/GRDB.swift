@@ -361,7 +361,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var trace: ((TraceEvent) -> Void)?
     
     /// The registered custom SQL functions.
-    private var functions = Set<DatabaseFunction>()
+    private var functions: [DatabaseFunction.ID: DatabaseFunction] = [:]
     
     /// The registered custom SQL collations.
     private var collations = Set<DatabaseCollation>()
@@ -707,13 +707,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(function: DatabaseFunction) {
-        functions.update(with: function)
+        functions[function.id] = function
         function.install(in: self)
     }
     
     /// Removes a custom SQL function.
     public func remove(function: DatabaseFunction) {
-        functions.remove(function)
+        functions.removeValue(forKey: function.id)
         function.uninstall(in: self)
     }
     
