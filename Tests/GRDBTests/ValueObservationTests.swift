@@ -1095,7 +1095,7 @@ class ValueObservationTests: GRDBTestCase {
                 try Table("t").fetchCount($0)
             }
             
-            let initialValueExpectation = self.expectation(description: "")
+            let initialValueExpectation = self.expectation(description: "initialValue")
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             initialValueExpectation.assertForOverFulfill = true
 #else
@@ -1104,7 +1104,7 @@ class ValueObservationTests: GRDBTestCase {
 #endif
             initialValueExpectation.expectedFulfillmentCount = observationCount
             
-            let secondValueExpectation = self.expectation(description: "")
+            let secondValueExpectation = self.expectation(description: "secondValue")
             secondValueExpectation.expectedFulfillmentCount = observationCount
             
             var cancellables: [AnyDatabaseCancellable] = []
