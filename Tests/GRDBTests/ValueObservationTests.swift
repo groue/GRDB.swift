@@ -174,9 +174,10 @@ class ValueObservationTests: GRDBTestCase {
     
     func testTrackingExplicitRegion() throws {
         class TestStream: TextOutputStream {
-            @LockedBox var strings: [String] = []
+            private var stringsMutex: Mutex<[String]> = Mutex([])
+            var strings: [String] { stringsMutex.load() }
             func write(_ string: String) {
-                strings.append(string)
+                stringsMutex.withLock { $0.append(string) }
             }
         }
         

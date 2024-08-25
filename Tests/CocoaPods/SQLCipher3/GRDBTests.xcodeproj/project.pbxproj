@@ -21,6 +21,8 @@
 		5623B61E2AED39F700436239 /* DatabaseQueueTemporaryCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623B61B2AED39F700436239 /* DatabaseQueueTemporaryCopyTests.swift */; };
 		5623B61F2AED39F700436239 /* DatabaseQueueInMemoryCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623B61C2AED39F700436239 /* DatabaseQueueInMemoryCopyTests.swift */; };
 		5623B6202AED39F700436239 /* DatabaseQueueInMemoryCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623B61C2AED39F700436239 /* DatabaseQueueInMemoryCopyTests.swift */; };
+		563EA3E52C7B3A4F001BE0D4 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EA3E42C7B3A4F001BE0D4 /* Mutex.swift */; };
+		563EA3E62C7B3A4F001BE0D4 /* Mutex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EA3E42C7B3A4F001BE0D4 /* Mutex.swift */; };
 		56419D6724A54062004967E1 /* DatabasePoolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9C24A54053004967E1 /* DatabasePoolTests.swift */; };
 		56419D6824A54062004967E1 /* DatabasePoolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9C24A54053004967E1 /* DatabasePoolTests.swift */; };
 		56419D6924A54062004967E1 /* ResultCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56419C9D24A54053004967E1 /* ResultCodeTests.swift */; };
@@ -510,6 +512,7 @@
 		561F38F82AC9CE6D0051EEE9 /* DatabaseDataEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		5623B61B2AED39F700436239 /* DatabaseQueueTemporaryCopyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueTemporaryCopyTests.swift; sourceTree = "<group>"; };
 		5623B61C2AED39F700436239 /* DatabaseQueueInMemoryCopyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueInMemoryCopyTests.swift; sourceTree = "<group>"; };
+		563EA3E42C7B3A4F001BE0D4 /* Mutex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mutex.swift; sourceTree = "<group>"; };
 		56419C9C24A54053004967E1 /* DatabasePoolTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePoolTests.swift; sourceTree = "<group>"; };
 		56419C9D24A54053004967E1 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
 		56419C9E24A54053004967E1 /* DatabaseQueueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueTests.swift; sourceTree = "<group>"; };
@@ -996,6 +999,7 @@
 				56419D2F24A5405E004967E1 /* MutablePersistableRecordEncodableTests.swift */,
 				56419D4424A5405F004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift */,
 				56419D3B24A5405F004967E1 /* MutablePersistableRecordTests.swift */,
+				563EA3E42C7B3A4F001BE0D4 /* Mutex.swift */,
 				56419CFD24A5405A004967E1 /* NumericOverflowTests.swift */,
 				56419D4F24A54060004967E1 /* OrderedDictionaryTests.swift */,
 				56419D4524A5405F004967E1 /* PersistableRecordTests.swift */,
@@ -1435,6 +1439,7 @@
 				56419E0924A54062004967E1 /* DatabaseValueConversionTests.swift in Sources */,
 				56419DB124A54062004967E1 /* AssociationBelongsToDecodableRecordTests.swift in Sources */,
 				56419D9324A54062004967E1 /* PrimaryKeyInfoTests.swift in Sources */,
+				563EA3E62C7B3A4F001BE0D4 /* Mutex.swift in Sources */,
 				567B5C392AD32A2D00629622 /* FoundationDecimalTests.swift in Sources */,
 				5641A1BA24A540D6004967E1 /* Inverted.swift in Sources */,
 				5641A1B624A540D6004967E1 /* Prefix.swift in Sources */,
@@ -1683,6 +1688,7 @@
 				56419E0A24A54062004967E1 /* DatabaseValueConversionTests.swift in Sources */,
 				56419DB224A54062004967E1 /* AssociationBelongsToDecodableRecordTests.swift in Sources */,
 				56419D9424A54062004967E1 /* PrimaryKeyInfoTests.swift in Sources */,
+				563EA3E52C7B3A4F001BE0D4 /* Mutex.swift in Sources */,
 				567B5C3A2AD32A2D00629622 /* FoundationDecimalTests.swift in Sources */,
 				5641A1BB24A540D6004967E1 /* Inverted.swift in Sources */,
 				5641A1B724A540D6004967E1 /* Prefix.swift in Sources */,
