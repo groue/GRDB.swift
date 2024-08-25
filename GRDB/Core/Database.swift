@@ -364,7 +364,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var functions: [DatabaseFunction.ID: DatabaseFunction] = [:]
     
     /// The registered custom SQL collations.
-    private var collations = Set<DatabaseCollation>()
+    private var collations: [DatabaseCollation.ID: DatabaseCollation] = [:]
     
     /// Support for `beginReadOnly()` and `endReadOnly()`.
     private var readOnlyDepth = 0
@@ -734,7 +734,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(collation: DatabaseCollation) {
-        collations.update(with: collation)
+        collations[collation.id] = collation
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
         let code = sqlite3_create_collation_v2(
             sqliteConnection,
@@ -753,7 +753,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Removes a collation.
     public func remove(collation: DatabaseCollation) {
-        collations.remove(collation)
+        collations.removeValue(forKey: collation.id)
         sqlite3_create_collation_v2(
             sqliteConnection,
             collation.name,
