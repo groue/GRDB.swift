@@ -144,6 +144,20 @@
 - [ ] GRDB7: doc (c0838cf9)
 - [ ] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
 - [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
+- [ ] GRDB7: Sendable: Association (b06aaee4)
+- [ ] GRDB7/Tests: Sendable: ValueObservationRecorder (2947b3d7)
+- [ ] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)
+- [ ] GRDB7/Tests: use a single and Sendable test TextOutputStream (bbb1a736)
+- [ ] GRDB7: ValueObservation needs a ValueReducer, not a `_ValueReducer` (08733108)
+- [ ] GRDB7: Database support for cancellation (4ddf4bca)
+- [ ] GRDB7: SerializedDatabase support for async db access with support for Task cancellation (737cb149)
+- [ ] GRDB7: DatabaseWriter async methods support Task cancellation (a5226501)
+- [ ] GRDB7: DatabaseReader async methods support Task cancellation (10c9d311)
+- [ ] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
+- [ ] GRDB7: Sendable: AssociationAggregate (48ad10ae)
+- [?] GRDB7: Sendable: AsyncValueObservation (ce63cdfa)
+- [ ] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
+- [ ] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
