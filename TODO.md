@@ -139,7 +139,7 @@
 - [X] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
 - [ ] GRDB7: ValueObservation closures
 - [?] GRDB7: DatabasePublishers.ValueSubscription
-- [ ] GRDB7: Sendable: ValueObservation (93f6f982)
+- [X] GRDB7: Sendable: ValueObservation (93f6f982)
 - [?] GRDB7: Not Sendable: SharedValueObservation
 - [ ] GRDB7: doc (c0838cf9)
 - [ ] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)

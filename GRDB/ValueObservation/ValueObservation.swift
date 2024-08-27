@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: _ValueReducer> {
+public struct ValueObservation<Reducer: ValueReducer> {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
@@ -176,7 +176,7 @@ extension ValueObservation: Refinable {
     ///   when ValueObservation events occur.
     public func handleEvents(
         willStart: (() -> Void)? = nil,
-        willFetch: (() -> Void)? = nil,
+        willFetch: (@Sendable () -> Void)? = nil,
         willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
         databaseDidChange: (() -> Void)? = nil,
         didReceiveValue: ((Reducer.Value) -> Void)? = nil,
@@ -267,7 +267,9 @@ extension ValueObservation: Refinable {
     where Reducer: ValueReducer
     {
         var reducer = makeReducer()
-        guard let value = try reducer._value(reducer._fetch(db)) else {
+        let fetcher = reducer._makeFetcher()
+        let fetchedValue = try fetcher.fetch(db)
+        guard let value = try reducer._value(fetchedValue) else {
             fatalError("Broken contract: reducer has no initial value")
         }
         return value
@@ -731,7 +733,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func trackingConstantRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -805,7 +807,7 @@ extension ValueObservation {
     public static func tracking<Value>(
         region: any DatabaseRegionConvertible,
         _ otherRegions: any DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -874,7 +876,7 @@ extension ValueObservation {
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -931,7 +933,7 @@ extension ValueObservation {
     ///
     /// - parameter fetch: The closure that fetches the observed value.
     public static func tracking<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {

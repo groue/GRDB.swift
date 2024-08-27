@@ -76,25 +76,25 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         /// The observed DatabasePool.
         let dbPool: DatabasePool
         
-        /// A reducer that fetches database values.
-        private let reducer: Reducer
+        /// The fetcher that fetches database values.
+        private let fetcher: Reducer.Fetcher
         
-        init(dbPool: DatabasePool, reducer: Reducer) {
+        init(dbPool: DatabasePool, fetcher: Reducer.Fetcher) {
             self.dbPool = dbPool
-            self.reducer = reducer
+            self.fetcher = fetcher
         }
         
-        func fetch(_ db: Database) throws -> Reducer.Fetched {
+        func fetch(_ db: Database) throws -> Reducer.Fetcher.Value {
             try db.isolated(readOnly: true) {
-                try reducer._fetch(db)
+                try fetcher.fetch(db)
             }
         }
         
-        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetched, DatabaseRegion) {
+        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetcher.Value, DatabaseRegion) {
             var region = DatabaseRegion()
             let fetchedValue = try db.isolated(readOnly: true) {
                 try db.recordingSelection(&region) {
-                    try reducer._fetch(db)
+                    try fetcher.fetch(db)
                 }
             }
             return try (fetchedValue, region.observableRegion(db))
@@ -170,9 +170,9 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         // State
         self.databaseAccess = DatabaseAccess(
             dbPool: dbPool,
-            // ValueReducer semantics guarantees that reducer._fetch
+            // ValueReducer semantics guarantees that the fetcher
             // is independent from the reducer state
-            reducer: reducer)
+            fetcher: reducer._makeFetcher())
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
         self.reduceQueue = DispatchQueue(
@@ -298,7 +298,9 @@ extension ValueConcurrentObserver {
             return try syncStartWithoutWALSnapshot(from: databaseAccess)
         }
         
-        let (fetchedValue, initialRegion): (Reducer.Fetched, DatabaseRegion) = try initialFetchTransaction.read { db in
+        let fetchedValue: Reducer.Fetcher.Value
+        let initialRegion: DatabaseRegion
+        (fetchedValue, initialRegion) = try initialFetchTransaction.read { db in
             switch trackingMode {
             case let .constantRegion(regions):
                 let fetchedValue = try databaseAccess.fetch(db)
@@ -354,7 +356,7 @@ extension ValueConcurrentObserver {
                 // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
                 initialFetchTransaction.asyncRead { dbResult in
                     do {
-                        let fetchedValue: Reducer.Fetched
+                        let fetchedValue: Reducer.Fetcher.Value
                         let initialRegion: DatabaseRegion
                         let db = try dbResult.get()
                         
@@ -461,7 +463,7 @@ extension ValueConcurrentObserver {
                         events.databaseDidChange?()
                         
                         // Fetch
-                        let fetchedValue: Reducer.Fetched
+                        let fetchedValue: Reducer.Fetcher.Value
                         
                         switch self.trackingMode {
                         case .constantRegion:
@@ -538,7 +540,9 @@ extension ValueConcurrentObserver {
         // for observing the database is to be able to fetch the initial value
         // without having to wait for an eventual long-running write
         // transaction to complete.
-        let (fetchedValue, initialRegion) = try databaseAccess.dbPool.read { db -> (Reducer.Fetched, DatabaseRegion) in
+        let fetchedValue: Reducer.Fetcher.Value
+        let initialRegion: DatabaseRegion
+        (fetchedValue, initialRegion) = try databaseAccess.dbPool.read { db in
             switch trackingMode {
             case let .constantRegion(regions):
                 let fetchedValue = try databaseAccess.fetch(db)
@@ -583,7 +587,7 @@ extension ValueConcurrentObserver {
             
             do {
                 // Fetch
-                let fetchedValue: Reducer.Fetched
+                let fetchedValue: Reducer.Fetcher.Value
                 let initialRegion: DatabaseRegion
                 let db = try dbResult.get()
                 switch self.trackingMode {
@@ -643,7 +647,7 @@ extension ValueConcurrentObserver {
             do {
                 try writerDB.isolated(readOnly: true) {
                     // Fetch
-                    let fetchedValue: Reducer.Fetched
+                    let fetchedValue: Reducer.Fetcher.Value
                     let observedRegion: DatabaseRegion
                     switch self.trackingMode {
                     case .constantRegion:
@@ -822,7 +826,7 @@ extension ValueConcurrentObserver: TransactionObserver {
         }
     }
     
-    private func reduce(_ fetchResult: Result<Reducer.Fetched, Error>) {
+    private func reduce(_ fetchResult: Result<Reducer.Fetcher.Value, Error>) {
         reduceQueue.async {
             do {
                 let fetchedValue = try fetchResult.get()

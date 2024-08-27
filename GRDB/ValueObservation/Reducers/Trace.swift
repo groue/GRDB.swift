@@ -4,12 +4,26 @@ extension ValueReducers {
     ///
     /// See ``ValueObservation/handleEvents(willStart:willFetch:willTrackRegion:databaseDidChange:didReceiveValue:didFail:didCancel:)``
     /// and ``ValueObservation/print(_:to:)``.
-    public struct Trace<Base: _ValueReducer>: _ValueReducer {
+    public struct Trace<Base: ValueReducer>: ValueReducer {
+        public struct _Fetcher: _ValueReducerFetcher {
+            let base: Base.Fetcher
+            let willFetch: @Sendable () -> Void
+            
+            public func fetch(_ db: Database) throws -> Base.Fetcher.Value {
+                willFetch()
+                return try base.fetch(db)
+            }
+        }
+        
         var base: Base
-        let willFetch: () -> Void
+        let willFetch: @Sendable () -> Void
         let didReceiveValue: (Base.Value) -> Void
         
-        public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {
+        public func _makeFetcher() -> _Fetcher {
+            _Fetcher(base: base._makeFetcher(), willFetch: willFetch)
+        }
+        
+        public mutating func _value(_ fetched: Base.Fetcher.Value) throws -> Base.Value? {
             guard let value = try base._value(fetched) else {
                 return nil
             }
@@ -18,11 +32,4 @@ extension ValueReducers {
         }
     }
     // swiftlint:enable line_length
-}
-
-extension ValueReducers.Trace: ValueReducer where Base: ValueReducer {
-    public func _fetch(_ db: Database) throws -> Base.Fetched {
-        willFetch()
-        return try base._fetch(db)
-    }
 }
