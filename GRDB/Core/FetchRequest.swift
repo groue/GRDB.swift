@@ -171,7 +171,9 @@ extension FetchRequest {
     ///
     /// - parameter adapter: A closure that accepts a database connection and
     ///   returns a row adapter.
-    public func adapted(_ adapter: @escaping (Database) throws -> any RowAdapter) -> AdaptedFetchRequest<Self> {
+    public func adapted(
+        _ adapter: @escaping @Sendable (Database) throws -> any RowAdapter
+    ) -> AdaptedFetchRequest<Self> {
         AdaptedFetchRequest(self, adapter)
     }
 }
@@ -181,11 +183,11 @@ extension FetchRequest {
 /// See ``FetchRequest/adapted(_:)``.
 public struct AdaptedFetchRequest<Base: FetchRequest> {
     let base: Base
-    let adapter: (Database) throws -> any RowAdapter
+    let adapter: @Sendable (Database) throws -> any RowAdapter
     
     /// Creates an adapted request from a base request and a closure that builds
     /// a row adapter from a database connection.
-    init(_ base: Base, _ adapter: @escaping (Database) throws -> any RowAdapter) {
+    init(_ base: Base, _ adapter: @escaping @Sendable (Database) throws -> any RowAdapter) {
         self.base = base
         self.adapter = adapter
     }
@@ -274,7 +276,7 @@ extension AnyFetchRequest: FetchRequest {
 }
 
 // Class-based type erasure, so that we preserve full type information.
-private class FetchRequestEraser: FetchRequest {
+private class FetchRequestEraser: FetchRequest, @unchecked Sendable {
     typealias RowDecoder = Void
     
     var sqlSubquery: SQLSubquery {
@@ -290,7 +292,7 @@ private class FetchRequestEraser: FetchRequest {
     }
 }
 
-private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser {
+private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser, @unchecked Sendable {
     let request: Request
     
     init(request: Request) {
