@@ -156,7 +156,7 @@
 - [ ] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
 - [ ] GRDB7: Sendable: AssociationAggregate (48ad10ae)
 - [?] GRDB7: Sendable: AsyncValueObservation (ce63cdfa)
-- [ ] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
+- [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
 - [ ] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
