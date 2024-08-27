@@ -136,7 +136,7 @@
 - [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
 - [ ] GRDB7: Sendable: ValueWriteOnlyObserver (ff2a7548)
 - [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65)
-- [ ] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
+- [X] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
 - [ ] GRDB7: ValueObservation closures
 - [?] GRDB7: DatabasePublishers.ValueSubscription
 - [ ] GRDB7: Sendable: ValueObservation (93f6f982)
