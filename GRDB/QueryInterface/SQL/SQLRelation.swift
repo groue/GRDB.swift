@@ -1027,9 +1027,6 @@ extension Row: ColumnAddressable {
 /// PersistenceContainer has columns
 extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
-    func databaseValue(at column: String) -> DatabaseValue {
-        self[caseInsensitive: column]?.databaseValue ?? .null
-    }
 }
 
 // MARK: - Merging
