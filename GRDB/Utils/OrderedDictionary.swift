@@ -207,6 +207,8 @@ extension OrderedDictionary: CustomStringConvertible {
     }
 }
 
+extension OrderedDictionary: Sendable where Key: Sendable, Value: Sendable { }
+
 extension Dictionary {
     init(_ orderedDictionary: OrderedDictionary<Key, Value>) {
         self = orderedDictionary.dictionary

@@ -122,8 +122,14 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``logError``
 /// - ``releaseMemory()``
 /// - ``trace(options:_:)``
+///
+/// ### Supporting Types
+///
+/// - ``BusyCallback``
+/// - ``BusyMode``
 /// - ``CheckpointMode``
 /// - ``DatabaseBackupProgress``
+/// - ``LogErrorFunction``
 /// - ``StorageClass``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
@@ -143,8 +149,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The error logging function.
     ///
+    /// SQLite can be configured to invoke a callback function containing
+    /// an error code and a terse error message whenever anomalies occur.
+    ///
+    /// This global error callback must be configured early in the lifetime
+    /// of your application:
+    ///
+    /// ```swift
+    /// Database.logError = { (resultCode, message) in
+    ///     NSLog("%@", "SQLite error \(resultCode): \(message)")
+    /// }
+    /// ```
+    ///
+    /// - warning: Database.logError must be set before any database
+    ///   connection is opened. This includes the connections that your
+    ///   application opens with GRDB, but also connections opened by
+    ///   other tools, such as third-party libraries. Setting it after a
+    ///   connection has been opened is an SQLite misuse, and has no effect.
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -361,10 +385,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var trace: ((TraceEvent) -> Void)?
     
     /// The registered custom SQL functions.
-    private var functions = Set<DatabaseFunction>()
+    private var functions: [DatabaseFunction.ID: DatabaseFunction] = [:]
     
     /// The registered custom SQL collations.
-    private var collations = Set<DatabaseCollation>()
+    private var collations: [DatabaseCollation.ID: DatabaseCollation] = [:]
     
     /// Support for `beginReadOnly()` and `endReadOnly()`.
     private var readOnlyDepth = 0
@@ -707,13 +731,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(function: DatabaseFunction) {
-        functions.update(with: function)
+        functions[function.id] = function
         function.install(in: self)
     }
     
     /// Removes a custom SQL function.
     public func remove(function: DatabaseFunction) {
-        functions.remove(function)
+        functions.removeValue(forKey: function.id)
         function.uninstall(in: self)
     }
     
@@ -734,7 +758,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(collation: DatabaseCollation) {
-        collations.update(with: collation)
+        collations[collation.id] = collation
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
         let code = sqlite3_create_collation_v2(
             sqliteConnection,
@@ -753,7 +777,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Removes a collation.
     public func remove(collation: DatabaseCollation) {
-        collations.remove(collation)
+        collations.removeValue(forKey: collation.id)
         sqlite3_create_collation_v2(
             sqliteConnection,
             collation.name,
@@ -1830,8 +1854,8 @@ extension Database {
     
     // MARK: - Database-Related Types
     
-    /// See BusyMode and <https://www.sqlite.org/c3ref/busy_handler.html>
-    public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
+    /// See ``BusyMode`` and <https://www.sqlite.org/c3ref/busy_handler.html>
+    public typealias BusyCallback = @Sendable (_ numberOfTries: Int) -> Bool
     
     /// When there are several connections to a database, a connection may try
     /// to access the database while it is locked by another connection.
@@ -1859,7 +1883,7 @@ extension Database {
     /// - <https://www.sqlite.org/c3ref/busy_handler.html>
     /// - <https://www.sqlite.org/lang_transaction.html>
     /// - <https://www.sqlite.org/wal.html>
-    public enum BusyMode {
+    public enum BusyMode: Sendable {
         /// The `SQLITE_BUSY` error is immediately returned to the connection
         /// that tries to access the locked database.
         case immediateError
@@ -2019,7 +2043,7 @@ extension Database {
     }
     
     /// An error log function that takes an error code and message.
-    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    public typealias LogErrorFunction = @Sendable (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// An SQLite storage class.
     ///

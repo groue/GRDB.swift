@@ -13,7 +13,7 @@ private class MinimalNonOptionalPrimaryKeySingle: Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: "CREATE TABLE minimalSingles (id TEXT NOT NULL PRIMARY KEY)")
     }
     
@@ -48,7 +48,9 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalNonOptionalPrimaryKeySingle", migrate: MinimalNonOptionalPrimaryKeySingle.setup)
+        migrator.registerMigration("createMinimalNonOptionalPrimaryKeySingle") {
+            try MinimalNonOptionalPrimaryKeySingle.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

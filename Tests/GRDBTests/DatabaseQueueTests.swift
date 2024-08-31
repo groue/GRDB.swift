@@ -378,7 +378,7 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         
         let parallelWritesCount = 50
-        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { index in
+        DispatchQueue.concurrentPerform(iterations: parallelWritesCount) { [configuration] index in
             let dbQueue = try! makeDatabaseQueue(filename: "test", configuration: configuration)
             try! dbQueue.write { db in
                 _ = try Table("test").fetchCount(db)
@@ -458,7 +458,7 @@ class DatabaseQueueTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch DatabaseError.SQLITE_BUSY { }
         }
-        XCTAssert(lastMessage!.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        XCTAssert(lastSQLiteDiagnostic!.message.contains("unfinalized statement: SELECT * FROM sqlite_master"))
         
         // Database is not closed: no error
         try dbQueue.inDatabase { db in

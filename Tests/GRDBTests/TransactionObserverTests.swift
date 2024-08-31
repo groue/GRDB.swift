@@ -1384,7 +1384,7 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer)
         
         try dbQueue.writeWithoutTransaction { db in
-            try MinimalRowID.setup(inDatabase: db)
+            try MinimalRowID.setup(db)
             
             let record = MinimalRowID()
             try record.save(db)

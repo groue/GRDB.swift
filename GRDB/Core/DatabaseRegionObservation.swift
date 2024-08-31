@@ -3,10 +3,10 @@ import Combine
 #endif
 import Foundation
 
-public struct DatabaseRegionObservation {
+public struct DatabaseRegionObservation: Sendable {
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
-    var observedRegion: (Database) throws -> DatabaseRegion
+    var observedRegion: @Sendable (Database) throws -> DatabaseRegion
 }
 
 extension DatabaseRegionObservation {

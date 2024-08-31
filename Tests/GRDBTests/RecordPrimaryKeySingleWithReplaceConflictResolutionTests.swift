@@ -11,7 +11,7 @@ class Email : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE emails (
                 email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE,
@@ -50,7 +50,9 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEmail", migrate: Email.setup)
+        migrator.registerMigration("createEmail") {
+            try Email.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

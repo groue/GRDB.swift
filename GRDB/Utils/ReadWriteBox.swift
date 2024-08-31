@@ -3,7 +3,8 @@ import Dispatch
 /// A ReadWriteBox grants multiple readers and single-writer guarantees on a
 /// value. It is backed by a concurrent DispatchQueue.
 @propertyWrapper
-final class ReadWriteBox<T> {
+final class ReadWriteBox<T: Sendable>: @unchecked Sendable {
+    // @unchecked because `_wrappedValue` is protected by `queue`
     private var _wrappedValue: T
     private var queue: DispatchQueue
     
