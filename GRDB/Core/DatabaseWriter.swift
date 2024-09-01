@@ -905,6 +905,13 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.read(value)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await base.read(value)
+    }
+    
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(value)
     }
@@ -912,6 +919,13 @@ extension AnyDatabaseWriter: DatabaseReader {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         try base.unsafeRead(value)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await base.unsafeRead(value)
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {

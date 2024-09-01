@@ -146,16 +146,36 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     
     // MARK: - Reading from Database
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         try reader.sync(block)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await reader.execute(value)
     }
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         reader.async { value(.success($0)) }
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try reader.sync(value)
+    }
+    
+    // There is no such thing as an unsafe access to a snapshot.
+    // We can't provide this as a default implementation in
+    // `DatabaseSnapshotReader`,  because of
+    // <https://github.com/apple/swift/issues/74469>.
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await read(value)
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {

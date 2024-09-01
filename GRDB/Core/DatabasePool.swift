@@ -351,6 +351,45 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                // The block isolation comes from the DEFERRED transaction.
+                                try db.beginTransaction(.deferred)
+                                try db.clearSchemaCacheIfNeeded()
+                                return try value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
@@ -391,6 +430,41 @@ extension DatabasePool: DatabaseReader {
             try reader.sync { db in
                 try db.clearSchemaCacheIfNeeded()
                 return try value(db)
+            }
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                try db.clearSchemaCacheIfNeeded()
+                                return try value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
