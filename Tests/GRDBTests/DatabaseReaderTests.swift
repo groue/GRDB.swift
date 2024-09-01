@@ -379,6 +379,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -414,6 +416,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -451,6 +455,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -492,6 +498,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -526,6 +534,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -561,6 +571,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -598,6 +610,8 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -639,5 +653,7 @@ class DatabaseReaderTests : GRDBTestCase {
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try await test(makeDatabasePool().makeSnapshotPool())
 #endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 }

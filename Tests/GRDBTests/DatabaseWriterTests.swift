@@ -458,6 +458,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -489,6 +490,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -522,6 +524,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -559,6 +562,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -589,6 +593,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -620,6 +625,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -653,6 +659,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -690,6 +697,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -720,6 +728,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -751,6 +760,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -784,6 +794,7 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -821,5 +832,6 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 }
