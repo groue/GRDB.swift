@@ -128,7 +128,9 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see partial updates performed by the `updates` closure.
     ///
     /// - parameter updates: A closure which accesses the database.
-    /// - throws: The error thrown by `updates`.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `updates`, or
+    ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func writeWithoutTransaction<T>(
         _ updates: @Sendable @escaping (Database) throws -> T
@@ -212,7 +214,9 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   can see partial updates performed by the `updates` closure.
     ///
     /// - parameter updates: A closure which accesses the database.
-    /// - throws: The error thrown by `updates`.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `updates`, or
+    ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func barrierWriteWithoutTransaction<T>(
         _ updates: @Sendable @escaping (Database) throws -> T)
@@ -637,9 +641,9 @@ extension DatabaseWriter {
     /// for later use.
     ///
     /// - parameter updates: A closure which accesses the database.
-    /// - throws: The error thrown by `updates`, or any ``DatabaseError`` that
-    ///   would happen while establishing the database access or committing
-    ///   the transaction.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `updates`, or
+    ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func write<T>(
         _ updates: @Sendable @escaping (Database) throws -> T
