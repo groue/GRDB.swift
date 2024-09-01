@@ -396,15 +396,21 @@ extension CancellableDatabaseAccess: DatabaseCancellable {
             }
         }
         
-        defer {
-            withLock { state in
+        return try throwingFirstError {
+            try work()
+        } finally: {
+            let cancelled = withLock { state in
                 if case .cancelled = state {
                     db.uncancel()
+                    return true
+                } else {
+                    state = .expired
+                    return false
                 }
-                state = .expired
+            }
+            if cancelled {
+                throw CancellationError()
             }
         }
-        
-        return try work()
     }
 }

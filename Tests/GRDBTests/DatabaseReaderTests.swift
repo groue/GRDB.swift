@@ -382,6 +382,41 @@ class DatabaseReaderTests : GRDBTestCase {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func test_read_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbReader.read { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbReader.read { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_statement_execution_from_read_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -493,6 +528,41 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func test_unsafeRead_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbReader.unsafeRead { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbReader.unsafeRead { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_statement_execution_from_unsafeRead_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
