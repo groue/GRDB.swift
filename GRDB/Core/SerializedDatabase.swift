@@ -384,7 +384,7 @@ extension CancellableDatabaseAccess: DatabaseCancellable {
     
     /// Wraps a full database access with cancellation support. When this
     /// method returns, the database is NOT cancelled.
-    func inDatabase<Value>(_ db: Database, _ work: () throws -> sending Value) throws -> sending Value {
+    func inDatabase<Value>(_ db: Database, execute work: () throws -> Value) throws -> Value {
         try withLock { state in
             switch state {
             case .connected, .expired:

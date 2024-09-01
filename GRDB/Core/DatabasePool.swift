@@ -721,6 +721,13 @@ extension DatabasePool: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func writeWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         guard let readerPool else {
@@ -728,6 +735,27 @@ extension DatabasePool: DatabaseWriter {
         }
         return try readerPool.barrier {
             try writer.sync(updates)
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func barrierWriteWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            asyncBarrierWriteWithoutTransaction { dbResult in
+                do {
+                    try dbAccess.checkCancellation()
+                    let db = try dbResult.get()
+                    let result = try dbAccess.inDatabase(db) {
+                        try updates(db)
+                    }
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
     

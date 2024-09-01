@@ -362,9 +362,23 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func writeWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try writer.sync(updates)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func barrierWriteWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
     }
     
     public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
