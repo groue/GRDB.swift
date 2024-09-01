@@ -233,6 +233,17 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func read<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute { db in
+            try db.isolated(readOnly: true) {
+                try value(db)
+            }
+        }
+    }
+    
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         writer.async { db in
             defer {
@@ -254,8 +265,16 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try writer.sync(value)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func unsafeRead<T>(
+        _ value: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(value)
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
@@ -362,9 +381,23 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func writeWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try writer.sync(updates)
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    public func barrierWriteWithoutTransaction<T>(
+        _ updates: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
     }
     
     public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {

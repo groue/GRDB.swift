@@ -243,6 +243,26 @@ final class SerializedDatabase {
         return try block(db)
     }
     
+    /// Asynchrously executes the block.
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func execute<T>(
+        _ block: @Sendable @escaping (Database) throws -> T
+    ) async throws -> T {
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            self.async { db in
+                do {
+                    let result = try dbAccess.inDatabase(db) {
+                        try block(db)
+                    }
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
     func interrupt() {
         // Intentionally not scheduled in our serial queue
         db.interrupt()
@@ -286,3 +306,111 @@ final class SerializedDatabase {
 // It happens the job of SerializedDatabase is precisely to provide thread-safe
 // access to `Database`.
 extension SerializedDatabase: @unchecked Sendable { }
+
+// MARK: - Task Cancellation Support
+
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+enum DatabaseAccessCancellationState: @unchecked Sendable {
+    // @unchecked Sendable because database is only accessed from its
+    // dispatch queue.
+    case notConnected
+    case connected(Database)
+    case cancelled
+    case expired
+}
+
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+typealias CancellableDatabaseAccess = Mutex<DatabaseAccessCancellationState>
+
+/// Supports Task cancellation in async database accesses.
+///
+/// Usage:
+///
+/// ```swift
+/// let dbAccess = CancellableDatabaseAccess()
+/// return try dbAccess.withCancellableContinuation { continuation in
+///     asyncDatabaseAccess { db in
+///         do {
+///             let result = try dbAccess.inDatabase(db) {
+///                 // Perform database operations
+///             }
+///             continuation.resume(returning: result)
+///         } catch {
+///             continuation.resume(throwing: error)
+///         }
+///     }
+/// }
+/// ```
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+extension CancellableDatabaseAccess: DatabaseCancellable {
+    convenience init() {
+        self.init(.notConnected)
+    }
+    
+    func cancel() {
+        withLock { state in
+            switch state {
+            case let .connected(db):
+                db.cancel()
+                state = .cancelled
+            case .notConnected:
+                state = .cancelled
+            case .cancelled, .expired:
+                break
+            }
+        }
+    }
+    
+    func withCancellableContinuation<Value>(
+        _ fn: (UnsafeContinuation<Value, any Error>) -> Void
+    ) async throws -> Value {
+        try await withTaskCancellationHandler {
+            try checkCancellation()
+            return try await withUnsafeThrowingContinuation { continuation in
+                fn(continuation)
+            }
+        } onCancel: {
+            cancel()
+        }
+    }
+    
+    func checkCancellation() throws {
+        try withLock { state in
+            if case .cancelled = state {
+                throw CancellationError()
+            }
+        }
+    }
+    
+    /// Wraps a full database access with cancellation support. When this
+    /// method returns, the database is NOT cancelled.
+    func inDatabase<Value>(_ db: Database, execute work: () throws -> Value) throws -> Value {
+        try withLock { state in
+            switch state {
+            case .connected, .expired:
+                fatalError("Can't use a CancellableDatabaseAccess twice")
+            case .notConnected:
+                state = .connected(db)
+            case .cancelled:
+                throw CancellationError()
+            }
+        }
+        
+        return try throwingFirstError {
+            try work()
+        } finally: {
+            let cancelled = withLock { state in
+                if case .cancelled = state {
+                    db.uncancel()
+                    return true
+                } else {
+                    state = .expired
+                    return false
+                }
+            }
+            if cancelled {
+                throw CancellationError()
+            }
+        }
+    }
+}

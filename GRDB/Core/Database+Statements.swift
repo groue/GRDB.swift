@@ -439,6 +439,7 @@ extension Database {
         // documentation of this method for more information).
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         
+        // Cancelled database accesses must not execute.
         // Suspended databases must not execute statements that create the risk
         // of `0xdead10cc` exception (see the documentation of this method for
         // more information).
@@ -490,6 +491,19 @@ extension Database {
         // cancelled a transaction, this calls `TransactionObserver.databaseDidRollback(_:)`,
         // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
+        
+        if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            switch ResultCode(rawValue: resultCode) {
+            case .SQLITE_INTERRUPT, .SQLITE_ABORT:
+                if suspensionMutex.load().isCancelled {
+                    // The only error that a user sees when a Task is cancelled
+                    // is CancellationError.
+                    throw CancellationError()
+                }
+            default:
+                break
+            }
+        }
         
         // Throw statement failure
         throw DatabaseError(

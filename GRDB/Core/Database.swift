@@ -312,17 +312,28 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// `isRecordingSelectedRegion` is true.
     var selectedRegion = DatabaseRegion()
     
-    /// Support for `checkForAbortedTransaction()`
-    var isInsideTransactionBlock = false
-    
-    /// Support for `checkForSuspensionViolation(from:)`
-    let isSuspendedMutex = Mutex(false)
-    
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
+    // MARK: - Suspension
+    
+    struct Suspension {
+        /// If true, the database is suspended and should not acquire any
+        /// write lock in order to avoid the 0xDEAD10CC exception.
+        var isSuspended: Bool
+        
+        /// If true, the database access has been cancelled.
+        var isCancelled: Bool
+    }
+    
+    /// Support for `checkForSuspensionViolation(from:)`
+    let suspensionMutex = Mutex(Suspension(isSuspended: false, isCancelled: false))
+    
     // MARK: - Transaction Date
+    
+    /// Support for `checkForAbortedTransaction()`
+    var isInsideTransactionBlock = false
     
     enum AutocommitState {
         case off
@@ -635,7 +646,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         guard code == SQLITE_OK else {
             // So there remain some unfinalized prepared statement somewhere.
             if let log = Self.logError {
-                if code == SQLITE_BUSY {
+                if ResultCode(rawValue: code).primaryResultCode == .SQLITE_BUSY {
                     // Let the user know about unfinalized statements that did
                     // prevent the connection from closing properly.
                     var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
@@ -1149,12 +1160,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Suspension ends with `resume()`.
     func suspend() {
-        let needsInterrupt = isSuspendedMutex.withLock { isSuspended in
-            if isSuspended {
+        let needsInterrupt = suspensionMutex.withLock { suspension in
+            if suspension.isSuspended {
                 return false
             }
             
-            isSuspended = true
+            suspension.isSuspended = true
             return true
         }
         
@@ -1179,7 +1190,37 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See suspend().
     func resume() {
-        isSuspendedMutex.store(false)
+        suspensionMutex.withLock {
+            $0.isSuspended = false
+        }
+    }
+    
+    /// Cancels the current database access. All statements but ROLLBACK
+    /// will throw `CancellationError`, until `uncancel()` is called.
+    ///
+    /// This method can be called from any thread.
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func cancel() {
+        let needsInterrupt = suspensionMutex.withLock { suspension in
+            if suspension.isCancelled {
+                return false
+            }
+            
+            suspension.isCancelled = true
+            return true
+        }
+        
+        if needsInterrupt {
+            interrupt()
+        }
+    }
+    
+    /// Undo `cancel()`.
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func uncancel() {
+        suspensionMutex.withLock {
+            $0.isCancelled = false
+        }
     }
     
     /// Support for `checkForSuspensionViolation(from:)`
@@ -1203,15 +1244,51 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return journalMode
     }
     
-    /// If the database is suspended, and executing the statement would lock the
-    /// database in a way that may trigger the [`0xdead10cc` exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report),
-    /// this method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    /// Prevents a statement from running, if the database is suspended, or
+    /// if the current database access is cancelled by Task cancellation.
     ///
-    /// See `suspend()` and ``Configuration/observesSuspensionNotifications``.
+    /// Transaction rollbacks are always allowed. For other statements:
+    ///
+    /// - When database access is cancelled, this method
+    ///   throws `CancellationError`.
+    ///
+    /// - When database is suspensed, and if the statement would lock the
+    ///   database in a way that may trigger the 0xDEAD10CC exception, this
+    ///   method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    ///
+    /// See `cancel()`, `suspend()` and
+    /// ``Configuration/observesSuspensionNotifications``.
     func checkForSuspensionViolation(from statement: Statement) throws {
-        let needsAbort = try isSuspendedMutex.withLock { isSuspended in
-            guard isSuspended else {
-                return false
+        // No reason for suspension should prevent rollbacks:
+        //
+        // - A rollback releases the write lock when the database
+        //  is interrupted, when preventing 0xDEAD10CC.
+        //
+        // - A rollback properly closes a transaction that fails because
+        //   it runs in a Task that was cancelled.
+        //
+        // Finally, a rollback must be run by GRDB, not by a direct call
+        // to `sqlite3_exec`, so that transaction observers are
+        // properly notified.
+        if statement.transactionEffect == .rollbackTransaction {
+            return
+        }
+        
+        // How should we interrupt the statement?
+        enum Interrupt {
+            case abort  // Rollback and throw SQLITE_ABORT
+            case cancel // Throw CancellationError
+        }
+        
+        let interrupt: Interrupt? = try suspensionMutex.withLock { suspension in
+            // Check for cancellation first, so that the only error that
+            // a user sees when a Task is cancelled is CancellationError.
+            if suspension.isCancelled {
+                return .cancel
+            }
+            
+            guard suspension.isSuspended else {
+                return nil
             }
             
             if try journalMode() == "wal" && statement.isReadonly {
@@ -1222,7 +1299,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // Those are not read-only:
                 // - INSERT ...
                 // - BEGIN IMMEDIATE TRANSACTION
-                return false
+                return nil
             }
             
             if statement.releasesDatabaseLock {
@@ -1231,20 +1308,29 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // - ROLLBACK
                 // - ROLLBACK TRANSACTION TO SAVEPOINT
                 // - RELEASE SAVEPOINT
-                return false
+                return nil
             }
             
             // Assume statement can acquire a write lock: abort.
-            return true
+            return .abort
         }
         
-        if needsAbort {
+        switch interrupt {
+        case nil:
+            break
+            
+        case .cancel:
+            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+                throw CancellationError()
+            } else {
+                // GRDB bug: cancellation is a Swift concurrency feature
+                fatalError("Can't cancel without support for Swift concurrency")
+            }
+            
+        case .abort:
             // Attempt at releasing an eventual lock with ROLLBACk,
             // as explained in Database.suspend().
-            //
-            // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop in checkForSuspensionViolation(from:)
-            _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            try? rollback()
             
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
