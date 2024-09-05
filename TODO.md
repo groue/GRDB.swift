@@ -158,6 +158,8 @@
 - [?] GRDB7: Sendable: AsyncValueObservation (ce63cdfa)
 - [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
 - [ ] GRDB7: DispatchQueue.asyncSending (7b075e6b)
+- [ ] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
+- [ ] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16) 
 
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
