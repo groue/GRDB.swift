@@ -439,4 +439,12 @@ class DatabasePoolTests: GRDBTestCase {
         // In the zombie state, closing is a noop
         try dbPool.close()
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1612>
+    func test_releaseMemory_after_close() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.read { _ in } // Create a reader
+        try dbPool.close()
+        dbPool.releaseMemory()
+    }
 }
