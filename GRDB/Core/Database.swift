@@ -1575,7 +1575,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Frees as much memory as possible.
     public func releaseMemory() {
         SchedulingWatchdog.preconditionValidQueue(self)
-        sqlite3_db_release_memory(sqliteConnection)
+        if let sqliteConnection {
+            sqlite3_db_release_memory(sqliteConnection)
+        }
         schemaCache.clear()
         internalStatementCache.clear()
         publicStatementCache.clear()

@@ -15,6 +15,7 @@ disabled_rules:
   - is_disjoint
   - large_tuple
   - nesting
+  - non_optional_string_data_conversion
   - opening_brace
   - redundant_optional_initialization
   - syntactic_sugar
