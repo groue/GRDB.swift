@@ -538,9 +538,8 @@ extension DatabaseReader {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        value: @escaping (Database) throws -> Output)
-    -> DatabasePublishers.Read<Output>
-    {
+        value: @escaping @Sendable (Database) throws -> Output
+    ) -> DatabasePublishers.Read<Output> {
         OnDemandFuture { fulfill in
             self.asyncRead { dbResult in
                 fulfill(dbResult.flatMap { db in Result { try value(db) } })

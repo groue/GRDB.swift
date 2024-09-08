@@ -758,9 +758,8 @@ extension DatabaseWriter {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        updates: @escaping (Database) throws -> Output)
-    -> DatabasePublishers.Write<Output>
-    {
+        updates: @escaping @Sendable (Database) throws -> Output
+    ) -> DatabasePublishers.Write<Output> {
         OnDemandFuture { fulfill in
             self.asyncWrite(updates, completion: { _, result in
                 fulfill(result)
@@ -821,13 +820,11 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which writes in the database.
     /// - parameter value: A closure which reads from the database.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func writePublisher<S, T, Output>(
-        receiveOn scheduler: S = DispatchQueue.main,
-        updates: @escaping (Database) throws -> T,
-        thenRead value: @escaping (Database, T) throws -> Output)
-    -> DatabasePublishers.Write<Output>
-    where S: Scheduler
-    {
+    public func writePublisher<T, Output>(
+        receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
+        updates: @escaping @Sendable (Database) throws -> T,
+        thenRead value: @escaping @Sendable (Database, T) throws -> Output
+    ) -> DatabasePublishers.Write<Output> {
         OnDemandFuture { fulfill in
             self.asyncWriteWithoutTransaction { db in
                 var updatesValue: T?

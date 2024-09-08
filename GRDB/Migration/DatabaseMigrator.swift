@@ -499,7 +499,7 @@ extension DatabaseMigrator {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func migratePublisher(
         _ writer: some DatabaseWriter,
-        receiveOn scheduler: some Scheduler = DispatchQueue.main)
+        receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main)
     -> DatabasePublishers.Migrate
     {
         DatabasePublishers.Migrate(
