@@ -923,10 +923,9 @@ extension JoinMapping {
     /// - precondition: leftRows contains all mapping left columns.
     /// - precondition: All rows have the same layout: a column index returned
     ///   by `index(forColumn:)` refers to the same column in all rows.
-    func joinExpression<Rows>(leftRows: Rows)
-    -> SQLExpression
-    where Rows: Collection, Rows.Element: ColumnAddressable
-    {
+    func joinExpression(
+        leftRows: some Collection<some ColumnAddressable>
+    ) -> SQLExpression {
         guard let firstLeftRow = leftRows.first else {
             // We could return `false.sqlExpression`.
             //

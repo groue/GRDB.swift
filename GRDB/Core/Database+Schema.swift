@@ -598,13 +598,11 @@ extension Database {
     /// try db.table("t", hasUniqueKey: ["id", "a"])           // true
     /// try db.table("t", hasUniqueKey: ["id", "a", "b", "c"]) // true
     /// ```
-    public func table<Columns>(
+    public func table(
         _ tableName: String,
-        hasUniqueKey columns: Columns)
-    throws -> Bool
-    where Columns: Sequence, Columns.Element == String
-    {
-        try columnsForUniqueKey(Array(columns), in: tableName) != nil
+        hasUniqueKey columns: some Collection<String>
+    ) throws -> Bool {
+        try columnsForUniqueKey(columns, in: tableName) != nil
     }
     
     /// Returns the foreign keys defined on table named `tableName`.
@@ -929,12 +927,10 @@ extension Database {
     /// returns the columns of the unique key, ordered as the matching index (or
     /// primary key). The case of returned columns is not guaranteed to match
     /// the case of input columns.
-    func columnsForUniqueKey<Columns>(
-        _ columns: Columns,
-        in tableName: String)
-    throws -> [String]?
-    where Columns: Sequence, Columns.Element == String
-    {
+    func columnsForUniqueKey(
+        _ columns: some Collection<String>,
+        in tableName: String
+    ) throws -> [String]? {
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
         if lowercasedColumns.isEmpty {
             // Don't hit the database for trivial case

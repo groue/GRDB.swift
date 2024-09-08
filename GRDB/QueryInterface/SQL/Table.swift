@@ -40,7 +40,7 @@
 ///
 /// - ``deleteAll(_:)``
 /// - ``deleteAll(_:ids:)``
-/// - ``deleteAll(_:keys:)-5t865``
+/// - ``deleteAll(_:keys:)-594uc``
 /// - ``deleteAll(_:keys:)-28sff``
 /// - ``deleteOne(_:id:)``
 /// - ``deleteOne(_:key:)-404su``
@@ -69,7 +69,7 @@
 /// - ``filter(ids:)``
 /// - ``filter(key:)-tw3i``
 /// - ``filter(key:)-4sun7``
-/// - ``filter(keys:)-85e0v``
+/// - ``filter(keys:)-5ws7f``
 /// - ``filter(keys:)-qqgf``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
@@ -507,10 +507,9 @@ extension Table {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public func filter<Keys>(keys: Keys)
-    -> QueryInterfaceRequest<RowDecoder>
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
+    public func filter(
+        keys: some Collection<some DatabaseValueConvertible>
+    ) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(keys: keys)
     }
     
@@ -775,9 +774,9 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<RowDecoder>
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func filter(
+        ids: some Collection<RowDecoder.ID>
+    ) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(ids: ids)
     }
 }
@@ -1644,11 +1643,10 @@ extension Table {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows.
     @discardableResult
-    public func deleteAll<Keys>(_ db: Database, keys: Keys)
-    throws -> Int
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
+    public func deleteAll(
+        _ db: Database,
+        keys: some Collection<some DatabaseValueConvertible>
+    ) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -1723,9 +1721,10 @@ where RowDecoder: Identifiable,
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted rows.
     @discardableResult
-    public func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func deleteAll(
+        _ db: Database,
+        ids: some Collection<RowDecoder.ID>
+    ) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0

@@ -227,9 +227,9 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE id IN \(ids)
     ///         """
-    public mutating func appendInterpolation<S>(_ sequence: S)
-    where S: Sequence, S.Element: SQLExpressible
-    {
+    public mutating func appendInterpolation(
+        _ sequence: some Sequence<some SQLExpressible>
+    ) {
         let e: [SQL.Element] = sequence.map { .expression($0.sqlExpression) }
         if e.isEmpty {
             appendLiteral("(SELECT NULL WHERE NULL)")
@@ -255,9 +255,9 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
-    public mutating func appendInterpolation<S>(_ sequence: S)
-    where S: Sequence, S.Element == any SQLExpressible
-    {
+    public mutating func appendInterpolation(
+        _ sequence: some Sequence<any SQLExpressible>
+    ) {
         appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
     

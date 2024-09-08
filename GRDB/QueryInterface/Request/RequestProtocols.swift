@@ -328,7 +328,7 @@ extension FilteredRequest {
 /// - ``filter(ids:)``
 /// - ``filter(key:)-1p9sq``
 /// - ``filter(key:)-2te6v``
-/// - ``filter(keys:)-6ggt1``
+/// - ``filter(keys:)-9p9i5``
 /// - ``filter(keys:)-8fbn9``
 /// - ``matching(_:)-3s3zr``
 /// - ``matching(_:)-7c1e8``
@@ -437,9 +437,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public func filter<Sequence: Swift.Sequence>(keys: Sequence)
-    -> Self
-    where Sequence.Element: DatabaseValueConvertible
+    public func filter<Keys>(keys: Keys) -> Self
+    where Keys: Collection, Keys.Element: DatabaseValueConvertible
     {
         // In order to encode keys in the database, we perform a runtime check
         // for EncodableRecord, and look for a customized encoding strategy.
@@ -448,7 +447,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? any EncodableRecord.Type {
-            if Sequence.Element.self == Data.self || Sequence.Element.self == Optional<Data>.self {
+            if Keys.Element.self == Data.self || Keys.Element.self == Optional<Data>.self {
                 let datas = keys.compactMap { ($0 as! Data?) }
                 if datas.isEmpty {
                     // Don't hit the database
@@ -465,7 +464,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     let expressions = datas.map { strategy.encode($0).sqlExpression }
                     return expressions
                 })
-            } else if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
+            } else if Keys.Element.self == Date.self || Keys.Element.self == Optional<Date>.self {
                 let dates = keys.compactMap { ($0 as! Date?) }
                 if dates.isEmpty {
                     // Don't hit the database
@@ -482,7 +481,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     let expressions = dates.map { strategy.encode($0).sqlExpression }
                     return expressions
                 })
-            } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
+            } else if Keys.Element.self == UUID.self || Keys.Element.self == Optional<UUID>.self {
                 let uuids = keys.compactMap { ($0 as! UUID?) }
                 if uuids.isEmpty {
                     // Don't hit the database
@@ -661,9 +660,7 @@ where Self: FilteredRequest,
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<IDS>(ids: IDS) -> Self
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
         filter(keys: ids)
     }
 }
@@ -1402,7 +1399,7 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
 /// - ``TableRequest/filter(key:)-2te6v``
-/// - ``TableRequest/filter(keys:)-6ggt1``
+/// - ``TableRequest/filter(keys:)-9p9i5``
 /// - ``TableRequest/filter(keys:)-8fbn9``
 /// - ``FilteredRequest/filter(literal:)``
 /// - ``FilteredRequest/filter(sql:arguments:)``
