@@ -161,7 +161,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObser
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler

@@ -118,7 +118,7 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
     return result!
 }
 
-struct PrintOutputStream: TextOutputStream {
+struct PrintOutputStream: TextOutputStream, Sendable {
     func write(_ string: String) {
         Swift.print(string)
     }
@@ -137,7 +137,10 @@ final class StrongReference<Value: AnyObject>: @unchecked Sendable {
 }
 
 /// Concatenates two functions
-func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+func concat(
+    _ rhs: (@Sendable () -> Void)?,
+    _ lhs: (@Sendable () -> Void)?
+) -> (@Sendable () -> Void)? {
     switch (rhs, lhs) {
     case let (rhs, nil):
         return rhs
@@ -152,7 +155,10 @@ func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
 }
 
 /// Concatenates two functions
-func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+func concat<T>(
+    _ rhs: (@Sendable (T) -> Void)?,
+    _ lhs: (@Sendable (T) -> Void)?
+) -> (@Sendable (T) -> Void)? {
     switch (rhs, lhs) {
     case let (rhs, nil):
         return rhs
