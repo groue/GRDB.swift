@@ -247,7 +247,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    )
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -357,7 +359,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    )
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -665,7 +669,9 @@ extension AnyDatabaseReader: DatabaseReader {
         try await base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         base.asyncRead(value)
     }
     
@@ -681,7 +687,9 @@ extension AnyDatabaseReader: DatabaseReader {
         try await base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         base.asyncUnsafeRead(value)
     }
     
@@ -753,7 +761,9 @@ extension DatabaseSnapshotReader {
     }
     
     // There is no such thing as an unsafe access to a snapshot.
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         asyncRead(value)
     }
 }
