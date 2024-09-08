@@ -131,7 +131,7 @@
 - [X] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
 - [ ] GRDB7: Enable Strict Concurrency Checks (6aa43ded)
 - [X] GRDB7: Sendable: OrderedDictionary (e022c35b)
-- [ ] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
+- [X] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
 - [X] GRDB7: Sendable: DatabaseRegionConvertible (b4677ded)
 - [ ] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
 - [ ] GRDB7: Sendable: ValueWriteOnlyObserver (ff2a7548)
