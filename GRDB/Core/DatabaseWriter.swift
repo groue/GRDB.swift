@@ -132,7 +132,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func writeWithoutTransaction<T>(
+    func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
     
@@ -218,7 +218,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func barrierWriteWithoutTransaction<T>(
+    func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
     
@@ -650,7 +650,7 @@ extension DatabaseWriter {
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func write<T>(
+    public func write<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writeWithoutTransaction { db in
@@ -819,7 +819,7 @@ extension DatabaseWriter {
     /// - parameter updates: A closure which writes in the database.
     /// - parameter value: A closure which reads from the database.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func writePublisher<T, Output>(
+    public func writePublisher<T: Sendable, Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         updates: @escaping @Sendable (Database) throws -> T,
         thenRead value: @escaping @Sendable (Database, T) throws -> Output
@@ -836,7 +836,7 @@ extension DatabaseWriter {
                     fulfill(.failure(error))
                     return
                 }
-                self.spawnConcurrentRead { dbResult in
+                self.spawnConcurrentRead { [updatesValue] dbResult in
                     fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
                 }
             }
@@ -912,7 +912,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func read<T>(
+    public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.read(value)
@@ -930,7 +930,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func unsafeRead<T>(
+    public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.unsafeRead(value)
@@ -965,7 +965,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func writeWithoutTransaction<T>(
+    public func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.writeWithoutTransaction(updates)
@@ -977,7 +977,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func barrierWriteWithoutTransaction<T>(
+    public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.barrierWriteWithoutTransaction(updates)

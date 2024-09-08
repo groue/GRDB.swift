@@ -167,7 +167,7 @@ extension ValueObservation {
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element>: @unchecked Sendable {
+public final class SharedValueObservation<Element: Sendable>: @unchecked Sendable {
     // @unchecked Sendable because state is protected by `lock`.
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
