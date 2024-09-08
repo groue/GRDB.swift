@@ -70,6 +70,7 @@ let package = Package(
                 "SPM",
                 "generatePerformanceReport.rb",
                 "parsePerformanceTests.rb",
+                "products",
             ],
             resources: [
                 .copy("GRDBTests/Betty.jpeg"),
