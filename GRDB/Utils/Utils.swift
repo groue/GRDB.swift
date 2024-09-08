@@ -124,6 +124,18 @@ struct PrintOutputStream: TextOutputStream {
     }
 }
 
+/// A Sendable strong reference to an object.
+///
+/// This type hides its retained object in order to provide the
+/// Sendable guarantee.
+final class StrongReference<Value: AnyObject>: @unchecked Sendable {
+    private let value: Value
+    
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
 /// Concatenates two functions
 func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
     switch (rhs, lhs) {

@@ -43,10 +43,10 @@ extension DatabaseRegionObservation {
 
 extension DatabaseRegionObservation {
     /// The state of a started DatabaseRegionObservation
-    private enum ObservationState {
+    private enum ObservationState: Sendable {
         case cancelled
         case pending
-        case started(DatabaseRegionObserver)
+        case started(StrongReference<DatabaseRegionObserver>)
     }
     
     /// Starts observing the database.
@@ -85,8 +85,8 @@ extension DatabaseRegionObservation {
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
         in writer: some DatabaseWriter,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Database) -> Void)
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Database) -> Void)
     -> AnyDatabaseCancellable
     {
         let stateMutex = Mutex(ObservationState.pending)
@@ -111,7 +111,7 @@ extension DatabaseRegionObservation {
                     // the observer.
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     
-                    state = .started(observer)
+                    state = .started(StrongReference(observer))
                 }
             } catch {
                 onError(error)
@@ -149,10 +149,10 @@ extension DatabaseRegionObservation {
 
 private class DatabaseRegionObserver: TransactionObserver {
     let region: DatabaseRegion
-    let onChange: (Database) -> Void
+    let onChange: @Sendable (Database) -> Void
     var isChanged = false
     
-    init(region: DatabaseRegion, onChange: @escaping (Database) -> Void) {
+    init(region: DatabaseRegion, onChange: @escaping @Sendable (Database) -> Void) {
         self.region = region
         self.onChange = onChange
     }
@@ -212,9 +212,14 @@ extension DatabasePublishers {
         }
     }
     
-    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error, Downstream.Input == Database
+    private class DatabaseRegionSubscription<Downstream>:
+        Subscription, @unchecked Sendable
+    where Downstream: Subscriber,
+          Downstream.Failure == Error,
+          Downstream.Input == Database
     {
+        // @unchecked Sendable because `cancellable` and `state` are
+        // protected by `lock`.
         private struct WaitingForDemand {
             let downstream: Downstream
             let writer: any DatabaseWriter
