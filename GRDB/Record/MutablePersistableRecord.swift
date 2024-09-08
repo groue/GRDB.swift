@@ -69,8 +69,8 @@
 /// See inherited ``TableRecord`` methods for batch updates.
 ///
 /// - ``update(_:onConflict:)``
-/// - ``update(_:onConflict:columns:)-4foo1``
-/// - ``update(_:onConflict:columns:)-5hxyx``
+/// - ``update(_:onConflict:columns:)-5qfk``
+/// - ``update(_:onConflict:columns:)-9fip4``
 /// - ``updateChanges(_:onConflict:from:)``
 /// - ``updateChanges(_:onConflict:modify:)``
 ///
@@ -78,8 +78,8 @@
 ///
 /// - ``updateAndFetch(_:onConflict:)``
 /// - ``updateAndFetch(_:onConflict:as:)``
-/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-7s7y1``
-/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-30d2v``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-98dtr``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-9npht``
 /// - ``updateAndFetch(_:onConflict:selection:fetch:)``
 /// - ``updateChangesAndFetch(_:onConflict:modify:)``
 /// - ``updateChangesAndFetch(_:onConflict:as:modify:)``

@@ -2395,9 +2395,7 @@ extension RowImpl {
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init<Columns>(columns: Columns)
-    where Columns: Collection, Columns.Element == (String, DatabaseValue)
-    {
+    init(columns: some Collection<(String, DatabaseValue)>) {
         self.columns = Array(columns)
     }
     

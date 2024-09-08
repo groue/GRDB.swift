@@ -131,7 +131,7 @@ The `->` and `->>` SQL operators are available on the ``SQLJSONExpressible`` pro
 ### Build new JSON values at the SQL level
 
 - ``Database/json(_:)``
-- ``Database/jsonArray(_:)-8xxe3``
+- ``Database/jsonArray(_:)-8p2p8``
 - ``Database/jsonArray(_:)-469db``
 - ``Database/jsonObject(_:)``
 - ``Database/jsonQuote(_:)``

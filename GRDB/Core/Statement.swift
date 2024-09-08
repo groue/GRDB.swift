@@ -865,14 +865,12 @@ func checkBindingSuccess(code: CInt, sqliteStatement: SQLiteStatement) throws {
 /// - parameter index: The index of the first binding.
 /// - parameter body: The closure to execute when arguments are bound.
 @usableFromInline
-func withBindings<C, T>(
-    _ bindings: C,
+func withBindings<T>(
+    _ bindings: some Collection<DatabaseValue>,
     to sqliteStatement: SQLiteStatement,
     from index: CInt = 1,
-    do body: () throws -> T)
-throws -> T
-where C: Collection, C.Element == DatabaseValue
-{
+    do body: () throws -> T
+) throws -> T {
     guard let binding = bindings.first else {
         return try body()
     }
@@ -1019,10 +1017,8 @@ public struct StatementArguments: Hashable {
     /// let values: [(any DatabaseValueConvertible)?] = ["foo", 1, nil]
     /// db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
     /// ```
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element == (any DatabaseValueConvertible)?
-    {
-        values = sequence.map { $0?.databaseValue ?? .null }
+    public init(_ values: some Sequence<(any DatabaseValueConvertible)?>) {
+        self.values = values.map { $0?.databaseValue ?? .null }
         namedValues = .init()
     }
     
@@ -1034,10 +1030,8 @@ public struct StatementArguments: Hashable {
     /// let values: [String] = ["foo", "bar"]
     /// db.execute(sql: "INSERT ... (?,?)", arguments: StatementArguments(values))
     /// ```
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element: DatabaseValueConvertible
-    {
-        values = sequence.map(\.databaseValue)
+    public init(_ values: some Sequence<some DatabaseValueConvertible>) {
+        self.values = values.map(\.databaseValue)
         namedValues = .init()
     }
     
@@ -1078,11 +1072,11 @@ public struct StatementArguments: Hashable {
     
     /// Creates a `StatementArguments` of named arguments from a sequence of
     /// (key, value) pairs.
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element == (String, (any DatabaseValueConvertible)?)
-    {
-        namedValues = .init(minimumCapacity: sequence.underestimatedCount)
-        for (key, value) in sequence {
+    public init(
+        _ keysAndValues: some Sequence<(String, (any DatabaseValueConvertible)?)>
+    ) {
+        namedValues = .init(minimumCapacity: keysAndValues.underestimatedCount)
+        for (key, value) in keysAndValues {
             namedValues[key] = value?.databaseValue ?? .null
         }
         values = .init()

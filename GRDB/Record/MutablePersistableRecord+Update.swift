@@ -41,13 +41,11 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func update<Columns>(
+    public func update(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns)
-    throws
-    where Columns: Sequence, Columns.Element == String
-    {
+        columns: some Collection<String>
+    ) throws {
         try willSave(db)
         
         var updated: PersistenceSuccess?
@@ -84,13 +82,11 @@ extension MutablePersistableRecord {
     ///   or ``RecordError/recordNotFound(databaseTableName:key:)`` if the
     ///   primary key does not match any row in the database.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func update<Columns>(
+    public func update(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns)
-    throws
-    where Columns: Sequence, Columns.Element: ColumnExpression
-    {
+        columns: some Collection<some ColumnExpression>
+    ) throws {
         try update(db, onConflict: conflictResolution, columns: columns.map(\.name))
     }
     
@@ -371,15 +367,13 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func updateAndFetch<T, Columns>(
+    public func updateAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns,
+        columns: some Collection<String>,
         selection: [any SQLSelectable],
-        fetch: (Statement) throws -> T)
-    throws -> T
-    where Columns: Sequence, Columns.Element == String
-    {
+        fetch: (Statement) throws -> T
+    ) throws -> T {
         GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
         
         try willSave(db)
@@ -432,15 +426,13 @@ extension MutablePersistableRecord {
     ///   primary key does not match any row in the database.
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
-    public func updateAndFetch<T, Columns>(
+    public func updateAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns,
+        columns: some Collection<some ColumnExpression>,
         selection: [any SQLSelectable],
-        fetch: (Statement) throws -> T)
-    throws -> T
-    where Columns: Sequence, Columns.Element: ColumnExpression
-    {
+        fetch: (Statement) throws -> T
+    ) throws -> T {
         try updateAndFetch(
             db, onConflict: conflictResolution,
             columns: columns.map(\.name),
@@ -686,15 +678,13 @@ extension MutablePersistableRecord {
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
-    public func updateAndFetch<T, Columns>(
+    public func updateAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns,
+        columns: some Collection<String>,
         selection: [any SQLSelectable],
-        fetch: (Statement) throws -> T)
-    throws -> T
-    where Columns: Sequence, Columns.Element == String
-    {
+        fetch: (Statement) throws -> T
+    ) throws -> T {
         GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
         
         try willSave(db)
@@ -748,15 +738,13 @@ extension MutablePersistableRecord {
     /// - precondition: `selection` is not empty.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
-    public func updateAndFetch<T, Columns>(
+    public func updateAndFetch<T>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        columns: Columns,
+        columns: some Collection<some ColumnExpression>,
         selection: [any SQLSelectable],
-        fetch: (Statement) throws -> T)
-    throws -> T
-    where Columns: Sequence, Columns.Element: ColumnExpression
-    {
+        fetch: (Statement) throws -> T
+    ) throws -> T {
         try updateAndFetch(
             db, onConflict: conflictResolution,
             columns: columns.map(\.name),

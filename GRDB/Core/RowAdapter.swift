@@ -183,9 +183,7 @@ public struct _LayoutedColumnMapping {
     ///
     ///     // [foo:"foo" bar: "bar"]
     ///     try Row.fetchOne(db, sql: "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
-    init<S>(layoutColumns: S)
-    where S: Sequence, S.Element == (Int, String)
-    {
+    init(layoutColumns: some Collection<(Int, String)>) {
         self._layoutColumns = Array(layoutColumns)
         self.lowercaseColumnIndexes = Dictionary(
             layoutColumns

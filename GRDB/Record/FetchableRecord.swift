@@ -71,9 +71,9 @@ import Foundation
 /// - ``fetchAll(_:ids:)``
 /// - ``fetchSet(_:ids:)``
 /// - ``fetchOne(_:id:)``
-/// - ``fetchCursor(_:keys:)-2jrm1``
-/// - ``fetchAll(_:keys:)-4c8no``
-/// - ``fetchSet(_:keys:)-e6uy``
+/// - ``fetchCursor(_:keys:)-1x4ja``
+/// - ``fetchAll(_:keys:)-60fah``
+/// - ``fetchSet(_:keys:)-7lhcn``
 /// - ``fetchOne(_:key:)-3f3hc``
 /// - ``find(_:id:)``
 /// - ``find(_:key:)-4kry5``

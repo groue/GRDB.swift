@@ -748,17 +748,13 @@ public final class AnyCursor<Element>: Cursor {
     }
     
     /// Creates a new cursor whose elements are elements of `iterator`.
-    public convenience init<I>(iterator: I)
-    where I: IteratorProtocol, I.Element == Element
-    {
+    public convenience init(iterator: some IteratorProtocol<Element>) {
         var iterator = iterator
         self.init { iterator.next() }
     }
     
     /// Creates a new cursor whose elements are elements of `sequence`.
-    public convenience init<S>(_ sequence: S)
-    where S: Sequence, S.Element == Element
-    {
+    public convenience init(_ sequence: some Sequence<Element>) {
         self.init(iterator: sequence.makeIterator())
     }
     

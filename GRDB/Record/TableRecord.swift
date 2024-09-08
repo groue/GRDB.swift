@@ -41,7 +41,7 @@ import Foundation
 ///
 /// - ``deleteAll(_:)``
 /// - ``deleteAll(_:ids:)``
-/// - ``deleteAll(_:keys:)-jbkm``
+/// - ``deleteAll(_:keys:)-5l3ih``
 /// - ``deleteAll(_:keys:)-5s1jg``
 /// - ``deleteOne(_:id:)``
 /// - ``deleteOne(_:key:)-413u8``
@@ -71,7 +71,7 @@ import Foundation
 /// - ``filter(key:)-9ey53``
 /// - ``filter(key:)-34lau``
 /// - ``filter(keys:)-4hq8y``
-/// - ``filter(keys:)-7skw1``
+/// - ``filter(keys:)-s1q0``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``having(_:)``
@@ -411,11 +411,10 @@ extension TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<Keys>(_ db: Database, keys: Keys)
-    throws -> Int
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
+    public static func deleteAll(
+        _ db: Database,
+        keys: some Collection<some DatabaseValueConvertible>
+    ) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -484,9 +483,10 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
-    where IDS: Collection, IDS.Element == ID
-    {
+    public static func deleteAll(
+        _ db: Database,
+        ids: some Collection<ID>
+    ) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0

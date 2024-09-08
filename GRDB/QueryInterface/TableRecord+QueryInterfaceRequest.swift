@@ -343,10 +343,9 @@ extension TableRecord {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public static func filter<Keys>(keys: Keys)
-    -> QueryInterfaceRequest<Self>
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
+    public static func filter(
+        keys: some Collection<some DatabaseValueConvertible>
+    ) -> QueryInterfaceRequest<Self> {
         all().filter(keys: keys)
     }
     
@@ -651,9 +650,9 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public static func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<Self>
-    where IDS: Collection, IDS.Element == ID
-    {
+    public static func filter(
+        ids: some Collection<ID>
+    ) -> QueryInterfaceRequest<Self> {
         all().filter(ids: ids)
     }
 }

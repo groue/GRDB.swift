@@ -24,9 +24,9 @@ extension Database {
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
-    public static func jsonArray<C>(_ values: C) -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonArray(
+        _ values: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
     }
     
@@ -40,9 +40,9 @@ extension Database {
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
-    public static func jsonArray<C>(_ values: C) -> SQLExpression
-    where C: Collection, C.Element == any SQLExpressible
-    {
+    public static func jsonArray(
+        _ values: some Collection<any SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
     }
     
@@ -130,10 +130,10 @@ extension Database {
     /// - Parameters:
     ///   - value: A JSON value.
     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public static func jsonExtract<C>(_ value: some SQLExpressible, atPaths paths: C)
-    -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonExtract(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
     }
     
@@ -152,13 +152,10 @@ extension Database {
     ///   - value: A JSON value.
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public static func jsonInsert<C>(
+    public static func jsonInsert(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_INSERT", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -179,13 +176,10 @@ extension Database {
     ///   - value: A JSON value.
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public static func jsonReplace<C>(
+    public static func jsonReplace(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_REPLACE", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -206,13 +200,10 @@ extension Database {
     ///   - value: A JSON value.
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public static func jsonSet<C>(
+    public static func jsonSet(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_SET", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -241,11 +232,9 @@ extension Database {
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jobj>
-    public static func jsonObject<C>(_ elements: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+    public static func jsonObject(
+        _ elements: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_OBJECT", elements.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -301,10 +290,10 @@ extension Database {
     /// - Parameters:
     ///   - value: A JSON value.
     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public static func jsonRemove<C>(_ value: some SQLExpressible, atPaths paths: C)
-    -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonRemove(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_REMOVE", [value.sqlExpression] + paths.map(\.sqlExpression))
     }
     
@@ -458,9 +447,9 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonArray<C>(_ values: C) -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonArray(
+        _ values: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
     }
     
@@ -475,9 +464,9 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonArray<C>(_ values: C) -> SQLExpression
-    where C: Collection, C.Element == any SQLExpressible
-    {
+    public static func jsonArray(
+        _ values: some Collection<any SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
     }
     
@@ -555,10 +544,10 @@ extension Database {
     ///   - value: A JSON value.
     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonExtract<C>(_ value: some SQLExpressible, atPaths paths: C)
-    -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonExtract(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
     }
     
@@ -578,13 +567,10 @@ extension Database {
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonInsert<C>(
+    public static func jsonInsert(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_INSERT", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -606,13 +592,10 @@ extension Database {
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonReplace<C>(
+    public static func jsonReplace(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_REPLACE", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -634,13 +617,10 @@ extension Database {
     ///   - assignments: A collection of key/value pairs, where keys are
     ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonSet<C>(
+    public static func jsonSet(
         _ value: some SQLExpressible,
-        _ assignments: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_SET", [value.sqlExpression] + assignments.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -670,11 +650,9 @@ extension Database {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jobj>
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonObject<C>(_ elements: C)
-    -> SQLExpression
-    where C: Collection,
-          C.Element == (key: String, value: any SQLExpressible)
-    {
+    public static func jsonObject(
+        _ elements: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
         .function("JSON_OBJECT", elements.flatMap {
             [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
         })
@@ -733,10 +711,10 @@ extension Database {
     ///   - value: A JSON value.
     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public static func jsonRemove<C>(_ value: some SQLExpressible, atPaths paths: C)
-    -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public static func jsonRemove(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         .function("JSON_REMOVE", [value.sqlExpression] + paths.map(\.sqlExpression))
     }
     
