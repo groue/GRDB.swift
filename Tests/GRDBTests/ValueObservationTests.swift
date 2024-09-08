@@ -24,7 +24,7 @@ class ValueObservationTests: GRDBTestCase {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testValuesFromAnyDatabaseWriter(writer: any DatabaseWriter) {
         func observe<T>(
-            fetch: @Sendable @escaping (Database) throws -> T
+            fetch: @escaping @Sendable (Database) throws -> T
         ) throws -> AsyncValueObservation<T> {
             ValueObservation.tracking(fetch).values(in: writer)
         }

@@ -153,7 +153,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func read<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await reader.execute(value)
     }
@@ -173,7 +173,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     // <https://github.com/apple/swift/issues/74469>.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func unsafeRead<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }

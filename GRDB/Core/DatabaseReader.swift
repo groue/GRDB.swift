@@ -218,7 +218,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func read<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
     
     /// Schedules read-only database operations for execution, and
@@ -323,7 +323,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func unsafeRead<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
     
     /// Schedules database operations for execution, and returns immediately.
@@ -660,7 +660,7 @@ extension AnyDatabaseReader: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func read<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.read(value)
     }
@@ -676,7 +676,7 @@ extension AnyDatabaseReader: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func unsafeRead<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.unsafeRead(value)
     }

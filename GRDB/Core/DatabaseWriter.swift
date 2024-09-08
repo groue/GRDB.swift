@@ -133,7 +133,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func writeWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
     
     /// Executes database operations, and returns their result after they have
@@ -219,7 +219,7 @@ public protocol DatabaseWriter: DatabaseReader {
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func barrierWriteWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T)
+        _ updates: @escaping @Sendable (Database) throws -> T)
     async throws -> T
     
     /// Schedules database operations for execution, and returns immediately.
@@ -646,7 +646,7 @@ extension DatabaseWriter {
     ///   `CancellationError` if the task is cancelled.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func write<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writeWithoutTransaction { db in
             var result: T?
@@ -911,7 +911,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func read<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.read(value)
     }
@@ -927,7 +927,7 @@ extension AnyDatabaseWriter: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func unsafeRead<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.unsafeRead(value)
     }
@@ -961,7 +961,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func writeWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.writeWithoutTransaction(updates)
     }
@@ -973,7 +973,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func barrierWriteWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T)
+        _ updates: @escaping @Sendable (Database) throws -> T)
     async throws -> T {
         try await base.barrierWriteWithoutTransaction(updates)
     }

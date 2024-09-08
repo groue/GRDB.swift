@@ -246,7 +246,7 @@ final class SerializedDatabase {
     /// Asynchrously executes the block.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     func execute<T>(
-        _ block: @Sendable @escaping (Database) throws -> T
+        _ block: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in

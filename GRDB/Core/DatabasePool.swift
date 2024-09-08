@@ -353,7 +353,7 @@ extension DatabasePool: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func read<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
@@ -436,7 +436,7 @@ extension DatabasePool: DatabaseReader {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func unsafeRead<T>(
-        _ value: @Sendable @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
@@ -797,7 +797,7 @@ extension DatabasePool: DatabaseWriter {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func writeWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -814,7 +814,7 @@ extension DatabasePool: DatabaseWriter {
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func barrierWriteWithoutTransaction<T>(
-        _ updates: @Sendable @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
