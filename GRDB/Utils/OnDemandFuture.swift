@@ -22,9 +22,9 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
     typealias Promise = @Sendable (Result<Output, Failure>) -> Void
     typealias Output = Output
     typealias Failure = Failure
-    fileprivate let attemptToFulfill: (@escaping Promise) -> Void
+    fileprivate let attemptToFulfill: @Sendable (@escaping Promise) -> Void
     
-    init(_ attemptToFulfill: @escaping (@escaping Promise) -> Void) {
+    init(_ attemptToFulfill: @escaping @Sendable (@escaping Promise) -> Void) {
         self.attemptToFulfill = attemptToFulfill
     }
     
@@ -51,7 +51,7 @@ private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription, 
     private let lock = NSRecursiveLock() // Allow re-entrancy
     
     init(
-        attemptToFulfill: @escaping (@escaping Promise) -> Void,
+        attemptToFulfill: @escaping @Sendable (@escaping Promise) -> Void,
         downstream: Downstream)
     {
         self.state = .waitingForDemand(downstream: downstream, attemptToFulfill: attemptToFulfill)
