@@ -791,4 +791,10 @@ public typealias PersistenceError = RecordError
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval
-private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
+///
+/// Assume this non-Sendable cache of strings can be used from multiple
+/// threads concurrently, because the NSCache documentation says:
+///
+/// > You can add, remove, and query items in the cache from different
+/// > threads without having to lock the cache yourself.
+nonisolated(unsafe) private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
