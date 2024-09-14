@@ -43,8 +43,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extension Inflections {
-    /// The default inflections
-    public static var `default`: Inflections = {
+    /// The default inflections.
+    ///
+    /// This global variable is not concurrency-safe. If you modify the
+    /// default inflections, do it once, early in the lifetime of your
+    /// application, before you access query interface methods.
+    nonisolated(unsafe) public static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
