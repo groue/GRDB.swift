@@ -133,7 +133,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
+            try SchedulingWatchdog.inheritingAllowedDatabases(watchdog.allowedDatabases) {
                 defer { preconditionNoUnsafeTransactionLeft(db) }
                 return try block(db)
             }
@@ -209,7 +209,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
+            try SchedulingWatchdog.inheritingAllowedDatabases(watchdog.allowedDatabases) {
                 // Since we are reentrant, a transaction may already be opened.
                 // In this case, don't check for unsafe transaction at the end.
                 if db.isInsideTransaction {
