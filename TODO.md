@@ -116,7 +116,7 @@
 - [X] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
 - [ ] GRDB7: sending closures for SerializedDatabase
 - [ ] GRDB7: sending closures for ValueObservationScheduler
-- [ ] GRDB7: Sendable closures for ValueObservation.handleEvents
+- [X] GRDB7: Sendable closures for ValueObservation.handleEvents
 - [ ] GRDB7: Not Sendable: Record (make it explicit if subclasses can be made sendable)
 - [ ] GRDB7: Not Sendable: databasepublishers/databaseregion, migrate, read, value, write
 - [ ] GRDB7: Sendable closures for writePublisher
