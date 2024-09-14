@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: ValueReducer> {
+public struct ValueObservation<Reducer: ValueReducer>: Sendable {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
@@ -30,10 +30,10 @@ public struct ValueObservation<Reducer: ValueReducer> {
     
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
-    var makeReducer: () -> Reducer
+    var makeReducer: @Sendable () -> Reducer
     
     /// Returns a ValueObservation with a transformed reducer.
-    func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
+    func mapReducer<R>(_ transform: @escaping @Sendable (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             events: events,
@@ -74,16 +74,16 @@ enum ValueObservationTrackingMode {
 }
 
 struct ValueObservationEvents: Refinable {
-    var willStart: (() -> Void)?
-    var willTrackRegion: ((DatabaseRegion) -> Void)?
-    var databaseDidChange: (() -> Void)?
-    var didFail: ((Error) -> Void)?
-    var didCancel: (() -> Void)?
+    var willStart: (@Sendable () -> Void)?
+    var willTrackRegion: (@Sendable (DatabaseRegion) -> Void)?
+    var databaseDidChange: (@Sendable () -> Void)?
+    var didFail: (@Sendable (Error) -> Void)?
+    var didCancel: (@Sendable () -> Void)?
 }
 
-typealias ValueObservationStart<T> = (
-    _ onError: @escaping (Error) -> Void,
-    _ onChange: @escaping (T) -> Void)
+typealias ValueObservationStart<T> = @Sendable (
+    _ onError: @escaping @Sendable (Error) -> Void,
+    _ onChange: @escaping @Sendable (T) -> Void)
 -> AnyDatabaseCancellable
 
 extension ValueObservation: Refinable {
@@ -138,8 +138,8 @@ extension ValueObservation: Refinable {
     public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     where Reducer: ValueReducer
     {
@@ -175,13 +175,13 @@ extension ValueObservation: Refinable {
     /// - returns: A `ValueObservation` that performs the specified closures
     ///   when ValueObservation events occur.
     public func handleEvents(
-        willStart: (() -> Void)? = nil,
+        willStart: (@Sendable () -> Void)? = nil,
         willFetch: (@Sendable () -> Void)? = nil,
-        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
-        databaseDidChange: (() -> Void)? = nil,
-        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
-        didFail: ((Error) -> Void)? = nil,
-        didCancel: (() -> Void)? = nil)
+        willTrackRegion: (@Sendable (DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (@Sendable () -> Void)? = nil,
+        didReceiveValue: (@Sendable (Reducer.Value) -> Void)? = nil,
+        didFail: (@Sendable (Error) -> Void)? = nil,
+        didCancel: (@Sendable () -> Void)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
@@ -231,10 +231,10 @@ extension ValueObservation: Refinable {
     ///   used to log messages to other destinations.
     public func print(
         _ prefix: String = "",
-        to stream: TextOutputStream? = nil)
+        to stream: sending TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let streamMutex = Mutex(stream ?? PrintOutputStream())
+        let streamMutex = UnsafeSendableMutex(stream ?? PrintOutputStream())
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         return handleEvents(
             willStart: {
@@ -336,7 +336,7 @@ extension ValueObservation {
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
 @available(iOS 13, macOS 10.15, tvOS 13, *)
-public struct AsyncValueObservation<Element>: AsyncSequence {
+public struct AsyncValueObservation<Element: Sendable>: AsyncSequence {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
     
@@ -476,9 +476,13 @@ extension DatabasePublishers {
         }
     }
     
-    private class ValueSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error
+    private class ValueSubscription<Downstream>:
+        Subscription, @unchecked Sendable
+    where Downstream: Subscriber,
+          Downstream.Failure == Error
     {
+        // @unchecked Sendable because `cancellable` and `state` are
+        // protected by `lock`.
         private struct WaitingForDemand {
             let downstream: Downstream
             let start: ValueObservationStart<Downstream.Input>

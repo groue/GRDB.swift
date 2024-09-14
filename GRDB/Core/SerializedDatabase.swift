@@ -223,7 +223,7 @@ final class SerializedDatabase {
     }
     
     /// Schedules database operations for execution, and returns immediately.
-    func async(_ block: @escaping (Database) -> Void) {
+    func async(_ block: @escaping @Sendable (Database) -> Void) {
         queue.async {
             block(self.db)
             self.preconditionNoUnsafeTransactionLeft(self.db)
@@ -245,7 +245,7 @@ final class SerializedDatabase {
     
     /// Asynchrously executes the block.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func execute<T>(
+    func execute<T: Sendable>(
         _ block: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         let dbAccess = CancellableDatabaseAccess()

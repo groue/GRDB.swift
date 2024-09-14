@@ -234,7 +234,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func read<T>(
+    public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute { db in
@@ -244,7 +244,9 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { db in
             defer {
                 // Ignore error because we can not notify it.
@@ -271,13 +273,15 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func unsafeRead<T>(
+    public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { value(.success($0)) }
     }
     
@@ -285,7 +289,9 @@ extension DatabaseQueue: DatabaseReader {
         try writer.reentrantSync(value)
     }
     
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -315,9 +321,8 @@ extension DatabaseQueue: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         if configuration.readonly {
             // The easy case: the database does not change
             return _addReadOnly(
@@ -382,7 +387,7 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func writeWithoutTransaction<T>(
+    public func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
@@ -394,13 +399,15 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func barrierWriteWithoutTransaction<T>(
+    public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { updates(.success($0)) }
     }
     
@@ -446,7 +453,9 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Database) -> Void
+    ) {
         writer.async(updates)
     }
 }

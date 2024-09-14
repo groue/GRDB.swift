@@ -5,10 +5,22 @@ extension ValueObservation {
     /// - parameter predicate: A closure to evaluate whether two values are
     ///   equivalent, for purposes of filtering. Return true from this closure
     ///   to indicate that the second element is a duplicate of the first.
-    public func removeDuplicates(by predicate: @escaping (Reducer.Value, Reducer.Value) -> Bool)
-    -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
-    {
-        mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
+    public func removeDuplicates(
+        by predicate: sending @escaping (Reducer.Value, Reducer.Value) -> Bool
+    ) -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>> {
+        // The predicate is marked `sending`, which allows us to statically
+        // determine that it will have no other uses after this call.
+        // (according to <https://github.com/swiftlang/swift-evolution/blob/main/proposals/0433-mutex.md#interactions-with-swift-concurrency>)
+        //
+        // And because `predicate` will only be used serially, in the
+        // reducer queue of `ValueObservation` observers, we can say that
+        // this is safe.
+        //
+        // Anyway if we would not accept non-sendable closures, we could
+        // not deal with `Equatable.==`...
+        nonisolated(unsafe) let predicate = predicate
+        
+        return mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
     }
 }
 

@@ -411,11 +411,15 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
+                let needsChange = needsChangeMutex.withLock { needed in
+                    let wasNeeded = needed
+                    needed = false
+                    return wasNeeded
+                }
                 if needsChange {
-                    needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;
@@ -462,11 +466,15 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
+                let needsChange = needsChangeMutex.withLock { needed in
+                    let wasNeeded = needed
+                    needed = false
+                    return wasNeeded
+                }
                 if needsChange {
-                    needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;

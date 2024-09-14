@@ -167,7 +167,8 @@ extension ValueObservation {
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element> {
+public final class SharedValueObservation<Element: Sendable>: @unchecked Sendable {
+    // @unchecked Sendable because state is protected by `lock`.
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
     private let startObservation: ValueObservationStart<Element>
@@ -179,11 +180,14 @@ public final class SharedValueObservation<Element> {
     private var cancellable: AnyDatabaseCancellable?
     private var lastResult: Result<Element, Error>?
     
-    private final class Client {
-        var onError: (Error) -> Void
-        var onChange: (Element) -> Void
+    private final class Client: Sendable {
+        let onError: @Sendable (Error) -> Void
+        let onChange: @Sendable (Element) -> Void
         
-        init(onError: @escaping (Error) -> Void, onChange: @escaping (Element) -> Void) {
+        init(
+            onError: @escaping @Sendable (Error) -> Void,
+            onChange: @escaping @Sendable (Element) -> Void
+        ) {
             self.onError = onError
             self.onChange = onChange
         }
@@ -224,11 +228,11 @@ public final class SharedValueObservation<Element> {
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Element) -> Void)
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
-        synchronized {
+        withLock {
             // Support for reentrancy: a shared immediate observation is
             // started from the first value notification of that same shared
             // immediate observation. Yeah, users are nasty.
@@ -300,7 +304,7 @@ public final class SharedValueObservation<Element> {
 #endif
     
     private func handleError(_ error: Error) {
-        synchronized {
+        withLock {
             let notifiedClients = clients
             
             // State change
@@ -321,7 +325,7 @@ public final class SharedValueObservation<Element> {
     }
     
     private func handleChange(_ value: Element) {
-        synchronized {
+        withLock {
             // State change
             lastResult = .success(value)
             
@@ -333,7 +337,7 @@ public final class SharedValueObservation<Element> {
     }
     
     private func handleCancel(_ client: Client) {
-        synchronized {
+        withLock {
             // State change
             clients.removeFirst(where: { $0 === client })
             if clients.isEmpty && extent == .whileObserved {
@@ -344,7 +348,7 @@ public final class SharedValueObservation<Element> {
         }
     }
     
-    private func synchronized<T>(_ execute: () throws -> T) rethrows -> T {
+    private func withLock<T>(_ execute: () throws -> T) rethrows -> T {
         lock.lock()
         defer { lock.unlock() }
         return try execute()

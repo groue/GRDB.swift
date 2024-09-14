@@ -264,7 +264,7 @@ public struct DatabaseMigrator: Sendable {
     ///   from succeeding.
     public func asyncMigrate(
         _ writer: some DatabaseWriter,
-        completion: @escaping (Result<Database, Error>) -> Void)
+        completion: @escaping @Sendable (Result<Database, Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {
@@ -499,7 +499,7 @@ extension DatabaseMigrator {
     @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func migratePublisher(
         _ writer: some DatabaseWriter,
-        receiveOn scheduler: some Scheduler = DispatchQueue.main)
+        receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main)
     -> DatabasePublishers.Migrate
     {
         DatabasePublishers.Migrate(

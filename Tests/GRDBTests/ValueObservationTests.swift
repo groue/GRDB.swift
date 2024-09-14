@@ -38,13 +38,15 @@ class ValueObservationTests: GRDBTestCase {
             let observation = ValueObservation.trackingConstantRegion { _ in throw TestError() }
             
             // Start observation
-            var error: TestError?
+            let errorMutex: Mutex<TestError?> = Mutex(nil)
             _ = observation.start(
                 in: dbWriter,
                 scheduling: .immediate,
-                onError: { error = $0 as? TestError },
+                onError: { error in
+                    errorMutex.store(error as? TestError)
+                },
                 onChange: { _ in })
-            XCTAssertNotNil(error)
+            XCTAssertNotNil(errorMutex.load())
         }
         
         try test(makeDatabaseQueue())
@@ -64,25 +66,25 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
-            var nextError: Error? = nil // If not null, observation throws an error
+            let nextErrorMutex: Mutex<Error?> = Mutex(nil) // If not null, observation throws an error
             let observation = ValueObservation.trackingConstantRegion {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
-                if let error = nextError {
-                    throw error
+                try nextErrorMutex.withLock { error in
+                    if let error { throw error }
                 }
             }
             
             // Start observation
-            var errorCaught = false
+            let errorCaughtMutex = Mutex(false)
             let cancellable = observation.start(
                 in: dbWriter,
                 onError: { _ in
-                    errorCaught = true
+                    errorCaughtMutex.store(true)
                     notificationExpectation.fulfill()
                 },
                 onChange: {
-                    XCTAssertFalse(errorCaught)
-                    nextError = TestError()
+                    XCTAssertFalse(errorCaughtMutex.load())
+                    nextErrorMutex.store(TestError())
                     notificationExpectation.fulfill()
                     // Trigger another change
                     try! dbWriter.writeWithoutTransaction { db in
@@ -92,7 +94,7 @@ class ValueObservationTests: GRDBTestCase {
             
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 2, handler: nil)
-                XCTAssertTrue(errorCaught)
+                XCTAssertTrue(errorCaughtMutex.load())
             }
         }
         
@@ -119,12 +121,12 @@ class ValueObservationTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        var region: DatabaseRegion?
+        let regionMutex: Mutex<DatabaseRegion?> = Mutex(nil)
         let expectation = self.expectation(description: "")
         let observation = ValueObservation
-            .trackingConstantRegion(request.fetchAll)
-            .handleEvents(willTrackRegion: {
-                region = $0
+            .trackingConstantRegion { _ = try request.fetchAll($0) }
+            .handleEvents(willTrackRegion: { region in
+                regionMutex.store(region)
                 expectation.fulfill()
             })
         let observer = observation.start(
@@ -133,7 +135,7 @@ class ValueObservationTests: GRDBTestCase {
             onChange: { _ in })
         withExtendedLifetime(observer) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(region!.description, "t(id,name)") // view is NOT tracked
+            XCTAssertEqual(regionMutex.load()!.description, "t(id,name)") // view is NOT tracked
         }
     }
     
@@ -152,12 +154,12 @@ class ValueObservationTests: GRDBTestCase {
         
         // Test that no pragma table is included in the observed region.
         // This optimization helps observation that feed from a single table.
-        var region: DatabaseRegion?
+        let regionMutex: Mutex<DatabaseRegion?> = Mutex(nil)
         let expectation = self.expectation(description: "")
         let observation = ValueObservation
-            .trackingConstantRegion(request.fetchAll)
-            .handleEvents(willTrackRegion: {
-                region = $0
+            .trackingConstantRegion{ _ = try request.fetchAll($0) }
+            .handleEvents(willTrackRegion: { region in
+                regionMutex.store(region)
                 expectation.fulfill()
             })
         let observer = observation.start(
@@ -166,7 +168,7 @@ class ValueObservationTests: GRDBTestCase {
             onChange: { _ in })
         withExtendedLifetime(observer) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(region!.description, "t(id,name)[1]") // pragma_table_xinfo is NOT tracked
+            XCTAssertEqual(regionMutex.load()?.description, "t(id,name)[1]") // pragma_table_xinfo is NOT tracked
         }
     }
     
@@ -353,10 +355,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
+            let needsChange = needsChangeMutex.withLock { needed in
+                let wasNeeded = needed
+                needed = false
+                return wasNeeded
+            }
             if needsChange {
-                needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -369,18 +375,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(observedCountsMutex.load(), [0, 0])
         }
     }
     
@@ -393,10 +399,14 @@ class ValueObservationTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
+            let needsChange = needsChangeMutex.withLock { needed in
+                let wasNeeded = needed
+                needed = false
+                return wasNeeded
+            }
             if needsChange {
-                needsChange = false
                 try dbPool.write { db in
                     try db.execute(sql: """
                     INSERT INTO t DEFAULT VALUES;
@@ -409,18 +419,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0])
+            XCTAssertEqual(observedCountsMutex.load(), [0, 0])
         }
     }
     
@@ -433,10 +443,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
+            let needsChange = needsChangeMutex.withLock { needed in
+                let wasNeeded = needed
+                needed = false
+                return wasNeeded
+            }
             if needsChange {
-                needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -459,18 +473,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(observedCountsMutex.load(), expectedCounts)
         }
     }
     
@@ -483,10 +497,14 @@ class ValueObservationTests: GRDBTestCase {
         // Allow pool to perform a single initial fetch, because between
         // its first read access, and its write access that installs the
         // transaction observer, no write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation.trackingConstantRegion { db -> Int in
+            let needsChange = needsChangeMutex.withLock { needed in
+                let wasNeeded = needed
+                needed = false
+                return wasNeeded
+            }
             if needsChange {
-                needsChange = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     try! dbPool.write { db in
                         try db.execute(sql: """
@@ -509,18 +527,18 @@ class ValueObservationTests: GRDBTestCase {
         
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = expectedCounts.count
-        var observedCounts: [Int] = []
+        let observedCountsMutex: Mutex<[Int]> = Mutex([])
         let cancellable = observation.start(
             in: dbPool,
             scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                observedCounts.append(count)
+                observedCountsMutex.withLock { $0.append(count) }
                 expectation.fulfill()
             })
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, expectedCounts)
+            XCTAssertEqual(observedCountsMutex.load(), expectedCounts)
         }
     }
     
@@ -602,7 +620,7 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        let changesCountMutex = Mutex(0)
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -613,13 +631,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and deallocate cancellable after second change
-        var cancellable: (any DatabaseCancellable)?
+        nonisolated(unsafe) var cancellable: (any DatabaseCancellable)?
         cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
+                if changesCountMutex.increment() == 2 {
                     cancellable = nil
                 }
                 notificationExpectation.fulfill()
@@ -639,7 +656,7 @@ class ValueObservationTests: GRDBTestCase {
         _ = cancellable
         
         waitForExpectations(timeout: 2, handler: nil)
-        XCTAssertEqual(changesCount, 2)
+        XCTAssertEqual(changesCountMutex.load(), 2)
     }
     
     func testCancellableExplicitCancellation() throws {
@@ -648,7 +665,7 @@ class ValueObservationTests: GRDBTestCase {
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
-        var changesCount = 0
+        let changesCountMutex = Mutex(0)
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -659,13 +676,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         // Start observation and cancel cancellable after second change
-        var cancellable: (any DatabaseCancellable)!
+        nonisolated(unsafe) var cancellable: (any DatabaseCancellable)!
         cancellable = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in
-                changesCount += 1
-                if changesCount == 2 {
+                if changesCountMutex.increment() == 2 {
                     cancellable.cancel()
                 }
                 notificationExpectation.fulfill()
@@ -683,7 +699,7 @@ class ValueObservationTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(changesCount, 2)
+            XCTAssertEqual(changesCountMutex.load(), 2)
         }
     }
     
@@ -697,18 +713,20 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
             
             do {
-                var cancellable: (any DatabaseCancellable)? = nil
+                nonisolated(unsafe) var cancellable: (any DatabaseCancellable)? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
-                var shouldStopObservation = false
+                let shouldStopObservationMutex = Mutex(false)
                 let observation = ValueObservation(
                     trackingMode: .nonConstantRegionRecordedFromSelection,
                     makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in
-                                if shouldStopObservation {
-                                    cancellable = nil /* deallocation */
+                                shouldStopObservationMutex.withLock { shouldStopObservation in
+                                    if shouldStopObservation {
+                                        cancellable = nil /* deallocation */
+                                    }
+                                    shouldStopObservation = true
                                 }
-                                shouldStopObservation = true
                             },
                             value: { _ in () })
                     })
@@ -741,19 +759,21 @@ class ValueObservationTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 2
             
             do {
-                var cancellable: (any DatabaseCancellable)? = nil
+                nonisolated(unsafe) var cancellable: (any DatabaseCancellable)? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
-                var shouldStopObservation = false
+                let shouldStopObservationMutex = Mutex(false)
                 let observation = ValueObservation(
                     trackingMode: .nonConstantRegionRecordedFromSelection,
                     makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in },
                             value: { _ in
-                                if shouldStopObservation {
-                                    cancellable = nil /* deallocation right before notification */
+                                shouldStopObservationMutex.withLock { shouldStopObservation in
+                                    if shouldStopObservation {
+                                        cancellable = nil /* deallocation right before notification */
+                                    }
+                                    shouldStopObservation = true
                                 }
-                                shouldStopObservation = true
                                 return ()
                             })
                     })
@@ -781,13 +801,13 @@ class ValueObservationTests: GRDBTestCase {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Start observing
-            var counts: [Int] = []
+            let countsMutex: Mutex<[Int]> = Mutex([])
             let cancellable = ValueObservation
                 .trackingConstantRegion { try Table("t").fetchCount($0) }
                 .start(in: writer) { error in
                     XCTFail("Unexpected error: \(error)")
                 } onChange: { count in
-                    counts.append(count)
+                    countsMutex.withLock { $0.append(count) }
                 }
             
             // Perform a write after cancellation, but before the
@@ -816,7 +836,7 @@ class ValueObservationTests: GRDBTestCase {
             
             // We should not have been notified of the first write, because
             // it was performed after cancellation.
-            XCTAssertFalse(counts.contains(1))
+            XCTAssertFalse(countsMutex.load().contains(1))
         }
         
         try test(makeDatabaseQueue())

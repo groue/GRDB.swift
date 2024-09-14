@@ -152,13 +152,15 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func read<T>(
+    public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await reader.execute(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         reader.async { value(.success($0)) }
     }
     
@@ -172,13 +174,15 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    public func unsafeRead<T>(
+    public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         reader.async { value(.success($0)) }
     }
     
@@ -191,9 +195,8 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         _addReadOnly(
             observation: observation,
             scheduling: scheduler,

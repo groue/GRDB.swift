@@ -16,7 +16,7 @@ public protocol _ValueReducer {
     associatedtype Fetcher: _ValueReducerFetcher
     
     /// The type of observed values
-    associatedtype Value
+    associatedtype Value: Sendable
     
     /// Returns a value that fetches database values upon changes in an
     /// observed database region. The returned value method must not depend

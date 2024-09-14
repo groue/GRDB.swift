@@ -110,14 +110,17 @@ extension Database {
     /// - parameter onCommit: A closure executed on transaction commit.
     /// - parameter onRollback: A closure executed on transaction rollback.
     public func afterNextTransaction(
-        onCommit: @escaping (Database) -> Void,
-        onRollback: @escaping (Database) -> Void = { _ in })
+        onCommit: @escaping @Sendable (Database) -> Void,
+        onRollback: @escaping @Sendable (Database) -> Void = { _ in })
     {
         class TransactionHandler: TransactionObserver {
-            let onCommit: (Database) -> Void
-            let onRollback: (Database) -> Void
+            let onCommit: @Sendable (Database) -> Void
+            let onRollback: @Sendable (Database) -> Void
 
-            init(onCommit: @escaping (Database) -> Void, onRollback: @escaping (Database) -> Void) {
+            init(
+                onCommit: @escaping @Sendable (Database) -> Void,
+                onRollback: @escaping @Sendable (Database) -> Void
+            ) {
                 self.onCommit = onCommit
                 self.onRollback = onRollback
             }
