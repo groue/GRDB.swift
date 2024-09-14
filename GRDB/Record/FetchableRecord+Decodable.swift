@@ -676,7 +676,8 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     }
 }
 
-private let iso8601Formatter: ISO8601DateFormatter = {
+// Assume this non-Sendable instance can be used from multiple threads concurrently.
+nonisolated(unsafe) private let iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
     return formatter

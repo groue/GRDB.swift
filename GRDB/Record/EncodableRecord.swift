@@ -533,7 +533,8 @@ public enum DatabaseDateEncodingStrategy: Sendable {
     /// Encodes the result of the user-provided function
     case custom(@Sendable (Date) -> (any DatabaseValueConvertible)?)
     
-    private static let iso8601Formatter: ISO8601DateFormatter = {
+    // Assume this non-Sendable instance can be used from multiple threads concurrently.
+    nonisolated(unsafe) private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
         return formatter
