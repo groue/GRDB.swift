@@ -143,7 +143,7 @@
 - [ ] GRDB7: doc (c0838cf9)
 - [X] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
 - [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
-- [ ] GRDB7: Sendable: Association (b06aaee4)
+- [X] GRDB7: Sendable: Association (b06aaee4)
 - [ ] GRDB7/Tests: Sendable: ValueObservationRecorder (2947b3d7)
 - [ ] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)
 - [ ] GRDB7/Tests: use a single and Sendable test TextOutputStream (bbb1a736)
