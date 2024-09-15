@@ -114,13 +114,13 @@
 - [X] GRDB7: Sendable: Pool (f13b2d2e)
 - [X] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
 - [X] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
-- [ ] GRDB7: sending closures for SerializedDatabase
-- [ ] GRDB7: sending closures for ValueObservationScheduler
+- [-] GRDB7: sending closures for SerializedDatabase
+- [-] GRDB7: sending closures for ValueObservationScheduler
 - [X] GRDB7: Sendable closures for ValueObservation.handleEvents
-- [ ] GRDB7: Not Sendable: Record (make it explicit if subclasses can be made sendable)
+- [X] GRDB7: Not Sendable: Record (make it explicit if subclasses can be made sendable)
 - [ ] GRDB7: Not Sendable: databasepublishers/databaseregion, migrate, read, value, write
-- [ ] GRDB7: Sendable closures for writePublisher
-- [ ] GRDB7: Sendable closures for readPublisher
+- [X] GRDB7: Sendable closures for writePublisher
+- [X] GRDB7: Sendable closures for readPublisher
 - [ ] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
 - [X] GRDB7: Sendable: DatabasePromise (05899228, 5a2c15b8)
 - [X] GRDB7: Sendable: TableAlias (f2b0b186)
@@ -136,7 +136,7 @@
 - [X] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
 - [X] GRDB7: Sendable: ValueWriteOnlyObserver (ff2a7548)
 - [X] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
-- [ ] GRDB7: ValueObservation closures
+- [X] GRDB7: ValueObservation closures
 - [?] GRDB7: DatabasePublishers.ValueSubscription
 - [X] GRDB7: Sendable: ValueObservation (93f6f982)
 - [?] GRDB7: Not Sendable: SharedValueObservation
