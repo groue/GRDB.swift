@@ -153,10 +153,10 @@
 - [X] GRDB7: DatabaseWriter async methods support Task cancellation (a5226501)
 - [X] GRDB7: DatabaseReader async methods support Task cancellation (10c9d311)
 - [X] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
-- [ ] GRDB7: Sendable: AssociationAggregate (48ad10ae)
+- [-] GRDB7: Sendable: AssociationAggregate (48ad10ae)
 - [?] GRDB7: Sendable: AsyncValueObservation (ce63cdfa)
 - [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
-- [ ] GRDB7: DispatchQueue.asyncSending (7b075e6b)
+- [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 - [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
 - [ ] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16) 
 
