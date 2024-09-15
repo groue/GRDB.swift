@@ -513,6 +513,9 @@ struct SQLQueryGenerator: Refinable {
     }
 }
 
+// This type is marked as `Sendable` in order to avoid compiler warnings,
+// but it should not need to be: instances are synchronously created, used,
+// and discarded.
 /// To generate SQL, we need a "qualified" relation, where all tables,
 /// expressions, etc, are qualified with table aliases.
 ///
@@ -546,8 +549,7 @@ struct SQLQueryGenerator: Refinable {
 ///     HAVING ...   -- havingExpressionPromise
 ///     ORDER BY ... -- ordering
 ///     LIMIT ...    -- limit
-
-private struct SQLQualifiedRelation {
+private struct SQLQualifiedRelation: Sendable {
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
         joins.reduce(into: [source.alias].compactMap { $0 }) {
