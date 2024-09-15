@@ -431,3 +431,9 @@ open class Record {
 extension Record: TableRecord { }
 extension Record: PersistableRecord { }
 extension Record: FetchableRecord { }
+
+// Explicit non-conformance to Sendable, because persistence methods mutate
+// the instance (`referenceRow`). Nothing prevents a single Record instance
+// from being concurrencly persisted in two distinct database connections.
+@available(*, unavailable)
+extension Record: Sendable { }
