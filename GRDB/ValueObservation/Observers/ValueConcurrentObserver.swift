@@ -18,7 +18,10 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueConcurrentObserver<Reducer: ValueReducer, Scheduler: ValueObservationScheduler> {
+final class ValueConcurrentObserver<Reducer, Scheduler>: @unchecked Sendable
+where Reducer: ValueReducer,
+      Scheduler: ValueObservationScheduler
+{
     // MARK: - Configuration
     //
     // Configuration is not mutable.
@@ -356,7 +359,8 @@ extension ValueConcurrentObserver {
                 // `DatabasePool.asyncWALSnapshotTransaction` has to be used.
                 initialFetchTransaction.asyncRead { dbResult in
                     do {
-                        let fetchedValue: Reducer.Fetcher.Value
+                        // Assume this value can safely be sent to the reduce queue.
+                        nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
                         let initialRegion: DatabaseRegion
                         let db = try dbResult.get()
                         
@@ -463,7 +467,8 @@ extension ValueConcurrentObserver {
                         events.databaseDidChange?()
                         
                         // Fetch
-                        let fetchedValue: Reducer.Fetcher.Value
+                        // Assume this value can safely be sent to the reduce queue.
+                        nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
                         
                         switch self.trackingMode {
                         case .constantRegion:
@@ -587,7 +592,8 @@ extension ValueConcurrentObserver {
             
             do {
                 // Fetch
-                let fetchedValue: Reducer.Fetcher.Value
+                // Assume this value can safely be sent to the reduce queue.
+                nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
                 let initialRegion: DatabaseRegion
                 let db = try dbResult.get()
                 switch self.trackingMode {
@@ -647,7 +653,8 @@ extension ValueConcurrentObserver {
             do {
                 try writerDB.isolated(readOnly: true) {
                     // Fetch
-                    let fetchedValue: Reducer.Fetcher.Value
+                    // Assume this value can safely be sent to the reduce queue.
+                    nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
                     let observedRegion: DatabaseRegion
                     switch self.trackingMode {
                     case .constantRegion:
@@ -777,7 +784,6 @@ extension ValueConcurrentObserver: TransactionObserver {
             } catch {
                 stopDatabaseObservation(writerDB)
                 notifyError(error)
-                return
             }
         }
     }
@@ -827,6 +833,9 @@ extension ValueConcurrentObserver: TransactionObserver {
     }
     
     private func reduce(_ fetchResult: Result<Reducer.Fetcher.Value, Error>) {
+        // Assume this value can safely be sent to the reduce queue.
+        nonisolated(unsafe) let fetchResult = fetchResult
+        
         reduceQueue.async {
             do {
                 let fetchedValue = try fetchResult.get()

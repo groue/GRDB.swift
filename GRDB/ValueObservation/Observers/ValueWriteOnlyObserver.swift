@@ -18,10 +18,10 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueWriteOnlyObserver<
-    Writer: DatabaseWriter,
-    Reducer: ValueReducer,
-    Scheduler: ValueObservationScheduler>
+final class ValueWriteOnlyObserver<Writer, Reducer, Scheduler>: @unchecked Sendable
+where Writer: DatabaseWriter,
+      Reducer: ValueReducer,
+      Scheduler: ValueObservationScheduler
 {
     // MARK: - Configuration
     //
@@ -252,9 +252,11 @@ extension ValueWriteOnlyObserver {
         writer.asyncWriteWithoutTransaction { db in
             do {
                 // Fetch & Start observing the database
-                guard let fetchedValue = try self.fetchAndStartObservation(db) else {
+                guard let _fetchedValue = try self.fetchAndStartObservation(db) else {
                     return /* Cancelled */
                 }
+                // Assume this value can safely be sent to the reduce queue.
+                nonisolated(unsafe) let fetchedValue = _fetchedValue
                 
                 // Reduce
                 //
@@ -380,7 +382,8 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         
         do {
             // Fetch
-            let fetchedValue: Reducer.Fetcher.Value
+            // Assume this value can safely be sent to the reduce queue.
+            nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
             
             switch trackingMode {
             case .constantRegion, .constantRegionRecordedFromSelection:
