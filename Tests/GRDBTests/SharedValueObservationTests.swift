@@ -525,6 +525,230 @@ class SharedValueObservationTests: GRDBTestCase {
         XCTAssertEqual(log.flush(), [])
     }
     
+    func test_task_observationLifetime() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let log = Log()
+        var sharedObservation: SharedValueObservation<Int>? = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .print(to: log)
+            .shared(
+                in: dbQueue,
+                scheduling: .task,
+                extent: .observationLifetime)
+        XCTAssertEqual(log.flush(), [])
+        
+        // We want to control when the shared observation is deallocated
+        try withExtendedLifetime(sharedObservation) { sharedObservation in
+            // --- Start observation 1
+            let values1Mutex: Mutex<[Int]> = Mutex([])
+            let exp1 = expectation(description: "")
+            exp1.expectedFulfillmentCount = 2
+            exp1.assertForOverFulfill = false
+            let cancellable1 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values1Mutex.withLock { $0.append(value) }
+                    exp1.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp1], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1])
+            XCTAssertEqual(log.flush(), [
+                "start", "fetch", "tracked region: player(*)", "value: 0",
+                "database did change", "fetch", "value: 1"])
+            
+            // --- Start observation 2
+            let values2Mutex: Mutex<[Int]> = Mutex([])
+            let exp2 = expectation(description: "")
+            exp2.expectedFulfillmentCount = 2
+            exp2.assertForOverFulfill = false
+            let cancellable2 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values2Mutex.withLock { $0.append(value) }
+                    exp2.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp2], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2])
+            XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
+            
+            // --- Stop observation 1
+            cancellable1.cancel()
+            XCTAssertEqual(log.flush(), [])
+            
+            // --- Start observation 3
+            let values3Mutex: Mutex<[Int]> = Mutex([])
+            let exp3 = expectation(description: "")
+            exp3.expectedFulfillmentCount = 2
+            exp3.assertForOverFulfill = false
+            let cancellable3 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values3Mutex.withLock { $0.append(value) }
+                    exp3.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp3], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2, 3])
+            XCTAssertEqual(values3Mutex.load(), [2, 3])
+            XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
+            
+            // --- Stop observation 2
+            cancellable2.cancel()
+            XCTAssertEqual(log.flush(), [])
+            
+            // --- Stop observation 3
+            cancellable3.cancel()
+            XCTAssertEqual(log.flush(), [])
+        }
+        
+        // --- Release shared observation
+        sharedObservation = nil
+        XCTAssertEqual(log.flush(), ["cancel"])
+    }
+    
+#if canImport(Combine)
+    func test_task_publisher() throws {
+        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let publisher = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(in: dbQueue, scheduling: .task)
+            .publisher()
+        
+        do {
+            let recorder = publisher.record()
+            try XCTAssert(recorder.availableElements.get().isEmpty)
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 0)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+        }
+        
+        do {
+            let recorder = publisher.record()
+            try XCTAssert(recorder.availableElements.get().isEmpty)
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 2)
+        }
+    }
+#endif
+    
+    func test_task_whileObserved() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let log = Log()
+        var sharedObservation: SharedValueObservation<Int>? = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .print(to: log)
+            .shared(
+                in: dbQueue,
+                scheduling: .task,
+                extent: .whileObserved)
+        XCTAssertEqual(log.flush(), [])
+        
+        // We want to control when the shared observation is deallocated
+        try withExtendedLifetime(sharedObservation) { sharedObservation in
+            // --- Start observation 1
+            let values1Mutex: Mutex<[Int]> = Mutex([])
+            let exp1 = expectation(description: "")
+            exp1.expectedFulfillmentCount = 2
+            exp1.assertForOverFulfill = false
+            let cancellable1 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values1Mutex.withLock { $0.append(value) }
+                    exp1.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp1], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1])
+            XCTAssertEqual(log.flush(), [
+                "start", "fetch", "tracked region: player(*)", "value: 0",
+                "database did change", "fetch", "value: 1"])
+            
+            // --- Start observation 2
+            let values2Mutex: Mutex<[Int]> = Mutex([])
+            let exp2 = expectation(description: "")
+            exp2.expectedFulfillmentCount = 2
+            exp2.assertForOverFulfill = false
+            let cancellable2 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values2Mutex.withLock { $0.append(value) }
+                    exp2.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp2], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2])
+            XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 2"])
+            
+            // --- Stop observation 1
+            cancellable1.cancel()
+            XCTAssertEqual(log.flush(), [])
+            
+            // --- Start observation 3
+            let values3Mutex: Mutex<[Int]> = Mutex([])
+            let exp3 = expectation(description: "")
+            exp3.expectedFulfillmentCount = 2
+            exp3.assertForOverFulfill = false
+            let cancellable3 = sharedObservation!.start(
+                onError: { XCTFail("Unexpected error \($0)") },
+                onChange: { value in
+                    values3Mutex.withLock { $0.append(value) }
+                    exp3.fulfill()
+                })
+            
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            wait(for: [exp3], timeout: 1)
+            XCTAssertEqual(values1Mutex.load(), [0, 1, 2])
+            XCTAssertEqual(values2Mutex.load(), [1, 2, 3])
+            XCTAssertEqual(values3Mutex.load(), [2, 3])
+            XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 3"])
+            
+            // --- Stop observation 2
+            cancellable2.cancel()
+            XCTAssertEqual(log.flush(), [])
+            
+            // --- Stop observation 3
+            cancellable3.cancel()
+            XCTAssertEqual(log.flush(), ["cancel"])
+        }
+        
+        // --- Release shared observation
+        sharedObservation = nil
+        XCTAssertEqual(log.flush(), [])
+    }
+
 #if canImport(Combine)
     func test_error_recovery_observationLifetime() throws {
         guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
@@ -642,7 +866,7 @@ class SharedValueObservationTests: GRDBTestCase {
 #endif
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func testAsyncAwait() async throws {
+    func testAsyncAwait_mainQueue() async throws {
         let dbQueue = try makeDatabaseQueue()
         try await dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -653,6 +877,26 @@ class SharedValueObservationTests: GRDBTestCase {
         let values = ValueObservation
             .tracking(Table("player").fetchCount)
             .shared(in: dbQueue)
+            .values()
+        
+        for try await value in values {
+            XCTAssertEqual(value, 0)
+            break
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    func testAsyncAwait_task() async throws {
+        let dbQueue = try makeDatabaseQueue()
+        try await dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let values = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(in: dbQueue, scheduling: .task)
             .values()
         
         for try await value in values {

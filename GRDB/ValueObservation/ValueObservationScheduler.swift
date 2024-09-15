@@ -9,8 +9,11 @@ import Foundation
 ///
 /// - ``async(onQueue:)``
 /// - ``immediate``
+/// - ``task``
+/// - ``task(priority:)``
 /// - ``AsyncValueObservationScheduler``
 /// - ``ImmediateValueObservationScheduler``
+/// - ``TaskValueObservationScheduler``
 public protocol ValueObservationScheduler: Sendable {
     /// Returns whether the initial value should be immediately notified.
     ///
@@ -121,5 +124,52 @@ extension ValueObservationScheduler where Self == ImmediateValueObservationSched
     ///  from the main queue. A fatal error is raised otherwise.
     public static var immediate: ImmediateValueObservationScheduler {
         ImmediateValueObservationScheduler()
+    }
+}
+
+// MARK: - TaskValueObservationScheduler
+
+/// A scheduler that notifies all values on the cooperative thread pool.
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+final public class TaskValueObservationScheduler: ValueObservationScheduler {
+    typealias Action = @Sendable () -> Void
+    let continuation: AsyncStream<Action>.Continuation
+    let task: Task<Void, Never>
+    
+    init(priority: TaskPriority?) {
+        let (stream, continuation) = AsyncStream.makeStream(of: Action.self)
+        
+        self.continuation = continuation
+        self.task = Task(priority: priority) {
+            for await action in stream {
+                action()
+            }
+        }
+    }
+    
+    deinit {
+        task.cancel()
+    }
+    
+    public func immediateInitialValue() -> Bool {
+        false
+    }
+    
+    public func schedule(_ action: @escaping @Sendable () -> Void) {
+        continuation.yield(action)
+    }
+}
+
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+extension ValueObservationScheduler where Self == TaskValueObservationScheduler {
+    /// A scheduler that notifies all values from a new `Task`.
+    public static var task: TaskValueObservationScheduler {
+        TaskValueObservationScheduler(priority: nil)
+    }
+    
+    /// A scheduler that notifies all values from a new `Task` with the
+    /// given priority.
+    public static func task(priority: TaskPriority) -> TaskValueObservationScheduler {
+        TaskValueObservationScheduler(priority: priority)
     }
 }

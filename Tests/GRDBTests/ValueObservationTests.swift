@@ -933,44 +933,6 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func testAsyncAwait_values_prefix_immediate_scheduling() async throws {
-        func test(_ writer: some DatabaseWriter) async throws {
-            // We need something to change
-            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            let cancellationExpectation = expectation(description: "cancelled")
-            let task = Task { @MainActor () -> [Int] in
-                var counts: [Int] = []
-                let observation = ValueObservation
-                    .trackingConstantRegion(Table("t").fetchCount)
-                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
-                
-                for try await count in try observation.values(in: writer, scheduling: .immediate).prefix(while: { $0 <= 3 }) {
-                    counts.append(count)
-                    try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
-                }
-                return counts
-            }
-            
-            let counts = try await task.value
-            XCTAssertTrue(counts.contains(0))
-            XCTAssertTrue(counts.contains(where: { $0 >= 2 }))
-            XCTAssertEqual(counts.sorted(), counts)
-            
-            // Observation was ended
-#if compiler(>=5.8)
-            await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
-        }
-        
-        try await AsyncTest(test).run { try DatabaseQueue() }
-        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
-    }
-    
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_values_break() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -998,45 +960,6 @@ class ValueObservationTests: GRDBTestCase {
             XCTAssertTrue(counts.contains(0))
             XCTAssertTrue(counts.contains(where: { $0 >= 2 }))
             XCTAssertEqual(counts.sorted(), counts)
-            
-            // Observation was ended
-#if compiler(>=5.8)
-            await fulfillment(of: [cancellationExpectation], timeout: 2)
-#else
-            wait(for: [cancellationExpectation], timeout: 2)
-#endif
-        }
-        
-        try await AsyncTest(test).run { try DatabaseQueue() }
-        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-        try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
-    }
-    
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
-    func testAsyncAwait_values_immediate_break() async throws {
-        func test(_ writer: some DatabaseWriter) async throws {
-            // We need something to change
-            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            let cancellationExpectation = expectation(description: "cancelled")
-            
-            let task = Task { @MainActor () -> [Int] in
-                var counts: [Int] = []
-                let observation = ValueObservation
-                    .trackingConstantRegion(Table("t").fetchCount)
-                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
-                
-                for try await count in observation.values(in: writer, scheduling: .immediate) {
-                    counts.append(count)
-                    break
-                }
-                return counts
-            }
-            
-            let counts = try await task.value
-            
-            // A single value was published
-            assertValueObservationRecordingMatch(recorded: counts, expected: [0])
             
             // Observation was ended
 #if compiler(>=5.8)

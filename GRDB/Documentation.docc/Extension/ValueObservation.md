@@ -131,7 +131,7 @@ let cancellable = observation
 // <- Here "Fresh value" has already been printed.
 ```
 
-The other built-in scheduler ``ValueObservationScheduler/async(onQueue:)`` asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
+The ``ValueObservationScheduler/async(onQueue:)`` scheduler asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
 
 ```swift
 // Async scheduling notifies all values
@@ -144,6 +144,30 @@ let cancellable = observation
         // Called asynchronously on myQueue
         print("Fresh value", value)
     }
+```
+
+The ``ValueObservationScheduler/task`` scheduler asynchronously schedules values and errors on the cooperative thread pool. It is implicitly used when you turn a ValueObservation into an async sequence. You can specify it explicitly when you intend to consume a shared observation as an async sequence: 
+
+```swift
+do {
+    for try await players in observation.values(in: dbQueue) {
+        // Called on the cooperative thread pool
+        print("Fresh players", players)
+    }
+} catch {
+    // Handle error
+}
+
+let sharedObservation = observation.shared(in: dbQueue, scheduling: .concurrent)
+do {
+    for try await players in sharedObservation.values() {
+        // Called on the cooperative thread pool
+        print("Fresh players", players)
+    }
+} catch {
+    // Handle error
+}
+
 ```
 
 As described above, the `scheduling` argument controls the execution of the change and error callbacks. You also have some control on the execution of the database fetch:
@@ -291,7 +315,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 - ``publisher(in:scheduling:)``
 - ``start(in:scheduling:onError:onChange:)``
-- ``values(in:scheduling:bufferingPolicy:)``
+- ``values(in:priority:bufferingPolicy:)``
 - ``DatabaseCancellable``
 - ``ValueObservationScheduler``
 
