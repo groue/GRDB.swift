@@ -9,10 +9,10 @@ import Foundation
 ///
 /// - ``async(onQueue:)``
 /// - ``immediate``
+/// - ``mainActor``
 /// - ``task``
 /// - ``task(priority:)``
 /// - ``AsyncValueObservationScheduler``
-/// - ``ImmediateValueObservationScheduler``
 /// - ``TaskValueObservationScheduler``
 public protocol ValueObservationScheduler: Sendable {
     /// Returns whether the initial value should be immediately notified.
@@ -30,6 +30,29 @@ extension ValueObservationScheduler {
         } else {
             schedule(action)
         }
+    }
+}
+
+// MARK: - ValueObservationMainActorScheduler
+
+/// A type that determines when `ValueObservation` notifies its fresh
+/// values, on the main actor.
+///
+/// ## Topics
+///
+/// ### Built-In Schedulers
+///
+/// - ``immediate``
+/// - ``ValueObservationScheduler/mainActor``
+/// - ``ImmediateValueObservationScheduler``
+/// - ``DelayedMainActorValueObservationScheduler``
+public protocol ValueObservationMainActorScheduler: ValueObservationScheduler {
+    func scheduleOnMainActor(_ action: @escaping @MainActor () -> Void)
+}
+
+extension ValueObservationMainActorScheduler {
+    public func schedule(_ action: @escaping @Sendable () -> Void) {
+        scheduleOnMainActor(action)
     }
 }
 
@@ -80,10 +103,10 @@ extension ValueObservationScheduler where Self == AsyncValueObservationScheduler
 
 // MARK: - ImmediateValueObservationScheduler
 
-/// A scheduler that notifies all values on the main `DispatchQueue`. The
+/// A scheduler that notifies all values on the main actor. The
 /// first value is immediately notified when the `ValueObservation`
 /// is started.
-public struct ImmediateValueObservationScheduler: ValueObservationScheduler, Sendable {
+public struct ImmediateValueObservationScheduler: ValueObservationMainActorScheduler {
     public init() { }
     
     public func immediateInitialValue() -> Bool {
@@ -93,13 +116,13 @@ public struct ImmediateValueObservationScheduler: ValueObservationScheduler, Sen
         return true
     }
     
-    public func schedule(_ action: @escaping @Sendable () -> Void) {
+    public func scheduleOnMainActor(_ action: @escaping @MainActor () -> Void) {
         DispatchQueue.main.async(execute: action)
     }
 }
 
 extension ValueObservationScheduler where Self == ImmediateValueObservationScheduler {
-    /// A scheduler that notifies all values on the main `DispatchQueue`. The
+    /// A scheduler that notifies all values on the main actor. The
     /// first value is immediately notified when the `ValueObservation`
     /// is started.
     ///
@@ -121,7 +144,36 @@ extension ValueObservationScheduler where Self == ImmediateValueObservationSched
     /// ```
     ///
     /// - important: this scheduler requires that the observation is started
-    ///  from the main queue. A fatal error is raised otherwise.
+    ///  from the main actor. A fatal error is raised otherwise.
+    public static var immediate: ImmediateValueObservationScheduler {
+        ImmediateValueObservationScheduler()
+    }
+}
+
+extension ValueObservationMainActorScheduler where Self == ImmediateValueObservationScheduler {
+    /// A scheduler that notifies all values on the main actor. The
+    /// first value is immediately notified when the `ValueObservation`
+    /// is started.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let observation = ValueObservation.tracking { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    ///
+    /// let cancellable = try observation.start(
+    ///     in: dbQueue,
+    ///     scheduling: .immediate,
+    ///     onError: { error in ... },
+    ///     onChange: { (players: [Player]) in
+    ///         print("fresh players: \(players)")
+    ///     })
+    /// // <- here "fresh players" is already printed.
+    /// ```
+    ///
+    /// - important: this scheduler requires that the observation is started
+    ///  from the main actor. A fatal error is raised otherwise.
     public static var immediate: ImmediateValueObservationScheduler {
         ImmediateValueObservationScheduler()
     }
@@ -131,7 +183,7 @@ extension ValueObservationScheduler where Self == ImmediateValueObservationSched
 
 /// A scheduler that notifies all values on the cooperative thread pool.
 @available(iOS 13, macOS 10.15, tvOS 13, *)
-final public class TaskValueObservationScheduler: ValueObservationScheduler {
+public final class TaskValueObservationScheduler: ValueObservationScheduler {
     typealias Action = @Sendable () -> Void
     let continuation: AsyncStream<Action>.Continuation
     let task: Task<Void, Never>
@@ -171,5 +223,27 @@ extension ValueObservationScheduler where Self == TaskValueObservationScheduler 
     /// given priority.
     public static func task(priority: TaskPriority) -> TaskValueObservationScheduler {
         TaskValueObservationScheduler(priority: priority)
+    }
+}
+
+// MARK: - DelayedMainActorValueObservationScheduler
+
+/// A scheduler that notifies all values on the cooperative thread pool.
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+public final class DelayedMainActorValueObservationScheduler: ValueObservationMainActorScheduler {
+    public func immediateInitialValue() -> Bool {
+        false
+    }
+    
+    public func scheduleOnMainActor(_ action: @escaping @MainActor () -> Void) {
+        DispatchQueue.main.async(execute: action)
+    }
+}
+
+@available(iOS 13, macOS 10.15, tvOS 13, *)
+extension ValueObservationScheduler where Self == DelayedMainActorValueObservationScheduler {
+    /// A scheduler that notifies all values on the main actor.
+    public static var mainActor: DelayedMainActorValueObservationScheduler {
+        DelayedMainActorValueObservationScheduler()
     }
 }

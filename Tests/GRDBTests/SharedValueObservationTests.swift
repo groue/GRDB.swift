@@ -525,6 +525,7 @@ class SharedValueObservationTests: GRDBTestCase {
         XCTAssertEqual(log.flush(), [])
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_task_observationLifetime() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -655,6 +656,7 @@ class SharedValueObservationTests: GRDBTestCase {
     }
 #endif
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_task_whileObserved() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in

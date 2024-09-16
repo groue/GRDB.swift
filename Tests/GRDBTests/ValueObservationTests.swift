@@ -5,6 +5,7 @@ import Dispatch
 class ValueObservationTests: GRDBTestCase {
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testStartFromAnyDatabaseReader(reader: any DatabaseReader) {
         _ = ValueObservation
             .trackingConstantRegion { _ in }
@@ -13,6 +14,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testStartFromAnyDatabaseWriter(writer: any DatabaseWriter) {
         _ = ValueObservation
             .trackingConstantRegion { _ in }
@@ -53,6 +55,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testErrorCompletesTheObservation() throws {
         struct TestError: Error { }
         
@@ -102,6 +105,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testViewOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -139,6 +143,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testPragmaTableOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -174,6 +179,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Constant Explicit Region
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testTrackingExplicitRegion() throws {
         class TestStream: TextOutputStream {
             private var stringsMutex: Mutex<[String]> = Mutex([])
@@ -614,6 +620,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Cancellation
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testCancellableLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -659,6 +666,7 @@ class ValueObservationTests: GRDBTestCase {
         XCTAssertEqual(changesCountMutex.load(), 2)
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testCancellableExplicitCancellation() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -796,6 +804,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testIssue1550() throws {
         func test(_ writer: some DatabaseWriter) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -843,6 +852,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testIssue1209() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write {
@@ -892,6 +902,41 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    // MARK: - Main Actor
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @MainActor func test_mainActor_observation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "test") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let observation = ValueObservation.tracking {
+            try Table("test").fetchCount($0)
+        }
+        
+        var value = 0 // No mutex necessary!
+        let expectation = self.expectation(description: "completion")
+        let cancellable = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: {
+                value = $0
+                if value == 2 {
+                    expectation.fulfill()
+                }
+            })
+
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO test DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO test DEFAULT VALUES")
+        }
+        withExtendedLifetime(cancellable) { _ in
+            wait(for: [expectation], timeout: 2)
+        }
+    }
+
     // MARK: - Async Await
     
     @available(iOS 13, macOS 10.15, tvOS 13, *)
@@ -1156,6 +1201,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1362>
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testIssue1362() throws {
         func test(_ writer: some DatabaseWriter) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE s(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -1246,6 +1292,7 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
+    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testIssue1383_async() throws {
         do {
             let dbPool = try makeDatabasePool(filename: "test")

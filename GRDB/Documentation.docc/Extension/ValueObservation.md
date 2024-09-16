@@ -78,7 +78,7 @@ See <doc:GRDB/ValueObservation#Dealing-with-Undetected-Changes> below for the li
 
 By default, `ValueObservation` notifies a fresh value whenever any component of its fetched value is modified (any fetched column, row, etc.). This can be configured: see <doc:ValueObservation#Specifying-the-Tracked-Region>.
 
-By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main dispatch queue, asynchronously. This can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
+By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main actor, asynchronously. This can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
 
 By default, `ValueObservation` fetches a fresh value immediately after a change is committed in the database. In particular, modifying the database on the main thread triggers a fetch on the main thread as well. This behavior can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
 
@@ -98,40 +98,38 @@ The database observation stops when the cancellable returned by the `start` meth
 
 ## ValueObservation Scheduling
 
-By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main dispatch queue, asynchronously:
+By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main actor, asynchronously:
 
 ```swift
 // The default scheduling
 let cancellable = observation.start(in: dbQueue) { error in
-    // Called asynchronously on the main dispatch queue
+    // Called asynchronously on the main actor
 } onChange: { value in
-    // Called asynchronously on the main dispatch queue
+    // Called asynchronously on the main actor
     print("Fresh value", value)
 }
 ```
 
 You can change this behavior by adding a `scheduling` argument to the `start()` method.
 
-For example, the ``ValueObservationScheduler/immediate`` scheduler notifies all values on the main dispatch queue, and notifies the first one immediately when the observation starts.
+For example, the ``ValueObservationMainActorScheduler/immediate`` scheduler notifies all values on the main actor, and notifies the first one immediately when the observation starts.
 
 It is very useful in graphic applications, because you can configure views right away, without waiting for the initial value to be fetched eventually. You don't have to implement any empty or loading screen, or to prevent some undesired initial animation. Take care that the user interface is not responsive during the fetch of the first value, so only use the `immediate` scheduling for very fast database requests!
-
-The `immediate` scheduling requires that the observation starts from the main dispatch queue (a fatal error is raised otherwise):
 
 ```swift
 // Immediate scheduling notifies
 // the initial value right on subscription.
 let cancellable = observation
     .start(in: dbQueue, scheduling: .immediate) { error in
-        // Called on the main dispatch queue
+        // Called on the main actor
     } onChange: { value in
-        // Called on the main dispatch queue
+        // Called on the main actor
         print("Fresh value", value)
     }
 // <- Here "Fresh value" has already been printed.
 ```
 
-The ``ValueObservationScheduler/async(onQueue:)`` scheduler asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
+The ``ValueObservationScheduler/async(onQueue:)`` scheduler asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial dispatch queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
 
 ```swift
 // Async scheduling notifies all values
@@ -158,7 +156,7 @@ do {
     // Handle error
 }
 
-let sharedObservation = observation.shared(in: dbQueue, scheduling: .concurrent)
+let sharedObservation = observation.shared(in: dbQueue, scheduling: .task)
 do {
     for try await players in sharedObservation.values() {
         // Called on the cooperative thread pool
@@ -172,7 +170,7 @@ do {
 
 As described above, the `scheduling` argument controls the execution of the change and error callbacks. You also have some control on the execution of the database fetch:
 
-- With the `.immediate` scheduling, the initial fetch is always performed synchronously, on the main thread, when the observation starts, so that the initial value can be notified immediately.
+- With the `.immediate` scheduling, the initial fetch is always performed synchronously, on the main actor, when the observation starts, so that the initial value can be notified immediately.
 
 - With the default `.async` scheduling, the initial fetch is always performed asynchronouly. It never blocks the main thread.
 
@@ -314,10 +312,12 @@ When needed, you can help GRDB optimize observations and reduce database content
 ### Accessing Observed Values
 
 - ``publisher(in:scheduling:)``
-- ``start(in:scheduling:onError:onChange:)``
-- ``values(in:priority:bufferingPolicy:)``
+- ``start(in:scheduling:onError:onChange:)-79cet``
+- ``start(in:scheduling:onError:onChange:)-5wpgl``
+- ``values(in:scheduling:bufferingPolicy:)``
 - ``DatabaseCancellable``
 - ``ValueObservationScheduler``
+- ``ValueObservationMainActorScheduler``
 
 ### Mapping Values
 
