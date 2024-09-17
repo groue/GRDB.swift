@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: July 20, 2024 • [version 6.29.0](https://github.com/groue/GRDB.swift/tree/v6.29.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: September 7, 2024 • [version 6.29.3](https://github.com/groue/GRDB.swift/tree/v6.29.3) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
@@ -340,6 +340,17 @@ See [Encryption](#encryption) for the installation procedure of GRDB with SQLCip
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite.
 
 
+## Swift Package Manager
+
+The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
+
+GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can reveal useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [How to link a Swift Package as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062) for more information.
+
+> **Note**: Linux is not currently supported.
+>
+> **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
+
+
 ## CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB with CocoaPods (version 1.2 or higher), specify in your `Podfile`:
@@ -350,15 +361,24 @@ pod 'GRDB.swift'
 
 GRDB can be installed as a framework, or a static library.
 
-## Swift Package Manager
+**Important Note for CocoaPods installation**
 
-The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
+Due to an [issue](https://github.com/CocoaPods/CocoaPods/issues/11839) in CocoaPods, it is currently not possible to deploy new versions of GRDB to CocoaPods. The last version available on CocoaPods is 6.24.1. To install later versions of GRDB using CocoaPods, use one of the following workarounds:
 
-GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can reveal useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [How to link a Swift Package as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062) for more information.
+- Depend on the `GRDB6` branch. This is more or less equivalent to what `pod 'GRDB.swift', '~> 6.0'` would normally do, if CocoaPods would accept new GRDB versions to be published:
 
-> **Note**: Linux is not currently supported.
->
-> **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
+    ```ruby
+    # Can't use semantic versioning due to https://github.com/CocoaPods/CocoaPods/issues/11839
+    pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift.git', branch: 'GRDB6'
+    ```
+
+- Depend on a specific version explicitly (Replace the tag with the version you want to use):
+
+    ```ruby
+    # Can't use semantic versioning due to https://github.com/CocoaPods/CocoaPods/issues/11839
+    # Replace the tag with the tag that you want to use.
+    pod 'GRDB.swift', git: 'https://github.com/groue/GRDB.swift.git', tag: 'v6.29.0' 
+    ```
 
 ## Carthage
 
@@ -5723,9 +5743,7 @@ Open a read-only connection to your resource:
 // HOW TO open a read-only connection to a database resource
 
 // Get the path to the database resource.
-if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
-
-if let dbPath {
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite") {
     // If the resource exists, open a read-only connection.
     // Writes are disallowed because resources can not be modified. 
     var config = Configuration()

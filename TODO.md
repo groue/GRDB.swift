@@ -85,6 +85,7 @@
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] More schema alterations
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
+- [ ] What can we do with `cross-module-optimization`? See https://github.com/apple/swift-homomorphic-encryption
 
 
 ## Unsure if necessary

@@ -467,4 +467,11 @@ class DatabaseQueueTests: GRDBTestCase {
             try db.execute(sql: "SELECT * FROM sqlite_master")
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1612>
+    func test_releaseMemory_after_close() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.close()
+        dbQueue.releaseMemory()
+    }
 }

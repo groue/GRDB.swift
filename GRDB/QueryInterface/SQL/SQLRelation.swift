@@ -171,7 +171,7 @@ struct SQLRelation {
     var source: SQLSource
     var selectionPromise: DatabasePromise<[SQLSelection]>
     var filterPromise: DatabasePromise<SQLExpression>?
-    var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    var ordering = SQLRelation.Ordering()
     var ctes: OrderedDictionary<String, SQLCTE> = [:] // See also `allCTEs`
     var children: OrderedDictionary<String, Child> = [:]
     
