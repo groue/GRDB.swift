@@ -23,6 +23,7 @@
 /* Begin PBXFileReference section */
 		56CFC6442C9F1DC9000B5023 /* GRDBDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56CFC6542C9F1DCA000B5023 /* GRDBDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56CFC6B82C9F544D000B5023 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,6 +74,7 @@
 		56CFC63B2C9F1DC9000B5023 = {
 			isa = PBXGroup;
 			children = (
+				56CFC6B82C9F544D000B5023 /* README.md */,
 				56CFC6462C9F1DC9000B5023 /* GRDBDemo */,
 				56CFC6572C9F1DCA000B5023 /* GRDBDemoTests */,
 				56CFC6452C9F1DC9000B5023 /* Products */,
