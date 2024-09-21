@@ -270,10 +270,10 @@ test_universal_xcframework:
 
 test_install_manual:
 	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -scheme GRDBDemoiOS \
+	  -project Tests/GRDBManualInstall/GRDBManualInstall.xcodeproj \
+	  -scheme GRDBManualInstall \
 	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
+	  -destination "platform=macOS" \
 	  clean build \
 	  $(XCPRETTY)
 
