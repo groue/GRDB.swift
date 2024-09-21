@@ -139,21 +139,9 @@ public final class Statement {
         authorizer.reset()
         
         var sqliteStatement: SQLiteStatement? = nil
-        let code: CInt
-        // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
-        code = sqlite3_prepare_v3(
+        let code = sqlite3_prepare_v3(
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
-#else
-        if #available(macOS 10.14, tvOS 12, *) { // SQLite 3.20+
-            code = sqlite3_prepare_v3(
-                database.sqliteConnection, statementStart, -1, prepFlags,
-                &sqliteStatement, statementEnd)
-        } else {
-            code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
-        }
-#endif
         
         guard code == SQLITE_OK else {
             throw DatabaseError(

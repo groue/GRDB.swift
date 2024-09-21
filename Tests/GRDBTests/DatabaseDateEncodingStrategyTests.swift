@@ -52,7 +52,6 @@ private struct RecordWithDate<Strategy: StrategyProvider>: EncodableRecord, Enco
     var date: Date
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithDate: Identifiable {
     var id: Date { date }
 }
@@ -64,7 +63,6 @@ private struct RecordWithOptionalDate<Strategy: StrategyProvider>: EncodableReco
     var date: Date?
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithOptionalDate: Identifiable {
     var id: Date? { date }
 }
@@ -264,10 +262,6 @@ extension DatabaseDateEncodingStrategyTests {
     }
     
     func testFilterID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
@@ -344,10 +338,6 @@ extension DatabaseDateEncodingStrategyTests {
     }
     
     func testDeleteID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             

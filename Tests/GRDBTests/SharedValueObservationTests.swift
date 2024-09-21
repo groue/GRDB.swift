@@ -120,10 +120,6 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_immediate_publisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -397,10 +393,6 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_async_publisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -525,7 +517,6 @@ class SharedValueObservationTests: GRDBTestCase {
         XCTAssertEqual(log.flush(), [])
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_task_observationLifetime() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -622,10 +613,6 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_task_publisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -656,7 +643,6 @@ class SharedValueObservationTests: GRDBTestCase {
     }
 #endif
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func test_task_whileObserved() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -753,10 +739,6 @@ class SharedValueObservationTests: GRDBTestCase {
 
 #if canImport(Combine)
     func test_error_recovery_observationLifetime() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -811,10 +793,6 @@ class SharedValueObservationTests: GRDBTestCase {
     
 #if canImport(Combine)
     func test_error_recovery_whileObserved() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -867,7 +845,6 @@ class SharedValueObservationTests: GRDBTestCase {
     }
 #endif
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_mainQueue() async throws {
         let dbQueue = try makeDatabaseQueue()
         try await dbQueue.write { db in
@@ -887,7 +864,6 @@ class SharedValueObservationTests: GRDBTestCase {
         }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func testAsyncAwait_task() async throws {
         let dbQueue = try makeDatabaseQueue()
         try await dbQueue.write { db in

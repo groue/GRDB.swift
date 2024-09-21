@@ -805,11 +805,6 @@ class TableDefinitionTests: GRDBTestCase {
         guard sqlite3_libversion_number() >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, *) else {
-            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
-        }
-        #endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -833,11 +828,6 @@ class TableDefinitionTests: GRDBTestCase {
         guard sqlite3_libversion_number() >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, *) else {
-            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
-        }
-        #endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in

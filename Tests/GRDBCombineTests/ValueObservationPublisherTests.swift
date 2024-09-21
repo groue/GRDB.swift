@@ -22,10 +22,6 @@ class ValueObservationPublisherTests : XCTestCase {
     // MARK: - Default Scheduler
     
     func testDefaultSchedulerChangesNotifications() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -64,10 +60,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDefaultSchedulerFirstValueIsEmittedAsynchronously() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -97,10 +89,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDefaultSchedulerError() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
@@ -123,10 +111,6 @@ class ValueObservationPublisherTests : XCTestCase {
     // MARK: - Immediate Scheduler
     
     func testImmediateSchedulerChangesNotifications() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -165,10 +149,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testImmediateSchedulerEmitsFirstValueSynchronously() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -201,10 +181,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testImmediateSchedulerError() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = ValueObservation
                 .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
@@ -226,7 +202,6 @@ class ValueObservationPublisherTests : XCTestCase {
     
     // MARK: - Demand
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     private class DemandSubscriber<Input, Failure: Error>: Subscriber {
         private var subscription: Subscription?
         let subject = PassthroughSubject<Input, Failure>()
@@ -257,10 +232,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandNoneReceivesNoElement() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -292,10 +263,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandOneReceivesOneElement() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -330,10 +297,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandOneDoesNotReceiveTwoElements() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -372,10 +335,6 @@ class ValueObservationPublisherTests : XCTestCase {
     }
     
     func testDemandTwoReceivesTwoElements() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -418,10 +377,6 @@ class ValueObservationPublisherTests : XCTestCase {
     
     /// Regression test for https://github.com/groue/GRDB.swift/issues/1194
     func testIssue1194() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         struct Record: Codable, FetchableRecord, PersistableRecord {
             var id: Int64
         }

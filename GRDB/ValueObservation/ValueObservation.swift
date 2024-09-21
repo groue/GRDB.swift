@@ -179,7 +179,6 @@ extension ValueObservation: Refinable {
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     @preconcurrency @MainActor public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationMainActorScheduler = .mainActor,
@@ -350,7 +349,6 @@ extension ValueObservation {
     ///   fresh values are dispatched on the cooperative thread pool.
     /// - parameter bufferingPolicy: see the documntation
     ///   of `AsyncThrowingStream`.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func values(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .task,
@@ -386,7 +384,6 @@ extension ValueObservation {
 ///
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 public struct AsyncValueObservation<Element: Sendable>: AsyncSequence {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
@@ -488,7 +485,6 @@ extension ValueObservation {
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
     /// - returns: A Combine publisher
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func publisher(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
@@ -505,7 +501,6 @@ extension ValueObservation {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension DatabasePublishers {
     /// A publisher that publishes the values of a ``ValueObservation``.
     ///

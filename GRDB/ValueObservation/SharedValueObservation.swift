@@ -292,7 +292,6 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     ///     print("fresh players: \(players)")
     /// }
     /// ```
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func publisher() -> DatabasePublishers.Value<Element> {
         DatabasePublishers.Value { onError, onChange in
             self.start(onError: onError, onChange: onChange)
@@ -369,7 +368,6 @@ extension SharedValueObservation {
     ///     print("Fresh players: \(players)")
     /// }
     /// ```
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     public func values(bufferingPolicy: AsyncValueObservation<Element>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Element>
     {

@@ -2106,7 +2106,7 @@ extension SQLExpression {
         }
     }
 #else
-    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+    @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     /// Returns an expression suitable in JSON building contexts.
     var jsonBuilderExpression: SQLExpression {
         switch preferredJSONInterpretation {

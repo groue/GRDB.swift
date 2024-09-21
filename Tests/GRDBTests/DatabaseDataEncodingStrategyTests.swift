@@ -25,7 +25,6 @@ private struct RecordWithData<Strategy: StrategyProvider>: EncodableRecord, Enco
     var data: Data
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithData: Identifiable {
     var id: Data { data }
 }
@@ -37,7 +36,6 @@ private struct RecordWithOptionalData<Strategy: StrategyProvider>: EncodableReco
     var data: Data?
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension RecordWithOptionalData: Identifiable {
     var id: Data? { data }
 }
@@ -154,10 +152,6 @@ extension DatabaseDataEncodingStrategyTests {
     }
     
     func testFilterID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .blob) }
             
@@ -234,10 +228,6 @@ extension DatabaseDataEncodingStrategyTests {
     }
     
     func testDeleteID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .blob) }
             

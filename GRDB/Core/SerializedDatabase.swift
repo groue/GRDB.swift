@@ -244,7 +244,6 @@ final class SerializedDatabase {
     }
     
     /// Asynchrously executes the block.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
     func execute<T: Sendable>(
         _ block: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -309,7 +308,6 @@ extension SerializedDatabase: @unchecked Sendable { }
 
 // MARK: - Task Cancellation Support
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 enum DatabaseAccessCancellationState: @unchecked Sendable {
     // @unchecked Sendable because database is only accessed from its
     // dispatch queue.
@@ -319,7 +317,6 @@ enum DatabaseAccessCancellationState: @unchecked Sendable {
     case expired
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 typealias CancellableDatabaseAccess = Mutex<DatabaseAccessCancellationState>
 
 /// Supports Task cancellation in async database accesses.
@@ -341,7 +338,6 @@ typealias CancellableDatabaseAccess = Mutex<DatabaseAccessCancellationState>
 ///     }
 /// }
 /// ```
-@available(iOS 13, macOS 10.15, tvOS 13, *)
 extension CancellableDatabaseAccess: DatabaseCancellable {
     convenience init() {
         self.init(.notConnected)

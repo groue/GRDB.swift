@@ -117,46 +117,6 @@ public struct FTS5 {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#extending_fts5>
     public static func api(_ db: Database) -> UnsafePointer<fts5_api> {
-        // Access to FTS5 is one of the rare SQLite api which was broken in
-        // SQLite 3.20.0+, for security reasons:
-        //
-        // Starting SQLite 3.20.0+, we need to use the new sqlite3_bind_pointer api.
-        // The previous way to access FTS5 does not work any longer.
-        //
-        // So let's see which SQLite version we are linked against:
-        
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
-        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        #else
-        // GRDB is linked against the system SQLite.
-        if #available(macOS 10.14, tvOS 12, *) { // SQLite 3.20+
-            return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        } else {
-            return api_v1(db)
-        }
-        #endif
-    }
-    
-    private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-        guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
-            fatalError("FTS5 is not available")
-        }
-        return data.withUnsafeBytes {
-            $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
-        }
-    }
-    
-    // Technique given by Jordan Rose:
-    // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
-    private static func api_v2(
-        _ db: Database,
-        // swiftlint:disable:next line_length
-        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<CChar>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<CChar>?>?) -> CInt,
-        // swiftlint:disable:next line_length
-        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<CChar>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
-    -> UnsafePointer<fts5_api>
-    {
         var statement: SQLiteStatement? = nil
         var api: UnsafePointer<fts5_api>? = nil
         let type: StaticString = "fts5_api_ptr"

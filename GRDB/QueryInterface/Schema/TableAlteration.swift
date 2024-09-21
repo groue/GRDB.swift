@@ -129,7 +129,6 @@ public final class TableAlteration {
     ///
     /// - parameter name: the old name of the column.
     /// - parameter newName: the new name of the column.
-    @available(iOS 13, tvOS 13, *) // SQLite 3.25+
     public func rename(column name: String, to newName: String) {
         _rename(column: name, to: newName)
     }

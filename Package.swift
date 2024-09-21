@@ -36,9 +36,9 @@ let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
     platforms: [
-        .iOS(.v12),
-        .macOS(.v10_13),
-        .tvOS(.v12),
+        .iOS(.v13),
+        .macOS(.v10_15),
+        .tvOS(.v13),
         .watchOS(.v7),
     ],
     products: [

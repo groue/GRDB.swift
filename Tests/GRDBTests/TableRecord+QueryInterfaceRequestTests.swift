@@ -357,10 +357,6 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     func testExistsIdentifiable() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Identifiable is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             struct Player: TableRecord, Identifiable {

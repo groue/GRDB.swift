@@ -492,17 +492,15 @@ extension Database {
         // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
         
-        if #available(iOS 13, macOS 10.15, tvOS 13, *) {
-            switch ResultCode(rawValue: resultCode) {
-            case .SQLITE_INTERRUPT, .SQLITE_ABORT:
-                if suspensionMutex.load().isCancelled {
-                    // The only error that a user sees when a Task is cancelled
-                    // is CancellationError.
-                    throw CancellationError()
-                }
-            default:
-                break
+        switch ResultCode(rawValue: resultCode) {
+        case .SQLITE_INTERRUPT, .SQLITE_ABORT:
+            if suspensionMutex.load().isCancelled {
+                // The only error that a user sees when a Task is cancelled
+                // is CancellationError.
+                throw CancellationError()
             }
+        default:
+            break
         }
         
         // Throw statement failure
@@ -554,19 +552,7 @@ struct StatementCache {
         // > time and probably reused many times.
         //
         // This looks like a perfect match for cached statements.
-        //
-        // However SQLITE_PREPARE_PERSISTENT was only introduced in
-        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
         let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        #else
-        let statement: Statement
-        if #available(macOS 10.14, *) { // SQLite 3.20+
-            statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        } else {
-            statement = try db.makeStatement(sql: sql)
-        }
-        #endif
         statements[sql] = statement
         return statement
     }

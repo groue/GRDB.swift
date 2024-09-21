@@ -20,10 +20,6 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
 class DatabaseRegionObservationPublisherTests : XCTestCase {
     
     func testChangesNotifications() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -61,10 +57,6 @@ class DatabaseRegionObservationPublisherTests : XCTestCase {
     // TODO: do the same, but asynchronously. If this is too hard, update the
     // public API so that users can easily do it.
     func testPrependInitialDatabaseSync() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer

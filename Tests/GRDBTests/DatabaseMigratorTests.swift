@@ -41,10 +41,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let migrator = DatabaseMigrator()
             let publisher = migrator.migratePublisher(writer)
@@ -153,10 +149,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("createPersons") { db in
@@ -209,10 +201,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
 
     func testEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let migrator = DatabaseMigrator()
             let expectation = self.expectation(description: "")
@@ -235,10 +223,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
@@ -262,10 +246,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherDefaultScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test<Writer: DatabaseWriter>(writer: Writer) {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
@@ -291,10 +271,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherCustomScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test<Writer: DatabaseWriter>(writer: Writer) {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
