@@ -472,7 +472,7 @@ extension DatabaseReader {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
     ///   error thrown by `progress`.
     public func backup(
-        to writer: some DatabaseWriter,
+        to writer: any DatabaseWriter,
         pagesPerStep: CInt = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
@@ -628,7 +628,7 @@ public final class AnyDatabaseReader {
     
     /// Creates a new database reader that wraps and forwards operations
     /// to `base`.
-    public init(_ base: some DatabaseReader) {
+    public init(_ base: any DatabaseReader) {
         self.base = base
     }
 }

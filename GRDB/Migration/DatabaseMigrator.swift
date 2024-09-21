@@ -230,7 +230,7 @@ public struct DatabaseMigrator: Sendable {
     ///
     /// - parameter writer: A DatabaseWriter.
     /// - throws: The error thrown by the first failed migration.
-    public func migrate(_ writer: some DatabaseWriter) throws {
+    public func migrate(_ writer: any DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
         }
@@ -249,7 +249,7 @@ public struct DatabaseMigrator: Sendable {
     /// - parameter writer: A DatabaseWriter.
     /// - parameter targetIdentifier: A migration identifier.
     /// - throws: The error thrown by the first failed migration.
-    public func migrate(_ writer: some DatabaseWriter, upTo targetIdentifier: String) throws {
+    public func migrate(_ writer: any DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
@@ -263,7 +263,7 @@ public struct DatabaseMigrator: Sendable {
     ///   database, or the failure that prevented the migrations
     ///   from succeeding.
     public func asyncMigrate(
-        _ writer: some DatabaseWriter,
+        _ writer: any DatabaseWriter,
         completion: @escaping @Sendable (Result<Database, Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
@@ -497,7 +497,7 @@ extension DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
     public func migratePublisher(
-        _ writer: some DatabaseWriter,
+        _ writer: any DatabaseWriter,
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main)
     -> DatabasePublishers.Migrate
     {

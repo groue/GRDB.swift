@@ -117,7 +117,7 @@ extension ValueObservation {
     /// - parameter extent: The extent of the shared database observation.
     /// - returns: A `SharedValueObservation`
     public func shared(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>

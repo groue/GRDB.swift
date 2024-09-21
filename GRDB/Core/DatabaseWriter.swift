@@ -873,7 +873,7 @@ public final class AnyDatabaseWriter {
     
     /// Creates a new database reader that wraps and forwards operations
     /// to `base`.
-    public init(_ base: some DatabaseWriter) {
+    public init(_ base: any DatabaseWriter) {
         self.base = base
     }
 }
