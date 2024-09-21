@@ -17,7 +17,7 @@ import XCTest
 //          try wait(for: recorder.finished.inverted, timeout: 1)
 //      }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension PublisherExpectations {
     /// A publisher expectation which waits for the recorded publisher
     /// to complete.

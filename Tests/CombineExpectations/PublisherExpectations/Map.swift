@@ -1,7 +1,7 @@
 #if canImport(Combine)
 import XCTest
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension PublisherExpectations {
     /// A publisher expectation that transforms the value of a base expectation.
     ///
@@ -20,7 +20,7 @@ extension PublisherExpectations {
     }
 }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension PublisherExpectation {
     /// Returns a publisher expectation that transforms the value of the
     /// base expectation.

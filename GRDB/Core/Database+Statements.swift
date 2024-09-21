@@ -492,7 +492,7 @@ extension Database {
         // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
         
-        if #available(macOS 10.15, tvOS 13, *) {
+        if #available(macOS 10.15, *) {
             switch ResultCode(rawValue: resultCode) {
             case .SQLITE_INTERRUPT, .SQLITE_ABORT:
                 if suspensionMutex.load().isCancelled {

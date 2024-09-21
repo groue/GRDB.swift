@@ -131,7 +131,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - throws: Any ``DatabaseError`` that happens while establishing the
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
@@ -217,7 +217,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - throws: Any ``DatabaseError`` that happens while establishing the
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
@@ -649,7 +649,7 @@ extension DatabaseWriter {
     /// - throws: Any ``DatabaseError`` that happens while establishing the
     ///   database access, or the error thrown by `updates`, or
     ///   `CancellationError` if the task is cancelled.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func write<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -666,7 +666,7 @@ extension DatabaseWriter {
     /// Erase the database: delete all content, drop all tables, etc.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func erase() async throws {
         try await writeWithoutTransaction { try $0.erase() }
     }
@@ -677,7 +677,7 @@ extension DatabaseWriter {
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_vacuum.html>
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func vacuum() async throws {
         try await writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
@@ -694,7 +694,7 @@ extension DatabaseWriter {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_vacuum.html#vacuuminto>
     ///
     /// - Parameter filePath: file path for new database
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func vacuum(into filePath: String) async throws {
         try await writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
@@ -709,7 +709,7 @@ extension DatabaseWriter {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_vacuum.html#vacuuminto>
     ///
     /// - Parameter filePath: file path for new database
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func vacuum(into filePath: String) async throws {
         try await writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
@@ -754,7 +754,7 @@ extension DatabaseWriter {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter updates: A closure which accesses the database.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func writePublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         updates: @escaping @Sendable (Database) throws -> Output
@@ -818,7 +818,7 @@ extension DatabaseWriter {
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter updates: A closure which writes in the database.
     /// - parameter value: A closure which reads from the database.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func writePublisher<T: Sendable, Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         updates: @escaping @Sendable (Database) throws -> T,
@@ -848,7 +848,7 @@ extension DatabaseWriter {
     }
 }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension DatabasePublishers {
     /// A publisher that writes into the database.
     ///
@@ -867,7 +867,7 @@ extension DatabasePublishers {
     }
 }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToWritePublisher() -> DatabasePublishers.Write<Output> {
         .init(upstream: self.eraseToAnyPublisher())
@@ -911,7 +911,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.read(value)
     }
     
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -929,7 +929,7 @@ extension AnyDatabaseWriter: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -964,7 +964,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.writeWithoutTransaction(updates)
     }
     
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -976,7 +976,7 @@ extension AnyDatabaseWriter: DatabaseWriter {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {

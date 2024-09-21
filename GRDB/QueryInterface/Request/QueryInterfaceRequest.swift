@@ -646,7 +646,7 @@ extension QueryInterfaceRequest {
     /// - parameter db: A database connection.
     /// - returns: A set of deleted ids.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    @available(macOS 10.15, tvOS 13, *) // Identifiable
+    @available(macOS 10.15, *) // Identifiable
     public func deleteAndFetchIds(_ db: Database)
     throws -> Set<RowDecoder.ID>
     where RowDecoder: TableRecord & Identifiable,

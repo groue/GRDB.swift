@@ -119,7 +119,7 @@ extension PersistableRecord {
     public func performSave(_ db: Database) throws { preconditionFailure() }
 }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension QueryInterfaceRequest where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> { preconditionFailure() }
@@ -144,13 +144,13 @@ extension SelectionRequest {
 @available(*, unavailable, renamed: "SQLExpression.AssociativeBinaryOperator")
 public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryOperator
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> { preconditionFailure() }
 }
 
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
     public static func selectID() -> QueryInterfaceRequest<ID> { preconditionFailure() }

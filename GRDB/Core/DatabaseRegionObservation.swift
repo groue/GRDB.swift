@@ -128,7 +128,7 @@ extension DatabaseRegionObservation {
 }
 
 #if canImport(Combine)
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension DatabaseRegionObservation {
     // MARK: - Publishing Impactful Transactions
     
@@ -140,7 +140,7 @@ extension DatabaseRegionObservation {
     ///
     /// Do not reschedule the publisher with `receive(on:options:)` or any
     /// `Publisher` method that schedules publisher elements.
-    @available(macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, *)
     public func publisher(in writer: some DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
         DatabasePublishers.DatabaseRegion(self, in: writer)
     }
@@ -186,7 +186,7 @@ private class DatabaseRegionObserver: TransactionObserver {
 }
 
 #if canImport(Combine)
-@available(macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, *)
 extension DatabasePublishers {
     /// A publisher that tracks transactions that modify a database region.
     ///
