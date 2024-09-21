@@ -30,3 +30,9 @@ struct PlayerCreationSheet: View {
         dismiss()
     }
 }
+
+// MARK: - Previews
+
+#Preview {
+    PlayerCreationSheet()
+}

@@ -20,6 +20,12 @@
                   "state" : "new",
                   "value" : "%lld Players"
                 }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No Player"
+                }
               }
             }
           }

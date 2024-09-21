@@ -1,16 +1,7 @@
 import SwiftUI
 
-struct PlayerListView<EmptyListActions: View>: View {
+struct PlayerListView: View {
     @Bindable var model: PlayerListModel
-    var emptyListActions: EmptyListActions
-    
-    init(
-        model: PlayerListModel,
-        @ViewBuilder emptyListActions: () -> EmptyListActions = { EmptyView() }
-    ) {
-        self.model = model
-        self.emptyListActions = emptyListActions()
-    }
     
     var body: some View {
         List {
@@ -52,10 +43,24 @@ struct PlayerRow: View {
     }
 }
 
+// MARK: - Previews
+
 #Preview {
     struct Preview: View {
-        @State var model = PlayerListModel(appDatabase: .random())
+        @Environment(\.appDatabase) var appDatabase
         
+        var body: some View {
+            ContentView(appDatabase: appDatabase)
+        }
+    }
+    
+    struct ContentView: View {
+        @State var model: PlayerListModel
+        
+        init(appDatabase: AppDatabase) {
+            _model = State(initialValue: PlayerListModel(appDatabase: appDatabase))
+        }
+
         var body: some View {
             NavigationStack {
                 PlayerListView(model: model)
@@ -64,5 +69,5 @@ struct PlayerRow: View {
         }
     }
     
-    return Preview()
+    return Preview().appDatabase(.random())
 }

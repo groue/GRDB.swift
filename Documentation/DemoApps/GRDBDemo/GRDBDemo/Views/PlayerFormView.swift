@@ -43,8 +43,18 @@ struct PlayerForm {
     var score: Int?
 }
 
-#Preview {
+// MARK: - Previews
+
+#Preview("Prefilled") {
     @Previewable @State var form = PlayerForm(name: "John", score: 100)
+    
+    Form {
+        PlayerFormView(form: $form)
+    }
+}
+
+#Preview("Empty") {
+    @Previewable @State var form = PlayerForm(name: "", score: nil)
     
     Form {
         PlayerFormView(form: $form)

@@ -33,9 +33,10 @@ struct PlayerEditionView: View {
     }
 }
 
+// MARK: - Previews
+
 #Preview {
     NavigationStack {
         PlayerEditionView(player: .makeRandom())
-            .appDatabase(.empty())
     }
 }

@@ -165,7 +165,14 @@ private struct ToggleOrderingButton: View {
     }
 }
 
-#Preview {
+// MARK: - Previews
+
+#Preview("Populated") {
     PlayerNavigationView()
         .appDatabase(.random())
+}
+
+#Preview("Empty") {
+    PlayerNavigationView()
+        .appDatabase(.empty())
 }

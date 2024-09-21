@@ -11,15 +11,8 @@ struct GRDBDemoApp: App {
 
 // MARK: - Give SwiftUI access to the database
 
-private struct AppDatabaseKey: EnvironmentKey {
-    static var defaultValue: AppDatabase { .empty() }
-}
-
 extension EnvironmentValues {
-    var appDatabase: AppDatabase {
-        get { self[AppDatabaseKey.self] }
-        set { self[AppDatabaseKey.self] = newValue }
-    }
+    @Entry var appDatabase = AppDatabase.empty()
 }
 
 extension View {
