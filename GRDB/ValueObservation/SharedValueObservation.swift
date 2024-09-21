@@ -87,9 +87,9 @@ extension ValueObservation {
     /// main dispatch queue. You can change this behavior by providing a
     /// scheduler.
     ///
-    /// For example, the ``ValueObservationScheduler/immediate`` scheduler
-    /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the
+    /// For example, the ``ValueObservationMainActorScheduler/immediate``
+    /// scheduler notifies all values on the main dispatch queue, and
+    /// notifies the first one immediately when the
     /// ``SharedValueObservation/start(onError:onChange:)`` method is called.
     /// The `immediate` scheduling requires that the observation starts from the
     /// main thread (a fatal error is raised otherwise):
@@ -110,9 +110,6 @@ extension ValueObservation {
     /// }
     /// // <- here "Fresh players" is already printed.
     /// ```
-    ///
-    /// Note that the `.immediate` scheduler requires that the observation is
-    /// subscribed from the main thread. It raises a fatal error otherwise.
     ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
@@ -227,7 +224,7 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    public func start(
+    @preconcurrency public func start(
         onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable

@@ -88,7 +88,7 @@
 - [ ] What can we do with `cross-module-optimization`? See https://github.com/apple/swift-homomorphic-encryption
 
 - [X] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
-- [ ] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
+- [X] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
 - [X] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
 - [X] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
 - [X] GRDB7: Replace LockedBox with Mutex (00ccab06)
@@ -158,7 +158,8 @@
 - [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
 - [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 - [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
-- [ ] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16) 
+- [ ] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16)
+- [ ] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor) 
 
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
