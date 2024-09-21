@@ -77,7 +77,6 @@ private class Person : Record, Hashable {
     }
 }
 
-@available(macOS 10.15, *)
 extension Person: Identifiable { }
 
 class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
@@ -599,20 +598,18 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let cursor = try Person.fetchCursor(db, ids: ids)
-                    try XCTAssertNil(cursor.next())
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let cursor = try Person.fetchCursor(db, ids: ids)
-                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
+            do {
+                let ids: [Int64] = []
+                let cursor = try Person.fetchCursor(db, ids: ids)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let cursor = try Person.fetchCursor(db, ids: ids)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
     }
@@ -638,19 +635,17 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = try Person.fetchAll(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = try Person.fetchAll(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                }
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.fetchAll(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.fetchAll(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -676,19 +671,17 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = try Person.fetchSet(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = try Person.fetchSet(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                }
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.fetchSet(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.fetchSet(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -714,18 +707,16 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let fetchedRecord = try Person.fetchOne(db, id: record.id!)!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertTrue(fetchedRecord.name == record.name)
-                    XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                    XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
-                }
-                do {
-                    try XCTAssertNil(Person.fetchOne(db, id: nil))
-                }
+            do {
+                let fetchedRecord = try Person.fetchOne(db, id: record.id!)!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+            }
+            do {
+                try XCTAssertNil(Person.fetchOne(db, id: nil))
             }
         }
     }
@@ -751,23 +742,21 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    _ = try Person.find(db, id: -1)
-                    XCTFail("Expected RecordError")
-                } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["rowid": (-1).databaseValue]) { }
-                
-                do {
-                    let fetchedRecord = try Person.find(db, id: record.id!)
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertTrue(fetchedRecord.name == record.name)
-                    XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                    XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
-                }
-                do {
-                    try XCTAssertNil(Person.fetchOne(db, id: nil))
-                }
+            do {
+                _ = try Person.find(db, id: -1)
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "persons", key: ["rowid": (-1).databaseValue]) { }
+            
+            do {
+                let fetchedRecord = try Person.find(db, id: record.id!)
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+            }
+            do {
+                try XCTAssertNil(Person.fetchOne(db, id: nil))
             }
         }
     }
@@ -797,20 +786,18 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let cursor = try Person.filter(ids: ids).fetchCursor(db)
-                    try XCTAssertNil(cursor.next())
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let cursor = try Person.filter(ids: ids).fetchCursor(db)
-                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
+            do {
+                let ids: [Int64] = []
+                let cursor = try Person.filter(ids: ids).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let cursor = try Person.filter(ids: ids).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
     }
@@ -836,19 +823,17 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = try Person.filter(ids: ids).fetchAll(db)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = try Person.filter(ids: ids).fetchAll(db)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                }
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.filter(ids: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.filter(ids: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -874,19 +859,17 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [Int64] = []
-                    let fetchedRecords = try Person.filter(ids: ids).fetchSet(db)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = try Person.filter(ids: ids).fetchSet(db)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
-                }
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.filter(ids: ids).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.filter(ids: ids).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -912,18 +895,16 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let fetchedRecord = try Person.filter(id: record.id!).fetchOne(db)!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertTrue(fetchedRecord.name == record.name)
-                    XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                    XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
-                }
-                do {
-                    try XCTAssertNil(Person.filter(id: nil).fetchOne(db))
-                }
+            do {
+                let fetchedRecord = try Person.filter(id: record.id!).fetchOne(db)!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertTrue(fetchedRecord.age == record.age)
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+            }
+            do {
+                try XCTAssertNil(Person.filter(id: nil).fetchOne(db))
             }
         }
     }

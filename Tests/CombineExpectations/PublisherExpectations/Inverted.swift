@@ -1,7 +1,6 @@
 #if canImport(Combine)
 import XCTest
 
-@available(macOS 10.15, *)
 extension PublisherExpectations {
     /// A publisher expectation that fails if the base expectation is fulfilled.
     ///

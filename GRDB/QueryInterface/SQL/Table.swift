@@ -722,7 +722,6 @@ extension Table {
     }
 }
 
-@available(macOS 10.15, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
@@ -1545,7 +1544,6 @@ extension Table {
     }
 }
 
-@available(macOS 10.15, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
@@ -1686,7 +1684,6 @@ extension Table {
     }
 }
 
-@available(macOS 10.15, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible

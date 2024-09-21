@@ -1199,7 +1199,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// will throw `CancellationError`, until `uncancel()` is called.
     ///
     /// This method can be called from any thread.
-    @available(macOS 10.15, *)
     func cancel() {
         let needsInterrupt = suspensionMutex.withLock { suspension in
             if suspension.isCancelled {
@@ -1216,7 +1215,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// Undo `cancel()`.
-    @available(macOS 10.15, *)
     func uncancel() {
         suspensionMutex.withLock {
             $0.isCancelled = false
@@ -1320,12 +1318,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             break
             
         case .cancel:
-            if #available(macOS 10.15, *) {
-                throw CancellationError()
-            } else {
-                // GRDB bug: cancellation is a Swift concurrency feature
-                fatalError("Can't cancel without support for Swift concurrency")
-            }
+            throw CancellationError()
             
         case .abort:
             // Attempt at releasing an eventual lock with ROLLBACk,

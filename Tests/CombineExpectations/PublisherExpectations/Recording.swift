@@ -2,7 +2,6 @@
 import Combine
 import XCTest
 
-@available(macOS 10.15, *)
 extension PublisherExpectations {
     /// A publisher expectation which waits for the recorded publisher
     /// to complete.

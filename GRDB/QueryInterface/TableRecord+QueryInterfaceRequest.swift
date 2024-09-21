@@ -604,7 +604,6 @@ extension TableRecord {
     }
 }
 
-@available(macOS 10.15, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///

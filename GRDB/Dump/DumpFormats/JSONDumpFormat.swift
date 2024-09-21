@@ -52,9 +52,7 @@ public struct JSONDumpFormat: Sendable {
     public static var defaultEncoder: JSONEncoder {
         // This encoder MUST NOT CHANGE, because some people rely on this format.
         let encoder = JSONEncoder()
-        if #available(macOS 10.15.0, *) {
-            encoder.outputFormatting = .withoutEscapingSlashes
-        }
+        encoder.outputFormatting = .withoutEscapingSlashes
         encoder.nonConformingFloatEncodingStrategy = .convertToString(
             positiveInfinity: "inf",
             negativeInfinity: "-inf",

@@ -17,7 +17,6 @@ private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     }
 }
 
-@available(macOS 10.15, *)
 extension Player: Identifiable { }
 
 private enum Columns: String, ColumnExpression {
@@ -56,18 +55,16 @@ class TableRecordUpdateTests: GRDBTestCase {
                 UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
                 """)
             
-            if #available(macOS 10.15, *) {
-                try Player.filter(id: 1).updateAll(db, assignment)
-                XCTAssertEqual(self.lastSQLQuery, """
+            try Player.filter(id: 1).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" = 1
                     """)
-                
-                try Player.filter(ids: [1, 2]).updateAll(db, assignment)
-                XCTAssertEqual(self.lastSQLQuery, """
+            
+            try Player.filter(ids: [1, 2]).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
                     """)
-            }
-
+            
             try Player.filter(sql: "id = 1").updateAll(db, assignment)
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE id = 1

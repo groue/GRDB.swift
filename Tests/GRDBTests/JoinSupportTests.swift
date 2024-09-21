@@ -92,7 +92,6 @@ private struct FlatModel: FetchableRecord {
         self.t5count = row.scopes[Scopes.suffix]!["t5count"]
     }
     
-    @available(macOS 10.15, *)
     static func modernAll() -> some FetchRequest<FlatModel> {
         all()
     }
@@ -138,7 +137,6 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     var t3: T3?
     var t5count: Int
     
-    @available(macOS 10.15, *)
     static func modernAll() -> some FetchRequest<CodableFlatModel> {
         all()
     }
@@ -186,7 +184,6 @@ private struct CodableNestedModel: FetchableRecord, Codable {
     var t3: T3?
     var t5count: Int
     
-    @available(macOS 10.15, *)
     static func modernAll() -> some FetchRequest<CodableNestedModel> {
         all()
     }

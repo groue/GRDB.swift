@@ -275,7 +275,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -295,7 +294,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -318,7 +316,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -341,7 +338,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -359,7 +355,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -406,7 +401,6 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     /// A test related to <https://github.com/groue/GRDB.swift/issues/1456>
-    @available(macOS 10.15, *)
     func testAsyncWriteThenRead() async throws {
         /// An async read performed after an async write should see the write.
         func test(_ dbWriter: some DatabaseWriter) async throws {
@@ -430,7 +424,6 @@ class DatabaseWriterTests : GRDBTestCase {
     
     // MARK: - Task Cancellation
     
-    @available(macOS 10.15, *)
     func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -461,7 +454,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -493,7 +485,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_statement_execution_from_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -527,7 +518,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_cursor_iteration_from_writeWithoutTransaction_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -565,7 +555,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_write_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -596,7 +585,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_write_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -628,7 +616,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_statement_execution_from_write_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -662,7 +649,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_cursor_iteration_from_write_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -700,7 +686,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -731,7 +716,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -763,7 +747,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_statement_execution_from_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -797,7 +780,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(macOS 10.15, *)
     func test_cursor_iteration_from_barrierWriteWithoutTransaction_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)

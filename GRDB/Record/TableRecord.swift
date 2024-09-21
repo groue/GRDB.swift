@@ -319,7 +319,6 @@ extension TableRecord {
     }
 }
 
-@available(macOS 10.15, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
@@ -454,7 +453,6 @@ extension TableRecord {
     }
 }
 
-@available(macOS 10.15, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
@@ -774,7 +772,6 @@ extension TableRecord where Self: EncodableRecord {
     }
 }
 
-@available(macOS 10.15, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns an error for a record that does not exist in the database.
     ///

@@ -43,7 +43,6 @@ import Foundation
 ///
 /// - ``wait()``
 /// - ``waitUnlessCancelled()``
-@available(macOS 10.15, *)
 public final class AsyncSemaphore: @unchecked Sendable {
     /// `Suspension` is the state of a task waiting for a signal.
     ///

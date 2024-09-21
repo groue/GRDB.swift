@@ -41,7 +41,6 @@ private class MinimalNonOptionalPrimaryKeySingle: Record, Hashable {
     }
 }
 
-@available(macOS 10.15, *)
 extension MinimalNonOptionalPrimaryKeySingle: Identifiable { }
 
 class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
@@ -473,20 +472,18 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let cursor = try MinimalNonOptionalPrimaryKeySingle.fetchCursor(db, ids: ids)
-                    try XCTAssertNil(cursor.next())
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let cursor = try MinimalNonOptionalPrimaryKeySingle.fetchCursor(db, ids: ids)
-                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
+            do {
+                let ids: [String] = []
+                let cursor = try MinimalNonOptionalPrimaryKeySingle.fetchCursor(db, ids: ids)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let cursor = try MinimalNonOptionalPrimaryKeySingle.fetchCursor(db, ids: ids)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
     }
@@ -512,19 +509,17 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchAll(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchAll(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                }
+            do {
+                let ids: [String] = []
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchAll(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchAll(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
         }
     }
@@ -550,19 +545,17 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchSet(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchSet(db, ids: ids)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                }
+            do {
+                let ids: [String] = []
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchSet(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.fetchSet(db, ids: ids)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
         }
     }
@@ -585,12 +578,10 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.fetchOne(db, id: record.id)!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
-                }
+            do {
+                let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.fetchOne(db, id: record.id)!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
         }
     }
@@ -613,17 +604,15 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    _ = try MinimalNonOptionalPrimaryKeySingle.find(db, key: "missing")
-                    XCTFail("Expected RecordError")
-                } catch RecordError.recordNotFound(databaseTableName: "minimalSingles", key: ["id": "missing".databaseValue]) { }
-                
-                do {
-                    let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.find(db, id: record.id)
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
-                }
+            do {
+                _ = try MinimalNonOptionalPrimaryKeySingle.find(db, key: "missing")
+                XCTFail("Expected RecordError")
+            } catch RecordError.recordNotFound(databaseTableName: "minimalSingles", key: ["id": "missing".databaseValue]) { }
+            
+            do {
+                let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.find(db, id: record.id)
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
         }
     }
@@ -653,20 +642,18 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let cursor = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchCursor(db)
-                    try XCTAssertNil(cursor.next())
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let cursor = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchCursor(db)
-                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                    XCTAssertTrue(try cursor.next() == nil) // end
-                }
+            do {
+                let ids: [String] = []
+                let cursor = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchCursor(db)
+                try XCTAssertNil(cursor.next())
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let cursor = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchCursor(db)
+                let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
     }
@@ -692,19 +679,17 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchAll(db)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchAll(db)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                }
+            do {
+                let ids: [String] = []
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
         }
     }
@@ -730,19 +715,17 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let ids: [String] = []
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchSet(db)
-                    XCTAssertEqual(fetchedRecords.count, 0)
-                }
-                
-                do {
-                    let ids = [record1.id, record2.id]
-                    let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchSet(db)
-                    XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
-                }
+            do {
+                let ids: [String] = []
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id, record2.id]
+                let fetchedRecords = try MinimalNonOptionalPrimaryKeySingle.filter(ids: ids).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
             }
         }
     }
@@ -765,12 +748,10 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
             
-            if #available(macOS 10.15, *) {
-                do {
-                    let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.filter(id: record.id).fetchOne(db)!
-                    XCTAssertTrue(fetchedRecord.id == record.id)
-                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
-                }
+            do {
+                let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.filter(id: record.id).fetchOne(db)!
+                XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
             }
         }
     }

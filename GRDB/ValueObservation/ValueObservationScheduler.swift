@@ -182,7 +182,6 @@ extension ValueObservationMainActorScheduler where Self == ImmediateValueObserva
 // MARK: - TaskValueObservationScheduler
 
 /// A scheduler that notifies all values on the cooperative thread pool.
-@available(macOS 10.15, *)
 public final class TaskValueObservationScheduler: ValueObservationScheduler {
     typealias Action = @Sendable () -> Void
     let continuation: AsyncStream<Action>.Continuation
@@ -212,7 +211,6 @@ public final class TaskValueObservationScheduler: ValueObservationScheduler {
     }
 }
 
-@available(macOS 10.15, *)
 extension ValueObservationScheduler where Self == TaskValueObservationScheduler {
     /// A scheduler that notifies all values from a new `Task`.
     public static var task: TaskValueObservationScheduler {
@@ -229,7 +227,6 @@ extension ValueObservationScheduler where Self == TaskValueObservationScheduler 
 // MARK: - DelayedMainActorValueObservationScheduler
 
 /// A scheduler that notifies all values on the cooperative thread pool.
-@available(macOS 10.15, *)
 public final class DelayedMainActorValueObservationScheduler: ValueObservationMainActorScheduler {
     public func immediateInitialValue() -> Bool {
         false
@@ -240,7 +237,6 @@ public final class DelayedMainActorValueObservationScheduler: ValueObservationMa
     }
 }
 
-@available(macOS 10.15, *)
 extension ValueObservationScheduler where Self == DelayedMainActorValueObservationScheduler {
     /// A scheduler that notifies all values on the main actor.
     public static var mainActor: DelayedMainActorValueObservationScheduler {

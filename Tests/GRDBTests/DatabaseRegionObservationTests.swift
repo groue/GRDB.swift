@@ -8,10 +8,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         let observation = DatabaseRegionObservation(tracking: .fullDatabase)
         
         _ = observation.start(in: writer, onError: { _ in }, onChange: { _ in })
-        
-        if #available(macOS 10.15, *) {
-            _ = observation.publisher(in: writer)
-        }
+        _ = observation.publisher(in: writer)
     }
     
     func testDatabaseRegionObservation_FullDatabase() throws {

@@ -51,7 +51,6 @@ final class Test<Context> {
     }
 }
 
-@available(macOS 10.15, *)
 final class AsyncTest<Context> {
     // Raise the repeatCount in order to help spotting flaky tests.
     private let repeatCount: Int
@@ -100,7 +99,6 @@ final class AsyncTest<Context> {
     }
 }
 
-@available(macOS 10.15, *)
 public func assertNoFailure<Failure>(
     _ completion: Subscribers.Completion<Failure>,
     file: StaticString = #file,
@@ -111,7 +109,6 @@ public func assertNoFailure<Failure>(
     }
 }
 
-@available(macOS 10.15, *)
 public func assertFailure<Failure, ExpectedFailure>(
     _ completion: Subscribers.Completion<Failure>,
     file: StaticString = #file,

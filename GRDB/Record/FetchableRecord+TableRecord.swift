@@ -216,7 +216,6 @@ extension FetchableRecord where Self: TableRecord {
     }
 }
 
-@available(macOS 10.15, *)
 extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseValueConvertible {
     
     // MARK: Fetching by Single-Column Primary Key
@@ -358,7 +357,6 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     }
 }
 
-@available(macOS 10.15, *)
 extension FetchableRecord where Self: TableRecord & Hashable & Identifiable, ID: DatabaseValueConvertible {
     /// Returns a set of records identified by their primary keys.
     ///

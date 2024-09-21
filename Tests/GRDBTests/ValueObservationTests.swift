@@ -5,7 +5,6 @@ import Dispatch
 class ValueObservationTests: GRDBTestCase {
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
-    @available(macOS 10.15, *)
     func testStartFromAnyDatabaseReader(reader: any DatabaseReader) {
         _ = ValueObservation
             .trackingConstantRegion { _ in }
@@ -14,7 +13,6 @@ class ValueObservationTests: GRDBTestCase {
     
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
-    @available(macOS 10.15, *)
     func testStartFromAnyDatabaseWriter(writer: any DatabaseWriter) {
         _ = ValueObservation
             .trackingConstantRegion { _ in }
@@ -23,7 +21,6 @@ class ValueObservationTests: GRDBTestCase {
     
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
-    @available(macOS 10.15, *)
     func testValuesFromAnyDatabaseWriter(writer: any DatabaseWriter) {
         func observe<T>(
             fetch: @escaping @Sendable (Database) throws -> T
@@ -55,7 +52,6 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    @available(macOS 10.15, *)
     func testErrorCompletesTheObservation() throws {
         struct TestError: Error { }
         
@@ -105,7 +101,6 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    @available(macOS 10.15, *)
     func testViewOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -143,7 +138,6 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
-    @available(macOS 10.15, *)
     func testPragmaTableOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
@@ -179,7 +173,6 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Constant Explicit Region
     
-    @available(macOS 10.15, *)
     func testTrackingExplicitRegion() throws {
         class TestStream: TextOutputStream {
             private var stringsMutex: Mutex<[String]> = Mutex([])
@@ -620,7 +613,6 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Cancellation
     
-    @available(macOS 10.15, *)
     func testCancellableLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -666,7 +658,6 @@ class ValueObservationTests: GRDBTestCase {
         XCTAssertEqual(changesCountMutex.load(), 2)
     }
     
-    @available(macOS 10.15, *)
     func testCancellableExplicitCancellation() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -804,7 +795,6 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    @available(macOS 10.15, *)
     func testIssue1550() throws {
         func test(_ writer: some DatabaseWriter) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -852,7 +842,6 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    @available(macOS 10.15, *)
     func testIssue1209() throws {
         func test(_ dbWriter: some DatabaseWriter) throws {
             try dbWriter.write {
@@ -903,7 +892,6 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // MARK: - Main Actor
-    @available(macOS 10.15, *)
     @MainActor func test_mainActor_observation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -939,7 +927,6 @@ class ValueObservationTests: GRDBTestCase {
 
     // MARK: - Async Await
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_values_prefix() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -977,7 +964,6 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_values_break() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -1019,7 +1005,6 @@ class ValueObservationTests: GRDBTestCase {
         try await AsyncTest(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 10.15, *)
     func testAsyncAwait_values_cancelled() async throws {
         func test(_ writer: some DatabaseWriter) async throws {
             // We need something to change
@@ -1201,7 +1186,6 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1362>
-    @available(macOS 10.15, *)
     func testIssue1362() throws {
         func test(_ writer: some DatabaseWriter) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE s(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -1292,7 +1276,6 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1383>
-    @available(macOS 10.15, *)
     func testIssue1383_async() throws {
         do {
             let dbPool = try makeDatabasePool(filename: "test")

@@ -22,10 +22,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisher() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -49,10 +45,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisherValue() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -76,10 +68,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisherError() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(updates: { db in
                 try db.execute(sql: "THIS IS NOT SQL")
@@ -99,10 +87,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     }
     
     func testWritePublisherErrorRollbacksTransaction() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -132,10 +116,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisherIsAsynchronous() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -168,10 +148,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisherDefaultScheduler() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -206,10 +182,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWritePublisherCustomScheduler() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -247,10 +219,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // TODO: Fix flaky test with both pool and on-disk queue:
     // - Expectation timeout
     func testWriteThenReadPublisher() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -274,10 +242,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWriteThenReadPublisherIsReadonly() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = writer
                 .writePublisher(
@@ -299,10 +263,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: -
     
     func testWriteThenReadPublisherWriteError() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(
                 updates: { db in try db.execute(sql: "THIS IS NOT SQL") },
@@ -322,10 +282,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     }
     
     func testWriteThenReadPublisherWriteErrorRollbacksTransaction() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -359,10 +315,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // TODO: Fix flaky test with both pool and on-disk queue:
     // - Expectation timeout
     func testWriteThenReadPublisherReadError() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let publisher = writer.writePublisher(
                 updates: { _ in },
@@ -386,10 +338,6 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // Regression test against deadlocks created by concurrent completion
     // and cancellations triggered by .switchToLatest().prefix(1)
     func testDeadlockPrevention() throws {
-        guard #available(macOS 10.15, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer

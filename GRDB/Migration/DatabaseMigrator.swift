@@ -496,7 +496,6 @@ extension DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter.
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
-    @available(macOS 10.15, *)
     public func migratePublisher(
         _ writer: some DatabaseWriter,
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main)
@@ -514,7 +513,6 @@ extension DatabaseMigrator {
     }
 }
 
-@available(macOS 10.15, *)
 extension DatabasePublishers {
     /// A publisher that migrates a database.
     ///

@@ -9,7 +9,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -44,7 +44,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -105,7 +105,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -281,7 +281,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -316,7 +316,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -392,7 +392,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -435,7 +435,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -470,7 +470,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -525,7 +525,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -580,7 +580,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -635,7 +635,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -738,7 +738,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -821,7 +821,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -904,7 +904,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -947,7 +947,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -990,7 +990,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1025,7 +1025,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1060,7 +1060,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1103,7 +1103,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1138,7 +1138,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1185,7 +1185,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1216,7 +1216,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1282,7 +1282,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1309,7 +1309,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             throw XCTSkip("JSON support is not available")
         }
 #else
-        guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
             throw XCTSkip("JSON support is not available")
         }
 #endif
@@ -1397,7 +1397,7 @@ final class JSONExpressionsTests: GRDBTestCase {
 //             throw XCTSkip("JSON support is not available")
 //         }
 // #else
-//         guard #available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) else {
+//         guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
 //             throw XCTSkip("JSON support is not available")
 //         }
 // #endif
