@@ -311,9 +311,9 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 ### Accessing Observed Values
 
+- ``start(in:scheduling:onError:onChange:)-t62r``
+- ``start(in:scheduling:onError:onChange:)-4mqbs``
 - ``publisher(in:scheduling:)``
-- ``start(in:scheduling:onError:onChange:)-10vwf``
-- ``start(in:scheduling:onError:onChange:)-7z197``
 - ``values(in:scheduling:bufferingPolicy:)``
 - ``DatabaseCancellable``
 - ``ValueObservationScheduler``

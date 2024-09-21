@@ -84,7 +84,7 @@ extension DatabaseRegionObservation {
     ///   modified the observed region.
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        in writer: some DatabaseWriter,
+        in writer: any DatabaseWriter,
         onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping @Sendable (Database) -> Void)
     -> AnyDatabaseCancellable
@@ -139,7 +139,7 @@ extension DatabaseRegionObservation {
     ///
     /// Do not reschedule the publisher with `receive(on:options:)` or any
     /// `Publisher` method that schedules publisher elements.
-    public func publisher(in writer: some DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
+    public func publisher(in writer: any DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
         DatabasePublishers.DatabaseRegion(self, in: writer)
     }
 }
@@ -195,7 +195,7 @@ extension DatabasePublishers {
         let writer: any DatabaseWriter
         let observation: DatabaseRegionObservation
         
-        init(_ observation: DatabaseRegionObservation, in writer: some DatabaseWriter) {
+        init(_ observation: DatabaseRegionObservation, in writer: any DatabaseWriter) {
             self.writer = writer
             self.observation = observation
         }
@@ -247,7 +247,7 @@ extension DatabasePublishers {
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
         init(
-            writer: some DatabaseWriter,
+            writer: any DatabaseWriter,
             observation: DatabaseRegionObservation,
             downstream: Downstream)
         {

@@ -120,7 +120,7 @@ extension ValueObservation: Refinable {
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
     @preconcurrency public func start(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler,
         onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping @Sendable (Reducer.Value) -> Void)
@@ -180,7 +180,7 @@ extension ValueObservation: Refinable {
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
     @preconcurrency @MainActor public func start(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationMainActorScheduler = .mainActor,
         onError: @escaping @MainActor (Error) -> Void,
         onChange: @escaping @MainActor (Reducer.Value) -> Void)
@@ -350,7 +350,7 @@ extension ValueObservation {
     /// - parameter bufferingPolicy: see the documntation
     ///   of `AsyncThrowingStream`.
     public func values(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .task,
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
@@ -486,7 +486,7 @@ extension ValueObservation {
     ///   values are dispatched asynchronously on the main dispatch queue.
     /// - returns: A Combine publisher
     public func publisher(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     where Reducer: ValueReducer
