@@ -6,7 +6,8 @@ import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
-    .enableUpcomingFeature("InferSendableFromCaptures")
+    .enableUpcomingFeature("InferSendableFromCaptures"),
+    .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
