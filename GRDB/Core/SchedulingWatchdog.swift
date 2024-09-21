@@ -45,7 +45,9 @@ final class SchedulingWatchdog: @unchecked Sendable {
     }
     
     /// Must be called from a DispatchQueue with an attached SchedulingWatchdog.
-    static func inheritingAllowedDatabases<T>(_ allowedDatabases: [Database], execute body: () throws -> T) rethrows -> T {
+    static func inheritingAllowedDatabases<T>(
+        _ allowedDatabases: [Database], execute body: () throws -> T
+    ) rethrows -> T {
         let watchdog = current!
         let backup = watchdog.allowedDatabases
         watchdog.allowedDatabases.append(contentsOf: allowedDatabases)
