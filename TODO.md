@@ -121,7 +121,7 @@
 - [ ] GRDB7: Not Sendable: databasepublishers/databaseregion, migrate, read, value, write
 - [X] GRDB7: Sendable closures for writePublisher
 - [X] GRDB7: Sendable closures for readPublisher
-- [ ] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
+- [-] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
 - [X] GRDB7: Sendable: DatabasePromise (05899228, 5a2c15b8)
 - [X] GRDB7: Sendable: TableAlias (f2b0b186)
 - [X] GRDB7: Sendable: SQLRelation (9545bf70)
@@ -143,6 +143,8 @@
 - [X] GRDB7: doc (c0838cf9)
 - [X] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
 - [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
+    - [X] Doc
+    - [ ] Migration Guide
 - [X] GRDB7: Sendable: Association (b06aaee4)
 - [ ] GRDB7/Tests: Sendable: ValueObservationRecorder (2947b3d7)
 - [ ] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)

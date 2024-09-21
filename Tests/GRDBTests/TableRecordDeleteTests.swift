@@ -461,7 +461,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             struct Team: MutablePersistableRecord, FetchableRecord {
                 // Test RETURNING
-                static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+                static var databaseSelection: [any SQLSelectable] { [Column("id"), Column("name")] }
                 static let players = hasMany(Player.self)
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
                 init(row: Row) { preconditionFailure("should not be called") }

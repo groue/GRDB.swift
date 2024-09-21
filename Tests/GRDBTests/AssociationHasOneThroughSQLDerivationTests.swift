@@ -19,12 +19,12 @@ private struct C: TableRecord {
 
 private struct RestrictedC : TableRecord {
     static let databaseTableName = "c"
-    static let databaseSelection: [any SQLSelectable] = [Column("name")]
+    static var databaseSelection: [any SQLSelectable] { [Column("name")] }
 }
 
 private struct ExtendedC : TableRecord {
     static let databaseTableName = "c"
-    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
 }
 
 /// Test SQL generation

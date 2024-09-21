@@ -20,7 +20,9 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test databaseSelection
-            static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.name, Columns.score]
+            static var databaseSelection: [any SQLSelectable] {
+                [Columns.id, Columns.name, Columns.score]
+            }
             
             init(row: Row) {
                 // Test row subscript
@@ -80,7 +82,9 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test databaseSelection
-            static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.name, Columns.score]
+            static var databaseSelection: [any SQLSelectable] {
+                [Columns.id, Columns.name, Columns.score]
+            }
             
             init(row: Row) {
                 // Test row subscript
@@ -148,7 +152,9 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test databaseSelection
-            static let databaseSelection: [any SQLSelectable] = [Columns.id, Columns.name, Columns.score]
+            static var databaseSelection: [any SQLSelectable] {
+                [Columns.id, Columns.name, Columns.score]
+            }
             
             static var testRequest: QueryInterfaceRequest<Player> {
                 // Test expression derivation
@@ -196,7 +202,9 @@ class ColumnExpressionTests: GRDBTestCase {
             }
             
             // Test databaseSelection
-            static let databaseSelection: [any SQLSelectable] = [CodingKeys.id, CodingKeys.name, CodingKeys.score]
+            static var databaseSelection: [any SQLSelectable] {
+                [CodingKeys.id, CodingKeys.name, CodingKeys.score]
+            }
             
             static var testRequest: QueryInterfaceRequest<Player> {
                 // Test expression derivation
