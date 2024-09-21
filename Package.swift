@@ -66,6 +66,7 @@ let package = Package(
                 "CocoaPods",
                 "Crash",
                 "CustomSQLite",
+                "GRDBManualInstall",
                 "GRDBTests/getThreadsCount.c",
                 "Info.plist",
                 "Performance",
