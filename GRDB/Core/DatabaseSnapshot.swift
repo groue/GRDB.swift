@@ -151,7 +151,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
         try reader.sync(block)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -173,7 +173,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     // We can't provide this as a default implementation in
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {

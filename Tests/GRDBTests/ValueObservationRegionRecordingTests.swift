@@ -105,7 +105,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func testTupleObservation() throws {
         // Here we just test that user can destructure an observed tuple.
         // I'm completely paranoid about tuple destructuring - I can't wrap my
@@ -120,7 +120,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             onChange: { (int: Int, string: String) in }) // <- destructure
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func testVaryingRegionTrackingImmediateScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

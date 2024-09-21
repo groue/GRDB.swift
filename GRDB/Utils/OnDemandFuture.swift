@@ -17,7 +17,7 @@ import Foundation
 ///
 /// OnDemandFuture also adds Sendable requirements that avoid
 /// compiler warnings.
-@available(iOS 13, macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, tvOS 13, *)
 struct OnDemandFuture<Output, Failure: Error>: Publisher {
     typealias Promise = @Sendable (Result<Output, Failure>) -> Void
     typealias Output = Output
@@ -36,7 +36,7 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, tvOS 13, *)
 private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable {
     // @unchecked because `state` is protected with `lock`.
     typealias Promise = @Sendable (Result<Downstream.Input, Downstream.Failure>) -> Void

@@ -216,7 +216,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - throws: Any ``DatabaseError`` that happens while establishing the
     ///   database access, or the error thrown by `value`, or
     ///   `CancellationError` if the task is cancelled.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
@@ -323,7 +323,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - throws: Any ``DatabaseError`` that happens while establishing the
     ///   database access, or the error thrown by `value`, or
     ///   `CancellationError` if the task is cancelled.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T
@@ -535,7 +535,7 @@ extension DatabaseReader {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter value: A closure which accesses the database.
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
         value: @escaping @Sendable (Database) throws -> Output
@@ -550,7 +550,7 @@ extension DatabaseReader {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, tvOS 13, *)
 extension DatabasePublishers {
     /// A publisher that reads from the database.
     ///
@@ -569,7 +569,7 @@ extension DatabasePublishers {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, tvOS 13, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
         .init(upstream: eraseToAnyPublisher())
@@ -660,7 +660,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.read(value)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -678,7 +678,7 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {

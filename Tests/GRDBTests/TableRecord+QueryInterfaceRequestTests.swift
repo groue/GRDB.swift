@@ -357,7 +357,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     func testExistsIdentifiable() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, *) else {
+        guard #available(macOS 10.15, tvOS 13, *) else {
             throw XCTSkip("Identifiable is not available")
         }
         

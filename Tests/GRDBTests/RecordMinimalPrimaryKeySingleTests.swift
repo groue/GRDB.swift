@@ -39,7 +39,7 @@ class MinimalSingle: Record, Hashable {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, *)
+@available(macOS 10.15, tvOS 13, *)
 extension MinimalSingle: Identifiable {
     /// Test non-optional ID type
     var id: String { UUID! }
@@ -531,7 +531,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let cursor = try MinimalSingle.fetchCursor(db, ids: UUIDs)
@@ -572,7 +572,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let fetchedRecords = try MinimalSingle.fetchAll(db, ids: UUIDs)
@@ -612,7 +612,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let fetchedRecords = try MinimalSingle.fetchSet(db, ids: UUIDs)
@@ -648,7 +648,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let fetchedRecord = try MinimalSingle.fetchOne(db, id: record.UUID!)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
@@ -677,7 +677,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     _ = try MinimalSingle.find(db, id: "missing")
                     XCTFail("Expected RecordError")
@@ -719,7 +719,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let cursor = try MinimalSingle.filter(ids: UUIDs).fetchCursor(db)
@@ -760,7 +760,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchAll(db)
@@ -800,7 +800,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let UUIDs: [String] = []
                     let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchSet(db)
@@ -836,7 +836,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, *) {
+            if #available(macOS 10.15, tvOS 13, *) {
                 do {
                     let fetchedRecord = try MinimalSingle.filter(id: record.UUID!).fetchOne(db)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)

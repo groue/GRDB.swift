@@ -49,7 +49,7 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func testAsyncAwait_ReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -91,7 +91,7 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func testAsyncAwait_ReadPreventsDatabaseModification() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             do {
@@ -135,7 +135,7 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func testAsyncAwait_UnsafeReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -347,7 +347,7 @@ class DatabaseReaderTests : GRDBTestCase {
     
     // MARK: - Task Cancellation
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_read_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -383,7 +383,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_read_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -420,7 +420,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_statement_execution_from_read_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -459,7 +459,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_cursor_iteration_from_read_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -502,7 +502,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_unsafeRead_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -538,7 +538,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_unsafeRead_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -575,7 +575,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_statement_execution_from_unsafeRead_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
@@ -614,7 +614,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     func test_cursor_iteration_from_unsafeRead_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)

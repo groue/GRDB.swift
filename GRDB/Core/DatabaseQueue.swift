@@ -233,7 +233,7 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -272,7 +272,7 @@ extension DatabaseQueue: DatabaseReader {
         try writer.sync(value)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func unsafeRead<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -386,7 +386,7 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func writeWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
@@ -398,7 +398,7 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, *)
+    @available(macOS 10.15, tvOS 13, *)
     public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
