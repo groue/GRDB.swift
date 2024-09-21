@@ -81,7 +81,7 @@ test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher3Enc
 test_archive: test_universal_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
-test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo test_GRDBAsyncDemo
+test_demo_apps: test_GRDBDemo
 
 test_framework_GRDBOSX:
 	$(XCODEBUILD) \
@@ -270,10 +270,10 @@ test_universal_xcframework:
 
 test_install_manual:
 	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -scheme GRDBDemoiOS \
+	  -project Tests/GRDBManualInstall/GRDBManualInstall.xcodeproj \
+	  -scheme GRDBManualInstall \
 	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
+	  -destination "platform=macOS" \
 	  clean build \
 	  $(XCPRETTY)
 
@@ -371,26 +371,10 @@ else
 	@exit 1
 endif
 
-test_GRDBDemoiOS:
+test_GRDBDemo:
 	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -scheme GRDBDemoiOS \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
-
-test_GRDBCombineDemo:
-	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
-	  -scheme GRDBCombineDemo \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
-
-test_GRDBAsyncDemo:
-	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBAsyncDemo/GRDBAsyncDemo.xcodeproj \
-	  -scheme GRDBAsyncDemo \
+	  -project Documentation/DemoApps/GRDBDemo/GRDBDemo.xcodeproj \
+	  -scheme GRDBDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
