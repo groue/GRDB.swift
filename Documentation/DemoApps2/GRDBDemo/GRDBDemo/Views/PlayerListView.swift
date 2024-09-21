@@ -1,0 +1,68 @@
+import SwiftUI
+
+struct PlayerListView<EmptyListActions: View>: View {
+    @Bindable var model: PlayerListModel
+    var emptyListActions: EmptyListActions
+    
+    init(
+        model: PlayerListModel,
+        @ViewBuilder emptyListActions: () -> EmptyListActions = { EmptyView() }
+    ) {
+        self.model = model
+        self.emptyListActions = emptyListActions()
+    }
+    
+    var body: some View {
+        List {
+            ForEach(model.players, id: \.id) { player in
+                NavigationLink {
+                    PlayerEditionView(player: player)
+                } label: {
+                    PlayerRow(player: player)
+                }
+            }
+            .onDelete { offsets in
+                try? model.deletePlayers(at: offsets)
+            }
+        }
+        .animation(.default, value: model.players)
+        .listStyle(.plain)
+        .navigationTitle("\(model.players.count) Players")
+    }
+}
+
+struct PlayerRow: View {
+    var player: Player
+    
+    var body: some View {
+        HStack {
+            Group {
+                if player.name.isEmpty {
+                    Text("Anonymous").italic()
+                } else {
+                    Text(player.name)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text("\(player.score) points")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+#Preview {
+    struct Preview: View {
+        @State var model = PlayerListModel(appDatabase: .random())
+        
+        var body: some View {
+            NavigationStack {
+                PlayerListView(model: model)
+                    .onAppear { model.observePlayers() }
+            }
+        }
+    }
+    
+    return Preview()
+}
