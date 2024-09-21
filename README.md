@@ -276,7 +276,7 @@ Documentation
 
 #### Demo Applications & Frequently Asked Questions
 
-- [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
+- [Demo Applications]
 - [FAQ]
 
 #### Reference
@@ -394,8 +394,6 @@ Due to an [issue](https://github.com/CocoaPods/CocoaPods/issues/11839) in CocoaP
 3. Add the `GRDB` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
 4. Add the `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
-
-> :bulb: **Tip**: see the [Demo Applications] for examples of such integration.
 
 
 Database Connections
