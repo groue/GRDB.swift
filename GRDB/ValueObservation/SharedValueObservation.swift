@@ -224,7 +224,7 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    public func start(
+    @preconcurrency public func start(
         onError: @escaping @Sendable (Error) -> Void,
         onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable

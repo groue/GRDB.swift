@@ -119,7 +119,7 @@ extension ValueObservation: Refinable {
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    public func start(
+    @preconcurrency public func start(
         in reader: some DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler,
         onError: @escaping @Sendable (Error) -> Void,
@@ -787,7 +787,7 @@ extension ValueObservation {
     ///     ```
     ///
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func trackingConstantRegion<Value>(
+    @preconcurrency public static func trackingConstantRegion<Value>(
         _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
@@ -859,7 +859,7 @@ extension ValueObservation {
     /// - parameter otherRegions: A list of supplementary regions
     ///   to observe.
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
+    @preconcurrency public static func tracking<Value>(
         region: any DatabaseRegionConvertible,
         _ otherRegions: any DatabaseRegionConvertible...,
         fetch: @escaping @Sendable (Database) throws -> Value)
@@ -929,7 +929,7 @@ extension ValueObservation {
     ///
     /// - parameter regions: An array of observed regions.
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
+    @preconcurrency public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
         fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
@@ -987,7 +987,7 @@ extension ValueObservation {
     /// ```
     ///
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
+    @preconcurrency public static func tracking<Value>(
         _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
