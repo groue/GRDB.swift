@@ -166,7 +166,8 @@
 - [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
 - [ ] GRDB7: Remove warning about "products" in Package.swift
 - [ ] GRDB7: Fixits
-    - [ ] defaultTransactionKind
+    - [X] defaultTransactionKind
+    - [X] concurrentRead
 - [ ] GRDB7: Swift Concurrency recommendations
     - [ ] Record classe(s)
     - [ ] InferSendableFromCaptures
