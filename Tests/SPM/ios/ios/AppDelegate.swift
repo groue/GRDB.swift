@@ -1,5 +1,6 @@
 import UIKit
 import GRDB
+import SQLite3
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,6 +8,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ = try! DatabaseQueue()
             .readPublisher(value: { _ in })
             .assertNoFailure()
+        _ = sqlite3_libversion_number()
         return true
     }
     

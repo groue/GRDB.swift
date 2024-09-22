@@ -13,6 +13,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // test_SQLITE_ENABLE_PREUPDATE_HOOK
         _ = DatabasePreUpdateEvent.self
         
+        // test C functions
+        _ = sqlite3_libversion_number()
+        
         return true
     }
 }
