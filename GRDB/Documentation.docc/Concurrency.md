@@ -84,9 +84,7 @@ try dbQueue.write { db in
 
 🔀 **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are four ways to access the database asynchronously:
 
-- **Swift concurrency**  (async/await)
-    
-    [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+- **Swift concurrency** (async/await)
     
     ```swift
     let playerCount = try await dbQueue.read { db in
@@ -104,6 +102,8 @@ try dbQueue.write { db in
     Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
     
     The async database access methods honor task cancellation. Once an async Task is cancelled, reads and writes throw `CancellationError`, and any transaction is rollbacked.
+    
+    See <doc:SwiftConcurrency> for more information about GRDB and Swift 6.
 
 - **Combine publishers**
     
@@ -318,8 +318,9 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 - ``DatabaseReader``
 - ``DatabaseSnapshotReader``
 
-### Advanced Concurrency
+### Going Further
 
+- <doc:SwiftConcurrency>
 - <doc:DatabaseSharing>
 
 
