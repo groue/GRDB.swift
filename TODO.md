@@ -172,25 +172,25 @@
     - [ ] Record classe(s)
     - [ ] InferSendableFromCaptures
 - [ ] GRDB7: Breaking changes documentation
-    - [ ] [BREAKING] Xcode 16+, Swift 6+
-    - [ ] [BREAKING] iOS 13+
-    - [ ] [BREAKING] macOS 10.15+
-    - [ ] [BREAKING] tvOS 13+
-    - [ ] [BREAKING] watchOS 7+
+    - [X] [BREAKING] Xcode 16+, Swift 6+
+    - [X] [BREAKING] iOS 13+
+    - [X] [BREAKING] macOS 10.15+
+    - [X] [BREAKING] tvOS 13+
+    - [X] [BREAKING] watchOS 7+
     - [ ] insertAndFetch, updateAndFetch, saveAndFetch
-    - [ ] CSQLite renamed to GRDBCSQLite
-    - [ ] CSQLite is not exported
-    - [ ] defaultTransactionKind
-    - [ ] concurrentRead
-    - [ ] record column strategies:
+    - [X] CSQLite renamed to GRDBCSQLite
+    - [X] CSQLite is not exported
+    - [X] defaultTransactionKind
+    - [X] concurrentRead
+    - [X] record column strategies:
         - databaseDataEncodingStrategy
         - databaseDateEncodingStrategy
         - databaseUUIDEncodingStrategy
         - databaseDataDecodingStrategy
         - databaseDateDecodingStrategy
-    - [ ] PersistenceContainer subscript no longer returns its input value
-    - [ ] cancellation of async database access
-    - [ ] Async sequences built from ValueObservation schedule values and errors on the cooperative thread pool by default.
+    - [X] PersistenceContainer subscript no longer returns its input value
+    - [X] cancellation of async database access
+    - [X] Async sequences built from ValueObservation schedule values and errors on the cooperative thread pool by default.
     - [ ] `TableRecord.databaseSelection` should be declared as a computed static property
     - [ ] databaseDecodingUserInfo and databaseEncodingUserInfo must be declared as a computed property
 
