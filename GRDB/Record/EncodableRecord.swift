@@ -362,8 +362,9 @@ public struct PersistenceContainer: Sendable {
     
     /// The value associated with the given column.
     ///
-    /// The setter accepts any ``DatabaseValueConvertible`` type, but the
-    /// getter always returns a ``DatabaseValue``.
+    /// The getter may not return the exact same value that has been
+    /// previously set. The only guarantee is that both are encoded
+    /// identically in the database.
     public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
         get {
             storage[CaseInsensitiveIdentifier(rawValue: column)]
@@ -377,8 +378,9 @@ public struct PersistenceContainer: Sendable {
     
     /// The value associated with the given column.
     ///
-    /// The setter accepts any ``DatabaseValueConvertible`` type, but the
-    /// getter always returns a ``DatabaseValue``.
+    /// The getter may not return the exact same value that has been
+    /// previously set. The only guarantee is that both are encoded
+    /// identically in the database.
     public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         get { self[column.name] }
         set { self[column.name] = newValue }
