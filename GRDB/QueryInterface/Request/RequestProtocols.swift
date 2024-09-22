@@ -464,7 +464,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                         "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
                     let column = primaryKey.columns[0]
                     let strategy = recordType.databaseDataEncodingStrategy(for: column)
-                    let expressions = datas.map { strategy.encode($0).sqlExpression }
+                    let expressions = try datas.map { try strategy.encode($0).sqlExpression }
                     return expressions
                 })
             } else if Keys.Element.self == Date.self || Keys.Element.self == Optional<Date>.self {

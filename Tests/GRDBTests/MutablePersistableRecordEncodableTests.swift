@@ -782,7 +782,7 @@ extension MutablePersistableRecordEncodableTests {
             
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-            let json = try String(data: encoder.encode(record), encoding: .utf8)!
+            let json = try String(decoding: encoder.encode(record), as: UTF8.self)
             XCTAssertEqual(json, """
                 {
                   "nestedKeyed" : {
@@ -808,7 +808,7 @@ extension MutablePersistableRecordEncodableTests {
             let encoder = JSONEncoder()
             encoder.userInfo = [testKeyRoot: "root", testKeyNested: "nested"]
             encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-            let json = try String(data: encoder.encode(record), encoding: .utf8)
+            let json = try String(decoding: encoder.encode(record), as: UTF8.self)
             XCTAssertEqual(json, """
                 {
                   "context" : "root",

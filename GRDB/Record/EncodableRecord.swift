@@ -486,13 +486,15 @@ public enum DatabaseDataEncodingStrategy: Sendable {
     /// Encodes `Data` column as the result of the user-provided function.
     case custom(@Sendable (Data) -> (any DatabaseValueConvertible)?)
     
-    func encode(_ data: Data) -> DatabaseValue {
+    func encode(_ data: Data) throws -> DatabaseValue {
         switch self {
         case .deferredToData:
             return data.databaseValue
         case .text:
             guard let string = String(data: data, encoding: .utf8) else {
-                fatalError("Invalid UTF8 data")
+                throw EncodingError.invalidValue(data, EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "Non-UTF8 data can't be encoded as text in the database"))
             }
             return string.databaseValue
         case .custom(let format):

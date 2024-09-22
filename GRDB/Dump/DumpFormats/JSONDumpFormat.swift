@@ -166,10 +166,7 @@ extension JSONDumpFormat: DumpFormat {
     
     private func formattedValue(_ value: some Encodable) throws -> String {
         let data = try encoder.encode(value)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw EncodingError.invalidValue(data, .init(codingPath: [], debugDescription: "Invalid JSON data"))
-        }
-        return string
+        return String(decoding: data, as: UTF8.self)
     }
 }
 
