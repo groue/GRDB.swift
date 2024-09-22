@@ -161,7 +161,37 @@
 - [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 - [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
 - [X] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16)
-- [X] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor) 
+- [X] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor)
+
+- [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
+- [ ] GRDB7: Remove warning about "products" in Package.swift
+- [ ] GRDB7: Fixits
+    - [ ] defaultTransactionKind
+- [ ] GRDB7: Swift Concurrency recommendations
+    - [ ] Record classe(s)
+    - [ ] InferSendableFromCaptures
+- [ ] GRDB7: Breaking changes documentation
+    - [ ] [BREAKING] Xcode 16+, Swift 6+
+    - [ ] [BREAKING] iOS 13+
+    - [ ] [BREAKING] macOS 10.15+
+    - [ ] [BREAKING] tvOS 13+
+    - [ ] [BREAKING] watchOS 7+
+    - [ ] insertAndFetch, updateAndFetch, saveAndFetch
+    - [ ] CSQLite renamed to GRDBCSQLite
+    - [ ] CSQLite is not exported
+    - [ ] defaultTransactionKind
+    - [ ] concurrentRead
+    - [ ] record column strategies:
+        - databaseDataEncodingStrategy
+        - databaseDateEncodingStrategy
+        - databaseUUIDEncodingStrategy
+        - databaseDataDecodingStrategy
+        - databaseDateDecodingStrategy
+    - [ ] PersistenceContainer subscript no longer returns its input value
+    - [ ] cancellation of async database access
+    - [ ] Async sequences built from ValueObservation schedule values and errors on the cooperative thread pool by default.
+    - [ ] `TableRecord.databaseSelection` should be declared as a computed static property
+    - [ ] databaseDecodingUserInfo and databaseEncodingUserInfo must be declared as a computed property
 
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
