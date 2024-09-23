@@ -171,6 +171,9 @@
 - [ ] GRDB7: Swift Concurrency recommendations
     - [ ] Record classe(s)
     - [ ] InferSendableFromCaptures
+- [ ] GRDB7: stop fostering the Record class
+    - Remove all mentions from the README
+    - Warn about it in the documentation of the class.
 - [ ] GRDB7: Breaking changes documentation
     - [X] [BREAKING] Xcode 16+, Swift 6+
     - [X] [BREAKING] iOS 13+
