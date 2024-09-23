@@ -72,33 +72,27 @@ struct Player {
 
 ## Cancellable Async Database Accesses
 
-In GRDB 6, asynchronous database operations initiated with `await` would complete even if the underlying Task was cancelled.
+In GRDB 6, asynchronous database accesses such as `try await read { ... }` or `try await write { ... }` complete even if the wrapper Task is cancelled.
 
-In GRDB 7, all asynchronous database operations respect Task cancellation. If a Task is cancelled, reads and writes will throw a `CancellationError`, and transactions will be rolled back. The only SQL statement that can execute in a cancelled task is `ROLLBACK`.
+In GRDB 7, asynchronous database accesses respect Task cancellation. If a Task is cancelled, reads and writes throw a `CancellationError`, pending transactions are rolled back, and the database is not modified. The only SQL statement that can execute in a cancelled database access is `ROLLBACK`.
 
-The effect of this change on your application depends on how you use asynchronous tasks. For example, in SwiftUI, database jobs initiated by the `task` modifier will be cancelled if the associated view is no longer rendered:
+The effect of this change on your application depends on how it uses tasks. For example, take care of database jobs initiated frop the [`task`](https://developer.apple.com/documentation/swiftui/view/task(priority:_:)) SwiftUI modifier.
+
+If you want an asynchronous database access to always complete, regardless of Task cancellation, wrap it in an unstructured Task:
 
 ```swift
-import SwiftUI
-
-struct MyButton: View {
-    @State var actionTrigger = 0
-    
-    var body: some View {
-        Button("Toggle favorite") {
-            actionTrigger += 1
-        }
-        .task(id: actionTrigger) {
-            if actionTrigger > 0 {
-                // Will be cancelled if the button is no longer rendered.
-                await performDatabaseJob()
-            }
-        }
-    }
+// Create a new Task in order to ignore
+// cancellation of the current task, and
+// make sure database changes are always
+// committed to disk.
+let task = Task {
+    try await writer.write { ... }
 }
+// If needed, wait for the database job to complete:
+try await task.value
 ```
 
-Other asynchronous database access methods, such as those using completion blocks (`asyncXXX`), Combine publishers, or RxSwift observables, do not handle cancellation and will proceed to completion by default.
+Other asynchronous database accesses, such as methods accepting a completion blocks (`asyncRead`, etc.), Combine publishers, RxSwift observables, do not handle cancellation and will proceed to completion by default.
 
 ## Default Transaction Kind
 
@@ -110,13 +104,13 @@ var config = Configuration()
 config.defaultTransactionKind = .immediate
 ```
 
-In GRDB 7, transaction are automatically managed: reads use DEFERRED transactions, and writes use IMMEDIATE transactions.
+In GRDB 7, `Configuration` no longer has a `defaultTransactionKind` property, because transactions are automatically managed. Reads use DEFERRED transactions, and writes use IMMEDIATE transactions.
 
 You can still specify a transaction kind explicitly when necessary. See [Transaction Kinds] for details.
 
 ## Access to SQLite C functions
 
-In GRDB 6, the underlying C SQLite library was automatically available:
+In GRDB 6, the underlying C SQLite library is implicitly available:
 
 ```swift
 // GRDB 6
