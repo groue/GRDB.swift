@@ -10,7 +10,7 @@ For example, the ``DatabasePool`` connection allows applications to read and dis
 
 Application previews and tests prefer to use an in-memory ``DatabaseQueue`` connection, which does not support parallel accesses, but avoids writing to disk. To switch between connections configurations seamlessly, the ``DatabaseWriter`` protocol ensures common guarantees, described in <doc:Concurrency>. For examples of such an integration, see the [demo apps].
 
-Each connection type provides database accesses through closures, as shown with the `db` argument below:
+All connection types provide database accesses through closures, as shown with the `db` argument below:
 
 ```swift
 // Read
@@ -33,9 +33,9 @@ for try await players in observation.values(in: writer) {
 }
 ```
 
-Those database access closures are scheduled optimally, in the best interest of application.
+GRDB optimally schedules those database access closures, in the best interest of application.
 
-Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We will address these issues and provide general guidance in the following sections.
+Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We will address these issues, and provide general guidance in the following sections.
 
 ### Shorthand Closure Notation
 
@@ -44,14 +44,15 @@ Depending of the language mode and level of concurrency checkings used by your a
 In the Swift 5 language mode, the compiler emits a warning when a database access is written with the shorthand closure notation:
 
 ```swift
-// ⚠️ Converting non-sendable function value to '@Sendable (Database) 
-// throws -> Int' may introduce data races.
-let count = try await writer.read(Player.fetchCount)
-
-// No warning
+// Standard closure:
 let count = try await writer.read { db in
     try Player.fetchCount(db)
 }
+
+// Shorthand notation:
+// ⚠️ Converting non-sendable function value to '@Sendable (Database) 
+// throws -> Int' may introduce data races.
+let count = try await writer.read(Player.fetchCount)
 ```
 
 #### The solution
@@ -64,16 +65,18 @@ You can remove this warning by enabling [SE-0418 Inferring `Sendable` for method
 
 - **In a SwiftPM package manifest**
 
-    Enable the "GlobalActorIsolatedTypesUsability" upcoming feature: 
+    Enable the "InferSendableFromCaptures" upcoming feature: 
     
     ```swift
     .target(
         name: "MyTarget",
         swiftSettings: [
-            .enableUpcomingFeature("GlobalActorIsolatedTypesUsability")
+            .enableUpcomingFeature("InferSendableFromCaptures")
         ]
     )
     ```
+
+This language feature is not enabled by default, because it can potentially [affect source compatibility](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/sourcecompatibility#Inferring-Sendable-for-methods-and-key-path-literals).
 
 ### Non-Sendable Record Classes
 
@@ -86,12 +89,6 @@ final class Player: Codable, Identifiable {
     var id: Int64
     var name: String
     var score: Int
-    
-    init(id: Int64, name: String, score: Int) {
-        self.id = id
-        self.name = name
-        self.score = score
-    }
 }
 
 extension Player: FetchableRecord, PersistableRecord { }
@@ -115,11 +112,10 @@ let observation = ValueObservation.tracking { db in
 
 #### The solution
 
-The solution is to stop using classes, which are difficult to make `Sendable` correctly.
-
-Instead, define with record structs composed of Sendable properties:
+The solution is to replace classes, which are difficult to make `Sendable`, with structs composed of Sendable properties:
 
 ```swift
+// This struct is implicitly Sendable
 struct Player: Codable, Identifiable {
     var id: Int64
     var name: String
@@ -129,17 +125,17 @@ struct Player: Codable, Identifiable {
 extension Player: FetchableRecord, PersistableRecord { }
 ```
 
-You do not have to refactor your code right away: in the Swift 5 language mode, with minimal concurrency checkings, there is no compiler warning. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
+Note that you do not need to perform this refactoring right away: in the Swift 5 language mode, with minimal concurrency checkings, there is no compiler warning regarding non-Sendable classes. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
 
 > FAQ:
 >
 > **Question: Can I mark my record classes as `@unchecked Sendable`?**
 >
-> **Answer**: This is a bad idea, because people who read your code might think that the class is thread-safe, when it is actually not. Instead, use the Swift 5 language mode, with minimal concurrency checkings, until your code is refactored.
+> **Answer**: This is a bad idea, because all humans and machines who will read your code will think that the class is thread-safe, when it is actually not. Instead, use the Swift 5 language mode, with minimal concurrency checkings, until your code is refactored.
 >
 > **Q: I can use locks to make my class safely Sendable.**
 >
-> **A**: Yes. You can tame the compiler by putting a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. A simpler solution is to use a struct, because the compiler does all the hard work for you.
+> **A**: Yes. You can put a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. A simpler solution is to use a struct, because the compiler does all the hard work for you.
 >
 > **Q: My record types are subclasses of the built-in GRDB `Record` class.**
 >
@@ -147,16 +143,23 @@ You do not have to refactor your code right away: in the Swift 5 language mode, 
 >
 > **Q: I need a hierarchy of record classes because I use inheritance.**
 >
-> **A**: It should be possible to refactor the class hiearchy with Swift protocols. See for example <doc:RecordTimestamps> for an example of a protocol that allows record structs to share a common implementation regarding database timestamps.
+> **A**: It should be possible to refactor the class hiearchy with Swift protocols. See for example <doc:RecordTimestamps> for an example of a protocol that grants database timestamps features.
 >
 > **Q: I use the `@Observable` macro for my record types, and this macro requires a class.**
 >
-> **A**: Your solution is to define two types: one, `@Observable`, that drives your SwiftUI views, and another, a plain record struct, for database work.
-
-> Note: Maybe the Swift language will learn to deal with non-Sendable record types eventually, but it will not happen soon. [SE-0430 `sending` parameter and result values](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md) looks like the language feature we need, but:
+> **A**: Your solution is to define two types: an `@Observable` one that drives your SwiftUI views, and a plain record struct for database work. An indirect advantage is that you will be able to make them evolve independently.
+>
+> **Q: Can I wait until GRDB learns how to deal with non-Sendable record types?**
+>
+> **A**: This can't happen without new features in the Swift language and the SDKs.
+>
+> [SE-0430 `sending` parameter and result values](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md) looks like the language feature we need, but:
 >
 > - `DispatchQueue.async` does not accept a `sending` closure. GRDB needs this.
-> - Database access methods taint the values they fetch, making it impossible to "send" them back to the caller:
+>
+> - Database access methods taint the values they fetch, making it impossible to "send" them back to the caller.
+>
+>     In the code below, the `db` argument has the type ``Database``, which is not Sendable because one can not use an SQLite connection outside of a database access. This non-Sendable value taints the fetched player according to the rules of [SE-0414 Region based Isolation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md), preventing it from safely crossing isolation domains:
 >
 >     ```swift
 >     let player = try await writer.read { db in
@@ -164,7 +167,7 @@ You do not have to refactor your code right away: in the Swift 5 language mode, 
 >     }
 >     ```
 >
->     In the above code, the `db` argument has the type ``Database``, which is not Sendable because one can not use an SQLite connection outside of a database access. This non-Sendable value taints the fetched player according to the rules of [SE-0414 Region based Isolation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md), preventing it from safely crossing isolation domains.
+> For all those reasons, GRDB has to require values that are asynchronously written and read from the database to be `Sendable`.
 
 ### Non-Sendable Configuration of Record Types
 
@@ -195,11 +198,21 @@ extension Player: FetchableRecord, MutablePersistableRecord {
 }
 ```
 
-### Avoid Synchronous Database Accesses from Tasks
+### Choosing between Synchronous and Asynchronous Database Accesses
 
-GRDB connections provide two versions of `read` and `write`, one that is asynchronous, and one that is synchronous. **As much as possible,** avoid calling the synchronous version from Swift Tasks. Performing slow synchronous database jobs from the cooperative thread pool can prevent other tasks from making progress.
+GRDB connections provide two versions of `read` and `write`, one that is asynchronous, and one that is synchronous. It might not be clear how to choose one or the other.
 
-In many occasions, the compiler will guide you. In the sample code below, it is an error to forget the `await` keyword:
+```swift
+// Asynchronous database access
+await try writer.write { ... }
+
+// Synchronous database access
+try writer.write { ... }
+```
+
+**It is a good idea to prefer the asynchronous version whenever the application accesses the database from Swift tasks.** This is not a hard requirement, because synchronous database accesses from tasks is not incorrect. Yet, performing slow database jobs from the cooperative thread pool might slow down other tasks.
+
+In many occasions, the compiler will guide you. In the sample code below, the compiler requires the `await` keyword:
 
 ```swift
 func fetchPlayers() async throws -> [Player] {
@@ -207,33 +220,18 @@ func fetchPlayers() async throws -> [Player] {
 }
 ```
 
-But there are some scenarios where you need to be vigilant:
-
-- The compiler does not spot missing `await` inside closures ([#74459](https://github.com/swiftlang/swift/issues/74459)):
-
-    ```swift
-    Task {
-        // NOT RECOMMENDED - but the compiler does not spot the missing `await`
-        let players = try writer.read(Player.fetchAll)
-    
-        // CORRECT
-        let players = try await writer.read(Player.fetchAll)
-    }
-    ```
-
-- Application that define their own database access method (read or write) should declare them as `async` whenever they intend to use them in tasks.
+But there are some scenarios where your vigilance is needed. For example, the compiler does not spot the missing `await` inside closures ([#74459](https://github.com/swiftlang/swift/issues/74459)):
 
 ```swift
-struct PlayerRepository {
-    var writer: any DatabaseWriter
-    
-    func fetchPlayers() throws -> [Player] {
-        try writer.read(Player.fetchAll)
-    }
+Task {
+    // NOT RECOMMENDED
+    // The compiler does not spot the missing `await`
+    let players = try writer.read(Player.fetchAll)
+
+    // RECOMMENDED
+    let players = try await writer.read(Player.fetchAll)
 }
-
-
-- Avoid sync db access methods in async contexts
+```
 
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide/
