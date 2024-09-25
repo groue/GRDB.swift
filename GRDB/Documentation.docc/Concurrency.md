@@ -1,6 +1,6 @@
 # Concurrency
 
-GRDB helps your app deal with SQLite concurrency.
+GRDB helps your app deal with Swift and SQLite concurrency.
 
 ## Overview
 

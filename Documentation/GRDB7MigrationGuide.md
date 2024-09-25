@@ -5,12 +5,13 @@ Migrating From GRDB 6 to GRDB 7
 
 - [Preparing the Migration to GRDB 7](#preparing-the-migration-to-grdb-7)
 - [New requirements](#new-requirements)
+- [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
 - [Default Transaction Kind](#default-transaction-kind)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
+- [Recommendations Regarding Swift Concurrency](#recommendations-regarding-swift-concurrency)
 - [Other Changes](#other-changes)
-- [Recommendations Regarding Swift Concurrency]
 
 ## Preparing the Migration to GRDB 7
 
@@ -28,6 +29,42 @@ GRDB requirements have been bumped:
 - **watchOS 7.0+** (was watchOS 4+)
 - **SQLite 3.20.0+** (was SQLite 3.19.3+)
 
+## The Record Base Class is Discouraged
+
+The usage of the [Record] base class is **discouraged** in GRDB 7. Present in GRDB 1.0, in 2017, it has served its purpose. 
+
+It is not recommended to define any new type that subclass `Record`.
+
+It is recommended to refactor `Record` subclasses into Swift structs, before you enable the strict concurrency checkings or the Swift 6 language mode. See [Migrating to Swift 6] for more information about Swift 6 language modes.
+
+For example:
+
+```swift
+// GRDB 6
+class Player: Record {
+    var id: UUID
+    var name: String
+    var score: Int
+    
+    override class var databaseTableName: String { "player" }
+    
+    init(id: UUID, name: String, score: Int) { ... }
+    required init(row: Row) throws { ... }
+    override func encode(to container: inout PersistenceContainer) throws { ...}
+}
+
+// GRDB 7
+struct Player: Codable {
+    var id: UUID
+    var name: String
+    var score: Int
+}
+
+extension Player: FetchableRecord, PersistableRecord { }
+```
+
+Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non-Sendable record types in GRDB. 
+
 ## Column Coding Strategies
 
 In GRDB 6, Codable record types can specify how `Data`, `Date`, and `UUID` properties are stored in the database:
@@ -35,11 +72,11 @@ In GRDB 6, Codable record types can specify how `Data`, `Date`, and `UUID` prope
 ```swift
 // GRDB 6
 struct Player {
-    static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.deferredToData
-    static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
-    static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
-    static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
-    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    static let databaseDataDecodingStrategy = ...
+    static let databaseDateDecodingStrategy = ...
+    static let databaseDataEncodingStrategy = ...
+    static let databaseDateEncodingStrategy = ...
+    static let databaseUUIDEncodingStrategy = ...
 }
 ```
 
@@ -48,25 +85,11 @@ These properties have been removed in GRDB 7. You must now define methods that a
 ```swift
 // GRDB 7
 struct Player {
-    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
-        .deferredToData
-    }
-    
-    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
-        .timeIntervalSince1970
-    }
-    
-    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
-        .text
-    }
-    
-    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
-        .timeIntervalSince1970
-    }
-    
-    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
-        .uppercaseString
-    }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy { ... }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy { ...}
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy { ... }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy { ... }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy { ... }
 }
 ```
 
@@ -141,6 +164,13 @@ In GRDB 7, you may need an additional import, depending on how GRDB is integrate
 
 - In other cases, no additional import is needed.
 
+## Recommendations Regarding Swift Concurrency
+
+GRDB 7 requires Xcode 16+ and a Swift 6 compiler.
+
+Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We address those issues, and provide general guidance, in [Swift Concurrency and GRDB].
+
+
 ## Other Changes
 
 - `ValueObservation` must be started from the Main Actor by default. Use an explicit `async(onQueue: .main)` scheduling in order to remove this constraint.
@@ -154,4 +184,5 @@ In GRDB 7, you may need an additional import, depending on how GRDB is integrate
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide
 [Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing
 [Transaction Kinds]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions#Transaction-Kinds
-[Recommendations Regarding Swift Concurrency]
+[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/swiftconcurrency
+[Record]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/record
