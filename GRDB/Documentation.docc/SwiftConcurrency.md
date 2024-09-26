@@ -8,9 +8,9 @@ GRDB’s primary goal is to leverage SQLite’s concurrency features, for the be
 
 For example, the ``DatabasePool`` connection allows applications to read and display database values on screen, even while a background task is writing the results of a network request to disk.
 
-Application previews and tests prefer to use an in-memory ``DatabaseQueue`` connection, which does not support parallel accesses, but avoids writing to disk. To switch between connections configurations seamlessly, application can use the common ``DatabaseWriter`` protocol. For examples of such an integration, see the [demo apps].
+Application previews and tests prefer to use an in-memory ``DatabaseQueue`` connection, which avoids writing to disk. For examples of such an integration, see the [demo apps].
 
-All connection types provide database accesses through closures, as shown with the `db` argument below:
+Both connection types provide identical database accesses through closures, as shown with the `db` argument below:
 
 ```swift
 // Read
@@ -33,7 +33,7 @@ for try await players in observation.values(in: writer) {
 }
 ```
 
-GRDB optimally schedules those database access closures, in the best interest of application. With a `DatabasePool`, reads and writes can be parallel. With a `DatabaseQueue`, all accesses are serialized. The difference between the runtime behaviors is smoothed by the common ``DatabaseWriter`` protocol, which ensures the safety guarantees described in the <doc:Concurrency> guide.
+GRDB optimally schedules those database access closures, in the best interest of the application. With a `DatabaseQueue`, all accesses are serialized. With a `DatabasePool`, reads and writes can occur in parallel, improving throughput. The differences between these two modes are minimized by the common ``DatabaseWriter`` protocol, which provides the runtime guarantees described in the <doc:Concurrency> guide.
 
 Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We will address these issues, and provide general guidance in the following sections.
 
@@ -76,10 +76,12 @@ let observation = ValueObservation.tracking { db in
 
 #### The solution
 
-The solution is to have the record type conform to `Sendable`. In particular, replace classes, which are difficult to make `Sendable`, with structs composed of Sendable properties:
+The solution is to have the record type conform to `Sendable`.
+
+The easiest way to do so is to replace classes, which are difficult to make `Sendable`, with structs composed of `Sendable` properties:
 
 ```swift
-// This struct is implicitly Sendable
+// This struct is Sendable
 struct Player: Codable, Identifiable {
     var id: Int64
     var name: String
@@ -89,22 +91,7 @@ struct Player: Codable, Identifiable {
 extension Player: FetchableRecord, PersistableRecord { }
 ```
 
-You may have to make the `Sendable` conformance explicit, if the record struct is part of a Swift package:
-
-```swift
-public struct Player: Codable, Identifiable, Sendable {
-    //                                       ~~~~~~~~
-    public var id: Int64
-    public var name: String
-    public var score: Int
-
-    public init(...) { ... }
-}
-
-extension Player: FetchableRecord, PersistableRecord { }
-```
-
-Note that you do not need to perform this refactoring right away: in the Swift 5 language mode, with minimal concurrency checkings, there is no compiler warning regarding non-Sendable classes. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
+You do not need to perform this refactoring right away: you can compile your application in the Swift 5 language mode, with minimal concurrency checkings. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
 
 #### FAQ
 
@@ -114,7 +101,7 @@ Note that you do not need to perform this refactoring right away: in the Swift 5
 
 > Question: **I can use locks to make my class safely Sendable.**
 >
-> **Answer**: Yes. You can put a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. Structs are simpler, though, because they do not need locks and the compiler does all the hard work for you.
+> **Answer**: Indeed you can put a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. But structs are simpler, because they do not need locks and the compiler does all the hard work for you.
 
 > Question: **My record types are subclasses of the built-in GRDB `Record` class.**
 >
@@ -245,7 +232,7 @@ try writer.write { ... }
 await try writer.write { ... }
 ```
 
-**It is a good idea to prefer the asynchronous version whenever the application accesses the database from Swift tasks.** This is not a hard requirement, because synchronous database accesses from tasks is not incorrect. Yet, performing slow database jobs from the cooperative thread pool might slow down other tasks.
+**It is a good idea to prefer the asynchronous version whenever the application accesses the database from Swift tasks.** This is not a hard requirement, because performing synchronous database accesses from tasks is not incorrect. But this may slow down other tasks that run on the cooperative thread pool.
 
 In many occasions, the compiler will guide you. In the sample code below, the compiler requires the `await` keyword:
 
