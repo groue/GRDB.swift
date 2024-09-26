@@ -8,7 +8,7 @@ GRDB’s primary goal is to leverage SQLite’s concurrency features, for the be
 
 For example, the ``DatabasePool`` connection allows applications to read and display database values on screen, even while a background task is writing the results of a network request to disk.
 
-Application previews and tests prefer to use an in-memory ``DatabaseQueue`` connection, which does not support parallel accesses, but avoids writing to disk. To switch between connections configurations seamlessly, the ``DatabaseWriter`` protocol ensures common guarantees, described in <doc:Concurrency>. For examples of such an integration, see the [demo apps].
+Application previews and tests prefer to use an in-memory ``DatabaseQueue`` connection, which does not support parallel accesses, but avoids writing to disk. To switch between connections configurations seamlessly, application can use the common ``DatabaseWriter`` protocol. For examples of such an integration, see the [demo apps].
 
 All connection types provide database accesses through closures, as shown with the `db` argument below:
 
@@ -33,7 +33,7 @@ for try await players in observation.values(in: writer) {
 }
 ```
 
-GRDB optimally schedules those database access closures, in the best interest of application.
+GRDB optimally schedules those database access closures, in the best interest of application. With a `DatabasePool`, reads and writes can be parallel. With a `DatabaseQueue`, all accesses are serialized. The difference between the runtime behaviors is smoothed by the common ``DatabaseWriter`` protocol, which ensures the safety guarantees described in the <doc:Concurrency> guide.
 
 Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We will address these issues, and provide general guidance in the following sections.
 
@@ -46,7 +46,7 @@ Depending of the language mode and level of concurrency checkings used by your a
 
 #### The problem
 
-In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when the application reads, writes, or observes a non-Sendable type such as record classes:
+In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when the application reads, writes, or observes a non-Sendable type such as record *classes*:
 
 ```swift
 final class Player: Codable, Identifiable {
@@ -89,41 +89,69 @@ struct Player: Codable, Identifiable {
 extension Player: FetchableRecord, PersistableRecord { }
 ```
 
+You may have to make the `Sendable` conformance explicit, if the record struct is part of a Swift package:
+
+```swift
+public struct Player: Codable, Identifiable, Sendable {
+    //                                       ~~~~~~~~
+    public var id: Int64
+    public var name: String
+    public var score: Int
+
+    public init(...) { ... }
+}
+
+extension Player: FetchableRecord, PersistableRecord { }
+```
+
 Note that you do not need to perform this refactoring right away: in the Swift 5 language mode, with minimal concurrency checkings, there is no compiler warning regarding non-Sendable classes. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
 
-> FAQ:
->
-> **Question: Can I mark my record classes as `@unchecked Sendable`?**
+#### FAQ
+
+> Question: **Can I mark my record classes as `@unchecked Sendable`?**
 >
 > **Answer**: This is a bad idea, because all humans and machines who will read your code will think that the class is thread-safe, when it is actually not. Instead, use the Swift 5 language mode, with minimal concurrency checkings, until your code is refactored.
+
+> Question: **I can use locks to make my class safely Sendable.**
 >
-> **Q: I can use locks to make my class safely Sendable.**
+> **Answer**: Yes. You can put a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. Structs are simpler, though, because they do not need locks and the compiler does all the hard work for you.
+
+> Question: **My record types are subclasses of the built-in GRDB `Record` class.**
 >
-> **A**: Yes. You can put a lock on the whole instance, or on each individual property, or on multiple subgroups of properties, as needed. A simpler solution is to use a struct, because the compiler does all the hard work for you.
+> **Answer**: The ``Record`` class was present in GRDB 1.0, in 2017. It has served its purpose. It is not `Sendable`, and its use is actively discouraged since GRDB 7.
+
+> Question: **I need a hierarchy of record classes because I use inheritance.**
 >
-> **Q: My record types are subclasses of the built-in GRDB `Record` class.**
+> **Answer**: It should be possible to refactor the class hiearchy with Swift protocols. See for example <doc:RecordTimestamps> for an example of a protocol that grants database timestamps features.
+
+> Question: **I use the `@Observable` macro for my record types, and this macro requires a class.**
 >
-> **A**: The ``Record`` class was present in GRDB 1.0, in 2017. It has served its purpose. It is not `Sendable`, and its use is actively discouraged in GRDB 7.
+> **Answer**: Your solution is to define two types: an `@Observable` one that drives your SwiftUI views, and a plain record struct for database work. An indirect advantage is that you will be able to make them evolve independently.
+
+> Question: **I use classes instead of structs because I monitored my application and classes have a lower CPU/memory footprint.**
 >
-> **Q: I need a hierarchy of record classes because I use inheritance.**
+> **Answer**: Pick your poison: refactor those classes into structs, or make them Sendable, or avoid raising the Swift concurrency checkings. Please do not think the `Sendable` requirement is a whim: see the next question.
+
+> Question: **Can I wait until GRDB learns how to deal with non-Sendable record types?**
 >
-> **A**: It should be possible to refactor the class hiearchy with Swift protocols. See for example <doc:RecordTimestamps> for an example of a protocol that grants database timestamps features.
+> **Answer**: This can't happen without new features in the Swift language and the SDKs.
 >
-> **Q: I use the `@Observable` macro for my record types, and this macro requires a class.**
+> [SE-0430: `sending` parameter and result values](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md) looks like the language feature we need, but:
 >
-> **A**: Your solution is to define two types: an `@Observable` one that drives your SwiftUI views, and a plain record struct for database work. An indirect advantage is that you will be able to make them evolve independently.
+> - `DispatchQueue.async` does not accept a `sending` closure. GRDB needs this in order to accept non-Sendable records to be sent to the database, as below:
 >
-> **Q: Can I wait until GRDB learns how to deal with non-Sendable record types?**
+>     ```swift
+>     let nonSendableRecord: Player
+>     try await writer.write { db in
+>         try nonSendableRecord.insert(db)
+>     }
+>     ```
 >
-> **A**: This can't happen without new features in the Swift language and the SDKs.
->
-> [SE-0430 `sending` parameter and result values](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md) looks like the language feature we need, but:
->
-> - `DispatchQueue.async` does not accept a `sending` closure. GRDB needs this (FB15270949).
+>     Please [file a feedback](http://feedbackassistant.apple.com) for requesting this DispatchQueue improvement. The more the merrier. I personally filed FB15270949.
 >
 > - Database access methods taint the values they fetch, making it impossible to "send" them back to the caller.
 >
->     In the code below, the `db` argument has the type ``Database``, which is not Sendable because one can not use an SQLite connection outside of a database access. This non-Sendable value taints the fetched player according to the rules of [SE-0414 Region based Isolation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md), preventing it from safely crossing isolation domains:
+>     In the code below, the `db` argument is not Sendable, on purpose. It taints the fetched player, according to the rules of [SE-0414: Region based Isolation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md), and has the compiler refuse that the player crosses isolation domains, back to the caller:
 >
 >     ```swift
 >     let player = try await writer.read { db in
@@ -131,7 +159,9 @@ Note that you do not need to perform this refactoring right away: in the Swift 5
 >     }
 >     ```
 >
-> For all those reasons, GRDB has to require values that are asynchronously written and read from the database to be `Sendable`.
+>     The compiler diagnostic is correct: one can copy the `db` argument into the fetched `Player` instance. Doing so is a programmer error, though: GRDB promptly raises a fatal error whenever that copied `db` is later used. In practice, nobody does that. But there is no way to tell the compiler about this practice.
+>
+> For all those reasons, which are entirely beyond our control, GRDB has to require values that are asynchronously written and read from the database to be `Sendable`.
 
 ### Shorthand Closure Notation
 
@@ -153,7 +183,7 @@ let count = try await writer.read(Player.fetchCount)
 
 #### The solution
 
-You can remove this warning by enabling [SE-0418 Inferring `Sendable` for methods and key path literals](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0418-inferring-sendable-for-methods.md), as below:
+You can remove this warning by enabling [SE-0418: Inferring `Sendable` for methods and key path literals](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0418-inferring-sendable-for-methods.md), as below:
 
 - **Using Xcode**
 
@@ -240,4 +270,3 @@ Task {
 
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide/
-[SE-0418]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0418-inferring-sendable-for-methods.md
