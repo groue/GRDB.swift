@@ -156,7 +156,7 @@
 - [X] GRDB7: DatabaseReader async methods support Task cancellation (10c9d311)
 - [X] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
 - [-] GRDB7: Sendable: AssociationAggregate (48ad10ae)
-- [?] GRDB7: Sendable: AsyncValueObservation (ce63cdfa)
+- [ ] GRDB7: Sendable: AsyncValueObservation (necessary for async algorithm) (ce63cdfa)
 - [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
 - [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 - [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
@@ -165,22 +165,22 @@
 
 - [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
 - [ ] GRDB7: Remove warning about "products" in Package.swift
-- [ ] GRDB7: Fixits
+- [X] GRDB7: Fixits
     - [X] defaultTransactionKind
     - [X] concurrentRead
-- [ ] GRDB7: Swift Concurrency recommendations
-    - [ ] Record classe(s)
-    - [ ] InferSendableFromCaptures
+- [X] GRDB7: Swift Concurrency recommendations
+    - [X] Record classe(s)
+    - [X] InferSendableFromCaptures
 - [ ] GRDB7: stop fostering the Record class
     - Remove all mentions from the README
     - Warn about it in the documentation of the class.
-- [ ] GRDB7: Breaking changes documentation
+- [X] GRDB7: Breaking changes documentation
     - [X] [BREAKING] Xcode 16+, Swift 6+
     - [X] [BREAKING] iOS 13+
     - [X] [BREAKING] macOS 10.15+
     - [X] [BREAKING] tvOS 13+
     - [X] [BREAKING] watchOS 7+
-    - [ ] insertAndFetch, updateAndFetch, saveAndFetch
+    - [-] insertAndFetch, updateAndFetch, saveAndFetch
     - [X] CSQLite renamed to GRDBCSQLite
     - [X] CSQLite is not exported
     - [X] defaultTransactionKind
@@ -194,9 +194,9 @@
     - [X] PersistenceContainer subscript no longer returns its input value
     - [X] cancellation of async database access
     - [X] Async sequences built from ValueObservation schedule values and errors on the cooperative thread pool by default.
-    - [ ] `TableRecord.databaseSelection` should be declared as a computed static property
-    - [ ] databaseDecodingUserInfo and databaseEncodingUserInfo must be declared as a computed property
-
+    - [X] `TableRecord.databaseSelection` should be declared as a computed static property
+    - [-] databaseDecodingUserInfo and databaseEncodingUserInfo must be declared as a computed property
+- [ ] GRDB7: Review experimental apis
 - [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
 ## Unsure if necessary
