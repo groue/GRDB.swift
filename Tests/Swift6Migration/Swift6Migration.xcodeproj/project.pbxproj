@@ -8,10 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		56CFC7D22CA03647000B5023 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 56CFC7D12CA03647000B5023 /* GRDB */; };
+		56CFC7ED2CA06ADD000B5023 /* LanguageMode5.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 56CFC7EC2CA06ADD000B5023 /* LanguageMode5.xcconfig */; };
+		56CFC7F02CA06B7E000B5023 /* LanguageMode6.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 56CFC7EF2CA06B7E000B5023 /* LanguageMode6.xcconfig */; };
+		56CFC7F12CA06B7E000B5023 /* LanguageMode5StrictConcurrency.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 56CFC7EE2CA06B7E000B5023 /* LanguageMode5StrictConcurrency.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		56CFC7BF2CA035E7000B5023 /* Swift6Migration.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Swift6Migration.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56CFC7EC2CA06ADD000B5023 /* LanguageMode5.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LanguageMode5.xcconfig; sourceTree = "<group>"; };
+		56CFC7EE2CA06B7E000B5023 /* LanguageMode5StrictConcurrency.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LanguageMode5StrictConcurrency.xcconfig; sourceTree = "<group>"; };
+		56CFC7EF2CA06B7E000B5023 /* LanguageMode6.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LanguageMode6.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,6 +43,9 @@
 		56CFC7B62CA035E7000B5023 = {
 			isa = PBXGroup;
 			children = (
+				56CFC7EC2CA06ADD000B5023 /* LanguageMode5.xcconfig */,
+				56CFC7EE2CA06B7E000B5023 /* LanguageMode5StrictConcurrency.xcconfig */,
+				56CFC7EF2CA06B7E000B5023 /* LanguageMode6.xcconfig */,
 				56CFC7C12CA035E7000B5023 /* Swift6Migration */,
 				56CFC7C02CA035E7000B5023 /* Products */,
 			);
@@ -118,6 +127,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56CFC7ED2CA06ADD000B5023 /* LanguageMode5.xcconfig in Resources */,
+				56CFC7F02CA06B7E000B5023 /* LanguageMode6.xcconfig in Resources */,
+				56CFC7F12CA06B7E000B5023 /* LanguageMode5StrictConcurrency.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +148,7 @@
 /* Begin XCBuildConfiguration section */
 		56CFC7CB2CA035E8000B5023 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56CFC7EF2CA06B7E000B5023 /* LanguageMode6.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -194,8 +207,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES;
 			};
 			name = Debug;
 		};
@@ -251,8 +262,6 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -280,7 +289,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.Swift6Migration;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -308,7 +316,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.Swift6Migration;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
