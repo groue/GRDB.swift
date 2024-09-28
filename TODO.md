@@ -164,7 +164,7 @@
 - [X] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor)
 
 - [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
-- [ ] GRDB7: Remove warning about "products" in Package.swift
+- [X] GRDB7: Remove warning about "products" in Package.swift
 - [X] GRDB7: Fixits
     - [X] defaultTransactionKind
     - [X] concurrentRead

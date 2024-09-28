@@ -217,6 +217,7 @@ endif
 
 test_SPM:
 	# Add sanitizers when available: https://twitter.com/simjp/status/929140877540278272
+	rm -rf Tests/products
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
@@ -280,11 +281,13 @@ test_install_manual:
 test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release
 
 test_install_SPM_Package:
+	rm -rf Tests/products
 	cd Tests/SPM/PlainPackage && \
 	$(SWIFT) build && \
 	./.build/debug/SPM
 
 test_install_SPM_Project:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
@@ -294,6 +297,7 @@ test_install_SPM_Project:
 	  $(XCPRETTY)
 	  
 test_install_SPM_Dynamic_Project:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/ios-dynamic/ios-dynamic.xcodeproj \
 	  -scheme ios-dynamic \
@@ -303,6 +307,7 @@ test_install_SPM_Dynamic_Project:
 	  $(XCPRETTY)
 
 test_install_SPM_macos_release:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/macos/macos.xcodeproj \
 	  -scheme macos \
@@ -312,6 +317,7 @@ test_install_SPM_macos_release:
 	  $(XCPRETTY)
 
 test_install_SPM_ios_release:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/ios/ios.xcodeproj \
 	  -scheme ios \
