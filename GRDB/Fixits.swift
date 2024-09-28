@@ -1,5 +1,4 @@
 // Fixits for changes introduced by GRDB 7.0.0
-// swiftlint:disable all
 
 extension Configuration {
     @available(*, unavailable, message: "The default transaction kind is now automatically managed.")
