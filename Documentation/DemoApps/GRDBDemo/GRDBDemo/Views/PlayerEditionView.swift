@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PlayerEditionView: View {
-    @Environment(\.dismiss) var dismiss
     @Environment(\.isPresented) var isPresented
     @Environment(\.appDatabase) var appDatabase
     @State var form: PlayerForm

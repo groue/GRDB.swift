@@ -1,9 +1,12 @@
 import SwiftUI
 
-struct PlayerNavigationView: View {
+/// The main navigation view.
+struct PlayersNavigationView: View {
     @Environment(\.appDatabase) var appDatabase
     
     var body: some View {
+        // This technique makes it possible to create an observable object
+        // (PlayerListModel) from the SwiftUI environment.
         ContentView(appDatabase: appDatabase)
     }
 }
@@ -12,7 +15,7 @@ private struct ContentView: View {
     /// The model for the player list.
     @State var model: PlayerListModel
     
-    /// We'll need to leave edit mode in several occasions.
+    /// Tracks the edit mode of the player list.
     @State var editMode = EditMode.inactive
     
     /// Tracks the presentation of the player creation sheet.
@@ -36,7 +39,7 @@ private struct ContentView: View {
             stopEditing()
         }
         .onChange(of: model.players.isEmpty) {
-            // Stop editing when last player is deleted.
+            // Stop editing when the last player is deleted.
             if model.players.isEmpty {
                 stopEditing()
             }
@@ -168,11 +171,11 @@ private struct ToggleOrderingButton: View {
 // MARK: - Previews
 
 #Preview("Populated") {
-    PlayerNavigationView()
+    PlayersNavigationView()
         .appDatabase(.random())
 }
 
 #Preview("Empty") {
-    PlayerNavigationView()
+    PlayersNavigationView()
         .appDatabase(.empty())
 }

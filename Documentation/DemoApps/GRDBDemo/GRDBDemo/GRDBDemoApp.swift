@@ -4,7 +4,7 @@ import SwiftUI
 struct GRDBDemoApp: App {
     var body: some Scene {
         WindowGroup {
-            PlayerNavigationView().appDatabase(.shared)
+            PlayersNavigationView().appDatabase(.shared)
         }
     }
 }

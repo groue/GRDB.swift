@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A view that displays a list of players.
 struct PlayerListView: View {
     @Bindable var model: PlayerListModel
     
@@ -50,6 +51,8 @@ struct PlayerRow: View {
         @Environment(\.appDatabase) var appDatabase
         
         var body: some View {
+            // This technique makes it possible to create an observable object
+            // (PlayerListModel) from the SwiftUI environment.
             ContentView(appDatabase: appDatabase)
         }
     }
@@ -64,8 +67,8 @@ struct PlayerRow: View {
         var body: some View {
             NavigationStack {
                 PlayerListView(model: model)
-                    .onAppear { model.observePlayers() }
             }
+            .onAppear { model.observePlayers() }
         }
     }
     

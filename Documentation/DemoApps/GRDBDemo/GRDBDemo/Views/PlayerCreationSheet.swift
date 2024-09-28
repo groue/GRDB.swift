@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A view that creates a `Player`. Display it as a sheet.
 struct PlayerCreationSheet: View {
     @Environment(\.appDatabase) var appDatabase
     @Environment(\.dismiss) var dismiss

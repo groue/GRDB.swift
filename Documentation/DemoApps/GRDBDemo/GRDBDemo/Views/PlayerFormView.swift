@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A view that edits a `PlayerForm`.
 struct PlayerFormView: View {
     @Binding var form: PlayerForm
     
@@ -38,6 +39,7 @@ struct PlayerFormView: View {
     }
 }
 
+/// The model edited by `PlayerFormView`.
 struct PlayerForm {
     var name: String
     var score: Int?
