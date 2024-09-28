@@ -8,9 +8,8 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 
 ## Topics
 
-### Records
+### Records Protocols
 
-- ``Record``
 - ``EncodableRecord``
 - ``FetchableRecord``
 - ``MutablePersistableRecord``
@@ -48,3 +47,7 @@ For an overview, see [Records](https://github.com/groue/GRDB.swift/blob/master/R
 - ``SQLSubqueryable``
 - ``SQLOrderingTerm``
 - ``SQLSelectable``
+
+### Legacy Types
+
+- ``Record``
