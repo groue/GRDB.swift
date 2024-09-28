@@ -384,11 +384,13 @@ extension ValueObservation {
 ///
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
-public struct AsyncValueObservation<Element: Sendable>: AsyncSequence {
+public struct AsyncValueObservation<Element: Sendable>: AsyncSequence, Sendable {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
     
-    var bufferingPolicy: BufferingPolicy
+    // AsyncThrowingStream.Continuation.BufferingPolicy is obviously
+    // Sendable, but lacks Sendable conformance.
+    nonisolated(unsafe) var bufferingPolicy: BufferingPolicy
     var start: ValueObservationStart<Element>
     
     public func makeAsyncIterator() -> Iterator {
