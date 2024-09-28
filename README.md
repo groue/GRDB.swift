@@ -1662,7 +1662,7 @@ try dbQueue.read { db in
 Records
 =======
 
-**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records":
+**On top of the [SQLite API](#sqlite-api), GRDB provides protocols** that help manipulating database rows as regular objects named "records":
 
 ```swift
 try dbQueue.write { db in
@@ -1675,15 +1675,31 @@ try dbQueue.write { db in
 
 Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
 
-To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
+To define a record type, define a type and extend it with protocols that come with focused sets of features.
 
-Extending structs with record protocols is more "swifty". Subclassing the Record class is more "classic". You can choose either way. See some [examples of record definitions](#examples-of-record-definitions), and the [list of record methods](#list-of-record-methods) for an overview.
+For example:
 
-> **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
+```
+struct Player: {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
+// Players can be fetched from the database.
+extension Player: FetchableRecord { ... }
+
+// Players can be saved into the database.
+extension Player: PersistableRecord { ... }
+```
+
+See some [examples of record definitions](#examples-of-record-definitions).
+
+> Note: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming.
 >
-> :bulb: **Tip**: after you have read this chapter, check the [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) Guide.
+> Tip: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) guide provides general guidance..
 >
-> :bulb: **Tip**: see the [Demo Applications] for sample apps that uses records.
+> Tip: See the [Demo Applications] for sample apps that uses records.
 
 **Overview**
 
@@ -1704,15 +1720,9 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
     - [Persistence Callbacks]
 - [Identifiable Records]
 - [Codable Records]
-- [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
 - [Record Timestamps and Transaction Date]
-
-**Records in a Glance**
-
-- [Examples of Record Definitions](#examples-of-record-definitions)
-- [List of Record Methods](#list-of-record-methods)
 
 
 ### Inserting Records
@@ -1724,7 +1734,7 @@ let player = Player(name: "Arthur", email: "arthur@example.com")
 try player.insert(db)
 ```
 
-:point_right: `insert` is available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: `insert` is available for types that adopt the [PersistableRecord] protocol.
 
 
 ### Fetching Records
@@ -1745,9 +1755,9 @@ let spain = try Country.fetchOne(db, id: "ES")  // Country?
 let italy = try Country.find(db, id: "IT")      // Country
 ```
 
-:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
+:point_right: Fetching from raw SQL is available for types that adopt the [FetchableRecord] protocol.
 
-:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and types that adopt both [FetchableRecord] and [TableRecord] protocol.
+:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for types that adopt both [FetchableRecord] and [TableRecord] protocol.
 
 
 ### Updating Records
@@ -1777,7 +1787,7 @@ try Player
     .updateAll(db, Column("score") += 1)
 ```
 
-:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
+:point_right: update methods are available for types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
 
 
 ### Deleting Records
@@ -1800,7 +1810,7 @@ try Player
     .deleteAll(db)
 ```
 
-:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch deletes are available on the [TableRecord] protocol.
+:point_right: delete methods are available for types that adopt the [PersistableRecord] protocol. Batch deletes are available on the [TableRecord] protocol.
 
 
 ### Counting Records
@@ -1815,7 +1825,7 @@ let playerWithEmailCount: Int = try Player
     .fetchCount(db)
 ```
 
-:point_right: `fetchCount` is available for subclasses of the [Record](#record-class) class, and types that adopt the [TableRecord] protocol.
+:point_right: `fetchCount` is available for types that adopt the [TableRecord] protocol.
 
 
 Details follow:
@@ -1826,11 +1836,9 @@ Details follow:
 - [PersistableRecord Protocol](#persistablerecord-protocol)
 - [Identifiable Records]
 - [Codable Records]
-- [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
 - [Examples of Record Definitions](#examples-of-record-definitions)
-- [List of Record Methods](#list-of-record-methods)
 
 
 ## Record Protocols Overview
@@ -1841,6 +1849,7 @@ Details follow:
     
     ```swift
     struct Place: FetchableRecord { ... }
+    
     let places = try dbQueue.read { db in
         try Place.fetchAll(db, sql: "SELECT * FROM place")
     }
@@ -1854,6 +1863,7 @@ Details follow:
     
     ```swift
     struct Place: TableRecord { ... }
+    
     let placeCount = try dbQueue.read { db in
         // Generates and runs `SELECT COUNT(*) FROM place`
         try Place.fetchCount(db)
@@ -1864,6 +1874,7 @@ Details follow:
     
     ```swift
     struct Place: TableRecord, FetchableRecord { ... }
+    
     try dbQueue.read { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(id: 1)
@@ -1874,6 +1885,7 @@ Details follow:
     
     ```swift
     struct Place : PersistableRecord { ... }
+    
     try dbQueue.write { db in
         try Place.delete(db, id: 1)
         try Place(...).insert(db)
@@ -1898,7 +1910,7 @@ protocol FetchableRecord {
 }
 ```
 
-**To use FetchableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
+For example:
 
 ```swift
 struct Place {
@@ -1969,7 +1981,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 📖 [`TableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord)
 
-**The TableRecord protocol** generates SQL for you. To use TableRecord, subclass the [Record](#record-class) class, or adopt it explicitly:
+**The TableRecord protocol** generates SQL for you:
 
 ```swift
 protocol TableRecord {
@@ -1984,6 +1996,7 @@ The `databaseTableName` type property is the name of a database table. By defaul
 
 ```swift
 struct Place: TableRecord { }
+
 print(Place.databaseTableName) // prints "place"
 ```
 
@@ -2001,16 +2014,8 @@ You can still provide a custom table name:
 struct Place: TableRecord {
     static let databaseTableName = "location"
 }
+
 print(Place.databaseTableName) // prints "location"
-```
-
-Subclasses of the [Record](#record-class) class must always override their superclass's `databaseTableName` property:
-
-```swift
-class Place: Record {
-    override class var databaseTableName: String { "place" }
-}
-print(Place.databaseTableName) // prints "place"
 ```
 
 When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-protocol), it can be fetched using the [query interface](#the-query-interface):
@@ -2064,7 +2069,7 @@ The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Dat
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion, and is only useful for tables that have an auto-incremented primary key. It is called from a protected dispatch queue, and serialized with all database updates.
 
-**To use the persistable protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
+For example:
 
 ```swift
 extension Place : MutablePersistableRecord {
@@ -2127,7 +2132,7 @@ struct Player: Encodable, MutablePersistableRecord {
 
 ### Persistence Methods
 
-[Record](#record-class) subclasses and types that adopt [PersistableRecord] are given methods that insert, update, and delete:
+Types that adopt the [PersistableRecord] protocol are given methods that insert, update, and delete:
 
 ```swift
 // INSERT
@@ -2141,7 +2146,6 @@ try place.update(db, columns: ["title"])
 // Maybe UPDATE
 try place.updateChanges(db, from: otherPlace)
 try place.updateChanges(db) { $0.isFavorite = true }
-try place.updateChanges(db) // Record class only
 
 // INSERT or UPDATE
 try place.save(db)
@@ -2413,20 +2417,6 @@ try dbQueue.write { db in
 }
 ```
 
-When you subclass the [Record](#record-class) class, override the callback, and make sure you call `super` at some point of your implementation:
-
-```swift
-class Player: Record {
-    var id: Int64?
-    
-    // Update auto-incremented id upon successful insertion
-    func didInsert(_ inserted: InsertionSuccess) {
-        super.didInsert(inserted)
-        id = inserted.rowID
-    }
-}
-```
-
 Callbacks can also help implementing record validation:
 
 ```swift
@@ -2521,7 +2511,7 @@ try Player.deleteOne(db, id: 1)
 try Player.deleteAll(db, ids: [1, 2, 3])
 ```
 
-> **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
+> **Note**: Not all record types can be made `Identifiable`, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
 > 
 > ```swift
 > // Available on non-Identifiable types
@@ -2832,64 +2822,6 @@ extension Player: FetchableRecord, PersistableRecord {
 See the [query interface](#the-query-interface) and [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) for further information.
 
 
-## Record Class
-
-**Record** is a class that is designed to be subclassed. It inherits its features from the [FetchableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can compare against previous versions of themselves in order to [avoid useless updates](#record-comparison).
-
-Record subclasses define their custom database relationship by overriding database methods. For example:
-
-```swift
-class Place: Record {
-    var id: Int64?
-    var title: String
-    var isFavorite: Bool
-    var coordinate: CLLocationCoordinate2D
-    
-    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
-        self.id = id
-        self.title = title
-        self.isFavorite = isFavorite
-        self.coordinate = coordinate
-        super.init()
-    }
-    
-    /// The table name
-    override class var databaseTableName: String { "place" }
-    
-    /// The table columns
-    enum Columns: String, ColumnExpression {
-        case id, title, favorite, latitude, longitude
-    }
-    
-    /// Creates a record from a database row
-    required init(row: Row) throws {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.favorite]
-        coordinate = CLLocationCoordinate2D(
-            latitude: row[Columns.latitude],
-            longitude: row[Columns.longitude])
-        try super.init(row: row)
-    }
-    
-    /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) throws {
-        container[Columns.id] = id
-        container[Columns.title] = title
-        container[Columns.favorite] = isFavorite
-        container[Columns.latitude] = coordinate.latitude
-        container[Columns.longitude] = coordinate.longitude
-    }
-    
-    /// Update record ID after a successful insertion
-    override func didInsert(_ inserted: InsertionSuccess) {
-        super.didInsert(inserted)
-        id = inserted.rowID
-    }
-}
-```
-
-
 ## Record Comparison
 
 **Records that adopt the [EncodableRecord] protocol can compare against other records, or against previous versions of themselves.**
@@ -2938,23 +2870,6 @@ The `updateChanges` methods perform a database update of the changed columns onl
     }
     ```
 
-- `updateChanges(_:)` (Record class only)
-    
-    Instances of the [Record](#record-class) class are able to compare against themselves, and know if they have changes that have not been saved since the last fetch or saving:
-
-    ```swift
-    // Record class only
-    if let player = try Player.fetchOne(db, id: 42) {
-        player.score = 100
-        if try player.updateChanges(db) {
-            print("player was modified, and updated in the database")
-        } else {
-            print("player was not modified, and database was not hit")
-        }
-    }
-    ```
-
-
 ### The `databaseEquals` Method
 
 This method returns whether two records have the same database representation:
@@ -2981,46 +2896,6 @@ for (column, oldValue) in try newPlayer.databaseChanges(from: oldPlayer) {
     print("\(column) was \(oldValue)")
 }
 // prints "score was 100"
-```
-
-The [Record](#record-class) class is able to compare against itself:
-
-```swift
-// Record class only
-let player = Player(id: 1, name: "Arthur", score: 100)
-try player.insert(db)
-player.score = 1000
-for (column, oldValue) in try player.databaseChanges {
-    print("\(column) was \(oldValue)")
-}
-// prints "score was 100"
-```
-
-[Record](#record-class) instances also have a `hasDatabaseChanges` property:
-
-```swift
-// Record class only
-player.score = 1000
-if player.hasDatabaseChanges {
-    try player.save(db)
-}
-```
-
-`Record.hasDatabaseChanges` is false after a Record instance has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasDatabaseChanges` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
-
-```swift
-let player = Player(name: "Barbara", score: 750)
-player.hasDatabaseChanges  // true
-
-try player.insert(db)
-player.hasDatabaseChanges  // false
-
-player.name = "Barbara"
-player.hasDatabaseChanges  // false
-
-player.score = 1000
-player.hasDatabaseChanges  // true
-try player.databaseChanges // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [groue/SortedDifference](https://github.com/groue/SortedDifference).
@@ -3340,241 +3215,6 @@ extension Place: MutablePersistableRecord {
 
 </details>
 
-<details>
-  <summary>Subclass the <code>Record</code> class</summary>
-
-See the [Record class](#record-class) for more information.
-    
-```swift
-class Place: Record {
-    var id: Int64?
-    var title: String
-    var isFavorite: Bool
-    var coordinate: CLLocationCoordinate2D
-    
-    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
-        self.id = id
-        self.title = title
-        self.isFavorite = isFavorite
-        self.coordinate = coordinate
-        super.init()
-    }
-    
-    /// The table name
-    override class var databaseTableName: String { "place" }
-    
-    /// The table columns
-    enum Columns: String, ColumnExpression {
-        case id, title, isFavorite, latitude, longitude
-    }
-    
-    /// Creates a record from a database row
-    required init(row: Row) throws {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.isFavorite]
-        coordinate = CLLocationCoordinate2D(
-            latitude: row[Columns.latitude],
-            longitude: row[Columns.longitude])
-        try super.init(row: row)
-    }
-    
-    /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) throws {
-        container[Columns.id] = id
-        container[Columns.title] = title
-        container[Columns.isFavorite] = isFavorite
-        container[Columns.latitude] = coordinate.latitude
-        container[Columns.longitude] = coordinate.longitude
-    }
-    
-    // Update auto-incremented id upon successful insertion
-    override func didInsert(_ inserted: InsertionSuccess) {
-        super.didInsert(inserted)
-        id = inserted.rowID
-    }
-}
-```
-
-</details>
-
-
-## List of Record Methods
-
-This is the list of record methods, along with their required protocols. The [Record](#record-class) class adopts all these protocols, and adds a few extra methods.
-
-| Method | Protocols | Notes |
-| ------ | --------- | :---: |
-| **Core Methods** | | |
-| `init(row:)` | [FetchableRecord] | |
-| `Type.databaseTableName` | [TableRecord] | |
-| `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
-| `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
-| `record.encode(to:)` | [EncodableRecord] | |
-| **Insert and Update Records** | | |
-| `record.insert(db)` | [PersistableRecord] | |
-| `record.insertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
-| `record.insertAndFetch(_:as:)` | [PersistableRecord] | |
-| `record.insertAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
-| `record.inserted(db)` | [PersistableRecord] | |
-| `record.save(db)` | [PersistableRecord] | |
-| `record.saveAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
-| `record.saveAndFetch(_:as:)` | [PersistableRecord] | |
-| `record.saveAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
-| `record.saved(db)` | [PersistableRecord] | |
-| `record.update(db)` | [PersistableRecord] | |
-| `record.updateAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
-| `record.updateAndFetch(_:as:)` | [PersistableRecord] | |
-| `record.updateAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
-| `record.update(db, columns:...)` | [PersistableRecord] | |
-| `record.updateAndFetch(_:columns:selection:fetch:)` | [PersistableRecord] | |
-| `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
-| `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
-| `record.updateChangesAndFetch(_:columns:as:modify:)` | [PersistableRecord] | |
-| `record.updateChangesAndFetch(_:columns:selection:fetch:modify:)` | [PersistableRecord] | |
-| `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
-| `record.upsert(db)` | [PersistableRecord] | |
-| `record.upsertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
-| `record.upsertAndFetch(_:as:)` | [PersistableRecord] | |
-| `Type.updateAll(db, ...)` | [TableRecord] | |
-| `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Delete Records** | | |
-| `record.delete(db)` | [PersistableRecord] | |
-| `Type.deleteOne(db, key:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteOne(db, id:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db)` | [TableRecord] | |
-| `Type.deleteAll(db, keys:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db, ids:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Persistence Callbacks** | | |
-| `record.willInsert(_:)` | [PersistableRecord] | |
-| `record.aroundInsert(_:insert:)` | [PersistableRecord] | |
-| `record.didInsert(_:)` | [PersistableRecord] | |
-| `record.willUpdate(_:columns:)` | [PersistableRecord] | |
-| `record.aroundUpdate(_:columns:update:)` | [PersistableRecord] | |
-| `record.didUpdate(_:)` | [PersistableRecord] | |
-| `record.willSave(_:)` | [PersistableRecord] | |
-| `record.aroundSave(_:save:)` | [PersistableRecord] | |
-| `record.didSave(_:)` | [PersistableRecord] | |
-| `record.willDelete(_:)` | [PersistableRecord] | |
-| `record.aroundDelete(_:delete:)` | [PersistableRecord] | |
-| `record.didDelete(deleted:)` | [PersistableRecord] | |
-| **Check Record Existence** | | |
-| `record.exists(db)` | [PersistableRecord] | |
-| `Type.exists(db, key: ...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.exists(db, id: ...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).isEmpty(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Convert Record to Dictionary** | | |
-| `record.databaseDictionary` | [EncodableRecord] | |
-| **Count Records** | | |
-| `Type.fetchCount(db)` | [TableRecord] | |
-| `Type.filter(...).fetchCount(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Fetch Record [Cursors](#cursors)** | | |
-| `Type.fetchCursor(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchCursor(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchCursor(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchCursor(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchCursor(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchCursor(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Fetch Record Arrays** | | |
-| `Type.fetchAll(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchAll(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchAll(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchAll(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Fetch Record Sets** | | |
-| `Type.fetchSet(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchSet(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchSet(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchSet(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchSet(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchSet(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **Fetch Individual Records** | | |
-| `Type.fetchOne(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchOne(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.find(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.find(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| **[Codable Records]** | | |
-| `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
-| `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
-| `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#data-date-and-uuid-coding-strategies) |
-| `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
-| `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
-| `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#data-date-and-uuid-coding-strategies) |
-| `Type.databaseUUIDEncodingStrategy` | [EncodableRecord] | [*](#data-date-and-uuid-coding-strategies) |
-| **Define [Associations]** | | |
-| `Type.belongsTo(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| `Type.hasMany(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| `Type.hasOne(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| `Type.hasManyThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| `Type.hasOneThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| **Building Query Interface [Requests](#requests)** | | |
-| `record.request(for:...)` | [TableRecord] & [EncodableRecord] | [*](Documentation/AssociationsBasics.md) |
-| `Type.all()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.selectPrimaryKey(as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(id:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
-| `Type.filter(ids:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
-| `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.including(all:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.including(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.including(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.joining(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.joining(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.group(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.groupByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.having(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.order(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.orderByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.limit(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.with(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| **[Record Comparison]** | | |
-| `record.databaseEquals(...)` | [EncodableRecord] | |
-| `record.databaseChanges(from:...)` | [EncodableRecord] | |
-| `record.updateChanges(db, from:...)` | [PersistableRecord] | |
-| `record.updateChanges(db) { ... }` | [PersistableRecord] | |
-| `record.hasDatabaseChanges` | [Record](#record-class) | |
-| `record.databaseChanges` | [Record](#record-class) | |
-| `record.updateChanges(db)` | [Record](#record-class) | |
-
-<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [`rowid`](https://www.sqlite.org/rowidtable.html)) and unique indexes:
-
-```swift
-try Player.fetchOne(db, id: 1)                                // Player?
-try Player.fetchOne(db, key: ["email": "arthur@example.com"]) // Player?
-try Country.fetchAll(db, keys: ["FR", "US"])                  // [Country]
-```
-
-<a name="list-of-record-methods-2">²</a> See [Fetch Requests](#requests):
-
-```swift
-let request = Player.filter(emailColumn != nil).order(nameColumn)
-let players = try request.fetchAll(db)  // [Player]
-let count = try request.fetchCount(db)  // Int
-```
-
-<a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
-
-```swift
-let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
-```
-
-<a name="list-of-record-methods-4">⁴</a> See [`Statement`]:
-
-```swift
-let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
-let player = try Player.fetchOne(statement, arguments: [1])  // Player?
-```
-
 
 The Query Interface
 ===================
@@ -3669,10 +3309,10 @@ let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
-Query interface requests usually start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
+Query interface requests usually start from **a type** that adopts the `TableRecord` protocol:
 
 ```swift
-class Player: Record { ... }
+struct Player: TableRecord { ... }
 
 // The request for all players:
 let request = Player.all()
@@ -6309,6 +5949,10 @@ This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/document
 
 This chapter was replaced with the documentation of [splittingRowAdapters(columnCounts:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)).
 
+#### List of Record Methods
+
+See [Records and the Query Interface](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterface).
+
 #### Migrations
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations).
@@ -6328,6 +5972,10 @@ This error was renamed to [RecordError].
 #### Prepared Statements
 
 This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
+
+#### Record Class
+
+The [`Record`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/record) class is a legacy GRDB type. Since GRDB 7, it is not recommended to define record types by subclassing the `Record` class.
 
 #### Row Adapters
 

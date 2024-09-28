@@ -2,6 +2,10 @@
 
 /// A base class for types that can be fetched and persisted in the database.
 ///
+/// ## Overview
+///
+/// - warning: `Record` is a legacy GRDB type. Since GRDB 7, it is not recommended to define record types by subclassing the `Record` class. See <doc:SwiftConcurrency> for more information.
+///
 /// ## Topics
 ///
 /// ### Creating Record Instances
