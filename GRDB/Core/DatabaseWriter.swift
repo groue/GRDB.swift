@@ -103,8 +103,6 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Executes database operations, and returns their result after they have
     /// finished executing.
     ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
     /// For example:
     ///
     /// ```swift
@@ -177,8 +175,6 @@ public protocol DatabaseWriter: DatabaseReader {
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Database operations are not executed until all currently executing
     /// database accesses performed by the database writer finish executing
@@ -335,8 +331,6 @@ public protocol DatabaseWriter: DatabaseReader {
     
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
     /// Schedules read-only database operations for execution.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// This method must be called from the writer dispatch queue, outside of
     /// any transaction. You'll get a fatal error otherwise.
@@ -619,8 +613,6 @@ extension DatabaseWriter {
     /// Executes database operations, and returns their result after they have
     /// finished executing.
     ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
     /// For example:
     ///
     /// ```swift
@@ -661,16 +653,12 @@ extension DatabaseWriter {
     }
     
     /// Erase the database: delete all content, drop all tables, etc.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     public func erase() async throws {
         try await writeWithoutTransaction { try $0.erase() }
     }
     
     /// Rebuilds the database file, repacking it into a minimal amount of
     /// disk space.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_vacuum.html>
     public func vacuum() async throws {
@@ -680,8 +668,6 @@ extension DatabaseWriter {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Databases encrypted with SQLCipher are copied with the same password
     /// and configuration as the original database.
@@ -697,8 +683,6 @@ extension DatabaseWriter {
 #else
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_vacuum.html#vacuuminto>
     ///

@@ -484,8 +484,6 @@ public class TableAlias: @unchecked Sendable {
     /// A boolean SQL expression indicating whether this alias refers to some
     /// rows, or not.
     ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
     /// In the example below, we only fetch books that are not associated to
     /// any author:
     ///

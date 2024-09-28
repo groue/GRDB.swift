@@ -191,8 +191,6 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// Executes read-only database operations, and returns their result after
     /// they have finished executing.
     ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
     /// For example:
     ///
     /// ```swift
@@ -290,8 +288,6 @@ public protocol DatabaseReader: AnyObject, Sendable {
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// This method is "unsafe" because the database reader does nothing more
     /// than providing a database connection. When you use this method, you

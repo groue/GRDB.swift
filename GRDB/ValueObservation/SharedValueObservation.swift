@@ -355,8 +355,6 @@ extension SharedValueObservation {
     // MARK: - Asynchronous Observation
     /// Returns an asynchronous sequence of observed values.
     ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
     /// For example:
     ///
     /// ```swift
