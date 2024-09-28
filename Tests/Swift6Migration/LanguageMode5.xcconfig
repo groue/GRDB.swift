@@ -1,0 +1,5 @@
+// Swift 5 mode
+SWIFT_VERSION = 5.0
+
+// Recommended settings
+SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES

@@ -71,9 +71,9 @@ let package = Package(
                 "Info.plist",
                 "Performance",
                 "SPM",
+                "Swift6Migration",
                 "generatePerformanceReport.rb",
                 "parsePerformanceTests.rb",
-                "products",
             ],
             resources: [
                 .copy("GRDBTests/Betty.jpeg"),
