@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: September 7, 2024 • [version 6.29.3](https://github.com/groue/GRDB.swift/tree/v6.29.3) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+**Latest release**: September 7, 2024 • [version 6.29.3](https://github.com/groue/GRDB.swift/tree/v6.29.3) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -316,7 +316,7 @@ Documentation
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
-- :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+- :bulb: [Migrating From GRDB 6 to GRDB 7](Documentation/Documentation/GRDB7MigrationGuide.md)
 - :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
 - :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
 
