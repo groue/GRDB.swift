@@ -720,6 +720,7 @@
 		5698AD151DAAD16F0056AF8C /* FTS5Tokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5Tokenizer.swift; sourceTree = "<group>"; };
 		5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5WrapperTokenizer.swift; sourceTree = "<group>"; };
 		5698AD341DABAF4A0056AF8C /* FTS5CustomTokenizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5CustomTokenizer.swift; sourceTree = "<group>"; };
+		5698C1C32CA844F4001C0EB0 /* GRDBTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBTests.xcconfig; sourceTree = "<group>"; };
 		569BBA20228DE51800478429 /* AssociationPrefetchingFetchableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingFetchableRecordTests.swift; sourceTree = "<group>"; };
 		569BBA3522905FFA00478429 /* InflectionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InflectionsTests.swift; sourceTree = "<group>"; };
 		569BBA4522906A8200478429 /* InflectionsTests.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = InflectionsTests.json; sourceTree = "<group>"; };
@@ -1769,6 +1770,7 @@
 				56C48E731C9A9923005DF1D9 /* module.modulemap */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,
 				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
+				5698C1C32CA844F4001C0EB0 /* GRDBTests.xcconfig */,
 				56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */,
 			);
 			name = "Supporting Files";
@@ -2344,7 +2346,7 @@
 /* Begin XCBuildConfiguration section */
 		56E5D8021B4D422E00430942 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 5698C1C32CA844F4001C0EB0 /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -2374,7 +2376,7 @@
 		};
 		56E5D8031B4D422E00430942 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 5698C1C32CA844F4001C0EB0 /* GRDBTests.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
