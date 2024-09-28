@@ -231,11 +231,11 @@ try writer.write { ... }
 await try writer.write { ... }
 ```
 
-Synchronous accesses are handy. They avoid introducing undesired delays, flashes of missing content in the user interface, or `async` functions. There is no problem performing fast database accesses synchronously, even from the main thread.
+Synchronous database accesses are handy. They avoid undesired delays, flashes of missing content in the user interface, or `async` functions. Many apps access the database synchronously, even from the main thread, because SQLite is very fast. Of course, it is still possible to run slow queries: in this case, asynchronous accesses should be preferred. They are guaranteed to never block the main thread.
 
-**It is a good idea to prefer the asynchronous version (`await`) whenever the application accesses the database from Swift tasks.** This is not a hard requirement, because performing synchronous database accesses from tasks is not incorrect. The only problem is that other tasks may have to wait until datababase accesses are completed. When you `await` for database accesses, this problem does not happen.
+Performing synchronous accesses from Swift Concurrency tasks is not incorrect.
 
-In many occasions, the compiler will guide you. In the sample code below, the compiler requires the `await` keyword:
+Some people recommend to avoid performing long blocking jobs on the cooperative thread pool, so you might want to follow this advice, and prefer to always `await` for the database in Swift tasks. In many occasions, the compiler will help you. For example, in the sample code below, the compiler requires the `await` keyword:
 
 ```swift
 func fetchPlayers() async throws -> [Player] {
@@ -243,16 +243,12 @@ func fetchPlayers() async throws -> [Player] {
 }
 ```
 
-But there are some scenarios where your vigilance is needed. For example, the compiler does not spot the missing `await` inside closures ([swiftlang/swift#74459](https://github.com/swiftlang/swift/issues/74459)):
+But there are some scenarios where the compiler misses opportunities to use `await`, such as inside closures ([swiftlang/swift#74459](https://github.com/swiftlang/swift/issues/74459)):
 
 ```swift
 Task {
-    // NOT RECOMMENDED
     // The compiler does not spot the missing `await`
     let players = try writer.read(Player.fetchAll)
-
-    // RECOMMENDED
-    let players = try await writer.read(Player.fetchAll)
 }
 ```
 
