@@ -142,28 +142,28 @@
 - [?] GRDB7: Not Sendable: SharedValueObservation
 - [X] GRDB7: doc (c0838cf9)
 - [X] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
-- [ ] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
+- [X] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
     - [X] Doc
-    - [ ] Migration Guide
+    - [X] Migration Guide
 - [X] GRDB7: Sendable: Association (b06aaee4)
 - [ ] GRDB7/Tests: Sendable: ValueObservationRecorder (2947b3d7)
-- [ ] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)
+- [X] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)
 - [ ] GRDB7/Tests: use a single and Sendable test TextOutputStream (bbb1a736)
-- [ ] GRDB7: ValueObservation needs a ValueReducer, not a `_ValueReducer` (08733108)
+- [X] GRDB7: ValueObservation needs a ValueReducer, not a `_ValueReducer` (08733108)
 - [X] GRDB7: Database support for cancellation (4ddf4bca)
 - [X] GRDB7: SerializedDatabase support for async db access with support for Task cancellation (737cb149)
 - [X] GRDB7: DatabaseWriter async methods support Task cancellation (a5226501)
 - [X] GRDB7: DatabaseReader async methods support Task cancellation (10c9d311)
 - [X] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
 - [-] GRDB7: Sendable: AssociationAggregate (48ad10ae)
-- [ ] GRDB7: Sendable: AsyncValueObservation (necessary for async algorithm) (ce63cdfa)
+- [X] GRDB7: Sendable: AsyncValueObservation (necessary for async algorithm) (ce63cdfa)
 - [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
 - [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
 - [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
 - [X] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16)
 - [X] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor)
 
-- [ ] GRDB7: DatabasePublishers.Value should carry the type of the Reducer, so that we can rely on main-actor-isolated callbacks.
+- [ ] GRDB7: DatabasePublishers.Value should carry the type of the Scheduler, so that we can rely on main-actor-isolated callbacks.
 - [X] GRDB7: Remove warning about "products" in Package.swift
 - [X] GRDB7: Fixits
     - [X] defaultTransactionKind
@@ -171,7 +171,7 @@
 - [X] GRDB7: Swift Concurrency recommendations
     - [X] Record classe(s)
     - [X] InferSendableFromCaptures
-- [ ] GRDB7: stop fostering the Record class
+- [X] GRDB7: stop fostering the Record class
     - Remove all mentions from the README
     - Warn about it in the documentation of the class.
 - [X] GRDB7: Breaking changes documentation
