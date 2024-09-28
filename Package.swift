@@ -6,14 +6,9 @@ import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
-    .enableUpcomingFeature("InferSendableFromCaptures"),
-    .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
-
-// For Swift 5.8+
-//swiftSettings.append(.enableUpcomingFeature("ExistentialAny"))
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
@@ -81,7 +76,12 @@ let package = Package(
                 .copy("GRDBTests/Issue1383.sqlite"),
             ],
             cSettings: cSettings,
-            swiftSettings: swiftSettings)
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v6]
 )

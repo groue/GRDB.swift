@@ -10,3 +10,7 @@ CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
 
 OTHER_CFLAGS = -DUSING_BUILTIN_SQLITE -DGRDBCUSTOMSQLITE $(CUSTOM_SQLLIBRARY_CFLAGS)        // Do not modify.
 OTHER_SWIFT_FLAGS = -D USING_BUILTIN_SQLITE -D GRDBCUSTOMSQLITE $(CUSTOM_OTHER_SWIFT_FLAGS)  // Do not modify.
+
+// Tests still use the Swift 5 language mode.
+SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES
+OTHER_SWIFT_FLAGS = $(inherited) -enable-upcoming-feature GlobalActorIsolatedTypesUsability
