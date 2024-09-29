@@ -4,6 +4,7 @@ Migrating From GRDB 6 to GRDB 7
 **This guide helps you upgrade your applications from GRDB 6 to GRDB 7.**
 
 - [Preparing the Migration to GRDB 7](#preparing-the-migration-to-grdb-7)
+- [Recommendations Regarding Swift Concurrency](#recommendations-regarding-swift-concurrency)
 - [New requirements](#new-requirements)
 - [Companion Libraries](#companion-libraries)
 - [Column Coding Strategies](#column-coding-strategies)
@@ -11,18 +12,23 @@ Migrating From GRDB 6 to GRDB 7
 - [Default Transaction Kind](#default-transaction-kind)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
 - [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
-- [Recommendations Regarding Swift Concurrency](#recommendations-regarding-swift-concurrency)
 - [Other Changes](#other-changes)
 
 ## Preparing the Migration to GRDB 7
 
 Before upgrading, ensure you are using the [latest GRDB 6 release](https://github.com/groue/GRDB.swift/tags) and address any deprecation warnings. Once this is done, proceed with upgrading to GRDB 7. Due to breaking changes, your application may no longer compile. Follow the fix-it suggestions for simple syntax updates, and review the specific modifications described below.
 
+## Recommendations Regarding Swift Concurrency
+
+GRDB 7 requires Xcode 16+ and a Swift 6 compiler.
+
+Depending of the language mode and level of concurrency checkings used by your application, you may see warnings or errors. See [Migrating to Swift 6] on swift.org for more information about Swift 6. See [Swift Concurrency and GRDB] for GRDB-focused advice.
+
 ## New requirements
 
 GRDB requirements have been bumped:
 
-- **Swift Compiler 6+** (was Swift 5.7+). Both Swift 5 and Swift 6 language modes are supported. For more information, see the [Migrating to Swift 6] Apple guide.
+- **Swift Compiler 6+** (was Swift 5.7+).
 - **Xcode 16.0+** (was Xcode 14.0+)
 - **iOS 13+** (was iOS 11+)
 - **macOS 10.15+** (was macOS 10.13+)
@@ -171,13 +177,6 @@ extension Player: FetchableRecord, PersistableRecord { }
 ```
 
 Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non-Sendable record types in GRDB. 
-
-## Recommendations Regarding Swift Concurrency
-
-GRDB 7 requires Xcode 16+ and a Swift 6 compiler.
-
-Depending of the language mode and level of concurrency checkings used by your application (see [Migrating to Swift 6]), you may see warnings or errors. We address those issues, and provide general guidance, in [Swift Concurrency and GRDB].
-
 
 ## Other Changes
 
