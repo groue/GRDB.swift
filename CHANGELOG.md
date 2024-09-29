@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.0.0` Betas - [7.0.0-beta](#700-beta)
+- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2)
 
 #### 6.x Releases
 
@@ -131,6 +131,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 7.0.0-beta.2
+
+Released September 29, 2024
+
+- **Fix** Update .spi.yml by [@finestructure](https://github.com/finestructure) in [#1643](https://github.com/groue/GRDB.swift/pull/1643)
+
 ## 7.0.0-beta
 
 Released September 29, 2024
@@ -143,7 +149,7 @@ The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.sw
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
-- **Breaking Change**: Bump requirements by [@groue](https://github.com/groue) in [#1598](https://github.com/groue/GRDB.swift/pull/1598) and  [#1634](https://github.com/groue/GRDB.swift/pull/1634)
+- **Breaking Change**: Bump requirements by [@groue](https://github.com/groue) in [#1598](https://github.com/groue/GRDB.swift/pull/1598) and [#1634](https://github.com/groue/GRDB.swift/pull/1634)
 - **Breaking Change**: Enhance ergonomics of record methods that insert/save/upsert and fetch by [@groue](https://github.com/groue) in [#1599](https://github.com/groue/GRDB.swift/pull/1599)
 - **Breaking Change**: Rename the CSQLite module to GRDBSQLite, and stop exporting the C SQLite functions by [@groue](https://github.com/groue) in [#1600](https://github.com/groue/GRDB.swift/pull/1600)
 - **Breaking Change**: Perform all writes with immediate transactions by default by [@groue](https://github.com/groue) in [#1602](https://github.com/groue/GRDB.swift/pull/1602)
