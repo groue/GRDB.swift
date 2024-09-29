@@ -4,9 +4,8 @@ import GRDB
 
 struct AppDatabaseTests {
     @Test func insert() throws {
-        // Given a properly configured and empty in-memory database
-        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
-        let appDatabase = try AppDatabase(dbQueue)
+        // Given an empty database
+        let appDatabase = try makeEmptyTestDatabase()
         
         // When we insert a player
         var insertedPlayer = Player(name: "Arthur", score: 1000)
@@ -21,9 +20,8 @@ struct AppDatabaseTests {
     }
     
     @Test func update() throws {
-        // Given a properly configured in-memory database that contains a player
-        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
-        let appDatabase = try AppDatabase(dbQueue)
+        // Given a database that contains a player
+        let appDatabase = try makeEmptyTestDatabase()
         var insertedPlayer = Player(name: "Arthur", score: 1000)
         try appDatabase.savePlayer(&insertedPlayer)
         
@@ -39,9 +37,8 @@ struct AppDatabaseTests {
     }
     
     @Test func deleteAll() throws {
-        // Given a properly configured in-memory database that contains a player
-        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
-        let appDatabase = try AppDatabase(dbQueue)
+        // Given a database that contains a player
+        let appDatabase = try makeEmptyTestDatabase()
         var player = Player(name: "Arthur", score: 1000)
         try appDatabase.savePlayer(&player)
         
@@ -51,5 +48,11 @@ struct AppDatabaseTests {
         // Then no player exists
         let count = try appDatabase.reader.read(Player.fetchCount(_:))
         #expect(count == 0)
+    }
+    
+    /// Return an empty, in-memory, `AppDatabase`.
+    private func makeEmptyTestDatabase() throws -> AppDatabase {
+        let dbQueue = try DatabaseQueue(configuration: AppDatabase.makeConfiguration())
+        return try AppDatabase(dbQueue)
     }
 }

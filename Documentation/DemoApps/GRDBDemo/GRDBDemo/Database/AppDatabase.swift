@@ -2,22 +2,22 @@ import Foundation
 import GRDB
 import os.log
 
-/// A repository of players.
-///
-/// You create a `AppDatabase` with a
-/// [connection to an SQLite database](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections),
-/// created with a configuration returned from
-/// ``makeConfiguration(_:)``.
+/// The type that provides access to the application database.
 ///
 /// For example:
 ///
 /// ```swift
-/// // Create an in-memory AppDatabase
+/// // Create an empty, in-memory, AppDatabase
 /// let config = AppDatabase.makeConfiguration()
 /// let dbQueue = try DatabaseQueue(configuration: config)
 /// let appDatabase = try AppDatabase(dbQueue)
 /// ```
 final class AppDatabase: Sendable {
+    /// Access to the database.
+    ///
+    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
+    private let dbWriter: any DatabaseWriter
+    
     /// Creates a `AppDatabase`, and makes sure the database schema
     /// is ready.
     ///
@@ -27,14 +27,6 @@ final class AppDatabase: Sendable {
         self.dbWriter = dbWriter
         try migrator.migrate(dbWriter)
     }
-    
-    /// Provides access to the database.
-    ///
-    /// Application can use a `DatabasePool`, while SwiftUI previews and tests
-    /// can use a fast in-memory `DatabaseQueue`.
-    ///
-    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
-    private let dbWriter: any DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
     ///
@@ -70,7 +62,8 @@ final class AppDatabase: Sendable {
 // MARK: - Database Configuration
 
 extension AppDatabase {
-    private static let sqlLogger = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "SQL")
+    // Uncomment for enabling SQL logging
+    // private static let sqlLogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SQL")
     
     /// Returns a database configuration suited for `AppDatabase`.
     ///
@@ -81,32 +74,31 @@ extension AppDatabase {
     static func makeConfiguration(_ base: Configuration = Configuration()) -> Configuration {
         var config = base
         
-        // An opportunity to add required custom SQL functions or
-        // collations, if needed:
+        // Add custom SQL functions or collations, if needed:
         // config.prepareDatabase { db in
         //     db.add(function: ...)
         // }
         
-        // Log SQL statements if the `SQL_TRACE` environment variable is set.
+        // Uncomment for enabling SQL logging if the `SQL_TRACE` environment variable is set.
         // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/trace(options:_:)>
-        if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
-            config.prepareDatabase { db in
-                db.trace {
-                    // It's ok to log statements publicly. Sensitive
-                    // information (statement arguments) are not logged
-                    // unless config.publicStatementArguments is set
-                    // (see below).
-                    os_log("%{public}@", log: sqlLogger, type: .debug, String(describing: $0))
-                }
-            }
-        }
-        
-#if DEBUG
-        // Protect sensitive information by enabling verbose debugging in
-        // DEBUG builds only.
-        // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/publicstatementarguments>
-        config.publicStatementArguments = true
-#endif
+        // if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
+        //     config.prepareDatabase { db in
+        //         let dbName = db.description
+        //         db.trace { event in
+        //             // Sensitive information (statement arguments) is not
+        //             // logged unless config.publicStatementArguments is set
+        //             // (see below).
+        //             sqlLogger.debug("\(dbName): \(event)")
+        //         }
+        //     }
+        // }
+        //
+        // #if DEBUG
+        // // Protect sensitive information by enabling verbose debugging in
+        // // DEBUG builds only.
+        // // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/publicstatementarguments>
+        // config.publicStatementArguments = true
+        // #endif
         
         return config
     }
