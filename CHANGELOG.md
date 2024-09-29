@@ -145,7 +145,7 @@ Released September 29, 2024
 
 [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 
-The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.2/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
