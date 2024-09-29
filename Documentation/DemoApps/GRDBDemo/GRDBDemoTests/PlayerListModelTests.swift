@@ -18,7 +18,7 @@ struct PlayerListModelTests {
         
         // Then the model eventually fetches the player.
         // We poll because we do not know when the model will update its players.
-        await pollUntil {
+        try await pollUntil {
             model.players.isEmpty == false
         }
         #expect(model.players == [player])
@@ -37,7 +37,7 @@ struct PlayerListModelTests {
         
         // Then the model eventually fetches the player.
         // We poll because we do not know when the model will update its players.
-        await pollUntil {
+        try await pollUntil {
             model.players.isEmpty == false
         }
         #expect(model.players == [player])
@@ -68,14 +68,14 @@ struct PlayerListModelTests {
     }
     
     /// Convenience method that loops until a condition is met.
-    private func pollUntil(condition: @escaping @MainActor () async -> Bool) async {
-        await confirmation { confirmation in
+    private func pollUntil(condition: @escaping @MainActor () async -> Bool) async throws {
+        try await confirmation { confirmation in
             while true {
                 if await condition() {
                     confirmation()
                     return
                 } else {
-                    await Task.yield()
+                    try await Task.sleep(for: .seconds(0.01))
                 }
             }
         }
