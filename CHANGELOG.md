@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+#### 7.x Releases
+
+- `7.0.0` Betas - [7.0.0-beta](#700-beta)
+
 #### 6.x Releases
 
 - `6.29.x` Releases - [6.29.0](#6290) - [6.29.1](#6291) - [6.29.2](#6292) - [6.29.3](#6293)
@@ -127,7 +131,17 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 7.0.0-beta
+
+Released September 29, 2024
+
+**GRDB 7 brings full support for Swift 6.**
+
+[Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
+
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+
+The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
 - **Breaking Change**: Bump requirements by [@groue](https://github.com/groue) in [#1598](https://github.com/groue/GRDB.swift/pull/1598) and  [#1634](https://github.com/groue/GRDB.swift/pull/1634)
 - **Breaking Change**: Enhance ergonomics of record methods that insert/save/upsert and fetch by [@groue](https://github.com/groue) in [#1599](https://github.com/groue/GRDB.swift/pull/1599)
@@ -142,9 +156,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking Change**: Prefer any DatabaseReader and DatabaseWriter by [@groue](https://github.com/groue) in [#1635](https://github.com/groue/GRDB.swift/pull/1635)
 - **New**: Sendable database accesses by [@groue](https://github.com/groue) in [#1618](https://github.com/groue/GRDB.swift/pull/1618)
 - **New**: DatabaseCursor has a primary associated type by [@groue](https://github.com/groue) in [#1605](https://github.com/groue/GRDB.swift/pull/1605)
-- **Documentation Update**: [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
-- **Documentation Update**: The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
-- **Documentation Update**: The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
 ## 6.29.3
 
