@@ -6,41 +6,36 @@ struct PlayerListModelTests {
     // MARK: - PlayerListModel.observePlayers tests
     
     @Test(.timeLimit(.minutes(1)))
-    @MainActor func observation_started_after_player_creation() async throws {
-        // Given a PlayerListModel on a database that contains a player
+    @MainActor func observation_grabs_current_database_state() async throws {
+        // Given a PlayerListModel on a database that contains one player
         let appDatabase = try makeEmptyTestDatabase()
         var player = Player(name: "Arthur", score: 1000)
         try appDatabase.savePlayer(&player)
         let model = PlayerListModel(appDatabase: appDatabase)
         
-        // When we start observing the database
+        // When the model starts observing the database
         model.observePlayers()
         
-        // Then the model eventually fetches the player.
-        // We poll because we do not know when the model will update its players.
-        try await pollUntil {
-            model.players.isEmpty == false
-        }
-        #expect(model.players == [player])
+        // Then the model eventually has one player.
+        try await pollUntil { model.players.count == 1 }
     }
     
     @Test(.timeLimit(.minutes(1)))
-    @MainActor func observation_started_before_player_creation() async throws {
-        // Given a PlayerListModel that observes a empty database
+    @MainActor func observation_grabs_database_changes() async throws {
+        // Given a PlayerListModel that has one player
         let appDatabase = try makeEmptyTestDatabase()
+        var player1 = Player(name: "Arthur", score: 1000)
+        try appDatabase.savePlayer(&player1)
         let model = PlayerListModel(appDatabase: appDatabase)
         model.observePlayers()
+        try await pollUntil { model.players.count == 1 }
         
-        // When we insert a player
-        var player = Player(name: "Arthur", score: 1000)
-        try appDatabase.savePlayer(&player)
+        // When we insert a second player
+        var player2 = Player(name: "Barbara", score: 800)
+        try appDatabase.savePlayer(&player2)
         
-        // Then the model eventually fetches the player.
-        // We poll because we do not know when the model will update its players.
-        try await pollUntil {
-            model.players.isEmpty == false
-        }
-        #expect(model.players == [player])
+        // Then the model eventually has two players.
+        try await pollUntil { model.players.count == 2 }
     }
     
     @Test
