@@ -29,18 +29,20 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
         i9 = row[9]
     }
     
-    static let databaseSelection: [any SQLSelectable] = [
-        Column("i0"),
-        Column("i1"),
-        Column("i2"),
-        Column("i3"),
-        Column("i4"),
-        Column("i5"),
-        Column("i6"),
-        Column("i7"),
-        Column("i8"),
-        Column("i9"),
-    ]
+    static var databaseSelection: [any SQLSelectable] {
+        [
+            Column("i0"),
+            Column("i1"),
+            Column("i2"),
+            Column("i3"),
+            Column("i4"),
+            Column("i5"),
+            Column("i6"),
+            Column("i7"),
+            Column("i8"),
+            Column("i9"),
+        ]
+    }
 }
 
 /// Here we test the extraction of a plain Swift struct

@@ -183,9 +183,7 @@ public struct _LayoutedColumnMapping {
     ///
     ///     // [foo:"foo" bar: "bar"]
     ///     try Row.fetchOne(db, sql: "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
-    init<S>(layoutColumns: S)
-    where S: Sequence, S.Element == (Int, String)
-    {
+    init(layoutColumns: some Collection<(Int, String)>) {
         self._layoutColumns = Array(layoutColumns)
         self.lowercaseColumnIndexes = Dictionary(
             layoutColumns
@@ -318,7 +316,7 @@ extension Statement: _RowLayout {
 /// - ``RenameColumnAdapter``
 /// - ``ScopeAdapter``
 /// - ``SuffixRowAdapter``
-public protocol RowAdapter {
+public protocol RowAdapter: Sendable {
     /// You never call this method directly. It is called for you whenever an
     /// adapter has to be applied.
     ///
@@ -656,11 +654,11 @@ struct ChainedAdapter: RowAdapter {
 /// print(Array(adaptedRow.columnNames))
 /// ```
 public struct RenameColumnAdapter: RowAdapter {
-    let transform: (String) -> String
+    let transform: @Sendable (String) -> String
     
     /// Creates a `RenameColumnAdapter` adapter that renames columns according to the
     /// provided transform function.
-    public init(_ transform: @escaping (String) -> String) {
+    public init(_ transform: @escaping @Sendable (String) -> String) {
         self.transform = transform
     }
     

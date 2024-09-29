@@ -1,0 +1,89 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%lld Players" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "1 Player"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "new",
+                  "value" : "%lld Players"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No Player"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld points" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "1 point"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "new",
+                  "value" : "%lld points"
+                }
+              },
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "0 point"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Add Player" : {
+
+    },
+    "Anonymous" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Name" : {
+
+    },
+    "New Player" : {
+
+    },
+    "Save" : {
+
+    },
+    "Score" : {
+
+    },
+    "The team is empty!" : {
+
+    }
+  },
+  "version" : "1.0"
+}

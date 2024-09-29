@@ -1,0 +1,5 @@
+#include "GRDBDeploymentTarget.xcconfig"
+
+// Tests still use the Swift 5 language mode.
+SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES
+OTHER_SWIFT_FLAGS = $(inherited) -enable-upcoming-feature GlobalActorIsolatedTypesUsability

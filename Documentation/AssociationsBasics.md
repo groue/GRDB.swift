@@ -137,9 +137,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 **Associations are available on types that adopt the necessary supporting protocols.**
 
-When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
-
-Generally speaking, associations use the [TableRecord], [FetchableRecord], and [EncodableRecord] protocols:
+Associations are based on the [TableRecord], [FetchableRecord], and [EncodableRecord] protocols:
 
 - **[TableRecord]** is the protocol that lets you declare associations between record types:
 
@@ -3005,7 +3003,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [TableRecord]: ../README.md#tablerecord-protocol
 [Recommended Practices for Designing Record Types]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices
 [regular aggregating methods]: ../README.md#fetching-aggregated-values
-[Record class]: ../README.md#record-class
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records

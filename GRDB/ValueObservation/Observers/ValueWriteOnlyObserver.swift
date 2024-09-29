@@ -18,10 +18,10 @@ import Foundation
 /// reducing stage.
 ///
 /// **Notify** is calling user callbacks, in case of database change or error.
-final class ValueWriteOnlyObserver<
-    Writer: DatabaseWriter,
-    Reducer: ValueReducer,
-    Scheduler: ValueObservationScheduler>
+final class ValueWriteOnlyObserver<Writer, Reducer, Scheduler>: @unchecked Sendable
+where Writer: DatabaseWriter,
+      Reducer: ValueReducer,
+      Scheduler: ValueObservationScheduler
 {
     // MARK: - Configuration
     //
@@ -83,26 +83,26 @@ final class ValueWriteOnlyObserver<
         /// If true, database values are fetched from a read-only access.
         private let readOnly: Bool
         
-        /// A reducer that fetches database values.
-        private let reducer: Reducer
+        /// The fetcher that fetches database values.
+        private let fetcher: Reducer.Fetcher
         
-        init(writer: Writer, readOnly: Bool, reducer: Reducer) {
+        init(writer: Writer, readOnly: Bool, fetcher: Reducer.Fetcher) {
             self.writer = writer
             self.readOnly = readOnly
-            self.reducer = reducer
+            self.fetcher = fetcher
         }
         
-        func fetch(_ db: Database) throws -> Reducer.Fetched {
+        func fetch(_ db: Database) throws -> Reducer.Fetcher.Value {
             try db.isolated(readOnly: readOnly) {
-                try reducer._fetch(db)
+                try fetcher.fetch(db)
             }
         }
         
-        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetched, DatabaseRegion) {
+        func fetchRecordingObservedRegion(_ db: Database) throws -> (Reducer.Fetcher.Value, DatabaseRegion) {
             var region = DatabaseRegion()
             let fetchedValue = try db.isolated(readOnly: readOnly) {
                 try db.recordingSelection(&region) {
-                    try reducer._fetch(db)
+                    try fetcher.fetch(db)
                 }
             }
             return try (fetchedValue, region.observableRegion(db))
@@ -150,7 +150,7 @@ final class ValueWriteOnlyObserver<
         trackingMode: ValueObservationTrackingMode,
         reducer: Reducer,
         events: ValueObservationEvents,
-        onChange: @escaping (Reducer.Value) -> Void)
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
     {
         // Configuration
         self.scheduler = scheduler
@@ -160,9 +160,9 @@ final class ValueWriteOnlyObserver<
         self.databaseAccess = DatabaseAccess(
             writer: writer,
             readOnly: readOnly,
-            // ValueReducer semantics guarantees that reducer._fetch
+            // ValueReducer semantics guarantees that the fetcher
             // is independent from the reducer state
-            reducer: reducer)
+            fetcher: reducer._makeFetcher())
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
         self.reduceQueue = DispatchQueue(
@@ -252,9 +252,11 @@ extension ValueWriteOnlyObserver {
         writer.asyncWriteWithoutTransaction { db in
             do {
                 // Fetch & Start observing the database
-                guard let fetchedValue = try self.fetchAndStartObservation(db) else {
+                guard let _fetchedValue = try self.fetchAndStartObservation(db) else {
                     return /* Cancelled */
                 }
+                // Assume this value can safely be sent to the reduce queue.
+                nonisolated(unsafe) let fetchedValue = _fetchedValue
                 
                 // Reduce
                 //
@@ -301,7 +303,7 @@ extension ValueWriteOnlyObserver {
     /// By grouping the initial fetch and the beginning of observation in a
     /// single database access, we are sure that no concurrent write can happen
     /// during the initial fetch, and that we won't miss any future change.
-    private func fetchAndStartObservation(_ db: Database) throws -> Reducer.Fetched? {
+    private func fetchAndStartObservation(_ db: Database) throws -> Reducer.Fetcher.Value? {
         let (events, databaseAccess) = lock.synchronized {
             (notificationCallbacks?.events, self.databaseAccess)
         }
@@ -380,7 +382,8 @@ extension ValueWriteOnlyObserver: TransactionObserver {
         
         do {
             // Fetch
-            let fetchedValue: Reducer.Fetched
+            // Assume this value can safely be sent to the reduce queue.
+            nonisolated(unsafe) let fetchedValue: Reducer.Fetcher.Value
             
             switch trackingMode {
             case .constantRegion, .constantRegionRecordedFromSelection:

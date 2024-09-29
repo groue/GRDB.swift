@@ -14,14 +14,16 @@ import Foundation
 /// Both two extra scheduling guarantees are used by GRDB in order to be
 /// able to spawn concurrent database reads right from the database writer
 /// queue, and fulfill GRDB preconditions.
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+///
+/// OnDemandFuture also adds Sendable requirements that avoid
+/// compiler warnings.
 struct OnDemandFuture<Output, Failure: Error>: Publisher {
-    typealias Promise = (Result<Output, Failure>) -> Void
+    typealias Promise = @Sendable (Result<Output, Failure>) -> Void
     typealias Output = Output
     typealias Failure = Failure
-    fileprivate let attemptToFulfill: (@escaping Promise) -> Void
+    fileprivate let attemptToFulfill: @Sendable (@escaping Promise) -> Void
     
-    init(_ attemptToFulfill: @escaping (@escaping Promise) -> Void) {
+    init(_ attemptToFulfill: @escaping @Sendable (@escaping Promise) -> Void) {
         self.attemptToFulfill = attemptToFulfill
     }
     
@@ -33,9 +35,9 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription {
-    typealias Promise = (Result<Downstream.Input, Downstream.Failure>) -> Void
+private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable {
+    // @unchecked because `state` is protected with `lock`.
+    typealias Promise = @Sendable (Result<Downstream.Input, Downstream.Failure>) -> Void
     
     private enum State {
         case waitingForDemand(downstream: Downstream, attemptToFulfill: (@escaping Promise) -> Void)
@@ -47,7 +49,7 @@ private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription {
     private let lock = NSRecursiveLock() // Allow re-entrancy
     
     init(
-        attemptToFulfill: @escaping (@escaping Promise) -> Void,
+        attemptToFulfill: @escaping @Sendable (@escaping Promise) -> Void,
         downstream: Downstream)
     {
         self.state = .waitingForDemand(downstream: downstream, attemptToFulfill: attemptToFulfill)

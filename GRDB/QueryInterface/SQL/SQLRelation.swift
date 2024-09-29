@@ -90,7 +90,7 @@
 ///         // JOIN passport ON passport.citizenId = citizens.id
 ///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...);
 ///         Country.including(all: Country.citizens)
-struct SQLRelation {
+struct SQLRelation: Sendable {
     struct Child: Refinable {
         enum Kind {
             // Record.including(optional: association)
@@ -187,7 +187,7 @@ extension SQLRelation {
     /// Convenience factory methods which selects all rows from a table.
     static func all(
         fromTable tableName: String,
-        selection: @escaping (Database) -> [SQLSelection] = { _ in [.allColumns] })
+        selection: @escaping @Sendable (Database) -> [SQLSelection] = { _ in [.allColumns] })
     -> Self
     {
         SQLRelation(
@@ -197,7 +197,7 @@ extension SQLRelation {
 }
 
 extension SQLRelation: Refinable {
-    func selectWhenConnected(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+    func selectWhenConnected(_ selection: @escaping @Sendable (Database) throws -> [SQLSelection]) -> Self {
         with {
             $0.selectionPromise = DatabasePromise(selection)
         }
@@ -228,7 +228,7 @@ extension SQLRelation: Refinable {
             }
     }
     
-    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+    func annotatedWhenConnected(with selection: @escaping @Sendable (Database) throws -> [SQLSelection]) -> Self {
         with {
             let old = $0.selectionPromise
             $0.selectionPromise = DatabasePromise { db in
@@ -242,7 +242,7 @@ extension SQLRelation: Refinable {
         annotatedWhenConnected(with: { _ in selection })
     }
     
-    func filterWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+    func filterWhenConnected(_ predicate: @escaping @Sendable (Database) throws -> SQLExpression) -> Self {
         with {
             if let old = $0.filterPromise {
                 $0.filterPromise = DatabasePromise { db in
@@ -259,7 +259,7 @@ extension SQLRelation: Refinable {
         filterWhenConnected { _ in predicate }
     }
     
-    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
+    func orderWhenConnected(_ orderings: @escaping @Sendable (Database) throws -> [SQLOrdering]) -> Self {
         with {
             $0.ordering = SQLRelation.Ordering(orderings: orderings)
         }
@@ -313,13 +313,13 @@ extension SQLRelation: Refinable {
         }
     }
     
-    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+    func groupWhenConnected(_ expressions: @escaping @Sendable (Database) throws -> [SQLExpression]) -> Self {
         with {
             $0.groupPromise = DatabasePromise(expressions)
         }
     }
     
-    func havingWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+    func havingWhenConnected(_ predicate: @escaping @Sendable (Database) throws -> SQLExpression) -> Self {
         with {
             if let old = $0.havingExpressionPromise {
                 $0.havingExpressionPromise = DatabasePromise { db in
@@ -672,7 +672,7 @@ struct SQLLimit {
 
 // MARK: - SQLSource
 
-struct SQLSource {
+struct SQLSource: Sendable {
     var tableName: String
     var alias: TableAlias?
     
@@ -691,7 +691,7 @@ struct SQLSource {
 
 extension SQLRelation {
     /// SQLRelation.Ordering provides the order clause to SQLRelation.
-    struct Ordering {
+    struct Ordering: Sendable {
         private enum Element {
             case terms(DatabasePromise<[SQLOrdering]>)
             case ordering(SQLRelation.Ordering)
@@ -740,7 +740,7 @@ extension SQLRelation {
                 isReversed: false)
         }
         
-        init(orderings: @escaping (Database) throws -> [SQLOrdering]) {
+        init(orderings: @escaping @Sendable (Database) throws -> [SQLOrdering]) {
             self.init(
                 elements: [.terms(DatabasePromise(orderings))],
                 isReversed: false)
@@ -796,7 +796,7 @@ extension SQLRelation {
 ///     // SELECT * FROM book WHERE author.id = 1
 ///     //                          ~~~~~~~~~~~~~
 ///     author.request(for: Author.books)
-enum SQLAssociationCondition {
+enum SQLAssociationCondition: Sendable {
     /// A condition based on a foreign key.
     case foreignKey(SQLForeignKeyCondition)
     
@@ -814,7 +814,7 @@ enum SQLAssociationCondition {
     ///         player[Column("id")] == bonus[Column("playerID")]
     ///     })
     ///     Player.with(bonus).joining(required: association)
-    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
+    case expression(@Sendable (_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
     
     /// The condition that does not constrain the two associated tables
     /// in any way.
@@ -923,10 +923,9 @@ extension JoinMapping {
     /// - precondition: leftRows contains all mapping left columns.
     /// - precondition: All rows have the same layout: a column index returned
     ///   by `index(forColumn:)` refers to the same column in all rows.
-    func joinExpression<Rows>(leftRows: Rows)
-    -> SQLExpression
-    where Rows: Collection, Rows.Element: ColumnAddressable
-    {
+    func joinExpression(
+        leftRows: some Collection<some ColumnAddressable>
+    ) -> SQLExpression {
         guard let firstLeftRow = leftRows.first else {
             // We could return `false.sqlExpression`.
             //
@@ -1027,9 +1026,6 @@ extension Row: ColumnAddressable {
 /// PersistenceContainer has columns
 extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
-    func databaseValue(at column: String) -> DatabaseValue {
-        self[caseInsensitive: column]?.databaseValue ?? .null
-    }
 }
 
 // MARK: - Merging

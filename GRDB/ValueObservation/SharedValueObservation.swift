@@ -87,9 +87,9 @@ extension ValueObservation {
     /// main dispatch queue. You can change this behavior by providing a
     /// scheduler.
     ///
-    /// For example, the ``ValueObservationScheduler/immediate`` scheduler
-    /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the
+    /// For example, the ``ValueObservationMainActorScheduler/immediate``
+    /// scheduler notifies all values on the main dispatch queue, and
+    /// notifies the first one immediately when the
     /// ``SharedValueObservation/start(onError:onChange:)`` method is called.
     /// The `immediate` scheduling requires that the observation starts from the
     /// main thread (a fatal error is raised otherwise):
@@ -111,16 +111,13 @@ extension ValueObservation {
     /// // <- here "Fresh players" is already printed.
     /// ```
     ///
-    /// Note that the `.immediate` scheduler requires that the observation is
-    /// subscribed from the main thread. It raises a fatal error otherwise.
-    ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
     ///   dispatched asynchronously on the main queue.
     /// - parameter extent: The extent of the shared database observation.
     /// - returns: A `SharedValueObservation`
     public func shared(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
         extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>
@@ -167,7 +164,8 @@ extension ValueObservation {
 /// let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
 /// ```
-public final class SharedValueObservation<Element> {
+public final class SharedValueObservation<Element: Sendable>: @unchecked Sendable {
+    // @unchecked Sendable because state is protected by `lock`.
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
     private let startObservation: ValueObservationStart<Element>
@@ -179,11 +177,14 @@ public final class SharedValueObservation<Element> {
     private var cancellable: AnyDatabaseCancellable?
     private var lastResult: Result<Element, Error>?
     
-    private final class Client {
-        var onError: (Error) -> Void
-        var onChange: (Element) -> Void
+    private final class Client: Sendable {
+        let onError: @Sendable (Error) -> Void
+        let onChange: @Sendable (Element) -> Void
         
-        init(onError: @escaping (Error) -> Void, onChange: @escaping (Element) -> Void) {
+        init(
+            onError: @escaping @Sendable (Error) -> Void,
+            onChange: @escaping @Sendable (Element) -> Void
+        ) {
             self.onError = onError
             self.onChange = onChange
         }
@@ -223,12 +224,12 @@ public final class SharedValueObservation<Element> {
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    public func start(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Element) -> Void)
+    @preconcurrency public func start(
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
-        synchronized {
+        withLock {
             // Support for reentrancy: a shared immediate observation is
             // started from the first value notification of that same shared
             // immediate observation. Yeah, users are nasty.
@@ -291,7 +292,6 @@ public final class SharedValueObservation<Element> {
     ///     print("fresh players: \(players)")
     /// }
     /// ```
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func publisher() -> DatabasePublishers.Value<Element> {
         DatabasePublishers.Value { onError, onChange in
             self.start(onError: onError, onChange: onChange)
@@ -300,7 +300,7 @@ public final class SharedValueObservation<Element> {
 #endif
     
     private func handleError(_ error: Error) {
-        synchronized {
+        withLock {
             let notifiedClients = clients
             
             // State change
@@ -321,7 +321,7 @@ public final class SharedValueObservation<Element> {
     }
     
     private func handleChange(_ value: Element) {
-        synchronized {
+        withLock {
             // State change
             lastResult = .success(value)
             
@@ -333,7 +333,7 @@ public final class SharedValueObservation<Element> {
     }
     
     private func handleCancel(_ client: Client) {
-        synchronized {
+        withLock {
             // State change
             clients.removeFirst(where: { $0 === client })
             if clients.isEmpty && extent == .whileObserved {
@@ -344,7 +344,7 @@ public final class SharedValueObservation<Element> {
         }
     }
     
-    private func synchronized<T>(_ execute: () throws -> T) rethrows -> T {
+    private func withLock<T>(_ execute: () throws -> T) rethrows -> T {
         lock.lock()
         defer { lock.unlock() }
         return try execute()
@@ -354,8 +354,6 @@ public final class SharedValueObservation<Element> {
 extension SharedValueObservation {
     // MARK: - Asynchronous Observation
     /// Returns an asynchronous sequence of observed values.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// For example:
     ///
@@ -368,7 +366,6 @@ extension SharedValueObservation {
     ///     print("Fresh players: \(players)")
     /// }
     /// ```
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func values(bufferingPolicy: AsyncValueObservation<Element>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Element>
     {

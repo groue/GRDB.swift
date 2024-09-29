@@ -8,7 +8,7 @@
 /// the SQL level.
 ///
 /// - When used in a JSON-building function such as
-///   ``Database/jsonArray(_:)-8xxe3`` or ``Database/jsonObject(_:)``,
+///   ``Database/jsonArray(_:)-8p2p8`` or ``Database/jsonObject(_:)``,
 ///   they are parsed and interpreted as JSON, not as plain strings.
 ///
 /// To build a JSON value, create a ``JSONColumn``, or call the
@@ -66,7 +66,7 @@
 /// ## Build JSON objects and arrays from JSON values
 ///
 /// When used in a JSON-building function such as
-/// ``Database/jsonArray(_:)-8xxe3`` or ``Database/jsonObject(_:)-5iswr``,
+/// ``Database/jsonArray(_:)-8p2p8`` or ``Database/jsonObject(_:)-5iswr``,
 /// JSON values are parsed and interpreted as JSON, not as plain strings.
 ///
 /// In the example below, we can see how the `JSONColumn` is interpreted as
@@ -224,9 +224,9 @@ extension SQLJSONExpressible {
     /// Related SQL documentation: <https://www.sqlite.org/json1.html#jex>
     ///
     /// - parameter paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    public func jsonExtract<C>(atPaths paths: C) -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    public func jsonExtract(
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         Database.jsonExtract(self, atPaths: paths)
     }
     
@@ -312,7 +312,7 @@ extension SQLJSONExpressible {
     /// Related SQL documentation: <https://www.sqlite.org/json1.html#jex>
     ///
     /// - parameter path: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
-    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+    @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public func jsonExtract(atPath path: some SQLExpressible) -> SQLExpression {
         Database.jsonExtract(self, atPath: path)
     }
@@ -334,10 +334,10 @@ extension SQLJSONExpressible {
     /// Related SQL documentation: <https://www.sqlite.org/json1.html#jex>
     ///
     /// - parameter paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-    @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-    public func jsonExtract<C>(atPaths paths: C) -> SQLExpression
-    where C: Collection, C.Element: SQLExpressible
-    {
+    @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+    public func jsonExtract(
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
         Database.jsonExtract(self, atPaths: paths)
     }
     
@@ -385,7 +385,7 @@ extension SQLJSONExpressible {
 //     /// ```
 //     ///
 //     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jpatch>
-//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+//     @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
 //     public func jsonPatch(
 //         with patch: some SQLExpressible)
 //     -> ColumnAssignment
@@ -408,7 +408,7 @@ extension SQLJSONExpressible {
 //     ///
 //     /// - Parameters:
 //     ///   - paths: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
-//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+//     @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
 //     public func jsonRemove(atPath path: some SQLExpressible) -> ColumnAssignment {
 //         .init(columnName: name, value: Database.jsonRemove(self, atPath: path))
 //     }
@@ -428,11 +428,10 @@ extension SQLJSONExpressible {
 //     ///
 //     /// - Parameters:
 //     ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
-//     @available(iOS 16, macOS 10.15, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
-//     public func jsonRemove<C>(atPaths paths: C)
-//     -> ColumnAssignment
-//     where C: Collection, C.Element: SQLExpressible
-//     {
+//     @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
+//     public func jsonRemove(
+//         atPaths paths: some Collection<some SQLExpressible>
+//     ) -> ColumnAssignment {
 //         .init(columnName: name, value: Database.jsonRemove(self, atPaths: paths))
 //     }
 // 

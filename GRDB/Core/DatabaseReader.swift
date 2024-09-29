@@ -22,14 +22,14 @@ import Dispatch
 /// ### Reading from the Database
 ///
 /// - ``read(_:)-3806d``
-/// - ``read(_:)-4w6gy``
+/// - ``read(_:)-4d1da``
 /// - ``readPublisher(receiveOn:value:)``
 /// - ``asyncRead(_:)``
 ///
 /// ### Unsafe Methods
 ///
 /// - ``unsafeRead(_:)-5i7tf``
-/// - ``unsafeRead(_:)-11mk0``
+/// - ``unsafeRead(_:)-5gsav``
 /// - ``unsafeReentrantRead(_:)``
 /// - ``asyncUnsafeRead(_:)``
 ///
@@ -188,6 +188,36 @@ public protocol DatabaseReader: AnyObject, Sendable {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     func read<T>(_ value: (Database) throws -> T) throws -> T
     
+    /// Executes read-only database operations, and returns their result after
+    /// they have finished executing.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let count = try await reader.read { db in
+    ///     try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// Database operations are isolated in a transaction: they do not see
+    /// changes performed by eventual concurrent writes (even writes performed
+    /// by other processes).
+    ///
+    /// The database connection is read-only: attempts to write throw a
+    /// ``DatabaseError`` with resultCode `SQLITE_READONLY`.
+    ///
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
+    /// later use.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `value`, or
+    ///   `CancellationError` if the task is cancelled.
+    func read<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T
+    
     /// Schedules read-only database operations for execution, and
     /// returns immediately.
     ///
@@ -214,7 +244,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    )
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -254,6 +286,42 @@ public protocol DatabaseReader: AnyObject, Sendable {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T
     
+    /// Executes database operations, and returns their result after they have
+    /// finished executing.
+    ///
+    /// This method is "unsafe" because the database reader does nothing more
+    /// than providing a database connection. When you use this method, you
+    /// become responsible for the thread-safety of your application, and
+    /// responsible for database accesses performed by other processes. See
+    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
+    /// more information.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let count = try await reader.unsafeRead { db in
+    ///     try Player.fetchCount(db)
+    /// }
+    /// ```
+    ///
+    /// The ``Database`` argument to `value` is valid only during the execution
+    /// of the closure. Do not store or return the database connection for
+    /// later use.
+    ///
+    /// - warning: Database operations may not be wrapped in a transaction. They
+    ///   may see changes performed by concurrent writes or writes performed by
+    ///   other processes: two identical requests performed by the `value`
+    ///   closure may not return the same value.
+    /// - warning: Attempts to write in the database may succeed.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    /// - throws: Any ``DatabaseError`` that happens while establishing the
+    ///   database access, or the error thrown by `value`, or
+    ///   `CancellationError` if the task is cancelled.
+    func unsafeRead<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T
+    
     /// Schedules database operations for execution, and returns immediately.
     ///
     /// This method is "unsafe" because the database reader does nothing more
@@ -285,7 +353,9 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// - parameter value: A closure which accesses the database. Its argument
     ///   is a `Result` that provides the database connection, or the failure
     ///   that would prevent establishing the read access to the database.
-    func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void)
+    func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    )
     
     /// Executes database operations, and returns their result after they have
     /// finished executing.
@@ -343,8 +413,8 @@ public protocol DatabaseReader: AnyObject, Sendable {
     func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -398,7 +468,7 @@ extension DatabaseReader {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
     ///   error thrown by `progress`.
     public func backup(
-        to writer: some DatabaseWriter,
+        to writer: any DatabaseWriter,
         pagesPerStep: CInt = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
@@ -424,96 +494,6 @@ extension DatabaseReader {
                 pagesPerStep: pagesPerStep,
                 afterBackupInit: afterBackupInit,
                 afterBackupStep: afterBackupStep)
-        }
-    }
-}
-
-extension DatabaseReader {
-    // MARK: - Asynchronous Database Access
-    
-    /// Executes read-only database operations, and returns their result after
-    /// they have finished executing.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
-    /// For example:
-    ///
-    /// ```swift
-    /// let count = try await reader.read { db in
-    ///     try Player.fetchCount(db)
-    /// }
-    /// ```
-    ///
-    /// Database operations are isolated in a transaction: they do not see
-    /// changes performed by eventual concurrent writes (even writes performed
-    /// by other processes).
-    ///
-    /// The database connection is read-only: attempts to write throw a
-    /// ``DatabaseError`` with resultCode `SQLITE_READONLY`.
-    ///
-    /// The ``Database`` argument to `value` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
-    ///
-    /// - parameter value: A closure which accesses the database.
-    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
-    ///   would happen while establishing the database access.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func read<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
-        try await withUnsafeThrowingContinuation { continuation in
-            asyncRead { result in
-                do {
-                    try continuation.resume(returning: value(result.get()))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-    
-    /// Executes database operations, and returns their result after they have
-    /// finished executing.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
-    /// This method is "unsafe" because the database reader does nothing more
-    /// than providing a database connection. When you use this method, you
-    /// become responsible for the thread-safety of your application, and
-    /// responsible for database accesses performed by other processes. See
-    /// <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> for
-    /// more information.
-    ///
-    /// For example:
-    ///
-    /// ```swift
-    /// let count = try await reader.unsafeRead { db in
-    ///     try Player.fetchCount(db)
-    /// }
-    /// ```
-    ///
-    /// The ``Database`` argument to `value` is valid only during the execution
-    /// of the closure. Do not store or return the database connection for
-    /// later use.
-    ///
-    /// - warning: Database operations may not be wrapped in a transaction. They
-    ///   may see changes performed by concurrent writes or writes performed by
-    ///   other processes: two identical requests performed by the `value`
-    ///   closure may not return the same value.
-    /// - warning: Attempts to write in the database may succeed.
-    ///
-    /// - parameter value: A closure which accesses the database.
-    /// - throws: The error thrown by `value`, or any ``DatabaseError`` that
-    ///   would happen while establishing the database access.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func unsafeRead<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
-        try await withUnsafeThrowingContinuation { continuation in
-            asyncUnsafeRead { result in
-                do {
-                    try continuation.resume(returning: value(result.get()))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
         }
     }
 }
@@ -549,17 +529,13 @@ extension DatabaseReader {
     ///
     /// - parameter scheduler: A Combine Scheduler.
     /// - parameter value: A closure which accesses the database.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func readPublisher<Output>(
         receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main,
-        value: @escaping (Database) throws -> Output)
-    -> DatabasePublishers.Read<Output>
-    {
-        Deferred {
-            Future { fulfill in
-                self.asyncRead { dbResult in
-                    fulfill(dbResult.flatMap { db in Result { try value(db) } })
-                }
+        value: @escaping @Sendable (Database) throws -> Output
+    ) -> DatabasePublishers.Read<Output> {
+        OnDemandFuture { fulfill in
+            self.asyncRead { dbResult in
+                fulfill(dbResult.flatMap { db in Result { try value(db) } })
             }
         }
         .receiveValues(on: scheduler)
@@ -567,7 +543,6 @@ extension DatabaseReader {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that reads from the database.
     ///
@@ -586,7 +561,6 @@ extension DatabasePublishers {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Publisher where Failure == Error {
     fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
         .init(upstream: eraseToAnyPublisher())
@@ -602,9 +576,8 @@ extension DatabaseReader {
     func _addReadOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         if scheduler.immediateInitialValue() {
             do {
                 // Perform a reentrant read, in case the observation would be
@@ -620,16 +593,16 @@ extension DatabaseReader {
             }
             return AnyDatabaseCancellable(cancel: { /* nothing to cancel */ })
         } else {
-            var isCancelled = false
+            let cancellable = AnyDatabaseCancellable()
             asyncRead { dbResult in
-                guard !isCancelled else { return }
+                if cancellable.isCancelled { return }
                 
                 let result = dbResult.flatMap { db in
                     Result { try observation.fetchInitialValue(db) }
                 }
                 
                 scheduler.schedule {
-                    guard !isCancelled else { return }
+                    if cancellable.isCancelled { return }
                     do {
                         try onChange(result.get())
                     } catch {
@@ -637,7 +610,7 @@ extension DatabaseReader {
                     }
                 }
             }
-            return AnyDatabaseCancellable(cancel: { isCancelled = true })
+            return cancellable
         }
     }
 }
@@ -651,7 +624,7 @@ public final class AnyDatabaseReader {
     
     /// Creates a new database reader that wraps and forwards operations
     /// to `base`.
-    public init(_ base: some DatabaseReader) {
+    public init(_ base: any DatabaseReader) {
         self.base = base
     }
 }
@@ -678,7 +651,15 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.read(value)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func read<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await base.read(value)
+    }
+    
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         base.asyncRead(value)
     }
     
@@ -687,7 +668,15 @@ extension AnyDatabaseReader: DatabaseReader {
         try base.unsafeRead(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func unsafeRead<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await base.unsafeRead(value)
+    }
+    
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         base.asyncUnsafeRead(value)
     }
     
@@ -698,9 +687,8 @@ extension AnyDatabaseReader: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         base._add(
             observation: observation,
             scheduling: scheduler,
@@ -753,12 +741,15 @@ extension DatabaseSnapshotReader {
     }
     
     // There is no such thing as an unsafe access to a snapshot.
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         try read(value)
     }
     
     // There is no such thing as an unsafe access to a snapshot.
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         asyncRead(value)
     }
 }

@@ -334,12 +334,12 @@ extension TableRecord {
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
@@ -567,6 +567,19 @@ extension TableRecord where Self: EncodableRecord {
             fatalError("Not implemented: request association without any foreign key")
             
         case let .foreignKey(foreignKey):
+            // Build the sendable persistence container before building the
+            // request, and catch the eventual error in a Result, so that it
+            // is thrown later, when the request is executed. This allows
+            // this method to not throw:
+            //
+            // extension Player {
+            //   // We don't want this property to have a throwing getter:
+            //   var team: QueryInterfaceRequest<Team> {
+            //     request(for: Player.team)
+            //   }
+            // }
+            let persistenceContainer = Result { try PersistenceContainer(self) }
+            
             let destinationRelation = association
                 ._sqlAssociation
                 .with {
@@ -574,7 +587,7 @@ extension TableRecord where Self: EncodableRecord {
                         // Filter the pivot on self
                         try foreignKey
                             .joinMapping(db, from: Self.databaseTableName)
-                            .joinExpression(leftRows: [PersistenceContainer(db, self)])
+                            .joinExpression(leftRows: [persistenceContainer.get()])
                     }
                 }
                 .destinationRelation()

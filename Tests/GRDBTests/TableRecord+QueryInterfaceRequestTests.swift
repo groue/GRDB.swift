@@ -259,7 +259,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
-        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
                 sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
@@ -357,10 +357,6 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     func testExistsIdentifiable() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Identifiable is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             struct Player: TableRecord, Identifiable {
@@ -386,7 +382,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try XCTAssertFalse(Player.exists(db, id: 1))
             XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 1)")
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try XCTAssertFalse(Player.exists(db, id: nil))
             XCTAssertNil(lastSQLQuery) // Database not hit
             

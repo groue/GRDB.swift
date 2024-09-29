@@ -142,7 +142,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -173,7 +173,7 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         let updatedValues = updatedColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         
         let query = UpdateQuery(
@@ -193,7 +193,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -212,7 +212,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -229,7 +229,7 @@ final class DAO<Record: MutablePersistableRecord> {
     /// Throws a RecordError.recordNotFound error
     func recordNotFound() throws -> Never {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
-            ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
+            ($0, persistenceContainer.databaseValue(at: $0))
         })
         throw RecordError.recordNotFound(
             databaseTableName: databaseTableName,
@@ -273,29 +273,33 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[InsertQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
-        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
-        default:
-            sql = """
-            INSERT OR \(onConflict.rawValue) \
-            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
+        
+        return Self.cacheLock.withLock { cache in
+            let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+            let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            default:
+                sql = """
+                INSERT OR \(onConflict.rawValue) \
+                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 
@@ -309,30 +313,34 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[UpdateQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.read({ $0[self] }) {
             return sql
         }
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
-        default:
-            sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+        
+        return Self.cacheLock.withLock { cache in
+            let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
+            let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                    UPDATE \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            default:
+                sql = """
+                    UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 

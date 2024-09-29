@@ -4,7 +4,7 @@ import Combine
 import Dispatch
 import Foundation
 
-public struct ValueObservation<Reducer: _ValueReducer> {
+public struct ValueObservation<Reducer: ValueReducer>: Sendable {
     var events = ValueObservationEvents()
     
     /// A boolean value indicating whether the observation requires write access
@@ -30,10 +30,10 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
-    var makeReducer: () -> Reducer
+    var makeReducer: @Sendable () -> Reducer
     
     /// Returns a ValueObservation with a transformed reducer.
-    func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
+    func mapReducer<R>(_ transform: @escaping @Sendable (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             events: events,
@@ -74,16 +74,16 @@ enum ValueObservationTrackingMode {
 }
 
 struct ValueObservationEvents: Refinable {
-    var willStart: (() -> Void)?
-    var willTrackRegion: ((DatabaseRegion) -> Void)?
-    var databaseDidChange: (() -> Void)?
-    var didFail: ((Error) -> Void)?
-    var didCancel: (() -> Void)?
+    var willStart: (@Sendable () -> Void)?
+    var willTrackRegion: (@Sendable (DatabaseRegion) -> Void)?
+    var databaseDidChange: (@Sendable () -> Void)?
+    var didFail: (@Sendable (Error) -> Void)?
+    var didCancel: (@Sendable () -> Void)?
 }
 
-typealias ValueObservationStart<T> = (
-    _ onError: @escaping (Error) -> Void,
-    _ onChange: @escaping (T) -> Void)
+typealias ValueObservationStart<T> = @Sendable (
+    _ onError: @escaping @Sendable (Error) -> Void,
+    _ onChange: @escaping @Sendable (T) -> Void)
 -> AnyDatabaseCancellable
 
 extension ValueObservation: Refinable {
@@ -91,6 +91,54 @@ extension ValueObservation: Refinable {
     // MARK: - Starting Observation
     
     /// Starts observing the database.
+    ///
+    /// The observation lasts until the returned cancellable is cancelled
+    /// or deallocated.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let observation = ValueObservation.tracking { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    ///
+    /// let cancellable = try observation.start(
+    ///     in: dbQueue,
+    ///     scheduling: .async(onQueue: .main))
+    /// { error in
+    ///     // handle error
+    /// } onChange: { (players: [Player]) in
+    ///     print("Fresh players: \(players)")
+    /// }
+    /// ```
+    ///
+    /// - parameter reader: A DatabaseReader.
+    /// - parameter scheduler: A ValueObservationScheduler.
+    /// - parameter onError: The closure to execute when the
+    ///   observation fails.
+    /// - parameter onChange: The closure to execute on receipt of a
+    ///   fresh value.
+    /// - returns: A DatabaseCancellable that can stop the observation.
+    @preconcurrency public func start(
+        in reader: any DatabaseReader,
+        scheduling scheduler: some ValueObservationScheduler,
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Reducer.Value) -> Void)
+    -> AnyDatabaseCancellable
+    where Reducer: ValueReducer
+    {
+        let observation = self.with {
+            $0.events.didFail = concat($0.events.didFail, onError)
+        }
+        observation.events.willStart?()
+        return reader._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
+    }
+    
+    /// Starts observing the database and notifies fresh values on the
+    /// main actor.
     ///
     /// The observation lasts until the returned cancellable is cancelled
     /// or deallocated.
@@ -110,14 +158,8 @@ extension ValueObservation: Refinable {
     /// ```
     ///
     /// By default, fresh values are dispatched asynchronously on the
-    /// main dispatch queue. You can change this behavior by providing a
-    /// scheduler.
-    ///
-    /// For example, the ``ValueObservationScheduler/immediate`` scheduler
-    /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the observation starts. The `immediate` scheduling
-    /// requires that the observation starts from the main dispatch queue (a
-    /// fatal error is raised otherwise):
+    /// main actor. Pass `.immediate` if the first value shoud be notified
+    /// immediately when the observation starts:
     ///
     /// ```swift
     /// let cancellable = try observation.start(in: dbQueue, scheduling: .immediate) { error in
@@ -129,28 +171,36 @@ extension ValueObservation: Refinable {
     /// ```
     ///
     /// - parameter reader: A DatabaseReader.
-    /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
-    ///   values are dispatched asynchronously on the main queue.
-    /// - parameter onError: The closure to execute when the observation fails.
+    /// - parameter scheduler: A ValueObservationMainActorScheduler.
+    ///   By default, fresh values are dispatched asynchronously on the
+    ///   main actor.
+    /// - parameter onError: The closure to execute when the
+    ///   observation fails.
     /// - parameter onChange: The closure to execute on receipt of a
     ///   fresh value.
     /// - returns: A DatabaseCancellable that can stop the observation.
-    public func start(
-        in reader: some DatabaseReader,
-        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+    @preconcurrency @MainActor public func start(
+        in reader: any DatabaseReader,
+        scheduling scheduler: some ValueObservationMainActorScheduler = .mainActor,
+        onError: @escaping @MainActor (Error) -> Void,
+        onChange: @escaping @MainActor (Reducer.Value) -> Void)
     -> AnyDatabaseCancellable
     where Reducer: ValueReducer
     {
-        let observation = self.with {
-            $0.events.didFail = concat($0.events.didFail, onError)
-        }
-        observation.events.willStart?()
-        return reader._add(
-            observation: observation,
-            scheduling: scheduler,
-            onChange: onChange)
+        let regularScheduler: some ValueObservationScheduler = scheduler
+        return start(
+            in: reader,
+            scheduling: regularScheduler,
+            onError: { error in
+                MainActor.assumeIsolated {
+                    onError(error)
+                }
+            },
+            onChange: { value in
+                MainActor.assumeIsolated {
+                    onChange(value)
+                }
+            })
     }
     
     // MARK: - Debugging
@@ -175,13 +225,13 @@ extension ValueObservation: Refinable {
     /// - returns: A `ValueObservation` that performs the specified closures
     ///   when ValueObservation events occur.
     public func handleEvents(
-        willStart: (() -> Void)? = nil,
-        willFetch: (() -> Void)? = nil,
-        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
-        databaseDidChange: (() -> Void)? = nil,
-        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
-        didFail: ((Error) -> Void)? = nil,
-        didCancel: (() -> Void)? = nil)
+        willStart: (@Sendable () -> Void)? = nil,
+        willFetch: (@Sendable () -> Void)? = nil,
+        willTrackRegion: (@Sendable (DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (@Sendable () -> Void)? = nil,
+        didReceiveValue: (@Sendable (Reducer.Value) -> Void)? = nil,
+        didFail: (@Sendable (Error) -> Void)? = nil,
+        didCancel: (@Sendable () -> Void)? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
@@ -231,34 +281,33 @@ extension ValueObservation: Refinable {
     ///   used to log messages to other destinations.
     public func print(
         _ prefix: String = "",
-        to stream: TextOutputStream? = nil)
+        to stream: sending TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
-        let lock = NSLock()
+        let streamMutex = UnsafeSendableMutex(stream ?? PrintOutputStream())
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
-        var stream = stream ?? PrintOutputStream()
         return handleEvents(
             willStart: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)start") },
+                streamMutex.withLock { $0.write("\(prefix)start") }
+            },
             willFetch: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)fetch") },
-            willTrackRegion: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)tracked region: \($0)") },
+                streamMutex.withLock { $0.write("\(prefix)fetch") }
+            },
+            willTrackRegion: { region in
+                streamMutex.withLock { $0.write("\(prefix)tracked region: \(region)") }
+            },
             databaseDidChange: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)database did change") },
-            didReceiveValue: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)value: \($0)") },
-            didFail: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)failure: \($0)") },
+                streamMutex.withLock { $0.write("\(prefix)database did change") }
+            },
+            didReceiveValue: { value in
+                streamMutex.withLock { $0.write("\(prefix)value: \(value)") }
+            },
+            didFail: { error in
+                streamMutex.withLock { $0.write("\(prefix)failure: \(error)") }
+            },
             didCancel: {
-                lock.lock(); defer { lock.unlock() }
-                stream.write("\(prefix)cancel") })
+                streamMutex.withLock { $0.write("\(prefix)cancel") }
+            })
     }
     
     // MARK: - Fetching Values
@@ -268,7 +317,9 @@ extension ValueObservation: Refinable {
     where Reducer: ValueReducer
     {
         var reducer = makeReducer()
-        guard let value = try reducer._value(reducer._fetch(db)) else {
+        let fetcher = reducer._makeFetcher()
+        let fetchedValue = try fetcher.fetch(db)
+        guard let value = try reducer._value(fetchedValue) else {
             fatalError("Broken contract: reducer has no initial value")
         }
         return value
@@ -278,8 +329,6 @@ extension ValueObservation: Refinable {
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     /// Returns an asynchronous sequence of observed values.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// For example:
     ///
@@ -294,12 +343,13 @@ extension ValueObservation {
     /// ```
     ///
     /// - parameter reader: A DatabaseReader.
-    /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
-    ///   values are dispatched asynchronously on the main dispatch queue.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    /// - parameter scheduler: A ValueObservationScheduler. By default,
+    ///   fresh values are dispatched on the cooperative thread pool.
+    /// - parameter bufferingPolicy: see the documntation
+    ///   of `AsyncThrowingStream`.
     public func values(
-        in reader: some DatabaseReader,
-        scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main),
+        in reader: any DatabaseReader,
+        scheduling scheduler: some ValueObservationScheduler = .task,
         bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
     where Reducer: ValueReducer
@@ -310,10 +360,7 @@ extension ValueObservation {
     }
 }
 
-// TODO: [GRDB7] Make it Sendable for easier integration with AsyncAlgorithms
 /// An asynchronous sequence of values observed by a ``ValueObservation``.
-///
-/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 ///
 /// An `AsyncValueObservation` sequence produces a fresh value whenever the
 /// results of database requests change.
@@ -332,12 +379,13 @@ extension ValueObservation {
 ///
 /// You build an `AsyncValueObservation` from ``ValueObservation`` or
 /// ``SharedValueObservation``.
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-public struct AsyncValueObservation<Element>: AsyncSequence {
+public struct AsyncValueObservation<Element: Sendable>: AsyncSequence, Sendable {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
     
-    var bufferingPolicy: BufferingPolicy
+    // AsyncThrowingStream.Continuation.BufferingPolicy is obviously
+    // Sendable, but lacks Sendable conformance.
+    nonisolated(unsafe) var bufferingPolicy: BufferingPolicy
     var start: ValueObservationStart<Element>
     
     public func makeAsyncIterator() -> Iterator {
@@ -413,11 +461,11 @@ extension ValueObservation {
     /// main dispatch queue. You can change this behavior by providing a
     /// scheduler.
     ///
-    /// For example, the ``ValueObservationScheduler/immediate`` scheduler
-    /// notifies all values on the main dispatch queue, and notifies the first
-    /// one immediately when the observation starts. The `immediate` scheduling
-    /// requires that the observation starts from the main dispatch queue (a
-    /// fatal error is raised otherwise):
+    /// For example, the ``ValueObservationMainActorScheduler/immediate``
+    /// scheduler notifies all values on the main dispatch queue, and
+    /// notifies the first one immediately when the observation starts. The
+    /// `immediate` scheduling requires that the observation starts from the
+    /// main dispatch queue (a fatal error is raised otherwise):
     ///
     /// ```swift
     /// let publisher = observation.publisher(in: dbQueue, scheduling: .immediate)
@@ -434,9 +482,8 @@ extension ValueObservation {
     /// - parameter scheduler: A ValueObservationScheduler. By default, fresh
     ///   values are dispatched asynchronously on the main dispatch queue.
     /// - returns: A Combine publisher
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func publisher(
-        in reader: some DatabaseReader,
+        in reader: any DatabaseReader,
         scheduling scheduler: some ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     where Reducer: ValueReducer
@@ -451,7 +498,6 @@ extension ValueObservation {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that publishes the values of a ``ValueObservation``.
     ///
@@ -473,9 +519,13 @@ extension DatabasePublishers {
         }
     }
     
-    private class ValueSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error
+    private class ValueSubscription<Downstream>:
+        Subscription, @unchecked Sendable
+    where Downstream: Subscriber,
+          Downstream.Failure == Error
     {
+        // @unchecked Sendable because `cancellable` and `state` are
+        // protected by `lock`.
         private struct WaitingForDemand {
             let downstream: Downstream
             let start: ValueObservationStart<Downstream.Input>
@@ -729,8 +779,8 @@ extension ValueObservation {
     ///     ```
     ///
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func trackingConstantRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+    @preconcurrency public static func trackingConstantRegion<Value>(
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -801,10 +851,10 @@ extension ValueObservation {
     /// - parameter otherRegions: A list of supplementary regions
     ///   to observe.
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
+    @preconcurrency public static func tracking<Value>(
         region: any DatabaseRegionConvertible,
         _ otherRegions: any DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -871,9 +921,9 @@ extension ValueObservation {
     ///
     /// - parameter regions: An array of observed regions.
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
+    @preconcurrency public static func tracking<Value>(
         regions: [any DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
+        fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {
@@ -929,8 +979,8 @@ extension ValueObservation {
     /// ```
     ///
     /// - parameter fetch: The closure that fetches the observed value.
-    public static func tracking<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
+    @preconcurrency public static func tracking<Value>(
+        _ fetch: @escaping @Sendable (Database) throws -> Value)
     -> Self
     where Reducer == ValueReducers.Fetch<Value>
     {

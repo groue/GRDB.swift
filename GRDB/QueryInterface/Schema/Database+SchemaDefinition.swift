@@ -356,7 +356,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
     ///
     /// - parameters:
-    ///     - view: The view name.
+    ///     - name: The view name.
     ///     - options: View creation options.
     ///     - columns: The columns of the view. If nil, the columns are the
     ///       columns of the request.
@@ -410,7 +410,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
     ///
     /// - parameters:
-    ///     - view: The view name.
+    ///     - name: The view name.
     ///     - options: View creation options.
     ///     - columns: The columns of the view. If nil, the columns are the
     ///       columns of the request.

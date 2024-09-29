@@ -172,11 +172,14 @@ class StatementArgumentsSink {
     private(set) var arguments: StatementArguments
     private let rawSQL: Bool
     
+    // This non-Sendable instance can be used from multiple threads
+    // concurrently, because it never modifies its `arguments`
+    // mutable state.
     /// A sink which turns all argument values into SQL literals.
     ///
     /// The `"WHERE name = \("O'Brien")"` SQL literal is turned into the
     /// `WHERE name = 'O''Brien'` SQL.
-    static let literalValues = StatementArgumentsSink(rawSQL: true)
+    nonisolated(unsafe) static let literalValues = StatementArgumentsSink(rawSQL: true)
     
     private init(rawSQL: Bool) {
         self.arguments = []
@@ -213,7 +216,9 @@ class StatementArgumentsSink {
 /// See ``TableRequest/aliased(_:)`` for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-public class TableAlias {
+public class TableAlias: @unchecked Sendable {
+    // This Sendable conformance is transient. TableAlias IS NOT really Sendable.
+    // TODO: GRDB7 Make TableAlias really Sendable
     private enum Impl {
         /// A TableAlias is undefined when it is created by the GRDB user:
         ///
@@ -478,8 +483,6 @@ public class TableAlias {
     
     /// A boolean SQL expression indicating whether this alias refers to some
     /// rows, or not.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
     /// In the example below, we only fetch books that are not associated to
     /// any author:

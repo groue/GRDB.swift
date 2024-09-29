@@ -19,6 +19,9 @@ XCRUN := $(shell command -v xcrun)
 XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
 
 ifdef TOOLCHAIN
+  # Look for the toolchain identifier in the CFBundleIdentifier key of its Info.plist:
+  # TOOLCHAIN=org.swift.600202404221a make test
+  
   # If TOOLCHAIN is specified, add xcodebuild parameter
   XCODEBUILD += -toolchain $(TOOLCHAIN)
   
@@ -78,7 +81,7 @@ test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher3Enc
 test_archive: test_universal_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
-test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo test_GRDBAsyncDemo
+test_demo_apps: test_GRDBDemo
 
 test_framework_GRDBOSX:
 	$(XCODEBUILD) \
@@ -214,6 +217,7 @@ endif
 
 test_SPM:
 	# Add sanitizers when available: https://twitter.com/simjp/status/929140877540278272
+	rm -rf Tests/products
 	$(SWIFT) package clean
 	$(SWIFT) build
 	$(SWIFT) build -c release
@@ -267,21 +271,23 @@ test_universal_xcframework:
 
 test_install_manual:
 	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -scheme GRDBDemoiOS \
+	  -project Tests/GRDBManualInstall/GRDBManualInstall.xcodeproj \
+	  -scheme GRDBManualInstall \
 	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
+	  -destination "platform=macOS" \
 	  clean build \
 	  $(XCPRETTY)
 
 test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release
 
 test_install_SPM_Package:
+	rm -rf Tests/products
 	cd Tests/SPM/PlainPackage && \
 	$(SWIFT) build && \
 	./.build/debug/SPM
 
 test_install_SPM_Project:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
@@ -291,6 +297,7 @@ test_install_SPM_Project:
 	  $(XCPRETTY)
 	  
 test_install_SPM_Dynamic_Project:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/ios-dynamic/ios-dynamic.xcodeproj \
 	  -scheme ios-dynamic \
@@ -300,6 +307,7 @@ test_install_SPM_Dynamic_Project:
 	  $(XCPRETTY)
 
 test_install_SPM_macos_release:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/macos/macos.xcodeproj \
 	  -scheme macos \
@@ -309,6 +317,7 @@ test_install_SPM_macos_release:
 	  $(XCPRETTY)
 
 test_install_SPM_ios_release:
+	rm -rf Tests/products
 	$(XCODEBUILD) \
 	  -project Tests/SPM/ios/ios.xcodeproj \
 	  -scheme ios \
@@ -368,26 +377,10 @@ else
 	@exit 1
 endif
 
-test_GRDBDemoiOS:
+test_GRDBDemo:
 	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
-	  -scheme GRDBDemoiOS \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
-
-test_GRDBCombineDemo:
-	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
-	  -scheme GRDBCombineDemo \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
-
-test_GRDBAsyncDemo:
-	$(XCODEBUILD) \
-	  -project Documentation/DemoApps/GRDBAsyncDemo/GRDBAsyncDemo.xcodeproj \
-	  -scheme GRDBAsyncDemo \
+	  -project Documentation/DemoApps/GRDBDemo/GRDBDemo.xcodeproj \
+	  -scheme GRDBDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)

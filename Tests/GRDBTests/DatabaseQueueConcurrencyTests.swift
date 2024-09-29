@@ -244,9 +244,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      BEGIN EXCLUSIVE TRANSACTION
         //                                      COMMIT
         
-        var busyCallbackCalled = false
+        let busyCallbackCalledMutex = Mutex(false)
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            busyCallbackCalledMutex.store(true)
             s2.signal()
             return true
         }
@@ -283,7 +283,7 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertTrue(busyCallbackCalled)
+        XCTAssertTrue(busyCallbackCalledMutex.load())
     }
 
     func testReaderDuringDefaultTransaction() throws {
@@ -334,22 +334,22 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         // Queue 2
-        var rows1: [Row]?
-        var rows2: [Row]?
+        var count1: Int?
+        var count2: Int?
         queue.async(group: group) {
             try! dbQueue2.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
-                rows1 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
+                count1 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs").count
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                rows2 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
+                count2 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs").count
             }
         }
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertEqual(rows1!.count, 0) // uncommitted changes are not visible
-        XCTAssertEqual(rows2!.count, 1) // committed changes are visible
+        XCTAssertEqual(count1, 0) // uncommitted changes are not visible
+        XCTAssertEqual(count2, 1) // committed changes are visible
     }
 
     func testReaderInDeferredTransactionDuringDefaultTransaction() throws {
@@ -384,9 +384,9 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      COMMIT
         // COMMIT
         
-        var busyCallbackCalled = false
+        let busyCallbackCalledMutex = Mutex(false)
         self.busyCallback = { n in
-            busyCallbackCalled = true
+            busyCallbackCalledMutex.store(true)
             s3.signal()
             return true
         }
@@ -431,6 +431,6 @@ class ConcurrencyTests: GRDBTestCase {
         
         _ = group.wait(timeout: .distantFuture)
         
-        XCTAssertTrue(busyCallbackCalled)
+        XCTAssertTrue(busyCallbackCalledMutex.load())
     }
 }

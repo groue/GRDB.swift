@@ -117,7 +117,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 struct Player: Identifiable { var id: Int64 }
                 let t = Table<Player>("player")
                 
@@ -129,7 +129,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 struct Player: Identifiable { var id: Int64? }
                 let t = Table<Player>("player")
                 
@@ -806,7 +806,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -821,7 +821,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -830,7 +830,7 @@ class TableTests: GRDBTestCase {
                     DELETE FROM "country" WHERE "code" = 'FR'
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<Country>("country").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
                 
@@ -920,7 +920,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
 
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -930,7 +930,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -939,7 +939,7 @@ class TableTests: GRDBTestCase {
                     SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try XCTAssertFalse(Table<Country>("country").exists(db, id: nil))
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

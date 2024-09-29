@@ -670,9 +670,6 @@ extension Cursor where Element: Equatable {
 extension Cursor where Element: Comparable {
     /// Returns the maximum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
     /// - Returns: The cursor's maximum element, according to
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.
@@ -682,9 +679,6 @@ extension Cursor where Element: Comparable {
     
     /// Returns the minimum element in the cursor.
     ///
-    /// - Parameter areInIncreasingOrder: A predicate that returns `true`
-    ///   if its first argument should be ordered before its second
-    ///   argument; otherwise, `false`.
     /// - Returns: The cursor's minimum element, according to
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.
@@ -754,17 +748,13 @@ public final class AnyCursor<Element>: Cursor {
     }
     
     /// Creates a new cursor whose elements are elements of `iterator`.
-    public convenience init<I>(iterator: I)
-    where I: IteratorProtocol, I.Element == Element
-    {
+    public convenience init(iterator: some IteratorProtocol<Element>) {
         var iterator = iterator
         self.init { iterator.next() }
     }
     
     /// Creates a new cursor whose elements are elements of `sequence`.
-    public convenience init<S>(_ sequence: S)
-    where S: Sequence, S.Element == Element
-    {
+    public convenience init(_ sequence: some Sequence<Element>) {
         self.init(iterator: sequence.makeIterator())
     }
     
@@ -914,6 +904,10 @@ public final class FilterCursor<Base: Cursor> {
         self.isIncluded = isIncluded
     }
 }
+
+// Explicit non-conformance to Sendable.
+@available(*, unavailable)
+extension FilterCursor: Sendable { }
 
 extension FilterCursor: Cursor {
     public func next() throws -> Base.Element? {

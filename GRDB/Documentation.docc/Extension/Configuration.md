@@ -90,7 +90,6 @@ do {
 ### Configuring GRDB Connections
 
 - ``allowsUnsafeTransactions``
-- ``defaultTransactionKind``
 - ``label``
 - ``maximumReaderCount``
 - ``observesSuspensionNotifications``

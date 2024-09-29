@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import XCTest
 import GRDB
 
@@ -195,7 +204,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 
     func testVacuumInto() throws {
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip("VACUUM INTO is not available")
         }
         // Prevent SQLCipher failures
@@ -266,7 +275,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -286,7 +294,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -309,7 +316,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -332,7 +338,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -350,7 +355,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -366,7 +370,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(setup(makeDatabasePool()))
     }
     
-    @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // async + vacuum into
+    @available(iOS 14, macOS 10.16, tvOS 14, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
         // Prevent SQLCipher failures
         guard sqlite3_libversion_number() >= 3027000 else {
@@ -397,7 +401,6 @@ class DatabaseWriterTests : GRDBTestCase {
     }
     
     /// A test related to <https://github.com/groue/GRDB.swift/issues/1456>
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func testAsyncWriteThenRead() async throws {
         /// An async read performed after an async write should see the write.
         func test(_ dbWriter: some DatabaseWriter) async throws {
@@ -417,5 +420,400 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
+    }
+    
+    // MARK: - Task Cancellation
+    
+    func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.writeWithoutTransaction { db in
+                    XCTFail("Should not be executed")
+                }
+            }
+            task.cancel()
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.writeWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.writeWithoutTransaction { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.writeWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_statement_execution_from_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.writeWithoutTransaction { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    try db.execute(sql: "SELECT 0")
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.writeWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_cursor_iteration_from_writeWithoutTransaction_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.writeWithoutTransaction { db in
+                    let cursor = try Int.fetchCursor(db, sql: """
+                        SELECT 1 UNION ALL SELECT 2
+                        """)
+                    _ = try cursor.next()
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    _ = try cursor.next()
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.writeWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_write_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.write { db in
+                    XCTFail("Should not be executed")
+                }
+            }
+            task.cancel()
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.write { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_write_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.write { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.write { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_statement_execution_from_write_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.write { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    try db.execute(sql: "SELECT 0")
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.write { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_cursor_iteration_from_write_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.write { db in
+                    let cursor = try Int.fetchCursor(db, sql: """
+                        SELECT 1 UNION ALL SELECT 2
+                        """)
+                    _ = try cursor.next()
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    _ = try cursor.next()
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.write { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.barrierWriteWithoutTransaction { db in
+                    XCTFail("Should not be executed")
+                }
+            }
+            task.cancel()
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.barrierWriteWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.barrierWriteWithoutTransaction { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.barrierWriteWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_statement_execution_from_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.barrierWriteWithoutTransaction { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    try db.execute(sql: "SELECT 0")
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.barrierWriteWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
+    func test_cursor_iteration_from_barrierWriteWithoutTransaction_is_interrupted_by_Task_cancellation_performed_after_database_access() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                try await dbWriter.barrierWriteWithoutTransaction { db in
+                    let cursor = try Int.fetchCursor(db, sql: """
+                        SELECT 1 UNION ALL SELECT 2
+                        """)
+                    _ = try cursor.next()
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    _ = try cursor.next()
+                    XCTFail("Expected error")
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            
+            do {
+                try await task.value
+                XCTFail("Expected error")
+            } catch {
+                XCTAssert(error is CancellationError)
+            }
+            
+            // Database access is restored after cancellation (no error is thrown)
+            try await dbWriter.barrierWriteWithoutTransaction { db in
+                try db.execute(sql: "SELECT 0")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 }

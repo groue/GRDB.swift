@@ -58,7 +58,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func selectWhenConnected(
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
     
     /// Appends result columns to the selected columns.
     ///
@@ -78,7 +80,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func annotatedWhenConnected(
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
 }
 
 extension SelectionRequest {
@@ -100,7 +104,8 @@ extension SelectionRequest {
     ///     .select([Column("score")])
     /// ```
     public func select(_ selection: [any SQLSelectable]) -> Self {
-        selectWhenConnected { _ in selection }
+        let selection = selection.map(\.sqlSelection)
+        return selectWhenConnected { _ in selection }
     }
     
     /// Defines the result columns.
@@ -186,7 +191,8 @@ extension SelectionRequest {
     /// let request = Player.all().annotated(with: [totalScore])
     /// ```
     public func annotated(with selection: [any SQLSelectable]) -> Self {
-        annotatedWhenConnected(with: { _ in selection })
+        let selection = selection.map(\.sqlSelection)
+        return annotatedWhenConnected(with: { _ in selection })
     }
     
     /// Appends result columns to the selected columns.
@@ -240,7 +246,9 @@ public protocol FilteredRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func filterWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension FilteredRequest {
@@ -257,7 +265,8 @@ extension FilteredRequest {
     /// let request = Player.all().filter(Column("name") == name)
     /// ```
     public func filter(_ predicate: some SQLSpecificExpressible) -> Self {
-        filterWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return filterWhenConnected { _ in predicate }
     }
     
     /// Filters the fetched rows with an SQL string.
@@ -322,7 +331,7 @@ extension FilteredRequest {
 /// - ``filter(ids:)``
 /// - ``filter(key:)-1p9sq``
 /// - ``filter(key:)-2te6v``
-/// - ``filter(keys:)-6ggt1``
+/// - ``filter(keys:)-9p9i5``
 /// - ``filter(keys:)-8fbn9``
 /// - ``matching(_:)-3s3zr``
 /// - ``matching(_:)-7c1e8``
@@ -431,9 +440,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public func filter<Sequence: Swift.Sequence>(keys: Sequence)
-    -> Self
-    where Sequence.Element: DatabaseValueConvertible
+    public func filter<Keys>(keys: Keys) -> Self
+    where Keys: Collection, Keys.Element: DatabaseValueConvertible
     {
         // In order to encode keys in the database, we perform a runtime check
         // for EncodableRecord, and look for a customized encoding strategy.
@@ -442,46 +450,81 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? any EncodableRecord.Type {
-            if Sequence.Element.self == Data.self || Sequence.Element.self == Optional<Data>.self {
-                let strategy = recordType.databaseDataEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Data?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
-            } else if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
-                let strategy = recordType.databaseDateEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
-            } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
-                let strategy = recordType.databaseUUIDEncodingStrategy
-                let keys = keys.map { ($0 as! UUID?).map(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
+            if Keys.Element.self == Data.self || Keys.Element.self == Optional<Data>.self {
+                let datas = keys.compactMap { ($0 as! Data?) }
+                if datas.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseDataEncodingStrategy(for: column)
+                    let expressions = try datas.map { try strategy.encode($0).sqlExpression }
+                    return expressions
+                })
+            } else if Keys.Element.self == Date.self || Keys.Element.self == Optional<Date>.self {
+                let dates = keys.compactMap { ($0 as! Date?) }
+                if dates.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseDateEncodingStrategy(for: column)
+                    let expressions = dates.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
+            } else if Keys.Element.self == UUID.self || Keys.Element.self == Optional<UUID>.self {
+                let uuids = keys.compactMap { ($0 as! UUID?) }
+                if uuids.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let primaryKey = try db.primaryKey(databaseTableName)
+                    GRDBPrecondition(
+                        primaryKey.columns.count == 1,
+                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+                    let column = primaryKey.columns[0]
+                    let strategy = recordType.databaseUUIDEncodingStrategy(for: column)
+                    let expressions = uuids.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             }
         }
         
-        return filter(rawKeys: keys)
+        let expressions = keys.map { $0.sqlExpression }
+        if expressions.isEmpty {
+            // Don't hit the database
+            return none()
+        }
+        return filterWhenConnected(keys: { _ in expressions })
     }
     
     /// Creates a request filtered by primary key.
     ///
     ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(rawKeys: [1, 2, 3])
+    ///     let request = try Player...filterWhenConnected(keys: { db in [1, 2, 3] })
     ///
     /// - parameter keys: A collection of primary keys
-    func filter<Keys>(rawKeys: Keys) -> Self
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
-        // change the SQLite results anyway.
-        let expressions = rawKeys.map {
-            $0.databaseValue.sqlExpression
-        }
-        
-        if expressions.isEmpty {
-            // Don't hit the database
-            return none()
-        }
-        
+    fileprivate func filterWhenConnected(keys: @escaping @Sendable (Database) throws -> [SQLExpression]) -> Self {
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
+            // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
+            // change the SQLite results anyway.
+            let expressions = try keys(db)
+            
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
@@ -545,6 +588,11 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             return none()
         }
         
+        // Turn key values into sendable DatabaseValue
+        let keys = keys.map { key in
+            key.mapValues { $0?.databaseValue ?? .null }
+        }
+        
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
             try keys
@@ -583,7 +631,6 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
       Self: TypedRequest,
@@ -620,9 +667,7 @@ where Self: FilteredRequest,
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<IDS>(ids: IDS) -> Self
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
         filter(keys: ids)
     }
 }
@@ -729,7 +774,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter expressions: A closure that accepts a database connection
     ///   and returns an array of SQL expressions.
-    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
+    func groupWhenConnected(
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible]
+    ) -> Self
     
     /// Filters the aggregated groups with a boolean SQL expression.
     ///
@@ -753,7 +800,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func havingWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension AggregatingRequest {
@@ -774,7 +823,8 @@ extension AggregatingRequest {
     ///
     /// - parameter expressions: An array of SQL expressions.
     public func group(_ expressions: [any SQLExpressible]) -> Self {
-        groupWhenConnected { _ in expressions }
+        let expressions = expressions.map(\.sqlExpression)
+        return groupWhenConnected { _ in expressions }
     }
     
     /// Returns an aggregate request grouped on the given SQL expressions.
@@ -849,7 +899,8 @@ extension AggregatingRequest {
     ///     .having(max(Column("score")) > 1000)
     /// ```
     public func having(_ predicate: some SQLExpressible) -> Self {
-        havingWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return havingWhenConnected { _ in predicate }
     }
     
     /// Filters the aggregated groups with an SQL string.
@@ -934,7 +985,9 @@ public protocol OrderedRequest {
     ///
     /// - parameter orderings: A closure that accepts a database connection and
     ///   returns an array of SQL ordering terms.
-    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
+    func orderWhenConnected(
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm]
+    ) -> Self
     
     /// Returns a request with reversed ordering.
     ///
@@ -996,7 +1049,8 @@ extension OrderedRequest {
     ///     .order(Column("name"))
     /// ```
     public func order(_ orderings: any SQLOrderingTerm...) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL ordering terms.
@@ -1018,7 +1072,8 @@ extension OrderedRequest {
     ///     .order([Column("name")])
     /// ```
     public func order(_ orderings: [any SQLOrderingTerm]) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL string.
@@ -1355,7 +1410,7 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
 /// - ``TableRequest/filter(key:)-2te6v``
-/// - ``TableRequest/filter(keys:)-6ggt1``
+/// - ``TableRequest/filter(keys:)-9p9i5``
 /// - ``TableRequest/filter(keys:)-8fbn9``
 /// - ``FilteredRequest/filter(literal:)``
 /// - ``FilteredRequest/filter(sql:arguments:)``

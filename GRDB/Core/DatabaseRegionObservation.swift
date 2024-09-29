@@ -3,10 +3,10 @@ import Combine
 #endif
 import Foundation
 
-public struct DatabaseRegionObservation {
+public struct DatabaseRegionObservation: Sendable {
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
-    var observedRegion: (Database) throws -> DatabaseRegion
+    var observedRegion: @Sendable (Database) throws -> DatabaseRegion
 }
 
 extension DatabaseRegionObservation {
@@ -43,10 +43,10 @@ extension DatabaseRegionObservation {
 
 extension DatabaseRegionObservation {
     /// The state of a started DatabaseRegionObservation
-    private enum ObservationState {
+    private enum ObservationState: Sendable {
         case cancelled
         case pending
-        case started(DatabaseRegionObserver)
+        case started(StrongReference<DatabaseRegionObserver>)
     }
     
     /// Starts observing the database.
@@ -84,21 +84,21 @@ extension DatabaseRegionObservation {
     ///   modified the observed region.
     /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        in writer: some DatabaseWriter,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Database) -> Void)
+        in writer: any DatabaseWriter,
+        onError: @escaping @Sendable (Error) -> Void,
+        onChange: @escaping @Sendable (Database) -> Void)
     -> AnyDatabaseCancellable
     {
-        @LockedBox var state = ObservationState.pending
+        let stateMutex = Mutex(ObservationState.pending)
         
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         writer.unsafeReentrantWrite { db in
             do {
                 let region = try observedRegion(db).observableRegion(db)
-                $state.update {
+                stateMutex.withLock { state in
                     let observer = DatabaseRegionObserver(region: region, onChange: {
-                        if case .cancelled = state {
+                        if case .cancelled = stateMutex.load() {
                             return
                         }
                         onChange($0)
@@ -111,7 +111,7 @@ extension DatabaseRegionObservation {
                     // the observer.
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     
-                    $0 = .started(observer)
+                    state = .started(StrongReference(observer))
                 }
             } catch {
                 onError(error)
@@ -122,13 +122,12 @@ extension DatabaseRegionObservation {
             // Deallocates the transaction observer. This makes sure that the
             // `onChange` callback will never be called again, because the
             // observation was started with the `.observerLifetime` extent.
-            state = .cancelled
+            stateMutex.store(.cancelled)
         }
     }
 }
 
 #if canImport(Combine)
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabaseRegionObservation {
     // MARK: - Publishing Impactful Transactions
     
@@ -140,8 +139,7 @@ extension DatabaseRegionObservation {
     ///
     /// Do not reschedule the publisher with `receive(on:options:)` or any
     /// `Publisher` method that schedules publisher elements.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
-    public func publisher(in writer: some DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
+    public func publisher(in writer: any DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
         DatabasePublishers.DatabaseRegion(self, in: writer)
     }
 }
@@ -149,10 +147,10 @@ extension DatabaseRegionObservation {
 
 private class DatabaseRegionObserver: TransactionObserver {
     let region: DatabaseRegion
-    let onChange: (Database) -> Void
+    let onChange: @Sendable (Database) -> Void
     var isChanged = false
     
-    init(region: DatabaseRegion, onChange: @escaping (Database) -> Void) {
+    init(region: DatabaseRegion, onChange: @escaping @Sendable (Database) -> Void) {
         self.region = region
         self.onChange = onChange
     }
@@ -186,7 +184,6 @@ private class DatabaseRegionObserver: TransactionObserver {
 }
 
 #if canImport(Combine)
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that tracks transactions that modify a database region.
     ///
@@ -198,7 +195,7 @@ extension DatabasePublishers {
         let writer: any DatabaseWriter
         let observation: DatabaseRegionObservation
         
-        init(_ observation: DatabaseRegionObservation, in writer: some DatabaseWriter) {
+        init(_ observation: DatabaseRegionObservation, in writer: any DatabaseWriter) {
             self.writer = writer
             self.observation = observation
         }
@@ -212,9 +209,14 @@ extension DatabasePublishers {
         }
     }
     
-    private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
-    where Downstream.Failure == Error, Downstream.Input == Database
+    private class DatabaseRegionSubscription<Downstream>:
+        Subscription, @unchecked Sendable
+    where Downstream: Subscriber,
+          Downstream.Failure == Error,
+          Downstream.Input == Database
     {
+        // @unchecked Sendable because `cancellable` and `state` are
+        // protected by `lock`.
         private struct WaitingForDemand {
             let downstream: Downstream
             let writer: any DatabaseWriter
@@ -245,7 +247,7 @@ extension DatabasePublishers {
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
         init(
-            writer: some DatabaseWriter,
+            writer: any DatabaseWriter,
             observation: DatabaseRegionObservation,
             downstream: Downstream)
         {

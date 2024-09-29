@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import XCTest
 import GRDB
 
@@ -169,17 +178,16 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testUpdateStatementAcceptsSelectQueriesAndConsumeAllRows() throws {
         let dbQueue = try makeDatabaseQueue()
-        var index = 0
+        let indexMutex = Mutex(0)
         try dbQueue.inDatabase { db in
             db.add(function: DatabaseFunction("seq", argumentCount: 0, pure: false) { _ in
-                defer { index += 1 }
-                return index
+                indexMutex.increment()
             })
             try db.execute(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             let statement = try db.makeStatement(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             try statement.execute()
         }
-        XCTAssertEqual(index, 3 + 3)
+        XCTAssertEqual(indexMutex.load(), 3 + 3)
     }
 
     func testExecuteNothing() throws {

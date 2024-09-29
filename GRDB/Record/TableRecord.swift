@@ -29,6 +29,7 @@ import Foundation
 /// - ``exists(_:id:)``
 /// - ``exists(_:key:)-60hf2``
 /// - ``exists(_:key:)-6ha6``
+/// - ``recordNotFound(_:)``
 ///
 /// ### Throwing Record Not Found Errors
 ///
@@ -40,7 +41,7 @@ import Foundation
 ///
 /// - ``deleteAll(_:)``
 /// - ``deleteAll(_:ids:)``
-/// - ``deleteAll(_:keys:)-jbkm``
+/// - ``deleteAll(_:keys:)-5l3ih``
 /// - ``deleteAll(_:keys:)-5s1jg``
 /// - ``deleteOne(_:id:)``
 /// - ``deleteOne(_:key:)-413u8``
@@ -70,7 +71,7 @@ import Foundation
 /// - ``filter(key:)-9ey53``
 /// - ``filter(key:)-34lau``
 /// - ``filter(keys:)-4hq8y``
-/// - ``filter(keys:)-7skw1``
+/// - ``filter(keys:)-s1q0``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``having(_:)``
@@ -133,15 +134,16 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
-    ///     static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [AllColumns()]
+    ///     }
     /// }
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection: [any SQLSelectable] = [
-    ///         Column("id"),
-    ///         Column("name"),
-    ///     ]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Column("id"), Column("name")]
+    ///     }
     /// }
     ///
     /// // SELECT * FROM player
@@ -155,6 +157,19 @@ public protocol TableRecord {
     /// > explicitly declared as `[any SQLSelectable]`. If it is not, the
     /// > Swift compiler may silently miss the protocol requirement,
     /// > resulting in sticky `SELECT *` requests.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseSelection' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[any SQLSelectable]' may have shared
+    /// > // mutable state.
+    /// > static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
 }
 
@@ -242,7 +257,9 @@ extension TableRecord {
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection = [Column("id"), Column("name")]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Column("id"), Column("name")]
+    ///     }
     /// }
     ///
     /// try dbQueue.write { db in
@@ -318,7 +335,6 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
@@ -410,11 +426,10 @@ extension TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<Keys>(_ db: Database, keys: Keys)
-    throws -> Int
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
+    public static func deleteAll(
+        _ db: Database,
+        keys: some Collection<some DatabaseValueConvertible>
+    ) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -454,7 +469,6 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
@@ -483,9 +497,10 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
-    where IDS: Collection, IDS.Element == ID
-    {
+    public static func deleteAll(
+        _ db: Database,
+        ids: some Collection<ID>
+    ) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -697,6 +712,15 @@ extension TableRecord {
 public enum RecordError: Error {
     /// A record does not exist in the database.
     ///
+    /// This error can be thrown from methods that update, such as
+    /// ``MutablePersistableRecord/update(_:onConflict:)``. In this case,
+    /// the error means that the database was not changed.
+    ///
+    /// It can also be thrown from methods that inserts or update with a
+    /// `RETURNING` clause, and the `IGNORE` conflict policy. In this case,
+    /// the error notifies that a conflict has prevented the change from
+    /// being applied.
+    ///
     /// - parameters:
     ///     - databaseTableName: The table of the missing record.
     ///     - key: The key of the missing record (column and values).
@@ -740,7 +764,30 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+extension TableRecord where Self: EncodableRecord {
+    /// Returns an error that tells that the record does not exist in
+    /// the database.
+    ///
+    /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
+    ///   any error that prevented the `RecordError` from being constructed.
+    public func recordNotFound(_ db: Database) -> any Error {
+        do {
+            let databaseTableName = type(of: self).databaseTableName
+            let primaryKey = try db.primaryKey(databaseTableName)
+            
+            let container = try PersistenceContainer(db, self)
+            let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
+                ($0, container.databaseValue(at: $0))
+            })
+            return RecordError.recordNotFound(
+                databaseTableName: databaseTableName,
+                key: key)
+        } catch {
+            return error
+        }
+    }
+}
+
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns an error for a record that does not exist in the database.
     ///
@@ -757,4 +804,10 @@ public typealias PersistenceError = RecordError
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval
-private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
+///
+/// Assume this non-Sendable cache of strings can be used from multiple
+/// threads concurrently, because the NSCache documentation says:
+///
+/// > You can add, remove, and query items in the cache from different
+/// > threads without having to lock the cache yourself.
+nonisolated(unsafe) private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()

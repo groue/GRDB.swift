@@ -1,4 +1,4 @@
-platform :macos, '10.13'
+platform :macos, '10.15'
 use_frameworks!
 
 def common
@@ -19,7 +19,7 @@ post_install do |installer|
     target.build_configurations.each do |config|
       # Workaround for Xcode 14.3+
       # https://github.com/CocoaPods/CocoaPods/issues/11839
-      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.13'
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
       config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '3'
     end
   end
