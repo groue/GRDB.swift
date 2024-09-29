@@ -6,11 +6,11 @@ Migrating From GRDB 6 to GRDB 7
 - [Preparing the Migration to GRDB 7](#preparing-the-migration-to-grdb-7)
 - [New requirements](#new-requirements)
 - [Companion Libraries](#companion-libraries)
-- [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
 - [Default Transaction Kind](#default-transaction-kind)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
+- [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
 - [Recommendations Regarding Swift Concurrency](#recommendations-regarding-swift-concurrency)
 - [Other Changes](#other-changes)
 
@@ -36,42 +36,6 @@ Companion libraries have been updated for GRDB 7:
 
 - [GRDBQuery releases](https://github.com/groue/GRDBQuery/releases) (SwiftUI)
 - [GRDBSnapshotTesting releases](https://github.com/groue/GRDBSnapshotTesting/releases) (Snapshot Testing)
-
-## The Record Base Class is Discouraged
-
-The usage of the [Record] base class is **discouraged** in GRDB 7. Present in GRDB 1.0, in 2017, it has served its purpose. 
-
-It is not recommended to define any new type that subclass `Record`.
-
-It is recommended to refactor `Record` subclasses into Swift structs, before you enable the strict concurrency checkings or the Swift 6 language mode. See [Migrating to Swift 6] for more information about Swift 6 language modes.
-
-For example:
-
-```swift
-// GRDB 6
-class Player: Record {
-    var id: UUID
-    var name: String
-    var score: Int
-    
-    override class var databaseTableName: String { "player" }
-    
-    init(id: UUID, name: String, score: Int) { ... }
-    required init(row: Row) throws { ... }
-    override func encode(to container: inout PersistenceContainer) throws { ...}
-}
-
-// GRDB 7
-struct Player: Codable {
-    var id: UUID
-    var name: String
-    var score: Int
-}
-
-extension Player: FetchableRecord, PersistableRecord { }
-```
-
-Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non-Sendable record types in GRDB. 
 
 ## Column Coding Strategies
 
@@ -171,6 +135,42 @@ In GRDB 7, you may need an additional import, depending on how GRDB is integrate
     ```
 
 - In other cases, no additional import is needed.
+
+## The Record Base Class is Discouraged
+
+Subclassing the [Record] class is **discouraged** in GRDB 7. Present in GRDB 1.0, in 2017, it has served its purpose. 
+
+It is not recommended to define any new type that subclass `Record`.
+
+It is recommended to refactor `Record` subclasses into Swift structs, before you enable the strict concurrency checkings or the Swift 6 language mode. See [Migrating to Swift 6] for more information about Swift 6 language modes.
+
+For example:
+
+```swift
+// GRDB 6
+class Player: Record {
+    var id: UUID
+    var name: String
+    var score: Int
+    
+    override class var databaseTableName: String { "player" }
+    
+    init(id: UUID, name: String, score: Int) { ... }
+    required init(row: Row) throws { ... }
+    override func encode(to container: inout PersistenceContainer) throws { ...}
+}
+
+// GRDB 7
+struct Player: Codable {
+    var id: UUID
+    var name: String
+    var score: Int
+}
+
+extension Player: FetchableRecord, PersistableRecord { }
+```
+
+Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non-Sendable record types in GRDB. 
 
 ## Recommendations Regarding Swift Concurrency
 
