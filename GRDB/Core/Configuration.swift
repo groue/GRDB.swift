@@ -7,6 +7,9 @@ import SQLCipher
 import SQLite3
 #endif
 
+#if !canImport(Darwin)
+@preconcurrency
+#endif
 import Dispatch
 import Foundation
 
