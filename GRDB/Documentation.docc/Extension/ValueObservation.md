@@ -103,9 +103,9 @@ By default, `ValueObservation` notifies the initial value, as well as eventual c
 ```swift
 // The default scheduling
 let cancellable = observation.start(in: dbQueue) { error in
-    // Called asynchronously on the main actor
+    // This closure is MainActor-isolated.
 } onChange: { value in
-    // Called asynchronously on the main actor
+    // This closure is MainActor-isolated.
     print("Fresh value", value)
 }
 ```

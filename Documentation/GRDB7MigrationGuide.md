@@ -10,6 +10,7 @@ Migrating From GRDB 6 to GRDB 7
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
 - [Default Transaction Kind](#default-transaction-kind)
+- [ValueObservation and the Main Actor](#valueobservation-and-the-main-actor)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
 - [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
 - [Other Changes](#other-changes)
@@ -109,6 +110,46 @@ In GRDB 7, `Configuration` no longer has a `defaultTransactionKind` property, be
 
 You can still specify a transaction kind explicitly when necessary. See [Transaction Kinds] for details.
 
+## ValueObservation and the Main Actor
+
+In GRDB 7, `ValueObservation` fosters the main actor, because it is frequently used to automatically update database values on screen.
+
+By default, its [`start`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
+    
+It is not necessary to call `MainActor.assumeIsolated` in `ValueObservation` callbacks:
+
+```swift
+// GRDB 7
+@MainActor func startObservation() {
+    let observation = ValueObservation.tracking { ... }
+    
+    let cancellable = observation.start(in: dbQueue) { error in
+        // This closure is MainActor-isolated.
+    } onChange: { value in
+        // This closure is MainActor-isolated.
+        print("Fresh value", value)
+    }
+}
+``` 
+
+You can opt-out of the main actor with a specific scheduler such as `.async(onQueue:)`:
+
+```swift
+func startObservation() {
+    let observation = ValueObservation.tracking { ... }
+    
+    let cancellable = observation.start(
+        in: dbQueue,
+        scheduling: .async(onQueue: .main))
+    { error in
+        // Called on the specified dispatch queue.
+    } onChange: { value in
+        // Called on the specified dispatch queue.
+        print("Fresh value", value)
+    }
+}
+```
+
 ## Access to SQLite C functions
 
 In GRDB 6, the underlying C SQLite library is implicitly available:
@@ -179,8 +220,6 @@ extension Player: FetchableRecord, PersistableRecord { }
 Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non-Sendable record types in GRDB. 
 
 ## Other Changes
-
-- `ValueObservation` must be started from the Main Actor by default. Use an explicit `async(onQueue: .main)` scheduling in order to remove this constraint.
 
 - `DatabasePool.concurrentRead` has been removed. Use [`asyncConcurrentRead`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool/asyncconcurrentread(_:)) instead.
 
