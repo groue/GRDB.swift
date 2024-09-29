@@ -142,7 +142,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking Change**: Prefer any DatabaseReader and DatabaseWriter by [@groue](https://github.com/groue) in [#1635](https://github.com/groue/GRDB.swift/pull/1635)
 - **New**: Sendable database accesses by [@groue](https://github.com/groue) in [#1618](https://github.com/groue/GRDB.swift/pull/1618)
 - **New**: DatabaseCursor has a primary associated type by [@groue](https://github.com/groue) in [#1605](https://github.com/groue/GRDB.swift/pull/1605)
-- **New**: New demo app by [@groue](https://github.com/groue) in [#1636](https://github.com/groue/GRDB.swift/pull/1636)
 - **Documentation Update**: [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 - **Documentation Update**: The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 - **Documentation Update**: The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
