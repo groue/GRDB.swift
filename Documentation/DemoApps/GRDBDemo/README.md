@@ -24,6 +24,8 @@ The topics covered in this demo are:
 - [AppDatabase.swift](GRDBDemo/Database/AppDatabase.swift)
     
     `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and provides methods that read and write.
+    
+    `AppDatabase` is [tested](GRDBDemoTests/AppDatabaseTests.swift).
 
 - [Persistence.swift](GRDBDemo/Database/Persistence.swift)
     
@@ -33,4 +35,12 @@ The topics covered in this demo are:
     
     `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records).
 
-- [GRDBDemoTests](GRDBDemoTests)
+- [PlayerListModel.swift](GRDBDemo/Views/PlayerListModel.swift)
+
+    `PlayerListModel` is an `@Observable` object that observes the database, displays always fresh values on screen, and performs actions.
+    
+    `PlayerListModel` is [tested](GRDBDemoTests/PlayerListModelTests.swift).
+
+- [PlayersNavigationView.swift](GRDBDemo/Views/PlayersNavigationView.swift)
+
+    `PlayersNavigationView` is the main navigation view of the application. It instantiates a `PlayerListModel` from the `AppDatabase` stored in the SwiftUI environment.
