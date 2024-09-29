@@ -5,6 +5,7 @@ Migrating From GRDB 6 to GRDB 7
 
 - [Preparing the Migration to GRDB 7](#preparing-the-migration-to-grdb-7)
 - [New requirements](#new-requirements)
+- [Companion Libraries](#companion-libraries)
 - [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
@@ -28,6 +29,13 @@ GRDB requirements have been bumped:
 - **tvOS 13+** (was tvOS 11+)
 - **watchOS 7.0+** (was watchOS 4+)
 - **SQLite 3.20.0+** (was SQLite 3.19.3+)
+
+## Companion Libraries
+
+Companion libraries have been updated for GRDB 7:
+
+- [GRDBQuery releases](https://github.com/groue/GRDBQuery/releases) (SwiftUI)
+- [GRDBSnapshotTesting releases](https://github.com/groue/GRDBSnapshotTesting/releases) (Snapshot Testing)
 
 ## The Record Base Class is Discouraged
 
