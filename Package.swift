@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -9,9 +9,6 @@ var swiftSettings: [SwiftSetting] = [
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
-
-// For Swift 5.8+
-//swiftSettings.append(.enableUpcomingFeature("ExistentialAny"))
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
@@ -34,24 +31,24 @@ let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
     platforms: [
-        .iOS(.v11),
-        .macOS(.v10_13),
-        .tvOS(.v11),
-        .watchOS(.v4),
+        .iOS(.v13),
+        .macOS(.v10_15),
+        .tvOS(.v13),
+        .watchOS(.v7),
     ],
     products: [
-        .library(name: "CSQLite", targets: ["CSQLite"]),
+        .library(name: "GRDBSQLite", targets: ["GRDBSQLite"]),
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
     dependencies: dependencies,
     targets: [
         .systemLibrary(
-            name: "CSQLite",
+            name: "GRDBSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["CSQLite"],
+            dependencies: ["GRDBSQLite"],
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
@@ -64,10 +61,12 @@ let package = Package(
                 "CocoaPods",
                 "Crash",
                 "CustomSQLite",
+                "GRDBManualInstall",
                 "GRDBTests/getThreadsCount.c",
                 "Info.plist",
                 "Performance",
                 "SPM",
+                "Swift6Migration",
                 "generatePerformanceReport.rb",
                 "parsePerformanceTests.rb",
             ],
@@ -77,7 +76,12 @@ let package = Package(
                 .copy("GRDBTests/Issue1383.sqlite"),
             ],
             cSettings: cSettings,
-            swiftSettings: swiftSettings)
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageModes: [.v6]
 )

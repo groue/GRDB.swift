@@ -7,8 +7,7 @@ To release a new GRDB version:
 
 - Tests
     - `make distclean test`
-    - Build and run GRDBDemoiOS in Release configuration on a device
-    - Archive GRDBDemoiOS
+    - Build and run GRDBDemo
     - Check for performance regression with GRDBOSXPerformanceTests
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
 - On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in Documentation/CustomSQLiteBuilds.md

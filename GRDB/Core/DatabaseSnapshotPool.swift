@@ -1,5 +1,13 @@
-// swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// A database connection that allows concurrent accesses to an unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
@@ -122,6 +130,7 @@ public final class DatabaseSnapshotPool {
     ///   `db` is used.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(_ db: Database, configuration: Configuration? = nil) throws {
+        let path = db.path
         var configuration = Self.configure(configuration ?? db.configuration)
         
         // Acquire and hold WAL snapshot
@@ -130,7 +139,7 @@ public final class DatabaseSnapshotPool {
         }
         var holderConfig = Configuration()
         holderConfig.allowsUnsafeTransactions = true
-        snapshotHolder = try DatabaseQueue(path: db.path, configuration: holderConfig)
+        snapshotHolder = try DatabaseQueue(path: path, configuration: holderConfig)
         try snapshotHolder.inDatabase { db in
             try db.beginTransaction(.deferred)
             try db.execute(sql: "SELECT rootpage FROM sqlite_master LIMIT 1")
@@ -150,20 +159,18 @@ public final class DatabaseSnapshotPool {
         }
         
         self.configuration = configuration
-        self.path = db.path
+        self.path = path
         self.walSnapshot = walSnapshot
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [configuration] index in
                 return try SerializedDatabase(
-                    path: db.path,
+                    path: path,
                     configuration: configuration,
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
-                    purpose: "snapshot.\(readerCount)")
+                    purpose: "snapshot.\(index)")
             })
     }
     
@@ -211,17 +218,15 @@ public final class DatabaseSnapshotPool {
         self.path = path
         self.walSnapshot = walSnapshot
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [configuration] index in
                 return try SerializedDatabase(
                     path: path,
                     configuration: configuration,
                     defaultLabel: "GRDB.DatabaseSnapshotPool",
-                    purpose: "snapshot.\(readerCount)")
+                    purpose: "snapshot.\(index)")
             })
     }
     
@@ -233,10 +238,6 @@ public final class DatabaseSnapshotPool {
         
         // DatabaseSnapshotPool is read-only.
         configuration.readonly = true
-        
-        // DatabaseSnapshotPool uses deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        configuration.defaultTransactionKind = .deferred
         
         // DatabaseSnapshotPool keeps a long-lived transaction.
         configuration.allowsUnsafeTransactions = true
@@ -292,7 +293,42 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func read<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            releaseReader(self.poolCompletion(db))
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                try value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -312,12 +348,22 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
         }
     }
     
+    // There is no such thing as an unsafe access to a snapshot.
+    // We can't provide this as a default implementation in
+    // `DatabaseSnapshotReader`,  because of
+    // <https://github.com/apple/swift/issues/74469>.
+    public func unsafeRead<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await read(value)
+    }
+    
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
             return try reader.reentrantSync { db in
                 let result = try value(db)
                 if snapshotIsLost(db) {
-                    throw DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
+                    throw DatabaseError.snapshotIsLost()
                 }
                 return result
             }
@@ -330,9 +376,8 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     public func _add<Reducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable where Reducer: ValueReducer
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable where Reducer: ValueReducer {
         _addReadOnly(observation: observation, scheduling: scheduler, onChange: onChange)
     }
     

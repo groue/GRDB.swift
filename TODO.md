@@ -87,6 +87,117 @@
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 - [ ] What can we do with `cross-module-optimization`? See https://github.com/apple/swift-homomorphic-encryption
 
+- [X] GRDB7/BREAKING: insertAndFetch, saveAndFetch, and updateAndFetch no longer return optionals (32f41472)
+- [X] GRDB7/BREAKING: AsyncValueObservation does not need any scheduler (83c0e643)
+- [X] GRDB7/BREAKING: Stop exporting SQLite (679d6463)
+- [X] GRDB7/BREAKING: Remove Configuration.defaultTransactionKind (2661ff46)
+- [X] GRDB7: Replace LockedBox with Mutex (00ccab06)
+- [X] GRDB7: Sendable: BusyCallback (e0d8e20b)
+- [X] GRDB7: Sendable: BusyMode (e0d8e20b)
+- [X] GRDB7: Sendable: TransactionClock (f7dc72a5)
+- [X] GRDB7: Sendable: Configuration (54ffb21f)
+- [X] GRDB7: Sendable: DatabaseDataEncodingStrategy (264d7fb5)
+- [X] GRDB7: Sendable: DatabaseDateEncodingStrategy (264d7fb5)
+- [X] GRDB7: Sendable: DatabaseColumnEncodingStrategy (264d7fb5)
+- [X] GRDB7: Sendable: DatabaseDataDecodingStrategy (264d7fb5)
+- [X] GRDB7: Sendable: DatabaseDateDecodingStrategy (264d7fb5)
+- [X] GRDB7: Sendable: DatabaseColumnDecodingStrategy (264d7fb5)
+- [X] GRDB7/BREAKING: Remove DatabaseFuture and concurrentRead (05f7d3c8)
+- [X] GRDB7: Sendable: DatabaseFunction (6e691fe7)
+- [X] GRDB7: Sendable: DatabaseMigrator (22114ad4)
+- [X] GRDB7: Not Sendable: FilterCursor (b26e9709)
+- [X] GRDB7: Sendable: RowAdapter (d138af26)
+- [X] GRDB7: Sendable: ValueObservationScheduler (8429eb68)
+- [X] GRDB7: Sendable: DatabaseCollation (4d9d67dd)
+- [X] GRDB7: Sendable: LogErrorFunction (f362518d)
+- [X] GRDB7: Sendable: ReadWriteBox (57a86a0e)
+- [X] GRDB7: Sendable: Pool (f13b2d2e)
+- [X] GRDB7: Sendable: OnDemandFuture fulfill (2aabc4c1)
+- [X] GRDB7: Sendable: WALSnapshotTransaction (7fd34012)
+- [-] GRDB7: sending closures for SerializedDatabase
+- [-] GRDB7: sending closures for ValueObservationScheduler
+- [X] GRDB7: Sendable closures for ValueObservation.handleEvents
+- [X] GRDB7: Not Sendable: Record (make it explicit if subclasses can be made sendable)
+- [ ] GRDB7: Not Sendable: databasepublishers/databaseregion, migrate, read, value, write
+- [X] GRDB7: Sendable closures for writePublisher
+- [X] GRDB7: Sendable closures for readPublisher
+- [-] GRDB7: Not Sendable: fts5customtokenizer, fts5tokenizer, fts5wrappertokenizer
+- [X] GRDB7: Sendable: DatabasePromise (05899228, 5a2c15b8)
+- [X] GRDB7: Sendable: TableAlias (f2b0b186)
+- [X] GRDB7: Sendable: SQLRelation (9545bf70)
+- [X] GRDB7: Sendable: SQL (ac33856f)
+- [ ] GRDB7: Split Row.swift (2ce8a619)
+- [X] GRDB7: Cleanup ValueReducer (6c73b1c5)
+- [X] GRDB7: DatabaseCursor has a primary associated type (b11c5dd2)
+- [ ] GRDB7: Enable Strict Concurrency Checks (6aa43ded)
+- [X] GRDB7: Sendable: OrderedDictionary (e022c35b)
+- [X] GRDB7: Rename ReadWriteBox to ReadWriteLock (7f5205ef)
+- [X] GRDB7: Sendable: DatabaseRegionConvertible (b4677ded)
+- [X] GRDB7: Sendable: ValueConcurrentObserver (87b9db65, 5465d056)
+- [X] GRDB7: Sendable: ValueWriteOnlyObserver (ff2a7548)
+- [X] GRDB7: Sendable: DatabaseCancellable (2f93f00b, 8f486a5e)
+- [X] GRDB7: ValueObservation closures
+- [?] GRDB7: DatabasePublishers.ValueSubscription
+- [X] GRDB7: Sendable: ValueObservation (93f6f982)
+- [?] GRDB7: Not Sendable: SharedValueObservation
+- [X] GRDB7: doc (c0838cf9)
+- [X] GRDB7/BREAKING: PersistenceContainer is Sendable (50eefa8c)
+- [X] GRDB7: TableRecord.databaseSelection must be declared as a computed property (24d232aa)
+    - [X] Doc
+    - [X] Migration Guide
+- [X] GRDB7: Sendable: Association (b06aaee4)
+- [ ] GRDB7/Tests: Sendable: ValueObservationRecorder (2947b3d7)
+- [X] GRDB7: ValueObservation.print cautiously uses its stream argument (5f8b39b7)
+- [ ] GRDB7/Tests: use a single and Sendable test TextOutputStream (bbb1a736)
+- [X] GRDB7: ValueObservation needs a ValueReducer, not a `_ValueReducer` (08733108)
+- [X] GRDB7: Database support for cancellation (4ddf4bca)
+- [X] GRDB7: SerializedDatabase support for async db access with support for Task cancellation (737cb149)
+- [X] GRDB7: DatabaseWriter async methods support Task cancellation (a5226501)
+- [X] GRDB7: DatabaseReader async methods support Task cancellation (10c9d311)
+- [X] GRDB7: Document that async methods can throw CancellationError (8df18fb8)
+- [-] GRDB7: Sendable: AssociationAggregate (48ad10ae)
+- [X] GRDB7: Sendable: AsyncValueObservation (necessary for async algorithm) (ce63cdfa)
+- [X] GRDB7: Sendable: DatabaseRegionObservation (b4ff52fb)
+- [-] GRDB7: DispatchQueue.asyncSending (7b075e6b)
+- [X] GRDB7: Replace sequences with collection (e.g. https://github.com/tidal-music/tidal-sdk-ios/pull/39)
+- [X] GRDB7: Replace `some` DatabaseReader/Writer with `any` where possible, in order to avoid issues with accessing DatabaseContext from GRDBQuery (if the problem exists in Xcode 16)
+- [X] GRDB7: bump to iOS 13, macOS 10.15, tvOS 13 (for ValueObservation support for MainActor)
+
+- [ ] GRDB7: DatabasePublishers.Value should carry the type of the Scheduler, so that we can rely on main-actor-isolated callbacks.
+- [X] GRDB7: Remove warning about "products" in Package.swift
+- [X] GRDB7: Fixits
+    - [X] defaultTransactionKind
+    - [X] concurrentRead
+- [X] GRDB7: Swift Concurrency recommendations
+    - [X] Record classe(s)
+    - [X] InferSendableFromCaptures
+- [X] GRDB7: stop fostering the Record class
+    - Remove all mentions from the README
+    - Warn about it in the documentation of the class.
+- [X] GRDB7: Breaking changes documentation
+    - [X] [BREAKING] Xcode 16+, Swift 6+
+    - [X] [BREAKING] iOS 13+
+    - [X] [BREAKING] macOS 10.15+
+    - [X] [BREAKING] tvOS 13+
+    - [X] [BREAKING] watchOS 7+
+    - [-] insertAndFetch, updateAndFetch, saveAndFetch
+    - [X] CSQLite renamed to GRDBCSQLite
+    - [X] CSQLite is not exported
+    - [X] defaultTransactionKind
+    - [X] concurrentRead
+    - [X] record column strategies:
+        - databaseDataEncodingStrategy
+        - databaseDateEncodingStrategy
+        - databaseUUIDEncodingStrategy
+        - databaseDataDecodingStrategy
+        - databaseDateDecodingStrategy
+    - [X] PersistenceContainer subscript no longer returns its input value
+    - [X] cancellation of async database access
+    - [X] Async sequences built from ValueObservation schedule values and errors on the cooperative thread pool by default.
+    - [X] `TableRecord.databaseSelection` should be declared as a computed static property
+    - [-] databaseDecodingUserInfo and databaseEncodingUserInfo must be declared as a computed property
+- [ ] GRDB7: Review experimental apis
+- [?] GRDB7: Change ValueObservation callback argument so that it could expose snapshots? https://github.com/groue/GRDB.swift/discussions/1523#discussioncomment-9092500 
 
 ## Unsure if necessary
 

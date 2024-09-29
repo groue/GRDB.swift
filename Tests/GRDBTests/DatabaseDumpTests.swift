@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import XCTest
 import GRDB
 
@@ -229,10 +238,6 @@ final class DatabaseDumpTests: GRDBTestCase {
     // MARK: - JSON
     
     func test_json_value_formatting() throws {
-        guard #available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *) else {
-            throw XCTSkip("Skip because this test relies on JSONEncoder.OutputFormatting.withoutEscapingSlashes")
-        }
-        
         try makeValuesDatabase().read { db in
             let stream = TestStream()
             try db.dumpSQL("SELECT * FROM value ORDER BY name", format: .json(), to: stream)

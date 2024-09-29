@@ -576,9 +576,10 @@ extension GRDBTestCase {
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: some ValueObservationScheduler,
+            description: String,
             testErrorDispatching: @escaping () -> Void) throws
         {
-            func test(writer: some DatabaseWriter) throws {
+            func test(writer: some DatabaseWriter, description: String) throws {
                 try writer.write(setup)
                 
                 let recorder = observation.record(
@@ -586,7 +587,7 @@ extension GRDBTestCase {
                     scheduling: scheduler,
                     onError: { _ in testErrorDispatching() })
                 
-                let (_, error) = try wait(for: recorder.failure(), timeout: 5)
+                let (_, error) = try wait(for: recorder.failure(), timeout: 5, description: description)
                 if let error = error as? Failure {
                     try testFailure(error, writer)
                 } else {
@@ -594,9 +595,9 @@ extension GRDBTestCase {
                 }
             }
             
-            try test(writer: DatabaseQueue())
-            try test(writer: makeDatabaseQueue())
-            try test(writer: makeDatabasePool())
+            try test(writer: DatabaseQueue(), description: description + " (in-memory DatabaseQueue)")
+            try test(writer: makeDatabaseQueue(), description: description + " (on-disk DatabaseQueue)")
+            try test(writer: makeDatabasePool(), description: description + " (DatabasePool)")
         }
         
         do {
@@ -606,6 +607,7 @@ extension GRDBTestCase {
             try test(
                 observation: observation,
                 scheduling: .immediate,
+                description: "Immediate scheduling",
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -616,6 +618,7 @@ extension GRDBTestCase {
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: .main),
+                description: "Async on main queue scheduling",
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -627,6 +630,7 @@ extension GRDBTestCase {
             try test(
                 observation: observation,
                 scheduling: .async(onQueue: queue),
+                description: "Async on custom queue scheduling",
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }

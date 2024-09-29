@@ -170,9 +170,9 @@ struct Player: Codable {
 extension Player: FetchableRecord, MutablePersistableRecord {
     // Required because the primary key
     // is the hidden rowid column.
-    static let databaseSelection: [any SQLSelectable] = [
-        AllColumns(),
-        Column.rowID]
+    static var databaseSelection: [any SQLSelectable] {
+        [AllColumns(), Column.rowID]
+    }
 
     // Update id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {

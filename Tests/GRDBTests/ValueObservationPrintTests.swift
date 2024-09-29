@@ -4,9 +4,10 @@ import Dispatch
 
 class ValueObservationPrintTests: GRDBTestCase {
     class TestStream: TextOutputStream {
-        @LockedBox var strings: [String] = []
+        private var stringsMutex: Mutex<[String]> = Mutex([])
+        var strings: [String] { stringsMutex.load() }
         func write(_ string: String) {
-            strings.append(string)
+            stringsMutex.withLock { $0.append(string) }
         }
     }
     
@@ -54,7 +55,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -91,7 +92,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -129,7 +130,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -167,7 +168,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -410,11 +411,15 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
+                let needsChange = needsChangeMutex.withLock { needed in
+                    let wasNeeded = needed
+                    needed = false
+                    return wasNeeded
+                }
                 if needsChange {
-                    needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;
@@ -461,11 +466,15 @@ class ValueObservationPrintTests: GRDBTestCase {
         // Force DatabasePool to perform two initial fetches, because between
         // its first read access, and its write access that installs the
         // transaction observer, some write did happen.
-        var needsChange = true
+        let needsChangeMutex = Mutex(true)
         let observation = ValueObservation
             .trackingConstantRegion { db -> Int? in
+                let needsChange = needsChangeMutex.withLock { needed in
+                    let wasNeeded = needed
+                    needed = false
+                    return wasNeeded
+                }
                 if needsChange {
-                    needsChange = false
                     try dbPool.write { db in
                         try db.execute(sql: """
                         INSERT INTO player DEFAULT VALUES;

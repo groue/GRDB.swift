@@ -175,42 +175,49 @@ class DatabaseCursorTests: GRDBTestCase {
         // with raw C SQLite3 apis. The faulty line is the call to
         // sqlite3_set_authorizer during the statement iteration.
         
-//        if #available(OSX 10.14, *) {
-//            var connection: SQLiteConnection? = nil
-//            sqlite3_open_v2(":memory:", &connection, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, nil)
-//            sqlite3_extended_result_codes(connection, 1)
+//        var connection: SQLiteConnection? = nil
+//        sqlite3_open_v2(":memory:", &connection, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, nil)
+//        sqlite3_extended_result_codes(connection, 1)
 //
-//            sqlite3_exec(connection, """
-//                 CREATE TABLE user (username TEXT NOT NULL);
-//                 CREATE TABLE flagUser (username TEXT NOT NULL);
-//                 INSERT INTO flagUser (username) VALUES ('User1');
-//                 INSERT INTO flagUser (username) VALUES ('User2');
-//                 """, nil, nil, nil)
+//        sqlite3_exec(connection, """
+//             CREATE TABLE user (username TEXT NOT NULL);
+//             CREATE TABLE flagUser (username TEXT NOT NULL);
+//             INSERT INTO flagUser (username) VALUES ('User1');
+//             INSERT INTO flagUser (username) VALUES ('User2');
+//             """, nil, nil, nil)
 //
-//            var statement: SQLiteStatement? = nil
-//            sqlite3_set_authorizer(connection, { (_, _, _, _, _, _) in SQLITE_OK }, nil)
-//            sqlite3_prepare_v3(connection, """
-//                 SELECT * FROM flagUser WHERE (SELECT COUNT(*) FROM user WHERE username = flagUser.username) = 0
-//                 """, -1, 0, &statement, nil)
-//            sqlite3_set_authorizer(connection, nil, nil)
-//            while true {
-//                let code = sqlite3_step(statement)
-//                if code == SQLITE_DONE {
-//                    break
-//                } else if code == SQLITE_ROW {
-//                    // part of the compilation of another statement, here
-//                    // reduced to the strict minimum that reproduces
-//                    // the error.
-//                    sqlite3_set_authorizer(connection, nil, nil)
-//                } else {
-//                    print(String(cString: sqlite3_errmsg(connection)))
-//                    XCTFail("Error \(code)")
-//                    break
-//                }
+//        var statement: SQLiteStatement? = nil
+//        sqlite3_set_authorizer(connection, { (_, _, _, _, _, _) in SQLITE_OK }, nil)
+//        sqlite3_prepare_v3(connection, """
+//             SELECT * FROM flagUser WHERE (SELECT COUNT(*) FROM user WHERE username = flagUser.username) = 0
+//             """, -1, 0, &statement, nil)
+//        sqlite3_set_authorizer(connection, nil, nil)
+//        while true {
+//            let code = sqlite3_step(statement)
+//            if code == SQLITE_DONE {
+//                break
+//            } else if code == SQLITE_ROW {
+//                // part of the compilation of another statement, here
+//                // reduced to the strict minimum that reproduces
+//                // the error.
+//                sqlite3_set_authorizer(connection, nil, nil)
+//            } else {
+//                print(String(cString: sqlite3_errmsg(connection)))
+//                XCTFail("Error \(code)")
+//                break
 //            }
-//            sqlite3_finalize(statement)
-//            sqlite3_close_v2(connection)
 //        }
+//        sqlite3_finalize(statement)
+//        sqlite3_close_v2(connection)
+    }
+    
+    // This test passes if it compiles
+    func testAssociatedType() throws {
+        func accept(_ cursor: some DatabaseCursor<String>) { }
+        func useCursor(_ db: Database) throws {
+            let cursor = try String.fetchCursor(db, sql: "SELECT 'foo'")
+            accept(cursor)
+        }
     }
     
     // For profiling tests

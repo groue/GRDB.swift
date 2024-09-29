@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 extension Database {
@@ -430,6 +439,7 @@ extension Database {
         // documentation of this method for more information).
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         
+        // Cancelled database accesses must not execute.
         // Suspended databases must not execute statements that create the risk
         // of `0xdead10cc` exception (see the documentation of this method for
         // more information).
@@ -482,6 +492,17 @@ extension Database {
         // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
         
+        switch ResultCode(rawValue: resultCode) {
+        case .SQLITE_INTERRUPT, .SQLITE_ABORT:
+            if suspensionMutex.load().isCancelled {
+                // The only error that a user sees when a Task is cancelled
+                // is CancellationError.
+                throw CancellationError()
+            }
+        default:
+            break
+        }
+        
         // Throw statement failure
         throw DatabaseError(
             resultCode: resultCode,
@@ -531,19 +552,7 @@ struct StatementCache {
         // > time and probably reused many times.
         //
         // This looks like a perfect match for cached statements.
-        //
-        // However SQLITE_PREPARE_PERSISTENT was only introduced in
-        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
         let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        #else
-        let statement: Statement
-        if #available(iOS 12, macOS 10.14, watchOS 5, *) { // SQLite 3.20+
-            statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        } else {
-            statement = try db.makeStatement(sql: sql)
-        }
-        #endif
         statements[sql] = statement
         return statement
     }

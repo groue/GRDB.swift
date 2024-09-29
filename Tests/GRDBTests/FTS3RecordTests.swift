@@ -19,7 +19,7 @@ extension Book : FetchableRecord {
 
 extension Book : MutablePersistableRecord {
     static let databaseTableName = "books"
-    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
     
     func encode(to container: inout PersistenceContainer) {
         container[.rowID] = id
@@ -102,14 +102,14 @@ class FTS3RecordTests: GRDBTestCase {
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 let pattern = try FTS3Pattern(rawPattern: "Herman Melville")
                 XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
                 XCTAssertTrue(sqlQueries.contains("SELECT COUNT(*) FROM \"books\" WHERE \"books\" MATCH 'Herman Melville'"))
             }
             
             do {
-                sqlQueries = []
+                clearSQLQueries()
                 XCTAssertEqual(try Book.fetchCount(db), 1)
                 XCTAssertTrue(sqlQueries.contains("SELECT COUNT(*) FROM \"books\""))
             }

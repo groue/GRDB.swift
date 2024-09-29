@@ -779,7 +779,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Col.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
-        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Col.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
@@ -809,7 +809,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
         #elseif !GRDBCIPHER
-        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
@@ -858,7 +858,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Col.age.ascNullsLast).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
-        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Col.age.descNullsFirst).reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
@@ -888,7 +888,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
         #elseif !GRDBCIPHER
-        if #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) {
+        if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast).reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")

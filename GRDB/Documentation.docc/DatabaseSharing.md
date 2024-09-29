@@ -152,12 +152,11 @@ If several processes want to write in the database, configure the database pool 
 
 ```swift
 var configuration = Configuration()
-configuration.defaultTransactionKind = .immediate
 configuration.busyMode = .timeout(/* a TimeInterval */)
 let dbPool = try DatabasePool(path: ..., configuration: configuration)
 ```
 
-Both the `defaultTransactionKind` and `busyMode` are important for preventing `SQLITE_BUSY`. The `immediate` transaction kind prevents write transactions from overlapping, and the busy timeout has write transactions wait, instead of throwing `SQLITE_BUSY`, whenever another process is writing.
+The busy timeout has write transactions wait, instead of throwing `SQLITE_BUSY`, whenever another process is writing. GRDB automatically opens all write transactions with the IMMEDIATE kind, preventing write transactions from overlapping.
 
 With such a setup, you will still get `SQLITE_BUSY` errors if the database remains locked by another process for longer than the specified timeout. You can catch those errors:
 

@@ -19,21 +19,23 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithData<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { Strategy.strategy }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        Strategy.strategy
+    }
     var data: Data
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension RecordWithData: Identifiable {
     var id: Data { data }
 }
 
 private struct RecordWithOptionalData<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { Strategy.strategy }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        Strategy.strategy
+    }
     var data: Data?
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension RecordWithOptionalData: Identifiable {
     var id: Data? { data }
 }
@@ -150,10 +152,6 @@ extension DatabaseDataEncodingStrategyTests {
     }
     
     func testFilterID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .blob) }
             
@@ -230,10 +228,6 @@ extension DatabaseDataEncodingStrategyTests {
     }
     
     func testDeleteID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .blob) }
             
@@ -266,7 +260,7 @@ extension DatabaseDataEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalData<StrategyDeferredToData>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
@@ -286,7 +280,7 @@ extension DatabaseDataEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalData<StrategyTextUTF8>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

@@ -15,7 +15,7 @@ private class Person : Record {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE persons (
                 id INTEGER PRIMARY KEY,
@@ -105,7 +105,9 @@ class RecordSubClassTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", migrate: Person.setup)
+        migrator.registerMigration("createPerson") {
+            try Person.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

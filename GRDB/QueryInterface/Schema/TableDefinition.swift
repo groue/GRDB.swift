@@ -136,6 +136,7 @@ public final class TableDefinition {
     /// - <https://www.sqlite.org/lang_createtable.html#primkeyconst>
     /// - <https://www.sqlite.org/lang_createtable.html#rowid>
     ///
+    /// - parameter name: the name of the primary key.
     /// - parameter conflictResolution: An optional conflict resolution
     ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: `self` so that you can further refine the column definition.
@@ -163,6 +164,8 @@ public final class TableDefinition {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
+    /// - parameter conflictResolution: An optional conflict resolution
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: A ``ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult

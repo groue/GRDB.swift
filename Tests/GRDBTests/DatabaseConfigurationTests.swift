@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import XCTest
 import GRDB
 
@@ -6,40 +15,40 @@ class DatabaseConfigurationTests: GRDBTestCase {
     
     func testPrepareDatabase() throws {
         // prepareDatabase is called when connection opens
-        var connectionCount = 0
+        let connectionCountMutex = Mutex(0)
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            connectionCount += 1
+            connectionCountMutex.increment()
         }
         
         _ = try DatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCount, 1)
+        XCTAssertEqual(connectionCountMutex.load(), 1)
         
         _ = try makeDatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCount, 2)
+        XCTAssertEqual(connectionCountMutex.load(), 2)
         
         let pool = try makeDatabasePool(configuration: configuration)
-        XCTAssertEqual(connectionCount, 3)
+        XCTAssertEqual(connectionCountMutex.load(), 3)
         
         try pool.read { _ in }
-        XCTAssertEqual(connectionCount, 4)
+        XCTAssertEqual(connectionCountMutex.load(), 4)
         
         try pool.makeSnapshot().read { _ in }
-        XCTAssertEqual(connectionCount, 5)
+        XCTAssertEqual(connectionCountMutex.load(), 5)
         
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try pool.makeSnapshotPool().read { _ in }
-        XCTAssertEqual(connectionCount, 6)
+        XCTAssertEqual(connectionCountMutex.load(), 6)
 #endif
     }
     
     func testPrepareDatabaseError() throws {
         struct TestError: Error { }
-        var error: TestError?
+        let errorMutex: Mutex<TestError?> = Mutex(nil)
         
         var configuration = Configuration()
         configuration.prepareDatabase { db in
-            if let error {
+            if let error = errorMutex.load() {
                 throw error
             }
         }
@@ -47,36 +56,36 @@ class DatabaseConfigurationTests: GRDBTestCase {
         // TODO: what about in-memory DatabaseQueue???
         
         do {
-            error = TestError()
+            errorMutex.store(TestError())
             _ = try makeDatabaseQueue(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            error = TestError()
+            errorMutex.store(TestError())
             _ = try makeDatabasePool(configuration: configuration)
             XCTFail("Expected TestError")
         } catch is TestError { }
         
         do {
-            error = nil
+            errorMutex.store(nil)
             let pool = try makeDatabasePool(configuration: configuration)
             
             do {
-                error = TestError()
+                errorMutex.store(TestError())
                 try pool.read { _ in }
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
             do {
-                error = TestError()
+                errorMutex.store(TestError())
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
             do {
-                error = TestError()
+                errorMutex.store(TestError())
                 _ = try pool.makeSnapshotPool()
                 XCTFail("Expected TestError")
             } catch is TestError { }

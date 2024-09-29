@@ -40,7 +40,7 @@ import Foundation
 /// - ``completedMigrations(_:)``
 /// - ``hasBeenSuperseded(_:)``
 /// - ``hasCompletedMigrations(_:)``
-public struct DatabaseMigrator {
+public struct DatabaseMigrator: Sendable {
     /// Controls how a migration handle foreign keys constraints.
     public enum ForeignKeyChecks: Sendable {
         /// The migration runs with disabled foreign keys.
@@ -207,7 +207,7 @@ public struct DatabaseMigrator {
     public mutating func registerMigration(
         _ identifier: String,
         foreignKeyChecks: ForeignKeyChecks = .deferred,
-        migrate: @escaping (Database) throws -> Void)
+        migrate: @escaping @Sendable (Database) throws -> Void)
     {
         let migrationChecks: Migration.ForeignKeyChecks
         switch foreignKeyChecks {
@@ -230,7 +230,7 @@ public struct DatabaseMigrator {
     ///
     /// - parameter writer: A DatabaseWriter.
     /// - throws: The error thrown by the first failed migration.
-    public func migrate(_ writer: some DatabaseWriter) throws {
+    public func migrate(_ writer: any DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
         }
@@ -249,7 +249,7 @@ public struct DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter.
     /// - parameter targetIdentifier: A migration identifier.
     /// - throws: The error thrown by the first failed migration.
-    public func migrate(_ writer: some DatabaseWriter, upTo targetIdentifier: String) throws {
+    public func migrate(_ writer: any DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
@@ -263,8 +263,8 @@ public struct DatabaseMigrator {
     ///   database, or the failure that prevented the migrations
     ///   from succeeding.
     public func asyncMigrate(
-        _ writer: some DatabaseWriter,
-        completion: @escaping (Result<Database, Error>) -> Void)
+        _ writer: any DatabaseWriter,
+        completion: @escaping @Sendable (Result<Database, Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {
@@ -496,10 +496,9 @@ extension DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter.
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     public func migratePublisher(
-        _ writer: some DatabaseWriter,
-        receiveOn scheduler: some Scheduler = DispatchQueue.main)
+        _ writer: any DatabaseWriter,
+        receiveOn scheduler: some Combine.Scheduler = DispatchQueue.main)
     -> DatabasePublishers.Migrate
     {
         DatabasePublishers.Migrate(
@@ -514,7 +513,6 @@ extension DatabaseMigrator {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
     /// A publisher that migrates a database.
     ///

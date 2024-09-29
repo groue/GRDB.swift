@@ -1,0 +1,6 @@
+// Swift 5 mode with strict concurrency checkings
+SWIFT_VERSION = 5.0
+SWIFT_STRICT_CONCURRENCY = complete
+
+// Recommended settings
+SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES = YES

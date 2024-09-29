@@ -380,12 +380,12 @@ extension CommonTableExpression {
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
@@ -416,12 +416,12 @@ extension CommonTableExpression {
     /// - parameter destination: The record type at the other side of
     ///   the association.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Destination.Type,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
@@ -453,12 +453,12 @@ extension CommonTableExpression {
     ///
     /// - parameter destination: The table at the other side of the association.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Table<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(

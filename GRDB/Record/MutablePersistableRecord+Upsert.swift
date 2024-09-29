@@ -452,7 +452,7 @@ extension MutablePersistableRecord {
         var persistenceContainer = dao.persistenceContainer
         let rowIDColumn = dao.primaryKey.rowIDColumn
         if let rowIDColumn {
-            persistenceContainer[caseInsensitive: rowIDColumn] = rowid
+            persistenceContainer[rowIDColumn] = rowid
         }
         
         let inserted = InsertionSuccess(

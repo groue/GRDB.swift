@@ -103,7 +103,7 @@ class TableRecordTests: GRDBTestCase {
     func testExtendedDatabaseSelection() throws {
         struct Record: TableRecord {
             static let databaseTableName = "t1"
-            static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+            static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -116,7 +116,9 @@ class TableRecordTests: GRDBTestCase {
     func testRestrictedDatabaseSelection() throws {
         struct Record: TableRecord {
             static let databaseTableName = "t1"
-            static let databaseSelection: [any SQLSelectable] = [Column("a"), Column("b")]
+            static var databaseSelection: [any SQLSelectable] {
+                [Column("a"), Column("b")]
+            }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

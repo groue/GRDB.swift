@@ -708,7 +708,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
         }
         let record = Record(date: DatabaseDateComponents(DateComponents(year: 2018, month: 12, day: 31), format: .YMD))
         let jsonData = try JSONEncoder().encode(record)
-        let json = String(data: jsonData, encoding: .utf8)!
+        let json = String(decoding: jsonData, as: UTF8.self)
         XCTAssertEqual(json, """
             {"date":"2018-12-31"}
             """)

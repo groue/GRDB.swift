@@ -14,7 +14,7 @@ private class Item : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE items (
                 name TEXT,
@@ -58,7 +58,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createItem", migrate: Item.setup)
+        migrator.registerMigration("createItem") {
+            try Item.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

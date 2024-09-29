@@ -1,17 +1,26 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 import XCTest
 @testable import GRDB
 
 // Support for Database.logError
-var lastResultCode: ResultCode? = nil
-var lastMessage: String? = nil
+struct SQLiteDiagnostic {
+    var resultCode: ResultCode
+    var message: String
+}
+private let lastSQLiteDiagnosticMutex = Mutex<SQLiteDiagnostic?>(nil)
+var lastSQLiteDiagnostic: SQLiteDiagnostic? { lastSQLiteDiagnosticMutex.load() }
 let logErrorSetup: Void = {
-    let lock = NSLock()
     Database.logError = { (resultCode, message) in
-        lock.lock()
-        defer { lock.unlock() }
-        lastResultCode = resultCode
-        lastMessage = message
+        lastSQLiteDiagnosticMutex.store(SQLiteDiagnostic(resultCode: resultCode, message: message))
     }
 }()
 
@@ -55,10 +64,12 @@ class GRDBTestCase: XCTestCase {
     // The default path for database pool directory
     private var dbDirectoryPath: String!
     
-    // Populated by default configuration
-    @LockedBox var sqlQueries: [String] = []
+    let _sqlQueriesMutex: Mutex<[String]> = Mutex([])
     
-    // Populated by default configuration
+    // Automatically updated by default dbConfiguration
+    var sqlQueries: [String] { _sqlQueriesMutex.load() }
+    
+    // Automatically updated by default dbConfiguration
     var lastSQLQuery: String? { sqlQueries.last }
     
     override func setUp() {
@@ -73,7 +84,7 @@ class GRDBTestCase: XCTestCase {
         dbConfiguration = Configuration()
         
         // Test that database are deallocated in a clean state
-        dbConfiguration.SQLiteConnectionWillClose = { sqliteConnection in
+        dbConfiguration.onConnectionWillClose { sqliteConnection in
             // https://www.sqlite.org/capi3ref.html#sqlite3_close:
             // > If sqlite3_close_v2() is called on a database connection that still
             // > has outstanding prepared statements, BLOB handles, and/or
@@ -103,9 +114,11 @@ class GRDBTestCase: XCTestCase {
             }
         }
         
-        dbConfiguration.prepareDatabase { db in
+        dbConfiguration.prepareDatabase { [_sqlQueriesMutex] db in
             db.trace { event in
-                self.sqlQueries.append(event.expandedDescription)
+                _sqlQueriesMutex.withLock {
+                    $0.append(event.expandedDescription)
+                }
             }
             
             #if GRDBCIPHER_USE_ENCRYPTION
@@ -113,12 +126,16 @@ class GRDBTestCase: XCTestCase {
             #endif
         }
         
-        sqlQueries = []
+        clearSQLQueries()
     }
     
     override func tearDown() {
         super.tearDown()
         do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
+    }
+    
+    func clearSQLQueries() {
+        _sqlQueriesMutex.store([])
     }
     
     func assertNoError(file: StaticString = #file, line: UInt = #line, _ test: () throws -> Void) {
@@ -218,24 +235,37 @@ extension FetchRequest {
 }
 
 /// A type-erased ValueReducer.
-public struct AnyValueReducer<Fetched, Value>: ValueReducer {
-    private var __fetch: (Database) throws -> Fetched
+struct AnyValueReducer<Fetched, Value>: ValueReducer {
+    private var __fetch: @Sendable (Database) throws -> Fetched
     private var __value: (Fetched) -> Value?
     
-    public init(
-        fetch: @escaping (Database) throws -> Fetched,
+    init(
+        fetch: @escaping @Sendable (Database) throws -> Fetched,
         value: @escaping (Fetched) -> Value?)
     {
         self.__fetch = fetch
         self.__value = value
     }
     
-    public func _fetch(_ db: Database) throws -> Fetched {
-        try __fetch(db)
+    func _makeFetcher() -> AnyValueReducerFetcher<Fetched> {
+        AnyValueReducerFetcher(fetch: __fetch)
     }
     
-    public func _value(_ fetched: Fetched) -> Value? {
+    func _value(_ fetched: Fetched) -> Value? {
         __value(fetched)
+    }
+}
+
+/// A type-erased _ValueReducerFetcher.
+struct AnyValueReducerFetcher<Fetched>: _ValueReducerFetcher {
+    private var _fetch: @Sendable (Database) throws -> Fetched
+    
+    init(fetch: @escaping @Sendable (Database) throws -> Fetched) {
+        self._fetch = fetch
+    }
+    
+    func fetch(_ db: Database) throws -> Fetched {
+        try _fetch(db)
     }
 }
 

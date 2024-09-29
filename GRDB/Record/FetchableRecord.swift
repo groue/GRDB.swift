@@ -71,9 +71,9 @@ import Foundation
 /// - ``fetchAll(_:ids:)``
 /// - ``fetchSet(_:ids:)``
 /// - ``fetchOne(_:id:)``
-/// - ``fetchCursor(_:keys:)-2jrm1``
-/// - ``fetchAll(_:keys:)-4c8no``
-/// - ``fetchSet(_:keys:)-e6uy``
+/// - ``fetchCursor(_:keys:)-1x4ja``
+/// - ``fetchAll(_:keys:)-60fah``
+/// - ``fetchSet(_:keys:)-7lhcn``
 /// - ``fetchOne(_:key:)-3f3hc``
 /// - ``find(_:id:)``
 /// - ``find(_:key:)-4kry5``
@@ -89,10 +89,10 @@ import Foundation
 /// ### Configuring Row Decoding for the Standard Decodable Protocol
 ///
 /// - ``databaseColumnDecodingStrategy-6uefz``
-/// - ``databaseDataDecodingStrategy-71bh1``
-/// - ``databaseDateDecodingStrategy-78y03``
-/// - ``databaseDecodingUserInfo-77jim``
+/// - ``databaseDataDecodingStrategy(for:)``
+/// - ``databaseDateDecodingStrategy(for:)``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
+/// - ``databaseDecodingUserInfo-77jim``
 /// - ``DatabaseColumnDecodingStrategy``
 /// - ``DatabaseDataDecodingStrategy``
 /// - ``DatabaseDateDecodingStrategy``
@@ -129,7 +129,9 @@ public protocol FetchableRecord {
     /// // A FetchableRecord + Decodable record
     /// struct Player: FetchableRecord, Decodable {
     ///     // Customize the decoder name when decoding a database row
-    ///     static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    ///     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [decoderName: "Database"]
+    ///     }
     ///
     ///     init(from decoder: Decoder) throws {
     ///         // Print the decoder name
@@ -146,6 +148,23 @@ public protocol FetchableRecord {
     /// decoder.userInfo = [decoderName: "JSON"]
     /// let player = try decoder.decode(Player.self, from: ...)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseDecodingUserInfo` property is
+    /// > explicitly declared as `[CodingUserInfoKey: Any]`. If it is not,
+    /// > the Swift compiler may silently miss the protocol requirement.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseDecodingUserInfo' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[CodingUserInfoKey: Any]' may have shared
+    /// > // mutable state.
+    /// > static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    /// > ```
     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// Returns the `JSONDecoder` that decodes the value for a given column.
@@ -165,18 +184,20 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
-    ///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
-    ///             return nil
+    ///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+    ///         .custom { dbValue
+    ///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+    ///                 return nil
+    ///             }
+    ///             return Data(base64Encoded: base64Data)
     ///         }
-    ///         return Data(base64Encoded: base64Data)
     ///     }
     ///
     ///     // Decoded from both database base64 strings and blobs
     ///     var myData: Data
     /// }
     /// ```
-    static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy { get }
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy
 
     /// The strategy for decoding `Date` columns.
     ///
@@ -188,13 +209,15 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Decoded from an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
     
     /// The strategy for converting column names to coding keys.
     ///
@@ -243,13 +266,13 @@ extension FetchableRecord {
     
     /// The default strategy for decoding `Data` columns is
     /// ``DatabaseDataDecodingStrategy/deferredToData``.
-    public static var databaseDataDecodingStrategy: DatabaseDataDecodingStrategy {
+    public static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
         .deferredToData
     }
     
     /// The default strategy for decoding `Date` columns is
     /// ``DatabaseDateDecodingStrategy/deferredToDate``.
-    public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
+    public static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
         .deferredToDate
     }
     
@@ -555,7 +578,7 @@ extension FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: A ``RecordCursor`` over fetched records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RecordCursor<Self> {
@@ -586,7 +609,7 @@ extension FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Self] {
@@ -621,7 +644,7 @@ extension FetchableRecord {
     /// ```
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Self? {
@@ -661,7 +684,7 @@ extension FetchableRecord where Self: Hashable {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Self> {
@@ -714,7 +737,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: A ``RecordCursor`` over fetched records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
@@ -743,7 +765,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
@@ -771,7 +792,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// ```
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
@@ -802,7 +822,6 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
@@ -869,18 +888,20 @@ extension RecordCursor: Sendable { }
 ///
 /// ```swift
 /// struct Player: FetchableRecord, Decodable {
-///     static let databaseDataDecodingStrategy = DatabaseDataDecodingStrategy.custom { dbValue
-///         guard let base64Data = Data.fromDatabaseValue(dbValue) else {
-///             return nil
+///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+///         .custom { dbValue
+///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+///                 return nil
+///             }
+///             return Data(base64Encoded: base64Data)
 ///         }
-///         return Data(base64Encoded: base64Data)
 ///     }
 ///
 ///     // Decoded from both database base64 strings and blobs
 ///     var myData: Data
 /// }
 /// ```
-public enum DatabaseDataDecodingStrategy {
+public enum DatabaseDataDecodingStrategy: Sendable {
     /// Decodes `Data` columns from SQL blobs and UTF8 text.
     case deferredToData
     
@@ -889,7 +910,7 @@ public enum DatabaseDataDecodingStrategy {
     /// If the database value does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
-    case custom((DatabaseValue) -> Data?)
+    case custom(@Sendable (DatabaseValue) -> Data?)
 }
 
 // MARK: - DatabaseDateDecodingStrategy
@@ -901,12 +922,14 @@ public enum DatabaseDataDecodingStrategy {
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+///         static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+///             .timeIntervalSince1970
+///         }
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
 ///     }
-public enum DatabaseDateDecodingStrategy {
+public enum DatabaseDateDecodingStrategy: Sendable {
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It decodes numeric values as a number of seconds since Epoch
@@ -947,7 +970,7 @@ public enum DatabaseDateDecodingStrategy {
     /// If the database value  does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
-    case custom((DatabaseValue) -> Date?)
+    case custom(@Sendable (DatabaseValue) -> Date?)
 }
 
 // MARK: - DatabaseColumnDecodingStrategy
@@ -964,7 +987,7 @@ public enum DatabaseDateDecodingStrategy {
 ///         // Decoded from the player_id column
 ///         var playerID: Int
 ///     }
-public enum DatabaseColumnDecodingStrategy {
+public enum DatabaseColumnDecodingStrategy: Sendable {
     /// A key decoding strategy that doesn’t change key names during decoding.
     case useDefaultKeys
     
@@ -972,7 +995,7 @@ public enum DatabaseColumnDecodingStrategy {
     case convertFromSnakeCase
     
     /// A key decoding strategy defined by the closure you supply.
-    case custom((String) -> CodingKey)
+    case custom(@Sendable (String) -> CodingKey)
     
     func key<K: CodingKey>(forColumn column: String) -> K? {
         switch self {

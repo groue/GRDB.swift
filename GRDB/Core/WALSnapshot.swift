@@ -1,5 +1,13 @@
-// swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// An instance of WALSnapshot records the state of a WAL mode database for some
 /// specific point in history.
 ///
@@ -15,8 +23,8 @@
 /// With custom SQLite builds, it only works if `SQLITE_ENABLE_SNAPSHOT`
 /// is defined.
 ///
-/// With system SQLite, it can only work when the SDK exposes the C apis and
-/// their availability, which means XCode 14 (identified with Swift 5.7).
+/// With system SQLite, it works because the SDK exposes the C apis and
+/// since XCode 14.
 ///
 /// Yes, this is an awfully complex logic.
 ///

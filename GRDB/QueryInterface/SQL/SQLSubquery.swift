@@ -1,7 +1,7 @@
 /// An SQL subquery.
 ///
 /// `SQLSubquery` is an opaque representation of an SQL subquery.
-public struct SQLSubquery {
+public struct SQLSubquery: Sendable {
     private var impl: Impl
     
     private enum Impl {

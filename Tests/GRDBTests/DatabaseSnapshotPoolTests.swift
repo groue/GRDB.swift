@@ -1,4 +1,4 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 import XCTest
 import GRDB
 
@@ -42,7 +42,14 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool) // 0
         try dbPool.write(counter.increment)       // 1
-        let snapshot = try dbPool.write { db in try DatabaseSnapshotPool(db) } // locked at 1
+        // We can't open a DatabaseSnapshotPool from an IMMEDIATE
+        // transaction (as documented by sqlite3_snapshot_get). So we
+        // force a DEFERRED transaction:
+        var snapshot: DatabaseSnapshotPool!
+        try dbPool.writeInTransaction(.deferred) { db in
+            snapshot = try DatabaseSnapshotPool(db) // locked at 1
+            return .commit
+        }
         try dbPool.write(counter.increment)       // 2
         
         try XCTAssertEqual(dbPool.read(counter.value), 2)
@@ -55,7 +62,9 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool) // 0
         try dbPool.write(counter.increment)       // 1
-        let snapshot = try dbPool.writeWithoutTransaction { db in try DatabaseSnapshotPool(db) } // locked at 1
+        let snapshot = try dbPool.writeWithoutTransaction { db in
+            try DatabaseSnapshotPool(db)          // locked at 1
+        }
         try dbPool.write(counter.increment)       // 2
         
         try XCTAssertEqual(dbPool.read(counter.value), 2)
@@ -220,7 +229,6 @@ final class DatabaseSnapshotPoolTests: GRDBTestCase {
         try XCTAssertEqual(dbPool.read(counter.value), 2)
     }
     
-    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
     func test_read_async() async throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)            // 0
