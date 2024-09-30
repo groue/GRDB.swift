@@ -71,6 +71,18 @@ public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Dat
     .cast(expression.sqlExpression, as: storageClass)
 }
 
+/// The `COALESCE` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // COALESCE([value1, value2, ...])
+/// coalesce([Column("value1"), Column("value2"), ...])
+/// ```
+public func coalesce(_ values: [some SQLSpecificExpressible]) -> SQLExpression {
+    .function("COALESCE", values.map { $0.sqlExpression })
+}
+
 /// The `COUNT` SQL function.
 ///
 /// For example:

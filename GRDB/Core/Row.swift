@@ -671,6 +671,45 @@ extension Row {
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
         dataNoCopy(named: column.name)
     }
+
+    /// Returns the first non-null value, if any. Identical to SQL COALESCE function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myInt: Int? = row.coalesce(["int_A", "int_B"])
+    /// ```
+    ///
+    /// Use of `coalesce` is essential, as nil-coalescing row values does not work:
+    ///
+    /// ```swift
+    /// let myInt: Int? = row["int_A"] ?? row["int_B"] // Won't work
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(_ columns: [String]) -> T? {
+        for column in columns {
+            if let value = self[column] as T? {
+                return value
+            }
+        }
+        return nil
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL COALESCE function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let myInt: Int? = row.coalesce([Column("int_A"), Column("int_B")])
+    /// ```
+    ///
+    /// Use of `coalesce` is essential, as nil-coalescing row values does not work:
+    ///
+    /// ```swift
+    /// let myInt: Int? = row[Column("int_A")] ?? row[Column("int_B")] // Won't work
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(_ columns: [any ColumnExpression]) -> T? {
+        return coalesce(columns.lazy.map { $0.name })
+    }
 }
 
 extension Row {
