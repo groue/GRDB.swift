@@ -135,7 +135,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 Released September 29, 2024
 
-- **Fix** Update .spi.yml by [@finestructure](https://github.com/finestructure) in [#1643](https://github.com/groue/GRDB.swift/pull/1643)
+- **Fix**: Update .spi.yml by [@finestructure](https://github.com/finestructure) in [#1643](https://github.com/groue/GRDB.swift/pull/1643)
 
 ## 7.0.0-beta
 
