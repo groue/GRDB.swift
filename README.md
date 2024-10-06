@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: September 29, 2024 • [version 7.0.0-beta.2](https://github.com/groue/GRDB.swift/tree/v7.0.0-beta.2) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: October 6, 2024 • [version 7.0.0-beta.3](https://github.com/groue/GRDB.swift/tree/v7.0.0-beta.3) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -839,6 +839,13 @@ row[...] as Int?
 > ```swift
 > if let int = row[...] as? Int { ... } // BAD - doesn't work
 > if let int = row[...] as Int? { ... } // GOOD
+> ```
+
+> **Warning**: avoid nil-coalescing row values, and prefer the `coalesce` method instead:
+>
+> ```swift
+> let name: String? = row["nickname"] ?? row["name"]     // BAD - doesn't work
+> let name: String? = row.coalesce(["nickname", "name"]) // GOOD
 > ```
 
 Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
@@ -3936,9 +3943,9 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
 
 GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
 
-- `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
+- `ABS`, `AVG`, `COALESCE`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
     
-    Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min`, `sum` and `total` Swift functions:
+    Those are based on the `abs`, `average`, `coalesce`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min`, `sum`, and `total` Swift functions:
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player

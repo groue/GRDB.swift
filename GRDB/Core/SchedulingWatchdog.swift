@@ -1,3 +1,6 @@
+#if !canImport(Darwin)
+@preconcurrency
+#endif
 import Dispatch
 
 /// SchedulingWatchdog makes sure that databases connections are used on correct

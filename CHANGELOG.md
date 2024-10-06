@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2)
+- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3)
 
 #### 6.x Releases
 
@@ -131,11 +131,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 7.0.0-beta.3
+
+Released October 6, 2024
+
+- **Fix**: use #if directives to conditionally @preconcurrency import the Dispatch module to enable building the package on linux by [@tayloraswift](https://github.com/tayloraswift) in [#1644](https://github.com/groue/GRDB.swift/pull/1644)
+- **New**: Add coalesce free function and Row method by [@philmitchell](https://github.com/philmitchell) in [#1645](https://github.com/groue/GRDB.swift/pull/1645)
+- **Documentation Update**: Add `DatabaseValueConvertible` tip for JSON columns by [@bok-](https://github.com/bok-) in [#1649](https://github.com/groue/GRDB.swift/pull/1649)
+
 ## 7.0.0-beta.2
 
 Released September 29, 2024
 
-- **Fix** Update .spi.yml by [@finestructure](https://github.com/finestructure) in [#1643](https://github.com/groue/GRDB.swift/pull/1643)
+- **Fix**: Update .spi.yml by [@finestructure](https://github.com/finestructure) in [#1643](https://github.com/groue/GRDB.swift/pull/1643)
 
 ## 7.0.0-beta
 
@@ -145,7 +153,7 @@ Released September 29, 2024
 
 [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 
-The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.2/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.3/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
