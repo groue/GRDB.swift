@@ -101,14 +101,17 @@ extension Team: FetchableRecord, PersistableRecord {
 > Tip: Conform your `Codable` property to `DatabaseValueConvertible` if you want to be able to filter on specific values of it:
 >
 > ```swift
+> struct Address: Codable { ... }
 > extension Address: DatabaseValueConvertible {}
 >
 > // SELECT * FROM player
-> // WHERE "address" = '{"street": "...", "city": "...",  "country": "..."}'
+> // WHERE address = '{"street": "...", "city": "...", "country": "..."}'
 > let players = try Player
 >     .filter(JSONColumn("address") == Address(...))
 >     .fetchAll(db)
 > ```
+>
+> Take care that SQLite will compare strings, not JSON objects: white-space and key ordering matter. For this comparison to succeed, make sure that the database contains values that are formatted exactly like a serialized `Address`.
 
 ## Manipulate JSON values at the database level
 
