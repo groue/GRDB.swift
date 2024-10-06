@@ -60,6 +60,8 @@ import Foundation
 /// - ``subscript(_:)-3tp8o``
 /// - ``subscript(_:)-4k8od``
 /// - ``subscript(_:)-9rbo7``
+/// - ``coalesce(_:)-359k7``
+/// - ``coalesce(_:)-6nbah``
 /// - ``withUnsafeData(named:_:)``
 /// - ``dataNoCopy(named:)``
 ///
@@ -670,6 +672,53 @@ extension Row {
     @available(*, deprecated, message: "Use withUnsafeData(at:_:) instead.")
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
         dataNoCopy(named: column.name)
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce(["nickname", "name"])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row["nickname"] ?? row["name"]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<String>
+    ) -> T? {
+        for column in columns {
+            if let value = self[column] as T? {
+                return value
+            }
+        }
+        return nil
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce([Column("nickname"), Column("name")])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row[Column("nickname")] ?? row[Column("name")]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<any ColumnExpression>
+    ) -> T? {
+        return coalesce(columns.lazy.map { $0.name })
     }
 }
 

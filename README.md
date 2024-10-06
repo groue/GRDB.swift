@@ -841,6 +841,13 @@ row[...] as Int?
 > if let int = row[...] as Int? { ... } // GOOD
 > ```
 
+> **Warning**: avoid nil-coalescing row values, and prefer the `coalesce` method instead:
+>
+> ```swift
+> let name: String? = row["nickname"] ?? row["name"]     // BAD - doesn't work
+> let name: String? = row.coalesce(["nickname", "name"]) // GOOD
+> ```
+
 Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
 
 - **Successful conversions include:**
@@ -3936,9 +3943,9 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
 
 GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
 
-- `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
+- `ABS`, `AVG`, `COALESCE`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
     
-    Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min`, `sum` and `total` Swift functions:
+    Those are based on the `abs`, `average`, `coalesce`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min`, `sum`, and `total` Swift functions:
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player

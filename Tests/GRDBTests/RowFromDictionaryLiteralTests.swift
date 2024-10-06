@@ -232,4 +232,25 @@ class RowFromDictionaryLiteralTests : RowTestCase {
         XCTAssertEqual(row.description, "[a:0 b:1 c:2]")
         XCTAssertEqual(row.debugDescription, "[a:0 b:1 c:2]")
     }
+    
+    func testCoalesce() throws {
+        let rows: [Row] = [
+            ["nickname": "Artie", "name": "Arthur"],
+            ["nickname": nil, "name": "Jacob"],
+            ["nickname": nil, "name": nil],
+        ]
+        let values = rows.map { row in
+            [
+                row.coalesce(Array<String>()) as String?,
+                row.coalesce(["nickname"]) as String?,
+                row.coalesce(["nickname", "name"]) as String?,
+                row.coalesce([Column("nickname"), Column("name")]) as String?,
+            ]
+        }
+        XCTAssertEqual(values, [
+            [nil, "Artie", "Artie", "Artie"],
+            [nil, nil, "Jacob", "Jacob"],
+            [nil, nil, nil, nil],
+        ])
+    }
 }

@@ -2168,6 +2168,7 @@ extension SQLExpressible where Self == Column {
 /// - ``average(_:filter:)``
 /// - ``capitalized``
 /// - ``cast(_:as:)-1dmu3``
+/// - ``coalesce(_:)``
 /// - ``count(_:)``
 /// - ``count(distinct:)``
 /// - ``dateTime(_:_:)``

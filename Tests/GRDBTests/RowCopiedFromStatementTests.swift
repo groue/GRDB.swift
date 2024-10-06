@@ -287,4 +287,29 @@ class RowCopiedFromStatementTests: RowTestCase {
             XCTAssertEqual(row.debugDescription, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
         }
     }
+    
+    func testCoalesce() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let values = try Row
+                .fetchAll(db, sql: """
+                    SELECT           'Artie' AS nickname, 'Arthur' AS name 
+                    UNION ALL SELECT NULL, 'Jacob' 
+                    UNION ALL SELECT NULL, NULL
+                    """)
+                .map { row in
+                    [
+                        row.coalesce(Array<String>()) as String?,
+                        row.coalesce(["nickname"]) as String?,
+                        row.coalesce(["nickname", "name"]) as String?,
+                        row.coalesce([Column("nickname"), Column("name")]) as String?,
+                    ]
+                }
+            XCTAssertEqual(values, [
+                [nil, "Artie", "Artie", "Artie"],
+                [nil, nil, "Jacob", "Jacob"],
+                [nil, nil, nil, nil],
+            ])
+        }
+    }
 }
