@@ -79,8 +79,22 @@ public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Dat
 /// // COALESCE(value1, value2, ...)
 /// coalesce([Column("value1"), Column("value2"), ...])
 /// ```
+///
+/// Unlike the SQL function, `coalesce` accepts any number of arguments.
+/// When `values` is empty, the result is `NULL`. When `values` contains a
+/// single value, the result is this value. `COALESCE` is used from
+/// two values upwards.
 public func coalesce(_ values: some Collection<any SQLSpecificExpressible>) -> SQLExpression {
-    .function("COALESCE", values.map { $0.sqlExpression })
+    // SQLite COALESCE wants at least two arguments.
+    // There is no reason to apply the same limitation.
+    guard let value = values.first else {
+        return .null
+    }
+    if values.count > 1 {
+        return .function("COALESCE", values.map { $0.sqlExpression })
+    } else {
+        return value.sqlExpression
+    }
 }
 
 /// The `COUNT` SQL function.

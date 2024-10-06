@@ -1539,6 +1539,14 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(coalesce([]))),
+            "SELECT NULL FROM \"readers\"")
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(coalesce([Col.name]))),
+            "SELECT \"name\" FROM \"readers\"")
+
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.select(coalesce([Col.name, Col.age]))),
             "SELECT COALESCE(\"name\", \"age\") FROM \"readers\"")
     }
