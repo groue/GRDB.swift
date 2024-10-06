@@ -685,7 +685,9 @@ extension Row {
     /// ```swift
     /// let myInt: Int? = row["int_A"] ?? row["int_B"] // Won't work
     /// ```
-    public func coalesce<T: DatabaseValueConvertible>(_ columns: [String]) -> T? {
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<String>
+    ) -> T? {
         for column in columns {
             if let value = self[column] as T? {
                 return value
@@ -707,7 +709,9 @@ extension Row {
     /// ```swift
     /// let myInt: Int? = row[Column("int_A")] ?? row[Column("int_B")] // Won't work
     /// ```
-    public func coalesce<T: DatabaseValueConvertible>(_ columns: [any ColumnExpression]) -> T? {
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<any ColumnExpression>
+    ) -> T? {
         return coalesce(columns.lazy.map { $0.name })
     }
 }

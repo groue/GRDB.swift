@@ -79,7 +79,7 @@ public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Dat
 /// // COALESCE([value1, value2, ...])
 /// coalesce([Column("value1"), Column("value2"), ...])
 /// ```
-public func coalesce(_ values: [some SQLSpecificExpressible]) -> SQLExpression {
+public func coalesce(_ values: some Collection<any SQLSpecificExpressible>) -> SQLExpression {
     .function("COALESCE", values.map { $0.sqlExpression })
 }
 
