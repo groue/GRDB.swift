@@ -1,3 +1,6 @@
+#if !canImport(Darwin)
+@preconcurrency import Dispatch
+#endif
 import Foundation
 
 // MARK: - Public
