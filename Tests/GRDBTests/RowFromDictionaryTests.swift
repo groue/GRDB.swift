@@ -233,14 +233,16 @@ class RowFromDictionaryTests : RowTestCase {
         ]
         let values = rows.map { row in
             [
+                row.coalesce(Array<String>()) as String?,
+                row.coalesce(["nickname"]) as String?,
                 row.coalesce(["nickname", "name"]) as String?,
                 row.coalesce([Column("nickname"), Column("name")]) as String?,
             ]
         }
         XCTAssertEqual(values, [
-            ["Artie", "Artie"],
-            ["Jacob", "Jacob"],
-            [nil, nil],
+            [nil, "Artie", "Artie", "Artie"],
+            [nil, nil, "Jacob", "Jacob"],
+            [nil, nil, nil, nil],
         ])
     }
 }
