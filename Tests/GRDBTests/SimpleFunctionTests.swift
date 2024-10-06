@@ -44,24 +44,4 @@ class SimpleFunctionTests: GRDBTestCase {
             }
         }
     }
-
-    func testRowCoalesce() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request = Player.all()
-            let rows = try Row.fetchAll(db, request)
-            var row = rows[0]
-            XCTAssertEqual(row.coalesce(["nickname", "name"]), "Artie")
-            XCTAssertEqual(row.coalesce([Column("nickname"), Column("name")]), "Artie")
-            row = rows[1]
-            XCTAssertEqual(row.coalesce(["nickname", "name"]), "Jacob")
-            XCTAssertEqual(row.coalesce([Column("nickname"), Column("name")]), "Jacob")
-            row = rows[2]
-            var result: String? = row.coalesce(["nickname", "name"])
-            XCTAssertNil(result)
-            result = row.coalesce([Column("nickname"), Column("name")])
-            XCTAssertNil(result)
-        }
-    }
-
 }
