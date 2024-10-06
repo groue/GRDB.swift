@@ -1535,6 +1535,14 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT CAST(\"name\" AS BLOB) FROM \"readers\"")
     }
     
+    func testCoalesceExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(coalesce([Col.name, Col.age]))),
+            "SELECT COALESCE(\"name\", \"age\") FROM \"readers\"")
+    }
+    
     func testLengthExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
