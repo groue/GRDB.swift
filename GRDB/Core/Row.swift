@@ -60,6 +60,8 @@ import Foundation
 /// - ``subscript(_:)-3tp8o``
 /// - ``subscript(_:)-4k8od``
 /// - ``subscript(_:)-9rbo7``
+/// - ``coalesce(_:)-359k7``
+/// - ``coalesce(_:)-6nbah``
 /// - ``withUnsafeData(named:_:)``
 /// - ``dataNoCopy(named:)``
 ///
