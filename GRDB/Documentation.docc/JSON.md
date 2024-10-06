@@ -98,6 +98,18 @@ extension Team: FetchableRecord, PersistableRecord {
 }
 ```
 
+> Tip: Conform your `Codable` property to `DatabaseValueConvertible` if you want to be able to filter on specific values of it:
+>
+> ```swift
+> extension Address: DatabaseValueConvertible {}
+>
+> // SELECT * FROM player
+> // WHERE "address" = '{"street": "...", "city": "...",  "country": "..."}'
+> let players = try Player
+>     .filter(JSONColumn("address") == Address(...))
+>     .fetchAll(db)
+> ```
+
 ## Manipulate JSON values at the database level
 
 [SQLite JSON functions and operators](https://www.sqlite.org/json1.html) are available starting iOS 16+, macOS 10.15+, tvOS 17+, and watchOS 9+.
