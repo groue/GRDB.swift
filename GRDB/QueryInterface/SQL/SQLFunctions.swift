@@ -76,7 +76,7 @@ public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Dat
 /// For example:
 ///
 /// ```swift
-/// // COALESCE([value1, value2, ...])
+/// // COALESCE(value1, value2, ...)
 /// coalesce([Column("value1"), Column("value2"), ...])
 /// ```
 public func coalesce(_ values: some Collection<any SQLSpecificExpressible>) -> SQLExpression {

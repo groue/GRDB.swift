@@ -841,11 +841,11 @@ row[...] as Int?
 > if let int = row[...] as Int? { ... } // GOOD
 > ```
 
-> **Warning**: avoid nil-coalescing row values:
+> **Warning**: avoid nil-coalescing row values, and prefer the `coalesce` method instead:
 >
 > ```swift
-> let myInt: Int? = row["int_A"] ?? row["int_B"] // BAD - doesn't work
-> let myInt: Int? = row.coalesce(["int_A", "int_B"]) // GOOD
+> let name: String? = row["nickname"] ?? row["name"]     // BAD - doesn't work
+> let name: String? = row.coalesce(["nickname", "name"]) // GOOD
 > ```
 
 Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:

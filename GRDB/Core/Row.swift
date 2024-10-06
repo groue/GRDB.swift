@@ -674,18 +674,20 @@ extension Row {
         dataNoCopy(named: column.name)
     }
 
-    /// Returns the first non-null value, if any. Identical to SQL COALESCE function.
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
     ///
     /// For example:
     ///
     /// ```swift
-    /// let myInt: Int? = row.coalesce(["int_A", "int_B"])
+    /// let name: String? = row.coalesce(["nickname", "name"])
     /// ```
     ///
-    /// Use of `coalesce` is essential, as nil-coalescing row values does not work:
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
     ///
     /// ```swift
-    /// let myInt: Int? = row["int_A"] ?? row["int_B"] // Won't work
+    /// // INCORRECT
+    /// let name: String? = row["nickname"] ?? row["name"]
     /// ```
     public func coalesce<T: DatabaseValueConvertible>(
         _ columns: some Collection<String>
@@ -698,18 +700,20 @@ extension Row {
         return nil
     }
 
-    /// Returns the first non-null value, if any. Identical to SQL COALESCE function.
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
     ///
     /// For example:
     ///
     /// ```swift
-    /// let myInt: Int? = row.coalesce([Column("int_A"), Column("int_B")])
+    /// let name: String? = row.coalesce([Column("nickname"), Column("name")])
     /// ```
     ///
-    /// Use of `coalesce` is essential, as nil-coalescing row values does not work:
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
     ///
     /// ```swift
-    /// let myInt: Int? = row[Column("int_A")] ?? row[Column("int_B")] // Won't work
+    /// // INCORRECT
+    /// let name: String? = row[Column("nickname")] ?? row[Column("name")]
     /// ```
     public func coalesce<T: DatabaseValueConvertible>(
         _ columns: some Collection<any ColumnExpression>
