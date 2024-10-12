@@ -39,7 +39,7 @@ migrator.registerMigration("createLibrary") { db in
 try migrator.migrate(dbQueue)
 ```
 
-1. Our database tables follow the <doc:DatabaseSchema#Database-Schema-Recommendations>: table names are English, singular, and camelCased. They look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
+1. Our database tables follow the <doc:DatabaseSchemaRecommendations>: table names are English, singular, and camelCased. They look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
 2. Each author has a unique id.
 3. An author must have a name.
 4. The country of an author is not always known.
