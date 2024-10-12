@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3)
+- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3) - [7.0.0-beta.4](#700-beta4)
 
 #### 6.x Releases
 
@@ -131,6 +131,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 7.0.0-beta.4
+
+Released October 12, 2024
+
+- **New**: Allow applications to handle DatabaseMigrator schema changes [@groue](https://github.com/groue) in [#1651](https://github.com/groue/GRDB.swift/pull/1651)
+
 ## 7.0.0-beta.3
 
 Released October 6, 2024
@@ -153,7 +159,7 @@ Released September 29, 2024
 
 [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 
-The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.3/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.4/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 

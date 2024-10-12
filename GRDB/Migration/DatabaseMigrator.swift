@@ -40,6 +40,10 @@ import Foundation
 /// - ``completedMigrations(_:)``
 /// - ``hasBeenSuperseded(_:)``
 /// - ``hasCompletedMigrations(_:)``
+///
+/// ### Detecting Schema Changes
+///
+/// - ``hasSchemaChanges(_:)``
 public struct DatabaseMigrator: Sendable {
     /// Controls how a migration handle foreign keys constraints.
     public enum ForeignKeyChecks: Sendable {
@@ -102,6 +106,8 @@ public struct DatabaseMigrator: Sendable {
     /// migrator.eraseDatabaseOnSchemaChange = true
     /// #endif
     /// ```
+    ///
+    /// See also ``hasSchemaChanges(_:)``.
     public var eraseDatabaseOnSchemaChange = false
     private var defersForeignKeyChecks = true
     private var _migrations: [Migration] = []
@@ -279,6 +285,95 @@ public struct DatabaseMigrator: Sendable {
         }
     }
     
+    // MARK: - Detecting Schema Changes
+    
+    /// Returns a boolean value indicating whether the migrator detects a
+    /// change in the definition of migrations.
+    ///
+    /// The result is true if one of those conditions is met:
+    ///
+    /// - A migration has been removed, or renamed.
+    /// - There exists any difference in the `sqlite_master` table, which
+    ///   contains the SQL used to create database tables, indexes,
+    ///   triggers, and views.
+    ///
+    /// This method supports the ``eraseDatabaseOnSchemaChange`` option.
+    /// When `eraseDatabaseOnSchemaChange` does not exactly fit your
+    /// needs, you can implement it manually as below:
+    ///
+    /// ```swift
+    /// #if DEBUG
+    /// // Speed up development by nuking the database when migrations change
+    /// if dbQueue.read(migrator.hasSchemaChanges) {
+    ///     try dbQueue.erase()
+    ///     // Perform other needed logic
+    /// }
+    /// #endif
+    /// try migrator.migrate(dbQueue)
+    /// ```
+    ///
+    public func hasSchemaChanges(_ db: Database) throws -> Bool {
+        let appliedIdentifiers = try appliedIdentifiers(db)
+        let knownIdentifiers = Set(_migrations.map { $0.identifier })
+        if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
+            // Database contains an unknown migration
+            return true
+        }
+        
+        if let lastAppliedIdentifier = _migrations
+            .map(\.identifier)
+            .last(where: { appliedIdentifiers.contains($0) })
+        {
+            // Some migrations were already applied.
+            //
+            // Let's migrate a temporary database up to the same
+            // level, and compare the database schemas. If they
+            // differ, we'll return true
+            let tmpSchema = try {
+                // Make sure the temporary database is configured
+                // just as the migrated database
+                var tmpConfig = db.configuration
+                tmpConfig.targetQueue = nil // Avoid deadlocks
+                tmpConfig.writeTargetQueue = nil // Avoid deadlocks
+                tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
+                
+                // Create the temporary database on disk, just in
+                // case migrations would involve a lot of data.
+                //
+                // SQLite supports temporary on-disk databases, but
+                // those are not guaranteed to accept the
+                // preparation functions provided by the user.
+                //
+                // See https://github.com/groue/GRDB.swift/issues/931
+                // for an issue created by such databases.
+                //
+                // So let's create a "regular" temporary database:
+                let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+                defer {
+                    try? FileManager().removeItem(at: tmpURL)
+                }
+                let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
+                return try tmpDatabase.writeWithoutTransaction { db in
+                    try runMigrations(db, upTo: lastAppliedIdentifier)
+                    return try db.schema(.main)
+                }
+            }()
+            
+            // Only compare user objects
+            func isUserObject(_ object: SchemaObject) -> Bool {
+                !Database.isSQLiteInternalTable(object.name) && !Database.isGRDBInternalTable(object.name)
+            }
+            let tmpUserSchema = tmpSchema.filter(isUserObject)
+            let userSchema = try db.schema(.main).filter(isUserObject)
+            if userSchema != tmpUserSchema {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
     // MARK: - Querying Migrations
     
     /// The list of registered migration identifiers, in the same order as they
@@ -409,69 +504,9 @@ public struct DatabaseMigrator: Sendable {
         if eraseDatabaseOnSchemaChange {
             var needsErase = false
             try db.inTransaction(.deferred) {
-                let appliedIdentifiers = try appliedIdentifiers(db)
-                let knownIdentifiers = Set(_migrations.map { $0.identifier })
-                if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
-                    // Database contains an unknown migration
-                    needsErase = true
-                    return .commit
-                }
-                
-                if let lastAppliedIdentifier = _migrations
-                    .map(\.identifier)
-                    .last(where: { appliedIdentifiers.contains($0) })
-                {
-                    // Some migrations were already applied.
-                    //
-                    // Let's migrate a temporary database up to the same
-                    // level, and compare the database schemas. If they
-                    // differ, we'll erase the database.
-                    let tmpSchema = try {
-                        // Make sure the temporary database is configured
-                        // just as the migrated database
-                        var tmpConfig = db.configuration
-                        tmpConfig.targetQueue = nil // Avoid deadlocks
-                        tmpConfig.writeTargetQueue = nil // Avoid deadlocks
-                        tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
-                        
-                        // Create the temporary database on disk, just in
-                        // case migrations would involve a lot of data.
-                        //
-                        // SQLite supports temporary on-disk databases, but
-                        // those are not guaranteed to accept the
-                        // preparation functions provided by the user.
-                        //
-                        // See https://github.com/groue/GRDB.swift/issues/931
-                        // for an issue created by such databases.
-                        //
-                        // So let's create a "regular" temporary database:
-                        let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                            .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
-                        defer {
-                            try? FileManager().removeItem(at: tmpURL)
-                        }
-                        let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
-                        return try tmpDatabase.writeWithoutTransaction { db in
-                            try runMigrations(db, upTo: lastAppliedIdentifier)
-                            return try db.schema(.main)
-                        }
-                    }()
-                    
-                    // Only compare user objects
-                    func isUserObject(_ object: SchemaObject) -> Bool {
-                        !Database.isSQLiteInternalTable(object.name) && !Database.isGRDBInternalTable(object.name)
-                    }
-                    let tmpUserSchema = tmpSchema.filter(isUserObject)
-                    let userSchema = try db.schema(.main).filter(isUserObject)
-                    if userSchema != tmpUserSchema {
-                        needsErase = true
-                        return .commit
-                    }
-                }
-                
+                needsErase = try hasSchemaChanges(db)
                 return .commit
             }
-            
             if needsErase {
                 try db.erase()
             }
