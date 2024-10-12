@@ -744,13 +744,10 @@ extension TableRecord {
     ///   any error that prevented the `RecordError` from being constructed.
     public static func recordNotFound(_ db: Database, key: some DatabaseValueConvertible) -> any Error {
         do {
-            let primaryKey = try db.primaryKey(databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+            let column = try db.filteringPrimaryKeyColumn(databaseTableName)
             return RecordError.recordNotFound(
                 databaseTableName: databaseTableName,
-                key: [primaryKey.columns[0]: key.databaseValue])
+                key: [column: key.databaseValue])
         } catch {
             return error
         }

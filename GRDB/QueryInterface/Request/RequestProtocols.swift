@@ -458,11 +458,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                 }
                 
                 return filterWhenConnected(keys: { [databaseTableName] db in
-                    let primaryKey = try db.primaryKey(databaseTableName)
-                    GRDBPrecondition(
-                        primaryKey.columns.count == 1,
-                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-                    let column = primaryKey.columns[0]
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
                     let strategy = recordType.databaseDataEncodingStrategy(for: column)
                     let expressions = try datas.map { try strategy.encode($0).sqlExpression }
                     return expressions
@@ -475,11 +471,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                 }
                 
                 return filterWhenConnected(keys: { [databaseTableName] db in
-                    let primaryKey = try db.primaryKey(databaseTableName)
-                    GRDBPrecondition(
-                        primaryKey.columns.count == 1,
-                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-                    let column = primaryKey.columns[0]
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
                     let strategy = recordType.databaseDateEncodingStrategy(for: column)
                     let expressions = dates.map { strategy.encode($0).sqlExpression }
                     return expressions
@@ -492,11 +484,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                 }
                 
                 return filterWhenConnected(keys: { [databaseTableName] db in
-                    let primaryKey = try db.primaryKey(databaseTableName)
-                    GRDBPrecondition(
-                        primaryKey.columns.count == 1,
-                        "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-                    let column = primaryKey.columns[0]
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
                     let strategy = recordType.databaseUUIDEncodingStrategy(for: column)
                     let expressions = uuids.map { strategy.encode($0).sqlExpression }
                     return expressions
@@ -524,12 +512,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
             // change the SQLite results anyway.
             let expressions = try keys(db)
-            
-            let primaryKey = try db.primaryKey(databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-            return SQLCollection.array(expressions).contains(Column(primaryKey.columns[0]).sqlExpression)
+            let column = try db.filteringPrimaryKeyColumn(databaseTableName)
+            return SQLCollection.array(expressions).contains(Column(column).sqlExpression)
         }
     }
     

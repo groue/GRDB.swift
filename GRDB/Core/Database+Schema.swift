@@ -359,6 +359,36 @@ extension Database {
         throw DatabaseError.noSuchTable(tableName)
     }
     
+    /// Returns the name of the single-column primary key.
+    ///
+    /// A fatal error is raised if the primary key has several columns, or
+    /// if `tableName` is the name of a database view.
+    func filteringPrimaryKeyColumn(_ tableName: String) throws -> String {
+        do {
+            let primaryKey = try primaryKey(tableName)
+            GRDBPrecondition(
+                primaryKey.columns.count == 1,
+                "Filtering by primary key requires a single-column primary key in the table '\(tableName)'")
+            return primaryKey.columns[0]
+        } catch let error as DatabaseError {
+            // Maybe the user tries to filter a view by primary key,
+            // as in <https://github.com/groue/GRDB.swift/issues/1648>.
+            // In this case, raise a fatalError because this is a
+            // programmer error which is very likely to be detected
+            // during development.
+            if case .SQLITE_ERROR = error.resultCode,
+               (try? viewExists(tableName)) == true
+            {
+                fatalError("""
+                    Filtering by primary key is not available on the database view '\(tableName)'. \
+                    Use `filter(Column("...") == value)` instead.
+                    """)
+            } else {
+                throw error
+            }
+        }
+    }
+    
     /// Returns nil if table does not exist
     private func primaryKey(_ table: TableIdentifier) throws -> PrimaryKeyInfo? {
         SchedulingWatchdog.preconditionValidQueue(self)
