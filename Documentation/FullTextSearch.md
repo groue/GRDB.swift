@@ -386,7 +386,7 @@ See [SQLite documentation](https://www.sqlite.org/fts5.html) for more informatio
 
 **A tokenizer defines what "matching" means.** Depending on the tokenizer you choose, full-text searches won't return the same results.
 
-SQLite ships with three built-in FTS5 tokenizers: `ascii`, `porter` and `unicode61` that use different algorithms to match queries with indexed content.
+SQLite ships with four built-in FTS5 tokenizers: `ascii`, `porter`, `unicode61` and `trigram` that use different algorithms to match queries with indexed content.
 
 ```swift
 try db.create(virtualTable: "book", using: FTS5()) { t in
@@ -395,20 +395,23 @@ try db.create(virtualTable: "book", using: FTS5()) { t in
     t.tokenizer = .unicode61(...)
     t.tokenizer = .ascii
     t.tokenizer = .porter(...)
+    t.tokenizer = .trigram(...)
 }
 ```
 
 See below some examples of matches:
 
-| content     | query      | ascii  | unicode61 | porter on ascii | porter on unicode61 |
-| ----------- | ---------- | :----: | :-------: | :-------------: | :-----------------: |
-| Foo         | Foo        |   X    |     X     |        X        |          X          |
-| Foo         | FOO        |   X    |     X     |        X        |          X          |
-| Jérôme      | Jérôme     |   X ¹  |     X ¹   |        X ¹      |          X ¹        |
-| Jérôme      | JÉRÔME     |        |     X ¹   |                 |          X ¹        |
-| Jérôme      | Jerome     |        |     X ¹   |                 |          X ¹        |
-| Database    | Databases  |        |           |        X        |          X          |
-| Frustration | Frustrated |        |           |        X        |          X          |
+| content     | query      | ascii  | unicode61 | porter on ascii | porter on unicode61 | trigram |
+| ----------- | ---------- | :----: | :-------: | :-------------: | :-----------------: | :-----: |
+| Foo         | Foo        |   X    |     X     |        X        |          X          |    X    |
+| Foo         | FOO        |   X    |     X     |        X        |          X          |    X    |
+| Jérôme      | Jérôme     |   X ¹  |     X ¹   |        X ¹      |          X ¹        |    X ¹  |
+| Jérôme      | JÉRÔME     |        |     X ¹   |                 |          X ¹        |    X ¹  |
+| Jérôme      | Jerome     |        |     X ¹   |                 |          X ¹        |    X ¹  |
+| Database    | Databases  |        |           |        X        |          X          |         |
+| Frustration | Frustrated |        |           |        X        |          X          |         |
+| Sequence    | quenc      |        |           |                 |                     |    X    |
+
 
 ¹ Don't miss [Unicode Full-Text Gotchas](#unicode-full-text-gotchas)
 
@@ -454,6 +457,24 @@ See below some examples of matches:
     The porter tokenizer is a wrapper tokenizer which compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
     
     It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
+
+- **trigram**
+    
+    ```swift
+    try db.create(virtualTable: "book", using: FTS5()) { t in
+        t.tokenizer = .trigram()
+        t.tokenizer = .trigram(matching: .caseInsensitiveRemovingDiacritics)
+        t.tokenizer = .trigram(matching: .caseSensitive)
+    }
+    ```
+    
+    The "trigram" tokenizer is case-insensitive for unicode characters by default. It matches "Jérôme" with "JÉRÔME".
+    
+    Diacritics stripping can be enabled so it matches "jérôme" with "jerome". Case-sensitive matching can also be enabled but is mutually exclusive with diacritics stripping.
+    
+    Unlike the other tokenizers, it provides general substring matching, matching "Sequence" with "que" by splitting character sequences into overlapping 3 character tokens (trigrams).
+    
+    It can also act as an index for GLOB and LIKE queries depending on the configuration.
 
 See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
 
