@@ -96,7 +96,15 @@ extension Database {
     
     // MARK: - Database Schema
     
-    /// Returns the current schema version.
+    /// Returns the current schema version (`PRAGMA schema_version`).
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let version = try dbQueue.read { db in
+    ///     try db.schemaVersion()
+    /// }
+    /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_schema_version>
     public func schemaVersion() throws -> Int32 {
@@ -234,8 +242,19 @@ extension Database {
     
     /// Returns whether a table exists
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is not specified, the result is true if any known
+    /// schema contains the table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     if try db.tableExists("player") { ... }
+    ///     if try db.tableExists("player", in: "main") { ... }
+    ///     if try db.tableExists("player", in: "temp") { ... }
+    ///     if try db.tableExists("player", in: "attached") { ... }
+    /// }
+    /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
     /// if the specified schema does not exist
@@ -278,8 +297,19 @@ extension Database {
     /// Returns whether a view exists, in the main or temp schema, or in an
     /// attached database.
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is not specified, the result is true if any known
+    /// schema contains the table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     if try db.viewExists("player") { ... }
+    ///     if try db.viewExists("player", in: "main") { ... }
+    ///     if try db.viewExists("player", in: "temp") { ... }
+    ///     if try db.viewExists("player", in: "attached") { ... }
+    /// }
+    /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
     /// if the specified schema does not exist
@@ -296,8 +326,19 @@ extension Database {
     /// Returns whether a trigger exists, in the main or temp schema, or in an
     /// attached database.
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is not specified, the result is true if any known
+    /// schema contains the table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     if try db.triggerExists("on_player_update") { ... }
+    ///     if try db.triggerExists("on_player_update", in: "main") { ... }
+    ///     if try db.triggerExists("on_player_update", in: "temp") { ... }
+    ///     if try db.triggerExists("on_player_update", in: "attached") { ... }
+    /// }
+    /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
     /// if the specified schema does not exist
@@ -339,6 +380,15 @@ extension Database {
     /// All tables have a primary key, even when it is not explicit. When a
     /// table has no explicit primary key, the result is the hidden
     /// "rowid" column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let primaryKey = try db.primaryKey("player")
+    ///     print(primaryKey.columns)
+    /// }
+    /// ```
     ///
     /// When `schemaName` is not specified, known schemas are iterated in
     /// SQLite resolution order and the first matching result is returned.
@@ -529,14 +579,26 @@ extension Database {
     
     /// The indexes on table named `tableName`.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let indexes = db.indexes(in: "player")
+    ///     for index in indexes {
+    ///         print(index.columns)
+    ///     }
+    /// }
+    /// ```
+    ///
     /// Only indexes on columns are returned. Indexes on expressions are
     /// not returned.
     ///
-    /// SQLite does not define any index for INTEGER PRIMARY KEY columns: this
-    /// method does not return any index that represents the primary key.
+    /// SQLite does not define any index for INTEGER PRIMARY KEY columns:
+    /// this method does not return any index that represents the
+    /// primary key.
     ///
-    /// If you want to know if a set of columns uniquely identifies a row, because
-    /// the columns contain the primary key or a unique index, use
+    /// If you want to know if a set of columns uniquely identifies a row,
+    /// because the columns contain the primary key or a unique index, use
     /// ``table(_:hasUniqueKey:)``.
     ///
     /// When `schemaName` is not specified, known schemas are iterated in
@@ -617,16 +679,19 @@ extension Database {
     /// For example:
     ///
     /// ```swift
-    /// // One table with one primary key (id), and a unique index (a, b):
-    /// //
-    /// // > CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
-    /// // > CREATE UNIQUE INDEX i ON t(a, b);
-    /// try db.table("t", hasUniqueKey: ["id"])                // true
-    /// try db.table("t", hasUniqueKey: ["a", "b"])            // true
-    /// try db.table("t", hasUniqueKey: ["b", "a"])            // true
-    /// try db.table("t", hasUniqueKey: ["c"])                 // false
-    /// try db.table("t", hasUniqueKey: ["id", "a"])           // true
-    /// try db.table("t", hasUniqueKey: ["id", "a", "b", "c"]) // true
+    /// try dbQueue.read { db in
+    ///     // One table with one primary key (id)
+    ///     // and a unique index (a, b):
+    ///     //
+    ///     // > CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
+    ///     // > CREATE UNIQUE INDEX i ON t(a, b);
+    ///     try db.table("t", hasUniqueKey: ["id"])                // true
+    ///     try db.table("t", hasUniqueKey: ["a", "b"])            // true
+    ///     try db.table("t", hasUniqueKey: ["b", "a"])            // true
+    ///     try db.table("t", hasUniqueKey: ["c"])                 // false
+    ///     try db.table("t", hasUniqueKey: ["id", "a"])           // true
+    ///     try db.table("t", hasUniqueKey: ["id", "a", "b", "c"]) // true
+    /// }
     /// ```
     public func table(
         _ tableName: String,
@@ -639,6 +704,17 @@ extension Database {
     ///
     /// When `schemaName` is not specified, known schemas are iterated in
     /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let foreignKeys = try db.foreignKeys(in: "player")
+    ///     for foreignKey in foreignKeys {
+    ///         print(foreignKey.destinationTable)
+    ///     }
+    /// }
+    /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
     /// the specified schema does not exist, or if no such table or view
@@ -860,6 +936,17 @@ extension Database {
     ///
     /// When `schemaName` is not specified, known schemas are iterated in
     /// SQLite resolution order and the first matching result is returned.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let columns = try db.columns(in: "player")
+    ///     for column in columns {
+    ///         print(column.name)
+    ///     }
+    /// }
+    /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
     /// the specified schema does not exist,or if no such table or view
