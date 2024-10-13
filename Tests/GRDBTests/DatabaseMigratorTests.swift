@@ -679,6 +679,42 @@ class DatabaseMigratorTests : GRDBTestCase {
         try migrator.migrate(dbQueue)
     }
     
+    func testHasSchemaChangesWorksWithReadonlyConfig() throws {
+        // 1st version of the migrator
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+        }
+        
+        // 2nd version of the migrator
+        var migrator2 = DatabaseMigrator()
+        migrator2.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer) // <- schema change, because reasons (development)
+            }
+        }
+        
+        let dbName = ProcessInfo.processInfo.globallyUniqueString
+        let dbQueue = try makeDatabaseQueue(filename: dbName)
+        
+        try XCTAssertFalse(dbQueue.read(migrator1.hasSchemaChanges))
+        try migrator1.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator1.hasSchemaChanges))
+        try dbQueue.close()
+        
+        // check that the migrator doesn't fail for a readonly connection
+        dbConfiguration.readonly = true
+        let readonlyQueue = try makeDatabaseQueue(filename: dbName)
+        
+        try XCTAssertFalse(readonlyQueue.read(migrator1.hasSchemaChanges))
+        try XCTAssertTrue(readonlyQueue.read(migrator2.hasSchemaChanges))
+    }
+    
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()

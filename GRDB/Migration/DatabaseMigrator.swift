@@ -333,6 +333,7 @@ public struct DatabaseMigrator: Sendable {
                 // Make sure the temporary database is configured
                 // just as the migrated database
                 var tmpConfig = db.configuration
+                tmpConfig.readonly = false // We need write access
                 tmpConfig.targetQueue = nil // Avoid deadlocks
                 tmpConfig.writeTargetQueue = nil // Avoid deadlocks
                 tmpConfig.label = "GRDB.DatabaseMigrator.temporary"

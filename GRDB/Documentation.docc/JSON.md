@@ -27,8 +27,8 @@ try db.create(table: "player") { t in
 > Tip: When an application performs queries on values embedded inside JSON columns, indexes can help performance:
 >
 > ```swift
-> // CREATE INDEX "player_on_country" 
-> // ON "player"("address" ->> 'country')
+> // CREATE INDEX player_on_country 
+> // ON player(address ->> 'country')
 > try db.create(
 >     index: "player_on_country",
 >     on: "player",
@@ -37,7 +37,7 @@ try db.create(table: "player") { t in
 >     ])
 >
 > // SELECT * FROM player
-> // WHERE "address" ->> 'country' = 'DE'
+> // WHERE address ->> 'country' = 'DE'
 > let germanPlayers = try Player
 >     .filter(JSONColumn("address")["country"] == "DE")
 >     .fetchAll(db)
