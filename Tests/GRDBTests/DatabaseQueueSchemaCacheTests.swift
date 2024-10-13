@@ -388,12 +388,35 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
         try main.inDatabase { db in
             try db.execute(literal: "ATTACH DATABASE \(attached.path) AS attached")
             
-            let tableExists = try db.tableExists("t")
-            let viewExists = try db.viewExists("v")
-            let triggerExists = try db.triggerExists("tr")
-            XCTAssertTrue(tableExists)
-            XCTAssertTrue(viewExists)
-            XCTAssertTrue(triggerExists)
+            try XCTAssertTrue(db.tableExists("t"))
+            try XCTAssertTrue(db.viewExists("v"))
+            try XCTAssertTrue(db.triggerExists("tr"))
+
+            try XCTAssertFalse(db.tableExists("t", in: "main"))
+            try XCTAssertFalse(db.viewExists("v", in: "main"))
+            try XCTAssertFalse(db.triggerExists("tr", in: "main"))
+
+            try XCTAssertTrue(db.tableExists("t", in: "attached"))
+            try XCTAssertTrue(db.viewExists("v", in: "attached"))
+            try XCTAssertTrue(db.triggerExists("tr", in: "attached"))
+        }
+    }
+    
+    func testExistsWithUnspecifiedSchemaFindsTempSchema() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try db.execute(sql: """
+               CREATE TEMPORARY TABLE t (id INTEGER);
+               CREATE TEMPORARY VIEW v AS SELECT * FROM t;
+               """)
+            
+            try XCTAssertTrue(db.tableExists("t"))
+            try XCTAssertTrue(db.viewExists("v"))
+            
+            try XCTAssertTrue(db.tableExists("t", in: "temp"))
+            try XCTAssertTrue(db.viewExists("v", in: "temp"))
+            
+            try XCTAssertFalse(db.tableExists("t", in: "main"))
+            try XCTAssertFalse(db.viewExists("v", in: "main"))
         }
     }
 }
