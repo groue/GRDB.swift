@@ -74,6 +74,48 @@ public struct FTS5 {
         #endif
     }
     
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// Options for trigram tokenizer character matching. Matches the raw
+    /// "case_sensitive" and "remove_diacritics" tokenizer arguments.
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    public enum TrigramTokenizerMatching: Sendable {
+        /// Case insensitive matching without removing diacritics. This
+        /// option matches the raw "case_sensitive=0 remove_diacritics=0"
+        /// tokenizer argument.
+        case caseInsensitive
+        /// Case insensitive matching that removes diacritics before
+        /// matching. This option matches the raw
+        /// "case_sensitive=0 remove_diacritics=1" tokenizer argument.
+        case caseInsensitiveRemovingDiacritics
+        /// Case sensitive matching. Diacritics are not removed when
+        /// performing case sensitive matching. This option matches the raw
+        /// "case_sensitive=1 remove_diacritics=0" tokenizer argument.
+        case caseSensitive
+    }
+    #else
+    /// Options for trigram tokenizer character matching. Matches the raw
+    /// "case_sensitive" and "remove_diacritics" tokenizer arguments.
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.34 actually)
+    public enum TrigramTokenizerMatching: Sendable {
+        /// Case insensitive matching without removing diacritics. This
+        /// option matches the raw "case_sensitive=0 remove_diacritics=0"
+        /// tokenizer argument.
+        case caseInsensitive
+        /// Case insensitive matching that removes diacritics before
+        /// matching. This option matches the raw
+        /// "case_sensitive=0 remove_diacritics=1" tokenizer argument.
+        @available(*, unavailable, message: "Requires a future OS release that includes SQLite >=3.45")
+        case caseInsensitiveRemovingDiacritics
+        /// Case sensitive matching. Diacritics are not removed when
+        /// performing case sensitive matching. This option matches the raw
+        /// "case_sensitive=1 remove_diacritics=0" tokenizer argument.
+        case caseSensitive
+    }
+    #endif
+    
     /// Creates an FTS5 module.
     ///
     /// For example:

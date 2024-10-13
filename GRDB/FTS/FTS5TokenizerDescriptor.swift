@@ -210,5 +210,70 @@ public struct FTS5TokenizerDescriptor: Sendable {
         }
         return FTS5TokenizerDescriptor(components: components)
     }
+
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// The "trigram" tokenizer.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .trigram()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    ///
+    /// - parameters:
+    ///     - matching: By default SQLite will perform case insensitive
+    ///     matching and not remove diacritics before matching.
+    public static func trigram(
+        matching: FTS5.TrigramTokenizerMatching = .caseInsensitive
+    ) -> FTS5TokenizerDescriptor {
+        var components = ["trigram"]
+        switch matching {
+        case .caseInsensitive:
+            break
+        case .caseInsensitiveRemovingDiacritics:
+            components.append(contentsOf: ["remove_diacritics", "1"])
+        case .caseSensitive:
+            components.append(contentsOf: ["case_sensitive", "1"])
+        }
+        
+        return FTS5TokenizerDescriptor(components: components)
+    }
+    #else
+    /// The "trigram" tokenizer.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .trigram()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    ///
+    /// - parameters:
+    ///     - matching: By default SQLite will perform case insensitive
+    ///     matching and not remove diacritics before matching.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.34 actually)
+    public static func trigram(
+        matching: FTS5.TrigramTokenizerMatching = .caseInsensitive
+    ) -> FTS5TokenizerDescriptor {
+        var components = ["trigram"]
+        switch matching {
+        case .caseInsensitive:
+            break
+        case .caseInsensitiveRemovingDiacritics:
+            components.append(contentsOf: ["remove_diacritics", "1"])
+        case .caseSensitive:
+            components.append(contentsOf: ["case_sensitive", "1"])
+        }
+
+        return FTS5TokenizerDescriptor(components: components)
+    }
+    #endif
 }
 #endif
