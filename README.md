@@ -295,7 +295,7 @@ Documentation
 #### Records and the Query Interface
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables, indexes, etc](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.5/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
 
 #### Application Tools
 
@@ -441,7 +441,7 @@ Advanced topics:
 
 - [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
-- [Database Schema Introspection](#database-schema-introspection)
+- [Database Schema Introspection](https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.5/documentation/grdb/databaseschemaintrospection)
 - [Row Adapters](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
@@ -1596,41 +1596,6 @@ try Int.fetchOne(db, request) // Int?
 ```
 
 
-## Database Schema Introspection
-
-GRDB comes with a set of schema introspection methods:
-
-```swift
-try dbQueue.read { db in
-    // Bool, true if the table exists
-    try db.tableExists("player")
-    
-    // [ColumnInfo], the columns in the table
-    try db.columns(in: "player")
-    
-    // PrimaryKeyInfo
-    try db.primaryKey("player")
-    
-    // [ForeignKeyInfo], the foreign keys defined on the table
-    try db.foreignKeys(on: "player")
-    
-    // [IndexInfo], the indexes defined on the table
-    try db.indexes(on: "player")
-    
-    // Bool, true if column(s) is a unique key (primary key or unique index)
-    try db.table("player", hasUniqueKey: ["email"])
-}
-
-// Bool, true if argument is the name of an internal SQLite table
-Database.isSQLiteInternalTable(...)
-
-// Bool, true if argument is the name of an internal GRDB table
-Database.isGRDBInternalTable(...)
-```
-
-For more information, see [`tableExists(_:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/tableexists(_:)) and related methods.
-
-
 ## Raw SQLite Pointers
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
@@ -1678,7 +1643,7 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.5/documentation/grdb/databaseschema) first.
 
 To define a record type, define a type and extend it with protocols that come with focused sets of features.
 
@@ -3285,7 +3250,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
-- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema)
+- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.5/documentation/grdb/databaseschema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
