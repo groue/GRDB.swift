@@ -67,18 +67,15 @@ extension AppDatabase {
     
     /// Returns a database configuration suited for `AppDatabase`.
     ///
-    /// SQL statements are logged if the `SQL_TRACE` environment variable
-    /// is set.
-    ///
-    /// - parameter base: A base configuration.
-    static func makeConfiguration(_ base: Configuration = Configuration()) -> Configuration {
-        var config = base
-        
+    /// - parameter config: A base configuration.
+    static func makeConfiguration(_ config: Configuration = Configuration()) -> Configuration {
+        // var config = config
+        //
         // Add custom SQL functions or collations, if needed:
         // config.prepareDatabase { db in
         //     db.add(function: ...)
         // }
-        
+        //
         // Uncomment for enabling SQL logging if the `SQL_TRACE` environment variable is set.
         // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/trace(options:_:)>
         // if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
