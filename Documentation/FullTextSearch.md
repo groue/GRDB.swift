@@ -474,7 +474,7 @@ See below some examples of matches:
     
     Unlike the other tokenizers, it provides general substring matching, matching "Sequence" with "que" by splitting character sequences into overlapping 3 character tokens (trigrams).
     
-    It can also act as an index for GLOB and LIKE queries depending on the configuration.
+    It can also act as an index for GLOB and LIKE queries depending on the configuration (see the [SQLite Documentation](https://www.sqlite.org/fts5.html#the_trigram_tokenizer)).
 
 See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
 
