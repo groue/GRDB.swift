@@ -335,7 +335,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .trigram(matching: .caseSensitive)
+                t.tokenizer = .trigram(caseSensitive: true)
                 t.column("content")
             }
             
@@ -369,7 +369,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             do {
                 try db.create(virtualTable: "documents", using: FTS5()) { t in
-                    t.tokenizer = .trigram(matching: .caseInsensitiveRemovingDiacritics)
+                    t.tokenizer = .trigram(removeDiacritics: .remove)
                     t.column("content")
                 }
             } catch {

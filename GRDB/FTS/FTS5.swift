@@ -75,44 +75,82 @@ public struct FTS5 {
     }
     
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Options for trigram tokenizer character matching. Matches the raw
-    /// "case_sensitive" and "remove_diacritics" tokenizer arguments.
+    /// Case sensitivity options for the Trigram FTS5 tokenizer.
+    /// Matches the raw "case_sensitive" tokenizer argument.
     ///
-    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
-    public enum TrigramTokenizerMatching: Sendable {
-        /// Case insensitive matching without removing diacritics. This
-        /// option matches the raw "case_sensitive=0 remove_diacritics=0"
-        /// tokenizer argument.
-        case caseInsensitive
-        /// Case insensitive matching that removes diacritics before
-        /// matching. This option matches the raw
-        /// "case_sensitive=0 remove_diacritics=1" tokenizer argument.
-        case caseInsensitiveRemovingDiacritics
-        /// Case sensitive matching. Diacritics are not removed when
-        /// performing case sensitive matching. This option matches the raw
-        /// "case_sensitive=1 remove_diacritics=0" tokenizer argument.
-        case caseSensitive
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_trigram_tokenizer>
+    public struct TrigramCaseSensitiveOption: RawRepresentable, Sendable, ExpressibleByBooleanLiteral {
+        public var rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// When true, matches the "case_sensitive=1" trigram tokenizer argument.
+        /// When false, it is "case_sensitive=0".
+        public init(booleanLiteral value: Bool) {
+            self = value ? Self(rawValue: 1) : Self(rawValue: 0)
+        }
+    }
+    
+    /// Diacritics options for the Trigram FTS5 tokenizer.
+    /// Matches the raw "remove_diacritics" tokenizer argument.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_trigram_tokenizer>
+    public struct TrigramDiacriticsOption: RawRepresentable, Sendable {
+        public var rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// Do not remove diacritics. This option matches the raw
+        /// "remove_diacritics=0" trigram tokenizer argument.
+        public static let keep = Self(rawValue: 0)
+
+        /// Remove diacritics. This option matches the raw
+        /// "remove_diacritics=1" trigram tokenizer argument.
+        public static let remove = Self(rawValue: 1)
     }
     #else
-    /// Options for trigram tokenizer character matching. Matches the raw
-    /// "case_sensitive" and "remove_diacritics" tokenizer arguments.
+    /// Case sensitivity options for the Trigram FTS5 tokenizer.
+    /// Matches the raw "case_sensitive" tokenizer argument.
     ///
-    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_trigram_tokenizer>
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.34 actually)
-    public enum TrigramTokenizerMatching: Sendable {
-        /// Case insensitive matching without removing diacritics. This
-        /// option matches the raw "case_sensitive=0 remove_diacritics=0"
-        /// tokenizer argument.
-        case caseInsensitive
-        /// Case insensitive matching that removes diacritics before
-        /// matching. This option matches the raw
-        /// "case_sensitive=0 remove_diacritics=1" tokenizer argument.
-        @available(*, unavailable, message: "Requires a future OS release that includes SQLite >=3.45")
-        case caseInsensitiveRemovingDiacritics
-        /// Case sensitive matching. Diacritics are not removed when
-        /// performing case sensitive matching. This option matches the raw
-        /// "case_sensitive=1 remove_diacritics=0" tokenizer argument.
-        case caseSensitive
+    public struct TrigramCaseSensitiveOption: RawRepresentable, Sendable, ExpressibleByBooleanLiteral {
+        public var rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// When true, matches the "case_sensitive=1" trigram tokenizer argument.
+        /// When false, it is "case_sensitive=0".
+        public init(booleanLiteral value: Bool) {
+            self = value ? Self(rawValue: 1) : Self(rawValue: 0)
+        }
+    }
+
+    /// Diacritics options for the Trigram FTS5 tokenizer.
+    /// Matches the raw "remove_diacritics" tokenizer argument.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#the_trigram_tokenizer>
+    @available(*, unavailable, message: "Requires a future OS release that includes SQLite >=3.45")
+    public struct TrigramDiacriticsOption: RawRepresentable, Sendable {
+        public var rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// Do not remove diacritics. This option matches the raw
+        /// "remove_diacritics=0" trigram tokenizer argument.
+        public static let keep = Self(rawValue: 0)
+
+        /// Remove diacritics. This option matches the raw
+        /// "remove_diacritics=1" trigram tokenizer argument.
+        public static let remove = Self(rawValue: 1)
     }
     #endif
     

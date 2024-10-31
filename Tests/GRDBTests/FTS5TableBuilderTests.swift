@@ -202,10 +202,10 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .trigram(matching: .caseInsensitive)
+                t.tokenizer = .trigram(caseSensitive: false)
                 t.column("content")
             }
-            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''trigram''')")
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''trigram'' ''case_sensitive'' ''0''')")
         }
     }
 
@@ -223,14 +223,33 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .trigram(matching: .caseSensitive)
+                t.tokenizer = .trigram(caseSensitive: true)
                 t.column("content")
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''trigram'' ''case_sensitive'' ''1''')")
         }
     }
-    
-    func testTrigramTokenizerCaseInsensitiveRemovingDiacritics() throws {
+
+    func testTrigramTokenizerWithoutRemovingDiacritics() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3045000 else {
+            throw XCTSkip("FTS5 trigram tokenizer remove_diacritics is not available")
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .trigram(removeDiacritics: .keep)
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''trigram'' ''remove_diacritics'' ''0''')")
+        }
+#else
+        throw XCTSkip("FTS5 trigram tokenizer remove_diacritics is not available")
+#endif
+    }
+
+    func testTrigramTokenizerRemoveDiacritics() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard sqlite3_libversion_number() >= 3045000 else {
             throw XCTSkip("FTS5 trigram tokenizer remove_diacritics is not available")
@@ -239,7 +258,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .trigram(matching: .caseInsensitiveRemovingDiacritics)
+                t.tokenizer = .trigram(removeDiacritics: .remove)
                 t.column("content")
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''trigram'' ''remove_diacritics'' ''1''')")
