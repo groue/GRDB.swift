@@ -3,7 +3,7 @@ FTS5 Tokenizers
 
 **[FTS5](https://www.sqlite.org/fts5.html) is an extensible full-text search engine.**
 
-GRDB lets you define your own custom FST5 tokenizers, and extend SQLite built-in tokenizers. Possible use cases are:
+GRDB lets you define your own custom FTS5 tokenizers, and extend SQLite built-in tokenizers. Possible use cases are:
 
 - Have "fi" match the ligature "&#xfb01;" (U+FB01)
 - Have "first" match "1st"
@@ -95,7 +95,7 @@ let documents = try Document.matching(pattern).fetchAll(db)
 
 ## FTS5Tokenizer
 
-**FST5Tokenizer** is the protocol for all FTS5 tokenizers.
+**FTS5Tokenizer** is the protocol for all FTS5 tokenizers.
 
 It only requires a tokenization method that matches the low-level `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers. We'll discuss it more when describing custom tokenizers.
 
