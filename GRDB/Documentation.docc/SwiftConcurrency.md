@@ -39,10 +39,72 @@ All safety guarantees of Swift 6 are enforced during database accesses. They are
 
 The following sections describe, with more details, how GRDB interacts with Swift Concurrency.
 
-- <doc:SwiftConcurrency#Non-Sendable-Record-Types>
 - <doc:SwiftConcurrency#Shorthand-Closure-Notation>
 - <doc:SwiftConcurrency#Non-Sendable-Configuration-of-Record-Types>
+- <doc:SwiftConcurrency#Non-Sendable-Record-Types>
 - <doc:SwiftConcurrency#Choosing-between-Synchronous-and-Asynchronous-Database-Accesses>
+
+### Shorthand Closure Notation
+
+In the Swift 5 language mode, the compiler emits a warning when a database access is written with the shorthand closure notation:
+
+```swift
+// Standard closure:
+let count = try await writer.read { db in
+    try Player.fetchCount(db)
+}
+
+// Shorthand notation:
+// ⚠️ Converting non-sendable function value to '@Sendable (Database) 
+// throws -> Int' may introduce data races.
+let count = try await writer.read(Player.fetchCount)
+```
+
+**You can remove this warning** by enabling [SE-0418: Inferring `Sendable` for methods and key path literals](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0418-inferring-sendable-for-methods.md), as below:
+
+- **Using Xcode**
+
+    Set `SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES` to `YES` in the build settings of your target.
+
+- **In a SwiftPM package manifest**
+
+    Enable the `InferSendableFromCaptures` upcoming feature: 
+    
+    ```swift
+    .target(
+        name: "MyTarget",
+        swiftSettings: [
+            .enableUpcomingFeature("InferSendableFromCaptures")
+        ]
+    )
+    ```
+
+This language feature is not enabled by default, because it can potentially [affect source compatibility](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/sourcecompatibility#Inferring-Sendable-for-methods-and-key-path-literals).
+
+### Non-Sendable Configuration of Record Types
+
+In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when a record type specifies which columns it fetches from the database, with the ``TableRecord/databaseSelection-7iphs`` static property:
+
+```swift
+extension Player: FetchableRecord, PersistableRecord {
+    // ❌ Static property 'databaseSelection' is not concurrency-safe
+    // because non-'Sendable' type '[any SQLSelectable]'
+    // may have shared mutable state
+    static let databaseSelection: [any SQLSelectable] = [
+        Column("id"), Column("name"), Column("score")
+    ]
+}
+```
+
+**To fix this error**, replace the stored property with a computed property:
+
+```swift
+extension Player: FetchableRecord, PersistableRecord {
+    static var databaseSelection: [any SQLSelectable] {
+        [Column("id"), Column("name"), Column("score")]
+    }
+}
+```
 
 ### Non-Sendable Record Types
 
@@ -127,97 +189,6 @@ You do not need to perform this refactoring right away: you can compile your app
 - **Question: Can I make my record classes immutable?**
 
     Yes. Classes that can not be modified, made of constant `let` properties, are Sendable. Those immutable classes will not make it easy to modify the database, though.
-
-#### FAQ: Why this Sendable requirement?
-
-**GRDB needs new features in the Swift language and the SDKs in order to deal with non-Sendable types.**
-
-[SE-0430: `sending` parameter and result values](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md) looks like the language feature we need, but:
-
-- `DispatchQueue.async` does not accept a `sending` closure. GRDB needs this in order to accept non-Sendable records to be sent to the database, as below:
-
-    ```swift
-    let nonSendableRecord: Player
-    try await writer.write { db in
-        try nonSendableRecord.insert(db)
-    }
-    ```
-
-    Please [file a feedback](http://feedbackassistant.apple.com) for requesting this DispatchQueue improvement. The more the merrier. I personally filed FB15270949.
-
-- Database access methods taint the values they fetch. In the code below, the rules of [SE-0414: Region based Isolation](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0414-region-based-isolation.md) have the compiler refuse that the fetched player is sent back to the caller:
-
-    ```swift
-    let player = try await writer.read { db in
-        try Player.fetchOne(db, id: 42)
-    }
-    ```
-
-    Strictly speaking, the compiler diagnostic is correct: one could copy the non-Sendable `db` argument into the fetched `Player` instance, making it unsuitable for later use. In practice, nobody does that. Copying `db` is a programmer error, and GRDB promptly raises a fatal error whenever a `db` copy would be improperly used. But there is no way to tell the compiler about this practice.
-
-For all those reasons, GRDB has to require values that are asynchronously written and read from the database to be `Sendable`.
-
-### Shorthand Closure Notation
-
-In the Swift 5 language mode, the compiler emits a warning when a database access is written with the shorthand closure notation:
-
-```swift
-// Standard closure:
-let count = try await writer.read { db in
-    try Player.fetchCount(db)
-}
-
-// Shorthand notation:
-// ⚠️ Converting non-sendable function value to '@Sendable (Database) 
-// throws -> Int' may introduce data races.
-let count = try await writer.read(Player.fetchCount)
-```
-
-**You can remove this warning** by enabling [SE-0418: Inferring `Sendable` for methods and key path literals](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0418-inferring-sendable-for-methods.md), as below:
-
-- **Using Xcode**
-
-    Set `SWIFT_UPCOMING_FEATURE_INFER_SENDABLE_FROM_CAPTURES` to `YES` in the build settings of your target.
-
-- **In a SwiftPM package manifest**
-
-    Enable the `InferSendableFromCaptures` upcoming feature: 
-    
-    ```swift
-    .target(
-        name: "MyTarget",
-        swiftSettings: [
-            .enableUpcomingFeature("InferSendableFromCaptures")
-        ]
-    )
-    ```
-
-This language feature is not enabled by default, because it can potentially [affect source compatibility](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/sourcecompatibility#Inferring-Sendable-for-methods-and-key-path-literals).
-
-### Non-Sendable Configuration of Record Types
-
-In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when a record type specifies which columns it fetches from the database, with the ``TableRecord/databaseSelection-7iphs`` static property:
-
-```swift
-extension Player: FetchableRecord, MutablePersistableRecord {
-    // ❌ Static property 'databaseSelection' is not concurrency-safe
-    // because non-'Sendable' type '[any SQLSelectable]'
-    // may have shared mutable state
-    static let databaseSelection: [any SQLSelectable] = [
-        Column("id"), Column("name"), Column("score")
-    ]
-}
-```
-
-**To fix this error**, replace the stored property with a computed property:
-
-```swift
-extension Player: FetchableRecord, MutablePersistableRecord {
-    static var databaseSelection: [any SQLSelectable] {
-        [Column("id"), Column("name"), Column("score")]
-    }
-}
-```
 
 ### Choosing between Synchronous and Asynchronous Database Accesses
 
