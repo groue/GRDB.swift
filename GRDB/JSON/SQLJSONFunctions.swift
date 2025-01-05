@@ -1,4 +1,6 @@
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
+// MARK: - JSON
+
 extension Database {
     /// Validates and minifies a JSON string, with the `JSON` SQL function.
     ///
@@ -419,7 +421,318 @@ extension Database {
             isJSONValue: true)
     }
 }
+
+// MARK: - JSONB
+
+extension Database {
+    /// Validates and returns a binary JSONB representation of the provided
+    /// JSON, with the `JSONB` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB(' { "a": [ "test" ] } ') → '{"a":["test"]}'
+    /// Database.jsonb(#" { "a": [ "test" ] } "#)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jmini>
+    public static func jsonb(_ value: some SQLExpressible) -> SQLExpression {
+        .function("JSONB", [value.sqlExpression])
+    }
+    
+    /// Creates a binary JSONB array with the `JSONB_ARRAY` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_ARRAY(1, 2, 3, 4) → '[1,2,3,4]'
+    /// Database.jsonbArray(1...4)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
+    public static func jsonbArray(
+        _ values: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
+        .function("JSONB_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
+    }
+    
+    /// Creates a binary JSONB array with the `JSONB_ARRAY` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_ARRAY(1, 2, '3', 4) → '[1,2,"3",4]'
+    /// Database.jsonbArray([1, 2, "3", 4])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
+    public static func jsonbArray(
+        _ values: some Collection<any SQLExpressible>
+    ) -> SQLExpression {
+        .function("JSONB_ARRAY", values.map(\.sqlExpression.jsonBuilderExpression))
+    }
+    
+    /// The `JSONB_EXTRACT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_EXTRACT('{"a":123}', '$.a') → 123
+    /// Database.jsonbExtract(#"{"a":123}"#, atPath: "$.a")
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jex>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - path: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbExtract(_ value: some SQLExpressible, atPath path: some SQLExpressible) -> SQLExpression {
+        .function("JSONB_EXTRACT", [value.sqlExpression, path.sqlExpression])
+    }
+    
+    /// The `JSONB_EXTRACT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_EXTRACT('{"a":2,"c":[4,5]}','$.c','$.a') → '[[4,5],2]'
+    /// Database.jsonbExtract(#"{"a":2,"c":[4,5]}"#, atPaths: ["$.c", "$.a"])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jex>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbExtract(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
+        .function("JSONB_EXTRACT", [value.sqlExpression] + paths.map(\.sqlExpression))
+    }
+    
+    /// The `JSONB_INSERT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_INSERT('[1,2,3,4]','$[#]',99) → '[1,2,3,4,99]'
+    /// Database.jsonbInsert("[1,2,3,4]", ["$[#]": value: 99])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jinsb>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - assignments: A collection of key/value pairs, where keys are
+    ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbInsert(
+        _ value: some SQLExpressible,
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
+        .function("JSONB_INSERT", [value.sqlExpression] + assignments.flatMap {
+            [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
+        })
+    }
+    
+    /// The `JSONB_REPLACE` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_REPLACE('{"a":2,"c":4}', '$.a', 99) → '{"a":99,"c":4}'
+    /// Database.jsonbReplace(#"{"a":2,"c":4}"#, ["$.a": 99])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jinsb>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - assignments: A collection of key/value pairs, where keys are
+    ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbReplace(
+        _ value: some SQLExpressible,
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
+        .function("JSONB_REPLACE", [value.sqlExpression] + assignments.flatMap {
+            [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
+        })
+    }
+    
+    /// The `JSONB_SET` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_SET('{"a":2,"c":4}', '$.a', 99) → '{"a":99,"c":4}'
+    /// Database.jsonbSet(#"{"a":2,"c":4}"#, ["$.a": 99]])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jinsb>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - assignments: A collection of key/value pairs, where keys are
+    ///     [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbSet(
+        _ value: some SQLExpressible,
+        _ assignments: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
+        .function("JSONB_SET", [value.sqlExpression] + assignments.flatMap {
+            [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
+        })
+    }
+    
+    /// Creates a binary JSONB object with the `JSONB_OBJECT` SQL function.
+    /// Pass key/value pairs with a Swift collection such as a `Dictionary`.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_OBJECT('c', '{"e":5}') → '{"c":"{\"e\":5}"}'
+    /// Database.jsonbObject([
+    ///     "c": #"{"e":5}"#,
+    /// ])
+    ///
+    /// // JSONB_OBJECT('c', JSONB_OBJECT('e', 5)) → '{"c":{"e":5}}'
+    /// Database.jsonbObject([
+    ///     "c": Database.jsonbObject(["e": 5])),
+    /// ])
+    ///
+    /// // JSONB_OBJECT('c', JSONB('{"e":5}')) → '{"c":{"e":5}}'
+    /// Database.jsonbObject([
+    ///     "c": Database.jsonb(#"{"e":5}"#),
+    /// ])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jobj>
+    public static func jsonbObject(
+        _ elements: some Collection<(key: String, value: any SQLExpressible)>
+    ) -> SQLExpression {
+        .function("JSONB_OBJECT", elements.flatMap {
+            [$0.key.sqlExpression, $0.value.sqlExpression.jsonBuilderExpression]
+        })
+    }
+    
+    /// The `JSONB_PATCH` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_PATCH('{"a":1,"b":2}','{"c":3,"d":4}') → '{"a":1,"b":2,"c":3,"d":4}'
+    /// Database.jsonbPatch(#"{"a":1,"b":2}"#, #"{"c":3,"d":4}"#)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jpatch>
+    public static func jsonbPatch(
+        _ value: some SQLExpressible,
+        with patch: some SQLExpressible)
+    -> SQLExpression
+    {
+        .function("JSONB_PATCH", [value.sqlExpression, patch.sqlExpression])
+    }
+    
+    /// The `JSONB_REMOVE` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_REMOVE('[0,1,2,3,4]', '$[2]') → '[0,1,3,4]'
+    /// Database.jsonbRemove("[0,1,2,3,4]", atPath: "$[2]")
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrm>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - paths: A [JSON path](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbRemove(_ value: some SQLExpressible, atPath path: some SQLExpressible) -> SQLExpression {
+        .function("JSONB_REMOVE", [value.sqlExpression, path.sqlExpression])
+    }
+    
+    /// The `JSONB_REMOVE` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // JSONB_REMOVE('[0,1,2,3,4]', '$[2]','$[0]') → '[1,3,4]'
+    /// Database.jsonbRemove("[0,1,2,3,4]", atPaths: ["$[2]", "$[0]"])
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrm>
+    ///
+    /// - Parameters:
+    ///   - value: A JSON value.
+    ///   - paths: A collection of [JSON paths](https://www.sqlite.org/json1.html#path_arguments).
+    public static func jsonbRemove(
+        _ value: some SQLExpressible,
+        atPaths paths: some Collection<some SQLExpressible>
+    ) -> SQLExpression {
+        .function("JSONB_REMOVE", [value.sqlExpression] + paths.map(\.sqlExpression))
+    }
+    
+    /// The `JSONB_GROUP_ARRAY` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSONB_GROUP_ARRAY(name) FROM player
+    /// Player.select(Database.jsonbGroupArray(Column("name")))
+    ///
+    /// // SELECT JSONB_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonbGroupArray(Column("name"), filter: Column("score") > 0))
+    ///
+    /// // SELECT JSONB_GROUP_ARRAY(name ORDER BY name) FROM player
+    /// Player.select(Database.jsonbGroupArray(Column("name"), orderBy: Column("name")))
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    public static func jsonbGroupArray(
+        _ value: some SQLExpressible,
+        orderBy ordering: (any SQLOrderingTerm)? = nil,
+        filter: (any SQLSpecificExpressible)? = nil)
+    -> SQLExpression {
+        .aggregateFunction(
+            "JSONB_GROUP_ARRAY",
+            [value.sqlExpression.jsonBuilderExpression],
+            ordering: ordering?.sqlOrdering,
+            filter: filter?.sqlExpression,
+            isJSONValue: true)
+    }
+    
+    /// The `JSONB_GROUP_OBJECT` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT JSONB_GROUP_OBJECT(name, score) FROM player
+    /// Player.select(Database.jsonbGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score")))
+    ///
+    /// // SELECT JSONB_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
+    /// Player.select(Database.jsonbGroupObject(
+    ///     key: Column("name"),
+    ///     value: Column("score"),
+    ///     filter: Column("score") > 0))
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    public static func jsonbGroupObject(
+        key: some SQLExpressible,
+        value: some SQLExpressible,
+        filter: (any SQLSpecificExpressible)? = nil
+    ) -> SQLExpression {
+        .aggregateFunction(
+            "JSONB_GROUP_OBJECT",
+            [key.sqlExpression, value.sqlExpression.jsonBuilderExpression],
+            filter: filter?.sqlExpression,
+            isJSONValue: true)
+    }
+}
 #else
+// MARK: - JSON
+
 extension Database {
     /// Validates and minifies a JSON string, with the `JSON` SQL function.
     ///

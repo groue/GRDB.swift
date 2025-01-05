@@ -2058,6 +2058,9 @@ extension Database {
         /// That's the reason why it is recommended to store JSON as text.
         public static let jsonText = ColumnType(rawValue: "TEXT")
         
+        /// The `BLOB` column type, suitable for JSONB columns.
+        public static let jsonb = ColumnType(rawValue: "BLOB")
+        
         /// The `INTEGER` column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
         
