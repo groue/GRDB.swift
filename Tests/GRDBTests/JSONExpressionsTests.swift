@@ -2,6 +2,9 @@ import XCTest
 import GRDB
 
 final class JSONExpressionsTests: GRDBTestCase {
+    /// The SQL function used to build JSON expressions
+    private let jsonFunction = (sqlite3_libversion_number() >= 3045000) ? "JSONB" : "JSON"
+    
     func test_Database_json() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
@@ -87,12 +90,12 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ])
             ]), """
                 SELECT JSON_ARRAY(\
-                JSON('[1, 2, 3]'), \
+                \(jsonFunction)('[1, 2, 3]'), \
                 NULL, \
-                JSON("name"), \
-                JSON("info"), \
-                JSON(ABS("name")), \
-                JSON(ABS("info"))\
+                \(jsonFunction)("name"), \
+                \(jsonFunction)("info"), \
+                \(jsonFunction)(ABS("name")), \
+                \(jsonFunction)(ABS("info"))\
                 ) FROM "player"
                 """)
         }
@@ -144,10 +147,10 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ), """
                 SELECT JSON_ARRAY(\
                 "name", \
-                JSON("name"), \
-                JSON("info"), \
+                \(jsonFunction)("name"), \
+                \(jsonFunction)("info"), \
                 JSON_EXTRACT("info", 'address'), \
-                JSON(JSON_EXTRACT("info", 'address'))\
+                \(jsonFunction)(JSON_EXTRACT("info", 'address'))\
                 ) FROM "player"
                 """)
         }
@@ -191,12 +194,12 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ), """
                 SELECT JSON_ARRAY(\
                 "name", \
-                JSON("name"), \
-                JSON("info"), \
+                \(jsonFunction)("name"), \
+                \(jsonFunction)("info"), \
                 "info" ->> 'score', \
-                JSON("info" ->> 'score'), \
+                \(jsonFunction)("info" ->> 'score'), \
                 JSON_EXTRACT("info", 'address'), \
-                JSON(JSON_EXTRACT("info", 'address')), \
+                \(jsonFunction)(JSON_EXTRACT("info", 'address')), \
                 "info" -> 'address', \
                 "info" -> 'address'\
                 ) FROM "player"
@@ -220,8 +223,8 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ), """
                 SELECT JSON_ARRAY(\
                 "p"."name", \
-                JSON("p"."name"), \
-                JSON("p"."info"), \
+                \(jsonFunction)("p"."name"), \
+                \(jsonFunction)("p"."info"), \
                 "p"."info" ->> 'score', \
                 JSON_EXTRACT("p"."info", 'address'), \
                 "p"."info" -> 'address'\
@@ -242,8 +245,8 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ), """
                 SELECT JSON_ARRAY(\
                 "p"."name", \
-                JSON("p"."name"), \
-                JSON("p"."info"), \
+                \(jsonFunction)("p"."name"), \
+                \(jsonFunction)("p"."info"), \
                 "p"."info" ->> 'score', \
                 JSON_EXTRACT("p"."info", 'address'), \
                 "p"."info" -> 'address'\
@@ -264,8 +267,8 @@ final class JSONExpressionsTests: GRDBTestCase {
                 ), """
                 SELECT JSON_ARRAY(\
                 "p"."name", \
-                JSON("p"."name"), \
-                JSON("p"."info"), \
+                \(jsonFunction)("p"."name"), \
+                \(jsonFunction)("p"."info"), \
                 "p"."info" ->> 'score', \
                 JSON_EXTRACT("p"."info", 'address'), \
                 "p"."info" -> 'address'\
@@ -489,7 +492,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, Database.jsonInsert("[1,2,3,4]", ["$[#]": #"{"e":5}"#.databaseValue.asJSON]), """
-                JSON_INSERT('[1,2,3,4]', '$[#]', JSON('{"e":5}'))
+                JSON_INSERT('[1,2,3,4]', '$[#]', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(db, Database.jsonInsert("[1,2,3,4]", ["$[#]": Database.json(#"{"e":5}"#)]), """
@@ -513,7 +516,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonInsert("[1,2,3,4]", ["$[#]": infoColumn])), """
-                SELECT JSON_INSERT('[1,2,3,4]', '$[#]', JSON("info")) FROM "player"
+                SELECT JSON_INSERT('[1,2,3,4]', '$[#]', \(jsonFunction)("info")) FROM "player"
                 """)
         }
     }
@@ -544,7 +547,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, Database.jsonReplace(#"{"a":2,"c":4}"#, ["$.a": #"{"e":5}"#.databaseValue.asJSON]), """
-                JSON_REPLACE('{"a":2,"c":4}', '$.a', JSON('{"e":5}'))
+                JSON_REPLACE('{"a":2,"c":4}', '$.a', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(db, Database.jsonReplace(#"{"a":2,"c":4}"#, ["$.a": Database.json(#"{"e":5}"#)]), """
@@ -568,7 +571,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonReplace(#"{"a":2,"c":4}"#, ["$.a": infoColumn])), """
-                SELECT JSON_REPLACE('{"a":2,"c":4}', '$.a', JSON("info")) FROM "player"
+                SELECT JSON_REPLACE('{"a":2,"c":4}', '$.a', \(jsonFunction)("info")) FROM "player"
                 """)
         }
     }
@@ -599,7 +602,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, Database.jsonSet(#"{"a":2,"c":4}"#, ["$.a": #"{"e":5}"#.databaseValue.asJSON]), """
-                JSON_SET('{"a":2,"c":4}', '$.a', JSON('{"e":5}'))
+                JSON_SET('{"a":2,"c":4}', '$.a', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(db, Database.jsonSet(#"{"a":2,"c":4}"#, ["$.a": Database.json(#"{"e":5}"#)]), """
@@ -623,7 +626,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonSet(#"{"a":2,"c":4}"#, ["$.a": infoColumn])), """
-                SELECT JSON_SET('{"a":2,"c":4}', '$.a', JSON("info")) FROM "player"
+                SELECT JSON_SET('{"a":2,"c":4}', '$.a', \(jsonFunction)("info")) FROM "player"
                 """)
         }
     }
@@ -670,7 +673,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 Database.jsonObject([
                     "c": #"{"e":5}"#.databaseValue.asJSON,
                 ] as [String: any SQLExpressible]), """
-                JSON_OBJECT('c', JSON('{"e":5}'))
+                JSON_OBJECT('c', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(
@@ -706,7 +709,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                         "c": infoColumn,
                     ])
                 ), """
-                SELECT JSON_OBJECT('c', JSON("info")) FROM "player"
+                SELECT JSON_OBJECT('c', \(jsonFunction)("info")) FROM "player"
                 """)
             
             try assertEqualSQL(
@@ -769,7 +772,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                     (key: "a", value: 2),
                     (key: "c", value: #"{"e":5}"#.databaseValue.asJSON),
                 ] as [(key: String, value: any SQLExpressible)]), """
-                JSON_OBJECT('a', 2, 'c', JSON('{"e":5}'))
+                JSON_OBJECT('a', 2, 'c', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(
@@ -798,7 +801,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                         (key: "c", value: infoColumn),
                     ] as [(key: String, value: any SQLExpressible)])
                 ), """
-                SELECT JSON_OBJECT('a', "name", 'c', JSON("info")) FROM "player"
+                SELECT JSON_OBJECT('a', "name", 'c', \(jsonFunction)("info")) FROM "player"
                 """)
             
             try assertEqualSQL(
@@ -852,7 +855,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                     "a": 2,
                     "c": #"{"e":5}"#.databaseValue.asJSON,
                 ] as KeyValuePairs), """
-                JSON_OBJECT('a', 2, 'c', JSON('{"e":5}'))
+                JSON_OBJECT('a', 2, 'c', \(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(
@@ -881,7 +884,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                         "c": infoColumn,
                     ] as KeyValuePairs<String, any SQLExpressible>)
                 ), """
-                SELECT JSON_OBJECT('a', "name", 'c', JSON("info")) FROM "player"
+                SELECT JSON_OBJECT('a', "name", 'c', \(jsonFunction)("info")) FROM "player"
                 """)
             
             try assertEqualSQL(
@@ -1157,7 +1160,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, Database.jsonQuote(#"{"e":5}"#.databaseValue.asJSON), """
-                JSON_QUOTE(JSON('{"e":5}'))
+                JSON_QUOTE(\(jsonFunction)('{"e":5}'))
                 """)
             
             try assertEqualSQL(db, Database.jsonQuote(Database.json(#"{"e":5}"#)), """
@@ -1173,7 +1176,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonQuote(infoColumn)), """
-                SELECT JSON_QUOTE(JSON("info")) FROM "player"
+                SELECT JSON_QUOTE(\(jsonFunction)("info")) FROM "player"
                 """)
         }
     }
@@ -1204,7 +1207,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn)), """
-                SELECT JSON_GROUP_ARRAY(JSON("info")) FROM "player"
+                SELECT JSON_GROUP_ARRAY(\(jsonFunction)("info")) FROM "player"
                 """)
         }
     }
@@ -1235,7 +1238,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, filter: length(nameColumn) > 0)), """
-                SELECT JSON_GROUP_ARRAY(JSON("info")) FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                SELECT JSON_GROUP_ARRAY(\(jsonFunction)("info")) FILTER (WHERE LENGTH("name") > 0) FROM "player"
                 """)
         }
     }
@@ -1261,7 +1264,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, orderBy: nameColumn.desc)), """
-                SELECT JSON_GROUP_ARRAY(JSON("info") ORDER BY "name" DESC) FROM "player"
+                SELECT JSON_GROUP_ARRAY(\(jsonFunction)("info") ORDER BY "name" DESC) FROM "player"
                 """)
 
             try assertEqualSQL(db, player.select(Database.jsonGroupArray(nameColumn, orderBy: nameColumn, filter: length(nameColumn) > 0)), """
@@ -1269,7 +1272,7 @@ final class JSONExpressionsTests: GRDBTestCase {
                 """)
             
             try assertEqualSQL(db, player.select(Database.jsonGroupArray(infoColumn, orderBy: nameColumn.desc, filter: length(nameColumn) > 0)), """
-                SELECT JSON_GROUP_ARRAY(JSON("info") ORDER BY "name" DESC) FILTER (WHERE LENGTH("name") > 0) FROM "player"
+                SELECT JSON_GROUP_ARRAY(\(jsonFunction)("info") ORDER BY "name" DESC) FILTER (WHERE LENGTH("name") > 0) FROM "player"
                 """)
         }
     }
@@ -1297,7 +1300,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             let valueColumn = JSONColumn("value")
             
             try assertEqualSQL(db, player.select(Database.jsonGroupObject(key: keyColumn, value: valueColumn)), """
-                SELECT JSON_GROUP_OBJECT("key", JSON("value")) FROM "player"
+                SELECT JSON_GROUP_OBJECT("key", \(jsonFunction)("value")) FROM "player"
                 """)
         }
     }
@@ -1324,7 +1327,7 @@ final class JSONExpressionsTests: GRDBTestCase {
             let valueColumn = JSONColumn("value")
             
             try assertEqualSQL(db, player.select(Database.jsonGroupObject(key: keyColumn, value: valueColumn, filter: length(valueColumn) > 0)), """
-                SELECT JSON_GROUP_OBJECT("key", JSON("value")) FILTER (WHERE LENGTH("value") > 0) FROM "player"
+                SELECT JSON_GROUP_OBJECT("key", \(jsonFunction)("value")) FILTER (WHERE LENGTH("value") > 0) FROM "player"
                 """)
         }
     }

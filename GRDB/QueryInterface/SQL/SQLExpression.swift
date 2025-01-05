@@ -2120,8 +2120,9 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
+            } else if sqlite3_libversion_number() >= 3045000 {
+                return .function("JSONB", [self])
             } else {
-                // Needs explicit call to JSON()
                 return .function("JSON", [self])
             }
         }
@@ -2137,8 +2138,9 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
+            } else if sqlite3_libversion_number() >= 3045000 {
+                return .function("JSONB", [self])
             } else {
-                // Needs explicit call to JSON()
                 return .function("JSON", [self])
             }
         }
