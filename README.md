@@ -1649,8 +1649,8 @@ To define a record type, define a type and extend it with protocols that come wi
 
 For example:
 
-```
-struct Player: {
+```swift
+struct Player {
     var id: Int64
     var name: String
     var score: Int
