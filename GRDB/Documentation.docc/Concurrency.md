@@ -4,11 +4,17 @@ GRDB helps your app deal with Swift and SQLite concurrency.
 
 ## Overview
 
-If your app moves slow database jobs off the main thread, so that the user interface remains responsive, then this guide is for you. In the case of apps that share a database with other processes, such as an iOS app and its extensions, don't miss the dedicated <doc:DatabaseSharing> guide after this one.
+If your app moves slow database jobs off the main thread, so that the user interface remains responsive, then this guide is for you.
 
-**In all cases, and first and foremost, follow the <doc:Concurrency#Concurrency-Rules> right from the start.**
+It is extended with three articles that focus on particular aspects of concurrency:
 
-The other chapters cover, with more details, the fundamentals of SQLite concurrency, and how GRDB makes it manageable from your Swift code.
+- <doc:DatabaseSharing>: for apps that **share a database** with other processes, such as an iOS app and its extensions
+- <doc:SwiftConcurrency>: the relationships between GRDB and **Swift 6 Concurrency**
+- <doc:MainThread>: everything you have to known about GRDB and the main thread. 
+
+**In all cases, and first and foremost, follow the Concurrency-Rules, below, right from the start.**
+
+The following chapters cover the fundamentals of SQLite concurrency, and how GRDB makes it manageable from your Swift code.
 
 ## Concurrency Rules
 
@@ -322,7 +328,7 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 
 - <doc:SwiftConcurrency>
 - <doc:DatabaseSharing>
-
+- <doc:MainThread>
 
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [`SQLITE_BUSY`]: https://www.sqlite.org/rescode.html#busy

@@ -4,6 +4,8 @@ How to best integrate GRDB and Swift Concurrency
 
 ## Overview
 
+**This guide describes the relationship between GRDB and Swift 6 Concurrency.** It complements the <doc:Concurrency> guide, that you should read first.
+
 GRDB’s primary goal is to leverage SQLite’s concurrency features for the benefit of application developers. Swift 6 makes it possible to achieve this goal while ensuring data-race safety.
 
 For example, the ``DatabasePool`` connection allows applications to fetch and display database values on screen, even while a background task is writing the results of a network request to disk.
