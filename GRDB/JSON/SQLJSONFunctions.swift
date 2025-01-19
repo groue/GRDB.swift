@@ -341,8 +341,19 @@ extension Database {
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jvalid>
-    public static func jsonIsValid(_ value: some SQLExpressible) -> SQLExpression {
-        .function("JSON_VALID", [value.sqlExpression])
+    ///
+    /// - parameter value: The tested value.
+    /// - parameter options: See eventual second argument of the
+    ///   `JSON_VALID` function. See <https://www.sqlite.org/json1.html#the_json_valid_function>.
+    public static func jsonIsValid(
+        _ value: some SQLExpressible,
+        options: JSONValidationOptions? = nil
+    ) -> SQLExpression {
+        if let options {
+            .function("JSON_VALID", [value.sqlExpression, options.rawValue.sqlExpression])
+        } else {
+            .function("JSON_VALID", [value.sqlExpression])
+        }
     }
     
     /// The `JSON_QUOTE` SQL function.
@@ -425,6 +436,17 @@ extension Database {
 // MARK: - JSONB
 
 extension Database {
+    public struct JSONValidationOptions: OptionSet, Sendable {
+        public let rawValue: Int
+        
+        public init(rawValue: Int) { self.rawValue = rawValue }
+        
+        public static let json = JSONValidationOptions(rawValue: 1)
+        public static let json5 = JSONValidationOptions(rawValue: 2)
+        public static let probablyJSONB = JSONValidationOptions(rawValue: 4)
+        public static let jsonb = JSONValidationOptions(rawValue: 8)
+    }
+    
     /// Validates and returns a binary JSONB representation of the provided
     /// JSON, with the `JSONB` SQL function.
     ///

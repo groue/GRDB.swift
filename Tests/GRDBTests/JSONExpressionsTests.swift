@@ -2077,6 +2077,40 @@ final class JSONExpressionsTests: GRDBTestCase {
         }
     }
     
+    func test_Database_jsonIsValid_options() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3045000 else {
+            throw XCTSkip("JSON_VALID options are not available")
+        }
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try assertEqualSQL(db, Database.jsonIsValid(#"{"x":35""#, options: .json), """
+                JSON_VALID('{"x":35"', 1)
+                """)
+            
+            try assertEqualSQL(db, Database.jsonIsValid(#"{"x":35""#, options: .json5), """
+                JSON_VALID('{"x":35"', 2)
+                """)
+            
+            try assertEqualSQL(db, Database.jsonIsValid(#"{"x":35""#, options: .probablyJSONB), """
+                JSON_VALID('{"x":35"', 4)
+                """)
+            
+            try assertEqualSQL(db, Database.jsonIsValid(#"{"x":35""#, options: .jsonb), """
+                JSON_VALID('{"x":35"', 8)
+                """)
+            
+            try assertEqualSQL(db, Database.jsonIsValid(#"{"x":35""#, options: [.json, .jsonb]), """
+                JSON_VALID('{"x":35"', 9)
+                """)
+
+        }
+#else
+        throw XCTSkip("JSON_VALID options are not available")
+#endif
+    }
+
     func test_Database_jsonQuote() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
