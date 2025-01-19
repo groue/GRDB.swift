@@ -66,6 +66,16 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
     }
     
+    func testDefaultScopeIncludingRequiredRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.select(.allColumns(excluding: ["name"])).including(required: Player.defaultTeam)
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["team"])
+        XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
+    }
+    
     func testDefaultScopeAnnotatedWithRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.annotated(withRequired: Player.defaultTeam)
@@ -80,6 +90,14 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "teamName":"Reds"])
+    }
+    
+    func testDefaultScopeAnnotatedWithRequiredRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.annotated(withRequired: Player.defaultTeam.select(.allColumns(excluding: ["name"])))
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "id":1])
     }
     
     func testDefaultScopeIncludingOptional() throws {
@@ -113,6 +131,15 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         XCTAssertEqual(rows[1], ["id":2, "teamId":nil, "name":"Barbara", "teamName":nil])
     }
 
+    func testDefaultScopeAnnotatedWithOptionalRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.annotated(withOptional: Player.defaultTeam.select(.allColumns(excluding: ["name"])))
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 2)
+        XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "id":1])
+        XCTAssertEqual(rows[1], ["id":2, "teamId":nil, "name":"Barbara", "id":nil])
+    }
+    
     func testDefaultScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.defaultTeam)
@@ -153,6 +180,16 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         XCTAssertEqual(rows[0].scopes["customTeam"]!, ["id":1, "name":"Reds"])
     }
     
+    func testCustomScopeIncludingRequiredRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.select(.allColumns(excluding: ["name"])).including(required: Player.customTeam)
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["customTeam"])
+        XCTAssertEqual(rows[0].scopes["customTeam"]!, ["id":1, "name":"Reds"])
+    }
+    
     func testCustomScopeAnnotatedWithRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.annotated(withRequired: Player.customTeam)
@@ -167,6 +204,14 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "teamName":"Reds"])
+    }
+    
+    func testCustomScopeAnnotatedWithRequiredRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.annotated(withRequired: Player.customTeam.select(.allColumns(excluding: ["name"])))
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "id":1])
     }
     
     func testCustomScopeIncludingOptional() throws {
@@ -198,6 +243,15 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "teamName":"Reds"])
         XCTAssertEqual(rows[1], ["id":2, "teamId":nil, "name":"Barbara", "teamName":nil])
+    }
+    
+    func testCustomScopeAnnotatedWithOptionalRestrictedSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player.annotated(withOptional: Player.customTeam.select(.allColumns(excluding: ["name"])))
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 2)
+        XCTAssertEqual(rows[0], ["id":1, "teamId":1, "name":"Arthur", "id":1])
+        XCTAssertEqual(rows[1], ["id":2, "teamId":nil, "name":"Barbara", "id":nil])
     }
     
     func testCustomPluralScopeIncludingRequired() throws {

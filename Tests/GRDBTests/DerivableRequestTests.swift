@@ -174,11 +174,11 @@ class DerivableRequestTests: GRDBTestCase {
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
             try db.create(view: "authorView", as: Author.select(
-                AllColumns(),
+                .allColumns,
                 [Column("firstName"), Column("lastName")]
                     .joined(operator: .concat)
                     .forKey("fullName")))
-                          
+            
             // ... for one table
             clearSQLQueries()
             let authorNames = try Author.all()
@@ -221,7 +221,7 @@ class DerivableRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, """
                 SELECT * FROM "author" ORDER BY "id"
                 """)
-
+            
             clearSQLQueries()
             _ /* stableOrderAuthors */ = try Author.all()
                 .orderByFullName()
@@ -267,7 +267,7 @@ class DerivableRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, """
                 SELECT * FROM "authorView" ORDER BY 1, 2, 3, 4, 5
                 """)
-
+            
             clearSQLQueries()
             _ /* stableOrderAuthorViews */ = try Table("authorView").all()
                 .order(Column("fullName"))

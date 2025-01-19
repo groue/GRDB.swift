@@ -71,6 +71,32 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             XCTAssertEqual(try Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: [] as [String])).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: [] as [String])).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["name"])).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["name"])).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"id\", \"age\" FROM \"readers\")")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["id", "name"])).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["id", "name"])).distinct().fetchCount(db), 0)
+            // This test tests for a missed optimization, because
+            // SELECT COUNT(DISTINCT age) FROM readers would be correct as well.
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"age\" FROM \"readers\")")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["unknown"])).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(try Reader.select(.allColumns(excluding: ["unknown"])).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
         }
     }
 

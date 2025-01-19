@@ -153,15 +153,50 @@ final class SQLGenerationContext {
         return nil
     }
     
-    func columnCount(in tableName: String) throws -> Int {
+    /// Return the number of columns in the table or CTE identified
+    /// by `tableName`.
+    ///
+    /// - parameter tableName: The table name.
+    /// - parameter excludedColumns: The eventual set of excluded columns.
+    func columnCount(
+        in tableName: String,
+        excluding excludedColumns: Set<CaseInsensitiveIdentifier>
+    ) throws -> Int {
         if let cte = ownCTEs[tableName.lowercased()] {
-            return try cte.columnCount(db)
+            if excludedColumns.isEmpty {
+                return try cte.columnCount(db)
+            } else {
+                fatalError("Not implemented: counting CTE columns with excluded columns")
+            }
         }
         switch parent {
         case let .context(context):
-            return try context.columnCount(in: tableName)
+            return try context.columnCount(in: tableName, excluding: excludedColumns)
         case let .none(db: db, argumentsSink: _):
-            return try db.columns(in: tableName).count
+            if excludedColumns.isEmpty {
+                return try db.columns(in: tableName).count
+            } else {
+                return try db
+                    .columns(in: tableName)
+                    .filter { !excludedColumns.contains(CaseInsensitiveIdentifier(rawValue: $0.name)) }
+                    .count
+            }
+        }
+    }
+    
+    /// Return the names of the columns in the table or CTE identified
+    /// by `tableName`.
+    ///
+    /// - parameter tableName: The table name.
+    func columnNames(in tableName: String) throws -> [String] {
+        if ownCTEs[tableName.lowercased()] != nil {
+            fatalError("Not implemented: extracing CTE column names")
+        }
+        switch parent {
+        case let .context(context):
+            return try context.columnNames(in: tableName)
+        case let .none(db: db, argumentsSink: _):
+            return try db.columns(in: tableName).map(\.name)
         }
     }
 }

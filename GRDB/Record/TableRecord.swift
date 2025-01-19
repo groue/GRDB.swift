@@ -134,8 +134,9 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
+    ///     // This is the default
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [AllColumns()]
+    ///         [.allColumns]
     ///     }
     /// }
     ///
@@ -146,11 +147,20 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
+    /// struct Team: TableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["generatedColumn"])]
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// try Player.fetchAll(db)
     ///
     /// // SELECT id, name FROM player
     /// try PartialPlayer.fetchAll(db)
+    ///
+    /// // SELECT id, name, color FROM team
+    /// try Team.fetchAll(db)
     /// ```
     ///
     /// > Important: Make sure the `databaseSelection` property is
@@ -168,7 +178,7 @@ public protocol TableRecord {
     /// > // concurrency-safe because non-'Sendable' type
     /// > // '[any SQLSelectable]' may have shared
     /// > // mutable state.
-    /// > static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    /// > static let databaseSelection: [any SQLSelectable] = [.allColumns]
     /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
 }
@@ -215,9 +225,9 @@ extension TableRecord {
         defaultDatabaseTableName
     }
     
-    /// The default selection is all columns: `[AllColumns()]`.
+    /// The default selection is all columns: `[.allColumns]`.
     public static var databaseSelection: [any SQLSelectable] {
-        [AllColumns()]
+        [.allColumns]
     }
 }
 

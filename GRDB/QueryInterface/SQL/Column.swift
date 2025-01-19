@@ -61,6 +61,13 @@ extension ColumnExpression {
 
 extension ColumnExpression where Self == Column {
     /// The hidden rowID column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT rowid FROM player
+    /// let rowids = try Player.select(.rowID).fetchSet(db)
+    /// ```
     public static var rowID: Self { Column.rowID }
 }
 

@@ -1802,7 +1802,7 @@ extension MutablePersistableRecordTests {
         try dbQueue.inDatabase { db in
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
-                _ = try player.updateAndFetch(db, selection: [AllColumns()]) { statement in
+                _ = try player.updateAndFetch(db, selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTFail("Expected RecordError")
@@ -1813,7 +1813,7 @@ extension MutablePersistableRecordTests {
             player.score = 0
 
             do {
-                let row = try player.updateAndFetch(db, selection: [AllColumns()]) { statement in
+                let row = try player.updateAndFetch(db, selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTAssertEqual(row, ["id": 1, "name": "Barbara", "score": 0])
@@ -1856,7 +1856,7 @@ extension MutablePersistableRecordTests {
         try dbQueue.inDatabase { db in
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
-                _ = try player.updateAndFetch(db, columns: [Column("score")], selection: [AllColumns()]) { statement in
+                _ = try player.updateAndFetch(db, columns: [Column("score")], selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTFail("Expected RecordError")
@@ -1867,7 +1867,7 @@ extension MutablePersistableRecordTests {
             player.score = 0
 
             do {
-                let row = try player.updateAndFetch(db, columns: [Column("score")], selection: [AllColumns()]) { statement in
+                let row = try player.updateAndFetch(db, columns: [Column("score")], selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 0])
@@ -2032,7 +2032,7 @@ extension MutablePersistableRecordTests {
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
                 _ = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
+                    db, selection: [.allColumns],
                     fetch: { statement in try Row.fetchOne(statement) },
                     modify: { $0.name = "Barbara" })
                 XCTFail("Expected RecordError")
@@ -2043,7 +2043,7 @@ extension MutablePersistableRecordTests {
             do {
                 // Update with no change
                 let update = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
+                    db, selection: [.allColumns],
                     fetch: { statement in
                         XCTFail("Should not be called")
                         return "ignored"
@@ -2054,7 +2054,7 @@ extension MutablePersistableRecordTests {
             
             do {
                 let updatedRow = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
+                    db, selection: [.allColumns],
                     fetch: { statement in try Row.fetchOne(statement) },
                     modify: { $0.name = "Craig" })
                 XCTAssertEqual(updatedRow, ["id": 1, "name": "Craig", "score": 1000])

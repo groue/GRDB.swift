@@ -370,6 +370,32 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html>
     ///
     /// - parameters:
@@ -406,6 +432,32 @@ public final class ColumnDefinition {
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
     ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// }
+    /// ```
+    ///
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
     /// }
     /// ```
     ///
@@ -447,6 +499,32 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html>
     ///
     /// - parameters:
@@ -484,6 +562,32 @@ public final class ColumnDefinition {
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
     ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// }
+    /// ```
+    ///
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
     /// }
     /// ```
     ///
