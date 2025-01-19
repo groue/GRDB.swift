@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// An SQL expression.
 ///
 /// `SQLExpression` is an opaque representation of an SQL expression.
