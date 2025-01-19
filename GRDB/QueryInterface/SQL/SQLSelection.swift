@@ -440,7 +440,7 @@ extension SQLSelectable where Self == AllColumns {
 /// ```swift
 /// struct Player: TableRecord {
 ///     static var databaseSelection: [any SQLSelectable] {
-///         [.allColumns(excluding: ["computedColumn"])]
+///         [.allColumns(excluding: ["generatedColumn"])]
 ///     }
 /// }
 ///
@@ -471,7 +471,7 @@ extension SQLSelectable where Self == AllColumnsExcluding {
     /// ```swift
     /// struct Player: TableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [.allColumns(excluding: ["computedColumn"])]
+    ///         [.allColumns(excluding: ["generatedColumn"])]
     ///     }
     /// }
     ///
@@ -489,7 +489,7 @@ extension SQLSelectable where Self == AllColumnsExcluding {
     /// ```swift
     /// struct Player: TableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [.allColumns(excluding: [Column("computedColumn")])]
+    ///         [.allColumns(excluding: [Column("generatedColumn")])]
     ///     }
     /// }
     ///

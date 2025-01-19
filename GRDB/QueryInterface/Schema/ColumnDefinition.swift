@@ -370,6 +370,29 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
+    /// When you want to ignore generated columns in record types, instruct
+    /// GRDB not to select them:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html>
     ///
     /// - parameters:
@@ -406,6 +429,29 @@ public final class ColumnDefinition {
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
     ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// }
+    /// ```
+    ///
+    /// When you want to ignore generated columns in record types, instruct
+    /// GRDB not to select them:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
     /// }
     /// ```
     ///
@@ -447,6 +493,29 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
+    /// When you want to ignore generated columns in record types, instruct
+    /// GRDB not to select them:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://sqlite.org/gencol.html>
     ///
     /// - parameters:
@@ -484,6 +553,29 @@ public final class ColumnDefinition {
     ///     t.column("score", .integer).notNull()
     ///     t.column("bonus", .integer).notNull()
     ///     t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
+    /// }
+    /// ```
+    ///
+    /// When you want to ignore generated columns in record types, instruct
+    /// GRDB not to select them:
+    ///
+    /// ```swift
+    /// struct Player: Codable {
+    ///     // No property for `totalScore`
+    ///     var id: Int64
+    ///     var score: Int
+    ///     var bonus: Int
+    /// }
+    ///
+    /// extension Player: FetchableRecord, PersistableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["totalScore"])]
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score, bonus FROM player
+    /// let players = try dbQueue.read { db in
+    ///     try Player.fetchAll(db)
     /// }
     /// ```
     ///

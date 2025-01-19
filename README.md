@@ -3604,21 +3604,41 @@ let request = Player.select(max(Column("score")), as: Int.self)
 let maxScore = try request.fetchOne(db)      // Int?
 ```
 
-The default selection for a record type is controlled by the `databaseSelection` property:
+The default selection for a record type is controlled by the `databaseSelection` property. For example:
 
 ```swift
+// Select a limited set of columns
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static var databaseSelection: [any SQLSelectable] { [Column("id"), Column("name")] }
-}
-
-struct ExtendedPlayer : TableRecord {
-    static let databaseTableName = "player"
-    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
+    static var databaseSelection: [any SQLSelectable] {
+        [Column("id"), Column("name")]
+    }
 }
 
 // SELECT id, name FROM player
 let request = RestrictedPlayer.all()
+```
+
+```swift
+// Select all but a few columns
+struct Player : TableRecord {
+    static var databaseSelection: [any SQLSelectable] { 
+        [.allColumns(excluding: ["generatedColumn"])]
+    }
+}
+
+// SELECT id, name FROM player
+let request = RestrictedPlayer.all()
+```
+
+```swift
+// Select all columns are more
+struct ExtendedPlayer : TableRecord {
+    static let databaseTableName = "player"
+    static var databaseSelection: [any SQLSelectable] {
+        [.allColumns, .rowID]
+    }
+}
 
 // SELECT *, rowid FROM player
 let request = ExtendedPlayer.all()

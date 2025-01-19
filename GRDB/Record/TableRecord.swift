@@ -134,6 +134,7 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
+    ///     // This is the default
     ///     static var databaseSelection: [any SQLSelectable] {
     ///         [.allColumns]
     ///     }
@@ -146,11 +147,20 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
+    /// struct Team: TableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["generatedColumn"])]
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// try Player.fetchAll(db)
     ///
     /// // SELECT id, name FROM player
     /// try PartialPlayer.fetchAll(db)
+    ///
+    /// // SELECT id, name, color FROM team
+    /// try Team.fetchAll(db)
     /// ```
     ///
     /// > Important: Make sure the `databaseSelection` property is
