@@ -44,6 +44,12 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.select([Column("id"), Column("name")]), """
                     SELECT "id", "name" FROM "player"
                     """)
+                try assertEqualSQL(db, t.select(.allColumns), """
+                    SELECT * FROM "player"
+                    """)
+                try assertEqualSQL(db, t.select(.allColumns(excluding: ["name"])), """
+                    SELECT "id" FROM "player"
+                    """)
                 try assertEqualSQL(db, t.select(sql: "id, ?", arguments: ["O'Brien"]), """
                     SELECT id, 'O''Brien' FROM "player"
                     """)
