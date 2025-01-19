@@ -126,41 +126,6 @@ extension SQLSelection {
         }
     }
     
-    /// Returns the SQL that feeds the argument of the `COUNT` function.
-    ///
-    /// For example:
-    ///
-    ///     COUNT(*)
-    ///     COUNT(id)
-    ///           ^---- countedSQL
-    ///
-    /// - parameter context: An SQL generation context which accepts
-    ///   statement arguments.
-    func countedSQL(_ context: SQLGenerationContext) throws -> String {
-        switch impl {
-        case .allColumns:
-            return "*"
-            
-        case let .qualifiedAllColumns(alias):
-            if context.qualifier(for: alias) != nil {
-                // SELECT COUNT(t.*) is invalid SQL
-                fatalError("Not implemented, or invalid query")
-            }
-            return "*"
-            
-        case let .expression(expression),
-             let .aliasedExpression(expression, _):
-            return try expression.sql(context)
-            
-        case .literal:
-            fatalError("""
-                Selection literals can't be counted. \
-                To resolve this error, select one or several literal expressions instead. \
-                See SQL.sqlExpression.
-                """)
-        }
-    }
-    
     /// Returns the SQL that feeds the selection of a `SELECT` statement.
     ///
     /// For example:
