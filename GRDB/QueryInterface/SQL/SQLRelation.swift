@@ -636,7 +636,7 @@ extension SQLRelation {
             }
             
             // <https://github.com/groue/GRDB.swift/issues/1357>
-            guard selection.allSatisfy(\.isTriviallyCountable) else {
+            if selection.contains(where: \.requiresTrivialCount) {
                 return try fetchTrivialCount(db)
             }
             

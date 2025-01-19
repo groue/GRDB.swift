@@ -103,7 +103,7 @@ class TableRecordTests: GRDBTestCase {
     func testExtendedDatabaseSelection() throws {
         struct Record: TableRecord {
             static let databaseTableName = "t1"
-            static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
+            static var databaseSelection: [any SQLSelectable] { [.allColumns, .rowID] }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -118,6 +118,21 @@ class TableRecordTests: GRDBTestCase {
             static let databaseTableName = "t1"
             static var databaseSelection: [any SQLSelectable] {
                 [Column("a"), Column("b")]
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t1(a,b,c)")
+            _ = try Row.fetchAll(db, Record.all())
+            XCTAssertEqual(lastSQLQuery, "SELECT \"a\", \"b\" FROM \"t1\"")
+        }
+    }
+    
+    func testRestrictedDatabaseSelectionWithAllColumnsExcluding() throws {
+        struct Record: TableRecord {
+            static let databaseTableName = "t1"
+            static var databaseSelection: [any SQLSelectable] {
+                [.allColumns(excluding: ["C"])]
             }
         }
         let dbQueue = try makeDatabaseQueue()

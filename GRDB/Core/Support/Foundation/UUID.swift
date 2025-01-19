@@ -9,7 +9,7 @@ import SQLite3
 
 import Foundation
 
-#if !os(Linux)
+#if !os(Linux) && !os(Windows)
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID: DatabaseValueConvertible {
     /// Returns a BLOB database value containing the uuid bytes.

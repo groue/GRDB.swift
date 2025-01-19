@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: October 13, 2024 • [version 7.0.0-beta.6](https://github.com/groue/GRDB.swift/tree/v7.0.0-beta.6) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: January 19, 2025 • [version 7.0.0-beta.7](https://github.com/groue/GRDB.swift/tree/v7.0.0-beta.7) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -295,7 +295,7 @@ Documentation
 #### Records and the Query Interface
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables, indexes, etc](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables, indexes, etc](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
 
 #### Application Tools
 
@@ -441,7 +441,7 @@ Advanced topics:
 
 - [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
-- [Database Schema Introspection](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/databaseschemaintrospection)
+- [Database Schema Introspection](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschemaintrospection)
 - [Row Adapters](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
@@ -1643,14 +1643,14 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/databaseschema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema) first.
 
 To define a record type, define a type and extend it with protocols that come with focused sets of features.
 
 For example:
 
-```
-struct Player: {
+```swift
+struct Player {
     var id: Int64
     var name: String
     var score: Int
@@ -3250,7 +3250,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
-- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/databaseschema)
+- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
@@ -3604,21 +3604,41 @@ let request = Player.select(max(Column("score")), as: Int.self)
 let maxScore = try request.fetchOne(db)      // Int?
 ```
 
-The default selection for a record type is controlled by the `databaseSelection` property:
+The default selection for a record type is controlled by the `databaseSelection` property. For example:
 
 ```swift
+// Select a limited set of columns
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static var databaseSelection: [any SQLSelectable] { [Column("id"), Column("name")] }
-}
-
-struct ExtendedPlayer : TableRecord {
-    static let databaseTableName = "player"
-    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
+    static var databaseSelection: [any SQLSelectable] {
+        [Column("id"), Column("name")]
+    }
 }
 
 // SELECT id, name FROM player
 let request = RestrictedPlayer.all()
+```
+
+```swift
+// Select all but a few columns
+struct Player : TableRecord {
+    static var databaseSelection: [any SQLSelectable] { 
+        [.allColumns(excluding: ["generatedColumn"])]
+    }
+}
+
+// SELECT id, name FROM player
+let request = RestrictedPlayer.all()
+```
+
+```swift
+// Select all columns are more
+struct ExtendedPlayer : TableRecord {
+    static let databaseTableName = "player"
+    static var databaseSelection: [any SQLSelectable] {
+        [.allColumns, .rowID]
+    }
+}
 
 // SELECT *, rowid FROM player
 let request = ExtendedPlayer.all()

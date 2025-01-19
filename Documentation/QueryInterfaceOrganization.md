@@ -497,7 +497,7 @@ protocol SQLSelectable {
 SQLSelectable feeds the `select()` method of the query interface:
 
 ```swift
-Player.select(AllColumns())
+Player.select(.allColumns)
 Player.select(Column("name"), Column("score"))
 ```
 
@@ -505,7 +505,7 @@ All [SQLSpecificExpressible] values are selectable. Other selectable values are:
 
 ```swift
 // SELECT * FROM player
-Player.select(AllColumns())
+Player.select(.allColumns)
 
 // SELECT MAX(score) AS maxScore FROM player
 Player.select(max(Column("score")).forKey("maxScore"))

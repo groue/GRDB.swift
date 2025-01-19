@@ -151,7 +151,7 @@ extension Player: FetchableRecord, MutablePersistableRecord {
     // Required because the primary key
     // is the hidden rowid column.
     static var databaseSelection: [any SQLSelectable] {
-        [AllColumns(), Column.rowID]
+        [.allColumns, .rowID]
     }
 
     // Update id upon successful insertion

@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3) - [7.0.0-beta.4](#700-beta4) - [7.0.0-beta.5](#700-beta5) - [7.0.0-beta.6](#700-beta6)
+- `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3) - [7.0.0-beta.4](#700-beta4) - [7.0.0-beta.5](#700-beta5) - [7.0.0-beta.6](#700-beta6) - [7.0.0-beta.7](#700-beta7)
 
 #### 6.x Releases
 
@@ -131,6 +131,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 7.0.0-beta.7
+
+Released January 19, 2025
+
+- **New**: Select all columns from a table, but a few ones by [@groue](https://github.com/groue) in [#1700](https://github.com/groue/GRDB.swift/pull/1700)
+- **Fixed**: Fix typo in Readme.md by [@kevinlg](https://github.com/kevinlg) in [#1697](https://github.com/groue/GRDB.swift/pull/1697)
+- **New**: Bump custom SQLite to 3.47.2 by [@groue](https://github.com/groue) in [#1696](https://github.com/groue/GRDB.swift/pull/1696)
+- **Fixed**: Update LICENSE, fix copyright license year by [@JasonnnW3000](https://github.com/JasonnnW3000) in [#1695](https://github.com/groue/GRDB.swift/pull/1695)
+- **Fixed**: Core: import `ucrt` on Windows for `strcmp` by [@compnerd](https://github.com/compnerd) in [#1662](https://github.com/groue/GRDB.swift/pull/1662)
+- **Fixed**: Foundation: elide extensions on Windows to match Linux by [@compnerd](https://github.com/compnerd) in [#1661](https://github.com/groue/GRDB.swift/pull/1661)
+- **Fixed**: Docs: fixes typos "FST"->"FTS" by [@nylki](https://github.com/nylki) in [#1660](https://github.com/groue/GRDB.swift/pull/1660)
+
 ## 7.0.0-beta.6
 
 Released October 13, 2024
@@ -172,7 +184,7 @@ Released September 29, 2024
 
 [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 
-The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 

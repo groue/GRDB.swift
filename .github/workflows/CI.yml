@@ -50,7 +50,7 @@ jobs:
             name: "iOS"
           - xcode: "Xcode_16.1.app"
             runsOn: macOS-14
-            destination: "OS=18.0,name=Apple TV"
+            destination: "OS=18.1,name=Apple TV"
             name: "tvOS"
     steps:
       - uses: actions/checkout@v4

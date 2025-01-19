@@ -67,7 +67,12 @@ extension SQLInterpolation {
     ///     let player: Player = ...
     ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
     public mutating func appendInterpolation(columnsOf recordType: (some TableRecord).Type, tableAlias: String? = nil) {
-        let alias = TableAlias(name: tableAlias ?? recordType.databaseTableName)
+        // Make sure we provide the tableName, so that we can interpolate
+        // the columns of a type whose `databaseSelection` contains an
+        // instance of `AllColumnsExcluding`.
+        let alias = TableAlias(
+            tableName: recordType.databaseTableName,
+            userName: tableAlias ?? recordType.databaseTableName)
         elements.append(contentsOf: recordType.databaseSelection
                             .map { CollectionOfOne(.selection($0.sqlSelection.qualified(with: alias))) }
                             .joined(separator: CollectionOfOne(.sql(", "))))
@@ -79,7 +84,7 @@ extension SQLInterpolation {
     ///
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT \(AllColumns()) FROM player
+    ///         SELECT \(.allColumns) FROM player
     ///         """
     public mutating func appendInterpolation(_ selection: some SQLSelectable) {
         elements.append(.selection(selection.sqlSelection))
@@ -89,7 +94,7 @@ extension SQLInterpolation {
     ///
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT \(AllColumns()) FROM player
+    ///         SELECT \(.allColumns) FROM player
     ///         """
     @_disfavoredOverload
     public mutating func appendInterpolation(_ selection: (any SQLSelectable)?) {

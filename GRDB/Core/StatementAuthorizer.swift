@@ -13,6 +13,8 @@ import string_h
 import Glibc
 #elseif os(macOS) || os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
 import Darwin
+#elseif os(Windows)
+import ucrt
 #endif
 
 /// `StatementAuthorizer` provides information about compiled database

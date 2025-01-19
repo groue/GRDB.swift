@@ -309,9 +309,21 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             struct AltPlayer: TableRecord {
+                static let databaseTableName: String = "player"
                 static var databaseSelection: [any SQLSelectable] {
                     [Column("id"), Column("name")]
                 }
+            }
+            struct RestrictedPlayer: TableRecord {
+                static let databaseTableName: String = "player"
+                static var databaseSelection: [any SQLSelectable] {
+                    [.allColumns(excluding: ["name"])]
+                }
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
             }
             do {
                 let query: SQL = """
@@ -347,7 +359,7 @@ extension SQLLiteralTests {
                 
                 let (sql, arguments) = try query.build(db)
                 XCTAssertEqual(sql, """
-                    SELECT "altPlayer"."id", "altPlayer"."name"
+                    SELECT "player"."id", "player"."name"
                     FROM player
                     """)
                 XCTAssert(arguments.isEmpty)
@@ -361,6 +373,32 @@ extension SQLLiteralTests {
                 let (sql, arguments) = try query.build(db)
                 XCTAssertEqual(sql, """
                     SELECT "p"."id", "p"."name"
+                    FROM player p
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQL = """
+                    SELECT \(columnsOf: RestrictedPlayer.self)
+                    FROM player
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "player"."id", "player"."score"
+                    FROM player
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQL = """
+                    SELECT \(columnsOf: RestrictedPlayer.self, tableAlias: "p")
+                    FROM player p
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "p"."id", "p"."score"
                     FROM player p
                     """)
                 XCTAssert(arguments.isEmpty)
@@ -640,7 +678,7 @@ extension SQLLiteralTests {
     
     func testPlusOperatorWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query = query + "FROM player "
             query = query + "WHERE id = \(1)"
             
@@ -654,7 +692,7 @@ extension SQLLiteralTests {
     
     func testPlusEqualOperatorWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query += "FROM player "
             query += "WHERE id = \(1)"
             
@@ -668,7 +706,7 @@ extension SQLLiteralTests {
     
     func testAppendLiteralWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query.append(literal: "FROM player ")
             query.append(literal: "WHERE id = \(1)")
             
@@ -682,7 +720,7 @@ extension SQLLiteralTests {
     
     func testAppendRawSQLWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query.append(sql: "FROM player ")
             query.append(sql: "WHERE score > \(1000) ")
             query.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])

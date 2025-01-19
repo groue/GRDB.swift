@@ -228,7 +228,7 @@ Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non
 - The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/grdb.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
 
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide
-[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/databasesharing
-[Transaction Kinds]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/transactions#Transaction-Kinds
-[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/swiftconcurrency
-[Record]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.6/documentation/grdb/record
+[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databasesharing
+[Transaction Kinds]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/transactions#Transaction-Kinds
+[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency
+[Record]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/record

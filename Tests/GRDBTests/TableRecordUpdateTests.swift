@@ -129,11 +129,27 @@ class TableRecordUpdateTests: GRDBTestCase {
             try Player.createTable(db)
             let assignment = Columns.score.set(to: 0)
             
-            let request = Player.all()
-            let statement = try request.updateAndFetchStatement(db, [assignment], selection: [AllColumns()])
-            XCTAssertEqual(statement.sql, "UPDATE \"player\" SET \"score\" = ? RETURNING *")
-            XCTAssertEqual(statement.arguments, [0])
-            XCTAssertEqual(statement.columnNames, ["id", "name", "score", "bonus"])
+            do {
+                let request = Player.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [Column("score")])
+                XCTAssertEqual(statement.sql, "UPDATE \"player\" SET \"score\" = ? RETURNING \"score\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["score"])
+            }
+            do {
+                let request = Player.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [.allColumns])
+                XCTAssertEqual(statement.sql, "UPDATE \"player\" SET \"score\" = ? RETURNING *")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "name", "score", "bonus"])
+            }
+            do {
+                let request = Player.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [.allColumns(excluding: ["name"])])
+                XCTAssertEqual(statement.sql, "UPDATE \"player\" SET \"score\" = ? RETURNING \"id\", \"score\", \"bonus\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "score", "bonus"])
+            }
         }
     }
     
