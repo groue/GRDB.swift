@@ -309,9 +309,21 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             struct AltPlayer: TableRecord {
+                static let databaseTableName: String = "player"
                 static var databaseSelection: [any SQLSelectable] {
                     [Column("id"), Column("name")]
                 }
+            }
+            struct RestrictedPlayer: TableRecord {
+                static let databaseTableName: String = "player"
+                static var databaseSelection: [any SQLSelectable] {
+                    [.allColumns(excluding: ["name"])]
+                }
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
             }
             do {
                 let query: SQL = """
@@ -347,7 +359,7 @@ extension SQLLiteralTests {
                 
                 let (sql, arguments) = try query.build(db)
                 XCTAssertEqual(sql, """
-                    SELECT "altPlayer"."id", "altPlayer"."name"
+                    SELECT "player"."id", "player"."name"
                     FROM player
                     """)
                 XCTAssert(arguments.isEmpty)
@@ -361,6 +373,32 @@ extension SQLLiteralTests {
                 let (sql, arguments) = try query.build(db)
                 XCTAssertEqual(sql, """
                     SELECT "p"."id", "p"."name"
+                    FROM player p
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQL = """
+                    SELECT \(columnsOf: RestrictedPlayer.self)
+                    FROM player
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "player"."id", "player"."score"
+                    FROM player
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQL = """
+                    SELECT \(columnsOf: RestrictedPlayer.self, tableAlias: "p")
+                    FROM player p
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "p"."id", "p"."score"
                     FROM player p
                     """)
                 XCTAssert(arguments.isEmpty)

@@ -5,7 +5,8 @@ import GRDB
 private struct A : TableRecord {
     static let databaseTableName = "a"
     static let b = belongsTo(B.self)
-    static let restrictedB = belongsTo(RestrictedB.self)
+    static let restrictedB1 = belongsTo(RestrictedB1.self)
+    static let restrictedB2 = belongsTo(RestrictedB2.self)
     static let extendedB = belongsTo(ExtendedB.self)
 }
 
@@ -14,9 +15,14 @@ private struct B : TableRecord {
     static let databaseTableName = "b"
 }
 
-private struct RestrictedB : TableRecord {
+private struct RestrictedB1 : TableRecord {
     static let databaseTableName = "b"
     static var databaseSelection: [any SQLSelectable] { [Column("name")] }
+}
+
+private struct RestrictedB2 : TableRecord {
+    static let databaseTableName = "b"
+    static var databaseSelection: [any SQLSelectable] { [.allColumns(excluding: ["id"])] }
 }
 
 private struct ExtendedB : TableRecord {
@@ -48,7 +54,12 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                 FROM "a" \
                 JOIN "b" ON "b"."id" = "a"."bid"
                 """)
-            try assertEqualSQL(db, A.including(required: A.restrictedB), """
+            try assertEqualSQL(db, A.including(required: A.restrictedB1), """
+                SELECT "a".*, "b"."name" \
+                FROM "a" \
+                JOIN "b" ON "b"."id" = "a"."bid"
+                """)
+            try assertEqualSQL(db, A.including(required: A.restrictedB2), """
                 SELECT "a".*, "b"."name" \
                 FROM "a" \
                 JOIN "b" ON "b"."id" = "a"."bid"
@@ -89,9 +100,9 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                 let request = A
                     .aliased(aAlias)
                     .including(required: A.b
-                    .select(
-                        Column("name"),
-                        (Column("id") + aAlias[Column("id")]).forKey("foo")))
+                        .select(
+                            Column("name"),
+                            (Column("id") + aAlias[Column("id")]).forKey("foo")))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
                     FROM "a" \

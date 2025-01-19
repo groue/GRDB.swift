@@ -128,6 +128,21 @@ class TableRecordTests: GRDBTestCase {
         }
     }
     
+    func testRestrictedDatabaseSelectionWithAllColumnsExcluding() throws {
+        struct Record: TableRecord {
+            static let databaseTableName = "t1"
+            static var databaseSelection: [any SQLSelectable] {
+                [.allColumns(excluding: ["C"])]
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t1(a,b,c)")
+            _ = try Row.fetchAll(db, Record.all())
+            XCTAssertEqual(lastSQLQuery, "SELECT \"a\", \"b\" FROM \"t1\"")
+        }
+    }
+    
     func testRecordInAttachedDatabase() throws {
         #if GRDBCIPHER_USE_ENCRYPTION
         // Avoid error due to key not being provided:

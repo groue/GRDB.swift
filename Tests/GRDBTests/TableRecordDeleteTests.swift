@@ -238,10 +238,24 @@ class TableRecordDeleteTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = Person.all()
-            let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
-            XCTAssertEqual(statement.sql, "DELETE FROM \"persons\" RETURNING *")
-            XCTAssertEqual(statement.columnNames, ["id", "name", "email"])
+            do {
+                let request = Person.all()
+                let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+                XCTAssertEqual(statement.sql, "DELETE FROM \"persons\" RETURNING \"name\"")
+                XCTAssertEqual(statement.columnNames, ["name"])
+            }
+            do {
+                let request = Person.all()
+                let statement = try request.deleteAndFetchStatement(db, selection: [.allColumns])
+                XCTAssertEqual(statement.sql, "DELETE FROM \"persons\" RETURNING *")
+                XCTAssertEqual(statement.columnNames, ["id", "name", "email"])
+            }
+            do {
+                let request = Person.all()
+                let statement = try request.deleteAndFetchStatement(db, selection: [.allColumns(excluding: ["name"])])
+                XCTAssertEqual(statement.sql, "DELETE FROM \"persons\" RETURNING \"id\", \"email\"")
+                XCTAssertEqual(statement.columnNames, ["id", "email"])
+            }
         }
     }
     

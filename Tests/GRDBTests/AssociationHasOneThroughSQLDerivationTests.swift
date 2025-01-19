@@ -4,22 +4,29 @@ import GRDB
 private struct A: TableRecord {
     static let b = belongsTo(B.self)
     static let c = hasOne(C.self, through: b, using: B.c)
-    static let restrictedC = hasOne(RestrictedC.self, through: b, using: B.restrictedC)
+    static let restrictedC1 = hasOne(RestrictedC1.self, through: b, using: B.restrictedC1)
+    static let restrictedC2 = hasOne(RestrictedC2.self, through: b, using: B.restrictedC2)
     static let extendedC = hasOne(ExtendedC.self, through: b, using: B.extendedC)
 }
 
 private struct B: TableRecord {
     static let c = belongsTo(C.self)
-    static let restrictedC = belongsTo(RestrictedC.self)
+    static let restrictedC1 = belongsTo(RestrictedC1.self)
+    static let restrictedC2 = belongsTo(RestrictedC2.self)
     static let extendedC = belongsTo(ExtendedC.self)
 }
 
 private struct C: TableRecord {
 }
 
-private struct RestrictedC : TableRecord {
+private struct RestrictedC1 : TableRecord {
     static let databaseTableName = "c"
     static var databaseSelection: [any SQLSelectable] { [Column("name")] }
+}
+
+private struct RestrictedC2 : TableRecord {
+    static let databaseTableName = "c"
+    static var databaseSelection: [any SQLSelectable] { [.allColumns(excluding: ["id"])] }
 }
 
 private struct ExtendedC : TableRecord {
@@ -56,7 +63,13 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 JOIN "b" ON "b"."id" = "a"."bId" \
                 JOIN "c" ON "c"."id" = "b"."cId"
                 """)
-            try assertEqualSQL(db, A.including(required: A.restrictedC), """
+            try assertEqualSQL(db, A.including(required: A.restrictedC1), """
+                SELECT "a".*, "c"."name" \
+                FROM "a" \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId"
+                """)
+            try assertEqualSQL(db, A.including(required: A.restrictedC2), """
                 SELECT "a".*, "c"."name" \
                 FROM "a" \
                 JOIN "b" ON "b"."id" = "a"."bId" \
