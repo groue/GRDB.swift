@@ -245,15 +245,25 @@ extension SQLSelection {
         }
     }
     
+    /// Returns whether this selection MUST be counted with a "trivial"
+    /// count: `SELECT COUNT(*) FROM (SELECT ...)`.
+    ///
     /// Supports SQLRelation.fetchCount.
     ///
     /// See <https://github.com/groue/GRDB.swift/issues/1357>
-    var isTriviallyCountable: Bool {
+    var requiresTrivialCount: Bool {
         switch impl {
         case .aliasedExpression, .literal:
-            return false
-        case .allColumns, .qualifiedAllColumns, .expression:
+            // Trivial count is required.
+            //
+            // For example, the WHERE clause here requires the aliased
+            // column to be preserved in the counting request:
+            // SELECT *, column AS alt FROM player WHERE alt
             return true
+        case .allColumns, .qualifiedAllColumns:
+            return false
+        case .expression:
+            return false
         }
     }
 }
