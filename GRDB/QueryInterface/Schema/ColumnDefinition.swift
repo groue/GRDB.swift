@@ -370,8 +370,8 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
-    /// When you want to ignore generated columns in record types, instruct
-    /// GRDB not to select them:
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
     ///
     /// ```swift
     /// struct Player: Codable {
@@ -383,6 +383,9 @@ public final class ColumnDefinition {
     ///
     /// extension Player: FetchableRecord, PersistableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
     ///         [.allColumns(excluding: ["totalScore"])]
     ///     }
     /// }
@@ -432,8 +435,8 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
-    /// When you want to ignore generated columns in record types, instruct
-    /// GRDB not to select them:
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
     ///
     /// ```swift
     /// struct Player: Codable {
@@ -445,6 +448,9 @@ public final class ColumnDefinition {
     ///
     /// extension Player: FetchableRecord, PersistableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
     ///         [.allColumns(excluding: ["totalScore"])]
     ///     }
     /// }
@@ -493,8 +499,8 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
-    /// When you want to ignore generated columns in record types, instruct
-    /// GRDB not to select them:
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
     ///
     /// ```swift
     /// struct Player: Codable {
@@ -506,6 +512,9 @@ public final class ColumnDefinition {
     ///
     /// extension Player: FetchableRecord, PersistableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
     ///         [.allColumns(excluding: ["totalScore"])]
     ///     }
     /// }
@@ -556,8 +565,8 @@ public final class ColumnDefinition {
     /// }
     /// ```
     ///
-    /// When you want to ignore generated columns in record types, instruct
-    /// GRDB not to select them:
+    /// To remove the generated columns from the selection of record types,
+    /// define their `databaseSelection`:
     ///
     /// ```swift
     /// struct Player: Codable {
@@ -569,6 +578,9 @@ public final class ColumnDefinition {
     ///
     /// extension Player: FetchableRecord, PersistableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
+    ///         // Option 1
+    ///         [Column("id"), Column("score"), Column("bonus")]
+    ///         // Option 2
     ///         [.allColumns(excluding: ["totalScore"])]
     ///     }
     /// }
