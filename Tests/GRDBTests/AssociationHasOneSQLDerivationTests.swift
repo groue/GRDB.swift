@@ -21,7 +21,7 @@ private struct RestrictedB : TableRecord {
 
 private struct ExtendedB : TableRecord {
     static let databaseTableName = "b"
-    static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
+    static var databaseSelection: [any SQLSelectable] { [.allColumns, .rowID] }
 }
 
 /// Test SQL generation
@@ -76,8 +76,8 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
             do {
                 let request = A.including(required: A.b
                     .select(
-                        AllColumns(),
-                        Column.rowID))
+                        .allColumns,
+                        .rowID))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".*, "b"."rowid" \
                     FROM "a" \

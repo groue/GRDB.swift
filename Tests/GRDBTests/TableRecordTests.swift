@@ -103,7 +103,7 @@ class TableRecordTests: GRDBTestCase {
     func testExtendedDatabaseSelection() throws {
         struct Record: TableRecord {
             static let databaseTableName = "t1"
-            static var databaseSelection: [any SQLSelectable] { [AllColumns(), Column.rowID] }
+            static var databaseSelection: [any SQLSelectable] { [.allColumns, .rowID] }
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

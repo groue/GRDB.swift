@@ -479,7 +479,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             do {
                 let request = Player.including(required: Player.team)
-                let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
+                let statement = try request.deleteAndFetchStatement(db, selection: [.allColumns])
                 XCTAssertEqual(statement.sql, """
                     DELETE FROM "player" WHERE "id" IN (\
                     SELECT "player"."id" \
@@ -511,7 +511,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             }
             do {
                 let request = Team.having(Team.players.isEmpty)
-                let statement = try request.deleteAndFetchStatement(db, selection: [AllColumns()])
+                let statement = try request.deleteAndFetchStatement(db, selection: [.allColumns])
                 XCTAssertEqual(statement.sql, """
                     DELETE FROM "team" WHERE "id" IN (\
                     SELECT "team"."id" \

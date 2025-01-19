@@ -640,7 +640,7 @@ extension SQLLiteralTests {
     
     func testPlusOperatorWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query = query + "FROM player "
             query = query + "WHERE id = \(1)"
             
@@ -654,7 +654,7 @@ extension SQLLiteralTests {
     
     func testPlusEqualOperatorWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query += "FROM player "
             query += "WHERE id = \(1)"
             
@@ -668,7 +668,7 @@ extension SQLLiteralTests {
     
     func testAppendLiteralWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query.append(literal: "FROM player ")
             query.append(literal: "WHERE id = \(1)")
             
@@ -682,7 +682,7 @@ extension SQLLiteralTests {
     
     func testAppendRawSQLWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            var query: SQL = "SELECT \(AllColumns()) "
+            var query: SQL = "SELECT \(.allColumns) "
             query.append(sql: "FROM player ")
             query.append(sql: "WHERE score > \(1000) ")
             query.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
