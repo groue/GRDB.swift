@@ -131,6 +131,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: Select all columns from a table, but a few ones by [@groue](https://github.com/groue) in [#1700](https://github.com/groue/GRDB.swift/pull/1700)
+- **Fixed**: Fix typo in Readme.md by [@kevinlg](https://github.com/kevinlg) in [#1697](https://github.com/groue/GRDB.swift/pull/1697)
+- **New**: Bump custom SQLite to 3.47.2 by [@groue](https://github.com/groue) in [#1696](https://github.com/groue/GRDB.swift/pull/1696)
+- **Fixed**: Update LICENSE, fix copyright license year by [@JasonnnW3000](https://github.com/JasonnnW3000) in [#1695](https://github.com/groue/GRDB.swift/pull/1695)
+- **Fixed**: Core: import `ucrt` on Windows for `strcmp` by [@compnerd](https://github.com/compnerd) in [#1662](https://github.com/groue/GRDB.swift/pull/1662)
+- **Fixed**: Foundation: elide extensions on Windows to match Linux by [@compnerd](https://github.com/compnerd) in [#1661](https://github.com/groue/GRDB.swift/pull/1661)
+- **Fixed**: Docs: fixes typos "FST"->"FTS" by [@nylki](https://github.com/nylki) in [#1660](https://github.com/groue/GRDB.swift/pull/1660)
+
 ## 7.0.0-beta.6
 
 Released October 13, 2024
