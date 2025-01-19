@@ -135,7 +135,7 @@ public protocol TableRecord {
     /// ```swift
     /// struct Player: TableRecord {
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [AllColumns()]
+    ///         [.allColumns]
     ///     }
     /// }
     ///
@@ -168,7 +168,7 @@ public protocol TableRecord {
     /// > // concurrency-safe because non-'Sendable' type
     /// > // '[any SQLSelectable]' may have shared
     /// > // mutable state.
-    /// > static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    /// > static let databaseSelection: [any SQLSelectable] = [.allColumns]
     /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
 }
@@ -215,9 +215,9 @@ extension TableRecord {
         defaultDatabaseTableName
     }
     
-    /// The default selection is all columns: `[AllColumns()]`.
+    /// The default selection is all columns: `[.allColumns]`.
     public static var databaseSelection: [any SQLSelectable] {
-        [AllColumns()]
+        [.allColumns]
     }
 }
 

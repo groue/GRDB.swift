@@ -107,7 +107,7 @@ open class Record {
     /// try PartialPlayer.fetchAll(db)
     /// ```
     open class var databaseSelection: [any SQLSelectable] {
-        [AllColumns()]
+        [.allColumns]
     }
     
     /// Encodes the record into the provided persistence container.

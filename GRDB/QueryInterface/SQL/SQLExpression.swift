@@ -2136,7 +2136,14 @@ public protocol SQLExpressible {
 }
 
 extension SQLExpressible where Self == Column {
-    /// The hidden rowID column
+    /// The hidden rowID column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT rowid FROM player
+    /// let rowids = try Player.select(.rowID).fetchSet(db)
+    /// ```
     public static var rowID: Self { Column.rowID }
 }
 

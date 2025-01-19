@@ -249,12 +249,17 @@ final class DAO<Record: MutablePersistableRecord> {
             statement.setUncheckedArguments(arguments)
             return statement
         } else {
-            let context = SQLGenerationContext(db)
+            // Generate the RETURNING clause by turning selection into SQL.
+            // Make sure the selection is qualified with a table alias, so
+            // that selectables such as `.allColumns(excluding:)` can query
+            // the database about the database table.
+            let alias = TableAlias(tableName: databaseTableName)
+            let context = SQLGenerationContext(db, aliases: [alias])
             var sql = sql
             var arguments = arguments
             sql += " RETURNING "
             sql += try selection
-                .map { try $0.sqlSelection.sql(context) }
+                .map { try $0.sqlSelection.qualified(with: alias).sql(context) }
                 .joined(separator: ", ")
             arguments += context.arguments
             let statement = try db.internalCachedStatement(sql: sql)
