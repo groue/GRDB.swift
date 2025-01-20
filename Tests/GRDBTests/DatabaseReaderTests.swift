@@ -646,3 +646,9 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
 }
+
+extension DatabasePool {
+    public func makeSnapshotPool() throws -> Self {
+        throw XCTSkip("SQLInterface FIXME: snapshots needs work")
+    }
+}

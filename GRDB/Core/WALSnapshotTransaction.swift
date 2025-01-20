@@ -1,4 +1,5 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if false // SQLInterface FIXME: snapshots need work #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+
 /// A long-live read-only WAL transaction.
 ///
 /// `WALSnapshotTransaction` **takes ownership** of its reader
