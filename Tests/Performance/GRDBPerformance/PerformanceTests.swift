@@ -9,16 +9,16 @@ import RealmSwift
 // MARK:- SQLite
 
 let itemTable = Table("item")
-let i0Column = Expression<Int>("i0")
-let i1Column = Expression<Int>("i1")
-let i2Column = Expression<Int>("i2")
-let i3Column = Expression<Int>("i3")
-let i4Column = Expression<Int>("i4")
-let i5Column = Expression<Int>("i5")
-let i6Column = Expression<Int>("i6")
-let i7Column = Expression<Int>("i7")
-let i8Column = Expression<Int>("i8")
-let i9Column = Expression<Int>("i9")
+let i0Column = SQLite.Expression<Int>("i0")
+let i1Column = SQLite.Expression<Int>("i1")
+let i2Column = SQLite.Expression<Int>("i2")
+let i3Column = SQLite.Expression<Int>("i3")
+let i4Column = SQLite.Expression<Int>("i4")
+let i5Column = SQLite.Expression<Int>("i5")
+let i6Column = SQLite.Expression<Int>("i6")
+let i7Column = SQLite.Expression<Int>("i7")
+let i8Column = SQLite.Expression<Int>("i8")
+let i9Column = SQLite.Expression<Int>("i9")
 
 
 // MARK: - Realm
