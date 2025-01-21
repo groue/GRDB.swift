@@ -21,7 +21,7 @@
 
 **Contact**:
 
-- Release announcements and usage tips: follow [@groue](http://twitter.com/groue) on Twitter, [@groue@hachyderm.io](https://hachyderm.io/@groue) on Mastodon.
+- Release announcements and usage tips: follow [@groue@hachyderm.io](https://hachyderm.io/@groue) on Mastodon.
 - Report bugs in a [Github issue](https://github.com/groue/GRDB.swift/issues/new). Make sure you check the [existing issues](https://github.com/groue/GRDB.swift/issues?q=is%3Aopen) first.
 - A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GitHub discussions](https://github.com/groue/GRDB.swift/discussions), or the [GRDB forums](https://forums.swift.org/c/related-projects/grdb).
 
