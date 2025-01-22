@@ -10,6 +10,7 @@ Migrating From GRDB 6 to GRDB 7
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
 - [Default Transaction Kind](#default-transaction-kind)
+- [Associations to record types named Bias, Focus, Gas, and Lens](#associations-to-record-types-named-bias-focus-gas-and-lens)
 - [ValueObservation and the Main Actor](#valueobservation-and-the-main-actor)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
 - [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
@@ -95,6 +96,53 @@ try await task.value
 ```
 
 Other asynchronous database accesses, such as methods accepting a completion blocks (`asyncRead`, etc.), Combine publishers, RxSwift observables, do not handle cancellation and will proceed to completion by default.
+
+## Associations to record types named Bias, Focus, Gas, and Lens
+
+GRDB 7 has fixed its singularization and pluralization rules for database tables named "bias", "focus", "gas", and "lens".
+
+If your application uses associations to those tables, you can now rely on proper pluralization and singularization.
+
+With GRDB 7, you can remove custom association keys:
+
+```swift
+struct Camera: TableRecord {
+    // GRDB 6: fix incorrect GRDB pluralization
+    static let lenses = hasMany(Lens.self).forKey("lenses")
+    // GRDB 7
+    static let lenses = hasMany(Lens.self)
+}
+```
+
+If your application was not defining custom association keys in order to fix the wrong pluralization, then it may define types that will no longer work:
+
+```swift
+// Works in GRDB 6, breaks in GRDB 7
+struct CameraWithLenses: Decodable, FetchableRecord {
+    var camera: Camera
+    var lens: [Lens] // <- incorrect pluralization
+}
+let results = Camera
+    .including(all: Camera.lenses)
+    .asRequest(of: CameraWithLenses.self)
+    .fetchAll(db)
+```
+
+There are two possible solutions. One is to fix those types, the other is to keep on using the wrong pluralization (it's your call):
+
+```swift
+// GRDB 7, alternative 1
+struct CameraWithLenses: Decodable, FetchableRecord {
+    var camera: Camera
+    var lenses: [Lens] // <- fixed pluralization
+}
+
+// GRDB 7, alternative 2
+struct Camera: TableRecord {
+    // Use "lens" instead of "lenses" for GRDB 6 compatibility.
+    static let lenses = hasMany(Lens.self).forKey("lens")
+}
+``` 
 
 ## Default Transaction Kind
 
