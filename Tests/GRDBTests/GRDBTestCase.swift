@@ -7,6 +7,11 @@ import SQLCipher
 import SQLite3
 #endif
 
+
+#if !GRDB_SQLITE_INLINE
+extension GRDBTestCase : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+#endif
+
 import Foundation
 import XCTest
 @testable import GRDB
@@ -107,10 +112,10 @@ class GRDBTestCase: XCTestCase {
             // - sqlite3_next_stmt https://www.sqlite.org/capi3ref.html#sqlite3_next_stmt
             // - sqlite3_stmt_busy https://www.sqlite.org/capi3ref.html#sqlite3_stmt_busy
             // - sqlite3_stmt_readonly https://www.sqlite.org/capi3ref.html#sqlite3_stmt_readonly
-            var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
+            var stmt: SQLiteStatement? = SQLite3.sqlite3_next_stmt(sqliteConnection, nil)
             while stmt != nil {
-                XCTAssertTrue(sqlite3_stmt_readonly(stmt) != 0 || sqlite3_stmt_busy(stmt) == 0)
-                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                XCTAssertTrue(SQLite3.sqlite3_stmt_readonly(stmt) != 0 || SQLite3.sqlite3_stmt_busy(stmt) == 0)
+                stmt = SQLite3.sqlite3_next_stmt(sqliteConnection, stmt)
             }
         }
         

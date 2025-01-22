@@ -10,6 +10,10 @@ import SQLite3
 import XCTest
 import GRDB
 
+#if !GRDB_SQLITE_INLINE
+extension Fetched : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+#endif
+
 // A type that adopts DatabaseValueConvertible and StatementColumnConvertible
 private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible, Hashable {
     let int: Int
@@ -21,7 +25,7 @@ private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible, Ha
     }
     
     init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self.init(int: Int(sqlite3_column_int64(sqliteStatement, index)), fast: true)
+        self.init(int: Int(SQLite3.sqlite3_column_int64(sqliteStatement, index)), fast: true)
     }
     
     var databaseValue: DatabaseValue { int.databaseValue }

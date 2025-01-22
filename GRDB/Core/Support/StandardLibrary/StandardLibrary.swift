@@ -18,7 +18,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = sqlite3_column_int64(sqliteStatement, index) != 0
+        self = SQLite3.sqlite3_column_int64(sqliteStatement, index) != 0
     }
     
     /// Returns an INTEGER database value.
@@ -115,7 +115,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int(exactly: int64) else { return nil }
         self = v
     }
@@ -154,7 +154,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int8(exactly: int64) else { return nil }
         self = v
     }
@@ -193,7 +193,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int16(exactly: int64) else { return nil }
         self = v
     }
@@ -232,7 +232,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int32(exactly: int64) else { return nil }
         self = v
     }
@@ -269,7 +269,7 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = sqlite3_column_int64(sqliteStatement, index)
+        self = SQLite3.sqlite3_column_int64(sqliteStatement, index)
     }
     
     /// Returns an INTEGER database value.
@@ -314,7 +314,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt(exactly: int64) else { return nil }
         self = v
     }
@@ -353,7 +353,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt8(exactly: int64) else { return nil }
         self = v
     }
@@ -392,7 +392,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt16(exactly: int64) else { return nil }
         self = v
     }
@@ -431,7 +431,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt32(exactly: int64) else { return nil }
         self = v
     }
@@ -470,7 +470,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        let int64 = SQLite3.sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt64(exactly: int64) else { return nil }
         self = v
     }
@@ -507,7 +507,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = sqlite3_column_double(sqliteStatement, index)
+        self = SQLite3.sqlite3_column_double(sqliteStatement, index)
     }
     
     /// Returns a REAL database value.
@@ -547,7 +547,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = Float(sqlite3_column_double(sqliteStatement, index))
+        self = Float(SQLite3.sqlite3_column_double(sqliteStatement, index))
     }
     
     /// Returns a REAL database value.
@@ -587,7 +587,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
+        self = String(cString: SQLite3.sqlite3_column_text(sqliteStatement, index)!)
     }
     
     /// Returns a TEXT database value.

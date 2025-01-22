@@ -159,7 +159,7 @@ class DatabasePoolTests: GRDBTestCase {
             dbConfiguration.prepareDatabase { db in
                 var flag: CInt = 1
                 let code = withUnsafeMutablePointer(to: &flag) { flagP in
-                    sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
+                    SQLite3.sqlite3_file_control(db.sqliteConnection, nil, SQLite3.SQLITE_FCNTL_PERSIST_WAL, flagP)
                 }
                 guard code == SQLITE_OK else {
                     throw DatabaseError(resultCode: ResultCode(rawValue: code))
@@ -180,7 +180,7 @@ class DatabasePoolTests: GRDBTestCase {
             dbConfiguration.prepareDatabase { db in
                 var flag: CInt = 0
                 let code = withUnsafeMutablePointer(to: &flag) { flagP in
-                    sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
+                    SQLite3.sqlite3_file_control(db.sqliteConnection, nil, SQLite3.SQLITE_FCNTL_PERSIST_WAL, flagP)
                 }
                 guard code == SQLITE_OK else {
                     throw DatabaseError(resultCode: ResultCode(rawValue: code))
@@ -200,7 +200,7 @@ class DatabasePoolTests: GRDBTestCase {
         dbConfiguration.prepareDatabase { db in
             var flag: CInt = 0
             let code = withUnsafeMutablePointer(to: &flag) { flagP in
-                sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
+                SQLite3.sqlite3_file_control(db.sqliteConnection, nil, SQLite3.SQLITE_FCNTL_PERSIST_WAL, flagP)
             }
             guard code == SQLITE_OK else {
                 throw DatabaseError(resultCode: ResultCode(rawValue: code))

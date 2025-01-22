@@ -33,7 +33,7 @@ public struct FTS5Tokenization: OptionSet, Sendable {
     }
     
     /// `FTS5_TOKENIZE_QUERY`
-    public static let query = FTS5Tokenization(rawValue: FTS5_TOKENIZE_QUERY)
+    public static lazy var query = FTS5Tokenization(rawValue: FTS5_TOKENIZE_QUERY)
     
     /// `FTS5_TOKENIZE_PREFIX`
     public static let prefix = FTS5Tokenization(rawValue: FTS5_TOKENIZE_PREFIX)

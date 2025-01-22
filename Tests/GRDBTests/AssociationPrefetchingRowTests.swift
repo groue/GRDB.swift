@@ -1175,7 +1175,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 t.foreignKey(["a", "b"], references: "parent")
             }
             
-            let count = Int(sqlite3_limit(db.sqliteConnection, SQLITE_LIMIT_EXPR_DEPTH, -1))
+            let count = Int(SQLite3.sqlite3_limit(db.sqliteConnection, SQLite3.SQLITE_LIMIT_EXPR_DEPTH, -1))
             for index in 0..<count {
                 try Parent(a: index, b: 1).insert(db)
                 try Child(a: index, b: 1).insert(db)

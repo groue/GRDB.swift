@@ -79,10 +79,10 @@ extension DatabaseDateComponents: StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        guard let cString = sqlite3_column_text(sqliteStatement, index) else {
+        guard let cString = SQLite3.sqlite3_column_text(sqliteStatement, index) else {
             return nil
         }
-        let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
+        let length = Int(SQLite3.sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
         let components = cString.withMemoryRebound(
             to: CChar.self,
             capacity: length + 1 /* trailing \0 */) { cString in

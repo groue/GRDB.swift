@@ -5,7 +5,7 @@ import Foundation
 import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
-    .define("SQLITE_ENABLE_FTS5"),
+//    .define("SQLITE_ENABLE_FTS5"), // SQLInterface FIXME: add back
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
@@ -30,6 +30,9 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
 // When enabled, the GRDBSQLite dependency will use the system SQLite3
 // rather than the new GRDBSQLiteDynamic target
 let SQLiteInline = ProcessInfo.processInfo.environment["GRDB_SQLITE_INLINE"] == "1"
+if SQLiteInline {
+    swiftSettings.append(.define("GRDB_SQLITE_INLINE"))
+}
 
 let package = Package(
     name: "GRDB",

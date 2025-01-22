@@ -79,16 +79,16 @@ extension UUID: StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        switch sqlite3_column_type(sqliteStatement, index) {
+        switch SQLite3.sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_TEXT:
-            let string = String(cString: sqlite3_column_text(sqliteStatement, index)!)
+            let string = String(cString: SQLite3.sqlite3_column_text(sqliteStatement, index)!)
             guard let uuid = UUID(uuidString: string) else {
                 return nil
             }
             self.init(uuid: uuid.uuid)
         case SQLITE_BLOB:
-            guard sqlite3_column_bytes(sqliteStatement, index) == 16,
-                  let blob = sqlite3_column_blob(sqliteStatement, index) else
+            guard SQLite3.sqlite3_column_bytes(sqliteStatement, index) == 16,
+                  let blob = SQLite3.sqlite3_column_blob(sqliteStatement, index) else
             {
                 return nil
             }

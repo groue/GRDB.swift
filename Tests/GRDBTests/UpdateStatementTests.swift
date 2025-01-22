@@ -471,10 +471,10 @@ class UpdateStatementTests : GRDBTestCase {
                 
                 // Since bindings are not temporary, they are not cleared,
                 // so insert the value again.
-                sqlite3_reset(statement.sqliteStatement)
-                sqlite3_step(statement.sqliteStatement)
-                sqlite3_reset(statement.sqliteStatement)
-                
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+                SQLite3.sqlite3_step(statement.sqliteStatement)
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+
                 // Test that we have inserted the value thrice.
                 try XCTAssertEqual(
                     DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
@@ -505,10 +505,10 @@ class UpdateStatementTests : GRDBTestCase {
                 try statement.execute(arguments: [value])
                 
                 // Since bindings were temporary, and cleared, we now insert NULL
-                sqlite3_reset(statement.sqliteStatement)
-                sqlite3_step(statement.sqliteStatement)
-                sqlite3_reset(statement.sqliteStatement)
-                
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+                SQLite3.sqlite3_step(statement.sqliteStatement)
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+
                 // Test that we have inserted the value, and NULL
                 try XCTAssertEqual(
                     DatabaseValue.fetchSet(db, sql: "SELECT a FROM t"),
@@ -546,10 +546,10 @@ class UpdateStatementTests : GRDBTestCase {
                 
                 // Since bindings are not temporary, they are not cleared,
                 // so insert the value again.
-                sqlite3_reset(statement.sqliteStatement)
-                sqlite3_step(statement.sqliteStatement)
-                sqlite3_reset(statement.sqliteStatement)
-                
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+                SQLite3.sqlite3_step(statement.sqliteStatement)
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+
                 // Test that we have inserted the value twice.
                 try XCTAssertEqual(
                     DatabaseValue.fetchSet(db, sql: "SELECT a0 FROM t"),
@@ -582,9 +582,9 @@ class UpdateStatementTests : GRDBTestCase {
                 
                 // Since bindings are not temporary, they are not cleared,
                 // so insert the value again.
-                sqlite3_reset(statement.sqliteStatement)
-                sqlite3_step(statement.sqliteStatement)
-                sqlite3_reset(statement.sqliteStatement)
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
+                SQLite3.sqlite3_step(statement.sqliteStatement)
+                SQLite3.sqlite3_reset(statement.sqliteStatement)
                 
                 // Test that we have inserted the value twice.
                 try XCTAssertEqual(

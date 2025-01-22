@@ -221,7 +221,7 @@ public final class Row {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statement: statement)
-        self.count = Int(sqlite3_column_count(sqliteStatement))
+        self.count = Int(SQLite3.sqlite3_column_count(sqliteStatement))
     }
     
     /// Creates a row that maps an SQLite statement. Further calls to
@@ -230,7 +230,7 @@ public final class Row {
         self.statement = nil
         self.sqliteStatement = sqliteStatement
         self.impl = SQLiteStatementRowImpl(sqliteStatement: sqliteStatement)
-        self.count = Int(sqlite3_column_count(sqliteStatement))
+        self.count = Int(SQLite3.sqlite3_column_count(sqliteStatement))
     }
     
     /// Creates a row that contain a copy of the current state of the
@@ -2474,14 +2474,14 @@ extension ArrayRowImpl: Sendable { }
 
 // TODO: merge with ArrayRowImpl eventually?
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
-private struct StatementCopyRowImpl: RowImpl {
+/* SQLInterface FIXME: should be private*/ struct StatementCopyRowImpl: RowImpl {
     let dbValues: ContiguousArray<DatabaseValue>
     let columnNames: [String]
     
     init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
         let sqliteStatement = sqliteStatement
         self.dbValues = ContiguousArray(
-            (0..<sqlite3_column_count(sqliteStatement))
+            (0..<SQLite3.sqlite3_column_count(sqliteStatement))
                 .map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
                 as [DatabaseValue])
         self.columnNames = columnNames
@@ -2510,7 +2510,7 @@ private struct StatementCopyRowImpl: RowImpl {
 }
 
 /// See Row.init(statement:)
-private struct StatementRowImpl: RowImpl {
+/* SQLInterface FIXME: should be private*/ struct StatementRowImpl: RowImpl {
     let statement: Statement
     let sqliteStatement: SQLiteStatement
     let lowercaseColumnIndexes: [String: Int]
@@ -2519,8 +2519,8 @@ private struct StatementRowImpl: RowImpl {
         self.statement = statement
         self.sqliteStatement = sqliteStatement
         // Optimize row[columnName]
-        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement))
-            .map { String(cString: sqlite3_column_name(sqliteStatement, CInt($0))).lowercased() }
+        let lowercaseColumnNames = (0..<SQLite3.sqlite3_column_count(sqliteStatement))
+            .map { String(cString: SQLite3.sqlite3_column_name(sqliteStatement, CInt($0))).lowercased() }
         self.lowercaseColumnIndexes = Dictionary(
             lowercaseColumnNames
                 .enumerated()
@@ -2584,7 +2584,7 @@ private struct StatementRowImpl: RowImpl {
 }
 
 // This one is not optimized at all, since it is only used in fatal conversion errors, so far
-private struct SQLiteStatementRowImpl: RowImpl {
+/* SQLInterface FIXME: should be private*/ struct SQLiteStatementRowImpl: RowImpl {
     let sqliteStatement: SQLiteStatement
     var count: Int { Int(sqlite3_column_count(sqliteStatement)) }
     var isFetched: Bool { true }
