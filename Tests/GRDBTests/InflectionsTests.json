@@ -124,7 +124,25 @@
         "hero"        : "heroes",
         "foot"        : "feet",
         "matrix"      : "matrices",
-        "watch"       : "watches"
+        "watch"       : "watches",
+        "lens"        : "lenses",
+        "focus"       : "focuses",
+        "class"       : "classes",
+        "glass"       : "glasses",
+        "brush"       : "brushes",
+        "match"       : "matches",
+        "address"     : "addresses",
+        "bias"        : "biases",
+        "compass"     : "compasses",
+        "crisis"      : "crises",
+        "dress"       : "dresses",
+        "gas"         : "gases",
+        "guess"       : "guesses",
+        "kiss"        : "kisses",
+        "loss"        : "losses",
+        "pass"        : "passes",
+        "success"     : "successes",
+        "witness"     : "witnesses"
     },
     
     "Irregularities": {
