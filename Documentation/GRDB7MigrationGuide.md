@@ -101,20 +101,20 @@ Other asynchronous database accesses, such as methods accepting a completion blo
 
 GRDB 7 has fixed its singularization and pluralization rules for database tables named "bias", "focus", "gas", and "lens".
 
-If your application uses associations to those tables, you can now rely on proper pluralization and singularization.
+If your application defines associations to those tables, you can now rely on proper inflections (pluralization and singularization).
 
 With GRDB 7, you can remove custom association keys:
 
 ```swift
 struct Camera: TableRecord {
-    // GRDB 6: fix incorrect GRDB pluralization
+    // GRDB 6: fix incorrect GRDB inflection
     static let lenses = hasMany(Lens.self).forKey("lenses")
     // GRDB 7
     static let lenses = hasMany(Lens.self)
 }
 ```
 
-If your application was not defining custom association keys in order to fix the wrong pluralization, then it may define types that will no longer work:
+If your application was not specifying custom association keys in order to fix the wrong inflections, then it may define types that will no longer decode their properties as intended:
 
 ```swift
 // Works in GRDB 6, breaks in GRDB 7
@@ -128,7 +128,7 @@ let results = Camera
     .fetchAll(db)
 ```
 
-There are two possible solutions. One is to fix those types, the other is to keep on using the wrong pluralization (it's your call):
+There are two possible solutions. One is to rename properties, the other is to keep on using the wrong inflection (it's your call):
 
 ```swift
 // GRDB 7, alternative 1
@@ -142,7 +142,7 @@ struct Camera: TableRecord {
     // Use "lens" instead of "lenses" for GRDB 6 compatibility.
     static let lenses = hasMany(Lens.self).forKey("lens")
 }
-``` 
+```
 
 ## Default Transaction Kind
 
