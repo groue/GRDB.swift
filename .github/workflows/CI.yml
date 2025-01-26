@@ -73,6 +73,23 @@ jobs:
       - uses: actions/checkout@v4
       - name: ${{ matrix.name }}
         run: make test_SPM test_install_SPM
+  SPMSQLCipher:
+    name: SPM
+    runs-on: ${{ matrix.runsOn }}
+    env:
+      DEVELOPER_DIR: "/Applications/${{ matrix.xcode }}/Contents/Developer"
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_16.1.app"
+            runsOn: macOS-14
+            name: "Xcode 16.1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: ${{ matrix.name }}
+        run: GRDBCIPHER="https://github.com/skiptools/swift-sqlcipher.git#1.2.1" swift test
   SQLCipher3:
     name: SQLCipher3
     runs-on: ${{ matrix.runsOn }}
