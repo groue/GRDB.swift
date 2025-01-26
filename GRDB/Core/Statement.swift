@@ -139,7 +139,7 @@ public final class Statement {
         authorizer.reset()
         
         var sqliteStatement: SQLiteStatement? = nil
-        let code = sqlite3_prepare_v3(
+        let code = SQLite3.sqlite3_prepare_v3(
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
         

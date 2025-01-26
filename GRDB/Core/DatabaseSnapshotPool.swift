@@ -1,4 +1,4 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if false // SQLInterface FIXME: snapshots need work #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 // Import C SQLite functions
 #if SWIFT_PACKAGE
 import GRDBSQLite

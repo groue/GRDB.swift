@@ -12,8 +12,8 @@ import Foundation
 /// Data is convertible to and from DatabaseValue.
 extension Data: DatabaseValueConvertible, StatementColumnConvertible {
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        if let bytes = sqlite3_column_blob(sqliteStatement, index) {
-            let count = Int(sqlite3_column_bytes(sqliteStatement, index))
+        if let bytes = SQLite3.sqlite3_column_blob(sqliteStatement, index) {
+            let count = Int(SQLite3.sqlite3_column_bytes(sqliteStatement, index))
             self.init(bytes: bytes, count: count) // copy bytes
         } else {
             self.init()

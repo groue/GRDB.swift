@@ -134,9 +134,9 @@ extension Date: StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        switch sqlite3_column_type(sqliteStatement, index) {
+        switch SQLite3.sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER, SQLITE_FLOAT:
-            self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))
+            self.init(timeIntervalSince1970: SQLite3.sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
             guard let components = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index),
                   let date = Date(databaseDateComponents: components)

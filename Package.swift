@@ -5,7 +5,7 @@ import Foundation
 import PackageDescription
 
 var swiftSettings: [SwiftSetting] = [
-    .define("SQLITE_ENABLE_FTS5"),
+//    .define("SQLITE_ENABLE_FTS5"), // SQLInterface FIXME: add back
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
@@ -27,6 +27,13 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 
+// When enabled, the GRDBSQLite dependency will use the system SQLite3
+// rather than the new GRDBSQLiteDynamic target
+let SQLiteInline = ProcessInfo.processInfo.environment["GRDB_SQLITE_INLINE"] == "1"
+if SQLiteInline {
+    swiftSettings.append(.define("GRDB_SQLITE_INLINE"))
+}
+
 let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
@@ -43,9 +50,9 @@ let package = Package(
     ],
     dependencies: dependencies,
     targets: [
-        .systemLibrary(
-            name: "GRDBSQLite",
-            providers: [.apt(["libsqlite3-dev"])]),
+        SQLiteInline ?
+            .systemLibrary(name: "GRDBSQLite", providers: [.apt(["libsqlite3-dev"])]) :
+            .target(name:"GRDBSQLite", path: "Sources/GRDBSQLiteDynamic"),
         .target(
             name: "GRDB",
             dependencies: ["GRDBSQLite"],
@@ -85,3 +92,23 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+// The GRDB_PERFORMANCE_TESTS environment variable enables
+// the performance tests to be included in the package, which can be run with:
+// GRDB_PERFORMANCE_TESTS=1 swift test --filter GRDBPerformanceTests
+if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
+    package.targets.append(
+        Target.testTarget(
+            name: "GRDBPerformanceTests",
+            dependencies: ["GRDB"],
+            path: "Tests/Performance/GRDBPerformance",
+            cSettings: cSettings,
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
+    )
+}
+

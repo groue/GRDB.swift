@@ -133,6 +133,20 @@ private class UserStatementColumnConvertible4 : StatementColumnConvertible {
     required init(sqliteStatement: SQLiteStatement, index: CInt) { }
 }
 
+#if !GRDB_SQLITE_INLINE
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+extension UserStatementColumnConvertible1 : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+extension UserStatementColumnConvertible2 : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+extension UserStatementColumnConvertible3 : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+extension UserStatementColumnConvertible4 : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+#endif
+
 // MARK: - TableRecord
 
 private struct UserTableRecord1 : TableRecord {

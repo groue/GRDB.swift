@@ -46,6 +46,18 @@ extension Color : DatabaseValueConvertible { }
 extension Grape : DatabaseValueConvertible { }
 extension FastGrape : DatabaseValueConvertible, StatementColumnConvertible { }
 
+#if !GRDB_SQLITE_INLINE
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+extension FastGrape : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+extension FastWrapper : SQLiteAPI { public typealias SQLI = DefaultSQLiteInterface }
+#endif
+
 extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
 extension Wrapper: StatementBinding where RawValue: StatementBinding { }
 extension Wrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }

@@ -700,7 +700,8 @@ extension DatabasePool: DatabaseReader {
     
     // MARK: - WAL Snapshot Transactions
     
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if false // SQLInterface FIXME: snapshots need work #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
     func walSnapshotTransaction() throws -> WALSnapshotTransaction {
         guard let readerPool else {
@@ -956,7 +957,7 @@ extension DatabasePool {
             purpose: "snapshot.\(databaseSnapshotCountMutex.increment())")
     }
     
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if false // SQLInterface FIXME: snapshots need work #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
     /// Creates a database snapshot that allows concurrent accesses to an
     /// unchanging database content, as it exists at the moment the snapshot
     /// is created.
@@ -970,6 +971,7 @@ extension DatabasePool {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
     public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
+        throw Error.unsupported
         try unsafeReentrantRead { db in
             try DatabaseSnapshotPool(db)
         }

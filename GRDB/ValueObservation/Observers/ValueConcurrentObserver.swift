@@ -276,7 +276,7 @@ extension ValueConcurrentObserver {
     }
 }
 
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if false // SQLInterface FIXME: snapshots need work #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
 extension ValueConcurrentObserver {
     /// Synchronously starts the observation, and returns the initial value.
     ///

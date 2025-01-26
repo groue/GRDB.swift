@@ -136,18 +136,18 @@ public struct DatabaseValue: Hashable {
     
     // SQLite function argument
     init(sqliteValue: SQLiteValue) {
-        switch sqlite3_value_type(sqliteValue) {
+        switch SQLite3.sqlite3_value_type(sqliteValue) {
         case SQLITE_NULL:
             storage = .null
         case SQLITE_INTEGER:
-            storage = .int64(sqlite3_value_int64(sqliteValue))
+            storage = .int64(SQLite3.sqlite3_value_int64(sqliteValue))
         case SQLITE_FLOAT:
-            storage = .double(sqlite3_value_double(sqliteValue))
+            storage = .double(SQLite3.sqlite3_value_double(sqliteValue))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_value_text(sqliteValue)!))
+            storage = .string(String(cString: SQLite3.sqlite3_value_text(sqliteValue)!))
         case SQLITE_BLOB:
-            if let bytes = sqlite3_value_blob(sqliteValue) {
-                let count = Int(sqlite3_value_bytes(sqliteValue))
+            if let bytes = SQLite3.sqlite3_value_blob(sqliteValue) {
+                let count = Int(SQLite3.sqlite3_value_bytes(sqliteValue))
                 storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
             } else {
                 storage = .blob(Data())
@@ -160,18 +160,18 @@ public struct DatabaseValue: Hashable {
     
     /// Creates a `DatabaseValue` initialized from a raw SQLite statement pointer.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        switch sqlite3_column_type(sqliteStatement, index) {
+        switch SQLite3.sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null
         case SQLITE_INTEGER:
-            storage = .int64(sqlite3_column_int64(sqliteStatement, index))
+            storage = .int64(SQLite3.sqlite3_column_int64(sqliteStatement, index))
         case SQLITE_FLOAT:
-            storage = .double(sqlite3_column_double(sqliteStatement, index))
+            storage = .double(SQLite3.sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, index)))
+            storage = .string(String(cString: SQLite3.sqlite3_column_text(sqliteStatement, index)))
         case SQLITE_BLOB:
-            if let bytes = sqlite3_column_blob(sqliteStatement, index) {
-                let count = Int(sqlite3_column_bytes(sqliteStatement, index))
+            if let bytes = SQLite3.sqlite3_column_blob(sqliteStatement, index) {
+                let count = Int(SQLite3.sqlite3_column_bytes(sqliteStatement, index))
                 storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
             } else {
                 storage = .blob(Data())

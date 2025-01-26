@@ -48,14 +48,14 @@ extension Decimal: StatementColumnConvertible {
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: CInt) {
-        switch sqlite3_column_type(sqliteStatement, index) {
+        switch SQLite3.sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER:
-            self.init(sqlite3_column_int64(sqliteStatement, index))
+            self.init(SQLite3.sqlite3_column_int64(sqliteStatement, index))
         case SQLITE_FLOAT:
-            self.init(sqlite3_column_double(sqliteStatement, index))
+            self.init(SQLite3.sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
             self.init(
-                string: String(cString: sqlite3_column_text(sqliteStatement, index)!),
+                string: String(cString: SQLite3.sqlite3_column_text(sqliteStatement, index)!),
                 locale: _posixLocale)
         default:
             return nil
