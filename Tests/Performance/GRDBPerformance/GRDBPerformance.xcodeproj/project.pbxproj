@@ -253,7 +253,6 @@
 			packageProductDependencies = (
 				561C25902439C92D001227F2 /* SQLite */,
 				561C25932439C942001227F2 /* FMDB */,
-				56A3FEA727A85F4800B0292E /* Realm */,
 				56A3FEA927A85F4800B0292E /* RealmSwift */,
 			);
 			productName = GRDBOSXTests;
@@ -665,11 +664,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 561C25922439C942001227F2 /* XCRemoteSwiftPackageReference "fmdb" */;
 			productName = FMDB;
-		};
-		56A3FEA727A85F4800B0292E /* Realm */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 56A3FEA627A85F4800B0292E /* XCRemoteSwiftPackageReference "realm-swift" */;
-			productName = Realm;
 		};
 		56A3FEA927A85F4800B0292E /* RealmSwift */ = {
 			isa = XCSwiftPackageProductDependency;
