@@ -1,6 +1,7 @@
 import Dispatch
 import XCTest
 
+#if canImport(Darwin) // needed for FailureTestCase
 class ValueObservationRecorderTests: FailureTestCase {
     // MARK: - NextOne
     
@@ -781,3 +782,4 @@ class ValueObservationRecorderTests: FailureTestCase {
         }
     }
 }
+#endif

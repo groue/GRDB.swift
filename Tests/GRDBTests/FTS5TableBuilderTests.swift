@@ -1,6 +1,9 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
 import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#endif
 
 class FTS5TableBuilderTests: GRDBTestCase {
     func testWithoutBody() throws {

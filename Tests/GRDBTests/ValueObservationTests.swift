@@ -1,7 +1,11 @@
 import XCTest
 import Dispatch
 @testable import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#endif
 
+#if canImport(Darwin)
 class ValueObservationTests: GRDBTestCase {
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
@@ -1353,3 +1357,4 @@ class ValueObservationTests: GRDBTestCase {
                 })
     }
 }
+#endif

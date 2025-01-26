@@ -1,5 +1,8 @@
 import XCTest
 import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#endif
 
 final class JSONExpressionsTests: GRDBTestCase {
     func test_Database_json() throws {
