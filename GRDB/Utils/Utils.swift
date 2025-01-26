@@ -12,7 +12,7 @@ extension String {
     ///     db.execute(sql: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
     public var quotedDatabaseIdentifier: String {
         // See <https://www.sqlite.org/lang_keywords.html>
-        return "\"\(self)\""
+        return "\"\(self.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 }
 

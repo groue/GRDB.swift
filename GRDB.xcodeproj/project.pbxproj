@@ -417,6 +417,7 @@
 		56FEB8F8248403000081AF83 /* DatabaseTraceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEB8F6248402E10081AF83 /* DatabaseTraceTests.swift */; };
 		56FEE7FB1F47253700D930EA /* TableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEE7FA1F47253700D930EA /* TableRecordTests.swift */; };
 		6340BF801E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
+		B5156D1B2D4691F00088C9FD /* StringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5156D1A2D4691E80088C9FD /* StringTests.swift */; };
 		C96C0F2B2084A442006B2981 /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C0F242084A442006B2981 /* SQLiteDateParser.swift */; };
 		D263F40A26C613090038B07F /* DatabaseColumnEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D263F40926C613090038B07F /* DatabaseColumnEncodingStrategyTests.swift */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -859,6 +860,7 @@
 		56FF45551D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordUniqueIndexTests.swift; sourceTree = "<group>"; };
 		6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordPersistenceConflictPolicy.swift; sourceTree = "<group>"; };
 		648704AD2B7E66390036480B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B5156D1A2D4691E80088C9FD /* StringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringTests.swift; sourceTree = "<group>"; };
 		C96C0F242084A442006B2981 /* SQLiteDateParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteDateParser.swift; sourceTree = "<group>"; };
 		D263F40926C613090038B07F /* DatabaseColumnEncodingStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseColumnEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
@@ -1028,6 +1030,7 @@
 				56300B5C1C53C38F005A543B /* QueryInterface */,
 				56A238251B9C74A90082EB20 /* Record */,
 				56176C9F1EACEE15000F3F2B /* Support */,
+				B5156D182D4691B00088C9FD /* Utils */,
 				563B06BF2185CD1700B38F35 /* ValueObservation */,
 			);
 			path = GRDBTests;
@@ -1700,6 +1703,14 @@
 			name = Foundation;
 			sourceTree = "<group>";
 		};
+		B5156D182D4691B00088C9FD /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				B5156D1A2D4691E80088C9FD /* StringTests.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		DC10500F19C904DD00D8CA30 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -2073,6 +2084,7 @@
 				5653EAE420944B4F00F46237 /* AssociationParallelRowScopesTests.swift in Sources */,
 				56D4968F1D81316E008276D7 /* RowFromDictionaryTests.swift in Sources */,
 				567B5C542AD32FF100629622 /* DatabaseReaderDumpTests.swift in Sources */,
+				B5156D1B2D4691F00088C9FD /* StringTests.swift in Sources */,
 				56915782231BF28B00E1D237 /* PoolTests.swift in Sources */,
 				56419C6C24A519A2004967E1 /* DatabaseRegionObservationPublisherTests.swift in Sources */,
 				56D4968E1D81316E008276D7 /* RowCopiedFromStatementTests.swift in Sources */,
