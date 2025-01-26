@@ -11,8 +11,8 @@ The topics covered in this demo are:
 
 - How to setup a database in an iOS app.
 - How to define a simple [Codable Record](../../../README.md#codable-records).
-- How to track database changes and animate a SwiftUI List with [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
-- How to apply the recommendations of [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices).
+- How to track database changes and animate a SwiftUI List with [ValueObservation](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation).
+- How to apply the recommendations of [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices).
 - How to feed SwiftUI previews with a transient database.
 
 **Files of interest:**
@@ -23,7 +23,7 @@ The topics covered in this demo are:
 
 - [AppDatabase.swift](GRDBDemo/Database/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and provides methods that read and write.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and provides methods that read and write.
     
     `AppDatabase` is [tested](GRDBDemoTests/AppDatabaseTests.swift).
 

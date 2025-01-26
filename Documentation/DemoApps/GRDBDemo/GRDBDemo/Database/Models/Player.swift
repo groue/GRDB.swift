@@ -72,7 +72,7 @@ private typealias Columns = Player.Columns
 
 /// Define some player requests used by the application.
 ///
-/// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices>
+/// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices>
 extension DerivableRequest<Player> {
     /// A request of players ordered by name.
     ///

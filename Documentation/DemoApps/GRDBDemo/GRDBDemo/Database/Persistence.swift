@@ -8,7 +8,7 @@ extension AppDatabase {
     private static func makeShared() -> AppDatabase {
         do {
             // Apply recommendations from
-            // <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
+            // <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections>
             
             // Create the "Application Support/Database" directory if needed
             let fileManager = FileManager.default
@@ -47,7 +47,7 @@ extension AppDatabase {
     /// Creates an empty database for SwiftUI previews
     static func empty() -> AppDatabase {
         // Connect to an in-memory database
-        // See https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections
+        // See https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections
         let dbQueue = try! DatabaseQueue(configuration: AppDatabase.makeConfiguration())
         return try! AppDatabase(dbQueue)
     }

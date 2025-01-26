@@ -226,11 +226,11 @@ This publisher has the same behavior as ValueObservation:
 
 - It notifies an initial value before the eventual changes.
 - It may coalesce subsequent changes into a single notification.
-- It may notify consecutive identical values. You can filter out the undesired duplicates with the `removeDuplicates()` Combine operator, but we suggest you have a look at the [removeDuplicates()](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/removeduplicates()) GRDB operator also.
+- It may notify consecutive identical values. You can filter out the undesired duplicates with the `removeDuplicates()` Combine operator, but we suggest you have a look at the [removeDuplicates()](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/removeduplicates()) GRDB operator also.
 - It only completes when it is cancelled.
 - By default, it notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously.
     
-    This can be configured with the `scheduling` argument. It does not accept a Combine scheduler, but a [ValueObservationScheduler](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservationscheduler).
+    This can be configured with the `scheduling` argument. It does not accept a Combine scheduler, but a [ValueObservationScheduler](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservationscheduler).
     
     For example, the `.immediate` scheduler makes sure the initial value is notified immediately when the publisher is subscribed. It can help your application update the user interface without having to wait for any asynchronous notifications:
     
@@ -382,23 +382,23 @@ let cancellable = hallOfFamePublisher.sink(
 [Usage]: #usage
 [Asynchronous Database Access]: #asynchronous-database-access
 [Combine]: https://developer.apple.com/documentation/combine
-[Database Changes Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[Database Changes Observation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseobservation
 [Database Observation]: #database-observation
 [Combine and Data Consistency]: #combine-and-data-consistency
-[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseregionobservation
 [Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [SQLite]: http://sqlite.org
-[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
-[SharedValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sharedvalueobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation
+[SharedValueObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/sharedvalueobservation
 [`DatabaseRegionObservation.publisher(in:)`]: #databaseregionobservationpublisherin
 [`ValueObservation.publisher(in:scheduling:)`]: #valueobservationpublisherinscheduling
 [`SharedValueObservation.publisher()`]: #sharedvalueobservationpublisher
 [`readPublisher(receiveOn:value:)`]: #databasereaderreadpublisherreceiveonvalue
 [`writePublisher(receiveOn:updates:)`]: #databasewriterwritepublisherreceiveonupdates
 [`writePublisher(receiveOn:updates:thenRead:)`]: #databasewriterwritepublisherreceiveonupdatesthenread
-[`migratePublisher(_:receiveOn:)`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasemigrator/migratepublisher(_:receiveon:)
+[`migratePublisher(_:receiveOn:)`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasemigrator/migratepublisher(_:receiveon:)
 [configured]: ../README.md#databasepool-configuration
-[database pool]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
-[database queue]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
-[database snapshot]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshot
+[database pool]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool
+[database queue]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue
+[database snapshot]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesnapshot
 [scheduler]: https://developer.apple.com/documentation/combine/scheduler

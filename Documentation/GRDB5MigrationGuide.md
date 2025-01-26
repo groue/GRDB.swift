@@ -501,10 +501,10 @@ let publisher = observation
     This change is innocuous for database boolean values that are `0`, `1`, or `NULL`. However, it is a breaking change for all other database values.
 
 
-[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
-[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseregionobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
-[removeDuplicates]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/removeduplicates()
+[removeDuplicates]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/removeduplicates()
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests
 [SQL Interpolation]: SQLInterpolation.md
@@ -512,4 +512,4 @@ let publisher = observation
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
 [Combine publishers]: Combine.md
-[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[Database Observation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseobservation

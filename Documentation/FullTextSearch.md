@@ -301,7 +301,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -550,7 +550,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -689,7 +689,7 @@ let books = Book.fetchAll(db, sql: sql, arguments: [pattern])
 
 **You can define [record](../README.md#records) types around the full-text virtual tables.**
 
-The primary key of those tables is the hidden `rowid` column. If you need to fetch, delete, and update full-text records by primary key, you will have to expose this column to the record type. See [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) for more information.
+The primary key of those tables is the hidden `rowid` column. If you need to fetch, delete, and update full-text records by primary key, you will have to expose this column to the record type. See [The Database Schema](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) for more information.
 
 ## Unicode Full-Text Gotchas
 

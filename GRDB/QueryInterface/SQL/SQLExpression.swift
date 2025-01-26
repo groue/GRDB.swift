@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// An SQL expression.
 ///
 /// `SQLExpression` is an opaque representation of an SQL expression.
@@ -954,6 +963,17 @@ extension SQLExpression {
         "JSON_REPLACE",
         "JSON_SET",
         "JSON_QUOTE",
+        "JSONB",
+        "JSONB_ARRAY",
+        "JSONB_EXTRACT",
+        "JSONB_GROUP_ARRAY",
+        "JSONB_GROUP_OBJECT",
+        "JSONB_INSERT",
+        "JSONB_OBJECT",
+        "JSONB_PATCH",
+        "JSONB_REMOVE",
+        "JSONB_REPLACE",
+        "JSONB_SET",
         "LENGTH",
         "LIKE",
         "LIKELIHOOD",
@@ -1005,6 +1025,16 @@ extension SQLExpression {
         "JSON_REPLACE",
         "JSON_SET",
         "JSON_QUOTE",
+        "JSONB",
+        "JSONB_ARRAY",
+        "JSONB_GROUP_ARRAY",
+        "JSONB_GROUP_OBJECT",
+        "JSONB_INSERT",
+        "JSONB_OBJECT",
+        "JSONB_PATCH",
+        "JSONB_REMOVE",
+        "JSONB_REPLACE",
+        "JSONB_SET",
     ]
     
     /// The `COUNT(*)` expression.
@@ -2099,8 +2129,9 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
+            } else if sqlite3_libversion_number() >= 3045000 {
+                return .function("JSONB", [self])
             } else {
-                // Needs explicit call to JSON()
                 return .function("JSON", [self])
             }
         }
@@ -2116,8 +2147,9 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
+            } else if sqlite3_libversion_number() >= 3045000 {
+                return .function("JSONB", [self])
             } else {
-                // Needs explicit call to JSON()
                 return .function("JSON", [self])
             }
         }

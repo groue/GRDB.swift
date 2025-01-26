@@ -130,7 +130,7 @@ let request = Book.including(optional: Book.author)
 let bookInfos = BookInfo.fetchAll(db, request)
 ```
 
-Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because your SQL skills are welcome. The [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)) method can help you consume the rows fetched from joined queries, as in `SELECT book.*, author.* FROM ...`.
+Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because your SQL skills are welcome. The [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:)) method can help you consume the rows fetched from joined queries, as in `SELECT book.*, author.* FROM ...`.
 
 
 ## Required Protocols
@@ -2963,7 +2963,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Further Refinements to Associations]: #further-refinements-to-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
-[migration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
+[migration]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema
@@ -2998,16 +2998,16 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
-[Row Adapters]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter
+[Row Adapters]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
-[Recommended Practices for Designing Record Types]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices
+[Recommended Practices for Designing Record Types]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices
 [regular aggregating methods]: ../README.md#fetching-aggregated-values
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records
 [persistence methods]: ../README.md#persistence-methods
-[database observation tools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[database observation tools]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseobservation
 [FAQ]: ../README.md#faq-associations
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md
