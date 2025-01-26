@@ -2189,6 +2189,60 @@ final class JSONExpressionsTests: GRDBTestCase {
         }
     }
     
+    func test_Database_jsonGroupArray_from_JSON() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3038000 else {
+            throw XCTSkip("JSON support is not available")
+        }
+#else
+        guard #available(iOS 16, tvOS 17, watchOS 9, *) else {
+            throw XCTSkip("JSON support is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("info", .jsonText)
+            }
+            try db.execute(sql: """
+                INSERT INTO player (info) VALUES ('{"foo": "bar"}')
+                """)
+            let player = Table("player")
+            let infoColumn = JSONColumn("info")
+            let request = player.select(Database.jsonGroupArray(infoColumn))
+            let json = try String.fetchOne(db, request)
+            XCTAssertEqual(json, #"[{"foo":"bar"}]"#)
+        }
+    }
+    
+    func test_Database_jsonGroupArray_from_JSONB() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3045000 else {
+            throw XCTSkip("JSONB is not available")
+        }
+
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("info", .jsonText)
+            }
+            try db.execute(sql: """
+                INSERT INTO player (info) VALUES (JSONB('{"foo": "bar"}'))
+                """)
+            let player = Table("player")
+            let infoColumn = JSONColumn("info")
+            let request = player.select(Database.jsonGroupArray(infoColumn))
+            let json = try String.fetchOne(db, request)
+            XCTAssertEqual(json, #"[{"foo":"bar"}]"#)
+        }
+#else
+        throw XCTSkip("JSONB is not available")
+#endif
+    }
+    
     func test_Database_jsonGroupArray_filter() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
