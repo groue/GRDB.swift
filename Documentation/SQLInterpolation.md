@@ -365,7 +365,7 @@ Let's extend Player with database methods.
 
 This chapter lists all kinds of supported interpolations.
 
-- Types adopting the [TableRecord] protocol and [Table](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table) instances:
+- Types adopting the [TableRecord] protocol and [Table](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/table) instances:
 
     ```swift
     struct Player: TableRecord { ... }

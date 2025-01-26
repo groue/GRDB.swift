@@ -189,7 +189,7 @@ Released September 29, 2024
 
 [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md) describes in detail how to bump the GRDB version in your application.
 
-The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
+The new [Swift Concurrency and GRDB](https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency) guide explains how to best integrate GRDB and Swift Concurrency.
 
 The [demo app](Documentation/DemoApps/) was rewritten from scratch in a brand new Xcode 16 project.
 
@@ -248,8 +248,8 @@ Released July 11, 2024
 Released April 21, 2024
 
 - **Fixed**: [#1533](https://github.com/groue/GRDB.swift/pull/1533) by [@groue](https://github.com/groue): Fix a bug in Decodable support
-- **Documentation Update**: [#1534](https://github.com/groue/GRDB.swift/pull/1534) The [Single-Row Tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/singlerowtables) guide was updated with guidance about default configuration values.
-- **Documentation Update**: [#1535](https://github.com/groue/GRDB.swift/pull/1535) The [ValueObservation Scheduling](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation#ValueObservation-Scheduling) documentation chapter explains the default behavior of `ValueObservation` fetches, and explains how to make sure they are never performed on the main thread.
+- **Documentation Update**: [#1534](https://github.com/groue/GRDB.swift/pull/1534) The [Single-Row Tables](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/singlerowtables) guide was updated with guidance about default configuration values.
+- **Documentation Update**: [#1535](https://github.com/groue/GRDB.swift/pull/1535) The [ValueObservation Scheduling](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation#ValueObservation-Scheduling) documentation chapter explains the default behavior of `ValueObservation` fetches, and explains how to make sure they are never performed on the main thread.
 
 ## 6.26.0
 
@@ -274,7 +274,7 @@ Released February 25, 2024
 
 Released January 21, 2024
 
-- **Documentation Update**: [#1485](https://github.com/groue/GRDB.swift/pull/1485) The [Sharing a Database](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing) guide was updated with a new recommendation for databases shared between multiple processes. Writers should always perform IMMEDIATE transactions in order to avoid the `SQLITE_BUSY` error that can occur when transactions overlap. The new recommendation fits in a single line of code: `configuration.defaultTransactionKind = .immediate`.
+- **Documentation Update**: [#1485](https://github.com/groue/GRDB.swift/pull/1485) The [Sharing a Database](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesharing) guide was updated with a new recommendation for databases shared between multiple processes. Writers should always perform IMMEDIATE transactions in order to avoid the `SQLITE_BUSY` error that can occur when transactions overlap. The new recommendation fits in a single line of code: `configuration.defaultTransactionKind = .immediate`.
 - **New**: Associations that involve views instead of tables were already supported, with an explicit `ForeignKey` in their definition. When the foreign key is missing, a clear diagnostic message is now emitted, instead of an unhelpful "no such table" runtime error.
 
 ## 6.24.1
@@ -301,7 +301,7 @@ Released November 26, 2023
 
 - **New**: [#1452](https://github.com/groue/GRDB.swift/pull/1452) by [@groue](https://github.com/groue): SQLite 3.44.0, FILTER and ORDER BY clauses in aggregate functions
 - **New**: [#1460](https://github.com/groue/GRDB.swift/pull/1460) by [@groue](https://github.com/groue): Explicit change notifications help applications deal with undetected database changes.
-- **Documentation Update**: The documentations of [`ValueObservation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation), [`DatabaseRegionObservation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation), and [`TransactionObserver`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver) have a new "Dealing with Undetected Changes" that documents possible strategies for notifying applications of undetected database changes.  
+- **Documentation Update**: The documentations of [`ValueObservation`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation), [`DatabaseRegionObservation`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseregionobservation), and [`TransactionObserver`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver) have a new "Dealing with Undetected Changes" that documents possible strategies for notifying applications of undetected database changes.  
 
 ## 6.21.0
 
@@ -337,8 +337,8 @@ Released October 4, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compa
 - **New**: [#1436](https://github.com/groue/GRDB.swift/pull/1436) by [@myyra](https://github.com/myyra) and [@groue](https://github.com/groue): JSON functions
 - **New**: `Database` has learned to create indexes on expressions, and specify specific collations on indexed columns, with the `create(index:on:expressions:options:condition:)` method. 
 - **New**: Codable records can specify coding strategies for their `Data` properties. See [#1436](https://github.com/groue/GRDB.swift/pull/1436) for more information.
-- **Documentation Update**: A new [JSON Support](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/json) article provides an overview of JSON handling.
-- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) now recommend that record types with an auto-incremented id avoid conforming to the `Identifiable` protocol.
+- **Documentation Update**: A new [JSON Support](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/json) article provides an overview of JSON handling.
+- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices) now recommend that record types with an auto-incremented id avoid conforming to the `Identifiable` protocol.
 
 ## 6.18.0
 
@@ -362,14 +362,14 @@ Released July 9, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/
 - **New**: [#1403](https://github.com/groue/GRDB.swift/pull/1403) by [@groue](https://github.com/groue): GitHub CI: test Xcode 14.3.1, macOS 13
 - **New**: :star: [#1405](https://github.com/groue/GRDB.swift/pull/1405) Simplify the declaration of BelongsTo associations in the database schema
 - **Documentation Update**: The documentation was updated for the new recommended way to declare associations in the database schema, with the `belongsTo()` method introduced by [#1405](https://github.com/groue/GRDB.swift/pull/1405):
-    - [`belongsTo(_:inTable:onDelete:onUpdate:deferred:indexed:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tabledefinition/belongsto(_:intable:ondelete:onupdate:deferred:indexed:))
-    - [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema)
-    - [Migrations](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations)
-    - [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
+    - [`belongsTo(_:inTable:onDelete:onUpdate:deferred:indexed:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tabledefinition/belongsto(_:intable:ondelete:onupdate:deferred:indexed:))
+    - [The Database Schema](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema)
+    - [Migrations](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations)
+    - [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices)
     - [Associations](Documentation/AssociationsBasics.md)
-    - [`BelongsToAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/belongstoassociation)
-    - [`HasManyAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/hasmanyassociation)
-    - [`HasOneAssociation`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/hasoneassociation)
+    - [`BelongsToAssociation`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/belongstoassociation)
+    - [`HasManyAssociation`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/hasmanyassociation)
+    - [`HasOneAssociation`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/hasoneassociation)
 
 
 ## 6.15.1
@@ -386,7 +386,7 @@ Released June 2, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/
 
 - **New**: [#1382](https://github.com/groue/GRDB.swift/pull/1382) Add `DerivableRequest.all()`
 - **New**: [#1384](https://github.com/groue/GRDB.swift/pull/1384) Allow ValueObservation to start from a truncated wal file
-- **Documentation Update**: The [ValueObservation Performance](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation#ValueObservation-Performance) documentation chapter explains how truncating WAL checkpoints impact `ValueObservation`.
+- **Documentation Update**: The [ValueObservation Performance](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation#ValueObservation-Performance) documentation chapter explains how truncating WAL checkpoints impact `ValueObservation`.
 
 
 ## 6.14.0
@@ -421,7 +421,7 @@ Released April 17, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compar
 
 Released April 10, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.10.1...v6.10.2)
 
-- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) guide has moved to DocC.
+- **Documentation Update**: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices) guide has moved to DocC.
 - **Documentation Update**: The [Demo Applications](Documentation/DemoApps/) demonstrate how their `AppDatabase` "database manager" can provide a base database configuration. 
 
 ## 6.10.1
@@ -448,8 +448,8 @@ Released March 14, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compar
 Released March 12, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v6.9.0...v6.9.1)
 
 - **Documentation Updates**: Moved more README chapters into DocC:
-    - [`RowAdapter`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
-    - [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:))
+    - [`RowAdapter`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter)
+    - [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:))
 
 ## 6.9.0
 
@@ -458,9 +458,9 @@ Released March 12, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/compar
 - **New**: [#1348](https://github.com/groue/GRDB.swift/pull/1348) by [@groue](https://github.com/groue): SQLite argument binding optimization
 - **New**: `FTS5.api(db)` returns a pointer to the `fts5_api` structure, useful for low-level [FTS5 customization](https://www.sqlite.org/fts5.html#extending_fts5).
 - **Documentation Updates**: Moved more README chapters into DocC, enhanced and extended DocC articles:
-    - [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
-    - [Prepared Statements](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement)
-    - [DatabaseValueConvertible](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible)
+    - [Database Connections](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections)
+    - [Prepared Statements](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statement)
+    - [DatabaseValueConvertible](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalueconvertible)
 
 ## 6.8.0
 
@@ -468,7 +468,7 @@ Released February 24, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/com
 
 - **New**: [#1338](https://github.com/groue/GRDB.swift/pull/1338) by [@groue](https://github.com/groue): TimestampedRecord sample code
 - **New**: `EncodableRecord.databaseChanges(modify:)` modifies a record and returns a dictionary of applied changes.
-- **Documentation Update**: The [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article provides a sample `TimestampedRecord` protocol that application may adapt for their own use.
+- **Documentation Update**: The [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordtimestamps) article provides a sample `TimestampedRecord` protocol that application may adapt for their own use.
 
 ## 6.7.0
 
@@ -479,7 +479,7 @@ Released February 19, 2023 &bull; [diff](https://github.com/groue/GRDB.swift/com
 - **Fixed**: [#1327](https://github.com/groue/GRDB.swift/pull/1327) by [@groue](https://github.com/groue): Remove dependency on any specific SwiftLint version.
 - **New**: [#1331](https://github.com/groue/GRDB.swift/pull/1331) by [@groue](https://github.com/groue): Transaction Date
 - **New**: [#1336](https://github.com/groue/GRDB.swift/pull/1336) by [@groue](https://github.com/groue): Enable FTS5 by default
-- **Documentation Update**: The new [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps) article explains how applications can save the creation and modification date of records.
+- **Documentation Update**: The new [Record Timestamps and Transaction Date](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordtimestamps) article explains how applications can save the creation and modification date of records.
 - Added support for `Table` in SQL interpolation.
 
 ## 6.6.1
@@ -509,11 +509,11 @@ Released November 28, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/com
 - **New**: `DatabaseReader.configuration.readQoS` and `writeQoS` return the effective quality of service of read-only and write database accesses. This helps application code avoid priority inversion and similar scheduling misuses when needed.
 - **New**: `DatabaseReader.configuration.maximumReaderCount` returns the effective capacity for concurrent reads, so that application code can adapt when needed.
 - **New**: `DatabasePool.makeSnapshot()` no longer throws an error when the database is not in the WAL mode. In such case, the returned snapshot prevents all database modifications during its lifetime.
-- **New**: A new [`DatabaseSnapshotReader`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshotreader) protocol was introduced for types that see an unchanging database content (`DatabaseSnapshot` and the new `DatabaseSnapshotPool`).   
-- **New**: [`Database.registerAccess(to:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/registeraccess(to:)) has `ValueObservation` track a region. This helps building optimized observations of a constant database region with [`ValueObservation.trackingConstantRegion(_:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/trackingconstantregion(_:)).
-- **New**: Open several connections to the same in-memory database with [`DatabaseQueue(named:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue/init(named:configuration:)).
-- **New**: [`TableDefinition`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tabledefinition) has new methods for defining primary keys, with automatic NOT NULL constraints. They workaround [an SQLite bug](https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls). Previous techniques for defining primary keys are preserved for backwards compatibility, but their use is not recommended.
-- **New**: The [Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) documentation article has a brand new "Database Schema Recommendations" section.
+- **New**: A new [`DatabaseSnapshotReader`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesnapshotreader) protocol was introduced for types that see an unchanging database content (`DatabaseSnapshot` and the new `DatabaseSnapshotPool`).   
+- **New**: [`Database.registerAccess(to:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/registeraccess(to:)) has `ValueObservation` track a region. This helps building optimized observations of a constant database region with [`ValueObservation.trackingConstantRegion(_:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/trackingconstantregion(_:)).
+- **New**: Open several connections to the same in-memory database with [`DatabaseQueue(named:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue/init(named:configuration:)).
+- **New**: [`TableDefinition`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tabledefinition) has new methods for defining primary keys, with automatic NOT NULL constraints. They workaround [an SQLite bug](https://www.sqlite.org/quirks.html#primary_keys_can_sometimes_contain_nulls). Previous techniques for defining primary keys are preserved for backwards compatibility, but their use is not recommended.
+- **New**: The [Database Schema](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) documentation article has a brand new "Database Schema Recommendations" section.
 - **New**: Multiple improvements to the DocC documentation.
 
 ## 6.3.1

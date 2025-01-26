@@ -15,7 +15,7 @@ import os.log
 final class AppDatabase: Sendable {
     /// Access to the database.
     ///
-    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections>
+    /// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections>
     private let dbWriter: any DatabaseWriter
     
     /// Creates a `AppDatabase`, and makes sure the database schema
@@ -30,19 +30,19 @@ final class AppDatabase: Sendable {
     
     /// The DatabaseMigrator that defines the database schema.
     ///
-    /// See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations>
+    /// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations>
     private var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         
 #if DEBUG
         // Speed up development by nuking the database when migrations change
-        // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations#The-eraseDatabaseOnSchemaChange-Option>
+        // See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations#The-eraseDatabaseOnSchemaChange-Option>
         migrator.eraseDatabaseOnSchemaChange = true
 #endif
         
         migrator.registerMigration("v1") { db in
             // Create a table
-            // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema>
+            // See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema>
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("name", .text).notNull()
@@ -77,7 +77,7 @@ extension AppDatabase {
         // }
         //
         // Uncomment for enabling SQL logging if the `SQL_TRACE` environment variable is set.
-        // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/trace(options:_:)>
+        // See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/trace(options:_:)>
         // if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
         //     config.prepareDatabase { db in
         //         let dbName = db.description
@@ -93,7 +93,7 @@ extension AppDatabase {
         // #if DEBUG
         // // Protect sensitive information by enabling verbose debugging in
         // // DEBUG builds only.
-        // // See <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/publicstatementarguments>
+        // // See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/publicstatementarguments>
         // config.publicStatementArguments = true
         // #endif
         

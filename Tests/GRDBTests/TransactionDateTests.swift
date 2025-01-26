@@ -371,7 +371,7 @@ class TransactionDateTests: GRDBTestCase {
 // The protocol in RecordTimestamps.md
 
 /// A record type that tracks its creation and modification dates. See
-/// <https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps>
+/// <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordtimestamps>
 protocol TimestampedRecord: MutablePersistableRecord {
     var creationDate: Date? { get set }
     var modificationDate: Date? { get set }

@@ -162,7 +162,7 @@ You can still specify a transaction kind explicitly when necessary. See [Transac
 
 In GRDB 7, `ValueObservation` fosters the main actor, because it is frequently used to automatically update database values on screen.
 
-By default, its [`start`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
+By default, its [`start`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
     
 It is not necessary to call `MainActor.assumeIsolated` in `ValueObservation` callbacks:
 
@@ -269,14 +269,14 @@ Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non
 
 ## Other Changes
 
-- `DatabasePool.concurrentRead` has been removed. Use [`asyncConcurrentRead`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool/asyncconcurrentread(_:)) instead.
+- `DatabasePool.concurrentRead` has been removed. Use [`asyncConcurrentRead`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool/asyncconcurrentread(_:)) instead.
 
 - The `PersistenceContainer` subscript no longer guarantees that the value returned is the same as what was previously set. It only guarantees that both values are encoded identically in the database.
 
-- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/grdb.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
+- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/GRDB.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
 
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide
-[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databasesharing
-[Transaction Kinds]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/transactions#Transaction-Kinds
-[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency
-[Record]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/record
+[Sharing a Database]: https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.7/documentation/grdb/databasesharing
+[Transaction Kinds]: https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.7/documentation/grdb/transactions#Transaction-Kinds
+[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency
+[Record]: https://swiftpackageindex.com/groue/GRDB.swift/v7.0.0-beta.7/documentation/grdb/record
