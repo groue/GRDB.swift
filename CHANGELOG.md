@@ -131,6 +131,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: Support for JSONB expressions by [@groue](https://github.com/groue) in [#1699](https://github.com/groue/GRDB.swift/pull/1699)
+- **Breaking Change**: Fix inflections of Bias, Focus, Gas, and Lens by [@groue](https://github.com/groue) in [#1703](https://github.com/groue/GRDB.swift/pull/1703)
+
 ## 7.0.0-beta.7
 
 Released January 19, 2025
