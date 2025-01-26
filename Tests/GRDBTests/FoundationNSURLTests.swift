@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 
+#if canImport(Darwin) // needed for NSURL
 class FoundationNSURLTests: GRDBTestCase {
     
     func testNSURLDatabaseRoundTrip() throws {
@@ -46,3 +47,4 @@ class FoundationNSURLTests: GRDBTestCase {
     }
     
 }
+#endif

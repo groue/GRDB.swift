@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 
+#if canImport(Darwin) // needed for NSUUID
 class FoundationNSUUIDTests: GRDBTestCase {
     private func assert(_ value: (any DatabaseValueConvertible)?, isDecodedAs expectedUUID: NSUUID?) throws {
         try makeDatabaseQueue().read { db in
@@ -50,3 +51,4 @@ class FoundationNSUUIDTests: GRDBTestCase {
         try assert("abcdefghijklmnopq".data(using: .utf8)!, isDecodedAs: nil)
     }
 }
+#endif

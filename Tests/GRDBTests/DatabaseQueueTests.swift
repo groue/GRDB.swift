@@ -2,6 +2,7 @@ import XCTest
 import Dispatch
 import GRDB
 
+#if canImport(Darwin) // needed for __dispatch_get_global_queue
 class DatabaseQueueTests: GRDBTestCase {
     func testJournalModeConfiguration() throws {
         do {
@@ -473,3 +474,4 @@ class DatabaseQueueTests: GRDBTestCase {
         dbQueue.releaseMemory()
     }
 }
+#endif

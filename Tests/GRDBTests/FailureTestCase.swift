@@ -1,6 +1,7 @@
 // Inspired by https://github.com/groue/CombineExpectations
 import XCTest
 
+#if canImport(Darwin) // needed for XCTIssue
 /// A XCTestCase subclass that can test its own failures.
 class FailureTestCase: XCTestCase {
     private struct Failure: Hashable {
@@ -207,3 +208,4 @@ class FailureTestCaseTests: FailureTestCase {
         }
     }
 }
+#endif

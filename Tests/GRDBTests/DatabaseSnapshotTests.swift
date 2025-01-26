@@ -1,6 +1,7 @@
 import XCTest
 @testable import GRDB
 
+#if !os(Android)
 class DatabaseSnapshotTests: GRDBTestCase {
     /// A helper type
     private struct Counter {
@@ -432,3 +433,4 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
 }
+#endif
