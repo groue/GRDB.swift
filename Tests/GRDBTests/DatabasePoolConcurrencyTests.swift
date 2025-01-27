@@ -3,6 +3,7 @@ import Dispatch
 import Foundation
 @testable import GRDB
 
+#if canImport(Darwin) // needs NSFileCoordinator
 class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testDatabasePoolFundamental1() throws {
@@ -1348,3 +1349,4 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
 }
+#endif

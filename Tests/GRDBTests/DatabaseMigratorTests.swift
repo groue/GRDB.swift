@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 
+#if !os(Android)
 class DatabaseMigratorTests : GRDBTestCase {
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
@@ -1110,3 +1111,4 @@ class DatabaseMigratorTests : GRDBTestCase {
         } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
     }
 }
+#endif

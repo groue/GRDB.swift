@@ -27,6 +27,24 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 
+var targetDependencies: [Target.Dependency] = ["GRDBSQLite"]
+
+
+var GRDBCIPHER = ProcessInfo.processInfo.environment["GRDBCIPHER"]
+// e.g.:
+//GRDBCIPHER="https://github.com/skiptools/swift-sqlcipher.git#1.2.1"
+if let SQLCipherRepo = GRDBCIPHER?.split(separator: "#").first,
+    let SQLCipherVersion = GRDBCIPHER?.split(separator: "#").last,
+    let SQLCipherRepoURL = URL(string: SQLCipherRepo.description) {
+    swiftSettings.append(.define("GRDBCIPHER"))
+    targetDependencies = [.product(name: "SQLCipher", package: SQLCipherRepoURL.deletingPathExtension().lastPathComponent)]
+    if let version = Version(SQLCipherVersion.description) { // numeric version
+        dependencies.append(.package(url: SQLCipherRepoURL.absoluteString, from: version))
+    } else { // branch
+        dependencies.append(.package(url: SQLCipherRepoURL.absoluteString, branch: SQLCipherVersion.description))
+    }
+}
+
 let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
@@ -48,7 +66,7 @@ let package = Package(
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["GRDBSQLite"],
+            dependencies: targetDependencies,
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
@@ -85,3 +103,23 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+// The GRDB_PERFORMANCE_TESTS environment variable enables
+// the performance tests to be included in the package, which can be run with:
+// GRDB_PERFORMANCE_TESTS=1 swift test --filter GRDBPerformanceTests
+if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
+    package.targets.append(
+        Target.testTarget(
+            name: "GRDBPerformanceTests",
+            dependencies: ["GRDB"],
+            path: "Tests/Performance/GRDBPerformance",
+            cSettings: cSettings,
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
+    )
+}
+

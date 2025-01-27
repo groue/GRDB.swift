@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 
+#if canImport(Darwin) // needed for NSDecimalNumber
 class FoundationNSDecimalNumberTests: GRDBTestCase {
 
     func testNSDecimalNumberPreservesIntegerValues() {
@@ -157,3 +158,4 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         try test("18446744073709551615", isDecodedAs: NSDecimalNumber(string: "18446744073709551615"))
     }
 }
+#endif
