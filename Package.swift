@@ -103,3 +103,23 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+// The GRDB_PERFORMANCE_TESTS environment variable enables
+// the performance tests to be included in the package, which can be run with:
+// GRDB_PERFORMANCE_TESTS=1 swift test --filter GRDBPerformanceTests
+if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
+    package.targets.append(
+        Target.testTarget(
+            name: "GRDBPerformanceTests",
+            dependencies: ["GRDB"],
+            path: "Tests/Performance/GRDBPerformance",
+            cSettings: cSettings,
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
+    )
+}
+

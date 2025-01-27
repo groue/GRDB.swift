@@ -1,6 +1,10 @@
 import XCTest
 import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#else
 import SQLite3
+#endif
 #if GRDB_COMPARE
 import SQLite
 #endif
