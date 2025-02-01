@@ -24,4 +24,4 @@ To release a new GRDB version:
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
 - Update [performance comparison](https://github.com/groue/GRDB.swift/wiki/Performance):
 
-    `make test_performance | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb`
+    `make test_performance_comparison | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb`

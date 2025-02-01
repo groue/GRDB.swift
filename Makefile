@@ -3,6 +3,7 @@
 #
 # make test - Run all tests but performance tests
 # make test_performance - Run performance tests
+# make test_performance_comparison - Run performance comparison tests
 # make doc - Generate DocC documentation
 # make clean - Remove build artifacts
 # make distclean - Restore repository to a pristine state
@@ -386,6 +387,9 @@ test_GRDBDemo:
 	  $(XCPRETTY)
 
 test_performance:
+	GRDB_PERFORMANCE_TESTS=1 $(SWIFT) test --configuration release --filter GRDBPerformanceTests
+
+test_performance_comparison:
 	$(XCODEBUILD) \
 	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
