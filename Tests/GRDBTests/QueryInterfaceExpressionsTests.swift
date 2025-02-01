@@ -1508,7 +1508,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testAvgExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3030000 else {
+        guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
@@ -1573,7 +1573,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testMinExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3030000 else {
+        guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
@@ -1606,7 +1606,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testMaxExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3030000 else {
+        guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
@@ -1639,7 +1639,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testSumExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3030000 else {
+        guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
@@ -1661,7 +1661,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     func testSumExpression_order() throws {
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3044000 else {
+        guard Database.sqliteLibVersionNumber >= 3044000 else {
             throw XCTSkip("ORDER BY clause on aggregate functions is not available")
         }
         
@@ -1696,7 +1696,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testTotalExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3030000 else {
+        guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
         }
         #else
@@ -1718,7 +1718,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     func testTotalExpression_order() throws {
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3044000 else {
+        guard Database.sqliteLibVersionNumber >= 3044000 else {
             throw XCTSkip("ORDER BY clause on aggregate functions is not available")
         }
         

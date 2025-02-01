@@ -1,12 +1,3 @@
-// Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 /// An SQL expression.
 ///
 /// `SQLExpression` is an opaque representation of an SQL expression.
@@ -2129,7 +2120,7 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
-            } else if sqlite3_libversion_number() >= 3045000 {
+            } else if Database.sqliteLibVersionNumber >= 3045000 {
                 return .function("JSONB", [self])
             } else {
                 return .function("JSON", [self])
@@ -2147,7 +2138,7 @@ extension SQLExpression {
         case .jsonValue:
             if isJSONValue {
                 return self
-            } else if sqlite3_libversion_number() >= 3045000 {
+            } else if Database.sqliteLibVersionNumber >= 3045000 {
                 return .function("JSONB", [self])
             } else {
                 return .function("JSON", [self])
