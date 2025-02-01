@@ -1,12 +1,3 @@
-// Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 import XCTest
 import GRDB
 
@@ -208,7 +199,7 @@ class DatabaseWriterTests : GRDBTestCase {
             throw XCTSkip("VACUUM INTO is not available")
         }
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3027000 else {
+        guard Database.sqliteLibVersionNumber >= 3027000 else {
             throw XCTSkip("VACUUM INTO is not available")
         }
         
@@ -373,7 +364,7 @@ class DatabaseWriterTests : GRDBTestCase {
     @available(iOS 14, macOS 10.16, tvOS 14, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3027000 else {
+        guard Database.sqliteLibVersionNumber >= 3027000 else {
             throw XCTSkip("VACUUM INTO is not available")
         }
         

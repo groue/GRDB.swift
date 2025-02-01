@@ -338,7 +338,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1390>
     func testIssue1390() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else

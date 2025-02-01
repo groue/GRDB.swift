@@ -1,12 +1,3 @@
-// Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 import XCTest
 import GRDB
 
@@ -56,7 +47,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testStrictTableCreationOption() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("STRICT tables are not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -367,7 +358,7 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testColumnGeneratedAs() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3031000 else {
+        guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
 #else
@@ -802,7 +793,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testAlterTableRenameColumn() throws {
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         let dbQueue = try makeDatabaseQueue()
@@ -825,7 +816,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testAlterTableRenameColumnInvalidatesSchemaCache() throws {
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         let dbQueue = try makeDatabaseQueue()
@@ -844,7 +835,7 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testAlterTableAddGeneratedVirtualColumn() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3031000 else {
+        guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
 #else
@@ -879,7 +870,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableDropColumn() throws {
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -903,7 +894,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableDropColumnInvalidatesSchemaCache() throws {
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
