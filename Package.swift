@@ -113,6 +113,10 @@ if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
             name: "GRDBPerformanceTests",
             dependencies: ["GRDB"],
             path: "Tests/Performance/GRDBPerformance",
+            exclude: [
+                "PerformanceModel.xcdatamodeld",
+                "Info.plist",
+            ],
             cSettings: cSettings,
             swiftSettings: swiftSettings + [
                 // Tests still use the Swift 5 language mode.
@@ -122,4 +126,3 @@ if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
             ])
     )
 }
-
