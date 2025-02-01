@@ -121,6 +121,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``clearSchemaCache()``
 /// - ``logError``
 /// - ``releaseMemory()``
+/// - ``sqliteLibVersionNumber``
 /// - ``trace(options:_:)``
 ///
 /// ### Supporting Types
@@ -300,6 +301,21 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         try DatabaseQueue().inDatabase {
             try Set(String.fetchCursor($0, sql: "PRAGMA COMPILE_OPTIONS"))
         }
+    }
+    
+    
+    /// An integer equal to [`SQLITE_VERSION_NUMBER`](https://www.sqlite.org/c3ref/c_source_id.html).
+    ///
+    /// This property returns the result of `sqlite3_libversion_number()`.
+    ///
+    /// ```swift
+    /// // Prints, for example, "3048000"
+    /// print(Database.sqliteLibVersionNumber)
+    /// ```
+    @inline(__always)
+    @inlinable
+    public static var sqliteLibVersionNumber: CInt {
+        sqlite3_libversion_number()
     }
     
     /// Whether the database region selected by statement execution is
