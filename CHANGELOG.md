@@ -136,6 +136,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: Expose `sqlite3_libversion_number` as `Database.sqliteLibVersionNumber` by [@groue](https://github.com/groue) in [#1713](https://github.com/groue/GRDB.swift/pull/1713)
 - **Fixed**: DatabaseQueue restores its read/write abilities when an async read-only database access is cancelled by [@groue](https://github.com/groue) in [#1716](https://github.com/groue/GRDB.swift/pull/1716)
+- **New**: Allow RxGRDB to compile without warning by [@groue](https://github.com/groue) in [#1717](https://github.com/groue/GRDB.swift/pull/1717)
 
 ## 7.0.0
 
