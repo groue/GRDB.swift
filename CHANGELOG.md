@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.1.x` Releases - [7.1.0](#710)
 - `7.0.x` Releases - [7.0.0](#700)
 - `7.0.0` Betas - [7.0.0-beta](#700-beta) - [7.0.0-beta.2](#700-beta2) - [7.0.0-beta.3](#700-beta3) - [7.0.0-beta.4](#700-beta4) - [7.0.0-beta.5](#700-beta5) - [7.0.0-beta.6](#700-beta6) - [7.0.0-beta.7](#700-beta7)
 
@@ -132,7 +133,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 7.1.0
+
+Released February 5, 2025
 
 - **New**: Expose `sqlite3_libversion_number` as `Database.sqliteLibVersionNumber` by [@groue](https://github.com/groue) in [#1713](https://github.com/groue/GRDB.swift/pull/1713)
 - **Fixed**: DatabaseQueue restores its read/write abilities when an async read-only database access is cancelled by [@groue](https://github.com/groue) in [#1716](https://github.com/groue/GRDB.swift/pull/1716)
