@@ -92,6 +92,9 @@ public final class Statement {
     /// The effects on the database (reported by `sqlite3_set_authorizer`).
     private(set) var authorizerEventKinds: [DatabaseEventKind] = []
     
+    /// If true, the statement executes is a `PRAGMA QUERY_ONLY` statement.
+    private(set) var isQueryOnlyPragma = false
+    
     /// A boolean value indicating if the prepared statement makes no direct
     /// changes to the content of the database file.
     ///
@@ -160,6 +163,7 @@ public final class Statement {
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.transactionEffect = authorizer.transactionEffect
         self.authorizerEventKinds = authorizer.databaseEventKinds
+        self.isQueryOnlyPragma = authorizer.isQueryOnlyPragma
     }
     
     deinit {

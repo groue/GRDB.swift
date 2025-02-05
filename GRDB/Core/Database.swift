@@ -1288,6 +1288,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             return
         }
         
+        // Suspension should not prevent adjusting the read-only mode.
+        // See <https://github.com/groue/GRDB.swift/issues/1715>.
+        if statement.isQueryOnlyPragma {
+            return
+        }
+        
         // How should we interrupt the statement?
         enum Interrupt {
             case abort  // Rollback and throw SQLITE_ABORT

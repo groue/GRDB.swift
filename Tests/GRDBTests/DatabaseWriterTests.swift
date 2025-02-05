@@ -415,6 +415,57 @@ class DatabaseWriterTests : GRDBTestCase {
     
     // MARK: - Task Cancellation
     
+    // Regression test for <https://github.com/groue/GRDB.swift/issues/1715>.
+    func test_write_is_possible_after_read_cancelled_after_database_access() async throws {
+        // When a read access is cancelled, DatabaseQueue needs to execute
+        // `PRAGMA query_only=0` in order to restore the read/write access.
+        //
+        // Here we test that this pragma can run from a cancelled read.
+        //
+        // Small difficulty: some SQLite versions (seen with 3.43.2) execute
+        // the `query_only` pragma at compile time, not only at execution
+        // time (yeah, that's an SQLite bug). The problem of this bug is
+        // that even if the `PRAGMA query_only=0` is not executed due to
+        // Task cancellation, its side effect is still executed when it is
+        // compiled, unintentionally. A cancelled `PRAGMA query_only=0`
+        // still works!
+        //
+        // To avoid this SQLite bug from messing with our test, we perform
+        // two reads: one that compiles and cache `PRAGMA query_only`
+        // statements, and a second read that we cancel. This time the
+        // `PRAGMA query_only=0` triggers its side effect if and only if it
+        // is actually executed (the behavior we are testing).
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            let semaphore = AsyncSemaphore(value: 0)
+            let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
+            let task = Task {
+                await semaphore.wait()
+                
+                // First read, not cancelled, so that all `query_only`
+                // pragma statements are compiled (see above).
+                try await dbWriter.read { db in }
+                
+                // Second read, cancelled.
+                try await dbWriter.read { db in
+                    try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                }
+            }
+            cancelledTaskMutex.store(task)
+            semaphore.signal()
+            // Wait until reads are completed
+            try? await task.value
+            
+            // Write access is restored after read cancellation (no error is thrown)
+            try await dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE test(a)")
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
+    
     func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
