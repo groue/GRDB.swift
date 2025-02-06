@@ -1,11 +1,7 @@
 import XCTest
 import Dispatch
 @testable import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
-#if canImport(Darwin)
 class ValueObservationTests: GRDBTestCase {
     // Test passes if it compiles.
     // See <https://github.com/groue/GRDB.swift/issues/1541>
@@ -894,7 +890,8 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
-    
+
+    #if canImport(Darwin) // @MainActor test cases don't compile non-Darwin platforms: "call to main actor-isolated instance method 'test_mainActor_observation()' in a synchronous nonisolated(unsafe) context"
     // MARK: - Main Actor
     @MainActor func test_mainActor_observation() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -928,6 +925,7 @@ class ValueObservationTests: GRDBTestCase {
             wait(for: [expectation], timeout: 2)
         }
     }
+    #endif
 
     // MARK: - Async Await
     
@@ -1357,4 +1355,3 @@ class ValueObservationTests: GRDBTestCase {
                 })
     }
 }
-#endif

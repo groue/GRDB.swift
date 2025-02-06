@@ -1,5 +1,6 @@
 #if canImport(Combine)
 import Combine
+#endif
 import Foundation
 import XCTest
 
@@ -99,6 +100,7 @@ final class AsyncTest<Context> {
     }
 }
 
+#if canImport(Combine)
 public func assertNoFailure<Failure>(
     _ completion: Subscribers.Completion<Failure>,
     file: StaticString = #file,
