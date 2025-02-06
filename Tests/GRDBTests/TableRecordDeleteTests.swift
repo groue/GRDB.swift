@@ -1,8 +1,5 @@
 import XCTest
 import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 private struct Hacker : TableRecord {
     static let databaseTableName = "hackers"

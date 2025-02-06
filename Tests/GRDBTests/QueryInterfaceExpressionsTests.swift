@@ -1,8 +1,5 @@
 import XCTest
 @testable import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 private struct Col {
     static let id = Column("id")

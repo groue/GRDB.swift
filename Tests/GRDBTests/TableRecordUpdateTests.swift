@@ -1,8 +1,5 @@
 import XCTest
 import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     var id: Int64

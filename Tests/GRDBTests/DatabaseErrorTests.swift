@@ -216,6 +216,9 @@ class DatabaseErrorTests: GRDBTestCase {
     }
     
     func testNSErrorBridging() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSError bridging works differently on non-Darwin platforms")
+        #else
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
@@ -229,5 +232,6 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertNotNil(error.localizedFailureReason)
             }
         }
+        #endif
     }
 }
