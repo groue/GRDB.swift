@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: January 19, 2025 • [version 7.0.0-beta.7](https://github.com/groue/GRDB.swift/tree/v7.0.0-beta.7) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: February 5, 2025 • [version 7.1.0](https://github.com/groue/GRDB.swift/tree/v7.1.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -281,7 +281,7 @@ Documentation
 
 #### Reference
 
-- 📖 [GRDB Reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/)
+- 📖 [GRDB Reference](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/)
 
 #### Getting Started
 
@@ -295,7 +295,7 @@ Documentation
 #### Records and the Query Interface
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables, indexes, etc](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables, indexes, etc](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
 
 #### Application Tools
 
@@ -315,10 +315,10 @@ Documentation
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
-- [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
+- [Data Protection](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections)
 - :bulb: [Migrating From GRDB 6 to GRDB 7](Documentation/Documentation/GRDB7MigrationGuide.md)
 - :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
-- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
+- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices)
 
 #### Companion Libraries
 
@@ -415,7 +415,7 @@ The differences are:
 
 **If you are not sure, choose [`DatabaseQueue`].** You will always be able to switch to [`DatabasePool`] later.
 
-For more information and tips when opening connections, see [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections).
+For more information and tips when opening connections, see [Database Connections](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections).
 
 
 SQLite API
@@ -441,14 +441,14 @@ Advanced topics:
 
 - [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
-- [Database Schema Introspection](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschemaintrospection)
-- [Row Adapters](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
+- [Database Schema Introspection](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschemaintrospection)
+- [Row Adapters](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 
 ## Executing Updates
 
-Once granted with a [database connection], the [`execute(sql:arguments:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/execute(sql:arguments:)) method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once granted with a [database connection], the [`execute(sql:arguments:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(sql:arguments:)) method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -474,7 +474,7 @@ try dbQueue.write { db in
 
 The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
-You can also embed query arguments right into your SQL queries, with [`execute(literal:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/execute(literal:)), as in the example below. See [SQL Interpolation] for more details.
+You can also embed query arguments right into your SQL queries, with [`execute(literal:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(literal:)), as in the example below. See [SQL Interpolation] for more details.
 
 ```swift
 try dbQueue.write { db in
@@ -526,7 +526,7 @@ try db.execute(literal: """
 
 When you want to make sure that a single statement is executed, use a prepared [`Statement`].
 
-**After an INSERT statement**, you can get the row ID of the inserted row with [`lastInsertedRowID`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/lastinsertedrowid):
+**After an INSERT statement**, you can get the row ID of the inserted row with [`lastInsertedRowID`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/lastinsertedrowid):
 
 ```swift
 try db.execute(
@@ -626,7 +626,7 @@ try Row.fetchOne(...)    // Row?
 
 ### Cursors
 
-📖 [`Cursor`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/cursor)
+📖 [`Cursor`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/cursor)
 
 **Whenever you consume several rows from the database, you can fetch an Array, a Set, or a Cursor**.
 
@@ -712,7 +712,7 @@ try dbQueue.read { db in
     let dictionary = try Dictionary(uniqueKeysWithValues: cursor)
     ```
 
-- **Cursors adopt the [Cursor](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/cursor) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
+- **Cursors adopt the [Cursor](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/cursor) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
     
     ```swift
     // Prints all Github links
@@ -753,7 +753,7 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 - [Column Values](#column-values)
 - [DatabaseValue](#databasevalue)
 - [Rows as Dictionaries](#rows-as-dictionaries)
-- 📖 [`Row`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/row)
+- 📖 [`Row`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/row)
 
 
 #### Fetching Rows
@@ -928,7 +928,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
 
 #### DatabaseValue
 
-📖 [`DatabaseValue`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalue)
+📖 [`DatabaseValue`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalue)
 
 **`DatabaseValue` is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
@@ -954,7 +954,7 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from `DatabaseValue` with the [fromDatabaseValue()](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible/fromdatabasevalue(_:)-21zzv) method:
+You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from `DatabaseValue` with the [fromDatabaseValue()](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalueconvertible/fromdatabasevalue(_:)-21zzv) method:
 
 ```swift
 let dbValue: DatabaseValue = row["bookCount"]
@@ -1040,7 +1040,7 @@ See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://develo
 
 ### Value Queries
 
-📖 [`DatabaseValueConvertible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible)
+📖 [`DatabaseValueConvertible`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalueconvertible)
 
 **Instead of rows, you can directly fetch values.** There are many supported [value types](#values) (Bool, Int, String, Date, Swift enums, etc.).
 
@@ -1111,7 +1111,7 @@ GRDB ships with built-in support for the following value types:
 
 - Generally speaking, all types that adopt the [`DatabaseValueConvertible`] protocol.
 
-Values can be used as [statement arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+Values can be used as [statement arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let url: URL = ...
@@ -1437,7 +1437,7 @@ SELECT maxLength(name) FROM player; -- custom aggregate
 
 ### Custom SQL Functions
 
-📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasefunction)
+📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasefunction)
 
 A *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
 
@@ -1518,7 +1518,7 @@ Player.select(reverseString(nameColumn))
 
 ### Custom Aggregates
 
-📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasefunction), [`DatabaseAggregate`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseaggregate)
+📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasefunction), [`DatabaseAggregate`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseaggregate)
 
 Before registering a custom aggregate, you need to define a type that adopts the `DatabaseAggregate` protocol:
 
@@ -1643,7 +1643,7 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) first.
 
 To define a record type, define a type and extend it with protocols that come with focused sets of features.
 
@@ -1667,7 +1667,7 @@ See some [examples of record definitions](#examples-of-record-definitions).
 
 > Note: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming.
 >
-> Tip: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) guide provides general guidance..
+> Tip: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices) guide provides general guidance..
 >
 > Tip: See the [Demo Applications] for sample apps that uses records.
 
@@ -1869,7 +1869,7 @@ Details follow:
 
 ## FetchableRecord Protocol
 
-📖 [`FetchableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/fetchablerecord)
+📖 [`FetchableRecord`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/fetchablerecord)
 
 **The FetchableRecord protocol grants fetching methods to any type** that can be built from a database row:
 
@@ -1949,7 +1949,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 ## TableRecord Protocol
 
-📖 [`TableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord)
+📖 [`TableRecord`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerecord)
 
 **The TableRecord protocol** generates SQL for you:
 
@@ -2000,7 +2000,7 @@ TableRecord can also fetch deal with primary and unique keys: see [Fetching by K
 
 ## PersistableRecord Protocol
 
-📖 [`EncodableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/encodablerecord), [`MutablePersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/mutablepersistablerecord), [`PersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/persistablerecord)
+📖 [`EncodableRecord`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/encodablerecord), [`MutablePersistableRecord`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/mutablepersistablerecord), [`PersistableRecord`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/persistablerecord)
 
 **GRDB record types can create, update, and delete rows in the database.**
 
@@ -2431,7 +2431,7 @@ Here is a list with all the available [persistence callbacks], listed in the sam
     - `aroundDelete`
     - `didDelete`
 
-For detailed information about each callback, check the [reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/mutablepersistablerecord/).
+For detailed information about each callback, check the [reference](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/mutablepersistablerecord/).
 
 In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mutating methods. In `PersistableRecord`, they are not mutating.
 
@@ -2439,7 +2439,7 @@ In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mut
 >
 > **Warning**: Callbacks are only invoked from persistence methods called on record instances. Callbacks are not invoked when you call a type method, perform a batch operations, or execute raw SQL.
 >
-> **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [afterNextTransaction(onCommit:onRollback:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)). For example:
+> **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [afterNextTransaction(onCommit:onRollback:)](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)). For example:
 >
 > ```swift
 > struct PictureFile: PersistableRecord {
@@ -2466,7 +2466,7 @@ struct Player: Identifiable, FetchableRecord, PersistableRecord {
 }
 ```
 
-When `id` has a [database-compatible type](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
+When `id` has a [database-compatible type](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalueconvertible) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
 
 ```swift
 let player = try Player.find(db, id: 1)               // Player
@@ -2645,7 +2645,7 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseColumnDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumndecodingstrategy) and [DatabaseColumnEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumnencodingstrategy/) to learn about all available strategies.
+See [DatabaseColumnDecodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasecolumndecodingstrategy) and [DatabaseColumnEncodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasecolumnencodingstrategy/) to learn about all available strategies.
 
 
 ### Data, Date, and UUID Coding Strategies
@@ -2669,7 +2669,7 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseDataDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatadecodingstrategy/), [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDataEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedataencodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
+See [DatabaseDataDecodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasedatadecodingstrategy/), [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDataEncodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasedataencodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
 
 There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
@@ -2789,7 +2789,7 @@ extension Player: FetchableRecord, PersistableRecord {
 }
 ```
 
-See the [query interface](#the-query-interface) and [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) for further information.
+See the [query interface](#the-query-interface) and [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices) for further information.
 
 
 ## Record Comparison
@@ -2969,7 +2969,7 @@ try player.insert(db)
 > }
 > ```
 >
-> **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver) (this might change in a future release of SQLite).
+> **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver) (this might change in a future release of SQLite).
 
 ### Beyond FetchableRecord
 
@@ -3250,7 +3250,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
-- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databaseschema)
+- [The Database Schema](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
@@ -3269,7 +3269,7 @@ So don't miss the [SQL API](#sqlite-api).
 
 ## Requests
 
-📖 [`QueryInterfaceRequest`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest), [`Table`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table)
+📖 [`QueryInterfaceRequest`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest), [`Table`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/table)
 
 **The query interface requests** let you fetch values from the database:
 
@@ -3325,7 +3325,7 @@ enum Columns: String, ColumnExpression {
 
 You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`, `with`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
-- [`all()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/all()), [`none()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/none()): the requests for all rows, or no row.
+- [`all()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerecord/all()), [`none()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerecord/none()): the requests for all rows, or no row.
 
     ```swift
     // SELECT * FROM player
@@ -3334,21 +3334,21 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     By default, all columns are selected. See [Columns Selected by a Request].
 
-- [`select(...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/select(_:)-30yzl) and [`select(..., as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-282xc) define the selected columns. See [Columns Selected by a Request].
+- [`select(...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/select(_:)-30yzl) and [`select(..., as:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-282xc) define the selected columns. See [Columns Selected by a Request].
     
     ```swift
     // SELECT name FROM player
     Player.select(nameColumn, as: String.self)
     ```
 
-- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
+- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
 
     ```swift
     // SELECT *, (score + bonus) AS total FROM player
     Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
     ```
 
-- [`annotated(with: aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/annotated(with:)-74xfs) extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
+- [`annotated(with: aggregate)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/annotated(with:)-74xfs) extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
@@ -3358,7 +3358,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.annotated(with: Team.players.count)
     ```
 
-- [`annotated(withRequired: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withrequired:)) and [`annotated(withOptional: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withoptional:)) extends the selection with [Associations].
+- [`annotated(withRequired: association)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/annotated(withrequired:)) and [`annotated(withOptional: association)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/annotated(withoptional:)) extends the selection with [Associations].
     
     ```swift
     // SELECT player.*, team.color
@@ -3367,14 +3367,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.annotated(withRequired: Player.team.select(colorColumn))
     ```
 
-- [`distinct()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/distinct()) performs uniquing.
+- [`distinct()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/distinct()) performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM player
     Player.select(nameColumn, as: String.self).distinct()
     ```
 
-- [`filter(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/filteredrequest/filter(_:)) applies conditions.
+- [`filter(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/filteredrequest/filter(_:)) applies conditions.
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
@@ -3384,7 +3384,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
-- [`filter(id:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(id:)) and [`filter(ids:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(ids:)) are type-safe methods available on [Identifiable Records]:
+- [`filter(id:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(id:)) and [`filter(ids:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(ids:)) are type-safe methods available on [Identifiable Records]:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -3394,7 +3394,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Country.filter(ids: ["FR", "US"])
     ```
     
-- [`filter(key:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(key:)-1p9sq) and [`filter(keys:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(keys:)-6ggt1) apply conditions on primary and unique keys:
+- [`filter(key:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(key:)-1p9sq) and [`filter(keys:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(keys:)-6ggt1) apply conditions on primary and unique keys:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -3410,7 +3410,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(key: ["email": "arthur@example.com"])
     ```
 
-- `matching(pattern)` ([FTS3](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-3s3zr), [FTS5](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-7c1e8)) performs [full-text search](Documentation/FullTextSearch.md).
+- `matching(pattern)` ([FTS3](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/matching(_:)-3s3zr), [FTS5](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/matching(_:)-7c1e8)) performs [full-text search](Documentation/FullTextSearch.md).
     
     ```swift
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
@@ -3420,7 +3420,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     When the pattern is nil, no row will match.
 
-- [`group(expression, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/group(_:)-edak) groups rows.
+- [`group(expression, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/group(_:)-edak) groups rows.
     
     ```swift
     // SELECT name, MAX(score) FROM player GROUP BY name
@@ -3429,7 +3429,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .group(nameColumn)
     ```
 
-- [`having(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/having(_:)) applies conditions on grouped rows.
+- [`having(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/having(_:)) applies conditions on grouped rows.
     
     ```swift
     // SELECT team, MAX(score) FROM player GROUP BY team HAVING MIN(score) >= 1000
@@ -3439,7 +3439,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .having(min(scoreColumn) >= 1000)
     ```
 
-- [`having(aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/having(_:)) applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
+- [`having(aggregate)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/having(_:)) applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*
@@ -3450,7 +3450,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.having(Team.players.count >= 5)
     ```
 
-- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/order(_:)-63rzl) sorts.
+- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/order(_:)-63rzl) sorts.
     
     ```swift
     // SELECT * FROM player ORDER BY name
@@ -3474,7 +3474,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn).order(nameColumn)
     ```
 
-- [`reversed()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
+- [`reversed()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC, name DESC
@@ -3488,7 +3488,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.all().reversed()
     ```
 
-- [`limit(limit, offset: offset)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/limit(_:offset:)) limits and pages results.
+- [`limit(limit, offset: offset)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/limit(_:offset:)) limits and pages results.
     
     ```swift
     // SELECT * FROM player LIMIT 5
@@ -3498,7 +3498,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.limit(5, offset: 10)
     ```
 
-- [`joining(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(required:)), [`joining(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(optional:)), [`including(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(required:)), [`including(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(optional:)), and [`including(all:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(all:)) fetch and join records through [Associations].
+- [`joining(required:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/joining(required:)), [`joining(optional:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/joining(optional:)), [`including(required:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/including(required:)), [`including(optional:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/including(optional:)), and [`including(all:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/joinablerequest/including(all:)) fetch and join records through [Associations].
     
     ```swift
     // SELECT player.*, team.*
@@ -3507,7 +3507,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.including(required: Player.team)
     ```
 
-- [`with(cte)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/with(_:)) embeds a [common table expression]:
+- [`with(cte)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/with(_:)) embeds a [common table expression]:
     
     ```swift
     // WITH ... SELECT * FROM player
@@ -3517,7 +3517,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 
 - Other requests that involve the primary key:
     
-    - [`selectPrimaryKey(as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/selectprimarykey(as:)) selects the primary key.
+    - [`selectPrimaryKey(as:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectprimarykey(as:)) selects the primary key.
     
         ```swift
         // SELECT id FROM player
@@ -3530,7 +3530,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         Citizenship.selectPrimaryKey(as: Row.self) // QueryInterfaceRequest<Row>
         ```
         
-    - [`orderByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/orderbyprimarykey()) sorts by primary key.
+    - [`orderByPrimaryKey()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/orderbyprimarykey()) sorts by primary key.
         
         ```swift
         // SELECT * FROM player ORDER BY id
@@ -3543,7 +3543,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         Citizenship.orderByPrimaryKey()
         ```
     
-    - [`groupByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/groupbyprimarykey()) groups rows by primary key.
+    - [`groupByPrimaryKey()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/groupbyprimarykey()) groups rows by primary key.
 
 
 You can refine requests by chaining those methods:
@@ -3567,7 +3567,7 @@ Player                          // SELECT * FROM player
 ```
 
 
-Raw SQL snippets are also accepted, with eventual [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+Raw SQL snippets are also accepted, with eventual [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM player WHERE name = 'Arthur' GROUP BY date(creationDate)
@@ -3654,7 +3654,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Operators
 
-📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/sqlspecificexpressible)
 
 GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL operators.
 
@@ -3924,7 +3924,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
 
 ### SQL Functions
 
-📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/sqlspecificexpressible)
 
 GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
 
@@ -4501,7 +4501,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     }
     ```
     
-- The [`asRequest(of:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/asrequest(of:)) method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
+- The [`asRequest(of:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/asrequest(of:)) method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
 
     ```swift
     struct BookInfo: FetchableRecord, Decodable {
@@ -4517,7 +4517,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     try request.fetchAll(db)
     ```
 
-- The [`adapted(_:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/fetchrequest/adapted(_:)) method eases the consumption of complex rows with row adapters. See [`RowAdapter`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter) and [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)) for a sample code that uses `adapted(_:)`.
+- The [`adapted(_:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/fetchrequest/adapted(_:)) method eases the consumption of complex rows with row adapters. See [`RowAdapter`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter) and [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:)) for a sample code that uses `adapted(_:)`.
 
 
 Encryption
@@ -4588,7 +4588,7 @@ See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-
 
 **You can change the passphrase** of an already encrypted database.
 
-When you use a [database queue](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue), open the database with the old passphrase, and then apply the new passphrase:
+When you use a [database queue](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue), open the database with the old passphrase, and then apply the new passphrase:
 
 ```swift
 try dbQueue.write { db in
@@ -4596,7 +4596,7 @@ try dbQueue.write { db in
 }
 ```
 
-When you use a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
+When you use a [database pool](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
 
 ```swift
 try dbPool.barrierWriteWithoutTransaction { db in
@@ -4623,7 +4623,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > }
 > ```
 
-> **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshot) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
+> **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesnapshot) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
 
 > **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
 
@@ -4778,7 +4778,7 @@ try source.backup(to: destination)
 
 The `backup` method blocks the current thread until the destination database contains the same contents as the source database.
 
-When the source is a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
+When the source is a [database pool](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
 
 `Database` has an analogous `backup` method.
 
@@ -4940,7 +4940,7 @@ Considering that a local database is not some JSON loaded from a remote server, 
 
 ### DatabaseError
 
-📖 [`DatabaseError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseerror)
+📖 [`DatabaseError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseerror)
 
 **DatabaseError** are thrown on SQLite errors:
 
@@ -4972,7 +4972,7 @@ do {
 }
 ```
 
-If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
+If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -5014,7 +5014,7 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 
 ### RecordError
 
-📖 [`RecordError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recorderror)
+📖 [`RecordError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recorderror)
 
 **RecordError** is thrown by the [PersistableRecord] protocol when the `update` method could not find any row to update:
 
@@ -5050,7 +5050,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String = row["name"]
     ```
     
-    Solution: fix the contents of the database, use [NOT NULL constraints](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/columndefinition/notnull(onconflict:)), or load an optional:
+    Solution: fix the contents of the database, use [NOT NULL constraints](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/columndefinition/notnull(onconflict:)), or load an optional:
     
     ```swift
     let name: String? = row["name"]
@@ -5295,7 +5295,7 @@ dbPool.releaseMemoryEventually()
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues] and [pools](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
+[Database queues] and [pools](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
 
 You can opt out of this automatic memory management:
 
@@ -5354,7 +5354,7 @@ FAQ
 
 First choose a proper location for the database file. Document-based applications will let the user pick a location. Apps that use the database as a global storage will prefer the Application Support directory.
 
-The sample code below creates or opens a database file inside its dedicated directory (a [recommended practice](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)). On the first run, a new empty database file is created. On subsequent runs, the database file already exists, so it just opens a connection:
+The sample code below creates or opens a database file inside its dedicated directory (a [recommended practice](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections)). On the first run, a new empty database file is created. On subsequent runs, the database file already exists, so it just opens a connection:
 
 ```swift
 // HOW TO create an empty database, or open an existing database file
@@ -5396,7 +5396,7 @@ if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite") {
 
 Database connections are automatically closed when `DatabaseQueue` or `DatabasePool` instances are deinitialized.
 
-If the correct execution of your program depends on precise database closing, perform an explicit call to [`close()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader/close()). This method may fail and create zombie connections, so please check its detailed documentation.
+If the correct execution of your program depends on precise database closing, perform an explicit call to [`close()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasereader/close()). This method may fail and create zombie connections, so please check its detailed documentation.
 
 ## FAQ: SQL
 
@@ -5434,7 +5434,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
@@ -5471,7 +5471,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
 
 ### What Are Experimental Features?
 
@@ -5776,7 +5776,7 @@ When this is the case, there are two possible explanations:
     try db.execute(sql: "UPDATE player SET name = ?", arguments: [name])
     ```
     
-For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted), and [Configuration.acceptsDoubleQuotedStringLiterals](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/acceptsdoublequotedstringliterals).
+For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted), and [Configuration.acceptsDoubleQuotedStringLiterals](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/acceptsdoublequotedstringliterals).
     
 
 
@@ -5851,15 +5851,15 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 
 #### Advanced DatabasePool
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### After Commit Hook
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
 
 #### Asynchronous APIs
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### Changes Tracking
 
@@ -5867,7 +5867,7 @@ This chapter has been renamed [Record Comparison].
 
 #### Concurrency
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### Custom Value Types
 
@@ -5883,27 +5883,27 @@ This chapter was replaced with [Persistence Callbacks].
 
 #### Database Changes Observation
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseobservation).
 
 #### Database Configuration
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration).
 
 #### Database Queues
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue).
 
 #### Database Pools
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool).
 
 #### Database Snapshots
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### DatabaseWriter and DatabaseReader Protocols
 
-This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasewriter).
+This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasewriter).
 
 #### Date and UUID Coding Strategies
 
@@ -5915,7 +5915,7 @@ This chapter has been superseded by the [Sharing a Database] guide.
 
 #### Differences between Database Queues and Pools
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### Enabling FTS5 Support
 
@@ -5933,19 +5933,19 @@ This chapter has [moved](Documentation/FullTextSearch.md).
 
 #### Guarantees and Rules
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### Joined Queries Support
 
-This chapter was replaced with the documentation of [splittingRowAdapters(columnCounts:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)).
+This chapter was replaced with the documentation of [splittingRowAdapters(columnCounts:)](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:)).
 
 #### List of Record Methods
 
-See [Records and the Query Interface](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterface).
+See [Records and the Query Interface](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterface).
 
 #### Migrations
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations).
 
 #### NSNumber and NSDecimalNumber
 
@@ -5961,15 +5961,15 @@ This error was renamed to [RecordError].
 
 #### Prepared Statements
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statement).
 
 #### Record Class
 
-The [`Record`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/record) class is a legacy GRDB type. Since GRDB 7, it is not recommended to define record types by subclassing the `Record` class.
+The [`Record`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/record) class is a legacy GRDB type. Since GRDB 7, it is not recommended to define record types by subclassing the `Record` class.
 
 #### Row Adapters
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter).
 
 #### RowConvertible Protocol
 
@@ -5981,23 +5981,23 @@ This protocol has been renamed [TableRecord] in GRDB 3.0.
 
 #### Transactions and Savepoints
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactions).
 
 #### Transaction Hook
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
 
 #### TransactionObserver Protocol
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver).
 
 #### Unsafe Concurrency APIs
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency).
 
 #### ValueObservation
 
-This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
+This chapter has [moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation).
 
 #### ValueObservation and DatabaseRegionObservation
 
@@ -6016,7 +6016,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Fetching from Requests]: #fetching-from-requests
 [Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
-[Migrations]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
+[Migrations]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
 [FetchableRecord]: #fetchablerecord-protocol
@@ -6026,40 +6026,40 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Record Customization Options]: #record-customization-options
 [Persistence Callbacks]: #persistence-callbacks
 [persistence callbacks]: #persistence-callbacks
-[Record Timestamps and Transaction Date]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps
+[Record Timestamps and Transaction Date]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordtimestamps
 [TableRecord]: #tablerecord-protocol
-[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
-[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseregionobservation
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
-[DatabaseRegion]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregion
+[DatabaseRegion]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
-[Concurrency]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
+[Concurrency]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/concurrency
 [Demo Applications]: Documentation/DemoApps
-[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing
+[Sharing a Database]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesharing
 [FAQ]: #faq
-[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
-[SQLRequest]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlrequest
+[Database Observation]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseobservation
+[SQLRequest]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/sqlrequest
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
-[Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
+[Database Configuration]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration
 [Persistence Methods]: #persistence-methods
 [persistence methods]: #persistence-methods
 [Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
 [RecordError]: #recorderror
-[Transactions and Savepoints]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions
-[`DatabaseQueue`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
-[Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
-[`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
-[database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
-[`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
-[`StatementArguments`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments
-[Prepared Statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
-[prepared statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
-[`Statement`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[Transactions and Savepoints]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactions
+[`DatabaseQueue`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue
+[Database queues]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue
+[`DatabasePool`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool
+[database pools]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool
+[`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasevalueconvertible
+[`StatementArguments`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments
+[Prepared Statements]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statement
+[prepared statements]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statement
+[`Statement`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statement
 [Database Connections]: #database-connections
 [Database connections]: #database-connections
 [database connection]: #database-connections

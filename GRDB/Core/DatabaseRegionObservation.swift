@@ -83,6 +83,7 @@ extension DatabaseRegionObservation {
     /// - parameter onChange: The closure to execute when a transaction has
     ///   modified the observed region.
     /// - returns: A DatabaseCancellable that can stop the observation.
+    @preconcurrency // For RxGRDB, see <https://github.com/RxSwiftCommunity/RxGRDB/issues/72#issuecomment-2631125658>
     public func start(
         in writer: any DatabaseWriter,
         onError: @escaping @Sendable (Error) -> Void,

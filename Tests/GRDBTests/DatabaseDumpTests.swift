@@ -1,12 +1,3 @@
-// Import C SQLite functions
-#if GRDBCIPHER
-import SQLCipher
-#elseif SWIFT_PACKAGE
-import GRDBSQLite
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 import XCTest
 import GRDB
 
@@ -1282,7 +1273,7 @@ final class DatabaseDumpTests: GRDBTestCase {
     }
     
     func test_dumpSchema_ignores_shadow_tables() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("Can't detect shadow tables")
         }
         
@@ -1486,7 +1477,7 @@ final class DatabaseDumpTests: GRDBTestCase {
     }
     
     func test_dumpContent_ignores_shadow_tables() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("Can't detect shadow tables")
         }
         

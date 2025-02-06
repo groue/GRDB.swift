@@ -10,6 +10,7 @@ Migrating From GRDB 6 to GRDB 7
 - [Column Coding Strategies](#column-coding-strategies)
 - [Cancellable Async Database Accesses](#cancellable-async-database-accesses)
 - [Default Transaction Kind](#default-transaction-kind)
+- [Associations to record types named Bias, Focus, Gas, and Lens](#associations-to-record-types-named-bias-focus-gas-and-lens)
 - [ValueObservation and the Main Actor](#valueobservation-and-the-main-actor)
 - [Access to SQLite C functions](#access-to-sqlite-c-functions)
 - [The Record Base Class is Discouraged](#the-record-base-class-is-discouraged)
@@ -96,6 +97,53 @@ try await task.value
 
 Other asynchronous database accesses, such as methods accepting a completion blocks (`asyncRead`, etc.), Combine publishers, RxSwift observables, do not handle cancellation and will proceed to completion by default.
 
+## Associations to record types named Bias, Focus, Gas, and Lens
+
+GRDB 7 has fixed its singularization and pluralization rules for database tables named "bias", "focus", "gas", and "lens".
+
+If your application defines associations to those tables, you can now rely on proper inflections (pluralization and singularization).
+
+With GRDB 7, you can remove custom association keys:
+
+```swift
+struct Camera: TableRecord {
+    // GRDB 6: fix incorrect GRDB inflection
+    static let lenses = hasMany(Lens.self).forKey("lenses")
+    // GRDB 7
+    static let lenses = hasMany(Lens.self)
+}
+```
+
+If your application was not specifying custom association keys in order to fix the wrong inflections, then it may define types that will no longer decode their properties as intended:
+
+```swift
+// Works in GRDB 6, breaks in GRDB 7
+struct CameraWithLenses: Decodable, FetchableRecord {
+    var camera: Camera
+    var lens: [Lens] // <- incorrect pluralization
+}
+let results = Camera
+    .including(all: Camera.lenses)
+    .asRequest(of: CameraWithLenses.self)
+    .fetchAll(db)
+```
+
+There are two possible solutions. One is to rename properties, the other is to keep on using the wrong inflection (it's your call):
+
+```swift
+// GRDB 7, alternative 1
+struct CameraWithLenses: Decodable, FetchableRecord {
+    var camera: Camera
+    var lenses: [Lens] // <- fixed pluralization
+}
+
+// GRDB 7, alternative 2
+struct Camera: TableRecord {
+    // Use "lens" instead of "lenses" for GRDB 6 compatibility.
+    static let lenses = hasMany(Lens.self).forKey("lens")
+}
+```
+
 ## Default Transaction Kind
 
 Some applications specify a default transaction kind, which was previously recommended in the [Sharing a Database] guide:
@@ -114,7 +162,7 @@ You can still specify a transaction kind explicitly when necessary. See [Transac
 
 In GRDB 7, `ValueObservation` fosters the main actor, because it is frequently used to automatically update database values on screen.
 
-By default, its [`start`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
+By default, its [`start`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
     
 It is not necessary to call `MainActor.assumeIsolated` in `ValueObservation` callbacks:
 
@@ -221,14 +269,14 @@ Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non
 
 ## Other Changes
 
-- `DatabasePool.concurrentRead` has been removed. Use [`asyncConcurrentRead`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool/asyncconcurrentread(_:)) instead.
+- `DatabasePool.concurrentRead` has been removed. Use [`asyncConcurrentRead`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool/asyncconcurrentread(_:)) instead.
 
 - The `PersistenceContainer` subscript no longer guarantees that the value returned is the same as what was previously set. It only guarantees that both values are encoded identically in the database.
 
-- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/grdb.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
+- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/GRDB.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
 
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide
-[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/databasesharing
-[Transaction Kinds]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/transactions#Transaction-Kinds
-[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/swiftconcurrency
-[Record]: https://swiftpackageindex.com/groue/grdb.swift/v7.0.0-beta.7/documentation/grdb/record
+[Sharing a Database]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesharing
+[Transaction Kinds]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactions#Transaction-Kinds
+[Swift Concurrency and GRDB]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/swiftconcurrency
+[Record]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/record

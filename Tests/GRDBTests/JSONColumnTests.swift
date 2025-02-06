@@ -8,7 +8,7 @@ final class JSONColumnTests: GRDBTestCase {
     func test_JSONColumn_derived_from_CodingKey() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3038000 else {
+        guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
         }
 #else
@@ -50,7 +50,7 @@ final class JSONColumnTests: GRDBTestCase {
     func test_JSON_EXTRACT() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3038000 else {
+        guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON_EXTRACT is not available")
         }
 #else
@@ -82,7 +82,7 @@ final class JSONColumnTests: GRDBTestCase {
     func test_extraction_operators() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
-        guard sqlite3_libversion_number() >= 3038000 else {
+        guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON operators are not available")
         }
 #else

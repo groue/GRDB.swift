@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ccgus/fmdb.git",
       "state" : {
-        "revision" : "47a2fa12a242b5a2fe13b916c22f2212e426055c",
-        "version" : "2.7.9"
+        "revision" : "1227a3fa2b9916bfd75fe380eb45cd210e69e251",
+        "version" : "2.7.12"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/realm/realm-core.git",
       "state" : {
-        "revision" : "374dd672af357732dccc135fecc905406fec3223",
-        "version" : "14.4.1"
+        "revision" : "15493076ad9fef22c16cc64cbfbf9e5b65c385f9",
+        "version" : "20.1.0"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/realm/realm-swift.git",
       "state" : {
-        "revision" : "e0c2fbb442979fbf1e4be80e01d142f310a9c762",
-        "version" : "10.49.1"
+        "revision" : "bae6c4be7df169fdb047d0ad63f902c1e2665e83",
+        "version" : "20.0.1"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stephencelis/SQLite.swift.git",
       "state" : {
-        "revision" : "e78ae0220e17525a15ac68c697a155eb7a672a8e",
-        "version" : "0.15.0"
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8",
+        "version" : "0.15.3"
       }
     }
   ],

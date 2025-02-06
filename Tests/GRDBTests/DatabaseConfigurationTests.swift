@@ -1,12 +1,3 @@
-// Import C SQLite functions
-#if GRDBCIPHER
-import SQLCipher
-#elseif SWIFT_PACKAGE
-import GRDBSQLite
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 import XCTest
 import GRDB
 
@@ -139,7 +130,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
             let foo = try dbQueue.inDatabase { db in
                 try String.fetchOne(db, sql: "SELECT \"foo\" FROM player")
             }
-            if sqlite3_libversion_number() >= 3029000 {
+            if Database.sqliteLibVersionNumber >= 3029000 {
                 XCTFail("Expected error")
             } else {
                 XCTAssertEqual(foo, "foo")
@@ -154,7 +145,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
             }
-            if sqlite3_libversion_number() >= 3029000 {
+            if Database.sqliteLibVersionNumber >= 3029000 {
                 XCTFail("Expected error")
             }
         } catch let error as DatabaseError {

@@ -1063,7 +1063,7 @@ class ValueObservationTests: GRDBTestCase {
     func testManyObservations() throws {
         // TODO: Fix flaky test with SQLCipher 3
         #if GRDBCIPHER
-        if sqlite3_libversion_number() <= 3020001 {
+        if Database.sqliteLibVersionNumber <= 3020001 {
             throw XCTSkip("Skip flaky test with SQLCipher 3")
         }
         #endif
