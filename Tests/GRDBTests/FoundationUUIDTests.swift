@@ -28,7 +28,7 @@ class FoundationUUIDTests: GRDBTestCase {
         try assert(string.lowercased(), isDecodedAs: uuid)
         try assert(string.uppercased(), isDecodedAs: uuid)
         try assert(uuid, isDecodedAs: uuid)
-        #if canImport(Darwin) // needed for NSUUID
+        #if canImport(ObjectiveC)
         try assert(uuid as NSUUID, isDecodedAs: uuid)
         #endif
         try assert(data, isDecodedAs: uuid)

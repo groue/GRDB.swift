@@ -1,8 +1,8 @@
 import XCTest
 import GRDB
 
-#if canImport(Darwin) // needed for NSUUID
 class FoundationNSUUIDTests: GRDBTestCase {
+    #if canImport(ObjectiveC)
     private func assert(_ value: (any DatabaseValueConvertible)?, isDecodedAs expectedUUID: NSUUID?) throws {
         try makeDatabaseQueue().read { db in
             if let expectedUUID {
@@ -17,8 +17,12 @@ class FoundationNSUUIDTests: GRDBTestCase {
         let decodedUUID = NSUUID.fromDatabaseValue(value?.databaseValue ?? .null)
         XCTAssertEqual(decodedUUID, expectedUUID)
     }
-    
+    #endif
+
     private func assertRoundTrip(_ uuid: UUID) throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSUUID unavailable")
+        #else
         let string = uuid.uuidString
         var uuid_t = uuid.uuid
         let data = withUnsafeBytes(of: &uuid_t) {
@@ -30,15 +34,23 @@ class FoundationNSUUIDTests: GRDBTestCase {
         try assert(uuid, isDecodedAs: uuid as NSUUID)
         try assert(uuid as NSUUID, isDecodedAs: uuid as NSUUID)
         try assert(data, isDecodedAs: uuid as NSUUID)
+        #endif
     }
     
     func testSuccess() throws {
         try assertRoundTrip(UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!)
         try assertRoundTrip(UUID())
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSUUID unavailable")
+        #else
         try assert("abcdefghijklmnop".data(using: .utf8)!, isDecodedAs: NSUUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70"))
+        #endif
     }
     
     func testFailure() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSUUID unavailable")
+        #else
         try assert(nil, isDecodedAs: nil)
         try assert(DatabaseValue.null, isDecodedAs: nil)
         try assert(1, isDecodedAs: nil)
@@ -49,6 +61,6 @@ class FoundationNSUUIDTests: GRDBTestCase {
         try assert("bar".data(using: .utf8)!, isDecodedAs: nil)
         try assert("abcdefghijklmno".data(using: .utf8)!, isDecodedAs: nil)
         try assert("abcdefghijklmnopq".data(using: .utf8)!, isDecodedAs: nil)
+        #endif
     }
 }
-#endif

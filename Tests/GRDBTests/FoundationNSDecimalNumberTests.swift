@@ -1,11 +1,12 @@
 import XCTest
 import GRDB
 
-#if canImport(Darwin) // needed for NSDecimalNumber
 class FoundationNSDecimalNumberTests: GRDBTestCase {
 
-    func testNSDecimalNumberPreservesIntegerValues() {
-        
+    func testNSDecimalNumberPreservesIntegerValues() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         enum Storage {
             case integer
             case double
@@ -55,9 +56,13 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         
         // Int64.min - 1
         XCTAssertEqual(storage(NSDecimalNumber(string: "-9223372036854775809")), .double)
+        #endif
     }
     
     func testNSDecimalNumberDatabaseRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSDecimalNumber) throws -> Bool {
             guard let back = try dbQueue.inDatabase({ try NSDecimalNumber.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
@@ -69,9 +74,13 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         
         XCTAssertTrue(try roundTrip(NSDecimalNumber(value: Int32.min + 1)))
         XCTAssertTrue(try roundTrip(NSDecimalNumber(value: Double(10000000.01))))
+        #endif
     }
     
-    func testNSDecimalNumberDatabaseValueRoundTrip() {
+    func testNSDecimalNumberDatabaseValueRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         func roundTrip(_ value: NSDecimalNumber) -> Bool
         {
             let dbValue = value.databaseValue
@@ -85,18 +94,26 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         
         XCTAssertTrue(roundTrip(NSDecimalNumber(value: Int32.min + 1)))
         XCTAssertTrue(roundTrip(NSDecimalNumber(value: Double(10000000.01))))
+        #endif
     }
     
-    func testNSDecimalNumberFromDatabaseValueFailure() {
+    func testNSDecimalNumberFromDatabaseValueFailure() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_String = "foo".databaseValue
         let databaseValue_Blob = "bar".data(using: .utf8)!.databaseValue
         XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_String))
         XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_Blob))
+        #endif
     }
     
     func testNSDecimalNumberDecodingFromInt64() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         func test(_ value: Int64, isDecodedAs number: NSDecimalNumber) throws {
             XCTAssertEqual(NSDecimalNumber(value: value), number)
             
@@ -115,9 +132,13 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         try test(9223372036854775806, isDecodedAs: NSDecimalNumber(string: "9223372036854775806"))
         try test(-9223372036854775807, isDecodedAs: NSDecimalNumber(string: "-9223372036854775807"))
         try test(-9223372036854775808, isDecodedAs: NSDecimalNumber(string: "-9223372036854775808"))
+        #endif
     }
     
     func testNSDecimalNumberDecodingFromDouble() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         func test(_ value: Double, isDecodedAs number: NSDecimalNumber) throws {
             XCTAssertEqual(NSDecimalNumber(value: value), number)
             
@@ -133,9 +154,13 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         try test(0.25, isDecodedAs: NSDecimalNumber(string: "0.25"))
         try test(1, isDecodedAs: NSDecimalNumber(string: "1"))
         try test(-1, isDecodedAs: NSDecimalNumber(string: "-1"))
+        #endif
     }
     
     func testNSDecimalNumberDecodingFromText() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSDecimalNumber unavailable")
+        #else
         func test(_ value: String, isDecodedAs number: NSDecimalNumber) throws {
             XCTAssertEqual(NSDecimalNumber(string: value), number)
 
@@ -156,6 +181,6 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         try test("-9223372036854775807", isDecodedAs: NSDecimalNumber(string: "-9223372036854775807"))
         try test("-9223372036854775808", isDecodedAs: NSDecimalNumber(string: "-9223372036854775808"))
         try test("18446744073709551615", isDecodedAs: NSDecimalNumber(string: "18446744073709551615"))
+        #endif
     }
 }
-#endif

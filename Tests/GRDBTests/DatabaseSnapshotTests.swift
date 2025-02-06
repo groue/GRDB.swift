@@ -1,7 +1,6 @@
 import XCTest
 @testable import GRDB
 
-#if !os(Android)
 class DatabaseSnapshotTests: GRDBTestCase {
     /// A helper type
     private struct Counter {
@@ -233,8 +232,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.1")
+            #endif
         }
         
         let snapshot2 = try dbPool.makeSnapshot()
@@ -244,8 +245,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.2")
+            #endif
         }
     }
     
@@ -260,8 +263,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "Toreador.snapshot.1")
+            #endif
         }
         
         let snapshot2 = try dbPool.makeSnapshot()
@@ -271,8 +276,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "Toreador.snapshot.2")
+            #endif
         }
     }
     
@@ -433,4 +440,3 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
 }
-#endif
