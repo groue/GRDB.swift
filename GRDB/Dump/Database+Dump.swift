@@ -1,7 +1,4 @@
 import Foundation
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 // MARK: - Dump
 

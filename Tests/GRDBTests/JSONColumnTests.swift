@@ -1,8 +1,5 @@
 import XCTest
 import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 final class JSONColumnTests: GRDBTestCase {
     func test_JSONColumn_derived_from_CodingKey() throws {

@@ -1,8 +1,5 @@
 import XCTest
 import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 final class JSONExpressionsTests: GRDBTestCase {
     /// The SQL function used to build JSON expressions

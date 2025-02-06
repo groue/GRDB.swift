@@ -1,8 +1,5 @@
 import XCTest
 import GRDB
-#if GRDBCIPHER
-import SQLCipher
-#endif
 
 private struct PersistableRecordPerson : PersistableRecord {
     var name: String?
