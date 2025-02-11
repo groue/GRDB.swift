@@ -133,6 +133,8 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
+                
+                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
             
             do {
@@ -148,6 +150,8 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
+                
+                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
         }
     }

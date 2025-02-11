@@ -94,6 +94,7 @@
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
 ///
@@ -422,6 +423,22 @@ extension Table {
     -> QueryInterfaceRequest<PrimaryKey>
     {
         all().selectPrimaryKey(as: type)
+    }
+    
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let table = Table<Player>("player")
+    ///
+    /// // SELECT id FROM player
+    /// let request = try table.selectID()
+    /// ```
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
+    where RowDecoder: Identifiable
+    {
+        all().selectID()
     }
     
     /// Returns a request with the provided result columns appended to the

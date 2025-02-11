@@ -251,6 +251,20 @@ extension TableRecord {
         all().selectPrimaryKey(as: type)
     }
     
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT id FROM player
+    /// let request = try Player.selectID()
+    /// ```
+    public static func selectID() -> QueryInterfaceRequest<Self.ID>
+    where Self: Identifiable
+    {
+        all().selectID()
+    }
+    
     /// Returns a request with the provided result columns appended to the
     /// record selection.
     ///

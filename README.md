@@ -3341,6 +3341,16 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(nameColumn, as: String.self)
     ```
 
+- [`selectID()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectID()) is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
+
+    ```swift
+    // SELECT id FROM player
+    Player.selectID()
+    
+    // SELECT id FROM player WHERE name IS NOT NULL
+    Player.filter(nameColumn != nil).selectID()
+    ```
+
 - [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
 
     ```swift

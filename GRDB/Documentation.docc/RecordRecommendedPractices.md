@@ -393,16 +393,16 @@ Extensions to the `DerivableRequest` protocol can not change the type of request
 
 ```swift
 extension QueryInterfaceRequest<Author> {
-    // Selects author ids
-    func selectId() -> QueryInterfaceRequest<Int64> {
-        selectPrimaryKey(as: Int64.self)
+    // Selects authors' name
+    func selectName() -> QueryInterfaceRequest<String> {
+        select(Author.Columns.name)
     }
 }
 
-// The ids of Japanese authors
-let ids: Set<Int64> = try Author.all()
+// The names of Japanese authors
+let names: Set<String> = try Author.all()
     .filter(countryCode: "JP")
-    .selectId()
+    .selectName()
     .fetchSet(db)
 ```
 

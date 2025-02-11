@@ -56,6 +56,7 @@
 /// - ``select(_:as:)-3o8qw``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 ///
 /// ### Batch Delete
@@ -237,7 +238,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         select(sqlLiteral, as: type)
     }
     
-    /// Selects the primary key.
+    /// Returns a request that selects the primary key.
     ///
     /// All primary keys are supported:
     ///
@@ -279,6 +280,26 @@ extension QueryInterfaceRequest: SelectionRequest {
             }
         }
         .asRequest(of: PrimaryKey.self)
+    }
+    
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT id FROM player WHERE ...
+    /// let request = try Player.filter(...).selectID()
+    /// ```
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
+    where RowDecoder: Identifiable
+    {
+        selectWhenConnected { db in
+            let primaryKey = try db.primaryKey(self.databaseTableName)
+            GRDBPrecondition(
+                primaryKey.columns.count == 1,
+                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
+            return [Column(primaryKey.columns[0])]
+        }.asRequest(of: RowDecoder.ID.self)
     }
     
     public func annotatedWhenConnected(
