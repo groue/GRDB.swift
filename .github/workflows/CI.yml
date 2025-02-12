@@ -46,7 +46,7 @@ jobs:
             name: "macOS"
           - xcode: "Xcode_16.1.app"
             runsOn: macOS-14
-            destination: "OS=18.1,name=iPhone 15 Pro"
+            destination: "OS=18.1,name=iPhone 16 Pro"
             name: "iOS"
           - xcode: "Xcode_16.1.app"
             runsOn: macOS-14
