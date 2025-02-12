@@ -290,6 +290,26 @@ extension QueryInterfaceRequest: SelectionRequest {
     /// // SELECT id FROM player WHERE ...
     /// let request = try Player.filter(...).selectID()
     /// ```
+    ///
+    /// **Important**: if the record type has an `ID` type that is an
+    /// optional, such as `Int64?`, it is recommended to prefer
+    /// ``selectPrimaryKey(as:)`` instead:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64?
+    /// }
+    ///
+    /// // NOT RECOMMENDED: Set<Int64?>
+    /// let ids = try Player.filter(...)
+    ///     .selectID()
+    ///     .fetchSet(db)
+    ///
+    /// // BETTER: Set<Int64>
+    /// let ids = try Player.filter(...)
+    ///     .selectPrimaryKey(as: Int64.self)
+    ///     .fetchSet(db)
+    /// ```
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
     where RowDecoder: Identifiable
     {
