@@ -98,6 +98,7 @@ import Foundation
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
 ///

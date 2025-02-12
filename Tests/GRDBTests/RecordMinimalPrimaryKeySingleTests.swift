@@ -375,7 +375,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
         }
     }
-
+    
     
     // MARK: - Fetch With Key Request
     
@@ -661,7 +661,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 _ = try MinimalSingle.find(db, key: id)
                 XCTFail("Expected RecordError")
             } catch RecordError.recordNotFound(databaseTableName: "minimalSingles", key: ["UUID": .null]) { }
-
+            
             do {
                 let fetchedRecord = try MinimalSingle.find(db, key: record.UUID)
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
@@ -680,7 +680,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     
     // MARK: - Fetch With Primary Key Request
     
@@ -861,7 +861,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     }
     
     // MARK: Select PrimaryKey
-
+    
     func test_static_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -875,6 +875,17 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func test_static_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            let ids: [String] = try MinimalSingle.selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
+        }
+    }
+    
     func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -885,6 +896,17 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertEqual(ids, ["theUUID"])
             let rows = try MinimalSingle.all().selectPrimaryKey(as: Row.self).fetchAll(db)
             XCTAssertEqual(rows, [["UUID": "theUUID"]])
+        }
+    }
+    
+    func test_request_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            let ids: [String] = try MinimalSingle.all().selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
         }
     }
 }

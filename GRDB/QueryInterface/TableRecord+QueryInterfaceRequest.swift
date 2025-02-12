@@ -251,6 +251,36 @@ extension TableRecord {
         all().selectPrimaryKey(as: type)
     }
     
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT id FROM player
+    /// let request = try Player.selectID()
+    /// ```
+    ///
+    /// **Important**: if the record type has an `ID` type that is an
+    /// optional, such as `Int64?`, it is recommended to prefer
+    /// ``selectPrimaryKey(as:)`` instead:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64?
+    /// }
+    ///
+    /// // NOT RECOMMENDED: Set<Int64?>
+    /// let ids = try Player.selectID().fetchSet(db)
+    ///
+    /// // BETTER: Set<Int64>
+    /// let ids = try Player.selectPrimaryKey(as: Int64.self).fetchSet(db)
+    /// ```
+    public static func selectID() -> QueryInterfaceRequest<Self.ID>
+    where Self: Identifiable
+    {
+        all().selectID()
+    }
+    
     /// Returns a request with the provided result columns appended to the
     /// record selection.
     ///

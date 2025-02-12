@@ -94,6 +94,7 @@
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
 ///
@@ -422,6 +423,40 @@ extension Table {
     -> QueryInterfaceRequest<PrimaryKey>
     {
         all().selectPrimaryKey(as: type)
+    }
+    
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let table = Table<Player>("player")
+    ///
+    /// // SELECT id FROM player
+    /// let request = try table.selectID()
+    /// ```
+    ///
+    /// **Important**: if the record type has an `ID` type that is an
+    /// optional, such as `Int64?`, it is recommended to prefer
+    /// ``selectPrimaryKey(as:)`` instead:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64?
+    /// }
+    ///
+    /// let table = Table<Player>("player")
+    ///
+    /// // NOT RECOMMENDED: Set<Int64?>
+    /// let ids = try table.selectID().fetchSet(db)
+    ///
+    /// // BETTER: Set<Int64>
+    /// let ids = try table.selectPrimaryKey(as: Int64.self).fetchSet(db)
+    /// ```
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
+    where RowDecoder: Identifiable
+    {
+        all().selectID()
     }
     
     /// Returns a request with the provided result columns appended to the
