@@ -844,6 +844,16 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
         }
     }
     
+    func test_static_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            let ids: [Int64?] = try MinimalRowID.selectID().fetchAll(db)
+            XCTAssertEqual(ids, [1])
+        }
+    }
+    
     func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -853,6 +863,16 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             XCTAssertEqual(ids, [1])
             let rows = try MinimalRowID.all().selectPrimaryKey(as: Row.self).fetchAll(db)
             XCTAssertEqual(rows, [["id": 1]])
+        }
+    }
+    
+    func test_request_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            let ids: [Int64?] = try MinimalRowID.all().selectID().fetchAll(db)
+            XCTAssertEqual(ids, [1])
         }
     }
 }
