@@ -929,7 +929,12 @@ public enum DatabaseDataDecodingStrategy: Sendable {
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
 ///     }
-public enum DatabaseDateDecodingStrategy: Sendable {
+public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO GRDB8: remove @unchecked when the .formatted case has been removed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It decodes numeric values as a number of seconds since Epoch
@@ -963,6 +968,7 @@ public enum DatabaseDateDecodingStrategy: Sendable {
     case iso8601
     
     /// Decodes a String, according to the provided formatter
+    @available(*, deprecated, message: "Use .custom and a Date.FormatStyle instead.")
     case formatted(DateFormatter)
     
     /// Decodes according to the user-provided function.
