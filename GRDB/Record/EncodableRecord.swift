@@ -524,7 +524,12 @@ public enum DatabaseDataEncodingStrategy: Sendable {
 ///     var creationDate: Date
 /// }
 /// ```
-public enum DatabaseDateEncodingStrategy: Sendable {
+public enum DatabaseDateEncodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO GRDB8: remove @unchecked when the .formatted case has been removed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
@@ -551,6 +556,7 @@ public enum DatabaseDateEncodingStrategy: Sendable {
     case iso8601
     
     /// Encodes a String, according to the provided formatter
+    @available(*, deprecated, message: "Use .custom and a Date.FormatStyle instead.")
     case formatted(DateFormatter)
     
     /// Encodes the result of the user-provided function

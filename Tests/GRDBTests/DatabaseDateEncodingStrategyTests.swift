@@ -30,6 +30,7 @@ private enum StrategyIso8601: StrategyProvider {
     static let strategy: DatabaseDateEncodingStrategy = .iso8601
 }
 
+@available(*, deprecated)
 private enum StrategyFormatted: StrategyProvider {
     static let strategy: DatabaseDateEncodingStrategy = .formatted({
         let formatter = DateFormatter()
@@ -197,6 +198,7 @@ extension DatabaseDateEncodingStrategyTests {
 // MARK: - formatted(DateFormatter)
 
 extension DatabaseDateEncodingStrategyTests {
+    @available(*, deprecated)
     func testFormatted() throws {
         try testNullEncoding(strategy: StrategyFormatted.self)
         
