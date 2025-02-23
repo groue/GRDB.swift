@@ -352,16 +352,12 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: sending @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
-        
-        // Avoid compiler warning. There is no data race because `value` is invoked once.
-        typealias SendableClosure = @Sendable (Database) throws -> T
-        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
@@ -394,16 +390,12 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
-        
-        // Avoid compiler warning. There is no data race because `value` is invoked once.
-        typealias SendableClosure = @Sendable (Result<Database, Error>) -> Void
-        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         readerPool.asyncGet { result in
             do {
@@ -444,15 +436,11 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: sending @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
-        
-        // Avoid compiler warning. There is no data race because `value` is invoked once.
-        typealias SendableClosure = @Sendable (Database) throws -> T
-        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
@@ -482,16 +470,12 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncUnsafeRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
-        
-        // Avoid compiler warning. There is no data race because `value` is invoked once.
-        typealias SendableClosure = @Sendable (Result<Database, Error>) -> Void
-        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         readerPool.asyncGet { result in
             do {
@@ -533,7 +517,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func spawnConcurrentRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         asyncConcurrentRead(value)
     }
@@ -576,7 +560,7 @@ extension DatabasePool: DatabaseReader {
     ///
     /// - parameter value: A function that accesses the database.
     public func asyncConcurrentRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         // Check that we're on the writer queue...
         writer.execute { db in
@@ -818,7 +802,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func writeWithoutTransaction<T: Sendable>(
-        _ updates: sending @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -834,12 +818,8 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func barrierWriteWithoutTransaction<T: Sendable>(
-        _ updates: sending @escaping (Database) throws -> T
+        _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
-        // Avoid compiler warning. There is no data race because `updates` is invoked once.
-        typealias SendableClosure = @Sendable (Database) throws -> T
-        let updates = unsafeBitCast(updates, to: SendableClosure.self)
-        
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
             asyncBarrierWriteWithoutTransaction { dbResult in
@@ -858,7 +838,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func asyncBarrierWriteWithoutTransaction(
-        _ updates: sending @escaping (Result<Database, Error>) -> Void
+        _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
@@ -914,7 +894,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func asyncWriteWithoutTransaction(
-        _ updates: sending @escaping (Database) -> Void
+        _ updates: @escaping @Sendable (Database) -> Void
     ) {
         writer.async(updates)
     }

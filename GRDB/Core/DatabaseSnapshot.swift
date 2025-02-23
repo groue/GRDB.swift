@@ -152,13 +152,13 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     }
     
     public func read<T: Sendable>(
-        _ value: sending @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await reader.execute(value)
     }
     
     public func asyncRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         reader.async { value(.success($0)) }
     }
@@ -173,13 +173,13 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     public func unsafeRead<T: Sendable>(
-        _ value: sending @escaping (Database) throws -> T
+        _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }
     
     public func asyncUnsafeRead(
-        _ value: sending @escaping (Result<Database, Error>) -> Void
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
         reader.async { value(.success($0)) }
     }

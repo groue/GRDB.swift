@@ -121,11 +121,7 @@ final class Pool<T: Sendable>: Sendable {
     ///
     /// - important: The `execute` argument is executed in a serial dispatch
     ///   queue, so make sure you use the element asynchronously.
-    func asyncGet(_ execute: sending @escaping (Result<ElementAndRelease, Error>) -> Void) {
-        // Avoid compiler warning. There is no data race because `execute` is invoked once.
-        typealias SendableClosure = @Sendable (Result<ElementAndRelease, Error>) -> Void
-        let execute = unsafeBitCast(execute, to: SendableClosure.self)
-        
+    func asyncGet(_ execute: @escaping @Sendable (Result<ElementAndRelease, Error>) -> Void) {
         // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
         // > We wait on the semaphore in the serial queue, which means that
         // > we’ll have at most one blocked thread when we reach maximum
@@ -190,11 +186,7 @@ final class Pool<T: Sendable>: Sendable {
     
     /// Asynchronously runs the `barrier` function when no element is used, and
     /// before any other element is dequeued.
-    func asyncBarrier(execute barrier: sending @escaping () -> Void) {
-        // Avoid compiler warning. There is no data race because `barrier` is invoked once.
-        typealias SendableClosure = @Sendable () -> Void
-        let barrier = unsafeBitCast(barrier, to: SendableClosure.self)
-        
+    func asyncBarrier(execute barrier: @escaping @Sendable () -> Void) {
         barrierQueue.async(flags: [.barrier]) {
             self.itemsGroup.wait()
             barrier()

@@ -97,7 +97,7 @@ try dbQueue.write { db in
     }
     ```
 
-    See ``DatabaseReader/read(_:)-4zff3`` and ``DatabaseWriter/write(_:)-5u4m3``.
+    See ``DatabaseReader/read(_:)-4d1da`` and ``DatabaseWriter/write(_:)-3db50``.
     
     Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
     
