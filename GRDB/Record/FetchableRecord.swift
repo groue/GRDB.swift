@@ -929,7 +929,12 @@ public enum DatabaseDataDecodingStrategy: Sendable {
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
 ///     }
-public enum DatabaseDateDecodingStrategy: Sendable {
+public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3 beta. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO: remove @unchecked when the compiler issue is fixed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It decodes numeric values as a number of seconds since Epoch

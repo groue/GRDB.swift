@@ -13,7 +13,7 @@ import Foundation
 /// The virtual table module for the FTS5 full-text engine.
 ///
 /// To create FTS5 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+/// ``Database/create(virtualTable:options:using:_:)``:
 ///
 /// ```swift
 /// // CREATE VIRTUAL TABLE document USING fts5(content)
@@ -85,7 +85,7 @@ public struct FTS5 {
     /// }
     /// ```
     ///
-    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
+    /// See ``Database/create(virtualTable:options:using:_:)``
     public init() { }
     
     // Support for FTS5Pattern initializers. Don't make public. Users tokenize
@@ -143,7 +143,7 @@ extension FTS5: VirtualTableModule {
     
     /// Reserved; part of the VirtualTableModule protocol.
     ///
-    /// See Database.create(virtualTable:using:)
+    /// See Database.create(virtualTable:options:using:_:)
     public func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS5TableDefinition {
         FTS5TableDefinition(configuration: configuration)
     }
@@ -219,13 +219,23 @@ extension FTS5: VirtualTableModule {
     
     /// Reserved; part of the VirtualTableModule protocol.
     ///
-    /// See Database.create(virtualTable:using:)
+    /// See Database.create(virtualTable:options:using:_:)
     public func database(_ db: Database, didCreate tableName: String, using definition: FTS5TableDefinition) throws {
         switch definition.contentMode {
         case .raw:
             break
         case .synchronized(let contentTable):
             // https://sqlite.org/fts5.html#external_content_tables
+            
+            if definition.configuration.temporary {
+                // SQLite can't rebuild the index of temporary tables:
+                //
+                // sqlite> CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
+                // sqlite> CREATE VIRTUAL TABLE temp.ft USING fts5(content="t",content_rowid="a",b,c);
+                // sqlite> INSERT INTO ft(ft) VALUES('rebuild');
+                // Runtime error: SQL logic error
+                fatalError("Temporary external content FTS5 tables are not supported.")
+            }
             
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
@@ -274,7 +284,7 @@ extension FTS5: VirtualTableModule {
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
-/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
+/// ``Database/create(virtualTable:options:using:_:)`` method:
 ///
 /// ```swift
 /// try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition

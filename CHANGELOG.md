@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.3.x` Releases - [7.3.0](#730)
 - `7.2.x` Releases - [7.2.0](#720)
 - `7.1.x` Releases - [7.1.0](#710)
 - `7.0.x` Releases - [7.0.0](#700)
@@ -133,6 +134,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.3.0
+
+Released February 23, 2025
+
+- **New**: Support for temporary virtual tables by [@groue](https://github.com/groue) in [#1731](https://github.com/groue/GRDB.swift/pull/1731)
+- Fixed a compiler error in Xcode 16.3 beta ([#1729](https://github.com/groue/GRDB.swift/pull/1729), [#1730](https://github.com/groue/GRDB.swift/pull/1730))
 
 ## 7.2.0
 
