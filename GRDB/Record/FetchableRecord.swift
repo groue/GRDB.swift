@@ -931,9 +931,9 @@ public enum DatabaseDataDecodingStrategy: Sendable {
 ///     }
 public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
     // @unchecked Sendable because of `DateFormatter`, which lost its
-    // `Sendable` conformance with Xcode 16.3. See
+    // `Sendable` conformance with Xcode 16.3 beta. See
     // <https://github.com/swiftlang/swift/issues/78635>.
-    // TODO GRDB8: remove @unchecked when the .formatted case has been removed.
+    // TODO: remove @unchecked when the compiler issue is fixed.
     
     /// The strategy that uses formatting from the Date structure.
     ///
@@ -968,7 +968,6 @@ public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
     case iso8601
     
     /// Decodes a String, according to the provided formatter
-    @available(*, deprecated, message: "Use .custom and a Date.FormatStyle instead.")
     case formatted(DateFormatter)
     
     /// Decodes according to the user-provided function.
