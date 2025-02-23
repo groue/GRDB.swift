@@ -294,11 +294,15 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: sending @escaping (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
+        
+        // Avoid compiler warning. There is no data race because `value` is invoked once.
+        typealias SendableClosure = @Sendable (Database) throws -> T
+        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
@@ -327,12 +331,16 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     }
     
     public func asyncRead(
-        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+        _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
         }
+        
+        // Avoid compiler warning. There is no data race because `value` is invoked once.
+        typealias SendableClosure = @Sendable (Result<Database, Error>) -> Void
+        let value = unsafeBitCast(value, to: SendableClosure.self)
         
         readerPool.asyncGet { result in
             do {
@@ -353,7 +361,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: sending @escaping (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }

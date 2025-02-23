@@ -234,7 +234,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: sending @escaping (Database) throws -> T
     ) async throws -> T {
         try await writer.execute { db in
             try db.isolated(readOnly: true) {
@@ -244,7 +244,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func asyncRead(
-        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+        _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
         writer.async { db in
             defer {
@@ -272,13 +272,13 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: sending @escaping (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(value)
     }
     
     public func asyncUnsafeRead(
-        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+        _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
         writer.async { value(.success($0)) }
     }
@@ -288,7 +288,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func spawnConcurrentRead(
-        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+        _ value: sending @escaping (Result<Database, Error>) -> Void
     ) {
         // Check that we're on the writer queue...
         writer.execute { db in
@@ -385,7 +385,7 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     public func writeWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: sending @escaping (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -396,13 +396,13 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     public func barrierWriteWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: sending @escaping (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
     
     public func asyncBarrierWriteWithoutTransaction(
-        _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
+        _ updates: sending @escaping (Result<Database, Error>) -> Void
     ) {
         writer.async { updates(.success($0)) }
     }
@@ -450,7 +450,7 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     public func asyncWriteWithoutTransaction(
-        _ updates: @escaping @Sendable (Database) -> Void
+        _ updates: sending @escaping (Database) -> Void
     ) {
         writer.async(updates)
     }
