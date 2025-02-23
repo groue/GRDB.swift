@@ -112,14 +112,14 @@ public struct FTS5TokenizerDescriptor: Sendable {
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
-            // and Database.create(virtualTable:using:)
+            // and Database.create(virtualTable:options:using:_:)
             components.append("separators")
             components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
-            // and Database.create(virtualTable:using:)
+            // and Database.create(virtualTable:options:using:_:)
             components.append("tokenchars")
             components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
@@ -197,14 +197,14 @@ public struct FTS5TokenizerDescriptor: Sendable {
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
-            // and Database.create(virtualTable:using:)
+            // and Database.create(virtualTable:options:using:_:)
             components.append("separators")
             components.append(separators.sorted().map { String($0) }.joined())
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
-            // and Database.create(virtualTable:using:)
+            // and Database.create(virtualTable:options:using:_:)
             components.append("tokenchars")
             components.append(tokenCharacters.sorted().map { String($0) }.joined())
         }
