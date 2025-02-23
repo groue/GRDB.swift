@@ -26,7 +26,6 @@ private enum StrategyIso8601: StrategyProvider {
     static let strategy: DatabaseDateDecodingStrategy = .iso8601
 }
 
-@available(*, deprecated)
 private enum StrategyFormatted: StrategyProvider {
     static let strategy: DatabaseDateDecodingStrategy = .formatted({
         let formatter = DateFormatter()
@@ -419,7 +418,6 @@ extension DatabaseDateDecodingStrategyTests {
 // MARK: - formatted(DateFormatter)
 
 extension DatabaseDateDecodingStrategyTests {
-    @available(*, deprecated)
     func testFormatted() throws {
         try makeDatabaseQueue().read { db in
             var calendar = Calendar(identifier: .gregorian)
