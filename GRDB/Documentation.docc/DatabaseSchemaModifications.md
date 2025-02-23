@@ -252,8 +252,8 @@ Unique constraints and unique indexes are somewhat different: don't miss the tip
 
 - ``Database/alter(table:body:)``
 - ``Database/create(table:options:body:)``
-- ``Database/create(virtualTable:ifNotExists:using:)``
-- ``Database/create(virtualTable:ifNotExists:using:_:)``
+- ``Database/create(virtualTable:options:using:)``
+- ``Database/create(virtualTable:options:using:_:)``
 - ``Database/drop(table:)``
 - ``Database/dropFTS4SynchronizationTriggers(forTable:)``
 - ``Database/dropFTS5SynchronizationTriggers(forTable:)``
@@ -265,6 +265,7 @@ Unique constraints and unique indexes are somewhat different: don't miss the tip
 - ``TableDefinition``
 - ``TableOptions``
 - ``VirtualTableModule``
+- ``VirtualTableOptions``
 
 ### Database Views
 
@@ -288,3 +289,5 @@ Those are legacy interfaces that are preserved for backwards compatibility. Thei
 
 - ``Database/create(index:on:columns:unique:ifNotExists:condition:)``
 - ``Database/create(table:temporary:ifNotExists:withoutRowID:body:)``
+- ``Database/create(virtualTable:ifNotExists:using:)``
+- ``Database/create(virtualTable:ifNotExists:using:_:)``

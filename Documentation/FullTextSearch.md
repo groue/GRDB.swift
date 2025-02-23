@@ -91,7 +91,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 **FTS3 and FTS4 full-text tables store and index textual content.**
 
-Create tables with the `create(virtualTable:using:)` method:
+Create tables with the `create(virtualTable:options:using:_:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE document USING fts3(content)
@@ -326,7 +326,7 @@ let documents = try Document.filter(Column("content").match(pattern)).fetchAll(d
 
 To use FTS5, you'll need a [custom SQLite build] that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
-Create FTS5 tables with the `create(virtualTable:using:)` method:
+Create FTS5 tables with the `create(virtualTable:options:using:_:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE document USING fts5(content)
