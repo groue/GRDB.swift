@@ -223,7 +223,11 @@ final class SerializedDatabase {
     }
     
     /// Schedules database operations for execution, and returns immediately.
-    func async(_ block: @escaping @Sendable (Database) -> Void) {
+    func async(_ block: sending @escaping (Database) -> Void) {
+        // Avoid compiler warning. There is no data race because `block` is invoked once.
+        typealias SendableClosure = @Sendable (Database) -> Void
+        let block = unsafeBitCast(block, to: SendableClosure.self)
+        
         queue.async {
             block(self.db)
             self.preconditionNoUnsafeTransactionLeft(self.db)
@@ -245,8 +249,12 @@ final class SerializedDatabase {
     
     /// Asynchrously executes the block.
     func execute<T: Sendable>(
-        _ block: @escaping @Sendable (Database) throws -> T
+        _ block: sending @escaping (Database) throws -> T
     ) async throws -> T {
+        // Avoid compiler warning. There is no data race because `block` is invoked once.
+        typealias SendableClosure = @Sendable (Database) throws -> T
+        let block = unsafeBitCast(block, to: SendableClosure.self)
+        
         let dbAccess = CancellableDatabaseAccess()
         return try await dbAccess.withCancellableContinuation { continuation in
             self.async { db in
