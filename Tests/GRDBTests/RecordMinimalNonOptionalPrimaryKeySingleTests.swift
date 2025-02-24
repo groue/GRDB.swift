@@ -800,6 +800,16 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
+    func test_static_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalNonOptionalPrimaryKeySingle(id: "theUUID")
+            try record.insert(db)
+            let ids: [String] = try MinimalSingle.selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
+        }
+    }
+    
     func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -809,6 +819,16 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertEqual(ids, ["theUUID"])
             let rows = try MinimalSingle.all().selectPrimaryKey(as: Row.self).fetchAll(db)
             XCTAssertEqual(rows, [["id": "theUUID"]])
+        }
+    }
+    
+    func test_request_selectID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalNonOptionalPrimaryKeySingle(id: "theUUID")
+            try record.insert(db)
+            let ids: [String] = try MinimalSingle.all().selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
         }
     }
 }

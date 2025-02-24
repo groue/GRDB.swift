@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: February 5, 2025 • [version 7.1.0](https://github.com/groue/GRDB.swift/tree/v7.1.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: February 23, 2025 • [version 7.3.0](https://github.com/groue/GRDB.swift/tree/v7.3.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -3339,6 +3339,16 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     ```swift
     // SELECT name FROM player
     Player.select(nameColumn, as: String.self)
+    ```
+
+- [`selectID()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectID()) is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
+
+    ```swift
+    // SELECT id FROM player
+    Player.selectID()
+    
+    // SELECT id FROM player WHERE name IS NOT NULL
+    Player.filter(nameColumn != nil).selectID()
     ```
 
 - [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.

@@ -524,7 +524,12 @@ public enum DatabaseDataEncodingStrategy: Sendable {
 ///     var creationDate: Date
 /// }
 /// ```
-public enum DatabaseDateEncodingStrategy: Sendable {
+public enum DatabaseDateEncodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3 beta. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO: remove @unchecked when the compiler issue is fixed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
