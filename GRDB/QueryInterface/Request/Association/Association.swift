@@ -281,6 +281,12 @@ extension Association {
             relation.ctes[cte.tableName] = cte.cte
         }
     }
+    
+    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
+        withDestinationRelation { relation in
+            relation.limit = SQLLimit(limit: limit, offset: offset)
+        }
+    }
 }
 
 // MARK: - AssociationToOne

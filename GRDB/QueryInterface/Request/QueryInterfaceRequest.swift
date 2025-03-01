@@ -1518,7 +1518,7 @@ private func prefetch(
             fatalError("Not implemented: prefetch association without any foreign key")
             
         case let .foreignKey(pivotForeignKey):
-            let originTable = originRelation.source.tableName
+            let originTable = originRelation.source.associationOriginTable ?? originRelation.source.tableName
             let pivotMapping = try pivotForeignKey.joinMapping(db, from: originTable)
             let pivotColumns = pivotMapping.map(\.right)
             let leftColumns = pivotMapping.map(\.left)
@@ -1651,7 +1651,7 @@ func makePrefetchRequest(
     //      Author.including(all: Author.books)
     let pivotAlias = TableAlias()
     
-    let prefetchRelation = association
+    var prefetchRelation = association
         .with {
             $0.pivot.relation = $0.pivot.relation
                 .aliased(pivotAlias)
@@ -1660,7 +1660,52 @@ func makePrefetchRequest(
         .destinationRelation()
         .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
     
-    return QueryInterfaceRequest<Row>(relation: prefetchRelation)
+    if let limit = prefetchRelation.limit {
+        let baseName = "grdb_" + association.destination.key.name(singular: true)
+        let cteName = baseName + "_limited"
+        let rowNumberName = "rowNumber"
+        
+        let ordering = prefetchRelation.ordering
+        
+        let rowNumberFilter: SQLExpression
+        if let offset = limit.offset {
+            rowNumberFilter = ((offset + 1)..<(offset + 1 + limit.limit)).contains(Column(rowNumberName)).sqlExpression
+        } else {
+            rowNumberFilter = (Column(rowNumberName) <= limit.limit).sqlExpression
+        }
+        
+#warning("TODO: the order clause may refer to stuff inside the CTE.")
+        var limitedPrefetchRelation = prefetchRelation
+        // Annotate with the row number
+            .annotatedWhenConnected { db in
+                var sql: SQL = "ROW_NUMBER() OVER (PARTITION BY "
+                sql.append(literal: pivotColumns
+                    .map { SQL(Column($0)) }
+                    .joined(separator: ", "))
+                
+                let orderings = try ordering.resolve(db)
+                if !orderings.isEmpty {
+                    sql.append(sql: " ORDER BY ")
+                    sql.append(literal: orderings
+                        .map { SQL($0) }
+                        .joined(separator: ", "))
+                }
+                sql.append(sql: ")")
+                return [sql.forKey(rowNumberName)]
+            }
+        // Limit is applied below, with the rowNumber filter
+            .unlimited()
+        // Turn into a CTE so that we can filter by rowNumber
+            .asCommonTableExpression(named: cteName)
+        // Reapply order
+            .orderWhenConnected { try ordering.resolve($0) }
+        // Turnt the limit into a rowNumber filter
+            .filter(rowNumberFilter)
+        
+        return QueryInterfaceRequest<Row>(relation: limitedPrefetchRelation)
+    } else {
+        return QueryInterfaceRequest<Row>(relation: prefetchRelation)
+    }
 }
 
 // CAUTION: Keep this code in sync with prefetch(_:associations:in:)

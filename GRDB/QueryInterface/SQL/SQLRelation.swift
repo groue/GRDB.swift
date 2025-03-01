@@ -282,6 +282,12 @@ extension SQLRelation: Refinable {
         }
     }
     
+    func unlimited() -> Self {
+        with {
+            $0.limit = nil
+        }
+    }
+    
     func withStableOrder() -> Self {
         with { relation in
             relation.ordering = relation.ordering.appending(Ordering(orderings: { [relation] db in
@@ -655,6 +661,47 @@ extension SQLRelation {
     }
 }
 
+extension SQLRelation {
+    #warning("TODO: the order clause may refer to stuff inside the CTE.")
+    #warning("TODO: Try to leave the ordering inside the CTE")
+    func asCommonTableExpression(named tableName: String) -> Self {
+        with { relation in
+            GRDBPrecondition(ctes[tableName] == nil, """
+                Can't turn relation into a Common Table Expression because \
+                CTE '\(tableName)' is already defined. Please file a bug \
+                at https://github.com/groue/GRDB.swift/issues/new
+                """)
+            
+            relation.ctes[tableName] = SQLCTE(
+                tableName: tableName,
+                columns: nil,
+                sqlSubquery: .relation(
+                    self
+                        .unorderedUnlessLimited() // only preserve ordering in the CTE if limited
+                        .removingPrefetchedAssociations()),
+                isRecursive: false)
+            
+            relation.source = SQLSource(
+                tableName: tableName,
+                associationOriginTable: relation.source.associationOriginTable ?? relation.source.tableName)
+            
+            relation.selectionPromise = DatabasePromise { _ in [.allColumns] }
+            relation.filterPromise = nil
+            relation.isDistinct = false
+            relation.groupPromise = nil
+            relation.havingExpressionPromise = nil
+            relation.limit = nil
+            
+            relation = relation.filteringChildren { child in
+                switch child.kind {
+                case .all, .bridge: true
+                case .oneOptional, .oneRequired: false
+                }
+            }
+        }
+    }
+}
+
 // MARK: - SQLLimit
 
 struct SQLLimit {
@@ -673,8 +720,14 @@ struct SQLLimit {
 // MARK: - SQLSource
 
 struct SQLSource: Sendable {
+    /// The name of a database table to select from.
     var tableName: String
     var alias: TableAlias?
+    
+    /// When not nil, use this table name instead of `tableName` when looking
+    /// for foreign keys on this source. This string is not nil when an
+    /// `SQLRelation` has been turned into a common table expression.
+    var associationOriginTable: String?
     
     func aliased(_ alias: TableAlias) -> SQLSource {
         if let sourceAlias = self.alias {

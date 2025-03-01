@@ -172,6 +172,11 @@ public struct SQL: Sendable {
         self.init(elements: [.expression(expression.sqlExpression)])
     }
     
+    /// Creates an `SQL` literal from an SQL ordering term.
+    public init(_ ordering: some SQLOrderingTerm) {
+        self.init(elements: [.ordering(ordering.sqlOrdering)])
+    }
+    
     /// Returns true if this literal generates an empty SQL string
     public var isEmpty: Bool {
         elements.allSatisfy(\.isEmpty)

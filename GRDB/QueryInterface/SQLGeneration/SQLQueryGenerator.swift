@@ -138,7 +138,7 @@ struct SQLQueryGenerator: Refinable {
             let region = try prefetchedRegion(
                 db,
                 associations: prefetchedAssociations,
-                from: relation.source.tableName)
+                from: relation.source.associationOriginTable ?? relation.source.tableName)
             statement.databaseRegion.formUnion(region)
         }
         
@@ -741,9 +741,15 @@ private struct SQLQualifiedSource {
     var tableName: String
     var alias: TableAlias
     
+    /// When not nil, use this table name instead of `tableName` when looking
+    /// for foreign keys on this source. This string is not nil when an
+    /// `SQLRelation` has been turned into a common table expression.
+    var associationOriginTable: String?
+    
     init(_ source: SQLSource) {
         self.tableName = source.tableName
         self.alias = source.alias ?? TableAlias(tableName: source.tableName)
+        self.associationOriginTable = source.associationOriginTable
         assert(alias.tableName == tableName)
     }
     

@@ -157,6 +157,110 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasMany_limit() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(B.self)
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_bs_limited" AS (\
+                    SELECT *, "colb2" AS "grdb_colb2", ROW_NUMBER() OVER (PARTITION BY "colb2" ORDER BY "colb1") AS "rowNumber" \
+                    FROM "b" \
+                    WHERE "colb2" IN (1, 2, 3)\
+                    ) \
+                    SELECT * FROM "grdb_bs_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "colb1"
+                    """])
+            }
+            
+            // Request with avoided prefetch
+            do {
+                let request = A
+                    .none()
+                    .including(all: A
+                        .hasMany(B.self)
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM \"a\" WHERE 0 ORDER BY \"cola1\"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = A
+                    .filter(Column("cola1") != 3)
+                    .including(all: A
+                        .hasMany(B.self)
+                        .filter(Column("colb1") == 4)
+                        .orderByPrimaryKey()
+                        .forKey("bs1")
+                        .limit(3))
+                    .including(all: A
+                        .hasMany(B.self)
+                        .filter(Column("colb1") != 4)
+                        .orderByPrimaryKey()
+                        .forKey("bs2")
+                        .limit(5, offset: 2))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" \
+                    WHERE "cola1" <> 3 \
+                    ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_bs1_limited" AS (\
+                    SELECT *, "colb2" AS "grdb_colb2", ROW_NUMBER() OVER (PARTITION BY "colb2" ORDER BY "colb1") AS "rowNumber" \
+                    FROM "b" \
+                    WHERE ("colb1" = 4) AND ("colb2" IN (1, 2))\
+                    ) \
+                    SELECT * FROM "grdb_bs1_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "colb1"
+                    """,
+                    """
+                    WITH "grdb_bs2_limited" AS (\
+                    SELECT *, "colb2" AS "grdb_colb2", ROW_NUMBER() OVER (PARTITION BY "colb2" ORDER BY "colb1") AS "rowNumber" \
+                    FROM "b" \
+                    WHERE ("colb1" <> 4) AND ("colb2" IN (1, 2))\
+                    ) \
+                    SELECT * FROM "grdb_bs2_limited" \
+                    WHERE ("rowNumber" >= 3) AND ("rowNumber" < 8) \
+                    ORDER BY "colb1"
+                    """])
+            }
+        }
+    }
+    
     func testIncludingAllHasManyScalar() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -182,6 +286,42 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT DISTINCT "colb2", "colb2" AS "grdb_colb2" \
                     FROM "b" \
                     WHERE "colb2" IN (1, 2, 3) \
+                    ORDER BY "colb2"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyScalar_limit() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                                .hasMany(B.self)
+                                .select(Column("colb2"))
+                                .distinct()
+                                .order(Column("colb2"))
+                                .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_bs_limited" AS (\
+                    SELECT DISTINCT "colb2", "colb2" AS "grdb_colb2", ROW_NUMBER() OVER (PARTITION BY "colb2" ORDER BY "colb2") AS "rowNumber" \
+                    FROM "b" \
+                    WHERE "colb2" IN (1, 2, 3)\
+                    ) \
+                    SELECT * FROM "grdb_bs_limited" \
+                    WHERE "rowNumber" <= 3 \
                     ORDER BY "colb2"
                     """])
             }
@@ -299,6 +439,141 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
                     FROM "child" \
                     WHERE ("pA", "pB") IN "grdb_base"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyWithCompoundForeignKey_limit() throws {
+        // We can use the CTE technique
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "parent") { t in
+                t.column("parentA", .text)
+                t.column("parentB", .text)
+                t.primaryKey(["parentA", "parentB"])
+            }
+            try db.create(table: "child") { t in
+                t.column("pA", .text)
+                t.column("pB", .text)
+                t.column("name", .text)
+                t.foreignKey(["pA", "pB"], references: "parent")
+            }
+            try db.execute(sql: """
+                INSERT INTO parent (parentA, parentB) VALUES ('foo', 'bar');
+                INSERT INTO parent (parentA, parentB) VALUES ('baz', 'qux');
+                INSERT INTO child (pA, pB, name) VALUES ('foo', 'bar', 'foobar1');
+                INSERT INTO child (pA, pB, name) VALUES ('foo', 'bar', 'foobar2');
+                INSERT INTO child (pA, pB, name) VALUES ('baz', 'qux', 'bazqux1');
+                """)
+            
+            struct Parent: TableRecord { }
+            struct Child: TableRecord { }
+            
+            // Plain request
+            do {
+                let request = Parent
+                    .including(all: Parent
+                        .hasMany(Child.self)
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    WITH "grdb_children_limited" AS (\
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB", ROW_NUMBER() OVER (PARTITION BY "pA", "pB") AS "rowNumber" \
+                    FROM "child" \
+                    WHERE ("pA", "pB") IN "grdb_base"\
+                    ), \
+                    "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
+                    SELECT * \
+                    FROM "grdb_children_limited" \
+                    WHERE "rowNumber" <= 3
+                    """])
+            }
+            
+            // Request with avoided prefetch
+            do {
+                let request = Parent
+                    .none()
+                    .including(all: Parent
+                        .hasMany(Child.self)
+                        .limit(3))
+                    .orderByPrimaryKey()
+
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE 0 ORDER BY "parentA", "parentB"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = Parent
+                    .including(all: Parent
+                        .hasMany(Child.self)
+                        .filter(Column("name") == "foo")
+                        .limit(3))
+                    .filter(Column("parentA") == "foo")
+                    .orderByPrimaryKey()
+
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE "parentA" = 'foo' ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    WITH "grdb_children_limited" AS (\
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB", ROW_NUMBER() OVER (PARTITION BY "pA", "pB") AS "rowNumber" \
+                    FROM "child" \
+                    WHERE ("name" = 'foo') AND (("pA", "pB") IN "grdb_base")\
+                    ), \
+                    "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "parentA" = 'foo') \
+                    SELECT * \
+                    FROM "grdb_children_limited" \
+                    WHERE "rowNumber" <= 3
+                    """])
+            }
+
+            // Limited ordered request (preserve both ordering and limit in the CTE)
+            do {
+                let request = Parent
+                    .including(all: Parent
+                        .hasMany(Child.self)
+                        .limit(5, offset: 2))
+                    .orderByPrimaryKey()
+                    .limit(1)
+
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB" LIMIT 1
+                    """,
+                    """
+                    WITH "grdb_children_limited" AS (\
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB", ROW_NUMBER() OVER (PARTITION BY "pA", "pB") AS "rowNumber" \
+                    FROM "child" WHERE ("pA", "pB") IN "grdb_base"\
+                    ), \
+                    "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" ORDER BY "parentA", "parentB" LIMIT 1) \
+                    SELECT * FROM "grdb_children_limited" \
+                    WHERE ("rowNumber" >= 3) AND ("rowNumber" < 8)
                     """])
             }
         }
@@ -452,6 +727,218 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     ORDER BY "cold1"
                     """])
             }
+        }
+    }
+    
+    func testIncludingAllHasManyIncludingAllHasMany_limit() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey()
+                            .limit(5, offset: 2))
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_cs_limited" AS (\
+                    SELECT *, "colc2" AS "grdb_colc2", ROW_NUMBER() OVER (PARTITION BY "colc2" ORDER BY "colc1") AS "rowNumber" \
+                    FROM "c" \
+                    WHERE "colc2" IN (1, 2, 3)\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_cs_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "colc1"
+                    """,
+                    """
+                    WITH "grdb_ds_limited" AS (\
+                    SELECT *, "cold2" AS "grdb_cold2", ROW_NUMBER() OVER (PARTITION BY "cold2" ORDER BY "cold1") AS "rowNumber" \
+                    FROM "d" \
+                    WHERE "cold2" IN (7, 8, 9)\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_ds_limited" \
+                    WHERE ("rowNumber" >= 3) AND ("rowNumber" < 8) \
+                    ORDER BY "cold1"
+                    """])
+            }
+            
+            // Request with avoided second-level prefetch
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .none()
+                        .including(all: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey()
+                            .limit(5, offset: 2))
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_cs_limited" AS (\
+                    SELECT *, "colc2" AS "grdb_colc2", ROW_NUMBER() OVER (PARTITION BY "colc2" ORDER BY "colc1") AS "rowNumber" \
+                    FROM "c" \
+                    WHERE 0 AND ("colc2" IN (1, 2, 3))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_cs_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "colc1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = A
+                    .filter(Column("cola1") != 3)
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") > 7)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .limit(1)
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .limit(2)
+                            .forKey("ds2"))
+                        .orderByPrimaryKey()
+                        .limit(3)
+                        .forKey("cs1"))
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") < 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .limit(3)
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .limit(4)
+                            .forKey("ds2"))
+                        .orderByPrimaryKey()
+                        .limit(5)
+                        .forKey("cs2"))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * \
+                    FROM "a" \
+                    WHERE "cola1" <> 3 \
+                    ORDER BY "cola1"
+                    """,
+                    """
+                    WITH "grdb_cs1_limited" AS (\
+                    SELECT *, "colc2" AS "grdb_colc2", ROW_NUMBER() OVER (PARTITION BY "colc2" \
+                    ORDER BY "colc1") AS "rowNumber" \
+                    FROM "c" \
+                    WHERE ("colc1" > 7) AND ("colc2" IN (1, 2))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_cs1_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "colc1"
+                    """,
+                    """
+                    WITH "grdb_ds1_limited" AS (\
+                    SELECT *, "cold2" AS "grdb_cold2", ROW_NUMBER() OVER (PARTITION BY "cold2" \
+                    ORDER BY "cold1") AS "rowNumber" \
+                    FROM "d" \
+                    WHERE ("cold1" = 11) AND ("cold2" IN (8, 9))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_ds1_limited" \
+                    WHERE "rowNumber" <= 1 \
+                    ORDER BY "cold1"
+                    """,
+                    """
+                    WITH "grdb_ds2_limited" AS (\
+                    SELECT *, "cold2" AS "grdb_cold2", ROW_NUMBER() OVER (PARTITION BY "cold2" \
+                    ORDER BY "cold1") AS "rowNumber" \
+                    FROM "d" \
+                    WHERE ("cold1" <> 11) AND ("cold2" IN (8, 9))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_ds2_limited" \
+                    WHERE "rowNumber" <= 2 \
+                    ORDER BY "cold1"
+                    """,
+                    """
+                    WITH "grdb_cs2_limited" AS (\
+                    SELECT *, "colc2" AS "grdb_colc2", ROW_NUMBER() OVER (PARTITION BY "colc2" \
+                    ORDER BY "colc1") AS "rowNumber" \
+                    FROM "c" \
+                    WHERE ("colc1" < 9) AND ("colc2" IN (1, 2))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_cs2_limited" \
+                    WHERE "rowNumber" <= 5 \
+                    ORDER BY "colc1"
+                    """,
+                    """
+                    WITH "grdb_ds1_limited" AS (\
+                    SELECT *, "cold2" AS "grdb_cold2", ROW_NUMBER() OVER (PARTITION BY "cold2" \
+                    ORDER BY "cold1") AS "rowNumber" \
+                    FROM "d" \
+                    WHERE ("cold1" = 11) AND ("cold2" IN (7, 8))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_ds1_limited" \
+                    WHERE "rowNumber" <= 3 \
+                    ORDER BY "cold1"
+                    """,
+                    """
+                    WITH "grdb_ds2_limited" AS (\
+                    SELECT *, "cold2" AS "grdb_cold2", ROW_NUMBER() OVER (PARTITION BY "cold2" \
+                    ORDER BY "cold1") AS "rowNumber" \
+                    FROM "d" \
+                    WHERE ("cold1" <> 11) AND ("cold2" IN (7, 8))\
+                    ) \
+                    SELECT * \
+                    FROM "grdb_ds2_limited" \
+                    WHERE "rowNumber" <= 4 \
+                    ORDER BY "cold1"
+                    """,
+                ])}
         }
     }
     
@@ -696,6 +1183,138 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                             .orderByPrimaryKey()
                             .forKey("d2"))
                         .orderByPrimaryKey()
+                        .forKey("cs2"))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * \
+                    FROM "a" \
+                    WHERE "cola1" <> 3 \
+                    ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
+                    FROM "c" \
+                    LEFT JOIN "d" "d1" ON ("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11) \
+                    JOIN "d" "d2" ON ("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11) \
+                    WHERE ("c"."colc1" > 7) AND ("c"."colc2" IN (1, 2)) \
+                    ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
+                    FROM "c" \
+                    LEFT JOIN "d" "d1" ON ("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11) \
+                    JOIN "d" "d2" ON ("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11) \
+                    WHERE ("c"."colc1" < 9) AND ("c"."colc2" IN (1, 2)) \
+                    ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyIncludingRequiredOrOptionalHasMany_limit() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .including(required: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                #warning("TODO: ordering on D is lost")
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
+                    FROM "c" \
+                    JOIN "d" ON "d"."cold2" = "c"."colc1" \
+                    WHERE "c"."colc2" IN (1, 2, 3) \
+                    ORDER BY "c"."colc1", "d"."cold1"
+                    """])
+            }
+            
+            // Request with avoided prefetch
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .none()
+                        .including(required: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey()
+                        .limit(3))
+                    .orderByPrimaryKey()
+                
+                clearSQLQueries()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
+                    FROM "c" \
+                    JOIN "d" ON "d"."cold2" = "c"."colc1" \
+                    WHERE 0 AND ("c"."colc2" IN (1, 2, 3)) \
+                    ORDER BY "c"."colc1", "d"."cold1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = A
+                    .filter(Column("cola1") != 3)
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") > 7)
+                        .including(optional: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("d1"))
+                        .including(required: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("d2"))
+                        .orderByPrimaryKey()
+                        .limit(3)
+                        .forKey("cs1"))
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") < 9)
+                        .including(optional: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("d1"))
+                        .including(required: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("d2"))
+                        .orderByPrimaryKey()
+                        .limit(3)
                         .forKey("cs2"))
                     .orderByPrimaryKey()
                 
