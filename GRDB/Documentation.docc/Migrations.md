@@ -94,6 +94,26 @@ migrator.registerMigration("Create authors") { db in
 }
 ```
 
+#### How to Rename a Foreign Key
+
+When a migration **renames a foreign key**, make sure the migration runs with `.immediate` foreign key checks, in order to avoid database integrity problems:
+
+```swift
+// IMPORTANT: rename foreign keys with immediate foreign key checks.
+migrator.registerMigration("Guilds", foreignKeyChecks: .immediate) { db in
+    try db.rename(table: "team", to: "guild")
+    
+    try db.alter(table: "player") { t in
+        // Rename a foreign key
+        t.rename(column: "teamId", to: "guildId")
+    }
+}
+```
+
+Note: migrations that run with `.immediate` foreign key checks can not be used to recreated database tables, as described below. When needed, define two migrations instead of one.
+
+#### How to Recreate a Database Table 
+
 When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table.
 
 For example:
