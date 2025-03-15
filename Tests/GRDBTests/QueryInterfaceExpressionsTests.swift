@@ -1559,7 +1559,18 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT LENGTH(\"name\") FROM \"readers\"")
     }
     
-    func testMinExpression() throws {
+    func testMultiArgumentMinExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(min(Col.age, 1000))),
+            "SELECT MIN(\"age\", 1000) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(min(Col.age, 1000, Col.id))),
+            "SELECT MIN(\"age\", 1000, \"id\") FROM \"readers\"")
+    }
+    
+    func testAggregateMinExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
@@ -1570,7 +1581,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT MIN(\"age\" / 2) FROM \"readers\"")
     }
     
-    func testMinExpression_filter() throws {
+    func testAggregateMinExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
@@ -1592,7 +1603,18 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT MIN(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
     }
     
-    func testMaxExpression() throws {
+    func testMultiArgumentMaxExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(max(Col.age, 1000))),
+            "SELECT MAX(\"age\", 1000) FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(max(Col.age, 1000, Col.id))),
+            "SELECT MAX(\"age\", 1000, \"id\") FROM \"readers\"")
+    }
+    
+    func testAggregateMaxExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
@@ -1603,7 +1625,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT MAX(\"age\" / 2) FROM \"readers\"")
     }
     
-    func testMaxExpression_filter() throws {
+    func testAggregateMaxExpression_filter() throws {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {

@@ -11,7 +11,7 @@ public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
 }
 
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-/// The `AVG` SQL function.
+/// The `AVG` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -26,7 +26,7 @@ public func average(
     .aggregateFunction("AVG", [value.sqlExpression], filter: filter?.sqlExpression)
 }
 #else
-/// The `AVG` SQL function.
+/// The `AVG` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -44,7 +44,7 @@ public func average(
         filter: filter.sqlExpression)
 }
 
-/// The `AVG` SQL function.
+/// The `AVG` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -147,8 +147,24 @@ public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("LENGTH", [value.sqlExpression])
 }
 
+/// The `MAX` SQL multi-argument function.
+///
+/// For example:
+///
+/// ```swift
+/// // MAX(score, 1000)
+/// max(Column("score"), 1000)
+/// ```
+public func max(
+    _ value1: any SQLSpecificExpressible,
+    _ value2: any SQLExpressible,
+    _ values: any SQLExpressible...
+) -> SQLExpression {
+    .simpleFunction("MAX", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
+}
+
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-/// The `MAX` SQL function.
+/// The `MAX` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -163,7 +179,7 @@ public func max(
     .aggregateFunction("MAX", [value.sqlExpression], filter: filter?.sqlExpression)
 }
 #else
-/// The `MAX` SQL function.
+/// The `MAX` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -179,7 +195,7 @@ public func max(
     .aggregateFunction("MAX", [value.sqlExpression], filter: filter.sqlExpression)
 }
 
-/// The `MAX` SQL function.
+/// The `MAX` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -192,8 +208,24 @@ public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
 }
 #endif
 
+/// The `MIN` SQL multi-argument function.
+///
+/// For example:
+///
+/// ```swift
+/// // MIN(score, 1000)
+/// min(Column("score"), 1000)
+/// ```
+public func min(
+    _ value1: any SQLSpecificExpressible,
+    _ value2: any SQLExpressible,
+    _ values: any SQLExpressible...
+) -> SQLExpression {
+    .simpleFunction("MIN", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
+}
+
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-/// The `MIN` SQL function.
+/// The `MIN` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -208,7 +240,7 @@ public func min(
     .aggregateFunction("MIN", [value.sqlExpression], filter: filter?.sqlExpression)
 }
 #else
-/// The `MIN` SQL function.
+/// The `MIN` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -224,7 +256,7 @@ public func min(
     .aggregateFunction("MIN", [value.sqlExpression], filter: filter.sqlExpression)
 }
 
-/// The `MIN` SQL function.
+/// The `MIN` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -238,7 +270,7 @@ public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
 #endif
 
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-/// The `SUM` SQL function.
+/// The `SUM` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -262,7 +294,7 @@ public func sum(
         filter: filter?.sqlExpression)
 }
 #else
-/// The `SUM` SQL function.
+/// The `SUM` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -284,7 +316,7 @@ public func sum(
         filter: filter.sqlExpression)
 }
 
-/// The `SUM` SQL function.
+/// The `SUM` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -302,7 +334,7 @@ public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
 #endif
 
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-/// The `TOTAL` SQL function.
+/// The `TOTAL` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -326,7 +358,7 @@ public func total(
         filter: filter?.sqlExpression)
 }
 #else
-/// The `TOTAL` SQL function.
+/// The `TOTAL` SQL aggregate function.
 ///
 /// For example:
 ///
@@ -348,7 +380,7 @@ public func total(
         filter: filter.sqlExpression)
 }
 
-/// The `TOTAL` SQL function.
+/// The `TOTAL` SQL aggregate function.
 ///
 /// For example:
 ///

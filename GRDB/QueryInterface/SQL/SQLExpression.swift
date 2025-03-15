@@ -2209,8 +2209,10 @@ extension SQLExpressible where Self == Column {
 /// - ``localizedLowercased``
 /// - ``localizedUppercased``
 /// - ``lowercased``
+/// - ``min(_:_:_:)``
 /// - ``min(_:)``
 /// - ``min(_:filter:)``
+/// - ``max(_:_:_:)``
 /// - ``max(_:)``
 /// - ``max(_:filter:)``
 /// - ``sum(_:)``
