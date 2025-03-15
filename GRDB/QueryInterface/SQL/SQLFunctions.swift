@@ -147,6 +147,22 @@ public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("LENGTH", [value.sqlExpression])
 }
 
+/// The `MAX` SQL multi-argument function.
+///
+/// For example:
+///
+/// ```swift
+/// // MAX(score, 1000)
+/// max(Column("score"), 1000)
+/// ```
+public func max(
+    _ value1: any SQLSpecificExpressible,
+    _ value2: any SQLExpressible,
+    _ values: any SQLExpressible...
+) -> SQLExpression {
+    .simpleFunction("MAX", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
+}
+
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
 /// The `MAX` SQL aggregate function.
 ///
@@ -191,6 +207,22 @@ public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregateFunction("MAX", [value.sqlExpression])
 }
 #endif
+
+/// The `MIN` SQL multi-argument function.
+///
+/// For example:
+///
+/// ```swift
+/// // MIN(score, 1000)
+/// min(Column("score"), 1000)
+/// ```
+public func min(
+    _ value1: any SQLSpecificExpressible,
+    _ value2: any SQLExpressible,
+    _ values: any SQLExpressible...
+) -> SQLExpression {
+    .simpleFunction("MIN", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
+}
 
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
 /// The `MIN` SQL aggregate function.
