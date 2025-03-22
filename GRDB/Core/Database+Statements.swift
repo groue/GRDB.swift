@@ -494,11 +494,9 @@ extension Database {
         
         switch ResultCode(rawValue: resultCode) {
         case .SQLITE_INTERRUPT, .SQLITE_ABORT:
-            if suspensionMutex.load().isCancelled {
-                // The only error that a user sees when a Task is cancelled
-                // is CancellationError.
-                throw CancellationError()
-            }
+            // The only error that a user sees when a Task is cancelled
+            // is CancellationError.
+            try suspensionMutex.load().checkCancellation()
         default:
             break
         }
