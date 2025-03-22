@@ -549,8 +549,12 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         if !database.isReadOnly {
-            for observation in transactionObservations {
-                observation.databaseDidCommit(database)
+            // Observers must be able to access the database, even if the
+            // task that has performed the commit is cancelled.
+            database.ignoringCancellation {
+                for observation in transactionObservations {
+                    observation.databaseDidCommit(database)
+                }
             }
         }
         
@@ -609,12 +613,18 @@ class DatabaseObservationBroker {
     
     // Called from statementDidExecute or statementDidFail
     private func databaseDidRollback(notifyTransactionObservers: Bool) {
+        #warning("TODO")
         savepointStack.clear()
         
         if notifyTransactionObservers {
             assert(!database.isReadOnly, "Read-only transactions are not notified")
-            for observation in transactionObservations {
-                observation.databaseDidRollback(database)
+            
+            // Observers must be able to access the database, even if the
+            // task that has performed the commit is cancelled.
+            database.ignoringCancellation {
+                for observation in transactionObservations {
+                    observation.databaseDidRollback(database)
+                }
             }
         }
         databaseDidEndTransaction()
