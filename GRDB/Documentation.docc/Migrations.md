@@ -94,6 +94,26 @@ migrator.registerMigration("Create authors") { db in
 }
 ```
 
+#### How to Rename a Foreign Key
+
+When a migration **renames a foreign key**, make sure the migration runs with `.immediate` foreign key checks, in order to avoid database integrity problems:
+
+```swift
+// IMPORTANT: rename foreign keys with immediate foreign key checks.
+migrator.registerMigration("Guilds", foreignKeyChecks: .immediate) { db in
+    try db.rename(table: "team", to: "guild")
+    
+    try db.alter(table: "player") { t in
+        // Rename a foreign key
+        t.rename(column: "teamId", to: "guildId")
+    }
+}
+```
+
+Note: migrations that run with `.immediate` foreign key checks can not be used to recreated database tables, as described below. When needed, define two migrations instead of one.
+
+#### How to Recreate a Database Table 
+
 When you need to modify a table in a way that is not directly supported by SQLite, or not available on your target operating system, you will need to recreate the database table.
 
 For example:
@@ -113,19 +133,39 @@ migrator.registerMigration("Add NOT NULL check on author.name") { db in
 
 The detailed sequence of operations for recreating a database table from a migration is:
 
-1. When relevant, remember the format of all indexes, triggers, and views associated with table X. This information will be needed in steps 6 and 7 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
+1. When relevant, remember the format of all indexes, triggers, and views associated with table `X`. This information will be needed in steps 6 below. One way to do this is to run the following statement and examine the output in the console:
 
-2. Use `CREATE TABLE` to construct a new table "new_X" that is in the desired revised format of table X. Make sure that the name "new_X" does not collide with any existing table name, of course.
+    ```swift
+    try db.dumpSQL("SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'")
+    ```
 
-3. Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
+2. Construct a new table `new_X` that is in the desired revised format of table `X`. Make sure that the name `new_X` does not collide with any existing table name, of course.
 
-4. Drop the old table X: `DROP TABLE X`.
+    ```swift
+    try db.create(table: "new_X") { t in ... }
+    ```
 
-5. Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
+3. Transfer content from `X` into `new_X` using a statement like:
 
-6. When relevant, use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to reconstruct indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
+    ```swift
+    try db.execute(sql: "INSERT INTO new_X SELECT ... FROM X")
+    ```
 
-7. If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
+4. Drop the old table `X`:
+    
+    ```swift
+    try db.drop(table: "X")
+    ```
+
+5. Change the name of `new_X` to `X` using:
+
+    ```swift
+    try db.rename(table: "new_X", to: "X")
+    ```
+
+6. When relevant, reconstruct indexes, triggers, and views associated with table `X`.
+
+7. If any views refer to table `X` in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
 
 > Important: When recreating a table, be sure to follow the above procedure exactly, in the given order, or you might corrupt triggers, views, and foreign key constraints.
 >

@@ -1352,4 +1352,58 @@ class ValueObservationTests: GRDBTestCase {
                     XCTAssertEqual(value, true)
                 })
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/discussions/1746>
+    @MainActor func testIssue1746() async throws {
+        let dbQueue = try makeDatabaseQueue()
+        try await dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE test (id INTEGER PRIMARY KEY)")
+        }
+        
+        // Start a task that waits for writeContinuation before it writes.
+        let (writeStream, writeContinuation) = AsyncStream.makeStream(of: Void.self)
+        let task = Task {
+            for await _ in writeStream { }
+            try? await dbQueue.write { db in
+                XCTAssertFalse(Task.isCancelled) // Required for the test to be meaningful
+                try db.execute(sql: "INSERT INTO test DEFAULT VALUES")
+            }
+        }
+        
+        // A transaction observer that cancels a Task after commit.
+        class CancelObserver: TransactionObserver {
+            let task: Task<Void, Never>
+            init(task: Task<Void, Never>) {
+                self.task = task
+            }
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            func databaseDidChange(with event: DatabaseEvent) { }
+            func databaseDidRollback(_ db: Database) { }
+            func databaseDidCommit(_ db: Database) {
+                task.cancel()
+            }
+        }
+        
+        // Register CancelObserver first, so no other observer could access
+        // the database before the task is cancelled.
+        dbQueue.add(transactionObserver: CancelObserver(task: task), extent: .databaseLifetime)
+
+        // Start observing.
+        // We expect to see 0, then 1.
+        let values = ValueObservation
+            .tracking(Table("test").fetchCount)
+            .values(in: dbQueue)
+        for try await value in values {
+            if value == 0 {
+                // Perform the write.
+                writeContinuation.finish()
+            } else if value == 1 {
+                // Test passes
+                break
+            } else {
+                XCTFail("Unexpected value \(value)")
+                break
+            }
+        }
+    }
 }

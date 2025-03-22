@@ -125,6 +125,28 @@ public final class TableAlteration {
     /// }
     /// ```
     ///
+    /// Take care, when you rename **foreign keys** in <doc:Migrations>,
+    /// to run the migration with the ``DatabaseMigrator/ForeignKeyChecks/immediate``
+    /// foreign key checks, in order to avoid integrity failures:
+    ///
+    /// ```swift
+    /// // RECOMMENDED: rename foreign keys with immediate foreign key checks.
+    /// migrator.registerMigration("Guilds", foreignKeyChecks: .immediate) { db in
+    ///     try db.rename(table: "team", to: "guild")
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "teamId", to: "guildId")
+    ///     }
+    /// }
+    ///
+    /// // NOT RECOMMENDED: rename foreign keys with disabled foreign keys.
+    /// migrator.registerMigration("Guilds") { db in
+    ///     try db.rename(table: "team", to: "guild")
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "teamId", to: "guildId")
+    ///     }
+    /// }
+    /// ```
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - parameter name: the old name of the column.
