@@ -613,7 +613,6 @@ class DatabaseObservationBroker {
     
     // Called from statementDidExecute or statementDidFail
     private func databaseDidRollback(notifyTransactionObservers: Bool) {
-        #warning("TODO")
         savepointStack.clear()
         
         if notifyTransactionObservers {
