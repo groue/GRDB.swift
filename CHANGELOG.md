@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.4.x` Releases - [7.4.0](#740)
+- `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
 - `7.3.x` Releases - [7.3.0](#730)
 - `7.2.x` Releases - [7.2.0](#720)
 - `7.1.x` Releases - [7.1.0](#710)
@@ -135,6 +135,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.4.1
+
+Released March 28, 2025
+
+- Removed a compiler warning
 
 ## 7.4.0
 
