@@ -453,7 +453,6 @@ public class TableAlias: @unchecked Sendable {
         selectable.sqlSelection.qualified(with: self)
     }
     
-    // TODO: provide a ColumnsProvider version
     /// Returns an SQL expression that refers to the aliased table.
     ///
     /// For example, let's sort books by author name first, and then by title:
