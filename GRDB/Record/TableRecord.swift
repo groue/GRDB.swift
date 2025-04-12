@@ -115,6 +115,64 @@ import Foundation
 /// - ``hasOne(_:key:using:)-4v5xa``
 /// - ``hasOne(_:through:using:key:)``
 public protocol TableRecord {
+    /// A type that defines columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// `Codable` types can define their columns from their coding keys:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    /// ```
+    associatedtype Columns = Never
+    
+    /// A type that provides access to columns in the query interface.
+    ///
+    /// By default, it is `Columns.self`.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// let request = Player.order { $0.score.desc }
+    /// ```
+    associatedtype ColumnsProvider = Columns.Type
+    
     /// The name of the database table used to build SQL queries.
     ///
     /// For example:
@@ -182,6 +240,30 @@ public protocol TableRecord {
     /// > static let databaseSelection: [any SQLSelectable] = [.allColumns]
     /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
+    
+    /// The value that provides access to columns in the query interface.
+    ///
+    /// By default, it is `Columns.self`.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// Player.columns.score // A Column
+    /// let request = Player.order { $0.score.desc }
+    /// ```
+    static var columns: ColumnsProvider { get }
 }
 
 extension TableRecord {
@@ -229,6 +311,12 @@ extension TableRecord {
     /// The default selection is all columns: `[.allColumns]`.
     public static var databaseSelection: [any SQLSelectable] {
         [.allColumns]
+    }
+}
+
+extension TableRecord where ColumnsProvider == Columns.Type {
+    public static var columns: ColumnsProvider {
+        Columns.self
     }
 }
 
