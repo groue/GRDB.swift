@@ -58,7 +58,10 @@ public struct SQLSelection: Sendable {
     }
     
     /// All columns but the specified ones, qualified.
-    static func qualifiedAllColumnsExcluding(_ alias: TableAlias, _ excludedColumns: Set<CaseInsensitiveIdentifier>) -> Self {
+    static func qualifiedAllColumnsExcluding(
+        _ alias: TableAlias,
+        _ excludedColumns: Set<CaseInsensitiveIdentifier>
+    ) -> Self {
         self.init(impl: .qualifiedAllColumnsExcluding(alias, excludedColumns))
     }
     
