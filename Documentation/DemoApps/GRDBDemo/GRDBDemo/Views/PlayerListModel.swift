@@ -41,9 +41,16 @@ import GRDB
         let observation = ValueObservation.tracking { [ordering] db in
             switch ordering {
             case .byName:
-                try Player.all().orderedByName().fetchAll(db)
+                try Player
+                    .order { $0.name.collating(.localizedCaseInsensitiveCompare) }
+                    .fetchAll(db)
             case .byScore:
-                try Player.all().orderedByScore().fetchAll(db)
+                try Player
+                    .order { [
+                        $0.score.desc,
+                        $0.name.collating(.localizedCaseInsensitiveCompare),
+                    ] }
+                    .fetchAll(db)
             }
         }
         
