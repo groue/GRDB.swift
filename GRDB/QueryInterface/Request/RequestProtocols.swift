@@ -215,8 +215,15 @@ extension SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT score FROM player
-    /// let request = Player.all().select { $0.score }
+    /// let request = Player.all().select(\.score)
     /// ```
     ///
     /// Any previous selection is replaced:
@@ -224,8 +231,8 @@ extension SelectionRequest {
     /// ```swift
     /// // SELECT score FROM player
     /// let request = Player.all()
-    ///     .select { $0.id }
-    ///     .select { $0.score }
+    ///     .select(\.id)
+    ///     .select(\.score)
     /// ```
     public func select(
         _ selection: (Self.RowDecoder.ColumnsProvider) -> any SQLSelectable
@@ -240,6 +247,13 @@ extension SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT id, score FROM player
     /// let request = Player.all().select { [$0.id, $0.score] }
     /// ```
@@ -265,9 +279,16 @@ extension SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
     /// // SELECT *, score + bonus AS totalScore FROM player
     /// let request = Player.all().annotated {
-    ///     ($0.score + $0.bonus.forKey("totalScore")
+    ///     ($0.score + $0.bonus).forKey("totalScore")
     /// }
     /// ```
     ///
@@ -286,9 +307,16 @@ extension SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
     /// // SELECT *, score + bonus AS totalScore FROM player
     /// let request = Player.all().annotated {
-    ///     [($0.score + $0.bonus.forKey("totalScore")]
+    ///     [($0.score + $0.bonus).forKey("totalScore")]
     /// }
     /// ```
     ///
@@ -413,6 +441,12 @@ extension FilteredRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player WHERE name = 'O''Brien'
     /// let name = "O'Brien"
     /// let request = Player.all().filter { $0.name == name }
@@ -1047,12 +1081,19 @@ extension AggregatingRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT teamId, MAX(score)
     /// // FROM player
     /// // GROUP BY teamId
     /// let request = Player
     ///     .select { [$0.teamId, max($0.score)] }
-    ///     .group { $0.teamId }
+    ///     .group(\.teamId)
     /// ```
     ///
     /// Any previous grouping is discarded.
@@ -1078,13 +1119,20 @@ extension AggregatingRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT teamId, MAX(score)
     /// // FROM player
     /// // GROUP BY teamId
     /// // HAVING MAX(score) > 1000
     /// let request = Player
     ///     .select { [$0.teamId, max($0.score)] }
-    ///     .group { $0.teamId }
+    ///     .group(\.teamId)
     ///     .having { max($0.score) > 1000 }
     /// ```
     public func having(
@@ -1264,6 +1312,33 @@ extension OrderedRequest {
 }
 
 extension OrderedRequest {
+    /// Sorts the fetched rows according to the given SQL ordering term.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all().order(\.name)
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC
+    /// let request = Player.all().order(\.score.desc)
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order(\.score.desc)
+    ///     .order(\.name)
+    /// ```
     public func order(
         _ ordering: (Self.RowDecoder.ColumnsProvider) -> any SQLOrderingTerm
     ) -> Self
@@ -1272,6 +1347,31 @@ extension OrderedRequest {
         order(ordering(Self.RowDecoder.columns))
     }
     
+    /// Sorts the fetched rows according to the given SQL ordering terms.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc, $0.name] }
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc] }
+    ///     .order { [$0.name] }
+    /// ```
     public func order(
         _ orderings: (Self.RowDecoder.ColumnsProvider) -> [any SQLOrderingTerm]
     ) -> Self

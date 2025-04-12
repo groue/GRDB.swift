@@ -169,7 +169,7 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
-    /// let request = Player.order { $0.score.desc }
+    /// let request = Player.order(\.score.desc)
     /// ```
     associatedtype ColumnsProvider = Columns.Type
     
@@ -261,7 +261,7 @@ public protocol TableRecord {
     /// }
     ///
     /// Player.columns.score // A Column
-    /// let request = Player.order { $0.score.desc }
+    /// let request = Player.order(\.score.desc)
     /// ```
     static var columns: ColumnsProvider { get }
 }

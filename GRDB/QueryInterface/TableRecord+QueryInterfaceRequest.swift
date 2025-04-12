@@ -75,7 +75,7 @@ extension TableRecord {
     /// struct Player: TableRecord { }
     ///
     /// // SELECT score FROM player
-    /// let request = Player.select { $0.score }
+    /// let request = Player.select(\.score)
     /// ```
     public static func select(
         _ selection: (ColumnsProvider) -> any SQLSelectable
@@ -629,7 +629,7 @@ extension TableRecord {
     /// struct Player: TableRecord { }
     ///
     /// // SELECT * FROM player ORDER BY score DESC
-    /// let request = Player.order { $0.score.desc }
+    /// let request = Player.order(\.score.desc)
     /// ```
     public static func order(
         _ orderings: (ColumnsProvider) -> any SQLOrderingTerm

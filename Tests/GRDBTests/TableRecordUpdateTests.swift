@@ -7,8 +7,11 @@ private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     var score: Int
     var bonus: Int
     
-    enum Columns: String, ColumnExpression {
-        case id, name, score, bonus
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+        static let bonus = Column(CodingKeys.bonus)
     }
     
     static func createTable(_ db: Database) throws {
