@@ -431,6 +431,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             do {
                 // Type.select(..., as:)
                 do {
+                    // ColumnsProvider
+                    do {
+                        let value = try Reader
+                            .select(\.name, as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
                     // variadic
                     do {
                         let value = try Reader
@@ -602,6 +609,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     // This test passes if this method compiles
     func testSelectAsTypeInference() {
         _ = Reader.select(Columns.name) as QueryInterfaceRequest<String>
+        _ = Reader.select(\.name) as QueryInterfaceRequest<String>
         _ = Reader.select([Columns.name]) as QueryInterfaceRequest<String>
         _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
         _ = Reader.select(literal: SQL(sql: "name")) as QueryInterfaceRequest<String>
@@ -610,8 +618,12 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
         _ = Reader.all().select(literal: SQL(sql: "name")) as QueryInterfaceRequest<String>
         
-        func makeRequest() -> QueryInterfaceRequest<String> {
+        func makeRequest1() -> QueryInterfaceRequest<String> {
             Reader.select(Columns.name)
+        }
+        
+        func makeRequest3() -> QueryInterfaceRequest<String> {
+            Reader.select(\.name)
         }
         
         // Those should be, without any ambiguuity, requests of Reader.

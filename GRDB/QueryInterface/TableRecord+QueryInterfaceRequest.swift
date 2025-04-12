@@ -166,7 +166,6 @@ extension TableRecord {
         all().select(selection, as: type)
     }
     
-    // TODO: provide a ColumnsProvider version
     /// Returns a request that selects the provided result columns, and defines
     /// the type of decoded rows.
     ///
@@ -194,6 +193,35 @@ extension TableRecord {
     -> QueryInterfaceRequest<RowDecoder>
     {
         all().select(selection, as: type)
+    }
+    
+    /// Returns a request that selects the provided result columns, and defines
+    /// the type of decoded rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT id FROM player
+    /// let request = Player.select(\.id, as: Int.self)
+    /// let scores = try request.fetchSet(db) // Set<Int>
+    ///
+    /// // SELECT MAX(score) FROM player
+    /// let request = Player.select({ max($0.score) }, as: Int.self)
+    /// let maxScore = try request.fetchOne(db) // Int?
+    /// ```
+    public static func select<RowDecoder>(
+        _ selection: (ColumnsProvider) -> any SQLSelectable,
+        as type: RowDecoder.Type = RowDecoder.self)
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(selection).asRequest(of: RowDecoder.self)
     }
     
     /// Returns a request that selects the provided SQL string, and defines the
