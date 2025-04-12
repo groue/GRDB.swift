@@ -89,7 +89,6 @@ extension AssociationToMany {
             .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
-    // TODO: provide a ColumnsProvider version
     /// Returns the average of the given expression in associated records.
     ///
     /// For example:
@@ -135,6 +134,56 @@ extension AssociationToMany {
         } else {
             return aggregate
         }
+    }
+    
+    /// Returns the average of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// struct Team: FetchableRecord, TableRecord {
+    ///     static let players = Team.hasMany(Player.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     // Fetch all teams whose average player score is greater than 1000
+    ///     let averageScore = Team.players.average(\.score)
+    ///     let teams: [Team] = try Team
+    ///         .having(averageScore >= 1000)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// When the input expression is a ``ColumnExpression``, the returned
+    /// association aggregate is named `"average[Key][Column]"`, where `key` is
+    /// the association key. For example:
+    ///
+    /// ```swift
+    /// struct TeamInfo: FetchableRecord, Decodable {
+    ///     var team: Team
+    ///     var averagePlayerScore: Double
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let averageScore = Team.players.average(\.score)
+    ///     let infos: [TeamInfo] = try Team
+    ///         .annotated(with: averageScore)
+    ///         .asRequest(of: TeamInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    public func average(
+        _ expression: (RowDecoder.ColumnsProvider) -> some SQLSpecificExpressible
+    ) -> AssociationAggregate<OriginRowDecoder>
+    where RowDecoder: TableRecord
+    {
+        average(expression(RowDecoder.columns))
     }
     
     /// Returns the maximum value of the given expression in associated records.
@@ -184,6 +233,56 @@ extension AssociationToMany {
         }
     }
     
+    /// Returns the maximum value of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// struct Team: FetchableRecord, TableRecord {
+    ///     static let players = Team.hasMany(Player.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     // Fetch all teams whose maximum player score is greater than 1000
+    ///     let maxScore = Team.players.max(\.score)
+    ///     let teams: [Team] = try Team
+    ///         .having(maxScore >= 1000)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// When the input expression is a ``ColumnExpression``, the returned
+    /// association aggregate is named `"maximum[Key][Column]"`, where `key` is
+    /// the association key. For example:
+    ///
+    /// ```swift
+    /// struct TeamInfo: FetchableRecord, Decodable {
+    ///     var team: Team
+    ///     var maximumPlayerScore: Double
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let maxScore = Team.players.max(\.score)
+    ///     let infos: [TeamInfo] = try Team
+    ///         .annotated(with: maxScore)
+    ///         .asRequest(of: TeamInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    public func max(
+        _ expression: (RowDecoder.ColumnsProvider) -> some SQLSpecificExpressible
+    ) -> AssociationAggregate<OriginRowDecoder>
+    where RowDecoder: TableRecord
+    {
+        max(expression(RowDecoder.columns))
+    }
+    
     /// Returns the minimum value of the given expression in associated records.
     ///
     /// For example:
@@ -229,6 +328,56 @@ extension AssociationToMany {
         } else {
             return aggregate
         }
+    }
+    
+    /// Returns the minimum value of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// struct Team: FetchableRecord, TableRecord {
+    ///     static let players = Team.hasMany(Player.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     // Fetch all teams whose minimum player score is less than 1000
+    ///     let minScore = Team.players.min(\.score)
+    ///     let teams: [Team] = try Team
+    ///         .having(minScore < 1000)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// When the input expression is a ``ColumnExpression``, the returned
+    /// association aggregate is named `"minimum[Key][Column]"`, where `key` is
+    /// the association key. For example:
+    ///
+    /// ```swift
+    /// struct TeamInfo: FetchableRecord, Decodable {
+    ///     var team: Team
+    ///     var minimumPlayerScore: Double
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let minScore = Team.players.min(\.score)
+    ///     let infos: [TeamInfo] = try Team
+    ///         .annotated(with: minScore)
+    ///         .asRequest(of: TeamInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    public func min(
+        _ expression: (RowDecoder.ColumnsProvider) -> some SQLSpecificExpressible
+    ) -> AssociationAggregate<OriginRowDecoder>
+    where RowDecoder: TableRecord
+    {
+        min(expression(RowDecoder.columns))
     }
     
     /// Returns the sum of the given expression in associated records.
@@ -283,6 +432,59 @@ extension AssociationToMany {
     
     /// Returns the sum of the given expression in associated records.
     ///
+    /// This aggregate invokes the `SUM` SQL function. See also ``total(_:)``
+    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// struct Team: FetchableRecord, TableRecord {
+    ///     static let players = Team.hasMany(Player.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     // Fetch all teams whose sum of player scores is greater than 1000
+    ///     let scoreSum = Team.players.sum(\.score)
+    ///     let teams: [Team] = try Team
+    ///         .having(scoreSum >= 1000)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// When the input expression is a ``ColumnExpression``, the returned
+    /// association aggregate is named `"[key][Column]Sum"`, where `key` is the
+    /// association key. For example:
+    ///
+    /// ```swift
+    /// struct TeamInfo: FetchableRecord, Decodable {
+    ///     var team: Team
+    ///     var playerScoreSum: Double
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let scoreSum = Team.players.sum(\.score)
+    ///     let infos: [TeamInfo] = try Team
+    ///         .annotated(with: scoreSum)
+    ///         .asRequest(of: TeamInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    public func sum(
+        _ expression: (RowDecoder.ColumnsProvider) -> some SQLSpecificExpressible
+    ) -> AssociationAggregate<OriginRowDecoder>
+    where RowDecoder: TableRecord
+    {
+        sum(expression(RowDecoder.columns))
+    }
+    
+    /// Returns the sum of the given expression in associated records.
+    ///
     /// This aggregate invokes the `TOTAL` SQL function. See also ``sum(_:)``
     /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
@@ -331,6 +533,59 @@ extension AssociationToMany {
         } else {
             return aggregate
         }
+    }
+    
+    /// Returns the sum of the given expression in associated records.
+    ///
+    /// This aggregate invokes the `TOTAL` SQL function. See also ``sum(_:)``
+    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// struct Team: FetchableRecord, TableRecord {
+    ///     static let players = Team.hasMany(Player.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     // Fetch all teams whose sum of player scores is greater than 1000
+    ///     let totalScore = Team.players.total(\.score)
+    ///     let teams: [Team] = try Team
+    ///         .having(totalScore >= 1000)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    ///
+    /// When the input expression is a ``ColumnExpression``, the returned
+    /// association aggregate is named `"[key][Column]Sum"`, where `key` is the
+    /// association key. For example:
+    ///
+    /// ```swift
+    /// struct TeamInfo: FetchableRecord, Decodable {
+    ///     var team: Team
+    ///     var playerScoreSum: Double
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let totalScore = Team.players.total(\.score)
+    ///     let infos: [TeamInfo] = try Team
+    ///         .annotated(with: totalScore)
+    ///         .asRequest(of: TeamInfo.self)
+    ///         .fetchAll(db)
+    /// }
+    /// ```
+    public func total(
+        _ expression: (RowDecoder.ColumnsProvider) -> some SQLSpecificExpressible
+    ) -> AssociationAggregate<OriginRowDecoder>
+    where RowDecoder: TableRecord
+    {
+        total(expression(RowDecoder.columns))
     }
 }
 
