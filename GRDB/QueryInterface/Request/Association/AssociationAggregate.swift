@@ -89,6 +89,7 @@ extension AssociationToMany {
             .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
+    // TODO: provide a ColumnsProvider version
     /// Returns the average of the given expression in associated records.
     ///
     /// For example:

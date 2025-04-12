@@ -702,6 +702,7 @@ extension QueryInterfaceRequest {
         return try RowDecoder.ID.fetchSet(statement)
     }
 #else
+    // TODO: provide a ColumnsProvider version
     /// Returns a `DELETE RETURNING` prepared statement.
     ///
     /// For example:
@@ -907,6 +908,7 @@ extension QueryInterfaceRequest {
         return db.changesCount
     }
     
+    // TODO: provide a ColumnsProvider version
     /// Updates matching rows, and returns the number of updated rows.
     ///
     /// For example:

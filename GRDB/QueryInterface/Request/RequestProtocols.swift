@@ -209,6 +209,100 @@ extension SelectionRequest {
     }
 }
 
+extension SelectionRequest {
+    /// Defines the result column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all().select { $0.score }
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select { $0.id }
+    ///     .select { $0.score }
+    /// ```
+    public func select(
+        _ selection: (Self.RowDecoder.ColumnsProvider) -> any SQLSelectable
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        select(selection(Self.RowDecoder.columns))
+    }
+
+    /// Defines the result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT id, score FROM player
+    /// let request = Player.all().select { [$0.id, $0.score] }
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select { [$0.id] }
+    ///     .select { [$0.score] }
+    /// ```
+    public func select(
+        _ selection: (Self.RowDecoder.ColumnsProvider) -> [any SQLSelectable]
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        select(selection(Self.RowDecoder.columns))
+    }
+    
+    /// Appends a result column to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     ($0.score + $0.bonus.forKey("totalScore")
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (Self.RowDecoder.ColumnsProvider) -> any SQLSelectable
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        annotated(with: selection(Self.RowDecoder.columns))
+    }
+
+    /// Appends result columns to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     [($0.score + $0.bonus.forKey("totalScore")]
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (Self.RowDecoder.ColumnsProvider) -> [any SQLSelectable]
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        annotated(with: selection(Self.RowDecoder.columns))
+    }
+}
+
 // MARK: - FilteredRequest
 
 /// A request that can filter database rows.
@@ -308,6 +402,28 @@ extension FilteredRequest {
   public func all() -> Self {
       self
   }
+}
+
+extension FilteredRequest {
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter { 42 }` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Filters the fetched rows with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = Player.all().filter { $0.name == name }
+    /// ```
+    public func filter(
+        _ predicate: (Self.RowDecoder.ColumnsProvider) -> any SQLSpecificExpressible
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        filter(predicate(Self.RowDecoder.columns))
+    }
 }
 
 // MARK: - TableRequest
@@ -925,6 +1041,61 @@ extension AggregatingRequest {
     }
 }
 
+extension AggregatingRequest {
+    /// Returns an aggregate request grouped on the given SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group { $0.teamId }
+    /// ```
+    ///
+    /// Any previous grouping is discarded.
+    public func group(
+        _ expression: (Self.RowDecoder.ColumnsProvider) -> any SQLExpressible
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        group(expression(Self.RowDecoder.columns))
+    }
+    
+    /// Returns an aggregate request grouped on the given SQL expressions.
+    public func group(
+        _ expressions: (Self.RowDecoder.ColumnsProvider) -> [any SQLExpressible]
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        group(expressions(Self.RowDecoder.columns))
+    }
+    
+    /// Filters the aggregated groups with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// // HAVING MAX(score) > 1000
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group { $0.teamId }
+    ///     .having { max($0.score) > 1000 }
+    /// ```
+    public func having(
+        _ predicate: (Self.RowDecoder.ColumnsProvider) -> any SQLExpressible
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        having(predicate(Self.RowDecoder.columns))
+    }
+}
+
 // MARK: - OrderedRequest
 
 /// A request that can sort database rows.
@@ -1089,6 +1260,24 @@ extension OrderedRequest {
     public func order(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         order(sqlLiteral)
+    }
+}
+
+extension OrderedRequest {
+    public func order(
+        _ ordering: (Self.RowDecoder.ColumnsProvider) -> any SQLOrderingTerm
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        order(ordering(Self.RowDecoder.columns))
+    }
+    
+    public func order(
+        _ orderings: (Self.RowDecoder.ColumnsProvider) -> [any SQLOrderingTerm]
+    ) -> Self
+    where Self: TypedRequest, Self.RowDecoder: TableRecord
+    {
+        order(orderings(Self.RowDecoder.columns))
     }
 }
 

@@ -67,6 +67,38 @@ extension TableRecord {
         all().select(selection)
     }
     
+    /// Returns a request that selects the provided result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT score FROM player
+    /// let request = Player.select { $0.score }
+    /// ```
+    public static func select(
+        _ selection: (ColumnsProvider) -> any SQLSelectable
+    ) -> QueryInterfaceRequest<Self> {
+        all().select(selection)
+    }
+    
+    /// Returns a request that selects the provided result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = Player.select { [$0.id, $0.score] }
+    /// ```
+    public static func select(
+        _ selection: (ColumnsProvider) -> [any SQLSelectable]
+    ) -> QueryInterfaceRequest<Self> {
+        all().select(selection)
+    }
+    
     /// Returns a request that selects the provided SQL string.
     ///
     /// For example:
@@ -134,6 +166,7 @@ extension TableRecord {
         all().select(selection, as: type)
     }
     
+    // TODO: provide a ColumnsProvider version
     /// Returns a request that selects the provided result columns, and defines
     /// the type of decoded rows.
     ///
@@ -319,6 +352,46 @@ extension TableRecord {
         all().annotated(with: selection)
     }
     
+    /// Returns a request with the provided result columns appended to the
+    /// record selection.
+    ///
+    /// The record selection is determined by
+    /// ``TableRecord/databaseSelection-7iphs``, which defaults to all columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.annotated { ($0.score + $0.bonus).forKey("totalScore") }
+    /// ```
+    public static func annotated(
+        with selection: (ColumnsProvider) -> any SQLSelectable
+    ) -> QueryInterfaceRequest<Self> {
+        all().annotated(with: selection)
+    }
+    
+    /// Returns a request with the provided result columns appended to the
+    /// record selection.
+    ///
+    /// The record selection is determined by
+    /// ``TableRecord/databaseSelection-7iphs``, which defaults to all columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.annotated { [($0.score + $0.bonus).forKey("totalScore")] }
+    /// ```
+    public static func annotated(
+        with selection: (ColumnsProvider) -> [any SQLSelectable]
+    ) -> QueryInterfaceRequest<Self> {
+        all().annotated(with: selection)
+    }
+    
     // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
     // prevent the `Player.filter(42)` misuse.
     // See https://github.com/groue/GRDB.swift/pull/864
@@ -334,6 +407,26 @@ extension TableRecord {
     /// let request = Player.filter(Column("name") == name)
     /// ```
     public static func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
+        all().filter(predicate)
+    }
+    
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Returns a request filtered with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = Player.filter { $0.name == name }
+    /// ```
+    public static func filter(
+        _ predicate: (ColumnsProvider) -> any SQLSpecificExpressible
+    ) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
     }
     
@@ -497,6 +590,38 @@ extension TableRecord {
     /// let request = Player.order([Column("score").desc, Column("name")])
     /// ```
     public static func order(_ orderings: [any SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
+        all().order(orderings)
+    }
+    
+    /// Returns a request sorted according to the given SQL ordering term.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC
+    /// let request = Player.order { $0.score.desc }
+    /// ```
+    public static func order(
+        _ orderings: (ColumnsProvider) -> any SQLOrderingTerm
+    ) -> QueryInterfaceRequest<Self> {
+        all().order(orderings)
+    }
+    
+    /// Returns a request sorted according to the given SQL ordering terms.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = Player.order { [$0.score.desc, $0.name] }
+    /// ```
+    public static func order(
+        _ orderings: (ColumnsProvider) -> [any SQLOrderingTerm]
+    ) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
     

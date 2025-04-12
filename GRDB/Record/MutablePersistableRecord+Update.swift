@@ -60,6 +60,7 @@ extension MutablePersistableRecord {
         didSave(updated)
     }
     
+    // TODO: provide a ColumnsProvider version
     /// Executes an `UPDATE` statement on the provided columns.
     ///
     /// For example:
