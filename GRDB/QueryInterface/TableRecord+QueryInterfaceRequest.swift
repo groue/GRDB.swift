@@ -221,7 +221,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        all().select(selection).asRequest(of: RowDecoder.self)
+        all().select(selection, as: type)
     }
     
     /// Returns a request that selects the provided SQL string, and defines the

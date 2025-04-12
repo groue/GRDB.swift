@@ -476,6 +476,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 }
                 // request.select(..., as:)
                 do {
+                    // ColumnsProvider
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select({ $0.name }, as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
                     // variadic
                     do {
                         let value = try Reader
@@ -614,6 +622,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
         _ = Reader.select(literal: SQL(sql: "name")) as QueryInterfaceRequest<String>
         _ = Reader.all().select(Columns.name) as QueryInterfaceRequest<String>
+        _ = Reader.all().select { $0.name } as QueryInterfaceRequest<String>
         _ = Reader.all().select([Columns.name]) as QueryInterfaceRequest<String>
         _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
         _ = Reader.all().select(literal: SQL(sql: "name")) as QueryInterfaceRequest<String>

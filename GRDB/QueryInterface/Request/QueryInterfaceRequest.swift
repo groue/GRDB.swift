@@ -187,6 +187,37 @@ extension QueryInterfaceRequest: SelectionRequest {
         select(selection, as: type)
     }
     
+    /// Defines the result columns, and defines the type of decoded rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT id FROM player
+    /// let request = Player.all().select(\.id, as: Int.self)
+    /// let scores = try request.fetchSet(db) // Set<Int>
+    ///
+    /// // SELECT MAX(score) FROM player
+    /// let request = Player.all().select({ max($0.score) }, as: Int.self)
+    /// let maxScore = try request.fetchOne(db) // Int?
+    /// ```
+    ///
+    /// Any previous selection is discarded.
+    public func select<T>(
+        _ selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable,
+        as type: T.Type = T.self)
+    -> QueryInterfaceRequest<T>
+    where RowDecoder: TableRecord
+    {
+        select(selection).asRequest(of: T.self)
+    }
+    
     /// Defines the result columns with an SQL string, and defines the type of
     /// decoded rows.
     ///
