@@ -105,10 +105,16 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(try tableRequest.order(Columns.name).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
+            XCTAssertEqual(try tableRequest.order { $0.name }.fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
             XCTAssertEqual(try tableRequest.limit(10).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
             
             XCTAssertEqual(try tableRequest.filter(Columns.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
+            
+            XCTAssertEqual(try tableRequest.filter { $0.age == 42 }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
             
             XCTAssertEqual(try tableRequest.distinct().fetchCount(db), 0)
@@ -117,22 +123,43 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(try tableRequest.select(Columns.name).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
+            XCTAssertEqual(try tableRequest.select { $0.name }.fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
             XCTAssertEqual(try tableRequest.select(Columns.name).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select { $0.name }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select(Columns.age * 2).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
+            XCTAssertEqual(try tableRequest.select { $0.age * 2 }.distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
+            
             XCTAssertEqual(try tableRequest.select((Columns.age * 2).forKey("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
+            
+            XCTAssertEqual(try tableRequest.select { ($0.age * 2).forKey("ignored") }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select(Columns.name, Columns.age).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
+            XCTAssertEqual(try tableRequest.select { [$0.name, $0.age] }.fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
             XCTAssertEqual(try tableRequest.select(Columns.name, Columns.age).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
             
+            XCTAssertEqual(try tableRequest.select { [$0.name, $0.age] }.distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+            
             XCTAssertEqual(try tableRequest.select(max(Columns.age)).group(Columns.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
+            
+            XCTAssertEqual(try tableRequest.select { max($0.age) }.group { $0.name }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
         }
     }
@@ -232,14 +259,27 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = tableRequest.select(Columns.name, Columns.id - 1)
-            let rows = try Row.fetchAll(db, request)
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            do {
+                let request = tableRequest.select(Columns.name, Columns.id - 1)
+                let rows = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0][0] as String, "Arthur")
+                XCTAssertEqual(rows[0][1] as Int64, 0)
+                XCTAssertEqual(rows[1][0] as String, "Barbara")
+                XCTAssertEqual(rows[1][1] as Int64, 1)
+            }
+            
+            do {
+                let request = tableRequest.select { [$0.name, $0.id - 1] }
+                let rows = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0][0] as String, "Arthur")
+                XCTAssertEqual(rows[0][1] as Int64, 0)
+                XCTAssertEqual(rows[1][0] as String, "Barbara")
+                XCTAssertEqual(rows[1][1] as Int64, 1)
+            }
         }
     }
     
@@ -248,11 +288,21 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             
-            let request = tableRequest.select(Columns.name.forKey("nom"), (Columns.age + 1).forKey("agePlusOne"))
-            let row = try Row.fetchOne(db, request)!
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", \"age\" + 1 AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
-            XCTAssertEqual(row["nom"] as String, "Arthur")
-            XCTAssertEqual(row["agePlusOne"] as Int, 43)
+            do {
+                let request = tableRequest.select(Columns.name.forKey("nom"), (Columns.age + 1).forKey("agePlusOne"))
+                let row = try Row.fetchOne(db, request)!
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", \"age\" + 1 AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
+                XCTAssertEqual(row["nom"] as String, "Arthur")
+                XCTAssertEqual(row["agePlusOne"] as Int, 43)
+            }
+            
+            do {
+                let request = tableRequest.select { [$0.name.forKey("nom"), ($0.age + 1).forKey("agePlusOne")] }
+                let row = try Row.fetchOne(db, request)!
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", \"age\" + 1 AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
+                XCTAssertEqual(row["nom"] as String, "Arthur")
+                XCTAssertEqual(row["agePlusOne"] as Int, 43)
+            }
         }
     }
     
@@ -265,7 +315,17 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
             }
             do {
+                let request = Reader.annotated { $0.id - 1 }
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
+            }
+            do {
                 let request = Reader.annotated(with: Columns.id - 1, Columns.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
+            }
+            do {
+                let request = Reader.annotated { [$0.id - 1, $0.id + 1] }
                 _ = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
@@ -275,7 +335,17 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
             }
             do {
+                let request = tableRequest.annotated { $0.id - 1 }
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
+            }
+            do {
                 let request = tableRequest.annotated(with: Columns.id - 1, Columns.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.annotated { [$0.id - 1, $0.id + 1] }
                 _ = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
@@ -285,7 +355,17 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
             }
             do {
+                let request = tableRequest.select { $0.name }.annotated { $0.id - 1 }
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
+            }
+            do {
                 let request = tableRequest.select(Columns.name).annotated(with: Columns.id - 1, Columns.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1, \"id\" + 1 FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.select { $0.name }.annotated { [$0.id - 1, $0.id + 1] }
                 _ = try Row.fetchAll(db, request)
                 XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
@@ -336,6 +416,9 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(Columns.age).select(Columns.name)),
+            "SELECT \"name\" FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select { $0.age }.select { $0.name }),
             "SELECT \"name\" FROM \"readers\"")
     }
     
@@ -574,6 +657,9 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(Columns.name).distinct()),
             "SELECT DISTINCT \"name\" FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select { $0.name }.distinct()),
+            "SELECT DISTINCT \"name\" FROM \"readers\"")
     }
     
     
@@ -682,7 +768,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.group(Columns.age)),
             "SELECT * FROM \"readers\" GROUP BY \"age\"")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.group { $0.age }),
+            "SELECT * FROM \"readers\" GROUP BY \"age\"")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Columns.age, Columns.name)),
+            "SELECT * FROM \"readers\" GROUP BY \"age\", \"name\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group { [$0.age, $0.name ] }),
             "SELECT * FROM \"readers\" GROUP BY \"age\", \"name\"")
     }
     
@@ -690,6 +782,9 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Columns.age).group(Columns.name)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group { $0.age }.group { $0.name }),
             "SELECT * FROM \"readers\" GROUP BY \"name\"")
     }
     
@@ -722,12 +817,18 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Columns.name).having(min(Columns.age) > 18)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING MIN(\"age\") > 18")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group { $0.name }.having { min($0.age) > 18 }),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING MIN(\"age\") > 18")
     }
     
     func testMultipleHaving() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Columns.name).having(min(Columns.age) > 18).having(max(Columns.age) < 50)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group { $0.name }.having { min($0.age) > 18 }.having{ max($0.age) < 50 }),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
     }
     
@@ -761,23 +862,44 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Columns.age)),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\"")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.asc)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.asc }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.desc }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age, Columns.name.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { [$0.age, $0.name.desc] }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(abs(Columns.age))),
+            "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { abs($0.age) }),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.ascNullsLast)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
@@ -785,7 +907,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 sql(dbQueue, tableRequest.order(Columns.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
             XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         }
         #endif
@@ -797,17 +925,32 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase))),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase) }),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).asc)),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).asc }),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(collation))),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(collation) }),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive")
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).ascNullsLast)),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).ascNullsLast }),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).descNullsFirst }),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
@@ -815,7 +958,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
             XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).ascNullsLast }),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+            XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).descNullsFirst }),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
         }
         #endif
@@ -825,6 +974,9 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age).order(Columns.name)),
+            "SELECT * FROM \"readers\" ORDER BY \"name\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age }.order { $0.name }),
             "SELECT * FROM \"readers\" ORDER BY \"name\"")
     }
     
@@ -840,23 +992,44 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Columns.age).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.asc).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.asc }.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.desc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.desc }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age, Columns.name.desc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC, \"name\" ASC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { [$0.age, $0.name.desc] }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC, \"name\" ASC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(abs(Columns.age)).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { abs($0.age) }.reversed()),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.ascNullsLast).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
@@ -864,7 +1037,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst).reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
             XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }.reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Columns.age.ascNullsLast).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }.reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         }
         #endif
@@ -876,17 +1055,32 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase) }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).asc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).asc }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(collation)).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(collation) }.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).ascNullsLast).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).ascNullsLast }.reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).descNullsFirst).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).descNullsFirst }.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
@@ -894,7 +1088,13 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).ascNullsLast).reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
             XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).ascNullsLast }.reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+            XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Columns.name.collating(.nocase).descNullsFirst).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order { $0.name.collating(.nocase).descNullsFirst }.reversed()),
                 "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
         }
         #endif
@@ -907,6 +1107,9 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\"")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age, Columns.name).reversed().reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order { [$0.age, $0.name] } .reversed().reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
     }
     

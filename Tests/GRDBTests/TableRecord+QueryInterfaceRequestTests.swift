@@ -1,16 +1,18 @@
 import XCTest
 import GRDB
 
-private struct Col {
-    static let id = Column("id")
-    static let name = Column("name")
-    static let age = Column("age")
-    static let readerId = Column("readerId")
-}
-
 private struct Reader : TableRecord {
     static let databaseTableName = "readers"
+    
+    struct Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+        static let age = Column("age")
+        static let readerId = Column("readerId")
+    }
 }
+
+private typealias Columns = Reader.Columns
 
 class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
@@ -39,37 +41,55 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(try Reader.all().reversed().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.order(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(try Reader.order(Columns.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            XCTAssertEqual(try Reader.order { $0.name }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
             XCTAssertEqual(try Reader.limit(10).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
             
-            XCTAssertEqual(try Reader.filter(Col.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(try Reader.filter(Columns.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
+            XCTAssertEqual(try Reader.filter { $0.age == 42 }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
             
             XCTAssertEqual(try Reader.all().distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
             
-            XCTAssertEqual(try Reader.select(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(Columns.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            XCTAssertEqual(try Reader.select { $0.name }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select(Col.name).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(Columns.name).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+            XCTAssertEqual(try Reader.select { $0.name }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(Columns.age * 2).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
+            XCTAssertEqual(try Reader.select { $0.age * 2 }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select((Col.age * 2).forKey("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select((Columns.age * 2).forKey("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
+            XCTAssertEqual(try Reader.select { ($0.age * 2).forKey("ignored") }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select(Col.name, Col.age).fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(Columns.name, Columns.age).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            XCTAssertEqual(try Reader.select { [$0.name, $0.age] }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select(Col.name, Col.age).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(Columns.name, Columns.age).distinct().fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+            XCTAssertEqual(try Reader.select { [$0.name, $0.age] }.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
             
-            XCTAssertEqual(try Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select(max(Columns.age)).group(Columns.name).fetchCount(db), 0)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
+            XCTAssertEqual(try Reader.select { max($0.age) }.group { $0.name }.fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
             
             XCTAssertEqual(try Reader.select(.allColumns(excluding: [] as [String])).fetchCount(db), 0)
@@ -180,21 +200,36 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(Col.name, Col.id - 1)
-            let rows = try Row.fetchAll(db, request)
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            do {
+                let request = Reader.select(Columns.name, Columns.id - 1)
+                let rows = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0][0] as String, "Arthur")
+                XCTAssertEqual(rows[0][1] as Int64, 0)
+                XCTAssertEqual(rows[1][0] as String, "Barbara")
+                XCTAssertEqual(rows[1][1] as Int64, 1)
+            }
+            do {
+                let request = Reader.select { [$0.name, $0.id - 1] }
+                let rows = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0][0] as String, "Arthur")
+                XCTAssertEqual(rows[0][1] as Int64, 0)
+                XCTAssertEqual(rows[1][0] as String, "Barbara")
+                XCTAssertEqual(rows[1][1] as Int64, 1)
+            }
         }
     }
 
     func testMultipleSelect() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.select(Col.age).select(Col.name)),
+            sql(dbQueue, Reader.select(Columns.age).select(Columns.name)),
+            "SELECT \"name\" FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, Reader.select { $0.age }.select { $0.name }),
             "SELECT \"name\" FROM \"readers\"")
     }
     
@@ -263,34 +298,68 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSort() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age)),
+            sql(dbQueue, Reader.order(Columns.age)),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age.asc)),
+            sql(dbQueue, Reader.order { $0.age }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\"")
+        
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Columns.age.asc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age.desc)),
+            sql(dbQueue, Reader.order { $0.age.asc }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
+        
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Columns.age.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age, Col.name.desc)),
+            sql(dbQueue, Reader.order { $0.age.desc }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Columns.age, Columns.name.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(abs(Col.age))),
+            sql(dbQueue, Reader.order { [$0.age, $0.name.desc] }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
+        
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(abs(Columns.age))),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order { abs($0.age) }),
+            "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
+            sql(dbQueue, Reader.order(Columns.age.ascNullsLast)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
+            sql(dbQueue, Reader.order { $0.age.ascNullsLast }),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Columns.age.descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order { $0.age.descNullsFirst }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
-                sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
+                sql(dbQueue, Reader.order(Columns.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
             XCTAssertEqual(
-                sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
+                sql(dbQueue, Reader.order { $0.age.ascNullsLast }),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            
+            XCTAssertEqual(
+                sql(dbQueue, Reader.order(Columns.age.descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+            XCTAssertEqual(
+                sql(dbQueue, Reader.order { $0.age.descNullsFirst }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         }
         #endif
@@ -299,7 +368,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testMultipleSort() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(Col.age).order(Col.name)),
+            sql(dbQueue, Reader.order(Columns.age).order(Columns.name)),
+            "SELECT * FROM \"readers\" ORDER BY \"name\"")
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order { $0.age }.order { $0.name }),
             "SELECT * FROM \"readers\" ORDER BY \"name\"")
     }
     

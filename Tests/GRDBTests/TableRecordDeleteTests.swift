@@ -13,6 +13,11 @@ private struct Person : Codable, PersistableRecord, FetchableRecord, Hashable {
     var id: Int64 // Non-optional
     var name: String
     var email: String
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+    }
 }
 
 extension Person: Identifiable { }
@@ -179,7 +184,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person.deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
             
-            try Person.filter(Column("name") == "Arthur").deleteAll(db)
+            try Person.filter { $0.name == "Arthur" }.deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"name\" = 'Arthur'")
             
             try Person.filter(key: 1).deleteAll(db)
@@ -197,26 +202,26 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person.filter(sql: "id = 1").deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1")
             
-            try Person.filter(sql: "id = 1").filter(Column("name") == "Arthur").deleteAll(db)
+            try Person.filter(sql: "id = 1").filter { $0.name == "Arthur" }.deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (id = 1) AND (\"name\" = 'Arthur')")
 
-            try Person.select(Column("name")).deleteAll(db)
+            try Person.select { $0.name }.deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
             
-            try Person.order(Column("name")).deleteAll(db)
+            try Person.order { $0.name }.deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
             
             if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
                 try Person.limit(1).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
                 
-                try Person.order(Column("name")).deleteAll(db)
+                try Person.order { $0.name }.deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
                 
-                try Person.order(Column("name")).limit(1).deleteAll(db)
+                try Person.order { $0.name }.limit(1).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" LIMIT 1")
                 
-                try Person.order(Column("name")).limit(1, offset: 2).reversed().deleteAll(db)
+                try Person.order { $0.name }.limit(1, offset: 2).reversed().deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" DESC LIMIT 1 OFFSET 2")
                 
                 try Person.limit(1, offset: 2).reversed().deleteAll(db)
@@ -279,7 +284,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             _ = try Person.all().deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
             
-            _ = try Person.filter(Column("name") == "Arthur").deleteAndFetchCursor(db).next()
+            _ = try Person.filter { $0.name == "Arthur" }.deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"name\" = 'Arthur' RETURNING *")
             
             _ = try Person.filter(key: 1).deleteAndFetchCursor(db).next()
@@ -305,13 +310,13 @@ class TableRecordDeleteTests: GRDBTestCase {
             _ = try Person.filter(sql: "id = 1").deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1 RETURNING *")
             
-            _ = try Person.filter(sql: "id = 1").filter(Column("name") == "Arthur").deleteAndFetchCursor(db).next()
+            _ = try Person.filter(sql: "id = 1").filter { $0.name == "Arthur" }.deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE (id = 1) AND (\"name\" = 'Arthur') RETURNING *")
 
-            _ = try Person.select(Column("name")).deleteAndFetchCursor(db).next()
+            _ = try Person.select { $0.name }.deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
             
-            _ = try Person.order(Column("name")).deleteAndFetchCursor(db).next()
+            _ = try Person.order { $0.name }.deleteAndFetchCursor(db).next()
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" RETURNING *")
             
             // No test for LIMIT ... RETURNING ... since this is not supported by SQLite
@@ -335,7 +340,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person(id: 2, name: "Barbara", email: "barbara@example.com").insert(db)
             try Person(id: 3, name: "Craig", email: "craig@example.com").insert(db)
 
-            let request = Person.filter(Column("id") != 2)
+            let request = Person.filter { $0.id != 2 }
             let deletePersons = try request
                 .deleteAndFetchAll(db)
                 .sorted(by: { $0.id < $1.id })
@@ -363,7 +368,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person(id: 2, name: "Barbara", email: "barbara@example.com").insert(db)
             try Person(id: 3, name: "Craig", email: "craig@example.com").insert(db)
 
-            let request = Person.filter(Column("id") != 2)
+            let request = Person.filter { $0.id != 2 }
             let deletePersons = try request.deleteAndFetchSet(db)
             XCTAssertEqual(deletePersons, [
                 Person(id: 1, name: "Arthur", email: "arthur@example.com"),
@@ -389,7 +394,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             try Person(id: 2, name: "Barbara", email: "barbara@example.com").insert(db)
             try Person(id: 3, name: "Craig", email: "craig@example.com").insert(db)
 
-            let request = Person.filter(Column("id") != 2)
+            let request = Person.filter { $0.id != 2 }
             let deletedIds = try request.deleteAndFetchIds(db)
             XCTAssertEqual(deletedIds, [1, 3])
         }
