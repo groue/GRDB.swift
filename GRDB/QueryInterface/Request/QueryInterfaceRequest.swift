@@ -586,6 +586,42 @@ extension QueryInterfaceRequest {
         return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
     }
     
+    /// Returns a `DELETE RETURNING` prepared statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // Delete all players and return their names
+    /// // DELETE FROM player RETURNING name
+    /// let request = Player.all()
+    /// let statement = try request.deleteAndFetchStatement(db, selection: \.name)
+    /// let deletedNames = try String.fetchSet(statement)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: `selection` is not empty.
+    public func deleteAndFetchStatement(
+        _ db: Database,
+        selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable)
+    throws -> Statement
+    where RowDecoder: TableRecord
+    {
+        try deleteAndFetchStatement(db, selection: [selection(RowDecoder.columns)])
+    }
+    
     /// Returns a cursor over the records deleted by a
     /// `DELETE RETURNING` statement.
     ///
@@ -702,7 +738,6 @@ extension QueryInterfaceRequest {
         return try RowDecoder.ID.fetchSet(statement)
     }
 #else
-    // TODO: provide a ColumnsProvider version
     /// Returns a `DELETE RETURNING` prepared statement.
     ///
     /// For example:
@@ -732,6 +767,43 @@ extension QueryInterfaceRequest {
     {
         GRDBPrecondition(!selection.isEmpty, "Invalid empty selection")
         return try SQLQueryGenerator(relation: relation).makeDeleteStatement(db, selection: selection)
+    }
+    
+    /// Returns a `DELETE RETURNING` prepared statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // Delete all players and return their names
+    /// // DELETE FROM player RETURNING name
+    /// let request = Player.all()
+    /// let statement = try request.deleteAndFetchStatement(db, selection: \.name)
+    /// let deletedNames = try String.fetchSet(statement)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter selection: The returned columns (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: `selection` is not empty.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func deleteAndFetchStatement(
+        _ db: Database,
+        selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable)
+    throws -> Statement
+    where RowDecoder: TableRecord
+    {
+        try deleteAndFetchStatement(db, selection: [selection(RowDecoder.columns)])
     }
     
     /// Returns a cursor over the records deleted by a
