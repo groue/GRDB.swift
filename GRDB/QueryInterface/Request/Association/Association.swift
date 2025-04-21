@@ -305,13 +305,18 @@ extension AssociationToOne {
 ///
 /// ### Building Association Aggregates
 ///
-/// - ``average(_:)``
+/// - ``average(_:)-4bbk9``
+/// - ``average(_:)-1rl6m``
 /// - ``count``
 /// - ``isEmpty``
-/// - ``max(_:)``
-/// - ``min(_:)``
-/// - ``sum(_:)``
-/// - ``total(_:)``
+/// - ``max(_:)-4g5ut``
+/// - ``max(_:)-32xmj``
+/// - ``min(_:)-6al4w``
+/// - ``min(_:)-ulrg``
+/// - ``sum(_:)-6ge96``
+/// - ``sum(_:)-8jd26``
+/// - ``total(_:)-56v8i``
+/// - ``total(_:)-9ae2u``
 ///
 /// - ``AssociationAggregate``
 public protocol AssociationToMany: Association { }

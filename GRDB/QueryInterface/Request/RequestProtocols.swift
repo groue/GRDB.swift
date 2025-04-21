@@ -24,9 +24,13 @@ public protocol TypedRequest<RowDecoder> {
 ///
 /// - ``annotated(with:)-4qcem``
 /// - ``annotated(with:)-6ehs4``
+/// - ``annotated(with:)-1satx``
+/// - ``annotated(with:)-6q3b``
 /// - ``annotatedWhenConnected(with:)``
 /// - ``select(_:)-30yzl``
 /// - ``select(_:)-7e2y5``
+/// - ``select(_:)-ruzy``
+/// - ``select(_:)-37j4h``
 /// - ``select(literal:)``
 /// - ``select(sql:arguments:)``
 /// - ``selectWhenConnected(_:)``
@@ -343,7 +347,8 @@ extension SelectionRequest {
 /// ### The WHERE and JOIN ON Clauses
 ///
 /// - ``all()``
-/// - ``filter(_:)``
+/// - ``filter(_:)-48a4t``
+/// - ``filter(_:)-6xr3d``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``filterWhenConnected(_:)``
@@ -875,13 +880,16 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// - ``group(_:)-edak``
 /// - ``group(_:)-4216o``
+/// - ``group(_:)-2g7br``
+/// - ``group(_:)-s6lb``
 /// - ``group(literal:)``
 /// - ``group(sql:arguments:)``
 /// - ``groupWhenConnected(_:)``
 ///
 /// ### The HAVING Clause
 ///
-/// - ``having(_:)``
+/// - ``having(_:)-2ssg9``
+/// - ``having(_:)-2oggh``
 /// - ``having(literal:)``
 /// - ``having(sql:arguments:)``
 /// - ``havingWhenConnected(_:)``
@@ -1154,6 +1162,8 @@ extension AggregatingRequest {
 ///
 /// - ``order(_:)-63rzl``
 /// - ``order(_:)-6co0m``
+/// - ``order(_:)-9d0hr``
+/// - ``order(_:)-35kv9``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderWhenConnected(_:)``
@@ -1667,10 +1677,14 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// - ``SelectionRequest/annotated(with:)-4qcem``
 /// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``SelectionRequest/annotated(with:)-1satx``
+/// - ``SelectionRequest/annotated(with:)-6q3b``
 /// - ``SelectionRequest/annotatedWhenConnected(with:)``
 /// - ``distinct()``
 /// - ``SelectionRequest/select(_:)-30yzl``
 /// - ``SelectionRequest/select(_:)-7e2y5``
+/// - ``SelectionRequest/select(_:)-ruzy``
+/// - ``SelectionRequest/select(_:)-37j4h``
 /// - ``SelectionRequest/select(literal:)``
 /// - ``SelectionRequest/select(sql:arguments:)``
 /// - ``SelectionRequest/selectWhenConnected(_:)``
@@ -1678,7 +1692,8 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### The WHERE Clause
 ///
 /// - ``FilteredRequest/all()``
-/// - ``FilteredRequest/filter(_:)``
+/// - ``FilteredRequest/filter(_:)-48a4t``
+/// - ``FilteredRequest/filter(_:)-6xr3d``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
@@ -1696,11 +1711,14 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// - ``AggregatingRequest/group(_:)-edak``
 /// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/group(_:)-2g7br``
+/// - ``AggregatingRequest/group(_:)-s6lb``
 /// - ``AggregatingRequest/group(literal:)``
 /// - ``AggregatingRequest/group(sql:arguments:)``
 /// - ``TableRequest/groupByPrimaryKey()``
 /// - ``AggregatingRequest/groupWhenConnected(_:)``
-/// - ``AggregatingRequest/having(_:)``
+/// - ``AggregatingRequest/having(_:)-2ssg9``
+/// - ``AggregatingRequest/having(_:)-2oggh``
 /// - ``AggregatingRequest/having(literal:)``
 /// - ``AggregatingRequest/having(sql:arguments:)``
 /// - ``AggregatingRequest/havingWhenConnected(_:)``
@@ -1709,6 +1727,8 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// - ``OrderedRequest/order(_:)-63rzl``
 /// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``OrderedRequest/order(_:)-9d0hr``
+/// - ``OrderedRequest/order(_:)-35kv9``
 /// - ``OrderedRequest/order(literal:)``
 /// - ``OrderedRequest/order(sql:arguments:)``
 /// - ``OrderedRequest/orderWhenConnected(_:)``

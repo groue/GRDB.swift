@@ -63,9 +63,12 @@ import Foundation
 /// - ``annotated(with:)-4xoen``
 /// - ``annotated(with:)-8ce7u``
 /// - ``annotated(with:)-79389``
+/// - ``annotated(with:)-3szhm``
+/// - ``annotated(with:)-590fy``
 /// - ``annotated(withOptional:)``
 /// - ``annotated(withRequired:)``
-/// - ``filter(_:)``
+/// - ``filter(_:)-5u85w``
+/// - ``filter(_:)-67o9b``
 /// - ``filter(id:)``
 /// - ``filter(ids:)``
 /// - ``filter(key:)-9ey53``
@@ -86,14 +89,19 @@ import Foundation
 /// - ``none()``
 /// - ``order(_:)-9rc11``
 /// - ``order(_:)-2033k``
+/// - ``order(_:)-ij38``
+/// - ``order(_:)-9dxfg``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderByPrimaryKey()``
 /// - ``request(for:)``
 /// - ``select(_:)-1gvtj``
 /// - ``select(_:)-5oylt``
+/// - ``select(_:)-8p7il``
+/// - ``select(_:)-31bbg``
 /// - ``select(_:as:)-1puz3``
 /// - ``select(_:as:)-tjh0``
+/// - ``select(_:as:)-2slxh``
 /// - ``select(literal:)``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
@@ -101,6 +109,9 @@ import Foundation
 /// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
+/// - ``columns``
+/// - ``Columns``
+/// - ``ColumnsProvider``
 ///
 /// ### Defining Associations
 ///
@@ -169,6 +180,9 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
+    /// Player.ColumnsProvider // Player.Columns.Type by default
+    /// Player.columns         // Instance of Player.ColumnsProvider
+    /// Player.columns.score   // A Column
     /// let request = Player.order(\.score.desc)
     /// ```
     associatedtype ColumnsProvider = Columns.Type

@@ -54,6 +54,7 @@
 /// - ``asRequest(of:)``
 /// - ``select(_:as:)-282xc``
 /// - ``select(_:as:)-3o8qw``
+/// - ``select(_:as:)-58954``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:as:)``
 /// - ``selectID()``
@@ -66,7 +67,8 @@
 /// - ``deleteAndFetchCursor(_:)``
 /// - ``deleteAndFetchAll(_:)``
 /// - ``deleteAndFetchSet(_:)``
-/// - ``deleteAndFetchStatement(_:selection:)``
+/// - ``deleteAndFetchStatement(_:selection:)-9q969``
+/// - ``deleteAndFetchStatement(_:selection:)-1in2u``
 ///
 /// ### Batch Update
 ///

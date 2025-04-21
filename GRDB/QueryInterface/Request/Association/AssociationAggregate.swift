@@ -382,8 +382,9 @@ extension AssociationToMany {
     
     /// Returns the sum of the given expression in associated records.
     ///
-    /// This aggregate invokes the `SUM` SQL function. See also ``total(_:)``
-    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    /// This aggregate invokes the `SUM` SQL function.
+    /// See also ``AssociationToMany/total(_:)-56v8i`` and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
     ///
@@ -432,8 +433,9 @@ extension AssociationToMany {
     
     /// Returns the sum of the given expression in associated records.
     ///
-    /// This aggregate invokes the `SUM` SQL function. See also ``total(_:)``
-    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    /// This aggregate invokes the `SUM` SQL function.
+    /// See also ``AssociationToMany/total(_:)-9ae2u`` and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
     ///
@@ -485,8 +487,9 @@ extension AssociationToMany {
     
     /// Returns the sum of the given expression in associated records.
     ///
-    /// This aggregate invokes the `TOTAL` SQL function. See also ``sum(_:)``
-    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    /// This aggregate invokes the `TOTAL` SQL function.
+    /// See also ``AssociationToMany/sum(_:)-6ge96`` and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
     ///
@@ -537,8 +540,9 @@ extension AssociationToMany {
     
     /// Returns the sum of the given expression in associated records.
     ///
-    /// This aggregate invokes the `TOTAL` SQL function. See also ``sum(_:)``
-    /// and <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    /// This aggregate invokes the `TOTAL` SQL function.
+    /// See also ``AssociationToMany/sum(_:)-8jd26`` and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
     ///
