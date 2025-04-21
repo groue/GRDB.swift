@@ -214,16 +214,16 @@ try dbQueue.read { db in
     let paris = try Place.find(db, id: 1)
     
     // Place?
-    let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
+    let berlin = try Place.filter { $0.title == "Berlin" }.fetchOne(db)
     
     // [Place]
     let favoritePlaces = try Place
-        .filter(Column("favorite") == true)
-        .order(Column("title"))
+        .filter(\.isFavorite)
+        .order(\.title)
         .fetchAll(db)
     
     // Int
-    let favoriteCount = try Place.filter(Column("favorite")).fetchCount(db)
+    let favoriteCount = try Place.filter(\.isFavorite).fetchCount(db)
     
     // SQL is always welcome
     let places = try Place.fetchAll(db, sql: "SELECT * FROM place")
@@ -1155,7 +1155,7 @@ Use values in the [query interface](#the-query-interface):
 
 ```swift
 let url: URL = ...
-let link = try Link.filter(Column("url") == url).fetchOne(db)
+let link = try Link.filter { $0.url == url }.fetchOne(db)
 ```
 
 
@@ -1717,7 +1717,7 @@ let arthur = try Player.fetchOne(db,            // Player?
     arguments: ["Arthur"])
 
 let bestPlayers = try Player                    // [Player]
-    .order(Column("score").desc)
+    .order(\.score.desc)
     .limit(10)
     .fetchAll(db)
     
@@ -1753,7 +1753,7 @@ See the [query interface](#the-query-interface) for batch updates:
 
 ```swift
 try Player
-    .filter(Column("team") == "red")
+    .filter { $0.team == "red" }
     .updateAll(db, Column("score") += 1)
 ```
 
@@ -1776,7 +1776,7 @@ try Player.deleteOne(db, id: 1)
 try Player.deleteOne(db, key: ["email": "arthur@example.com"])
 try Country.deleteAll(db, ids: ["FR", "US"])
 try Player
-    .filter(Column("email") == nil)
+    .filter { $0.email == nil }
     .deleteAll(db)
 ```
 
@@ -1791,7 +1791,7 @@ To count records, call the `fetchCount` method:
 let playerCount: Int = try Player.fetchCount(db)
 
 let playerWithEmailCount: Int = try Player
-    .filter(Column("email") == nil)
+    .filter { $0.email == nil }
     .fetchCount(db)
 ```
 
@@ -1846,7 +1846,7 @@ Details follow:
     struct Place: TableRecord, FetchableRecord { ... }
     
     try dbQueue.read { db in
-        let places = try Place.order(Column("title")).fetchAll(db)
+        let places = try Place.order(\.title).fetchAll(db)
         let paris = try Place.fetchOne(id: 1)
     }
     ```
@@ -2710,10 +2710,10 @@ try dbQueue.write { db in
     _ = try Player.filter(id: uuid).fetchOne(db)
 
     // NOT OK: performs a blob-based query, fails to find the inserted player
-    _ = try Player.filter(Column("id") == uuid).fetchOne(db)
+    _ = try Player.filter { $0.id == uuid }.fetchOne(db)
     
     // OK: performs a string-based query, finds the inserted player
-    _ = try Player.filter(Column("id") == uuid.uuidString).fetchOne(db)
+    _ = try Player.filter { $0.id == uuid.uuidString }.fetchOne(db)
 }
 ```
 
@@ -3348,11 +3348,11 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     By default, all columns are selected. See [Columns Selected by a Request].
 
-- [`select(...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/select(_:)-30yzl) and [`select(..., as:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-282xc) define the selected columns. See [Columns Selected by a Request].
+- [`select(...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/select(_:)-ruzy) and [`select(..., as:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-58954) define the selected columns. See [Columns Selected by a Request].
     
     ```swift
     // SELECT name FROM player
-    Player.select(nameColumn, as: String.self)
+    Player.select(\.name, as: String.self)
     ```
 
 - [`selectID()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectID()) is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
@@ -3362,14 +3362,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.selectID()
     
     // SELECT id FROM player WHERE name IS NOT NULL
-    Player.filter(nameColumn != nil).selectID()
+    Player.filter { $0.name != nil }.selectID()
     ```
 
-- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
+- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/selectionrequest/annotated(with:)-1satx) extends the selection.
 
     ```swift
     // SELECT *, (score + bonus) AS total FROM player
-    Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
+    Player.annotated { ($0.score + $0.bonus).forKey("total") }
     ```
 
 - [`annotated(with: aggregate)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/annotated(with:)-74xfs) extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
@@ -3398,14 +3398,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(nameColumn, as: String.self).distinct()
     ```
 
-- [`filter(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/filteredrequest/filter(_:)) applies conditions.
+- [`filter(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/filteredrequest/filter(_:)-6xr3d) applies conditions.
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    Player.filter([1,2,3].contains(idColumn))
+    Player.filter { [1,2,3].contains($0.id) }
     
     // SELECT * FROM player WHERE (name IS NOT NULL) AND (height > 1.75)
-    Player.filter(nameColumn != nil && heightColumn > 1.75)
+    Player.filter { $0.name != nil && $0.height > 1.75 }
     ```
 
 - [`filter(id:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(id:)) and [`filter(ids:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/tablerequest/filter(ids:)) are type-safe methods available on [Identifiable Records]:
@@ -3444,23 +3444,23 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     When the pattern is nil, no row will match.
 
-- [`group(expression, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/group(_:)-edak) groups rows.
+- [`group(expression, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/group(_:)-2g7br) groups rows.
     
     ```swift
     // SELECT name, MAX(score) FROM player GROUP BY name
     Player
-        .select(nameColumn, max(scoreColumn))
-        .group(nameColumn)
+        .select { [$0.name, max($0.score)] }
+        .group(\.name)
     ```
 
-- [`having(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/having(_:)) applies conditions on grouped rows.
+- [`having(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/aggregatingrequest/having(_:)-2oggh) applies conditions on grouped rows.
     
     ```swift
     // SELECT team, MAX(score) FROM player GROUP BY team HAVING MIN(score) >= 1000
     Player
-        .select(teamColumn, max(scoreColumn))
-        .group(teamColumn)
-        .having(min(scoreColumn) >= 1000)
+        .select { [$0.team, max($0.score)] }
+        .group(\.team)
+        .having { min($0.score) >= 1000 }
     ```
 
 - [`having(aggregate)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/having(_:)) applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
@@ -3474,28 +3474,31 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.having(Team.players.count >= 5)
     ```
 
-- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/order(_:)-63rzl) sorts.
+- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/order(_:)-9d0hr) sorts.
     
     ```swift
     // SELECT * FROM player ORDER BY name
-    Player.order(nameColumn)
+    Player.order(\.name)
+    
+    // SELECT * FROM player ORDER BY score DESC
+    Player.order(\.score.desc)
     
     // SELECT * FROM player ORDER BY score DESC, name
-    Player.order(scoreColumn.desc, nameColumn)
+    Player.order { [$0.score.desc, $0.name] }
     ```
     
     SQLite considers NULL values to be smaller than any other values for sorting purposes. Hence, NULLs naturally appear at the beginning of an ascending ordering and at the end of a descending ordering. With a [custom SQLite build], this can be changed using `.ascNullsLast` and `.descNullsFirst`:
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC NULLS LAST
-    Player.order(nameColumn.ascNullsLast)
+    Player.order(\.name.ascNullsLast)
     ```
     
     Each `order` call clears any previous ordering:
     
     ```swift
     // SELECT * FROM player ORDER BY name
-    Player.order(scoreColumn).order(nameColumn)
+    Player.order(\.score).order(\.name)
     ```
 
 - [`reversed()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
@@ -3574,18 +3577,18 @@ You can refine requests by chaining those methods:
 
 ```swift
 // SELECT * FROM player WHERE (email IS NOT NULL) ORDER BY name
-Player.order(nameColumn).filter(emailColumn != nil)
+Player.order(\.name).filter { $0.email != nil }
 ```
 
 The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, `matching`, and `having` methods extend the query:
 
 ```swift
 Player                          // SELECT * FROM player
-    .filter(nameColumn != nil)  // WHERE (name IS NOT NULL)
-    .filter(emailColumn != nil) //        AND (email IS NOT NULL)
-    .order(nameColumn)          // - ignored -
+    .filter { $0.name != nil }  // WHERE (name IS NOT NULL)
+    .filter { $0.email != nil } //        AND (email IS NOT NULL)
+    .order(\.name)              // - ignored -
     .reversed()                 // - ignored -
-    .order(scoreColumn)         // ORDER BY score
+    .order(\.score)             // ORDER BY score
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
 ```
@@ -3621,10 +3624,10 @@ let request = table.all()
 The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
-let request = Player.select(max(Column("score")))
+let request = Player.select { max($0.score) }
 let maxScore = try Int.fetchOne(db, request) // Int?
 
-let request = Player.select(max(Column("score")), as: Int.self)
+let request = Player.select({ max($0.score) }, as: Int.self)
 let maxScore = try request.fetchOne(db)      // Int?
 ```
 
@@ -3634,8 +3637,14 @@ The default selection for a record type is controlled by the `databaseSelection`
 // Select a limited set of columns
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
+    
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+    }
+    
     static var databaseSelection: [any SQLSelectable] {
-        [Column("id"), Column("name")]
+        [Columns.id, Columns.name]
     }
 }
 
@@ -3656,7 +3665,7 @@ let request = RestrictedPlayer.all()
 ```
 
 ```swift
-// Select all columns are more
+// Select all columns and more
 struct ExtendedPlayer : TableRecord {
     static let databaseTableName = "player"
     static var databaseSelection: [any SQLSelectable] {
@@ -3746,7 +3755,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT mask & 2 AS isRocky FROM planet
-    Planet.select((Column("mask") & 2).forKey("isRocky"))
+    Planet.select { ($0.mask & 2).forKey("isRocky") }
     ```
 
 - `||`
@@ -3849,15 +3858,15 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     // Teams that have at least one other player
     //
     //  SELECT * FROM team
-    //  WHERE EXISTS (SELECT * FROM player WHERE teamID = team.id)
+    //  WHERE EXISTS (SELECT * FROM player WHERE teamId = team.id)
     let teamAlias = TableAlias()
-    let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
+    let player = Player.filter { $0.teamId == teamAlias[Column("id")] }
     let teams = Team.aliased(teamAlias).filter(player.exists())
     
     // Teams that have no player
     //
     //  SELECT * FROM team
-    //  WHERE NOT EXISTS (SELECT * FROM player WHERE teamID = team.id)
+    //  WHERE NOT EXISTS (SELECT * FROM player WHERE teamId = team.id)
     let teams = Team.aliased(teamAlias).filter(!player.exists())
     ```
     
@@ -3871,7 +3880,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     //  SELECT coach.* FROM player coach
     //  WHERE EXISTS (SELECT * FROM player WHERE coachId = coach.id)
     let coachAlias = TableAlias(name: "coach")
-    let coachedPlayer = Player.filter(Column("coachId") == coachAlias[Column("id")])
+    let coachedPlayer = Player.filter { ($0.coachId == coachAlias[Column("id")]) }
     let coaches = Player.aliased(coachAlias).filter(coachedPlayer.exists())
     ```
     
@@ -3929,7 +3938,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     ```swift
     // SELECT (score + bonus) AS total
     // FROM player
-    Player.select((Column("score") + Column("bonus")).forKey("total"))
+    Player.select { ($0.score + $0.bonus).forKey("total") }
     ```
     
     If you need to refer to this aliased column in another place of the request, use a detached column:
@@ -3939,7 +3948,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     // FROM player 
     // ORDER BY total
     Player
-        .select((Column("score") + Column("bonus")).forKey("total"))
+        .select { ($0.score + $0.bonus).forKey("total") }
         .order(Column("total").detached)
     ```
     
@@ -4075,7 +4084,7 @@ LIMIT ...    -- 9
     // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
     let defaultName = "O'Brien"
     let displayName: SQL = "IFNULL(\(Column("name")), \(defaultName)) AS displayName"
-    let request = Player.select(displayName, Column("score"))
+    let request = Player.select { [displayName, $0.score] }
     ```
     
     When the custom SQL snippet should behave as a full-fledged expression, with support for the `+` Swift operator, the `forKey` aliasing method, and all other [SQL Operators](#sql-operators), build an _expression literal_ with the `SQL.sqlExpression` method:
@@ -4084,7 +4093,7 @@ LIMIT ...    -- 9
     // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
     let defaultName = "O'Brien"
     let displayName = SQL("IFNULL(\(Column("name")), \(defaultName))").sqlExpression
-    let request = Player.select(displayName.forKey("displayName"), Column("score"))
+    let request = Player.select { [displayName.forKey("displayName"), $0.score] }
     ```
     
     Such expression literals allow you to build a reusable support library of SQL functions or operators that are missing from the query interface. For example, you can define a Swift `date` function:
@@ -4095,7 +4104,7 @@ LIMIT ...    -- 9
     }
     
     // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-    let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+    let request = Player.filter { date($0.createdAt) == "2020-01-23" }
     ```
     
     See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
@@ -4131,7 +4140,7 @@ LIMIT ...    -- 9
     // SELECT * FROM player WHERE (score >= 1000) AND (team = 'red')
     let minScore = 1000
     let scoreCondition: SQL = "\(Column("score")) >= \(minScore)"
-    let request = Player.filter(scoreCondition && Column("team") == "red")
+    let request = Player.filter { scoreCondition && $0.team == "red" }
     ```
     
     See `SELECT ...` above for more SQL Interpolation examples.
@@ -4155,7 +4164,7 @@ LIMIT ...    -- 9
     // ORDER BY (score + bonus) ASC, name DESC
     let total = SQL("(score + bonus)").sqlExpression
     let request = Player
-        .order(total.desc, Column("name"))
+        .order { [total.desc, $0.name] }
         .reversed()
     ```
     
@@ -4421,12 +4430,12 @@ try Player.updateAll(db,
 
 // UPDATE player SET score = 0 WHERE team = 'red'
 try Player
-    .filter(Column("team") == "red")
+    .filter { $0.team == "red" }
     .updateAll(db, Column("score").set(to: 0))
 
 // UPDATE player SET top = 1 ORDER BY score DESC LIMIT 10
 try Player
-    .order(Column("score").desc)
+    .order(\.score.desc)
     .limit(10)
     .updateAll(db, Column("top").set(to: true))
 
@@ -5113,7 +5122,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     Solution: add a unique index to the player.email column, or use the `deleteAll` method to make it clear that you may delete more than one row:
     
     ```swift
-    try Player.filter(Column("email") == "arthur@example.com").deleteAll(db)
+    try Player.filter { $0.email == "arthur@example.com" }.deleteAll(db)
     ```
 
 - **Database connections are not reentrant:**
@@ -5435,7 +5444,7 @@ You can compile the request into a prepared [`Statement`]:
 
 ```swift
 try dbQueue.read { db in
-    let request = Player.filter(Column("email") == "arthur@example.com")
+    let request = Player.filter { $0.email == "arthur@example.com" }
     let statement = try request.makePreparedRequest(db).statement
     print(statement) // SELECT * FROM player WHERE email = ?
     print(statement.arguments) // ["arthur@example.com"]
@@ -5454,7 +5463,7 @@ let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     // Prints "SELECT * FROM player WHERE email = ?"
-    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
+    let players = try Player.filter { $0.email == "arthur@example.com" }.fetchAll(db)
 }
 ```
 
@@ -5490,7 +5499,7 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
+    let players = try Player.filter { $0.email == "arthur@example.com" }.fetchAll(db)
     // Prints "0.003s SELECT * FROM player WHERE email = ?"
 }
 ```
