@@ -297,7 +297,7 @@ Once we have record types that are able to read and write in the database, we'd 
 
 ### Columns 
 
-Requests that filter or sort records are defined with **columns**, defined in a dedicated enumeration. When the record type conforms to [`Codable`], columns can be derived from the `CodingKeys` enum:
+Requests that filter or sort records are defined with **columns**, defined in a dedicated enumeration, with the name `Columns`, nested inside the record type. When the record type conforms to [`Codable`], columns can be derived from the `CodingKeys` enum:
 
 ```swift
 // HOW TO define columns for a Codable record
@@ -310,13 +310,15 @@ extension Author {
 }
 ```
 
-For other record types, declare a plain `String` enum that conforms to the ``ColumnExpression`` protocol:
+For non-Codable record types, declare columns with their names:
 
 ```swift
 // HOW TO define columns for a non-Codable record
 extension Author {
-    enum Columns: String, ColumnExpression {
-        case id, name, countryCode
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+        static let countryCode = Column("countryCode")
     }
 }
 ```

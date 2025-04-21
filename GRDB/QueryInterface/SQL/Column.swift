@@ -123,11 +123,13 @@ extension Column: ColumnExpression { }
 
 /// Support for column enums:
 ///
-///     struct Player {
-///         enum Columns: String, ColumnExpression {
-///             case id, name, score
-///         }
+/// ```swift
+/// struct Player {
+///     enum Columns: String, ColumnExpression {
+///         case id, name, score
 ///     }
+/// }
+/// ```
 extension ColumnExpression where Self: RawRepresentable, Self.RawValue == String {
     public var name: String { rawValue }
 }

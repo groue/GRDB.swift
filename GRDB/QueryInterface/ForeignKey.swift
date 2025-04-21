@@ -45,8 +45,9 @@
 ///
 /// ```swift
 /// struct Book: TableRecord {
-///     enum Columns: String, ColumnExpression {
-///         case id, title, authorId, translatorId
+///     enum Columns {
+///         static let authorId = Column("authorId")
+///         static let translatorId = Column("translatorId")
 ///     }
 ///
 ///     static let authorForeignKey = ForeignKey([Columns.authorId]))

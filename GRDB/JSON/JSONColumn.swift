@@ -59,8 +59,10 @@
 /// > extension Player: FetchableRecord, PersistableRecord {
 /// >     // That's another valid way to define columns.
 /// >     // But we don't have any JSONColumn this time.
-/// >     enum Columns: String, ColumnExpression {
-/// >         case id, name, address
+/// >     enum Columns {
+/// >         static let id = Column("id")
+/// >         static let name = Column("name")
+/// >         static let address = Column("address")
 /// >     }
 /// > }
 /// >

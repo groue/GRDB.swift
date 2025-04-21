@@ -1904,8 +1904,11 @@ Rows also accept column enums:
 
 ```swift
 extension Place : FetchableRecord {
-    enum Columns: String, ColumnExpression {
-        case id, title, latitude, longitude
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
     }
     
     init(row: Row) {
@@ -2070,8 +2073,11 @@ Persistence containers also accept column enums:
 
 ```swift
 extension Place : MutablePersistableRecord {
-    enum Columns: String, ColumnExpression {
-        case id, title, latitude, longitude
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
     }
     
     func encode(to container: inout PersistenceContainer) {
@@ -3070,8 +3076,12 @@ struct Place {
 // SQL generation
 extension Place: TableRecord {
     /// The table columns
-    enum Columns: String, ColumnExpression {
-        case id, title, isFavorite, latitude, longitude
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let isFavorite = Column("isFavorite")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
     }
 }
 
@@ -3305,21 +3315,25 @@ let players = try request.fetchAll(db) // [Player]
 
 > **Note**: all examples in the documentation below use a record type, but you can always substitute a `Table` instead.
 
-Next, declare the table **columns** that you want to use for filtering, or sorting:
+Next, declare the table **columns** that you want to use for filtering, or sorting, in a nested type named `Columns`:
 
 ```swift
-let idColumn = Column("id")
-let nameColumn = Column("name")
+extension Player {
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+    }
+}
 ```
 
-You can also declare column enums, if you prefer:
+If `Player` is `Codable`, you'll prefer defining columns from coding keys:
 
 ```swift
-// Columns.id and Columns.name can be used just as
-// idColumn and nameColumn declared above.
-enum Columns: String, ColumnExpression {
-    case id
-    case name
+extension Player {
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+    }
 }
 ```
 
