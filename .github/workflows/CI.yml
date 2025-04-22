@@ -83,13 +83,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.3.app"
+            runsOn: macOS-15
+            name: "Xcode 16.3"
     steps:
       - uses: actions/checkout@v4
       - name: ${{ matrix.name }}
-        run: GRDBCIPHER="https://github.com/skiptools/swift-sqlcipher.git#1.2.1" swift test
+        run: GRDBCIPHER=1 swift test
   SQLCipher3:
     name: SQLCipher3
     runs-on: ${{ matrix.runsOn }}

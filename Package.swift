@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -27,23 +27,11 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 
-var targetDependencies: [Target.Dependency] = ["GRDBSQLite"]
-
-
-var GRDBCIPHER = ProcessInfo.processInfo.environment["GRDBCIPHER"]
-// e.g.:
-//GRDBCIPHER="https://github.com/skiptools/swift-sqlcipher.git#1.2.1"
-if let SQLCipherRepo = GRDBCIPHER?.split(separator: "#").first,
-    let SQLCipherVersion = GRDBCIPHER?.split(separator: "#").last,
-    let SQLCipherRepoURL = URL(string: SQLCipherRepo.description) {
-    swiftSettings.append(.define("GRDBCIPHER"))
-    targetDependencies = [.product(name: "SQLCipher", package: SQLCipherRepoURL.deletingPathExtension().lastPathComponent)]
-    if let version = Version(SQLCipherVersion.description) { // numeric version
-        dependencies.append(.package(url: SQLCipherRepoURL.absoluteString, from: version))
-    } else { // branch
-        dependencies.append(.package(url: SQLCipherRepoURL.absoluteString, branch: SQLCipherVersion.description))
-    }
-}
+// whether the "GRDBCIPHER" should be enabled by default; used for testing
+var GRDBCIPHERENV = (ProcessInfo.processInfo.environment["GRDBCIPHER"] ?? "0") != "0"
+var GRDBDependencies: [Target.Dependency] = ["GRDBSQLite"]
+GRDBDependencies += [.product(name: "SQLCipher", package: "swift-sqlcipher", condition: .when(traits: ["GRDBCIPHER"]))]
+dependencies.append(.package(url: "https://github.com/skiptools/swift-sqlcipher.git", from: "1.3.0"))
 
 let package = Package(
     name: "GRDB",
@@ -59,6 +47,10 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
+    traits: [
+        .trait(name: "GRDBCIPHER", description: "Use the SQLCipher library rather than the vendored SQLite"),
+        .default(enabledTraits: GRDBCIPHERENV ? ["GRDBCIPHER"] : []) // GRDBCIPHER is not enabled by default
+    ],
     dependencies: dependencies,
     targets: [
         .systemLibrary(
@@ -66,7 +58,7 @@ let package = Package(
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: targetDependencies,
+            dependencies: GRDBDependencies,
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
