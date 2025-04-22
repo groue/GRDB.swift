@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
 - `7.3.x` Releases - [7.3.0](#730)
 - `7.2.x` Releases - [7.2.0](#720)
 - `7.1.x` Releases - [7.1.0](#710)
@@ -134,6 +135,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.4.1
+
+Released March 28, 2025
+
+- Removed a compiler warning
+
+## 7.4.0
+
+Released March 22, 2025
+
+- **New**: Add the MIN and MAX multi-argument SQL functions to the query interface by [@groue](https://github.com/groue) in [#1745](https://github.com/groue/GRDB.swift/pull/1745)
+- **Fixed**: Transaction observers are not impacted by Task Cancellation by [@groue](https://github.com/groue) in [#1747](https://github.com/groue/GRDB.swift/pull/1747). This fixes unexpected `ValueObservation` failures in applications that perform asynchronous writes.
 
 ## 7.3.0
 

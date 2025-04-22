@@ -341,10 +341,22 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         /// If true, the database access has been cancelled.
         var isCancelled: Bool
+        
+        /// If true, the database throws an error when it is cancelled.
+        var interruptsWhenCancelled: Bool
+        
+        func checkCancellation() throws {
+            if isCancelled, interruptsWhenCancelled {
+                throw CancellationError()
+            }
+        }
     }
     
     /// Support for `checkForSuspensionViolation(from:)`
-    let suspensionMutex = Mutex(Suspension(isSuspended: false, isCancelled: false))
+    let suspensionMutex = Mutex(Suspension(
+        isSuspended: false,
+        isCancelled: false,
+        interruptsWhenCancelled: true))
     
     // MARK: - Transaction Date
     
@@ -1222,7 +1234,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             }
             
             suspension.isCancelled = true
-            return true
+            return suspension.interruptsWhenCancelled
         }
         
         if needsInterrupt {
@@ -1235,6 +1247,24 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         suspensionMutex.withLock {
             $0.isCancelled = false
         }
+    }
+    
+    /// Within the given closure, Task cancellation does not interrupt
+    /// database accesses.
+    func ignoringCancellation<T>(_ value: () throws -> T) rethrows -> T {
+        let previous = suspensionMutex.withLock {
+            let previous = $0.interruptsWhenCancelled
+            $0.interruptsWhenCancelled = false
+            return previous
+        }
+        
+        defer {
+            suspensionMutex.withLock {
+                $0.interruptsWhenCancelled = previous
+            }
+        }
+        
+        return try value()
     }
     
     /// Support for `checkForSuspensionViolation(from:)`
@@ -1303,7 +1333,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         let interrupt: Interrupt? = try suspensionMutex.withLock { suspension in
             // Check for cancellation first, so that the only error that
             // a user sees when a Task is cancelled is CancellationError.
-            if suspension.isCancelled {
+            if suspension.isCancelled, suspension.interruptsWhenCancelled {
                 return .cancel
             }
             
