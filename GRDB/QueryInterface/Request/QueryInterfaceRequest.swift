@@ -982,6 +982,41 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     let request = Player.all()
+    ///     try request.updateAll(db) { [$0.score.set(to: 0)] }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment]
+    ) throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+    
+    /// Updates matching rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = 0
     ///     let request = Player.all()
@@ -1050,6 +1085,57 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score)
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated scores
+    /// // UPDATE player SET score = score + 10 RETURNING score
+    /// let request = Player.all()
+    /// let statement = try request.updateAndFetchStatement(db) {
+    ///     $0.score += 10
+    /// } select: {
+    ///     [$0.score]
+    /// }
+    /// let updatedScores = try Int.fetchAll(statement)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments (must not be empty).
+    /// - parameter selection: A closure that returns the returned columns
+    ///   (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The results of `select` and `assignments` results
+    ///   are not empty.
+    public func updateAndFetchStatement(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment],
+        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+    throws -> Statement
+    where RowDecoder: TableRecord
+    {
+        try updateAndFetchStatement(
+            db,
+            onConflict: conflictResolution,
+            assignments(RowDecoder.columns),
+            selection: select(RowDecoder.columns))
+    }
+    
+    /// Returns an `UPDATE RETURNING` prepared statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// // Fetch all updated scores
     /// // UPDATE player SET score = score + 10 RETURNING score
     /// let request = Player.all()
@@ -1099,6 +1185,48 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let players = try request.updateAndFetchCursor(db) { [$0.score += 10] }
+    /// while let player = try players.next() {
+    ///     print("Player \(player) was updated")
+    /// }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: A cursor over the updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    public func updateAndFetchCursor(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+    
+    /// Returns a cursor over the records updated by an
+    /// `UPDATE RETURNING` statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
@@ -1139,6 +1267,45 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let updatedPlayers = try request.updateAndFetchAll(db) { [$0.score += 10] }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: An array of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    public func updateAndFetchAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+    
+    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
@@ -1163,6 +1330,45 @@ extension QueryInterfaceRequest {
     where RowDecoder: FetchableRecord & TableRecord
     {
         try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+    
+    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10]) }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: A set of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    public func updateAndFetchSet(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the set of
@@ -1197,6 +1403,58 @@ extension QueryInterfaceRequest {
         try Set(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
     }
 #else
+    /// Returns an `UPDATE RETURNING` prepared statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score)
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated scores
+    /// // UPDATE player SET score = score + 10 RETURNING score
+    /// let request = Player.all()
+    /// let statement = try request.updateAndFetchStatement(db) {
+    ///     $0.score += 10
+    /// } select: {
+    ///     [$0.score]
+    /// }
+    /// let updatedScores = try Int.fetchAll(statement)
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments (must not be empty).
+    /// - parameter selection: A closure that returns the returned columns
+    ///   (must not be empty).
+    /// - returns: A prepared statement.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The results of `select` and `assignments` results
+    ///   are not empty.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func updateAndFetchStatement(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment],
+        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+    throws -> Statement
+    where RowDecoder: TableRecord
+    {
+        try updateAndFetchStatement(
+            db,
+            onConflict: conflictResolution,
+            assignments(RowDecoder.columns),
+            selection: select(RowDecoder.columns))
+    }
+    
     /// Returns an `UPDATE RETURNING` prepared statement.
     ///
     /// For example:
@@ -1252,6 +1510,49 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let players = try request.updateAndFetchCursor(db) { [$0.score += 10] }
+    /// while let player = try players.next() {
+    ///     print("Player \(player) was updated")
+    /// }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: A cursor over the updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func updateAndFetchCursor(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> RecordCursor<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+    
+    /// Returns a cursor over the records updated by an
+    /// `UPDATE RETURNING` statement.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
@@ -1293,6 +1594,46 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let updatedPlayers = try request.updateAndFetchAll(db) { [$0.score += 10] }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: An array of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func updateAndFetchAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> [RowDecoder]
+    where RowDecoder: FetchableRecord & TableRecord
+    {
+        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+    
+    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
@@ -1318,6 +1659,46 @@ extension QueryInterfaceRequest {
     where RowDecoder: FetchableRecord & TableRecord
     {
         try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
+    }
+    
+    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // Fetch all updated players
+    /// // UPDATE player SET score = score + 10 RETURNING *
+    /// let request = Player.all()
+    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10]) }
+    /// ```
+    ///
+    /// - important: Make sure you check the documentation of the `RETURNING`
+    ///   clause, which describes important limitations and caveats:
+    ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: A set of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    /// - precondition: The result of `assignments` is not empty.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
+    public func updateAndFetchSet(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> Set<RowDecoder>
+    where RowDecoder: FetchableRecord & TableRecord & Hashable
+    {
+        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the set of
@@ -1408,9 +1789,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = 0
-    ///     try Player.updateAll(db, Column("score").set(to: 0))
+    ///     try Player.updateAll(db) { $0.set(to: 0) }
     /// }
     /// ```
     public func set(to value: (any SQLExpressible)?) -> ColumnAssignment {
@@ -1436,9 +1823,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = score + 1
-    ///     try Player.updateAll(db, Column("score") += 1)
+    ///     try Player.updateAll(db) { $0.score += 1 }
     /// }
     /// ```
     public static func += (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1457,9 +1850,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = score - 1
-    ///     try Player.updateAll(db, Column("score") -= 1)
+    ///     try Player.updateAll(db) { $0.score -= 1 }
     /// }
     /// ```
     public static func -= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1478,9 +1877,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = score * 2
-    ///     try Player.updateAll(db, Column("score") *= 2)
+    ///     try Player.updateAll(db) { $0.score *= 2 }
     /// }
     /// ```
     public static func *= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1499,9 +1904,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = score / 2
-    ///     try Player.updateAll(db, Column("score") /= 2)
+    ///     try Player.updateAll(db) { $0.score /= 2 }
     /// }
     /// ```
     public static func /= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1520,9 +1931,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let mask = Column("mask")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
-    ///     // UPDATE player SET score = score & 2
-    ///     try Player.updateAll(db, Column("mask") &= 2)
+    ///     // UPDATE player SET mask = mask & 2
+    ///     try Player.updateAll(db) { $0.mask &= 2 }
     /// }
     /// ```
     public static func &= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1541,9 +1958,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let mask = Column("mask")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
-    ///     // UPDATE player SET score = score | 2
-    ///     try Player.updateAll(db, Column("mask") |= 2)
+    ///     // UPDATE player SET mask = mask | 2
+    ///     try Player.updateAll(db) { $0.mask |= 2 }
     /// }
     /// ```
     public static func |= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1562,9 +1985,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let mask = Column("mask")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
-    ///     // UPDATE player SET score = score << 2
-    ///     try Player.updateAll(db, Column("mask") <<= 2)
+    ///     // UPDATE player SET mask = mask << 2
+    ///     try Player.updateAll(db) { $0.mask <<= 2 }
     /// }
     /// ```
     public static func <<= (column: Self, value: some SQLExpressible) -> ColumnAssignment {
@@ -1583,9 +2012,15 @@ extension ColumnExpression {
     /// Usage:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let mask = Column("mask")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.write { db in
-    ///     // UPDATE player SET score = score >> 2
-    ///     try Player.updateAll(db, Column("mask") >>= 2)
+    ///     // UPDATE player SET mask = mask >> 2
+    ///     try Player.updateAll(db) { $0.mask >>= 2 }
     /// }
     /// ```
     public static func >>= (column: Self, value: some SQLExpressible) -> ColumnAssignment {

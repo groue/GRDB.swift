@@ -1889,6 +1889,42 @@ extension Table {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db) { [$0.score.set(to: 0)] }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+    throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+    }
+
+    /// Updates all rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// let playerTable = Table("player")
     ///
     /// try dbQueue.write { db in

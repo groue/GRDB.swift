@@ -734,7 +734,40 @@ extension TableRecord {
 // MARK: - Batch Update
 
 extension TableRecord {
-    
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { [$0.score.set(to: 0)] }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (ColumnsProvider) -> [ColumnAssignment])
+    throws -> Int
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(columns))
+    }
+
     /// Updates all records, and returns the number of updated records.
     ///
     /// For example:
