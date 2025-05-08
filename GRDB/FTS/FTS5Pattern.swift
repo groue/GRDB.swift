@@ -7,8 +7,9 @@
 ///
 /// ### Creating Raw FTS5 Patterns
 ///
+/// - ``init(rawPattern:allowedColumns:)``
 /// - ``Database/makeFTS5Pattern(rawPattern:forTable:)``
-/// 
+///
 /// ### Creating FTS5 Patterns from User Input
 ///
 /// - ``init(matchingAllPrefixesIn:)``
