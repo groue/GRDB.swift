@@ -123,7 +123,25 @@ public struct FTS5Pattern: Sendable {
         try? self.init(rawPattern: "^\"" + tokens.joined(separator: " ") + "\"")
     }
     
-    init(rawPattern: String, allowedColumns: [String] = []) throws {
+    /// Creates a pattern from a raw pattern string.
+    ///
+    /// The pattern syntax is documented at <https://www.sqlite.org/fts5.html#full_text_query_syntax>
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // OK
+    /// let pattern = try FTS5Pattern(rawPattern: "and")
+    ///
+    /// // Throws an error: malformed MATCH expression: [AND]
+    /// let pattern = try FTS5Pattern(rawPattern: "AND")
+    /// ```
+    ///
+    /// If the pattern tests for specific columns, you must pass those
+    /// columns in the `allowedColumns` parameter.
+    ///
+    /// - throws: A ``DatabaseError`` if the pattern has an invalid syntax.
+    public init(rawPattern: String, allowedColumns: [String] = []) throws {
         // Correctness above all: use SQLite to validate the pattern.
         //
         // Invalid patterns have SQLite return an error on the first
