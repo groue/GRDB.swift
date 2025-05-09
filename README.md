@@ -82,10 +82,15 @@ try dbQueue.write { db in
 }
 
 // 3. Define a record type
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var id: String
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
 
 // 4. Write and read in the database
@@ -95,7 +100,7 @@ try dbQueue.write { db in
 }
 
 let players: [Player] = try dbQueue.read { db in
-    try Player.fetchAll(db)
+    try Player.order(\.name).fetchAll(db)
 }
 ```
 
@@ -107,25 +112,24 @@ let players: [Player] = try dbQueue.read { db in
 ```swift
 try dbQueue.write { db in
     try db.execute(sql: """
-        CREATE TABLE place (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          favorite BOOLEAN NOT NULL DEFAULT 0,
-          latitude DOUBLE NOT NULL,
-          longitude DOUBLE NOT NULL)
+        CREATE TABLE player (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          score INT NOT NULL)
         """)
     
     try db.execute(sql: """
-        INSERT INTO place (title, favorite, latitude, longitude)
-        VALUES (?, ?, ?, ?)
-        """, arguments: ["Paris", true, 48.85341, 2.3488])
-    
-    let parisId = db.lastInsertedRowID
+        INSERT INTO player (id, name, score)
+        VALUES (?, ?, ?)
+        """, arguments: ["1", "Arthur", 100])
     
     // Avoid SQL injection with SQL interpolation
+    let id = "2"
+    let name = "O'Brien"
+    let score = 1000
     try db.execute(literal: """
-        INSERT INTO place (title, favorite, latitude, longitude)
-        VALUES (\("King's Cross"), \(true), \(51.52151), \(-0.12763))
+        INSERT INTO player (id, name, score)
+        VALUES (\(id), \(name), \(score))
         """)
 }
 ```
@@ -140,22 +144,20 @@ See [Executing Updates](#executing-updates)
 ```swift
 try dbQueue.read { db in
     // Fetch database rows
-    let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
+    let rows = try Row.fetchCursor(db, sql: "SELECT * FROM player")
     while let row = try rows.next() {
-        let title: String = row["title"]
-        let isFavorite: Bool = row["favorite"]
-        let coordinate = CLLocationCoordinate2D(
-            latitude: row["latitude"],
-            longitude: row["longitude"])
+        let id: String = row["id"]
+        let name: String = row["name"]
+        let score: Int = row["score"]
     }
     
     // Fetch values
-    let placeCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")! // Int
-    let placeTitles = try String.fetchAll(db, sql: "SELECT title FROM place") // [String]
+    let playerCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")! // Int
+    let playerNames = try String.fetchAll(db, sql: "SELECT name FROM player") // [String]
 }
 
-let placeCount = try dbQueue.read { db in
-    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")!
+let playerCount = try dbQueue.read { db in
+    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
 }
 ```
 
@@ -167,37 +169,37 @@ See [Fetch Queries](#fetch-queries)
     <summary>Database model types aka "records"</summary>
 
 ```swift
-struct Place {
-    var id: Int64?
-    var title: String
-    var isFavorite: Bool
-    var coordinate: CLLocationCoordinate2D
+struct Player: Codable, Identifiable, FetchableRecord, PersistableRecord {
+    var id: String
+    var name: String
+    var score: Int
+    
+    enum Columns {
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
-
-// snip: turn Place into a "record" by adopting the protocols that
-// provide fetching and persistence methods.
 
 try dbQueue.write { db in
     // Create database table
-    try db.create(table: "place") { t in
-        t.autoIncrementedPrimaryKey("id")
-        t.column("title", .text).notNull()
-        t.column("favorite", .boolean).notNull().defaults(to: false)
-        t.column("longitude", .double).notNull()
-        t.column("latitude", .double).notNull()
+    try db.create(table: "player") { t in
+        t.primaryKey("id", .text)
+        t.column("name", .text).notNull()
+        t.column("score", .integer).notNull()
     }
     
-    var berlin = Place(
-        id: nil,
-        title: "Berlin",
-        isFavorite: false,
-        coordinate: CLLocationCoordinate2D(latitude: 52.52437, longitude: 13.41053))
+    // Insert a record
+    var player = Player(id: "1", name: "Arthur", score: 100)
+    try player.insert(db)
     
-    try berlin.insert(db)
-    berlin.id // some value
+    // Update a record
+    player.score += 10
+    try score.update(db)
     
-    berlin.isFavorite = true
-    try berlin.update(db)
+    try player.updateChanges { $0.score += 10 }
+    
+    // Delete a record
+    try player.delete(db)
 }
 ```
 
@@ -210,23 +212,20 @@ See [Records](#records)
 
 ```swift
 try dbQueue.read { db in
-    // Place
-    let paris = try Place.find(db, id: 1)
+    // Player
+    let player = try Player.find(db, id: "1")
     
-    // Place?
-    let berlin = try Place.filter { $0.title == "Berlin" }.fetchOne(db)
+    // Player?
+    let arthur = try Player.filter { $0.name == "Arthur" }.fetchOne(db)
     
-    // [Place]
-    let favoritePlaces = try Place
-        .filter(\.isFavorite)
-        .order(\.title)
-        .fetchAll(db)
+    // [Player]
+    let bestPlayers = try Player.order(\.score.desc).limit(10).fetchAll(db)
     
     // Int
-    let favoriteCount = try Place.filter(\.isFavorite).fetchCount(db)
+    let playerCount = try Player.fetchCount(db)
     
     // SQL is always welcome
-    let places = try Place.fetchAll(db, sql: "SELECT * FROM place")
+    let players = try Player.fetchAll(db, sql: "SELECT * FROM player")
 }
 ```
 
@@ -240,27 +239,32 @@ See the [Query Interface](#the-query-interface)
 ```swift
 // Define the observed value
 let observation = ValueObservation.tracking { db in
-    try Place.fetchAll(db)
+    try Player.fetchAll(db)
 }
 
 // Start observation
 let cancellable = observation.start(
     in: dbQueue,
     onError: { error in ... },
-    onChange: { (places: [Place]) in print("Fresh places: \(places)") })
+    onChange: { (players: [Player]) in print("Fresh players: \(players)") })
 ```
 
 Ready-made support for Combine and RxSwift:
 
 ```swift
+// Swift concurrency
+for try await players in observation.values(in: dbQueue) {
+    print("Fresh players: \(players)")
+}
+
 // Combine
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
-    receiveValue: { (places: [Place]) in print("Fresh places: \(places)") })
+    receiveValue: { (players: [Player]) in print("Fresh players: \(players)") })
 
 // RxSwift
 let disposable = observation.rx.observe(in: dbQueue).subscribe(
-    onNext: { (places: [Place]) in print("Fresh places: \(places)") },
+    onNext: { (players: [Player]) in print("Fresh players: \(players)") },
     onError: { error in ... })
 ```
 
@@ -1509,7 +1513,7 @@ try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
 
 ```swift
 // SELECT reverseString("name") FROM player
-Player.select(reverseString(nameColumn))
+Player.select { reverseString($0.name) }
 ```
 
 
@@ -1591,7 +1595,7 @@ SQLite has the opportunity to perform additional optimizations when aggregates a
 
 ```swift
 // SELECT maxLength("name") FROM player
-let request = Player.select(maxLength.apply(nameColumn))
+let request = Player.select { maxLength($0.name) }
 try Int.fetchOne(db, request) // Int?
 ```
 
@@ -1636,34 +1640,43 @@ Records
 
 ```swift
 try dbQueue.write { db in
-    if var place = try Place.fetchOne(db, id: 1) {
-        place.isFavorite = true
-        try place.update(db)
+    if var place = try Player.fetchOne(db, id: 1) {
+        player.score += 10
+        try player.update(db)
     }
 }
 ```
 
 Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) first.
 
-To define a record type, define a type and extend it with protocols that come with focused sets of features.
+To define a record type, define a type and extend it with database protocols:
 
-For example:
+- `FetchableRecord` makes it possible to fetch instances from the database.
+- `PersistableRecord` makes it possible to save instances into the database.
+- `Codable` (not mandatory) provides ready-made serialization to and from database rows.
+- `Identifiable` (not mandatory) provides extra convenience database methods.
+
+To make it easier to customize database requests, also nest a `Columns` enum: 
 
 ```swift
-struct Player {
+struct Player: Codable, Identifiable {
     var id: Int64
     var name: String
     var score: Int
+    var team: String?
 }
 
-// Players can be fetched from the database.
-extension Player: FetchableRecord { ... }
-
-// Players can be saved into the database.
-extension Player: PersistableRecord { ... }
+// Add database support
+extension Player: FetchableRecord, PersistableRecord {
+    enum Columns {
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+        static let team = Column(CodingKeys.team)
+    }
+}
 ```
 
-See some [examples of record definitions](#examples-of-record-definitions).
+See more [examples of record definitions](#examples-of-record-definitions) below.
 
 > Note: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming.
 >
@@ -1700,7 +1713,7 @@ See some [examples of record definitions](#examples-of-record-definitions).
 To insert a record in the database, call the `insert` method:
 
 ```swift
-let player = Player(name: "Arthur", email: "arthur@example.com")
+let player = Player(id: 1, name: "Arthur", score: 1000)
 try player.insert(db)
 ```
 
@@ -1754,7 +1767,7 @@ See the [query interface](#the-query-interface) for batch updates:
 ```swift
 try Player
     .filter { $0.team == "red" }
-    .updateAll(db, Column("score") += 1)
+    .updateAll(db) { [$0.score += 1] }
 ```
 
 :point_right: update methods are available for types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
@@ -1889,21 +1902,7 @@ struct Place {
     var coordinate: CLLocationCoordinate2D
 }
 
-extension Place : FetchableRecord {
-    init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        coordinate = CLLocationCoordinate2D(
-            latitude: row["latitude"],
-            longitude: row["longitude"])
-    }
-}
-```
-
-Rows also accept column enums:
-
-```swift
-extension Place : FetchableRecord {
+extension Place: FetchableRecord {
     enum Columns {
         static let id = Column("id")
         static let title = Column("title")
@@ -1931,6 +1930,12 @@ struct Player: Decodable, FetchableRecord {
     var id: Int64
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
 ```
 
@@ -1995,7 +2000,7 @@ When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-proto
 
 ```swift
 // SELECT * FROM place WHERE name = 'Paris'
-let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
+let paris = try Place.filter { $0.name == "Paris" }.fetchOne(db)
 ```
 
 TableRecord can also fetch deal with primary and unique keys: see [Fetching by Key](#fetching-by-key) and [Testing for Record Existence](#testing-for-record-existence).
@@ -2045,13 +2050,20 @@ The optional `didInsert` method lets the adopting type store its rowID after suc
 For example:
 
 ```swift
-extension Place : MutablePersistableRecord {
+extension Place: MutablePersistableRecord {
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
+    }
+    
     /// The values persisted in the database
     func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["title"] = title
-        container["latitude"] = coordinate.latitude
-        container["longitude"] = coordinate.longitude
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
     }
     
     // Update auto-incremented id upon successful insertion
@@ -2069,26 +2081,6 @@ try paris.insert(db)
 paris.id   // some value
 ```
 
-Persistence containers also accept column enums:
-
-```swift
-extension Place : MutablePersistableRecord {
-    enum Columns {
-        static let id = Column("id")
-        static let title = Column("title")
-        static let latitude = Column("latitude")
-        static let longitude = Column("longitude")
-    }
-    
-    func encode(to container: inout PersistenceContainer) {
-        container[Columns.id] = id
-        container[Columns.title] = title
-        container[Columns.latitude] = coordinate.latitude
-        container[Columns.longitude] = coordinate.longitude
-    }
-}
-```
-
 When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records] for more information:
 
 ```swift
@@ -2097,6 +2089,12 @@ struct Player: Encodable, MutablePersistableRecord {
     var id: Int64?
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
     
     // Update auto-incremented id upon successful insertion
     mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -2293,12 +2291,20 @@ struct Player: Codable, PersistableRecord, FetchableRecord {
     var id: Int64
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
 
 // A partial player
 struct PartialPlayer: Encodable, PersistableRecord {
     static let databaseTableName = "player"
     var name: String
+    
+    typealias Columns = Player.Columns
 }
 ```
 
@@ -2323,8 +2329,10 @@ try dbQueue.write { db in
     let partialPlayer = PartialPlayer(name: "Alice")
     
     // INSERT INTO player (name) VALUES ('Alice') RETURNING score
-    let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
+    let score = try partialPlayer.insertAndFetch(db) { statement in
         try Int.fetchOne(statement)
+    } select: {
+        [$0.score]
     }
     print(score) // Prints 1000, the default score
 }
@@ -2352,18 +2360,20 @@ let deletedPlayers = try request.deleteAndFetchAll(db) // [Player]
 
 // Fetch a selection of columns from the deleted rows
 // DELETE FROM player RETURNING name
-let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+let statement = try request.deleteAndFetchStatement(db) { [$0.name] }
 let deletedNames = try String.fetchSet(statement)
 
 // Fetch all updated players
 // UPDATE player SET score = score + 10 RETURNING *
-let updatedPlayers = try request.updateAndFetchAll(db, [Column("score") += 10]) // [Player]
+let updatedPlayers = try request.updateAndFetchAll(db) { [$0.score += 10] } // [Player]
 
 // Fetch a selection of columns from the updated rows
 // UPDATE player SET score = score + 10 RETURNING score
-let statement = try request.updateAndFetchStatement(
-    db, [Column("score") += 10],
-    select: [Column("score")])
+let statement = try request.updateAndFetchStatement(db) {
+    [$0.score += 10]
+} select: {
+    [$0.score]
+}
 let updatedScores = try Int.fetchAll(statement)
 ```
 
@@ -2558,14 +2568,21 @@ Record types that adopt an archival protocol ([Codable, Encodable or Decodable](
 ```swift
 // Declare a record...
 struct Player: Codable, FetchableRecord, PersistableRecord {
+    var id: Int64
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
 
 // ...and there you go:
 try dbQueue.write { db in
-    try Player(name: "Arthur", score: 100).insert(db)
-    let players = try Player.fetchAll(db)
+    try Player(id: 1, name: "Arthur", score: 100).insert(db)
+    let players = try Player.order(\.score.desc).fetchAll(db)
 }
 ```
 
@@ -3204,27 +3221,27 @@ The Query Interface
 ```swift
 try dbQueue.write { db in
     // Update database schema
-    try db.create(table: "wine") { t in ... }
+    try db.create(table: "player") { t in ... }
     
     // Fetch records
-    let wines = try Wine
-        .filter(originColumn == "Burgundy")
-        .order(priceColumn)
+    let bestPlayers = try Player
+        .order(\.score.desc)
+        .limit(10)
         .fetchAll(db)
     
     // Count
-    let count = try Wine
-        .filter(colorColumn == Color.red)
+    let count = try Player
+        .filter { $0.score >= 1000 }
         .fetchCount(db)
     
-    // Update
-    try Wine
-        .filter(originColumn == "Burgundy")
-        .updateAll(db, priceColumn *= 0.75)
+    // Batch update
+    try Player
+        .filter { $0.team == "Reds" }
+        .updateAll(db) { [$0.score += 100] }
     
-    // Delete
-    try Wine
-        .filter(corkedColumn == true)
+    // Batch delete
+    try Player
+        .filter { $0.score == 0 }
         .deleteAll(db)
 }
 ```
@@ -3236,23 +3253,24 @@ Please bear in mind that the query interface can not generate all possible SQL q
 ```swift
 try dbQueue.write { db in
     // Update database schema (with SQL)
-    try db.execute(sql: "CREATE TABLE wine (...)")
+    try db.execute(sql: "CREATE TABLE player (...)")
     
     // Fetch records (with SQL)
-    let wines = try Wine.fetchAll(db,
-        sql: "SELECT * FROM wine WHERE origin = ? ORDER BY price",
-        arguments: ["Burgundy"])
+    let bestPlayers = try Player.fetchAll(db, sql: """
+        SELECT * FROM player ORDER BY score DESC LIMIT 10
+        """)
     
     // Count (with an SQL snippet)
-    let count = try Wine
-        .filter(sql: "color = ?", arguments: [Color.red])
+    let minScore = 1000
+    let count = try Player
+        .filter(sql: "score >= ?", arguments: [minScore])
         .fetchCount(db)
     
     // Update (with SQL)
-    try db.execute(sql: "UPDATE wine SET price = price * 0.75 WHERE origin = 'Burgundy'")
+    try db.execute(sql: "UPDATE player SET score = score + 100 WHERE team = 'Reds'")
     
     // Delete (with SQL)
-    try db.execute(sql: "DELETE FROM wine WHERE corked")
+    try db.execute(sql: "DELETE FROM player WHERE score = 0")
 }
 ```
 
@@ -3284,7 +3302,7 @@ So don't miss the [SQL API](#sqlite-api).
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let request = Player.filter(emailColumn != nil).order(nameColumn)
+let request = Player.filter { $0.email != nil }.order { $0.name }
 let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
@@ -3326,7 +3344,7 @@ extension Player {
 }
 ```
 
-If `Player` is `Codable`, you'll prefer defining columns from coding keys:
+When `Player` is `Codable`, you'll prefer defining columns from coding keys:
 
 ```swift
 extension Player {
@@ -3388,14 +3406,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // SELECT player.*, team.color
     // FROM player
     // JOIN team ON team.id = player.teamId
-    Player.annotated(withRequired: Player.team.select(colorColumn))
+    Player.annotated(withRequired: Player.team.select(\.color))
     ```
 
 - [`distinct()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/derivablerequest/distinct()) performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM player
-    Player.select(nameColumn, as: String.self).distinct()
+    Player.select(\.name, as: String.self).distinct()
     ```
 
 - [`filter(expression)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/filteredrequest/filter(_:)-6xr3d) applies conditions.
@@ -3505,7 +3523,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC, name DESC
-    Player.order(scoreColumn.desc, nameColumn).reversed()
+    Player.order { [$0.score.desc, $0.name] }.reversed()
     ```
     
     If no ordering was already specified, this method has no effect:
@@ -3635,7 +3653,7 @@ The default selection for a record type is controlled by the `databaseSelection`
 
 ```swift
 // Select a limited set of columns
-struct RestrictedPlayer : TableRecord {
+struct RestrictedPlayer: TableRecord {
     static let databaseTableName = "player"
     
     enum Columns {
@@ -3697,28 +3715,28 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT * FROM player WHERE (name = 'Arthur')
-    Player.filter(nameColumn == "Arthur")
+    Player.filter { $0.name == "Arthur" }
     
     // SELECT * FROM player WHERE (name IS NULL)
-    Player.filter(nameColumn == nil)
+    Player.filter { $0.name == nil }
     
     // SELECT * FROM player WHERE (score IS 1000)
-    Player.filter(scoreColumn === 1000)
+    Player.filter { $0.score === 1000 }
     
     // SELECT * FROM rectangle WHERE width < height
-    Rectangle.filter(widthColumn < heightColumn)
+    Rectangle.filter { $0.width < $0.height }
     ```
     
     Subqueries are supported:
     
     ```swift
     // SELECT * FROM player WHERE score = (SELECT max(score) FROM player)
-    let maximumScore = Player.select(max(scoreColumn))
-    Player.filter(scoreColumn == maximumScore)
+    let maximumScore = Player.select { max($0.score) }
+    Player.filter { $0.score == maximumScore }
     
     // SELECT * FROM player WHERE score = (SELECT max(score) FROM player)
     let maximumScore = SQLRequest("SELECT max(score) FROM player")
-    Player.filter(scoreColumn == maximumScore)
+    Player.filter { $0.score == maximumScore }
     ```
     
     > **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
@@ -3729,7 +3747,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT ((temperature * 1.8) + 32) AS fahrenheit FROM planet
-    Planet.select((temperatureColumn * 1.8 + 32).forKey("fahrenheit"))
+    Planet.select { ($0.temperature * 1.8 + 32).forKey("fahrenheit") }
     ```
     
     > **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
@@ -3738,11 +3756,9 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT score + bonus + 1000 FROM player
-    let values = [
-        scoreColumn,
-        bonusColumn,
-        1000.databaseValue]
-    Player.select(values.joined(operator: .add))
+    Player.select {
+        [$0.score, $0.bonus, 1000.databaseValue].joined(operator: .add)
+    }
     ```
     
     Note in the example above how you concatenate raw values: `1000.databaseValue`. A plain `1000` would not compile.
@@ -3764,7 +3780,9 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT firstName || ' ' || lastName FROM player
-    Player.select([firstNameColumn, " ".databaseValue, lastNameColumn].joined(operator: .concat))
+    Player.select {
+        [$0.firstName, " ".databaseValue, $0.lastName].joined(operator: .concat)
+    }
     ```
     
     Note in the example above how you concatenate raw strings: `" ".databaseValue`. A plain `" "` would not compile.
@@ -3776,30 +3794,20 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     The SQL logical operators are derived from the Swift `&&`, `||` and `!`:
     
     ```swift
-    // SELECT * FROM player WHERE ((NOT verified) OR (score < 1000))
-    Player.filter(!verifiedColumn || scoreColumn < 1000)
+    // SELECT * FROM player WHERE ((NOT isVerified) OR (score < 1000))
+    Player.filter { !$0.isVerified || $0.score < 1000 }
     ```
     
     When you want to join a sequence of expressions with the `AND` or `OR` operator, use `joined(operator:)`:
     
     ```swift
-    // SELECT * FROM player WHERE (verified AND (score >= 1000) AND (name IS NOT NULL))
-    let conditions = [
-        verifiedColumn,
-        scoreColumn >= 1000,
-        nameColumn != nil]
-    Player.filter(conditions.joined(operator: .and))
+    // SELECT * FROM player WHERE (isVerified AND (score >= 1000) AND (name IS NOT NULL))
+    Player.filter {
+        [$0.isVerified, $0.score >= 1000, $0.name != nil].joined(operator: .and)
+    }
     ```
     
     When the sequence is empty, `joined(operator: .and)` returns true, and `joined(operator: .or)` returns false:
-    
-    ```swift
-    // SELECT * FROM player WHERE 1
-    Player.filter([].joined(operator: .and))
-    
-    // SELECT * FROM player WHERE 0
-    Player.filter([].joined(operator: .or))
-    ```
 
 - `BETWEEN`, `IN`, `NOT IN`
     
@@ -3807,34 +3815,34 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    Player.filter([1, 2, 3].contains(idColumn))
+    Player.filter { [1, 2, 3].contains($0.id) }
     
     // SELECT * FROM player WHERE id NOT IN (1, 2, 3)
-    Player.filter(![1, 2, 3].contains(idColumn))
+    Player.filter { ![1, 2, 3].contains($0.id) }
     
     // SELECT * FROM player WHERE score BETWEEN 0 AND 1000
-    Player.filter((0...1000).contains(scoreColumn))
+    Player.filter { (0...1000).contains($0.score) }
     
     // SELECT * FROM player WHERE (score >= 0) AND (score < 1000)
-    Player.filter((0..<1000).contains(scoreColumn))
+    Player.filter { (0..<1000).contains($0.score) }
     
     // SELECT * FROM player WHERE initial BETWEEN 'A' AND 'N'
-    Player.filter(("A"..."N").contains(initialColumn))
+    Player.filter { ("A"..."N").contains($0.initial) }
     
     // SELECT * FROM player WHERE (initial >= 'A') AND (initial < 'N')
-    Player.filter(("A"..<"N").contains(initialColumn))
+    Player.filter { ("A"..<"N").contains($0.initial) }
     ```
     
     To check inclusion inside a subquery, call the `contains` method as well:
     
     ```swift
     // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
-    let selectedPlayerIds = PlayerSelection.select(playerIdColumn)
-    Player.filter(selectedPlayerIds.contains(idColumn))
+    let selectedPlayerIds = PlayerSelection.select { $0.playerId }
+    Player.filter { selectedPlayerIds.contains($0.id) }
     
     // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
     let selectedPlayerIds = SQLRequest("SELECT playerId FROM playerSelection")
-    Player.filter(selectedPlayerIds.contains(idColumn))
+    Player.filter { selectedPlayerIds.contains($0.id) }
     ```
     
     To check inclusion inside a [common table expression], call the `contains` method as well:
@@ -3845,7 +3853,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     let cte = CommonTableExpression(named: "selectedName", ...)
     Player
         .with(cte)
-        .filter(cte.contains(nameColumn))
+        .filter { cte.contains($0.name) }
     ```
     
     > **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
@@ -3899,10 +3907,10 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT * FROM player WHERE (email LIKE '%@example.com')
-    Player.filter(emailColumn.like("%@example.com"))
+    Player.filter { $0.email.like("%@example.com") }
     
     // SELECT * FROM book WHERE (title LIKE '%10\%%' ESCAPE '\')
-    Player.filter(emailColumn.like("%10\\%%", escape: "\\"))
+    Player.filter { $0.email.like("%10\\%%", escape: "\\") }
     ```
     
     > **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
@@ -3920,7 +3928,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Document.matching(pattern)
     
     // SELECT * FROM document WHERE content MATCH 'sqlite database'
-    Document.filter(contentColumn.match(pattern))
+    Document.filter { $0.content.match(pattern) }
     ```
     
     FTS5:
@@ -3952,7 +3960,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
         .order(Column("total").detached)
     ```
     
-    Unlike `Column("total")`, the detached column `Column("total").detached` is never associated to the "player" table, so it is always rendered as `total` in the generated SQL, even when the request involves other tables via an [association](Documentation/AssociationsBasics.md) or a [common table expression].
+    The detached column `Column("total").detached` is not considered as a part of the "player" table, so it is always rendered as `total` in the generated SQL, even when the request involves other tables via an [association](Documentation/AssociationsBasics.md) or a [common table expression].
 
 
 ### SQL Functions
@@ -3967,16 +3975,16 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player
-    Player.select(min(scoreColumn), max(scoreColumn))
+    Player.select { [min($0.score), max($0.score)] }
     
     // SELECT COUNT(name) FROM player
-    Player.select(count(nameColumn))
+    Player.select { count($0.name) }
     
     // SELECT COUNT(DISTINCT name) FROM player
-    Player.select(count(distinct: nameColumn))
+    Player.select { count(distinct: $0.name) }
     
     // SELECT JULIANDAY(date, 'start of year') FROM game
-    Game.select(julianDay(dateColumn, .startOfYear))
+    Game.select { julianDay($0.date, .startOfYear) }
     ```
     
     For more information about the functions `dateTime` and `julianDay`, see [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html).
@@ -3987,7 +3995,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     
     ```swift
     // SELECT (CAST(wins AS REAL) / games) AS successRate FROM player
-    Player.select((cast(winsColumn, as: .real) / gamesColumn).forKey("successRate"))
+    Player.select { (cast($0.wins, as: .real) / $0.games).forKey("successRate") }
     ```
     
     See [CAST expressions](https://www.sqlite.org/lang_expr.html#castexpr) for more information about SQLite conversions.
@@ -3998,10 +4006,10 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     
     ```swift
     // SELECT IFNULL(name, 'Anonymous') FROM player
-    Player.select(nameColumn ?? "Anonymous")
+    Player.select { $0.name ?? "Anonymous" }
     
     // SELECT IFNULL(name, email) FROM player
-    Player.select(nameColumn ?? emailColumn)
+    Player.select { $0.name ?? $0.email }
     ```
 
 - `LOWER`, `UPPER`
@@ -4011,7 +4019,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
     
     ```swift
-    Player.select(nameColumn.uppercased())
+    Player.select { $0.name.uppercased() }
     ```
     
     > **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
@@ -4020,10 +4028,10 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     > let name: String = ...
     >
     > // Not recommended
-    > nameColumn.uppercased() == name.uppercased()
+    > Player.filter { $0.name.uppercased() == name.uppercased() }
     >
     > // Better
-    > nameColumn.collating(.caseInsensitiveCompare) == name
+    > Player.filter { $0.name.collating(.caseInsensitiveCompare) == name }
     > ```
 
 - Custom SQL functions and aggregates
@@ -4031,10 +4039,10 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     You can apply your own [custom SQL functions and aggregates](#custom-functions-):
     
     ```swift
-    let f = DatabaseFunction("f", ...)
+    let myFunction = DatabaseFunction("myFunction", ...)
     
-    // SELECT f(name) FROM player
-    Player.select(f.apply(nameColumn))
+    // SELECT myFunction(name) FROM player
+    Player.select { myFunction($0.name) }
     ```
 
 ## Embedding SQL in Query Interface Requests
@@ -4083,8 +4091,10 @@ LIMIT ...    -- 9
     ```swift
     // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
     let defaultName = "O'Brien"
-    let displayName: SQL = "IFNULL(\(Column("name")), \(defaultName)) AS displayName"
-    let request = Player.select { [displayName, $0.score] }
+    let request = Player.select {
+        let displayName: SQL = "IFNULL(\($0.name), \(defaultName)) AS displayName"
+        return [displayName, $0.score]
+    }
     ```
     
     When the custom SQL snippet should behave as a full-fledged expression, with support for the `+` Swift operator, the `forKey` aliasing method, and all other [SQL Operators](#sql-operators), build an _expression literal_ with the `SQL.sqlExpression` method:
@@ -4092,8 +4102,10 @@ LIMIT ...    -- 9
     ```swift
     // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
     let defaultName = "O'Brien"
-    let displayName = SQL("IFNULL(\(Column("name")), \(defaultName))").sqlExpression
-    let request = Player.select { [displayName.forKey("displayName"), $0.score] }
+    let request = Player.select {
+        let displayName = SQL("IFNULL(\($0.name), \(defaultName))").sqlExpression
+        return [displayName.forKey("displayName"), $0.score]
+    }
     ```
     
     Such expression literals allow you to build a reusable support library of SQL functions or operators that are missing from the query interface. For example, you can define a Swift `date` function:
@@ -4139,8 +4151,10 @@ LIMIT ...    -- 9
     ```swift
     // SELECT * FROM player WHERE (score >= 1000) AND (team = 'red')
     let minScore = 1000
-    let scoreCondition: SQL = "\(Column("score")) >= \(minScore)"
-    let request = Player.filter { scoreCondition && $0.team == "red" }
+    let request = Player.filter { 
+        let scoreCondition: SQL = "\($0.score) >= \(minScore)"
+        return scoreCondition && $0.team == "red"
+    }
     ```
     
     See `SELECT ...` above for more SQL Interpolation examples.
@@ -4162,9 +4176,11 @@ LIMIT ...    -- 9
     ```swift
     // SELECT * FROM "player" 
     // ORDER BY (score + bonus) ASC, name DESC
-    let total = SQL("(score + bonus)").sqlExpression
     let request = Player
-        .order { [total.desc, $0.name] }
+        .order {
+            let total = SQL("(\($0.score) + \($0.bonus))").sqlExpression
+            return [total.desc, $0.name]
+        }
         .reversed()
     ```
     
@@ -4177,7 +4193,7 @@ Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
 // Some request based on `Player`
-let request = Player.filter(...)... // QueryInterfaceRequest<Player>
+let request = Player.filter { ... }... // QueryInterfaceRequest<Player>
 
 // Fetch players:
 try request.fetchCursor(db) // A Cursor of Player
@@ -4190,7 +4206,7 @@ For example:
 
 ```swift
 let allPlayers = try Player.fetchAll(db)                            // [Player]
-let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
+let arthur = try Player.filter { $0.name == "Arthur" }.fetchOne(db) // Player?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods.
@@ -4201,11 +4217,11 @@ The simplest way is to use the request as an argument to a fetching method of th
 
 ```swift
 // Fetch an Int
-let request = Player.select(max(scoreColumn))
+let request = Player.select { max($0.score) }
 let maxScore = try Int.fetchOne(db, request) // Int?
 
 // Fetch a Row
-let request = Player.select(min(scoreColumn), max(scoreColumn))
+let request = Player.select { [min($0.score), max($0.score)] }
 let row = try Row.fetchOne(db, request)!     // Row
 let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
@@ -4235,7 +4251,7 @@ You can also change the request so that it knows the type it has to fetch:
     
     ```swift
     // A request of Int
-    let request = Player.select(max(scoreColumn), as: Int.self)
+    let request = Player.select({ max($0.score) }, as: Int.self)
     
     let maxScore = try dbQueue.read { db in
         try request.fetchOne(db) // Int?
@@ -4288,7 +4304,7 @@ let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
 
 ```swift
 // Some request based on `Player`
-let request = Player.filter(...)...
+let request = Player.filter { ... }...
 
 // Check for player existence:
 let noSuchPlayer = try request.isEmpty(db) // Bool
@@ -4340,23 +4356,23 @@ let playerExists = try Player.exists(db, id: 1)
 let count = try Player.fetchCount(db) // Int
 
 // SELECT COUNT(*) FROM player WHERE email IS NOT NULL
-let count = try Player.filter(emailColumn != nil).fetchCount(db)
+let count = try Player.filter { $0.email != nil }.fetchCount(db)
 
 // SELECT COUNT(DISTINCT name) FROM player
-let count = try Player.select(nameColumn).distinct().fetchCount(db)
+let count = try Player.select(\.name).distinct().fetchCount(db)
 
 // SELECT COUNT(*) FROM (SELECT DISTINCT name, score FROM player)
-let count = try Player.select(nameColumn, scoreColumn).distinct().fetchCount(db)
+let count = try Player.select { [$0.name, $0.score] }.distinct().fetchCount(db)
 ```
 
 
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-let request = Player.select(max(scoreColumn))
+let request = Player.select { max($0.score) }
 let maxScore = try Int.fetchOne(db, request) // Int?
 
-let request = Player.select(min(scoreColumn), max(scoreColumn))
+let request = Player.select { [min($0.score), max($0.score)] }
 let row = try Row.fetchOne(db, request)!     // Row
 let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
@@ -4371,14 +4387,14 @@ let maxScore = row[1] as Int?
 // DELETE FROM player
 try Player.deleteAll(db)
 
-// DELETE FROM player WHERE team = 'red'
+// DELETE FROM player WHERE team = 'Reds'
 try Player
-    .filter(teamColumn == "red")
+    .filter { $0.team == "Reds" }
     .deleteAll(db)
 
 // DELETE FROM player ORDER BY score LIMIT 10
 try Player
-    .order(scoreColumn)
+    .order(\.score)
     .limit(10)
     .deleteAll(db)
 ```
@@ -4423,47 +4439,50 @@ try Document.deleteOne(db, id: 1)             // Document?
 
 ```swift
 // UPDATE player SET score = 0, isHealthy = 1, bonus = NULL
-try Player.updateAll(db, 
-    Column("score").set(to: 0), 
-    Column("isHealthy").set(to: true), 
-    Column("bonus").set(to: nil))
+try Player.updateAll(db) { [
+    $0.score.set(to: 0), 
+    $0.isHealthy.set(to: true), 
+    $0.bonus.set(to: nil),
+] }
 
-// UPDATE player SET score = 0 WHERE team = 'red'
+// UPDATE player SET score = 0 WHERE team = 'Reds'
 try Player
-    .filter { $0.team == "red" }
-    .updateAll(db, Column("score").set(to: 0))
+    .filter { $0.team == "Reds" }
+    .updateAll(db) { [$0.score.set(to: 0)] }
 
-// UPDATE player SET top = 1 ORDER BY score DESC LIMIT 10
+// UPDATE player SET isGreat = 1 ORDER BY score DESC LIMIT 10
 try Player
     .order(\.score.desc)
     .limit(10)
-    .updateAll(db, Column("top").set(to: true))
+    .updateAll(db) { [$0.isGreat.set(to: true)] }
 
 // UPDATE country SET population = 67848156 WHERE id = 'FR'
 try Country
     .filter(id: "FR")
-    .updateAll(db, Column("population").set(to: 67_848_156))
+    .updateAll(db) { [$0.population.set(to: 67_848_156)] }
 ```
 
 Column assignments accept any expression:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, Column("score").set(to: Column("score") + Column("bonus") * 2))
+try Player.updateAll(db) { [
+    $0.score.set(to: $0.score + $0.bonus * 2)
+] }
 ```
 
 As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, Column("score") += Column("bonus") * 2)
+try Player.updateAll(db) { [$0.score += $0.bonus * 2] }
 ```
 
 Default [Conflict Resolution] rules apply, and you may also provide a specific one:
 
 ```swift
 // UPDATE OR IGNORE player SET ...
-try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
+try Player.updateAll(db, onConflict: .ignore) { /* assignments... */ }
 ```
 
 > **Note** The `updateAll` method is available on types that adopt the [TableRecord] protocol, and `Table`:
@@ -5231,7 +5250,7 @@ try String.fetchOne(db, sql: "SELECT \(uppercased.name)('Jérôme')")
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
 ```swift
-Player.select(nameColumn.uppercased)
+Player.select { $0.name.uppercased }
 ```
 
 
@@ -5261,7 +5280,7 @@ try db.create(table: "player") { t in
 }
 
 // Players are sorted in a localized case insensitive way:
-let players = try Player.order(nameColumn).fetchAll(db)
+let players = try Player.order(\.name).fetchAll(db)
 ```
 
 > **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
@@ -5272,7 +5291,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let players = try Player.fetchAll(db,
     sql: "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
-let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
+let players = try Player.order { $0.name.collating(collation) }.fetchAll(db)
 ```
 
 
@@ -5628,9 +5647,10 @@ struct BookInfo: Decodable, FetchableRecord {
         // SELECT book.*, author.name AS authorName
         // FROM book
         // LEFT JOIN author ON author.id = book.authorID
-        let authorName = Author.Columns.name.forKey(CodingKeys.authorName)
         return Book
-            .annotated(withOptional: Book.author.select(authorName))
+            .annotated(withOptional: Book.author.select { 
+                $0.name.forKey(CodingKeys.authorName)
+            })
             .asRequest(of: BookInfo.self)
     }
 }
@@ -5807,6 +5827,9 @@ When this is the case, there are two possible explanations:
     
     // STANDARD, AND RECOMMENDED (statement arguments)
     try db.execute(sql: "UPDATE player SET name = ?", arguments: [name])
+    
+    // STANDARD, AND RECOMMENDED (SQL interpolation)
+    try db.execute(literal: "UPDATE player SET name = \(name)")
     ```
     
 For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted), and [Configuration.acceptsDoubleQuotedStringLiterals](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/acceptsdoublequotedstringliterals).
