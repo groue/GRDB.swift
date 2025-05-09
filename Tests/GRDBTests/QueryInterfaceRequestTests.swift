@@ -885,30 +885,50 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { $0.age }),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
+        #if compiler(>=6.1)
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(\.age)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\"")
+        #endif
+        
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.asc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { $0.age.asc }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
+        #if compiler(>=6.1)
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(\.age.asc)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
+        #endif
+        
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { $0.age.desc }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        #if compiler(>=6.1)
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(\.age.desc)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
+        #endif
+        
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age, Columns.name.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { [$0.age, $0.name.desc] }),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
+        
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(abs(Columns.age))),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { abs($0.age) }),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        
         #if GRDBCUSTOMSQLITE
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.ascNullsLast)),
@@ -916,12 +936,23 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        #if compiler(>=6.1)
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(\.age.ascNullsLast)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        #endif
+        
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #if compiler(>=6.1)
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(\.age.descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #endif
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
@@ -930,12 +961,23 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order { $0.age.ascNullsLast }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            #if compiler(>=6.1)
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(\.age.ascNullsLast)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            #endif
+            
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order(Columns.age.descNullsFirst)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.order { $0.age.descNullsFirst }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+            #if compiler(>=6.1)
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(\.age.descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+            #endif
         }
         #endif
     }
