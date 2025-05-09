@@ -58,15 +58,26 @@ GRDB Associations
 Associations streamline common operations in your code, make them safer, and more efficient. For example, consider a library application that has two record types, author and book:
 
 ```swift
-struct Author {
+struct Author: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var id: Int64
     var name: String
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+    }
 }
 
-struct Book {
+struct Book: Codable, Identifiable, FetchableRecord, PersistableRecord {
     var id: Int64
     var authorId: Int64?
     var title: String
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let authorId = Column(CodingKeys.authorId)
+        static let title = Column(CodingKeys.title)
+    }
 }
 ```
 
@@ -75,7 +86,7 @@ Now, suppose we wanted to load all books from an existing author. We'd need to d
 ```swift
 let author: Author = ...
 let books = try Book
-    .filter(Column("authorId") == author.id)
+    .filter { $0.authorId == author.id }
     .fetchAll(db)
 ```
 
@@ -121,7 +132,7 @@ let books = try author.books.fetchAll(db)
 As for loading all pairs of books and authors, it is not only easier, but also *much more efficient*:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: Decodable, FetchableRecord {
     let book: Book
     let author: Author?
 }
@@ -728,9 +739,15 @@ Your help is needed. You have to instruct GRDB which foreign key to use:
 
 ```swift
 struct Book: TableRecord {
+    // Table columns
+    enum Columns {
+        static let authorId = Column("authorId")
+        static let translatorId = Column("translatorId")
+    }
+    
     // Define foreign keys
-    static let authorForeignKey = ForeignKey(["authorId"])
-    static let translatorForeignKey = ForeignKey(["translatorId"])
+    static let authorForeignKey = ForeignKey([Columns.authorId])
+    static let translatorForeignKey = ForeignKey([Columns.translatorId])
     
     // Use foreign keys to define associations:
     static let author = belongsTo(Person.self, using: authorForeignKey)
@@ -747,25 +764,11 @@ struct Person: TableRecord {
 }
 ```
 
-Foreign keys can also be defined from query interface columns:
-
-```swift
-struct Book: TableRecord {
-    enum Columns {
-        static let authorId = Column("authorId")
-        static let translatorId = Column("translatorId")
-    }
-    
-    static let authorForeignKey = ForeignKey([Columns.authorId])
-    static let translatorForeignKey = ForeignKey([Columns.translatorId])
-}
-```
-
 When the destination table of a foreign key does not define any primary key, you need to provide the full definition of a foreign key:
 
 ```swift
 struct Book: TableRecord {
-    static let authorForeignKey = ForeignKey(["authorId"], to: ["id"])
+    static let authorForeignKey = ForeignKey([Columns.authorId], to: [Person.Columns.id])
     static let author = belongsTo(Person.self, using: authorForeignKey)
 }
 ```
@@ -837,8 +840,8 @@ Requests for associated records can be filtered and ordered like all [query inte
 ```swift
 let novels = try author
     .books
-    .filter(Column("kind") == BookKind.novel)
-    .order(Column("publishDate").desc)
+    .filter { $0.kind == BookKind.novel }
+    .order(\.publishDate.desc)
     .fetchAll(db) // [Book]
 ```
 
@@ -922,7 +925,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var author: PartialAuthor
 }
 let bookInfos = try Book
-    .including(required: Book.author.select(Column("name"), Column("country")))
+    .including(required: Book.author.select { [$0.name, $0.country] })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -936,7 +939,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String
 }
 let bookInfos = try Book
-    .annotated(withRequired: Book.author.select(Column("country")))
+    .annotated(withRequired: Book.author.select { $0.country })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -983,7 +986,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var author: PartialAuthor?
 }
 let bookInfos = try Book
-    .including(optional: Book.author.select(Column("name"), Column("country")))
+    .including(optional: Book.author.select { [$0.name, $0.country] })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -997,7 +1000,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String?
 }
 let bookInfos = try Book
-    .annotated(withOptional: Book.author.select(Column("country")))
+    .annotated(withOptional: Book.author.select { $0.country })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1065,7 +1068,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var books: [PartialBook]
 }
 let authorInfos = try Author
-    .including(all: Author.books.select(Column("title"), Column("year")))
+    .including(all: Author.books.select { [$0.title, $0.year] })
     .asRequest(of: AuthorInfo.self)
     .fetchAll(db)
 ```
@@ -1080,7 +1083,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 }
 let authorInfos = try Author
     .including(all: Author.books
-        .select(Column("title"))
+        .select { $0.title }
         .forKey("bookTitles"))
     .asRequest(of: AuthorInfo.self)
     .fetchAll(db)
@@ -1094,7 +1097,7 @@ For example, fetch books along with the name and country of their author:
 // SELECT book.*, author.name, author.country
 // FROM book
 // JOIN author ON author.id = book.authorId
-let request = Book.annotated(withRequired: Book.author.select(Column("name"), Column("country")))
+let request = Book.annotated(withRequired: Book.author.select { [$0.name, $0.country] })
 ```
 
 This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, records are not present in the fetched results: the associated record is "required".
@@ -1109,7 +1112,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String // A column of the required associated record
 }
 let bookInfos = try Book
-    .annotated(withRequired: Book.author.select(Column("name"), Column("country")))
+    .annotated(withRequired: Book.author.select { [$0.name, $0.country] })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1123,7 +1126,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var authorName: String
 }
 let bookInfos = try Book
-    .annotated(withRequired: Book.author.select(Column("name").forKey("authorName")))
+    .annotated(withRequired: Book.author.select { $0.name.forKey("authorName") })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1136,7 +1139,7 @@ For example, fetch books along with the name and country of their eventual autho
 // SELECT book.*, author.name, author.country
 // FROM book
 // LEFT JOIN author ON author.id = book.authorId
-let request = Book.annotated(withOptional: Book.author.select(Column("name"), Column("country")))
+let request = Book.annotated(withOptional: Book.author.select { [$0.name, $0.country] })
 ```
 
 This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, the columns of the associated record are NULL: the associated record is "optional".
@@ -1151,7 +1154,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String? // A column of the optional associated record
 }
 let bookInfos = try Book
-    .annotated(withOptional: Book.author.select(Column("name"), Column("country")))
+    .annotated(withOptional: Book.author.select { [$0.name, $0.country] })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1165,7 +1168,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var authorName: String?
 }
 let bookInfos = try Book
-    .annotated(withOptional: Book.author.select(Column("name").forKey("authorName")))
+    .annotated(withOptional: Book.author.select { $0.name.forKey("authorName") })
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1179,7 +1182,7 @@ For example, fetch books by French authors:
 // FROM book
 // JOIN author ON author.id = book.authorId
 //            AND author.country = 'France'
-let request = Book.joining(required: Book.author.filter(Column("country") == "France"))
+let request = Book.joining(required: Book.author.filter { $0.country == "France" })
 ```
 
 This method accepts any association. It has the base record "joined" with one associated record, which is not included in the fetched results. When the associated record does not exist, the base record is not present in the fetched results: the associated record is "required".
@@ -1189,7 +1192,7 @@ To fetch results from such a request, you do not need to define a dedicated reco
 ```swift
 // Fetch all books by French authors
 let books = try Book
-    .joining(required: Book.author.filter(Column("country") == "France"))
+    .joining(required: Book.author.filter { $0.country == "France" })
     .fetchAll(db)
 ```
 
@@ -1240,7 +1243,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     }
     
     let bookInfos = try Book
-        .including(required: Book.author.select(Column("name"), Column("country")))
+        .including(required: Book.author.select { [$0.name, $0.country] })
         .asRequest(of: BookInfo.self)
         .fetchAll(db)
     ```
@@ -1255,9 +1258,9 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     }
     
     let bookInfos = try Book
-        .annotated(withRequired: Book.author.select(
-            Column("name").forKey("authorName"), 
-            Column("country")))
+        .annotated(withRequired: Book.author.select { 
+            [$0.name.forKey("authorName"), $0.country]
+        })
         .asRequest(of: BookInfo.self)
         .fetchAll(db)
     ```
@@ -1287,7 +1290,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     }
     
     let bookInfos = try Book
-        .including(optional: Book.author.select(Column("name"), Column("country")))
+        .including(optional: Book.author.select { [$0.name, $0.country] })
         .asRequest(of: BookInfo.self)
         .fetchAll(db)
     ```
@@ -1302,9 +1305,9 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     }
     
     let bookInfos = try Book
-        .annotated(withOptional: Book.author.select(
-            Column("name").forKey("authorName"), 
-            Column("country")))
+        .annotated(withOptional: Book.author.select { 
+            [$0.name.forKey("authorName"), $0.country]
+        })
         .asRequest(of: BookInfo.self)
         .fetchAll(db)
     ```
@@ -1334,7 +1337,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     }
     
     let authorInfos = try Author
-        .including(all: Author.books.select(Column("title"), Column("year")))
+        .including(all: Author.books.select { [$0.title, $0.year] })
         .asRequest(of: AuthorInfo.self)
         .fetchAll(db)
     ```
@@ -1347,7 +1350,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     
     let authorInfos = try Author
         .including(all: Author.books
-            .select(Column("title"))
+            .select { $0.title }
             .forKey("bookTitles"))
         .asRequest(of: AuthorInfo.self)
         .fetchAll(db)
@@ -1461,7 +1464,7 @@ The `filter(_:)`, `filter(id:)`, `filter(ids:)`, `filter(key:)` and `filter(keys
 // FROM book
 // JOIN person ON person.id = book.authorId
 //            AND person.countryCode = 'FR'
-let frenchAuthor = Book.author.filter(Column("countryCode") == "FR")
+let frenchAuthor = Book.author.filter { $0.countryCode == "FR" }
 let request = Book.joining(required: frenchAuthor)
 
 // This request feeds the Book record:
@@ -1475,10 +1478,10 @@ The one below fetches all authors along with their novels and poems:
 ```swift
 let request = Author
     .including(all: Author.book
-        .filter(Column("kind") == "novel")
+        .filter { $0.kind == "novel" }
         .forKey("novels"))
     .including(all: Author.book
-        .filter(Column("kind") == "poems")
+        .filter { $0.kind == "poems" }
         .forKey("poems"))
 
 // This request can feed the following record:
@@ -1509,7 +1512,7 @@ The `order()` method, that you already know for [sorting simple requests](../REA
 // FROM book
 // JOIN person ON person.id = book.authorId
 // ORDER BY person.name
-let sortedAuthor = Book.author.order(Column("name"))
+let sortedAuthor = Book.author.order(\.name)
 let request = Book.including(required: sortedAuthor)
 ```
 
@@ -1520,10 +1523,10 @@ When you sort both the base record and the associated record, the request is sor
 // FROM book
 // JOIN person ON person.id = book.authorId
 // ORDER BY book.publishDate DESC, person.name
-let sortedAuthor = Book.author.order(Column("name"))
+let sortedAuthor = Book.author.order(\.name)
 let request = Book
     .including(required: sortedAuthor)
-    .order(Column("publishDate").desc)
+    .order(\.publishDate.desc)
 ```
 
 **There are more sorting options:**
@@ -1560,7 +1563,7 @@ The `Team.players` association is ordered by position, so that all team players 
 
 ```swift
 extension Team {
-    static let players = hasMany(Player.self).order(Column("position"))
+    static let players = hasMany(Player.self).order(\.position)
     
     var players: QueryInterfaceRequest<Player> {
         request(for: Team.players)
@@ -1592,7 +1595,7 @@ Again, the `Team.players` association is ordered by position, so that all team p
 
 ```swift
 extension Team {
-    static let playerRoles = hasMany(PlayerRole.self).order(Column("position"))
+    static let playerRoles = hasMany(PlayerRole.self).order(\.position)
     
     static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
     
@@ -1624,9 +1627,9 @@ let teamInfos = try Team
 
 // Custom ordering
 let team: Team = ...
-let players = try team.players.order(Column("name")).fetchAll(db)
+let players = try team.players.order(\.name).fetchAll(db)
 let teamInfos = try Team
-    .including(all: Team.players.order(Column("name")))
+    .including(all: Team.players.order(\.name))
     .asRequest(of: TeamInfo.self)
     .fetchAll(db)
 ```
@@ -1652,7 +1655,7 @@ To specify the selection in a specific request, use the `select` method:
 // SELECT book.*, author.id, author.name
 // FROM book
 // JOIN author ON author.id = book.authorId
-let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
+let restrictedAuthor = Book.author.select { [$0.id, $0.name] }
 let request = Book.including(required: restrictedAuthor)
 ```
 
@@ -1674,7 +1677,7 @@ Associations support more refinements:
     }
     
     let distinctBookKinds = Author.books
-        .select(Column("kind"))
+        .select { $0.kind }
         .distinct()
         .forKey("bookKinds")
     
@@ -1700,10 +1703,8 @@ Associations support more refinements:
     }
     
     let bookKindInfos = Author.books
-        .select(
-            Column("kind"),
-            max(Column("year")).forKey("maxYear"))
-        .group(Column("kind"))
+        .select { [$0.kind, max($0.year).forKey("maxYear")] }
+        .group(\.kind)
         .forKey("bookKindInfos")
     
     let authorInfos: [AuthorInfo] = try Author
@@ -1773,7 +1774,7 @@ Let's first see a wrong way to do it:
 // WHERE book.publishDate >= book.deathDate
 let request = Book
     .joining(required: Book.author)
-    .filter(Column("publishDate") >= Column("deathDate"))
+    .filter { $0.publishDate >= $0.deathDate }
 ```
 
 When executed, we'll get a DatabaseError of code 1, "no such column: book.deathDate".
@@ -1795,7 +1796,7 @@ We modify the `Book.author` association so that it uses this table alias, and we
 // WHERE book.publishDate >= person.deathDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
-    .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    .filter { $0.publishDate >= authorAlias[Column("deathDate")] }
 ```
 
 **Table aliases** can also improve control over the ordering of request results. In the example below, we override the [default ordering](#sorting-associations) of associated records by sorting on author names first:
@@ -1807,7 +1808,7 @@ let request = Book
 // ORDER BY person.name, book.publishDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
-    .order(authorAlias[Column("name")], Column("publishDate"))
+    .order { [authorAlias[Column("name")], $0.publishDate] }
 ```
 
 **Table aliases** can be given a name. This name is guaranteed to be used as the table alias in the SQL query. This guarantee lets you write SQL snippets when you need it:
@@ -1843,7 +1844,7 @@ let request = Book.aliased(bookAlias)
 > let request = Author
 >     .aliased(authorAlias)
 >     .including(all: Author.books
->         .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
+>         .filter { $0.publishDate >= authorAlias[Column("deathDate")] })    
 > ```
 
 
@@ -1905,7 +1906,7 @@ For example, we can start by defining base requests as extensions to the [Deriva
 extension DerivableRequest<Author> {
     /// Filters authors by country
     func filter(country: String) -> Self {
-        filter(Column("country") == country)
+        filter { $0.country == country }
     }
 }
 
@@ -1921,9 +1922,10 @@ extension DerivableRequest<Book> {
         let authorAlias = TableAlias()
         return self
             .joining(optional: Book.author.aliased(authorAlias))
-            .order(
+            .order { [
                 authorAlias[Column("name")].collating(.localizedCaseInsensitiveCompare),
-                Column("year"))
+                $0.year,
+            ] }
     }
 }
 ```
@@ -2064,7 +2066,7 @@ Keys can also be customized with the `forKey` method:
 ```swift
 extension Author {
     static let novels = books
-        .filter(Column("kind") == "novel")
+        .filter { $0.kind == "novel" }
         .forKey("novels")
 }
 Author.including(all: Author.novels)           // association key "novels"
@@ -2289,7 +2291,7 @@ let author: Author = ...
 let bookCount = try author.books.fetchCount(db)  // Int
 
 // The year of the most recent book by this author
-let request = author.books.select(max(yearColumn))
+let request = author.books.select { max($0.year) }
 let maxBookYear = try Int.fetchOne(db, request)  // Int?
 ```
 
@@ -2360,7 +2362,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // GROUP BY author.id
 let request = Author.annotated(with:
     Author.books.count,
-    Author.books.max(Column("year")))
+    Author.books.max(\.year))
 
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
@@ -2377,13 +2379,13 @@ The default name is built from the aggregating method, the **[association key](#
 
 | Method | Association Key | Aggregated Column | Aggregate name |
 | ------ | --------------- | ----------------- | -------------- |
-| `Author.books.isEmpty`.                 | `books` | -        | `hasNoBook`        |
-| `Author.books.count`.                   | `books` | -        | `bookCount`        |
-| `Author.books.min(Column("year"))`      | `books` | `year`   | `minBookYear`      |
-| `Author.books.max(Column("year"))`      | `books` | `year`   | `maxBookYear`      |
-| `Author.books.average(Column("price"))` | `books` | `price`  | `averageBookPrice` |
-| `Author.books.sum(Column("awards"))`    | `books` | `awards` | `bookAwardsSum`    |
-| `Author.books.total(Column("awards"))`  | `books` | `awards` | `bookAwardsSum` ¹  |
+| `Author.books.isEmpty`.          | `books` | -        | `hasNoBook`        |
+| `Author.books.count`.            | `books` | -        | `bookCount`        |
+| `Author.books.min(\.year)`       | `books` | `year`   | `minBookYear`      |
+| `Author.books.max(\.year)`       | `books` | `year`   | `maxBookYear`      |
+| `Author.books.average(\.price)`  | `books` | `price`  | `averageBookPrice` |
+| `Author.books.sum(\.awards)`     | `books` | `awards` | `bookAwardsSum`    |
+| `Author.books.total((\.awards))` | `books` | `awards` | `bookAwardsSum` ¹  |
 
 ¹ The default name of the `total` aggregate has a `Sum` suffix, just like the `sum` aggregate. Both compute sums, one with the `SUM` SQL function, the other with `TOTAL`. See [SQLite documentation](https://www.sqlite.org/lang_aggfunc.html#sumunc) for the difference between these aggregate functions.
 
@@ -2512,7 +2514,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     </details>
     
     ```swift
-    let request = Author.having(Author.books.max(Column("year")) >= 2010)
+    let request = Author.having(Author.books.max(\.year) >= 2010)
     ```
 
 - Authors who wrote at least one book of kind "novel":
@@ -2531,7 +2533,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     </details>
     
     ```swift
-    let novels = Author.books.filter(Column("kind") == "novel")
+    let novels = Author.books.filter { $0.kind == "novel" }
     let request = Author.having(novels.isEmpty == false)
     ```
     
@@ -2617,7 +2619,7 @@ Aggregates can be modified and combined with Swift operators:
     </details>
     
     ```swift
-    let request = Author.having(Author.books.max(Column("year")) >= 2010)
+    let request = Author.having(Author.books.max(\.year) >= 2010)
     ```
 
 - Arithmetic operators `+`, `-`, `*`, `/`
@@ -2657,7 +2659,7 @@ Aggregates can be modified and combined with Swift operators:
     </details>
     
     ```swift
-    let request = Team.annotated(with: Team.players.min(Column("score")) ?? 0)
+    let request = Team.annotated(with: Team.players.min(\.score) ?? 0)
     ```
 
 - SQL functions `ABS`, `CAST`, and `LENGTH` are available as the `abs`, `cast`, and `length` Swift functions:
@@ -2675,7 +2677,7 @@ Aggregates can be modified and combined with Swift operators:
     </details>
     
     ```swift
-    let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+    let request = Team.annotated(with: abs(Team.players.max(\.score)))
     ```
     
 ### Isolation of Multiple Aggregates
@@ -2712,8 +2714,8 @@ In the example below, we use compute two aggregates from the same association `A
     }
     
     let request = Author.annotated(with:
-        Author.books.min(Column("year")), // association key "books"
-        Author.books.max(Column("year"))) // association key "books"
+        Author.books.min(\.year), // association key "books"
+        Author.books.max(\.year)) // association key "books"
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
@@ -2783,11 +2785,11 @@ But in the following example, we use the same association `Author.books` twice, 
     }
     
     let novelCount = Author.books
-        .filter(Column("kind") == "novel")
+        .filter { $0.kind == "novel" }
         .forKey("novels")                        // association key "novels"
         .count
     let theatrePlayCount = Author.books
-        .filter(Column("kind") == "theatrePlay")
+        .filter { $0.kind == "theatrePlay" }
         .forKey("theatrePlays")                  // association key "theatrePlays"
         .count
     let request = Author.annotated(with: novelCount, theatrePlayCount)
@@ -2814,11 +2816,11 @@ But in the following example, we use the same association `Author.books` twice, 
     ```swift
     // WRONG: not counting distinct sets of associated books
     let novelCount = Author.books                // association key "books"
-        .filter(Column("kind") == "novel")
+        .filter { $0.kind == "novel" }
         .count
         .forKey("novelCount")
     let theatrePlayCount = Author.books          // association key "books"
-        .filter(Column("kind") == "theatrePlay")
+        .filter { $0.kind == "theatrePlay" }
         .count
         .forKey("theatrePlayCount")
     let request = Author.annotated(with: novelCount, theatrePlayCount)
@@ -2848,11 +2850,11 @@ Those methods are defined on extensions to the `DerivableRequest` protocol:
 ```swift
 extension DerivableRequest<Author> {
     func filter(country: String) -> Self {
-        filter(Column("country") == country)
+        filter { $0.country == country }
     }
     
     func orderedByName() -> Self {
-        order(Column("name").collating(.localizedCaseInsensitiveCompare))
+        order { $0.name.collating(.localizedCaseInsensitiveCompare) }
     }
 }
 
@@ -2887,7 +2889,7 @@ See [Recommended Practices for Designing Record Types] for more information.
     let request = Author
         .aliased(authorAlias)
         .including(all: Author.books
-            .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
+            .filter { $0.publishDate >= authorAlias[Column("deathDate")] })    
     ```
 
 - **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:
