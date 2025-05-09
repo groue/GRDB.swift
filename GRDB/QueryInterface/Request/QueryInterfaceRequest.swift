@@ -67,16 +67,21 @@
 /// - ``deleteAndFetchCursor(_:)``
 /// - ``deleteAndFetchAll(_:)``
 /// - ``deleteAndFetchSet(_:)``
-/// - ``deleteAndFetchStatement(_:selection:)-9q969``
 /// - ``deleteAndFetchStatement(_:selection:)-1in2u``
+/// - ``deleteAndFetchStatement(_:selection:)-9q969``
 ///
 /// ### Batch Update
 ///
+/// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-9r4v``
 /// - ``updateAll(_:onConflict:_:)-49qg8``
+/// - ``updateAndFetchCursor(_:onConflict:assignments:)``
 /// - ``updateAndFetchCursor(_:onConflict:_:)``
+/// - ``updateAndFetchAll(_:onConflict:assignments:)``
 /// - ``updateAndFetchAll(_:onConflict:_:)``
+/// - ``updateAndFetchSet(_:onConflict:assignments:)``
 /// - ``updateAndFetchSet(_:onConflict:_:)``
+/// - ``updateAndFetchStatement(_:onConflict:assignments:select:)``
 /// - ``updateAndFetchStatement(_:onConflict:_:selection:)``
 /// - ``ColumnAssignment``
 public struct QueryInterfaceRequest<RowDecoder> {
@@ -642,17 +647,18 @@ extension QueryInterfaceRequest {
     ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
-    /// - parameter selection: The returned columns (must not be empty).
+    /// - parameter select: A closure that returns the returned columns
+    ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    /// - precondition: `selection` is not empty.
+    /// - precondition: The result of `select` is not empty.
     public func deleteAndFetchStatement(
         _ db: Database,
-        selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable)
+        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
-        try deleteAndFetchStatement(db, selection: [selection(RowDecoder.columns)])
+        try deleteAndFetchStatement(db, selection: select(RowDecoder.columns))
     }
     
     /// Returns a cursor over the records deleted by a
@@ -825,18 +831,19 @@ extension QueryInterfaceRequest {
     ///   <https://www.sqlite.org/lang_returning.html#limitations_and_caveats>.
     ///
     /// - parameter db: A database connection.
-    /// - parameter selection: The returned columns (must not be empty).
+    /// - parameter select: A closure that returns the returned columns
+    ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    /// - precondition: `selection` is not empty.
+    /// - precondition: The result of `select` is not empty.
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchStatement(
         _ db: Database,
-        selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable)
+        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
-        try deleteAndFetchStatement(db, selection: [selection(RowDecoder.columns)])
+        try deleteAndFetchStatement(db, selection: select(RowDecoder.columns))
     }
     
     /// Returns a cursor over the records deleted by a
@@ -1433,7 +1440,7 @@ extension QueryInterfaceRequest {
     /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: A closure that returns an array of
     ///   column assignments (must not be empty).
-    /// - parameter selection: A closure that returns the returned columns
+    /// - parameter select: A closure that returns the returned columns
     ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
