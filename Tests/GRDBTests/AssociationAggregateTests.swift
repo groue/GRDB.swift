@@ -277,6 +277,45 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
+    #if compiler(>=6.1)
+    func testAnnotatedWithHasManyDefaultMax_Swift61() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.max(\.score))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MAX("player"."score") AS "maxPlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 4)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].maxPlayerScore, 1000)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].maxPlayerScore, 800)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].maxPlayerScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].maxPlayerScore, 0)
+        }
+    }
+    #endif
+    
     func testAnnotatedWithHasManyDefaultMaxJoiningRequired() throws {
         // It is important to have an explicit test for this technique because
         // it is the only currently available that forces a JOIN, and we don't
