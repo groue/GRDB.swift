@@ -48,6 +48,7 @@
 ///
 /// ### Updating Rows
 ///
+/// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-4w9b``
 /// - ``updateAll(_:onConflict:_:)-4cvap``
 ///
