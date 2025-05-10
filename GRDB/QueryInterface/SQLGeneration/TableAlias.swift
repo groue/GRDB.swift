@@ -1,6 +1,6 @@
 /// A TableAlias identifies a table in a request.
 ///
-/// See ``TableRequest/aliased(_:)`` for more information and examples.
+/// See ``TableRequest/aliased(_:)-772vb`` for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 public class TableAliasBase: @unchecked Sendable {

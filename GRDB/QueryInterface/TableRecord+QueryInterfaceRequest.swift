@@ -748,7 +748,7 @@ extension TableRecord {
     ///     .joining(required: Book.author.filter(Column("deathDate") <= bookAlias[Column("publishDate")])
     /// ```
     ///
-    /// See ``TableRequest/aliased(_:)`` for more information.
+    /// See ``TableRequest/aliased(_:)-772vb`` for more information.
     public static func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<Self> {
         all().aliased(alias)
     }
@@ -785,7 +785,7 @@ extension TableRecord {
     ///     .joining(required: Book.author.filter { $0.deathDate <= bookAlias.publishDate })
     /// ```
     ///
-    /// See ``TableRequest/aliased(_:)`` for more information.
+    /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
     public static func aliased(_ alias: TableAlias<Self>) -> QueryInterfaceRequest<Self> {
         all().aliased(alias)
     }

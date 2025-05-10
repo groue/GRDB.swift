@@ -57,7 +57,8 @@
 /// `Table` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3135k``
+/// - ``aliased(_:)-5dkyd``
 /// - ``all()``
 /// - ``annotated(with:)-6i101``
 /// - ``annotated(with:)-6x399``
@@ -744,7 +745,7 @@ extension Table {
     /// Returns a request that can be referred to with the provided alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
-    /// See ``TableRequest/aliased(_:)`` for more information.
+    /// See ``TableRequest/aliased(_:)-772vb`` for more information.
     public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
@@ -752,7 +753,7 @@ extension Table {
     /// Returns a request that can be referred to with the provided alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
-    /// See ``TableRequest/aliased(_:)`` for more information.
+    /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
     public func aliased(_ alias: TableAlias<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }

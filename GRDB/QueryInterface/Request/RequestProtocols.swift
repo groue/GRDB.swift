@@ -477,7 +477,8 @@ extension FilteredRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3k5h4``
+/// - ``aliased(_:)-772vb``
 /// - ``TableAlias``
 ///
 /// ### The WHERE Clause
@@ -502,6 +503,11 @@ public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
     
+    /// Returns a request that can be referred to with the provided alias.
+    func _aliased(_ alias: TableAliasBase) -> Self
+}
+
+extension TableRequest where Self: TypedRequest {
     /// Returns a request that can be referred to with the provided alias.
     ///
     /// Use this method when you need to refer to this request from
@@ -557,16 +563,73 @@ public protocol TableRequest {
     ///     .filter(sql: "b.publishDate >= a.deathDate")
     ///     .fetchAll(db)
     /// ```
-    func _aliased(_ alias: TableAliasBase) -> Self
-}
-
-extension TableRequest where Self: TypedRequest {
-    // TODO: DocC
     public func aliased(_ alias: TableAlias<Void>) -> Self {
         self._aliased(alias)
     }
     
-    // TODO: DocC
+    /// Returns a request that can be referred to with the provided alias.
+    ///
+    /// Use this method when you need to refer to this request from
+    /// another request.
+    ///
+    /// The first example fetches posthumous books:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     enum Columns {
+    ///         static let deathDate = Column("deathDate")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///     enum Columns {
+    ///         static let publishDate = Column("publishDate")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // WHERE book.publishDate >= author.deathDate
+    /// let authorAlias = TableAlias()
+    /// let posthumousBooks = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The second example sorts books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias()
+    /// let books = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order(authorAlias[Column("name")], Column("title"))
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The third example uses named ``TableAlias`` so that SQL snippets can
+    /// refer to SQL tables with those names:
+    ///
+    /// ```swift
+    /// // SELECT b.*
+    /// // FROM book b
+    /// // JOIN author a ON a.id = b.authorId
+    /// //              AND a.countryCode = 'FR'
+    /// // WHERE b.publishDate >= a.deathDate
+    /// let bookAlias = TableAlias(name: "b")
+    /// let authorAlias = TableAlias(name: "a")
+    /// let posthumousFrenchBooks = try Book.aliased(bookAlias)
+    ///     .joining(required: Book.author.aliased(authorAlias)
+    ///         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
+    ///     .filter(sql: "b.publishDate >= a.deathDate")
+    ///     .fetchAll(db)
+    /// ```
     public func aliased(_ alias: TableAlias<RowDecoder>) -> Self {
         self._aliased(alias)
     }
@@ -1686,7 +1749,8 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``TableRequest/aliased(_:)``
+/// - ``TableRequest/aliased(_:)-3k5h4``
+/// - ``TableRequest/aliased(_:)-772vb``
 /// - ``TableAlias``
 ///
 /// ### The WITH Clause

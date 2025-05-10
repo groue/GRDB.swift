@@ -57,7 +57,8 @@ import Foundation
 /// `TableRecord` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods as static methods on the type itself.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-sdcd``
+/// - ``aliased(_:)-py77``
 /// - ``all()``
 /// - ``annotated(with:)-3zi1n``
 /// - ``annotated(with:)-4xoen``

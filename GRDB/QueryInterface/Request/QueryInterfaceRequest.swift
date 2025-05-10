@@ -67,8 +67,8 @@
 /// - ``deleteAndFetchCursor(_:)``
 /// - ``deleteAndFetchAll(_:)``
 /// - ``deleteAndFetchSet(_:)``
-/// - ``deleteAndFetchStatement(_:selection:)-1in2u``
-/// - ``deleteAndFetchStatement(_:selection:)-9q969``
+/// - ``deleteAndFetchStatement(_:select:)``
+/// - ``deleteAndFetchStatement(_:selection:)``
 ///
 /// ### Batch Update
 ///
