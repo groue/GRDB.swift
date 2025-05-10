@@ -144,7 +144,7 @@ public struct Configuration: Sendable {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // By default, sensitive information is NOT printed
     ///     // when an error occurs:
@@ -173,7 +173,7 @@ public struct Configuration: Sendable {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // Sensitive information is printed in DEBUG builds:
     ///     print(error)

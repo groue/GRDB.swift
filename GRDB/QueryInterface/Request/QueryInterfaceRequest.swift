@@ -541,9 +541,15 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let maxScore: Int? = try Player
-    ///         .select(max(scoreColumn))
+    ///         .select { max($0.score) }
     ///         .asRequest(of: Int.self)    // <--
     ///         .fetchOne(db)
     /// }

@@ -28,7 +28,7 @@
 ///     enum Columns {
 ///         static let id = Column(CodingKeys.id)
 ///         static let name = Column(CodingKeys.name)
-///         static let address = JSONColumn(CodingKeys.address) // JSONColumn!
+///         static let address = JSONColumn(CodingKeys.address) // JSONColumn
 ///     }
 /// }
 ///

@@ -123,7 +123,7 @@ And we can then filter the `player` table with a subquery:
 // WHERE name = (SELECT * FROM playerName)
 let request = Player
     .with(playerNameCTE)
-    .filter(Column("name") == playerNameCTE.all())
+    .filter { $0.name == playerNameCTE.all() }
 ```
 
 > **Note**: the `with(_:)` method can be called as many times as a there are common table expressions in your request.
@@ -167,13 +167,13 @@ Common table expressions can also be used as subqueries, when you update or dele
 // UPDATE player SET name = (SELECT * FROM playerName)
 try Player
     .with(playerNameCTE)
-    .updateAll(db, Column("name").set(to: playerNameCTE.all()))
+    .updateAll(db) { $0.name.set(to: playerNameCTE.all()) }
     
 // WITH playerName AS (SELECT 'O''Brien')
 // DELETE FROM player WHERE name = (SELECT * FROM playerName)
 try Player
     .with(playerNameCTE)
-    .filter(Column("name") == playerNameCTE.all())
+    .filter { $0.name == playerNameCTE.all() }
     .deleteAll(db)
 ```
 

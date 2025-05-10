@@ -316,12 +316,17 @@ public struct SQLExpression: Sendable {
     /// Use it with the `joined(operator:)` method. For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
     /// // SELECT score + bonus + 1000 FROM player
-    /// let values = [
-    ///     scoreColumn,
-    ///     bonusColumn,
-    ///     1000.databaseValue]
-    /// let request = Player.select(values.joined(operator: .add))
+    /// let request = Player.select {
+    ///     [$0.score, $0.bonus, 1000.databaseValue].joined(operator: .add)
+    /// }
     /// ```
     public struct AssociativeBinaryOperator: Hashable, Sendable {
         /// The SQL operator
