@@ -387,28 +387,55 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 INSERT INTO author(id, name) VALUES (1, 'Arthur');
                 INSERT INTO book(id, authorId) VALUES (2, 1);
                 """)
-            struct Author: TableRecord { }
+            struct Author: TableRecord {
+                enum Columns {
+                    static let name = Column("name")
+                }
+            }
             struct Book: TableRecord {
                 static let author = belongsTo(Author.self)
             }
             
-            let alias = TableAlias()
-            let request = Book
-                .annotated(with: alias[Column("name")])
-                .joining(required: Book.author.aliased(alias))
-            let rows = try Row.fetchCursor(db, request)
-            while let row = try rows.next() {
-                // Just some sanity checks that the "author"."name" SQL column is
-                // simply exposed as "name" in Swift code:
-                XCTAssertEqual(row, ["id":2, "authorId":1, "name":"Arthur"])
-                XCTAssertEqual(Set(row.columnNames), ["id", "authorId", "name"])
-                XCTAssertEqual(row["name"], "Arthur")
+            do {
+                let alias = TableAlias()
+                let request = Book
+                    .annotated(with: alias[Column("name")])
+                    .joining(required: Book.author.aliased(alias))
+                let rows = try Row.fetchCursor(db, request)
+                while let row = try rows.next() {
+                    // Just some sanity checks that the "author"."name" SQL column is
+                    // simply exposed as "name" in Swift code:
+                    XCTAssertEqual(row, ["id":2, "authorId":1, "name":"Arthur"])
+                    XCTAssertEqual(Set(row.columnNames), ["id", "authorId", "name"])
+                    XCTAssertEqual(row["name"], "Arthur")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT "book".*, "author"."name" \
+                    FROM "book" \
+                    JOIN "author" ON "author"."id" = "book"."authorId"
+                    """)
             }
-            XCTAssertEqual(lastSQLQuery, """
-                SELECT "book".*, "author"."name" \
-                FROM "book" \
-                JOIN "author" ON "author"."id" = "book"."authorId"
-                """)
+            #if compiler(>=6.1)
+            do {
+                let alias = TableAlias<Author>()
+                let request = Book
+                    .annotated(with: alias.name)
+                    .joining(required: Book.author.aliased(alias))
+                let rows = try Row.fetchCursor(db, request)
+                while let row = try rows.next() {
+                    // Just some sanity checks that the "author"."name" SQL column is
+                    // simply exposed as "name" in Swift code:
+                    XCTAssertEqual(row, ["id":2, "authorId":1, "name":"Arthur"])
+                    XCTAssertEqual(Set(row.columnNames), ["id", "authorId", "name"])
+                    XCTAssertEqual(row["name"], "Arthur")
+                }
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT "book".*, "author"."name" \
+                    FROM "book" \
+                    JOIN "author" ON "author"."id" = "book"."authorId"
+                    """)
+            }
+            #endif
         }
     }
     

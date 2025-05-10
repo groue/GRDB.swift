@@ -462,14 +462,35 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                 try db.create(table: "player") { t in
                     t.column("teamID", .integer).references("team")
                 }
-                struct Player: TableRecord { }
-                struct Team: TableRecord { }
-                let teamAlias = TableAlias()
-                let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
-                let teams = Team.aliased(teamAlias).filter(player.exists())
-                try assertEqualSQL(db, teams, """
-                    SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
-                    """)
+                struct Player: TableRecord {
+                    enum Columns {
+                        static let teamID = Column("teamID")
+                    }
+                }
+                struct Team: TableRecord {
+                    enum Columns {
+                        static let id = Column("id")
+                    }
+                }
+                
+                do {
+                    let teamAlias = TableAlias()
+                    let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
+                    let teams = Team.aliased(teamAlias).filter(player.exists())
+                    try assertEqualSQL(db, teams, """
+                        SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
+                        """)
+                }
+                #if compiler(>=6.1)
+                do {
+                    let teamAlias = TableAlias<Team>()
+                    let player = Player.filter { $0.teamID == teamAlias.id }
+                    let teams = Team.aliased(teamAlias).filter(player.exists())
+                    try assertEqualSQL(db, teams, """
+                        SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
+                        """)
+                }
+                #endif
             }
         }
         
