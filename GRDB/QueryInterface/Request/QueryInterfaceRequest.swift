@@ -23,15 +23,20 @@
 /// ``Table`` instance. For example:
 ///
 /// ```swift
-/// struct Player: TableRecord, FetchableRecord, DecodableRecord { }
+/// struct Player: TableRecord, FetchableRecord, DecodableRecord {
+///     enum Columns {
+///         static let name = Column("name")
+///         static let score = Column("score")
+///     }
+/// }
 ///
 /// try dbQueue.read { db in
 ///     // SELECT * FROM player
 ///     // WHERE name = 'O''Reilly'
 ///     // ORDER BY score DESC
 ///     let request = Player
-///         .filter(Column("name") == "O'Reilly")
-///         .order(Column("score").desc)
+///         .filter { $0.name == "O'Reilly" }
+///         .order(\.score.desc)
 ///     let players: [Player] = try request.fetchAll(db)
 /// }
 /// ```
@@ -399,15 +404,27 @@ extension QueryInterfaceRequest: OrderedRequest {
     
     /// Creates a request that reverses applied orderings.
     ///
-    ///     // SELECT * FROM player ORDER BY name DESC
-    ///     var request = Player.all().order(Column("name"))
-    ///     request = request.reversed()
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY name DESC
+    /// var request = Player.all().order(\.name)
+    /// request = request.reversed()
+    /// ```
     ///
     /// If no ordering was applied, the returned request is identical.
     ///
-    ///     // SELECT * FROM player
-    ///     var request = Player.all()
-    ///     request = request.reversed()
+    /// ```swift
+    /// // SELECT * FROM player
+    /// var request = Player.all()
+    /// request = request.reversed()
+    /// ```
     public func reversed() -> Self {
         with {
             $0.relation = $0.relation.reversed()
@@ -416,9 +433,18 @@ extension QueryInterfaceRequest: OrderedRequest {
     
     /// Creates a request without any ordering.
     ///
-    ///     // SELECT * FROM player
-    ///     var request = Player.all().order(Column("name"))
-    ///     request = request.unordered()
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player
+    /// let request = Player.all()
+    ///     .order(\.name)
+    ///     .unordered()
+    /// ```
     public func unordered() -> Self {
         with {
             $0.relation = $0.relation.unordered()
@@ -567,9 +593,15 @@ extension QueryInterfaceRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let arthurIsMissing = try Player
-    ///         .filter(Column("name") == "Arthur")
+    ///         .filter { $0.name == "Arthur" }
     ///         .isEmpty(db)
     /// }
     /// ```
@@ -1757,10 +1789,17 @@ extension QueryInterfaceRequest {
 /// such as ``ColumnExpression/set(to:)`` or `+=`:
 ///
 /// ```swift
+/// struct Player: TableRecord {
+///     enum Columns {
+///         static let score = Column("score")
+///     }
+/// }
+///
 /// try dbQueue.write { db in
 ///     // UPDATE player SET score = 0
-///     let assignment = Column("score").set(to: 0)
-///     try Player.updateAll(db, assignment)
+///     try Player.updateAll(db) { [
+///         $0.score.set(to: 0)
+///     ] }
 /// }
 /// ```
 public struct ColumnAssignment {

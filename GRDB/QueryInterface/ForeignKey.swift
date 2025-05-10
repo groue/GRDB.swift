@@ -25,9 +25,14 @@
 ///
 /// ```swift
 /// struct Book: TableRecord {
+///     enum Columns {
+///         static let authorId = Column("authorId")
+///         static let translatorId = Column("translatorId")
+///     }
+///
 ///     // Define foreign keys
-///     static let authorForeignKey = ForeignKey(["authorId"]))
-///     static let translatorForeignKey = ForeignKey(["translatorId"]))
+///     static let authorForeignKey = ForeignKey([Columns.authorId]))
+///     static let translatorForeignKey = ForeignKey([Columns.translatorId]))
 ///
 ///     // Use foreign keys to define associations:
 ///     static let author = belongsTo(
@@ -38,20 +43,6 @@
 ///         Person.self,
 ///         key: "translator",
 ///         using: translatorForeignKey)
-/// }
-/// ```
-///
-/// Foreign keys can also be defined from query interface columns:
-///
-/// ```swift
-/// struct Book: TableRecord {
-///     enum Columns {
-///         static let authorId = Column("authorId")
-///         static let translatorId = Column("translatorId")
-///     }
-///
-///     static let authorForeignKey = ForeignKey([Columns.authorId]))
-///     static let translatorForeignKey = ForeignKey([Columns.translatorId]))
 /// }
 /// ```
 ///

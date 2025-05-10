@@ -796,18 +796,31 @@ extension TableRecord {
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS

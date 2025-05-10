@@ -29,8 +29,14 @@
 ///     SQL("DATE(\(value))").sqlExpression
 /// }
 ///
+/// struct Player: TableRecord {
+///     enum Columns {
+///         static let createdAt = Column("createdAt")
+///     }
+/// }
+///
 /// // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-/// let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+/// let request = Player.filter { date($0.createdAt) == "2020-01-23" }
 /// ```
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_expr.html>
@@ -2286,15 +2292,21 @@ extension Sequence where Element: SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let isRegistered = Column("isRegistered")
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
-    /// // WHERE (registered
+    /// // WHERE (isRegistered
     /// //        AND (score >= 1000)
     /// //        AND (name IS NOT NULL))
-    /// let conditions = [
-    ///     Column("registered"),
-    ///     Column("score") >= 1000,
-    ///     Column("name") != nil]
-    /// Player.filter(conditions.joined(operator: .and))
+    /// Player.filter {
+    ///     [$0.isRegistered, $0.score >= 1000, $0.name != nil].joined(operator: .and)
+    /// }
     /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
@@ -2317,15 +2329,21 @@ extension Sequence where Element == any SQLSpecificExpressible {
     /// For example:
     ///
     /// ```
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let isRegistered = Column("isRegistered")
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
-    /// // WHERE (registered
+    /// // WHERE (isRegistered
     /// //        AND (score >= 1000)
     /// //        AND (name IS NOT NULL))
-    /// let conditions = [
-    ///     Column("registered"),
-    ///     Column("score") >= 1000,
-    ///     Column("name") != nil]
-    /// Player.filter(conditions.joined(operator: .and))
+    /// Player.filter {
+    ///     [$0.isRegistered, $0.score >= 1000, $0.name != nil].joined(operator: .and)
+    /// }
     /// ```
     ///
     /// When the sequence is empty, `joined(operator:)` returns the neutral
@@ -2388,9 +2406,17 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
     /// // SELECT (score + bonus) AS totalScore FROM player
-    /// let totalScore = (Column("score") * Column("bonus")).forKey("totalScore")
-    /// let request = Player.select(totalScore)
+    /// let request = Player.select {
+    ///     ($0.score * $0.bonus).forKey("totalScore")
+    /// }
     /// ```
     ///
     /// If you need to refer to the aliased column in another part of a request,
@@ -2401,7 +2427,9 @@ extension SQLSpecificExpressible {
     /// // FROM player
     /// // ORDER BY totalScore
     /// let request = Player
-    ///     .select(totalScore)
+    ///     .select {
+    ///         ($0.score * $0.bonus).forKey("totalScore")
+    ///     }
     ///     .order(Column("totalScore").detached)
     /// ```
     public func forKey(_ key: String) -> SQLSelection {
@@ -2425,9 +2453,17 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let email = Column("email")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// // WHERE email = 'contact@example.com'  COLLATE NOCASE
-    /// Player.filter(Column("email").collating(.nocase) == "contact@example.com")
+    /// Player.filter {
+    ///     $0.email.collating(.nocase) == "contact@example.com"
+    /// }
     /// ```
     public func collating(_ collation: Database.CollationName) -> SQLExpression {
         .collated(sqlExpression, collation)

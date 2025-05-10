@@ -26,10 +26,16 @@ import Foundation
 /// struct Player: FetchableRecord, TableRecord, Decodable {
 ///     var name: String
 ///     var score: Int
+///
+///     enum Columns {
+///         static let name = Column("name")
+///         static let score = Column("score")
+///     }
 /// }
 ///
 /// let players = try Player.fetchAll(db)
-/// let players = try Player.order(Column("score")).fetchAll(db)
+/// let player = try Player.filter { $0.name == "O'Brien" }.fetchOne(db)
+/// let players = try Player.order(\.score).fetchAll(db)
 /// ```
 ///
 /// ## Topics
@@ -552,20 +558,32 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchCursor(db, request)
     ///     while let player = try players.next() {
-    ///         print(player.name)
+    ///         print(player.score)
     ///     }
     /// }
     /// ```
@@ -592,15 +610,27 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchAll(db, request)
@@ -628,15 +658,27 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         SELECT * FROM player WHERE name = \(name) LIMIT 1
     ///         """
     ///
     ///     let player = try Player.fetchOne(db, request)
@@ -667,15 +709,27 @@ extension FetchableRecord where Self: Hashable {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchSet(db, request)
@@ -711,15 +765,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchCursor(db)
@@ -748,15 +814,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchAll(db)
@@ -776,15 +854,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         SELECT * FROM player WHERE name = \(name) LIMIT 1
     ///         """
     ///
     ///     let player = try request.fetchOne(db)
@@ -805,15 +895,27 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchSet(db)

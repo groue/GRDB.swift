@@ -1282,9 +1282,15 @@ public protocol OrderedRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player ORDER BY name DESC
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .reversed()
     /// ```
     ///
@@ -1298,12 +1304,16 @@ public protocol OrderedRequest {
     
     /// Returns a request without any ordering.
     ///
-    /// For example:
-    ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .unordered()
     /// ```
     func unordered() -> Self
@@ -1608,12 +1618,17 @@ extension JoinableRequest {
     /// For example, we can fetch only books whose author is French:
     ///
     /// ```swift
-    /// struct Author: TableRecord, FetchableRecord, Decodable { }
-    /// struct Book: TableRecord, FetchableRecord, Decodable {
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
     ///     static let author = belongsTo(Author.self)
     /// }
     ///
-    /// let frenchAuthors = Book.author.filter(Column("countryCode") == "FR")
+    /// let frenchAuthors = Book.author.filter { $0.countryCode == "FR" }
     /// let bookInfos = try Book.all()
     ///     .joining(required: frenchAuthors)
     ///     .fetchAll(db)
@@ -1630,9 +1645,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, TableRecord, FetchableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player LEFT JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withOptional: teamColor)
     /// ```
     ///
@@ -1682,17 +1707,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
-    /// struct Player: TableRecord { }
-    ///
     /// struct Team: TableRecord {
     ///     enum Columns {
     ///         static let color = Column("color")
     ///     }
     /// }
     ///
+    /// struct Player: Decodable, FetchableRecord, TableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player JOIN team ...
-    /// let teamColor = Player.team.select { $0.color }
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withRequired: teamColor)
     /// ```
     ///
@@ -1852,11 +1879,17 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT DISTINCT * FROM player
     /// let request = Player.all().distinct()
     ///
     /// // SELECT DISTINCT name FROM player
-    /// let request = Player.select(Column("name")).distinct()
+    /// let request = Player.select(\.name).distinct()
     /// ```
     func distinct() -> Self
     
@@ -1869,18 +1902,31 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS
