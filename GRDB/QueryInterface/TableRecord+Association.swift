@@ -339,12 +339,17 @@ extension TableRecord {
     /// - returns: An association to the common table expression.
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<Self>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
     
     /// Creates an association to a common table expression.

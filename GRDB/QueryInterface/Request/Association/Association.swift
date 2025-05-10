@@ -164,7 +164,7 @@ extension Association {
 
 // TableRequest conformance
 extension Association {
-    public func aliased(_ alias: TableAlias) -> Self {
+    public func _aliased(_ alias: TableAliasBase) -> Self {
         withDestinationRelation { relation in
             relation = relation.aliased(alias)
         }

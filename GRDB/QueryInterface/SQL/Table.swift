@@ -745,7 +745,15 @@ extension Table {
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
     /// See ``TableRequest/aliased(_:)`` for more information.
-    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<RowDecoder> {
+    public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
+        all().aliased(alias)
+    }
+
+    /// Returns a request that can be referred to with the provided alias.
+    ///
+    /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    /// See ``TableRequest/aliased(_:)`` for more information.
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
     
@@ -1331,12 +1339,17 @@ extension Table {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
 
     /// Creates an association to a common table expression.

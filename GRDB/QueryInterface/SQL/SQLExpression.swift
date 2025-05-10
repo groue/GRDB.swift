@@ -68,7 +68,7 @@ public struct SQLExpression: Sendable {
         ///
         ///     player.id
         ///     player.name
-        case qualifiedColumn(String, TableAlias)
+        case qualifiedColumn(String, TableAliasBase)
         
         /// A database value.
         ///
@@ -151,7 +151,7 @@ public struct SQLExpression: Sendable {
         /// A table full-text match.
         ///
         ///     <table> MATCH <pattern>
-        indirect case tableMatch(TableAlias, SQLExpression)
+        indirect case tableMatch(TableAliasBase, SQLExpression)
         
         /// A logical `NOT` operator.
         ///
@@ -199,7 +199,7 @@ public struct SQLExpression: Sendable {
         ///     player.id
         ///     document.rowid
         ///     country.code
-        case qualifiedFastPrimaryKey(TableAlias)
+        case qualifiedFastPrimaryKey(TableAliasBase)
         
         /// An expression that is true iff the row exists:
         ///
@@ -207,10 +207,10 @@ public struct SQLExpression: Sendable {
         /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
         /// - For views, it is true iff any column is not null.
         /// - For CTEs, it is not implemented yet.
-        case qualifiedExists(TableAlias, isNegated: Bool)
+        case qualifiedExists(TableAliasBase, isNegated: Bool)
         
         /// Returns a qualified expression
-        func qualified(with alias: TableAlias) -> Impl {
+        func qualified(with alias: TableAliasBase) -> Impl {
             switch self {
             case .databaseValue,
                  .qualifiedColumn,
@@ -642,7 +642,7 @@ extension SQLExpression {
     ///
     ///     player.id
     ///     player.name
-    static func qualifiedColumn(_ name: String, _ alias: TableAlias) -> Self {
+    static func qualifiedColumn(_ name: String, _ alias: TableAliasBase) -> Self {
         self.init(impl: .qualifiedColumn(name, alias))
     }
     
@@ -865,7 +865,7 @@ extension SQLExpression {
     /// A table full-text match.
     ///
     ///     <table> MATCH <pattern>
-    static func tableMatch(_ alias: TableAlias, _ expression: SQLExpression) -> Self {
+    static func tableMatch(_ alias: TableAliasBase, _ expression: SQLExpression) -> Self {
         self.init(impl: .tableMatch(alias, expression))
     }
     
@@ -1153,7 +1153,7 @@ extension SQLExpression {
     ///     player.id
     ///     document.rowid
     ///     country.code
-    static func qualifiedFastPrimaryKey(_ alias: TableAlias) -> Self {
+    static func qualifiedFastPrimaryKey(_ alias: TableAliasBase) -> Self {
         self.init(impl: .qualifiedFastPrimaryKey(alias))
     }
     
@@ -1163,7 +1163,7 @@ extension SQLExpression {
     /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
     /// - For views, it is true iff any column is not null.
     /// - For CTEs, it is not implemented yet.
-    static func qualifiedExists(_ alias: TableAlias) -> Self {
+    static func qualifiedExists(_ alias: TableAliasBase) -> Self {
         self.init(impl: .qualifiedExists(alias, isNegated: false))
     }
 }
@@ -1172,7 +1172,7 @@ extension SQLExpression {
 
 extension SQLExpression {
     /// Returns a qualified expression
-    func qualified(with alias: TableAlias) -> Self {
+    func qualified(with alias: TableAliasBase) -> Self {
         .init(impl: impl.qualified(with: alias), preferredJSONInterpretation: preferredJSONInterpretation)
     }
     
@@ -1217,7 +1217,7 @@ extension SQLExpression {
     /// - parameter acceptsBijection: If true, expressions that define a
     ///   bijection on a column return this column. For example: `-score`
     ///   returns `score`.
-    func column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool = false) throws -> String? {
+    func column(_ db: Database, for alias: TableAliasBase, acceptsBijection: Bool = false) throws -> String? {
         switch impl {
         case let .qualifiedColumn(name, a):
             if alias == a {
@@ -1504,7 +1504,7 @@ extension SQLExpression {
     ///
     ///     // SELECT * FROM "player" WHERE "name" = 'Arthur' LIMIT 1
     ///     try Player.filter(Column("name") == "Arthur").fetchOne(db)
-    func identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
+    func identifyingColums(_ db: Database, for alias: TableAliasBase) throws -> Set<String> {
         switch impl {
         case let .rowValue(expressions):
             assert(!expressions.isEmpty)
@@ -1572,7 +1572,7 @@ extension SQLExpression {
     ///     let request = Player.filter(keys: [1, 2, 3])
     ///     let regionObservation = DatabaseRegionObservation(tracking: request)
     ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
-    func identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
+    func identifyingRowIDs(_ db: Database, for alias: TableAliasBase) throws -> Set<Int64>? {
         switch impl {
         case let .databaseValue(dbValue):
             if dbValue.isNull || dbValue == false.databaseValue {
@@ -1979,7 +1979,7 @@ struct SQLSimpleFunctionInvocation {
         isPure && arguments.allSatisfy(\.isConstantInRequest)
     }
     
-    func qualified(with alias: TableAlias) -> Self {
+    func qualified(with alias: TableAliasBase) -> Self {
         SQLSimpleFunctionInvocation(
             name: name,
             arguments: arguments.map { $0.qualified(with: alias) },
@@ -1987,7 +1987,7 @@ struct SQLSimpleFunctionInvocation {
             isJSONValue: isJSONValue)
     }
     
-    func column(_ db: Database, for alias: TableAlias) throws -> String? {
+    func column(_ db: Database, for alias: TableAliasBase) throws -> String? {
         let name = name.uppercased()
         if ["HEX", "QUOTE"].contains(name) && arguments.count == 1 {
             return try arguments[0].column(db, for: alias, acceptsBijection: true)
@@ -2023,7 +2023,7 @@ struct SQLAggregateFunctionInvocation {
     /// A false value does not provide any information.
     var isJSONValue: Bool
     
-    func qualified(with alias: TableAlias) -> Self {
+    func qualified(with alias: TableAliasBase) -> Self {
         SQLAggregateFunctionInvocation(
             name: name,
             arguments: arguments.map { $0.qualified(with: alias) },

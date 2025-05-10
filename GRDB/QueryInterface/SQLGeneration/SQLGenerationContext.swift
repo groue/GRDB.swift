@@ -37,8 +37,8 @@ final class SQLGenerationContext {
         }
     }
     
-    private let resolvedNames: [TableAlias: String]
-    private let ownAliases: Set<TableAlias>
+    private let resolvedNames: [TableAliasBase: String]
+    private let ownAliases: Set<TableAliasBase>
     private let ownCTEs: [String: SQLCTE]
     
     /// Creates a generation context.
@@ -50,7 +50,7 @@ final class SQLGenerationContext {
     init(
         _ db: Database,
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
-        aliases: [TableAlias] = [],
+        aliases: [TableAliasBase] = [],
         ctes: OrderedDictionary<String, SQLCTE> = [:])
     {
         self.parent = .none(db: db, argumentsSink: argumentsSink)
@@ -66,7 +66,7 @@ final class SQLGenerationContext {
     /// - parameter ctes: An dictionary of available CTEs.
     private init(
         parent: SQLGenerationContext,
-        aliases: [TableAlias],
+        aliases: [TableAliasBase],
         ctes: OrderedDictionary<String, SQLCTE>)
     {
         self.parent = .context(parent)
@@ -77,7 +77,7 @@ final class SQLGenerationContext {
     
     /// Returns a generation context suitable for subqueries.
     func subqueryContext(
-        aliases: [TableAlias] = [],
+        aliases: [TableAliasBase] = [],
         ctes: OrderedDictionary<String, SQLCTE> = [:]) -> SQLGenerationContext
     {
         SQLGenerationContext(parent: self, aliases: aliases, ctes: ctes)
@@ -118,7 +118,7 @@ final class SQLGenerationContext {
     ///
     /// WHERE column == 1
     /// SELECT *
-    func qualifier(for alias: TableAlias) -> String? {
+    func qualifier(for alias: TableAliasBase) -> String? {
         if alias.hasUserName {
             return alias.identityName
         }
@@ -132,7 +132,7 @@ final class SQLGenerationContext {
     }
     
     /// WHERE <resolvedName> MATCH pattern
-    func resolvedName(for alias: TableAlias) -> String {
+    func resolvedName(for alias: TableAliasBase) -> String {
         if let name = resolvedNames[alias] {
             return name
         }
@@ -145,7 +145,7 @@ final class SQLGenerationContext {
     }
     
     /// FROM tableName <alias>
-    func aliasName(for alias: TableAlias) -> String? {
+    func aliasName(for alias: TableAliasBase) -> String? {
         let resolvedName = self.resolvedName(for: alias)
         if resolvedName != alias.tableName {
             return resolvedName
@@ -244,9 +244,9 @@ class StatementArgumentsSink {
     }
 }
 
-extension [TableAlias] {
+extension [TableAliasBase] {
     /// Resolve ambiguities in aliases' names.
-    fileprivate var resolvedNames: [TableAlias: String] {
+    fileprivate var resolvedNames: [TableAliasBase: String] {
         // It is a programmer error to reuse the same TableAlias for
         // multiple tables.
         //
@@ -262,7 +262,7 @@ extension [TableAlias] {
         }
         
         var uniqueLowercaseNames: Set<String> = []
-        var ambiguousGroups: [[TableAlias]] = []
+        var ambiguousGroups: [[TableAliasBase]] = []
         
         for (lowercaseName, group) in groups {
             if group.count > 1 {
@@ -276,7 +276,7 @@ extension [TableAlias] {
             }
         }
         
-        var resolvedNames: [TableAlias: String] = [:]
+        var resolvedNames: [TableAliasBase: String] = [:]
         for group in ambiguousGroups {
             var index = 1
             for alias in group {

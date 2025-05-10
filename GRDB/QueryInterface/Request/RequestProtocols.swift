@@ -557,7 +557,19 @@ public protocol TableRequest {
     ///     .filter(sql: "b.publishDate >= a.deathDate")
     ///     .fetchAll(db)
     /// ```
-    func aliased(_ alias: TableAlias) -> Self
+    func _aliased(_ alias: TableAliasBase) -> Self
+}
+
+extension TableRequest where Self: TypedRequest {
+    // TODO: DocC
+    public func aliased(_ alias: TableAlias<Void>) -> Self {
+        self._aliased(alias)
+    }
+    
+    // TODO: DocC
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> Self {
+        self._aliased(alias)
+    }
 }
 
 extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
@@ -1607,9 +1619,17 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let color = Column("color")
+    ///     }
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select { $0.color }
     /// let request = Player.all().annotated(withRequired: teamColor)
     /// ```
     ///
@@ -1635,9 +1655,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(required:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color])
     ///     .joining(required: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {

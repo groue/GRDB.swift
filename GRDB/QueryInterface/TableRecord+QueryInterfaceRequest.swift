@@ -749,7 +749,44 @@ extension TableRecord {
     /// ```
     ///
     /// See ``TableRequest/aliased(_:)`` for more information.
-    public static func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<Self> {
+    public static func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<Self> {
+        all().aliased(alias)
+    }
+    
+    /// Returns a request that can be referred to with the provided alias.
+    ///
+    /// Use this method when you need to refer to this table from
+    /// another request.
+    ///
+    /// For example, the request below fetches posthumous books:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let deathDate = Column("deathDate")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///
+    ///     enum Columns {
+    ///         static let publishDate = Column("publishDate")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// //            AND author.deathDate <= book.publishDate
+    /// let bookAlias = TableAlias<Book>()
+    /// let request = Book
+    ///     .aliased(bookAlias)
+    ///     .joining(required: Book.author.filter { $0.deathDate <= bookAlias.publishDate })
+    /// ```
+    ///
+    /// See ``TableRequest/aliased(_:)`` for more information.
+    public static func aliased(_ alias: TableAlias<Self>) -> QueryInterfaceRequest<Self> {
         all().aliased(alias)
     }
     

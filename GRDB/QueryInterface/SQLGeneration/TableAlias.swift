@@ -3,7 +3,7 @@
 /// See ``TableRequest/aliased(_:)`` for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-public class TableAlias: @unchecked Sendable {
+public class TableAliasBase: @unchecked Sendable {
     // This Sendable conformance is transient. TableAlias IS NOT really Sendable.
     // TODO: Make TableAlias really Sendable
     private enum Impl {
@@ -50,13 +50,13 @@ public class TableAlias: @unchecked Sendable {
         ///         .including(required: Player.team)
         ///         .filter(sql: "custom.name = 'Arthur'")
         ///         .aliased(customAlias)
-        case proxy(TableAlias)
+        case proxy(TableAliasBase)
     }
     
     private var impl: Impl
     
     /// Resolve all proxies
-    private var root: TableAlias {
+    private var root: TableAliasBase {
         if case .proxy(let base) = impl {
             return base.root
         } else {
@@ -107,7 +107,7 @@ public class TableAlias: @unchecked Sendable {
     /// let alias = TableAlias(name: "p")
     /// let request = Player.all().aliased(alias)
     /// ```
-    public init(name: String? = nil) {
+    init(name: String? = nil) {
         self.impl = .undefined(userName: name)
     }
     
@@ -115,7 +115,7 @@ public class TableAlias: @unchecked Sendable {
         self.impl = .table(tableName: tableName, userName: userName)
     }
     
-    func becomeProxy(of base: TableAlias) {
+    func becomeProxy(of base: TableAliasBase) {
         if self === base {
             return
         }
@@ -142,7 +142,7 @@ public class TableAlias: @unchecked Sendable {
     }
     
     /// Returns nil if aliases can't be merged (conflict in tables, aliases...)
-    func merged(with other: TableAlias) -> TableAlias? {
+    func merged(with other: TableAliasBase) -> TableAliasBase? {
         if self === other {
             return self
         }
@@ -198,7 +198,21 @@ public class TableAlias: @unchecked Sendable {
             base.setTableName(tableName)
         }
     }
-    
+}
+
+extension TableAliasBase: Equatable {
+    public static func == (lhs: TableAliasBase, rhs: TableAliasBase) -> Bool {
+        ObjectIdentifier(lhs.root) == ObjectIdentifier(rhs.root)
+    }
+}
+
+extension TableAliasBase: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(root))
+    }
+}
+
+extension TableAliasBase {
     /// Returns a result column that refers to the aliased table.
     public subscript(_ selectable: some SQLSelectable) -> SQLSelection {
         // TODO: test
@@ -210,14 +224,28 @@ public class TableAlias: @unchecked Sendable {
     /// For example, let's sort books by author name first, and then by title:
     ///
     /// ```swift
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///
+    ///     enum Columns {
+    ///         static let title = Column("title")
+    ///     }
+    /// }
+    ///
     /// // SELECT book.*
     /// // FROM book
     /// // JOIN author ON author.id = book.authorId
     /// // ORDER BY author.name, book.title
-    /// let authorAlias = TableAlias()
+    /// let authorAlias = TableAlias<Author>()
     /// let request = Book
     ///     .joining(required: Book.author.aliased(authorAlias))
-    ///     .order(authorAlias[Column("name")], Column("title"))
+    ///     .order { [authorAlias.name, $0.title] }
     /// ```
     public subscript(_ expression: some SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
         expression.sqlExpression.qualified(with: self)
@@ -232,20 +260,6 @@ public class TableAlias: @unchecked Sendable {
         AnySQLJSONExpressible(sqlExpression: expression.sqlExpression.qualified(with: self))
     }
     
-    /// Returns an SQL ordering term that refers to the aliased table.
-    ///
-    /// For example, let's sort books by author name first, and then by title:
-    ///
-    /// ```swift
-    /// // SELECT book.*
-    /// // FROM book
-    /// // JOIN author ON author.id = book.authorId
-    /// // ORDER BY author.name ASC, book.title ASC
-    /// let authorAlias = TableAlias()
-    /// let request = Book
-    ///     .joining(required: Book.author.aliased(authorAlias))
-    ///     .order(authorAlias[Column("name").asc], Column("title").asc)
-    /// ```
     public subscript(_ ordering: some SQLOrderingTerm) -> SQLOrdering {
         ordering.sqlOrdering.qualified(with: self)
     }
@@ -267,7 +281,58 @@ public class TableAlias: @unchecked Sendable {
     public subscript(_ column: String) -> SQLExpression {
         .qualifiedColumn(column, self)
     }
+}
+
+// MARK: - TableAlias
+
+@dynamicMemberLookup
+public final class TableAlias<RowDecoder>: TableAliasBase, @unchecked Sendable {
+    init(tableName: String, userName: String? = nil)
+    where RowDecoder == Void
+    {
+        super.init(tableName: tableName, userName: userName)
+    }
     
+    init(root: TableAliasBase) {
+        super.init()
+        becomeProxy(of: root)
+    }
+    
+    /// Creates a TableAlias.
+    ///
+    /// When the alias is given a name, this name is guaranteed to be used as
+    /// the table alias in the SQL query:
+    ///
+    /// ```swift
+    /// // SELECT p.* FROM player p
+    /// let alias = TableAlias(name: "p")
+    /// let request = Player.all().aliased(alias)
+    /// ```
+    public init(name: String? = nil)
+    where RowDecoder == Void
+    {
+        super.init(name: name)
+    }
+    
+    /// Creates a TableAlias for the specified record type.
+    ///
+    /// When the alias is given a name, this name is guaranteed to be used as
+    /// the table alias in the SQL query:
+    ///
+    /// ```swift
+    /// // SELECT p.* FROM player p
+    /// let alias = TableAlias<Player>(name: "p")
+    /// let request = Player.all().aliased(alias)
+    /// ```
+    public init(
+        name: String? = nil,
+        for record: RowDecoder.Type = RowDecoder.self
+    ) {
+        super.init(name: name)
+    }
+}
+
+extension TableAlias {
     /// A boolean SQL expression indicating whether this alias refers to some
     /// rows, or not.
     ///
@@ -281,7 +346,7 @@ public class TableAlias: @unchecked Sendable {
     /// }
     ///
     /// try dbQueue.read { db in
-    ///     let authorAlias = TableAlias()
+    ///     let authorAlias = TableAlias<Author>()
     ///     let request = Book
     ///         .joining(optional: Book.author.aliased(authorAlias))
     ///         .filter(!authorAlias.exists)
@@ -293,14 +358,69 @@ public class TableAlias: @unchecked Sendable {
     }
 }
 
-extension TableAlias: Equatable {
-    public static func == (lhs: TableAlias, rhs: TableAlias) -> Bool {
-        ObjectIdentifier(lhs.root) == ObjectIdentifier(rhs.root)
+extension TableAlias where RowDecoder: TableRecord {
+    /// Returns a result column that refers to the aliased table.
+    public subscript<T>(
+        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+    ) -> SQLSelection
+    where T: SQLSelectable
+    {
+        self[RowDecoder.columns[keyPath: keyPath]]
     }
-}
-
-extension TableAlias: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(root))
+    
+    /// Returns an SQL expression that refers to the aliased table.
+    ///
+    /// For example, let's sort books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///
+    ///     enum Columns {
+    ///         static let title = Column("title")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias<Author>()
+    /// let request = Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order { [authorAlias.name, $0.title] }
+    /// ```
+    public subscript<T>(
+        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+    ) -> SQLExpression
+    where T: SQLSpecificExpressible &
+    SQLSelectable &
+    SQLOrderingTerm
+    {
+        self[RowDecoder.columns[keyPath: keyPath]]
+    }
+    
+    public subscript<T>(
+        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+    ) -> AnySQLJSONExpressible
+    where T: SQLJSONExpressible &
+    SQLSpecificExpressible &
+    SQLSelectable &
+    SQLOrderingTerm
+    {
+        self[RowDecoder.columns[keyPath: keyPath]]
+    }
+    
+    public subscript<T>(
+        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+    ) -> SQLOrdering
+    where T: SQLOrderingTerm {
+        self[RowDecoder.columns[keyPath: keyPath]]
     }
 }

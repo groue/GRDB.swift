@@ -385,12 +385,18 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible
+    )
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
     
     /// Creates an association to a common table expression that you can join
@@ -421,13 +427,18 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Destination.Type,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
         JoinAssociation(
             to: Destination.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
     
     /// Creates an association to a table record that you can join
@@ -458,12 +469,17 @@ extension CommonTableExpression {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Table<Destination>,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             to: destination.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
     
     /// Creates an association to a table that you can join

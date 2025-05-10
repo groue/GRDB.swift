@@ -24,13 +24,13 @@ public struct SQLSelection: Sendable {
         case allColumns
         
         /// All columns, qualified: `player.*`
-        case qualifiedAllColumns(TableAlias)
+        case qualifiedAllColumns(TableAliasBase)
         
         /// All columns but the specified ones
         case allColumnsExcluding(Set<CaseInsensitiveIdentifier>)
         
         /// All columns but the specified ones, qualified.
-        case qualifiedAllColumnsExcluding(TableAlias, Set<CaseInsensitiveIdentifier>)
+        case qualifiedAllColumnsExcluding(TableAliasBase, Set<CaseInsensitiveIdentifier>)
 
         /// An expression
         case expression(SQLExpression)
@@ -53,13 +53,13 @@ public struct SQLSelection: Sendable {
     }
     
     /// All columns, qualified: `player.*`
-    static func qualifiedAllColumns(_ alias: TableAlias) -> Self {
+    static func qualifiedAllColumns(_ alias: TableAliasBase) -> Self {
         self.init(impl: .qualifiedAllColumns(alias))
     }
     
     /// All columns but the specified ones, qualified.
     static func qualifiedAllColumnsExcluding(
-        _ alias: TableAlias,
+        _ alias: TableAliasBase,
         _ excludedColumns: Set<CaseInsensitiveIdentifier>
     ) -> Self {
         self.init(impl: .qualifiedAllColumnsExcluding(alias, excludedColumns))
@@ -261,7 +261,7 @@ extension SQLSelection {
     }
     
     /// Returns a qualified selection
-    func qualified(with alias: TableAlias) -> SQLSelection {
+    func qualified(with alias: TableAliasBase) -> SQLSelection {
         switch impl {
         case .qualifiedAllColumns, .qualifiedAllColumnsExcluding:
             return self

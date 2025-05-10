@@ -493,7 +493,7 @@ extension QueryInterfaceRequest: TableRequest {
         relation.source.tableName
     }
     
-    public func aliased(_ alias: TableAlias) -> Self {
+    public func _aliased(_ alias: TableAliasBase) -> Self {
         with {
             $0.relation = $0.relation.aliased(alias)
         }
