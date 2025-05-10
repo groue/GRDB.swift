@@ -1784,20 +1784,38 @@ That is because the "deathDate" column has been used for filtering books, when i
 To fix this error, we need a **table alias**:
 
 ```swift
+// Swift 6.1 (recommended)
+let authorAlias = TableAlias<Author>()
+
+// Swift 6.0
 let authorAlias = TableAlias()
 ```
 
 We modify the `Book.author` association so that it uses this table alias, and we use the table alias to qualify author columns where needed:
 
 ```swift
-// SELECT book.*
-// FROM book
-// JOIN person ON person.id = book.authorId
-// WHERE book.publishDate >= person.deathDate
+// Swift 6.1
+//
+// > SELECT book.*
+// > FROM book
+// > JOIN person ON person.id = book.authorId
+// > WHERE book.publishDate >= person.deathDate
+let request = Book
+    .joining(required: Book.author.aliased(authorAlias))
+    .filter { $0.publishDate >= authorAlias.deathDate }
+
+// Swift 6.0
+//
+// > SELECT book.*
+// > FROM book
+// > JOIN person ON person.id = book.authorId
+// > WHERE book.publishDate >= person.deathDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
     .filter { $0.publishDate >= authorAlias[Column("deathDate")] }
 ```
+
+From now on, we will only give examples in Swift 6.1.
 
 **Table aliases** can also improve control over the ordering of request results. In the example below, we override the [default ordering](#sorting-associations) of associated records by sorting on author names first:
 
@@ -1808,7 +1826,7 @@ let request = Book
 // ORDER BY person.name, book.publishDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
-    .order { [authorAlias[Column("name")], $0.publishDate] }
+    .order { [authorAlias.name, $0.publishDate] }
 ```
 
 **Table aliases** can be given a name. This name is guaranteed to be used as the table alias in the SQL query. This guarantee lets you write SQL snippets when you need it:
@@ -1819,8 +1837,8 @@ let request = Book
 // JOIN person a ON a.id = b.authorId
 //              AND a.countryCode = 'FR'
 // WHERE b.publishDate >= a.deathDate
-let bookAlias = TableAlias(name: "b")
-let authorAlias = TableAlias(name: "a")
+let bookAlias = TableAlias<Book>(name: "b")
+let authorAlias = TableAlias<Person>(name: "a")
 let request = Book.aliased(bookAlias)
     .joining(required: Book.author.aliased(authorAlias)
         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
@@ -1840,11 +1858,11 @@ let request = Book.aliased(bookAlias)
 > 
 > ```swift
 > // NOT IMPLEMENTED: loading all authors along with their posthumous books
-> let authorAlias = TableAlias()
+> let authorAlias = TableAlias<Author>()
 > let request = Author
 >     .aliased(authorAlias)
 >     .including(all: Author.books
->         .filter { $0.publishDate >= authorAlias[Column("deathDate")] })    
+>         .filter { $0.publishDate >= authorAlias.deathDate })    
 > ```
 
 
@@ -1919,11 +1937,11 @@ extension DerivableRequest<Book> {
     
     /// Order books by author name and then book title
     func orderedByAuthorNameAndYear() -> Self {
-        let authorAlias = TableAlias()
+        let authorAlias = TableAlias<Author>()
         return self
             .joining(optional: Book.author.aliased(authorAlias))
             .order { [
-                authorAlias[Column("name")].collating(.localizedCaseInsensitiveCompare),
+                authorAlias.name.collating(.localizedCaseInsensitiveCompare),
                 $0.year,
             ] }
     }
@@ -2885,11 +2903,11 @@ See [Recommended Practices for Designing Record Types] for more information.
 
     ```swift
     // NOT IMPLEMENTED: loading all authors along with their posthumous books
-    let authorAlias = TableAlias()
+    let authorAlias = TableAlias<Author>()
     let request = Author
         .aliased(authorAlias)
         .including(all: Author.books
-            .filter { $0.publishDate >= authorAlias[Column("deathDate")] })    
+            .filter { $0.publishDate >= authorAlias.deathDate })    
     ```
 
 - **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:

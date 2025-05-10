@@ -3867,8 +3867,8 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     //
     //  SELECT * FROM team
     //  WHERE EXISTS (SELECT * FROM player WHERE teamId = team.id)
-    let teamAlias = TableAlias()
-    let player = Player.filter { $0.teamId == teamAlias[Column("id")] }
+    let teamAlias = TableAlias<Team>()
+    let player = Player.filter { $0.teamId == teamAlias.id }
     let teams = Team.aliased(teamAlias).filter(player.exists())
     
     // Teams that have no player
@@ -3887,8 +3887,8 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     //
     //  SELECT coach.* FROM player coach
     //  WHERE EXISTS (SELECT * FROM player WHERE coachId = coach.id)
-    let coachAlias = TableAlias(name: "coach")
-    let coachedPlayer = Player.filter { ($0.coachId == coachAlias[Column("id")]) }
+    let coachAlias = TableAlias<Player>(name: "coach")
+    let coachedPlayer = Player.filter { $0.coachId == coachAlias.id }
     let coaches = Player.aliased(coachAlias).filter(coachedPlayer.exists())
     ```
     
@@ -5603,7 +5603,7 @@ let books: [Book] = try dbQueue.read { db in
     // SELECT book.* FROM book
     // LEFT JOIN author ON author.id = book.authorID
     // WHERE author.id IS NULL
-    let authorAlias = TableAlias()
+    let authorAlias = TableAlias<Author>()
     let request = Book
         .joining(optional: Book.author.aliased(authorAlias))
         .filter(!authorAlias.exists)
