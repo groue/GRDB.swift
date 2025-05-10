@@ -1812,7 +1812,7 @@ let request = Book
 // > WHERE book.publishDate >= person.deathDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
-    .filter { $0.publishDate >= authorAlias[Column("deathDate")] }
+    .filter { $0.publishDate >= authorAlias.deathDate }
 ```
 
 From now on, we will only give examples in Swift 6.1.

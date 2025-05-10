@@ -43,7 +43,7 @@
 ///     // Fetch all country codes
 ///     // SELECT DISTINCT address ->> 'countryCode' FROM player
 ///     let countryCodes: [String] = try Player
-///         .select(Player.Columns.address["countryCode"], as: String.self)
+///         .select({ $0.address["countryCode"] }, as: String.self)
 ///         .distinct()
 ///         .fetchAll(db)
 /// }
@@ -70,7 +70,7 @@
 /// >     // Fetch all country codes
 /// >     // SELECT DISTINCT address ->> 'countryCode' FROM player
 /// >     let countryCodes: [String] = try Player
-/// >         .select(Player.Columns.address.asJSON["countryCode"], as: String.self)
+/// >         .select({ $0.address.asJSON["countryCode"] }, as: String.self)
 /// >         .distinct()
 /// >         .fetchAll(db)
 /// > }

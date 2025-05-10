@@ -135,12 +135,16 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = Column("info").asJSON
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = Column("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info ->> 'firstName' FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info["firstName"], as: String.self)
+    ///     .select({ $0.info.asJSON["firstName"] }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///

@@ -592,10 +592,10 @@ extension TableRequest where Self: TypedRequest {
     /// // FROM book
     /// // JOIN author ON author.id = book.authorId
     /// // WHERE book.publishDate >= author.deathDate
-    /// let authorAlias = TableAlias()
+    /// let authorAlias = TableAlias<Author>()
     /// let posthumousBooks = try Book
     ///     .joining(required: Book.author.aliased(authorAlias))
-    ///     .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    ///     .filter { $0.publishDate >= authorAlias.deathDate }
     ///     .fetchAll(db)
     /// ```
     ///
@@ -606,10 +606,10 @@ extension TableRequest where Self: TypedRequest {
     /// // FROM book
     /// // JOIN author ON author.id = book.authorId
     /// // ORDER BY author.name, book.title
-    /// let authorAlias = TableAlias()
+    /// let authorAlias = TableAlias<Author>()
     /// let books = try Book
     ///     .joining(required: Book.author.aliased(authorAlias))
-    ///     .order(authorAlias[Column("name")], Column("title"))
+    ///     .order { [authorAlias.name, $0.title] }
     ///     .fetchAll(db)
     /// ```
     ///
@@ -1658,9 +1658,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(optional:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color)
     ///     .joining(optional: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {

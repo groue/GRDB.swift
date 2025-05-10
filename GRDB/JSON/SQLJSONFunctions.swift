@@ -378,14 +378,21 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSON_GROUP_ARRAY(name) FROM player
-    /// Player.select(Database.jsonGroupArray(Column("name")))
+    /// Player.select { Database.jsonGroupArray($0.name) }
     ///
     /// // SELECT JSON_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonGroupArray(Column("name"), filter: Column("score") > 0))
+    /// Player.select { Database.jsonGroupArray($0.name, filter: $0.score > 0) }
     ///
     /// // SELECT JSON_GROUP_ARRAY(name ORDER BY name) FROM player
-    /// Player.select(Database.jsonGroupArray(Column("name"), orderBy: Column("name")))
+    /// Player.select { Database.jsonGroupArray($0.name, orderBy: $0.name) }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
@@ -407,16 +414,27 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSON_GROUP_OBJECT(name, score) FROM player
-    /// Player.select(Database.jsonGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score")))
+    /// Player.select {
+    ///     Database.jsonGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score)
+    /// }
     ///
     /// // SELECT JSON_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score"),
-    ///     filter: Column("score") > 0))
+    /// Player.select {
+    ///     Database.jsonGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score,
+    ///         filter: $0.score > 0)
+    /// }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
@@ -698,14 +716,21 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSONB_GROUP_ARRAY(name) FROM player
-    /// Player.select(Database.jsonbGroupArray(Column("name")))
+    /// Player.select { Database.jsonbGroupArray($0.name) }
     ///
     /// // SELECT JSONB_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonbGroupArray(Column("name"), filter: Column("score") > 0))
+    /// Player.select { Database.jsonbGroupArray($0.name, filter: $0.score > 0) }
     ///
     /// // SELECT JSONB_GROUP_ARRAY(name ORDER BY name) FROM player
-    /// Player.select(Database.jsonbGroupArray(Column("name"), orderBy: Column("name")))
+    /// Player.select { Database.jsonbGroupArray($0.name, orderBy: $0.name) }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
@@ -727,16 +752,27 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSONB_GROUP_OBJECT(name, score) FROM player
-    /// Player.select(Database.jsonbGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score")))
+    /// Player.select {
+    ///     Database.jsonbGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score)
+    /// }
     ///
     /// // SELECT JSONB_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonbGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score"),
-    ///     filter: Column("score") > 0))
+    /// Player.select {
+    ///     Database.jsonbGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score,
+    ///         filter: $0.score > 0)
+    /// }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
@@ -1125,11 +1161,18 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSON_GROUP_ARRAY(name) FROM player
-    /// Player.select(Database.jsonGroupArray(Column("name")))
+    /// Player.select { Database.jsonGroupArray($0.name) }
     ///
     /// // SELECT JSON_GROUP_ARRAY(name) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonGroupArray(Column("name"), filter: Column("score") > 0))
+    /// Player.select { Database.jsonGroupArray($0.name, filter: $0.score > 0) }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
@@ -1150,16 +1193,27 @@ extension Database {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// // SELECT JSON_GROUP_OBJECT(name, score) FROM player
-    /// Player.select(Database.jsonGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score")))
+    /// Player.select {
+    ///     Database.jsonGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score)
+    /// }
     ///
     /// // SELECT JSON_GROUP_OBJECT(name, score) FILTER (WHERE score > 0) FROM player
-    /// Player.select(Database.jsonGroupObject(
-    ///     key: Column("name"),
-    ///     value: Column("score"),
-    ///     filter: Column("score") > 0))
+    /// Player.select {
+    ///     Database.jsonGroupObject(
+    ///         key: $0.name,
+    ///         value: $0.score,
+    ///         filter: $0.score > 0)
+    /// }
     /// ```
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>

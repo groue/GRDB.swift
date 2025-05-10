@@ -31,7 +31,7 @@ The CTE request can be provided as a [query interface request]:
 // WITH playerName AS (SELECT name FROM player) ...
 let playerNameCTE = CommonTableExpression(
     named: "playerName", 
-    request: Player.select(Column("name")))
+    request: Player.select(\.name))
 ```
 
 You can feed a CTE with raw SQL as well (second and third examples use [SQL Interpolation]):
@@ -281,9 +281,15 @@ struct Chat: Codable, FetchableRecord, PersistableRecord {
 }
 
 struct Message: Codable, FetchableRecord, PersistableRecord {
-    var chatID: Int64
+    var chatId: Int64
     var date: Date
     ...
+    
+    enum Columns {
+        static let chatId = Column("chatId")
+        static let date = Column("date")
+        ...
+    }
 }
 ```
 
@@ -315,8 +321,8 @@ We start by defining the CTE request, which loads the latest messages of all cha
 ```swift
 // SELECT *, MAX(date) FROM message GROUP BY chatID
 let latestMessageRequest = Message
-    .annotated(with: max(Column("date")))
-    .group(Column("chatID"))
+    .annotated { max($0.date) }
+    .group(\.chatId)
 ```
 
 We can now define the CTE for the latest messages:
@@ -324,7 +330,7 @@ We can now define the CTE for the latest messages:
 ```swift
 // WITH latestMessage AS
 //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
-let latestMessageCTE = CommonTableExpression(
+let latestMessageCTE = CommonTableExpression<Message>(
     named: "latestMessage",
     request: latestMessageRequest)
 ```
@@ -337,9 +343,9 @@ The association from a chat to its latest message follows:
 let latestMessage = Chat.association(
     to: latestMessageCTE,
     on: { chat, latestMessage in
-        chat[Column("id")] == latestMessage[Column("chatID")]
+        chat.id == latestMessage.chatId
     })
-    .order(Column("date").desc)
+    .order(\.date.desc)
 ```
 
 The final request can now be defined:

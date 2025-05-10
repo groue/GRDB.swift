@@ -3897,7 +3897,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     ```swift
     // SELECT coach.* FROM player coach
     // WHERE EXISTS (SELECT * FROM player WHERE coachId = coach.id)
-    let coachedPlayer = SQLRequest("SELECT * FROM player WHERE coachId = \(coachAlias[Column("id")])")
+    let coachedPlayer = SQLRequest("SELECT * FROM player WHERE coachId = \(coachAlias.id)")
     let coaches = Player.aliased(coachAlias).filter(coachedPlayer.exists())
     ```
     

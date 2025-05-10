@@ -173,13 +173,20 @@ public final class DatabaseFunction: Identifiable, Sendable {
     ///     }
     ///     return int * int
     /// }
+    ///
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// let dbQueue = try DatabaseQueue()
     /// try dbQueue.read { db in
     ///     db.add(function: square)
     ///
     ///     // SELECT square(score) FROM player
     ///     let squaredScores = let Player
-    ///         .select(square(Column("score")), as: Int.self)
+    ///         .select({ square($0.score) }, as: Int.self)
     ///         .fetchAll(db)
     /// }
     /// ```
