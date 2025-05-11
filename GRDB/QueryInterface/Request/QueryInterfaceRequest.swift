@@ -57,8 +57,6 @@
 /// ### Changing The Type of Fetched Results
 ///
 /// - ``asRequest(of:)``
-/// - ``select(_:as:)-282xc``
-/// - ``select(_:as:)-3o8qw``
 /// - ``select(_:as:)-58954``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:as:)``
@@ -73,23 +71,30 @@
 /// - ``deleteAndFetchAll(_:)``
 /// - ``deleteAndFetchSet(_:)``
 /// - ``deleteAndFetchStatement(_:select:)``
-/// - ``deleteAndFetchStatement(_:selection:)``
 ///
 /// ### Batch Update
 ///
 /// - ``updateAll(_:onConflict:assignment:)``
 /// - ``updateAll(_:onConflict:assignments:)``
+/// - ``updateAndFetchCursor(_:onConflict:assignments:)``
+/// - ``updateAndFetchAll(_:onConflict:assignments:)``
+/// - ``updateAndFetchSet(_:onConflict:assignments:)``
+/// - ``updateAndFetchStatement(_:onConflict:assignments:select:)``
+/// - ``ColumnAssignment``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``deleteAndFetchStatement(_:selection:)``
+/// - ``select(_:as:)-282xc``
+/// - ``select(_:as:)-3o8qw``
 /// - ``updateAll(_:onConflict:_:)-9r4v``
 /// - ``updateAll(_:onConflict:_:)-49qg8``
-/// - ``updateAndFetchCursor(_:onConflict:assignments:)``
 /// - ``updateAndFetchCursor(_:onConflict:_:)``
-/// - ``updateAndFetchAll(_:onConflict:assignments:)``
 /// - ``updateAndFetchAll(_:onConflict:_:)``
-/// - ``updateAndFetchSet(_:onConflict:assignments:)``
 /// - ``updateAndFetchSet(_:onConflict:_:)``
-/// - ``updateAndFetchStatement(_:onConflict:assignments:select:)``
 /// - ``updateAndFetchStatement(_:onConflict:_:selection:)``
-/// - ``ColumnAssignment``
 public struct QueryInterfaceRequest<RowDecoder> {
     var relation: SQLRelation
 }

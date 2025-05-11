@@ -22,18 +22,23 @@ public protocol TypedRequest<RowDecoder> {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``annotated(with:)-4qcem``
-/// - ``annotated(with:)-6ehs4``
 /// - ``annotated(with:)-1satx``
 /// - ``annotated(with:)-6q3b``
 /// - ``annotatedWhenConnected(with:)``
-/// - ``select(_:)-30yzl``
-/// - ``select(_:)-7e2y5``
 /// - ``select(_:)-ruzy``
 /// - ``select(_:)-37j4h``
 /// - ``select(literal:)``
 /// - ``select(sql:arguments:)``
 /// - ``selectWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``annotated(with:)-4qcem``
+/// - ``annotated(with:)-6ehs4``
+/// - ``select(_:)-30yzl``
+/// - ``select(_:)-7e2y5``
 public protocol SelectionRequest {
     /// Defines the result columns.
     ///
@@ -347,12 +352,17 @@ extension SelectionRequest {
 /// ### The WHERE and JOIN ON Clauses
 ///
 /// - ``all()``
-/// - ``filter(_:)-48a4t``
 /// - ``filter(_:)-6xr3d``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``filterWhenConnected(_:)``
 /// - ``none()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``filter(_:)-48a4t``
 public protocol FilteredRequest {
     /// Filters the fetched rows with a boolean SQL expression.
     ///
@@ -478,7 +488,6 @@ extension FilteredRequest {
 /// ### Instance Methods
 ///
 /// - ``aliased(_:)-3k5h4``
-/// - ``aliased(_:)-772vb``
 /// - ``TableAlias``
 ///
 /// ### The WHERE Clause
@@ -499,6 +508,12 @@ extension FilteredRequest {
 /// ### The ORDER BY Clause
 ///
 /// - ``orderByPrimaryKey()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-772vb``
 public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
@@ -508,7 +523,8 @@ public protocol TableRequest {
 }
 
 extension TableRequest where Self: TypedRequest {
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// Use this method when you need to refer to this request from
     /// another request.
@@ -567,7 +583,8 @@ extension TableRequest where Self: TypedRequest {
         self._aliased(alias)
     }
     
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
     ///
     /// Use this method when you need to refer to this request from
     /// another request.
@@ -622,8 +639,8 @@ extension TableRequest where Self: TypedRequest {
     /// // JOIN author a ON a.id = b.authorId
     /// //              AND a.countryCode = 'FR'
     /// // WHERE b.publishDate >= a.deathDate
-    /// let bookAlias = TableAlias(name: "b")
-    /// let authorAlias = TableAlias(name: "a")
+    /// let bookAlias = TableAlias<Book>(name: "b")
+    /// let authorAlias = TableAlias<Author>(name: "a")
     /// let posthumousFrenchBooks = try Book.aliased(bookAlias)
     ///     .joining(required: Book.author.aliased(authorAlias)
     ///         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
@@ -953,8 +970,6 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// ### The GROUP BY Clause
 ///
-/// - ``group(_:)-edak``
-/// - ``group(_:)-4216o``
 /// - ``group(_:)-2g7br``
 /// - ``group(_:)-s6lb``
 /// - ``group(literal:)``
@@ -963,11 +978,18 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// ### The HAVING Clause
 ///
-/// - ``having(_:)-2ssg9``
 /// - ``having(_:)-2oggh``
 /// - ``having(literal:)``
 /// - ``having(sql:arguments:)``
 /// - ``havingWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``group(_:)-edak``
+/// - ``group(_:)-4216o``
+/// - ``having(_:)-2ssg9``
 public protocol AggregatingRequest {
     /// Returns an aggregate request grouped on the given SQL expressions.
     ///
@@ -1235,8 +1257,6 @@ extension AggregatingRequest {
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``order(_:)-63rzl``
-/// - ``order(_:)-6co0m``
 /// - ``order(_:)-9d0hr``
 /// - ``order(_:)-35kv9``
 /// - ``order(literal:)``
@@ -1245,6 +1265,13 @@ extension AggregatingRequest {
 /// - ``reversed()``
 /// - ``unordered()``
 /// - ``withStableOrder()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``order(_:)-63rzl``
+/// - ``order(_:)-6co0m``
 public protocol OrderedRequest {
     /// Sorts the fetched rows according to the given SQL ordering terms.
     ///
@@ -1777,7 +1804,6 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### Instance Methods
 ///
 /// - ``TableRequest/aliased(_:)-3k5h4``
-/// - ``TableRequest/aliased(_:)-772vb``
 /// - ``TableAlias``
 ///
 /// ### The WITH Clause
@@ -1786,14 +1812,10 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``SelectionRequest/annotated(with:)-4qcem``
-/// - ``SelectionRequest/annotated(with:)-6ehs4``
 /// - ``SelectionRequest/annotated(with:)-1satx``
 /// - ``SelectionRequest/annotated(with:)-6q3b``
 /// - ``SelectionRequest/annotatedWhenConnected(with:)``
 /// - ``distinct()``
-/// - ``SelectionRequest/select(_:)-30yzl``
-/// - ``SelectionRequest/select(_:)-7e2y5``
 /// - ``SelectionRequest/select(_:)-ruzy``
 /// - ``SelectionRequest/select(_:)-37j4h``
 /// - ``SelectionRequest/select(literal:)``
@@ -1803,7 +1825,6 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### The WHERE Clause
 ///
 /// - ``FilteredRequest/all()``
-/// - ``FilteredRequest/filter(_:)-48a4t``
 /// - ``FilteredRequest/filter(_:)-6xr3d``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
@@ -1820,15 +1841,12 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The GROUP BY and HAVING Clauses
 ///
-/// - ``AggregatingRequest/group(_:)-edak``
-/// - ``AggregatingRequest/group(_:)-4216o``
 /// - ``AggregatingRequest/group(_:)-2g7br``
 /// - ``AggregatingRequest/group(_:)-s6lb``
 /// - ``AggregatingRequest/group(literal:)``
 /// - ``AggregatingRequest/group(sql:arguments:)``
 /// - ``TableRequest/groupByPrimaryKey()``
 /// - ``AggregatingRequest/groupWhenConnected(_:)``
-/// - ``AggregatingRequest/having(_:)-2ssg9``
 /// - ``AggregatingRequest/having(_:)-2oggh``
 /// - ``AggregatingRequest/having(literal:)``
 /// - ``AggregatingRequest/having(sql:arguments:)``
@@ -1836,8 +1854,6 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``OrderedRequest/order(_:)-63rzl``
-/// - ``OrderedRequest/order(_:)-6co0m``
 /// - ``OrderedRequest/order(_:)-9d0hr``
 /// - ``OrderedRequest/order(_:)-35kv9``
 /// - ``OrderedRequest/order(literal:)``
@@ -1870,6 +1886,23 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``SelectionRequest``
 /// - ``TableRequest``
 /// - ``TypedRequest``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``TableRequest/aliased(_:)-772vb``
+/// - ``SelectionRequest/annotated(with:)-4qcem``
+/// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``FilteredRequest/filter(_:)-48a4t``
+/// - ``AggregatingRequest/group(_:)-edak``
+/// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/having(_:)-2ssg9``
+/// - ``OrderedRequest/order(_:)-63rzl``
+/// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``SelectionRequest/select(_:)-30yzl``
+/// - ``SelectionRequest/select(_:)-7e2y5``
 public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredRequest,
                                               JoinableRequest, OrderedRequest,
                                               SelectionRequest, TableRequest

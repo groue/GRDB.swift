@@ -1,6 +1,6 @@
-/// A TableAlias identifies a table in a request.
+/// `TableAliasBase` is the base class of `TableAlias`.
 ///
-/// See ``TableRequest/aliased(_:)-772vb`` for more information and examples.
+/// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#table-aliases> for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 public class TableAliasBase: @unchecked Sendable {
@@ -285,6 +285,11 @@ extension TableAliasBase {
 
 // MARK: - TableAlias
 
+/// A TableAlias identifies a table in a request.
+///
+/// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#table-aliases> for more information and examples.
+///
+/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 @dynamicMemberLookup
 public final class TableAlias<RowDecoder>: TableAliasBase, @unchecked Sendable {
     init(tableName: String, userName: String? = nil)
@@ -298,7 +303,7 @@ public final class TableAlias<RowDecoder>: TableAliasBase, @unchecked Sendable {
         becomeProxy(of: root)
     }
     
-    /// Creates a TableAlias.
+    /// Creates an anonymous TableAlias.
     ///
     /// When the alias is given a name, this name is guaranteed to be used as
     /// the table alias in the SQL query:
@@ -308,6 +313,10 @@ public final class TableAlias<RowDecoder>: TableAliasBase, @unchecked Sendable {
     /// let alias = TableAlias(name: "p")
     /// let request = Player.all().aliased(alias)
     /// ```
+    ///
+    /// Anonymous aliases do not provide convenience access to table
+    /// columns, unlike record aliases. See ``TableAlias`` for
+    /// more information.
     public init(name: String? = nil)
     where RowDecoder == Void
     {

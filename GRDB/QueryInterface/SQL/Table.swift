@@ -743,17 +743,21 @@ extension Table {
         all().limit(limit, offset: offset)
     }
     
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    /// 
     /// See ``TableRequest/aliased(_:)-772vb`` for more information.
     public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
 
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    ///
     /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
     public func aliased(_ alias: TableAlias<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)

@@ -1784,11 +1784,7 @@ That is because the "deathDate" column has been used for filtering books, when i
 To fix this error, we need a **table alias**:
 
 ```swift
-// Swift 6.1 (recommended)
 let authorAlias = TableAlias<Author>()
-
-// Swift 6.0
-let authorAlias = TableAlias()
 ```
 
 We modify the `Book.author` association so that it uses this table alias, and we use the table alias to qualify author columns where needed:
@@ -1812,10 +1808,10 @@ let request = Book
 // > WHERE book.publishDate >= person.deathDate
 let request = Book
     .joining(required: Book.author.aliased(authorAlias))
-    .filter { $0.publishDate >= authorAlias.deathDate }
+    .filter { $0.publishDate >= authorAlias[Author.Columns.deathDate] }
 ```
 
-From now on, we will only give examples in Swift 6.1.
+Note that Swift 6.1 is required for the short syntac `alias.column`. From now on, we will only give examples in Swift 6.1.
 
 **Table aliases** can also improve control over the ordering of request results. In the example below, we override the [default ordering](#sorting-associations) of associated records by sorting on author names first:
 

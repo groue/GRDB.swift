@@ -51,8 +51,6 @@ import Foundation
 ///
 /// - ``updateAll(_:onConflict:assignment:)``
 /// - ``updateAll(_:onConflict:assignments:)``
-/// - ``updateAll(_:onConflict:_:)-7vv9x``
-/// - ``updateAll(_:onConflict:_:)-7atfw``
 ///
 /// ### Building Query Interface Requests
 ///
@@ -60,17 +58,13 @@ import Foundation
 /// ``QueryInterfaceRequest`` methods as static methods on the type itself.
 ///
 /// - ``aliased(_:)-sdcd``
-/// - ``aliased(_:)-py77``
 /// - ``all()``
-/// - ``annotated(with:)-3zi1n``
 /// - ``annotated(with:)-4xoen``
 /// - ``annotated(with:)-8ce7u``
-/// - ``annotated(with:)-79389``
 /// - ``annotated(with:)-3szhm``
 /// - ``annotated(with:)-590fy``
 /// - ``annotated(withOptional:)``
 /// - ``annotated(withRequired:)``
-/// - ``filter(_:)-5u85w``
 /// - ``filter(_:)-67o9b``
 /// - ``filter(id:)``
 /// - ``filter(ids:)``
@@ -90,20 +84,14 @@ import Foundation
 /// - ``matching(_:)-22m4o``
 /// - ``matching(_:)-1t8ph``
 /// - ``none()``
-/// - ``order(_:)-9rc11``
-/// - ``order(_:)-2033k``
 /// - ``order(_:)-ij38``
 /// - ``order(_:)-9dxfg``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderByPrimaryKey()``
 /// - ``request(for:)``
-/// - ``select(_:)-1gvtj``
-/// - ``select(_:)-5oylt``
 /// - ``select(_:)-8p7il``
 /// - ``select(_:)-31bbg``
-/// - ``select(_:as:)-1puz3``
-/// - ``select(_:as:)-tjh0``
 /// - ``select(_:as:)-2slxh``
 /// - ``select(literal:)``
 /// - ``select(literal:as:)``
@@ -128,6 +116,24 @@ import Foundation
 /// - ``hasOne(_:key:using:)-4g9tm``
 /// - ``hasOne(_:key:using:)-4v5xa``
 /// - ``hasOne(_:through:using:key:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-py77``
+/// - ``annotated(with:)-3zi1n``
+/// - ``annotated(with:)-79389``
+/// - ``filter(_:)-5u85w``
+/// - ``order(_:)-9rc11``
+/// - ``order(_:)-2033k``
+/// - ``select(_:)-1gvtj``
+/// - ``select(_:)-5oylt``
+/// - ``select(_:as:)-1puz3``
+/// - ``select(_:as:)-tjh0``
+/// - ``updateAll(_:onConflict:_:)-7vv9x``
+/// - ``updateAll(_:onConflict:_:)-7atfw``
 public protocol TableRecord {
     /// A type that defines columns.
     ///
