@@ -121,7 +121,26 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
         }
     }
-
+    
+    #if compiler(>=6.1)
+    func testAggregateWithGroup_swift61() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .select(\.name)
+                .annotated(with: Team.players.count)
+                .group(\.name)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team"."name", COUNT(DISTINCT "player"."id") AS "playerCount" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."name"
+                """)
+        }
+    }
+    #endif
+    
     func testAnnotatedWithHasManyDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in

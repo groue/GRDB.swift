@@ -939,7 +939,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String
 }
 let bookInfos = try Book
-    .annotated(withRequired: Book.author.select { $0.country })
+    .annotated(withRequired: Book.author.select(\.country)
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1000,7 +1000,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String?
 }
 let bookInfos = try Book
-    .annotated(withOptional: Book.author.select { $0.country })
+    .annotated(withOptional: Book.author.select(\.country))
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1083,7 +1083,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 }
 let authorInfos = try Author
     .including(all: Author.books
-        .select { $0.title }
+        .select(\.title)
         .forKey("bookTitles"))
     .asRequest(of: AuthorInfo.self)
     .fetchAll(db)
@@ -1350,7 +1350,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     
     let authorInfos = try Author
         .including(all: Author.books
-            .select { $0.title }
+            .select(\.title)
             .forKey("bookTitles"))
         .asRequest(of: AuthorInfo.self)
         .fetchAll(db)
@@ -1677,7 +1677,7 @@ Associations support more refinements:
     }
     
     let distinctBookKinds = Author.books
-        .select { $0.kind }
+        .select(\.kind)
         .distinct()
         .forKey("bookKinds")
     

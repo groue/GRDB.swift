@@ -3302,7 +3302,7 @@ So don't miss the [SQL API](#sqlite-api).
 **The query interface requests** let you fetch values from the database:
 
 ```swift
-let request = Player.filter { $0.email != nil }.order { $0.name }
+let request = Player.filter { $0.email != nil }.order(\.name)
 let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
@@ -3837,7 +3837,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     
     ```swift
     // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
-    let selectedPlayerIds = PlayerSelection.select { $0.playerId }
+    let selectedPlayerIds = PlayerSelection.select(\.playerId)
     Player.filter { selectedPlayerIds.contains($0.id) }
     
     // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)

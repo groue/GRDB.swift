@@ -395,7 +395,7 @@ Extensions to the `DerivableRequest` protocol can not change the type of request
 extension QueryInterfaceRequest<Author> {
     // Selects authors' name
     func selectName() -> QueryInterfaceRequest<String> {
-        select { $0.name }
+        select(\.name)
     }
 }
 

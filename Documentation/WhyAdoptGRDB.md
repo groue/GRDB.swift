@@ -207,7 +207,7 @@ try player.updateChanges {
 
 // SELECT * FROM player ORDER BY score DESC LIMIT 10
 let bestPlayers: [Player] = try Player
-    .order { $0.score.desc }
+    .order(\.score.desc)
     .limit(10)
     .fetchAll(db)
 
