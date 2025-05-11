@@ -47,6 +47,7 @@ extension PersistableRecord {
         didSave(saved)
     }
     
+    // TODO: Make it possible to build assignments from $0.columnName
     /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
     /// returns the upserted record.
     ///
