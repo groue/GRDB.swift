@@ -650,8 +650,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/capitalized``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.capitalized)
+    /// let request = Player.select { $0.name.capitalized }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let capitalize =
@@ -672,8 +671,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/lowercased``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.lowercased)
+    /// let request = Player.select { $0.name.lowercased }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let lowercase =
@@ -694,8 +692,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/uppercased``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.uppercased)
+    /// let request = Player.select { $0.name.uppercased }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let uppercase =
@@ -716,8 +713,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/localizedCapitalized``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.localizedCapitalized)
+    /// let request = Player.select { $0.name.localizedCapitalized }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let localizedCapitalize =
@@ -739,8 +735,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/localizedLowercased``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.localizedLowercase)
+    /// let request = Player.select { $0.name.localizedLowercase }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let localizedLowercase =
@@ -761,8 +756,7 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/localizedUppercased``:
     ///
     /// ```swift
-    /// let nameColumn = Column("name")
-    /// let request = Player.select(nameColumn.localizedUppercase)
+    /// let request = Player.select { $0.name.localizedUppercase }
     /// let names = try String.fetchAll(dbQueue, request) // [String]
     /// ```
     public static let localizedUppercase =

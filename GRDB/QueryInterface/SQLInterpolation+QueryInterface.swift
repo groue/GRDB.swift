@@ -199,7 +199,7 @@ extension SQLInterpolation {
     
     /// Appends the request SQL (not wrapped inside parentheses).
     ///
-    ///     let subquery = Player.select(max(Column("score")))
+    ///     let subquery = Player.select { max($0.score) }
     ///     // or
     ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     ///

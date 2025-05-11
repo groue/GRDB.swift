@@ -135,12 +135,16 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = Column("info").asJSON
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = Column("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info ->> 'firstName' FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info["firstName"], as: String.self)
+    ///     .select({ $0.info.asJSON["firstName"] }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -157,18 +161,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info ->> 'firstName' FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info["firstName"], as: String.self)
+    ///     .select({ $0.info["firstName"] }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT info ->> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let address = try Player
-    ///     .select(info["address"], as: String.self)
+    ///     .select({ $0.info["address"] }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -185,18 +193,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT JSON_EXTRACT(info, '$.firstName') FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info.jsonExtract(atPath: "$.firstName"), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPath: "$.firstName") }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT JSON_EXTRACT(info, '$.address') FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let address = try Player
-    ///     .select(info.jsonExtract(atPath: "$.address"), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPath: "$.address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -212,12 +224,16 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT JSON_EXTRACT(info, '$.firstName', '$.lastName') FROM player
     /// // → '["Arthur","Miller"]'
     /// let nameComponents = try Player
-    ///     .select(info.jsonExtract(atPaths: ["$.firstName", "$.lastName"]), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPaths: ["$.firstName", "$.lastName"]) }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -235,18 +251,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info -> 'firstName' FROM player
     /// // → '"Arthur"'
     /// let name = try Player
-    ///     .select(info.jsonRepresentation(atPath: "firstName"), as: String.self)
+    ///     .select({ $0.info.jsonRepresentation(atPath: "firstName") }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT info -> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let name = try Player
-    ///     .select(info.jsonRepresentation(atPath: "address"), as: String.self)
+    ///     .select({ $0.info.jsonRepresentation(atPath: "address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -265,18 +285,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info ->> 'firstName' FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info["firstName"], as: String.self)
+    ///     .select({ $0.info["firstName"] }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT info ->> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let address = try Player
-    ///     .select(info["address"], as: String.self)
+    ///     .select({ $0.info["address"] }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -294,18 +318,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT JSON_EXTRACT(info, '$.firstName') FROM player
     /// // → 'Arthur'
     /// let firstName = try Player
-    ///     .select(info.jsonExtract(atPath: "$.firstName"), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPath: "$.firstName") }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT JSON_EXTRACT(info, '$.address') FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let address = try Player
-    ///     .select(info.jsonExtract(atPath: "$.address"), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPath: "$.address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -322,12 +350,16 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT JSON_EXTRACT(info, '$.firstName', '$.lastName') FROM player
     /// // → '["Arthur","Miller"]'
     /// let nameComponents = try Player
-    ///     .select(info.jsonExtract(atPaths: ["$.firstName", "$.lastName"]), as: String.self)
+    ///     .select({ $0.info.jsonExtract(atPaths: ["$.firstName", "$.lastName"]) }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///
@@ -346,18 +378,22 @@ extension SQLJSONExpressible {
     /// For example:
     ///
     /// ```swift
-    /// let info = JSONColumn("info")
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let info = JSONColumn("info")
+    ///     }
+    /// }
     ///
     /// // SELECT info -> 'firstName' FROM player
     /// // → '"Arthur"'
     /// let name = try Player
-    ///     .select(info.jsonRepresentation(atPath: "firstName"), as: String.self)
+    ///     .select({ $0.info.jsonRepresentation(atPath: "firstName") }, as: String.self)
     ///     .fetchOne(db)
     ///
     /// // SELECT info -> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
     /// let name = try Player
-    ///     .select(info.jsonRepresentation(atPath: "address"), as: String.self)
+    ///     .select({ $0.info.jsonRepresentation(atPath: "address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```
     ///

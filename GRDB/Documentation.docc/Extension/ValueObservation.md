@@ -214,7 +214,7 @@ Consider a scenario where you'd like to get a specific Player's row, but only wh
 let observation = ValueObservation.tracking(
     // Define the tracked database region
     // (the score column of the player with id 1)
-    region: Player.select(Column("score")).filter(id: 1),
+    region: Player.select(\.score).filter(id: 1),
     // Define what to fetch upon such change to the tracked region
     // (the player with id 1)
     fetch: { db in try Player.fetchOne(db, id: 1) }

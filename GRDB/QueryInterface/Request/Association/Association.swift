@@ -164,7 +164,7 @@ extension Association {
 
 // TableRequest conformance
 extension Association {
-    public func aliased(_ alias: TableAlias) -> Self {
+    public func _aliased(_ alias: TableAliasBase) -> Self {
         withDestinationRelation { relation in
             relation = relation.aliased(alias)
         }
@@ -305,15 +305,25 @@ extension AssociationToOne {
 ///
 /// ### Building Association Aggregates
 ///
-/// - ``average(_:)``
+/// - ``average(_:)-4n3up``
 /// - ``count``
 /// - ``isEmpty``
-/// - ``max(_:)``
-/// - ``min(_:)``
-/// - ``sum(_:)``
-/// - ``total(_:)``
+/// - ``max(_:)-1upp8``
+/// - ``min(_:)-7xc49``
+/// - ``sum(_:)-5p74s``
+/// - ``total(_:)-hudm``
 ///
 /// - ``AssociationAggregate``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``average(_:)-4bbk9``
+/// - ``max(_:)-4g5ut``
+/// - ``min(_:)-6al4w``
+/// - ``sum(_:)-6ge96``
+/// - ``total(_:)-56v8i``
 public protocol AssociationToMany: Association { }
 
 extension AssociationToMany {

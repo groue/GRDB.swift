@@ -39,7 +39,7 @@ struct SQLCollection {
 
 extension SQLCollection {
     /// Returns a qualified collection.
-    func qualified(with alias: TableAlias) -> SQLCollection {
+    func qualified(with alias: TableAliasBase) -> SQLCollection {
         switch impl {
         case .subquery,
              .table:

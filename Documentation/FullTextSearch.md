@@ -316,7 +316,7 @@ Use them in the [query interface](../README.md#the-query-interface):
 let documents = try Document.matching(pattern).fetchAll(db)
 
 // Search in a specific column:
-let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
+let documents = try Document.filter { $0.content.match(pattern) }.fetchAll(db)
 ```
 
 
@@ -565,7 +565,7 @@ Use them in the [query interface](../README.md#the-query-interface):
 let documents = try Document.matching(pattern).fetchAll(db)
 
 // Search in a specific column:
-let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
+let documents = try Document.filter { $0.content.match(pattern) }.fetchAll(db)
 ```
 
 

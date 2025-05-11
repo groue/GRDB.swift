@@ -15,6 +15,12 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     static let databaseTableName = "author"
     static let books = hasMany(Book.self)
     
+    enum Columns {
+        static let firstName = Column(CodingKeys.firstName)
+        static let lastName = Column(CodingKeys.lastName)
+        static let country = Column(CodingKeys.country)
+    }
+    
     var books: QueryInterfaceRequest<Book> { request(for: Author.books) }
 }
 
@@ -29,6 +35,10 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     #if SQLITE_ENABLE_FTS5
     static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([.rowID]))
     #endif
+    
+    enum Columns {
+        static let title = Column(CodingKeys.title)
+    }
     
     var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
 }
@@ -77,26 +87,27 @@ private var libraryMigrator: DatabaseMigrator = {
 extension DerivableRequest<Author> {
     // SelectionRequest
     func selectCountry() -> Self {
-        select(Column("country"))
+        select { $0.country }
     }
     
     // FilteredRequest
     func filter(country: String) -> Self {
-        filter(Column("country") == country)
+        filter { $0.country == country }
     }
     
     // OrderedRequest
     func orderByFullName() -> Self {
-        order(
-            Column("lastName").collating(.localizedCaseInsensitiveCompare),
-            Column("firstName").collating(.localizedCaseInsensitiveCompare))
+        order { [
+            $0.lastName.collating(.localizedCaseInsensitiveCompare),
+            $0.firstName.collating(.localizedCaseInsensitiveCompare),
+        ] }
     }
 }
 
 extension DerivableRequest<Book> {
     // OrderedRequest
     func orderByTitle() -> Self {
-        order(Column("title").collating(.localizedCaseInsensitiveCompare))
+        order { $0.title.collating(.localizedCaseInsensitiveCompare) }
     }
     
     // JoinableRequest

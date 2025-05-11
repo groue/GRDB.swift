@@ -8,11 +8,21 @@ private struct A : TableRecord {
     static let restrictedB1 = hasOne(RestrictedB1.self)
     static let restrictedB2 = hasOne(RestrictedB2.self)
     static let extendedB = hasOne(ExtendedB.self)
+    
+    enum Columns {
+        static let id = Column("id")
+    }
 }
 
 private struct B : TableRecord {
     static let a = belongsTo(A.self)
     static let databaseTableName = "b"
+    
+    enum Columns {
+        static let id = Column("id")
+        static let aid = Column("aid")
+        static let name = Column("name")
+    }
 }
 
 private struct RestrictedB1 : TableRecord {
@@ -109,6 +119,23 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON "b"."aid" = "a"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let aAlias = TableAlias<A>()
+                let request = A
+                    .aliased(aAlias)
+                    .including(required: A.b
+                        .select { [
+                            $0.name,
+                            ($0.id + aAlias.id).forKey("foo"),
+                        ] })
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id"
+                    """)
+            }
+            #endif
         }
     }
     
@@ -172,16 +199,32 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
     func testFilterAssociationInWhereClause() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let bAlias = TableAlias()
-            let request = A
-                .including(required: A.b.aliased(bAlias))
-                .filter(bAlias[Column("name")] != nil)
-            try assertEqualSQL(db, request, """
-                SELECT "a".*, "b".* \
-                FROM "a" \
-                JOIN "b" ON "b"."aid" = "a"."id" \
-                WHERE "b"."name" IS NOT NULL
-                """)
+            do {
+                let bAlias = TableAlias()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter(bAlias[Column("name")] != nil)
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #if compiler(>=6.1)
+            do {
+                let bAlias = TableAlias<B>()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter { _ in bAlias.name != nil }
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #endif
         }
     }
     
