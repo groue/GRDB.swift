@@ -1050,11 +1050,11 @@ extension QueryInterfaceRequest {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> ColumnAssignment
+        assignment: (RowDecoder.ColumnsProvider) -> ColumnAssignment
     ) throws -> Int
     where RowDecoder: TableRecord
     {
-        try updateAll(db, onConflict: conflictResolution, [assignments(RowDecoder.columns)])
+        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.columns)])
     }
     
     /// Updates matching rows, and returns the number of updated rows.
