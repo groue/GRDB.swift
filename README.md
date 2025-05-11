@@ -99,8 +99,13 @@ try dbQueue.write { db in
     try Player(id: "2", name: "Barbara", score: 1000).insert(db)
 }
 
-let players: [Player] = try dbQueue.read { db in
-    try Player.order(\.name).fetchAll(db)
+try dbQueue.read { db in
+    let player = try Player.find(db, id: "1"))
+    
+    let bestPlayers = try Player
+        .order(\.score.desc)
+        .limit(10)
+        .fetchAll(db)
 }
 ```
 
