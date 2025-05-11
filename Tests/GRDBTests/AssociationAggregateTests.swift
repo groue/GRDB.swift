@@ -7,6 +7,10 @@ private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let customPlayers = hasMany(Player.self, key: "customPlayers")
     var id: Int64
     var name: String
+    
+    enum Columns {
+        static let name = Column(CodingKeys.name)
+    }
 }
 
 private struct Player: Codable, FetchableRecord, PersistableRecord {
@@ -15,6 +19,11 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     var teamId: Int64?
     var name: String
     var score: Int
+    
+    enum Columns {
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
 }
 
 private struct Award: Codable, FetchableRecord, PersistableRecord {
@@ -100,9 +109,9 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .select(Column("name"))
+                .select { $0.name }
                 .annotated(with: Team.players.count)
-                .group(Column("name"))
+                .group { $0.name }
             
             try assertEqualSQL(db, request, """
                 SELECT "team"."name", COUNT(DISTINCT "player"."id") AS "playerCount" \
@@ -112,12 +121,31 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
         }
     }
-
+    
+    #if compiler(>=6.1)
+    func testAggregateWithGroup_swift61() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .select(\.name)
+                .annotated(with: Team.players.count)
+                .group(\.name)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team"."name", COUNT(DISTINCT "player"."id") AS "playerCount" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."name"
+                """)
+        }
+    }
+    #endif
+    
     func testAnnotatedWithHasManyDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score")))
+                .annotated(with: Team.players.average { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -235,7 +263,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.max(Column("score")))
+                .annotated(with: Team.players.max { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -268,6 +296,45 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
+    #if compiler(>=6.1)
+    func testAnnotatedWithHasManyDefaultMax_Swift61() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.max(\.score))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MAX("player"."score") AS "maxPlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 4)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].maxPlayerScore, 1000)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].maxPlayerScore, 800)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].maxPlayerScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].maxPlayerScore, 0)
+        }
+    }
+    #endif
+    
     func testAnnotatedWithHasManyDefaultMaxJoiningRequired() throws {
         // It is important to have an explicit test for this technique because
         // it is the only currently available that forces a JOIN, and we don't
@@ -277,7 +344,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.max(Column("score")))
+                .annotated(with: Team.players.max { $0.score })
                 .joining(required: Team.players) // <- the tested technique
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
@@ -312,7 +379,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.min(Column("score")))
+                .annotated(with: Team.players.min { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -349,7 +416,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.sum(Column("score")))
+                .annotated(with: Team.players.sum { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -386,7 +453,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.total(Column("score")))
+                .annotated(with: Team.players.total { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -423,10 +490,10 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score")))
+                .annotated(with: Team.players.average { $0.score })
                 .annotated(with: Team.players.count)
-                .annotated(with: Team.players.min(Column("score")), Team.players.max(Column("score")))
-                .annotated(with: Team.players.sum(Column("score")))
+                .annotated(with: Team.players.min { $0.score }, Team.players.max { $0.score })
+                .annotated(with: Team.players.sum { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -484,7 +551,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.average(Column("score")))
+                .annotated(with: Team.customPlayers.average { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -558,7 +625,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.max(Column("score")))
+                .annotated(with: Team.customPlayers.max { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -595,7 +662,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.min(Column("score")))
+                .annotated(with: Team.customPlayers.min { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -632,7 +699,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.sum(Column("score")))
+                .annotated(with: Team.customPlayers.sum { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -669,7 +736,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.total(Column("score")))
+                .annotated(with: Team.customPlayers.total { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -706,10 +773,10 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.average(Column("score")))
+                .annotated(with: Team.customPlayers.average { $0.score })
                 .annotated(with: Team.customPlayers.count)
-                .annotated(with: Team.customPlayers.min(Column("score")), Team.customPlayers.max(Column("score")))
-                .annotated(with: Team.customPlayers.sum(Column("score")))
+                .annotated(with: Team.customPlayers.min { $0.score }, Team.customPlayers.max { $0.score })
+                .annotated(with: Team.customPlayers.sum { $0.score })
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -767,11 +834,11 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score")).forKey("a1"))
+                .annotated(with: Team.players.average { $0.score }.forKey("a1"))
                 .annotated(with: Team.players.count.forKey("a2"))
-                .annotated(with: Team.players.max(Column("score")).forKey("a3"))
-                .annotated(with: Team.players.min(Column("score")).forKey("a4"))
-                .annotated(with: Team.players.sum(Column("score")).forKey("a5"))
+                .annotated(with: Team.players.max { $0.score }.forKey("a3"))
+                .annotated(with: Team.players.min { $0.score }.forKey("a4"))
+                .annotated(with: Team.players.sum { $0.score }.forKey("a5"))
             
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
@@ -791,10 +858,10 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score") * Column("score")).forKey("a1"))
-                .annotated(with: Team.players.max(Column("score") * 10).forKey("a3"))
-                .annotated(with: Team.players.min(-Column("score")).forKey("a4"))
-                .annotated(with: Team.players.sum(Column("score") * Column("score")).forKey("a5"))
+                .annotated(with: Team.players.average { $0.score * $0.score }.forKey("a1"))
+                .annotated(with: Team.players.max { $0.score * 10 }.forKey("a3"))
+                .annotated(with: Team.players.min { -$0.score }.forKey("a4"))
+                .annotated(with: Team.players.sum { $0.score * $0.score }.forKey("a5"))
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
                 AVG("player"."score" * "player"."score") AS "a1", \
@@ -817,8 +884,8 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayers").count)
-                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayers").count)
+                .annotated(with: Team.players.filter { $0.score < 500 }.forKey("lowPlayers").count)
+                .annotated(with: Team.players.filter { $0.score >= 500 }.forKey("highPlayers").count)
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -1454,7 +1521,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.min(Column("score")) ?? 0)
+                .annotated(with: Team.players.min { $0.score } ?? 0)
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -1491,7 +1558,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+                let request = Team.annotated(with: abs(Team.players.max { $0.score }))
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, ABS(MAX("player"."score")) \
                     FROM "team" \
@@ -1500,7 +1567,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: abs(Team.players.max(Column("score"))).forKey("foo"))
+                let request = Team.annotated(with: abs(Team.players.max { $0.score }).forKey("foo"))
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, ABS(MAX("player"."score")) AS "foo" \
                     FROM "team" \
@@ -1540,7 +1607,7 @@ class AssociationAggregateTests: GRDBTestCase {
         try dbQueue.read { db in
             do {
                 // This is a meaningless request, but this is enough for this test
-                let request = Team.annotated(with: length(Team.players.max(Column("score"))))
+                let request = Team.annotated(with: length(Team.players.max { $0.score }))
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, LENGTH(MAX("player"."score")) \
                     FROM "team" \
@@ -1550,7 +1617,7 @@ class AssociationAggregateTests: GRDBTestCase {
             }
             do {
                 // This is a meaningless request, but this is enough for this test
-                let request = Team.annotated(with: length(Team.players.max(Column("score"))).forKey("foo"))
+                let request = Team.annotated(with: length(Team.players.max { $0.score }).forKey("foo"))
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, LENGTH(MAX("player"."score")) AS "foo" \
                     FROM "team" \

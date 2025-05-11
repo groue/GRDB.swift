@@ -118,7 +118,7 @@ public struct SQL: Sendable {
             }
         }
         
-        fileprivate func qualified(with alias: TableAlias) -> Element {
+        fileprivate func qualified(with alias: TableAliasBase) -> Element {
             switch self {
             case .sql:
                 // A raw SQL string can't be qualified with a table alias,
@@ -192,7 +192,7 @@ public struct SQL: Sendable {
         try elements.map { try $0.sql(context) }.joined()
     }
     
-    func qualified(with alias: TableAlias) -> SQL {
+    func qualified(with alias: TableAliasBase) -> SQL {
         SQL(elements: elements.map { $0.qualified(with: alias) })
     }
 }

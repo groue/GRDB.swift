@@ -40,7 +40,7 @@ class ColumnExpressionTests: GRDBTestCase {
             
             static var testRequest: QueryInterfaceRequest<Player> {
                 // Test expression derivation
-                return filter(Columns.name != nil).order(Columns.score.desc)
+                filter { $0.name != nil }.order { $0.score.desc }
             }
         }
         
@@ -54,10 +54,10 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test rowId column identification
             try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "player(id,name,score)[1,2]")
-            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 }.databaseRegion(db).description, "player(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter { 1 == $0.id }.databaseRegion(db).description, "player(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 || $0.id == 2 }.databaseRegion(db).description, "player(id,name,score)[1,2]")
+            try XCTAssertEqual(Player.filter { [1, 2, 3].contains($0.id) }.databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
             let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
@@ -65,8 +65,7 @@ class ColumnExpressionTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
             // Test compound expression
-            let expression = Player.Columns.name == "foo"
-            let request = Player.select(expression)
+            let request = Player.select { $0.name == "foo" }
             try assertEqualSQL(db, request, "SELECT \"name\" = 'foo' FROM \"player\"")
         }
     }
@@ -102,7 +101,7 @@ class ColumnExpressionTests: GRDBTestCase {
             
             static var testRequest: QueryInterfaceRequest<Player> {
                 // Test expression derivation
-                return filter(Columns.name != nil).order(Columns.score.desc)
+                filter { $0.name != nil }.order { $0.score.desc }
             }
         }
         
@@ -116,10 +115,10 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test rowId column identification
             try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "player(id,name,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "player(id,name,score)[1,2]")
-            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 }.databaseRegion(db).description, "player(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter { 1 == $0.id }.databaseRegion(db).description, "player(id,name,score)[1]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 || $0.id == 2 }.databaseRegion(db).description, "player(id,name,score)[1,2]")
+            try XCTAssertEqual(Player.filter { [1, 2, 3].contains($0.id) }.databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
             let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
@@ -127,8 +126,7 @@ class ColumnExpressionTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
             // Test compound expression
-            let expression = Player.Columns.name == "foo"
-            let request = Player.select(expression)
+            let request = Player.select { $0.name == "foo" }
             try assertEqualSQL(db, request, "SELECT \"name\" = 'foo' FROM \"player\"")
         }
     }
@@ -158,7 +156,7 @@ class ColumnExpressionTests: GRDBTestCase {
             
             static var testRequest: QueryInterfaceRequest<Player> {
                 // Test expression derivation
-                return filter(Columns.name != nil).order(Columns.score.desc)
+                filter { $0.name != nil }.order { $0.score.desc }
             }
         }
         
@@ -172,10 +170,10 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test rowId column identification
             try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "player(full_name,id,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "player(full_name,id,score)[1]")
-            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "player(full_name,id,score)[1]")
-            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "player(full_name,id,score)[1,2]")
-            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(full_name,id,score)[1,2,3]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 }.databaseRegion(db).description, "player(full_name,id,score)[1]")
+            try XCTAssertEqual(Player.filter { 1 == $0.id }.databaseRegion(db).description, "player(full_name,id,score)[1]")
+            try XCTAssertEqual(Player.filter { $0.id == 1 || $0.id == 2 }.databaseRegion(db).description, "player(full_name,id,score)[1,2]")
+            try XCTAssertEqual(Player.filter { [1, 2, 3].contains($0.id) }.databaseRegion(db).description, "player(full_name,id,score)[1,2,3]")
             
             // Test specific column updates
             let player = try Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
@@ -183,8 +181,7 @@ class ColumnExpressionTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"full_name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
             // Test compound expression
-            let expression = Player.Columns.name == "foo"
-            let request = Player.select(expression)
+            let request = Player.select { $0.name == "foo" }
             try assertEqualSQL(db, request, "SELECT \"full_name\" = 'foo' FROM \"player\"")
         }
     }

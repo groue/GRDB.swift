@@ -332,7 +332,7 @@ let hallOfFamePublisher = ValueObservation
         
         // 2nd request
         let bestPlayers = try Player
-            .order(Column("score").desc)
+            .order(\.score.desc)
             .limit(10)
             .fetchAll(db)
         
@@ -358,7 +358,7 @@ let totalPlayerCountPublisher = ValueObservation
 // OK
 let bestPlayerPublisher = ValueObservation
     .tracking(Player
-              .order(Column("score").desc)
+              .order(\.score.desc)
               .limit(10)
               .fetchAll)
     .publisher(in: dbQueue)

@@ -8,11 +8,21 @@ private struct A : TableRecord {
     static let restrictedB1 = belongsTo(RestrictedB1.self)
     static let restrictedB2 = belongsTo(RestrictedB2.self)
     static let extendedB = belongsTo(ExtendedB.self)
+    
+    enum Columns {
+        static let id = Column("id")
+        static let bid = Column("idb")
+    }
 }
 
 private struct B : TableRecord {
     static let a = hasOne(A.self)
     static let databaseTableName = "b"
+    
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+    }
 }
 
 private struct RestrictedB1 : TableRecord {
@@ -109,6 +119,23 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let aAlias = TableAlias<A>()
+                let request = A
+                    .aliased(aAlias)
+                    .including(required: A.b
+                        .select { [
+                            $0.name,
+                            ($0.id + aAlias.id).forKey("foo")
+                        ] })
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bid"
+                    """)
+            }
+            #endif
         }
     }
     
@@ -151,6 +178,20 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let alias = TableAlias<A>()
+                let request = A
+                    .aliased(alias)
+                    .including(required: A.b
+                        .filter { [alias.id, $0.id, 42].contains($0.id) })
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
+                    """)
+            }
+            #endif
             do {
                 let request = A.including(required: A.b.filter(key: ["id": 1]))
                 try assertEqualSQL(db, request, """
@@ -184,16 +225,32 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
     func testFilterAssociationInWhereClause() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let bAlias = TableAlias()
-            let request = A
-                .including(required: A.b.aliased(bAlias))
-                .filter(bAlias[Column("name")] != nil)
-            try assertEqualSQL(db, request, """
-                SELECT "a".*, "b".* \
-                FROM "a" \
-                JOIN "b" ON "b"."id" = "a"."bid" \
-                WHERE "b"."name" IS NOT NULL
-                """)
+            do {
+                let bAlias = TableAlias()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter(bAlias[Column("name")] != nil)
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bid" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #if compiler(>=6.1)
+            do {
+                let bAlias = TableAlias<B>()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter { _ in bAlias.name != nil }
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bid" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #endif
         }
     }
     

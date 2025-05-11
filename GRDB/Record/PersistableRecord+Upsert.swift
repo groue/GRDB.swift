@@ -47,6 +47,7 @@ extension PersistableRecord {
         didSave(saved)
     }
     
+    // TODO: Make it possible to build assignments from $0.columnName
     /// Executes an `INSERT ON CONFLICT DO UPDATE RETURNING` statement, and
     /// returns the upserted record.
     ///
@@ -128,7 +129,7 @@ extension PersistableRecord {
     public func upsertAndFetch(
         _ db: Database,
         onConflict conflictTarget: [String] = [],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])? = nil)
+        doUpdate assignments: ((_ excluded: TableAlias<Self>) -> [ColumnAssignment])? = nil)
     throws -> Self
     where Self: FetchableRecord
     {
@@ -156,7 +157,7 @@ extension PersistableRecord {
         _ db: Database,
         as returnedType: T.Type,
         onConflict conflictTarget: [String] = [],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])? = nil)
+        doUpdate assignments: ((_ excluded: TableAlias<Self>) -> [ColumnAssignment])? = nil)
     throws -> T
     {
         try willSave(db)
@@ -306,7 +307,7 @@ extension PersistableRecord {
     public func upsertAndFetch(
         _ db: Database,
         onConflict conflictTarget: [String] = [],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])? = nil)
+        doUpdate assignments: ((_ excluded: TableAlias<Self>) -> [ColumnAssignment])? = nil)
     throws -> Self
     where Self: FetchableRecord
     {
@@ -335,7 +336,7 @@ extension PersistableRecord {
         _ db: Database,
         as returnedType: T.Type,
         onConflict conflictTarget: [String] = [],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])? = nil)
+        doUpdate assignments: ((_ excluded: TableAlias<Self>) -> [ColumnAssignment])? = nil)
     throws -> T
     {
         try willSave(db)
@@ -378,7 +379,7 @@ extension PersistableRecord {
     func upsertAndFetchWithCallbacks<T>(
         _ db: Database,
         onConflict conflictTarget: [String],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])?,
+        doUpdate assignments: ((_ excluded: TableAlias<Self>) -> [ColumnAssignment])?,
         selection: [any SQLSelectable],
         decode: (Row) throws -> T)
     throws -> (InsertionSuccess, T)

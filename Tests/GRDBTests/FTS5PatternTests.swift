@@ -43,9 +43,16 @@ class FTS5PatternTests: GRDBTestCase {
                 ("title:brest", 1)
             ]
             for (rawPattern, expectedCount) in validRawPatterns {
-                let pattern = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
-                let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
-                XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                do {
+                    let pattern = try FTS5Pattern(rawPattern: rawPattern, allowedColumns: ["title"])
+                    let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                }
+                do {
+                    let pattern = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
+                    let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                }
             }
         }
     }
@@ -55,6 +62,14 @@ class FTS5PatternTests: GRDBTestCase {
         dbQueue.inDatabase { db in
             let invalidRawPatterns = ["", "?!", "^", "NOT", "(", "AND", "OR", "\"", "missing:foo"]
             for rawPattern in invalidRawPatterns {
+                do {
+                    _ = try FTS5Pattern(rawPattern: rawPattern, allowedColumns: ["title"])
+                    XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")
+                } catch is DatabaseError {
+                } catch {
+                    XCTFail("Expected DatabaseError, not \(error)")
+                }
+                
                 do {
                     _ = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
                     XCTFail("Expected pattern to be invalid: \(String(reflecting: rawPattern))")

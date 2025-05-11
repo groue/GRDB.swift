@@ -42,8 +42,11 @@ final class DAO<Record: MutablePersistableRecord> {
     func upsertStatement(
         _ db: Database,
         onConflict conflictTargetColumns: [String],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])?,
-        updateCondition: ((_ existing: TableAlias, _ excluded: TableAlias) -> any SQLExpressible)? = nil,
+        doUpdate assignments: ((_ excluded: TableAlias<Record>) -> [ColumnAssignment])?,
+        updateCondition: ((
+            _ existing: TableAlias<Record>,
+            _ excluded: TableAlias<Record>
+        ) -> any SQLExpressible)? = nil,
         returning selection: [any SQLSelectable])
     throws -> Statement
     {
@@ -73,7 +76,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // that no information stored in the record is lost, unless explicitly
         // requested by the user.
         sql += " DO UPDATE SET "
-        let excluded = TableAlias(name: "excluded")
+        let excluded = TableAlias<Record>(name: "excluded")
         var assignments = assignments?(excluded) ?? []
         let lowercaseExcludedColumns = Set(primaryKey.columns.map { $0.lowercased() })
             .union(conflictTargetColumns.map { $0.lowercased() })
@@ -119,7 +122,7 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         // WHERE
-        let existing = TableAlias(name: databaseTableName)
+        let existing = TableAlias<Record>(name: databaseTableName)
         if let condition = updateCondition?(existing, excluded) {
             let context = SQLGenerationContext(db)
             sql += try " WHERE " + condition.sqlExpression.sql(context)
@@ -253,7 +256,7 @@ final class DAO<Record: MutablePersistableRecord> {
             // Make sure the selection is qualified with a table alias, so
             // that selectables such as `.allColumns(excluding:)` can query
             // the database about the database table.
-            let alias = TableAlias(tableName: databaseTableName)
+            let alias = TableAliasBase(tableName: databaseTableName)
             let context = SQLGenerationContext(db, aliases: [alias])
             var sql = sql
             var arguments = arguments

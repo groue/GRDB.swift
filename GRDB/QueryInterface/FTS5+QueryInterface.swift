@@ -22,7 +22,7 @@ extension TableRequest where Self: FilteredRequest {
         }
         let alias = TableAlias()
         let matchExpression = SQLExpression.tableMatch(alias, pattern.sqlExpression)
-        return self.aliased(alias).filter(matchExpression)
+        return self._aliased(alias).filter(matchExpression)
     }
 }
 

@@ -32,14 +32,14 @@ try dbQueue.inDatabase { db in
         CREATE TABLE place (
             id INTEGER PRIMARY KEY,
             title TEXT,
-            favorite BOOLEAN NOT NULL,
+            isFavorite BOOLEAN NOT NULL,
             latitude DOUBLE NOT NULL,
             longitude DOUBLE NOT NULL
         )
         """)
     
     try db.execute(sql: """
-        INSERT INTO place (title, favorite, latitude, longitude)
+        INSERT INTO place (title, isFavorite, latitude, longitude)
         VALUES (?, ?, ?, ?)
         """, arguments: ["Paris", true, 48.85341, 2.3488])
     let parisId = db.lastInsertedRowID
@@ -52,11 +52,11 @@ try! dbQueue.inDatabase { db in
     let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
     while let row = try rows.next() {
         let title: String = row["title"]
-        let favorite: Bool = row["favorite"]
+        let isFavorite: Bool = row["isFavorite"]
         let coordinate = CLLocationCoordinate2D(
             latitude: row["latitude"],
             longitude: row["longitude"])
-        print("Fetched", title, favorite, coordinate)
+        print("Fetched", title, isFavorite, coordinate)
     }
     
     let placeCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")! // Int
@@ -69,35 +69,43 @@ try! dbQueue.inDatabase { db in
 struct Place {
     var id: Int64?
     var title: String?
-    var favorite: Bool
+    var isFavorite: Bool
     var coordinate: CLLocationCoordinate2D
 }
 
 // Adopt FetchableRecord
 extension Place : FetchableRecord {
     init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        favorite = row["favorite"]
+        id = row[Columns.id]
+        title = row[Columns.title]
+        isFavorite = row[Columns.isFavorite]
         coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+            row[Columns.latitude],
+            row[Columns.longitude])
     }
 }
 
 // Adopt TableRecord
 extension Place : TableRecord {
     static let databaseTableName = "place"
+    
+    enum Columns {
+        static let id = Column("id")
+        static let title = Column("title")
+        static let isFavorite = Column("isFavorite")
+        static let latitude = Column("latitude")
+        static let longitude = Column("longitude")
+    }
 }
 
 // Adopt MutablePersistableRecord
 extension Place : MutablePersistableRecord {
     func encode(to container: inout PersistenceContainer) throws {
-        container["id"] = id
-        container["title"] = title
-        container["favorite"] = favorite
-        container["latitude"] = coordinate.latitude
-        container["longitude"] = coordinate.longitude
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.isFavorite] = isFavorite
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
     }
     
     mutating func didInsert(_ inserted: InsertionSuccess) {
@@ -109,13 +117,13 @@ try dbQueue.inDatabase { db in
     var berlin = Place(
         id: nil,
         title: "Berlin",
-        favorite: false,
+        isFavorite: false,
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
     
     try berlin.insert(db)
     berlin.id // some value
     
-    berlin.favorite = true
+    berlin.isFavorite = true
     try berlin.update(db)
     
     // Fetch from SQL
@@ -124,13 +132,10 @@ try dbQueue.inDatabase { db in
     
     //: Avoid SQL with the query interface:
     
-    let title = Column("title")
-    let favorite = Column("favorite")
-    
-    berlin = try Place.filter(title == "Berlin").fetchOne(db)!   // Place
+    berlin = try Place.filter { $0.title == "Berlin" }.fetchOne(db)! // Place
     let paris = try Place.fetchOne(db, key: 1)                   // Place?
     let favoritePlaces = try Place                               // [Place]
-        .filter(favorite == true)
-        .order(title)
+        .filter { $0.isFavorite == true }
+        .order { $0.title }
         .fetchAll(db)
 }

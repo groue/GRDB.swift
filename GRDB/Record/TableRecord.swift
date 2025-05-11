@@ -49,23 +49,23 @@ import Foundation
 ///
 /// ### Updating Records
 ///
-/// - ``updateAll(_:onConflict:_:)-7vv9x``
-/// - ``updateAll(_:onConflict:_:)-7atfw``
+/// - ``updateAll(_:onConflict:assignment:)``
+/// - ``updateAll(_:onConflict:assignments:)``
 ///
 /// ### Building Query Interface Requests
 ///
 /// `TableRecord` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods as static methods on the type itself.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-sdcd``
 /// - ``all()``
-/// - ``annotated(with:)-3zi1n``
 /// - ``annotated(with:)-4xoen``
 /// - ``annotated(with:)-8ce7u``
-/// - ``annotated(with:)-79389``
+/// - ``annotated(with:)-9qvhi``
+/// - ``annotated(with:)-12q5i``
 /// - ``annotated(withOptional:)``
 /// - ``annotated(withRequired:)``
-/// - ``filter(_:)``
+/// - ``filter(_:)-2l1zl``
 /// - ``filter(id:)``
 /// - ``filter(ids:)``
 /// - ``filter(key:)-9ey53``
@@ -84,16 +84,15 @@ import Foundation
 /// - ``matching(_:)-22m4o``
 /// - ``matching(_:)-1t8ph``
 /// - ``none()``
-/// - ``order(_:)-9rc11``
-/// - ``order(_:)-2033k``
+/// - ``order(_:)-4h1zh``
+/// - ``order(_:)-21efu``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderByPrimaryKey()``
 /// - ``request(for:)``
-/// - ``select(_:)-1gvtj``
-/// - ``select(_:)-5oylt``
-/// - ``select(_:as:)-1puz3``
-/// - ``select(_:as:)-tjh0``
+/// - ``select(_:)-8pytw``
+/// - ``select(_:)-3aslb``
+/// - ``select(_:as:)-9s48t``
 /// - ``select(literal:)``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
@@ -101,6 +100,9 @@ import Foundation
 /// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
+/// - ``databaseComponents``
+/// - ``Columns``
+/// - ``DatabaseComponents``
 ///
 /// ### Defining Associations
 ///
@@ -114,7 +116,87 @@ import Foundation
 /// - ``hasOne(_:key:using:)-4g9tm``
 /// - ``hasOne(_:key:using:)-4v5xa``
 /// - ``hasOne(_:through:using:key:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-py77``
+/// - ``annotated(with:)-3zi1n``
+/// - ``annotated(with:)-79389``
+/// - ``filter(_:)-5u85w``
+/// - ``order(_:)-9rc11``
+/// - ``order(_:)-2033k``
+/// - ``select(_:)-1gvtj``
+/// - ``select(_:)-5oylt``
+/// - ``select(_:as:)-1puz3``
+/// - ``select(_:as:)-tjh0``
+/// - ``updateAll(_:onConflict:_:)-7vv9x``
+/// - ``updateAll(_:onConflict:_:)-7atfw``
 public protocol TableRecord {
+    /// A type that defines columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// `Codable` types can define their columns from their coding keys:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    /// ```
+    associatedtype Columns = Never
+    
+    /// A type that provides database components to the query interface.
+    ///
+    /// By default, it is `Columns.Type`. This default definition might
+    /// change in future GRDB versions.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// Player.DatabaseComponents       // Player.Columns.Type by default
+    /// Player.databaseComponents       // Instance of Player.DatabaseComponents
+    /// Player.databaseComponents.score // A Column
+    /// let request = Player.order(\.score.desc)
+    /// ```
+    associatedtype DatabaseComponents = Columns.Type
+    
     /// The name of the database table used to build SQL queries.
     ///
     /// For example:
@@ -144,7 +226,12 @@ public protocol TableRecord {
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [Column("id"), Column("name")]
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
     ///     }
     /// }
     ///
@@ -182,6 +269,31 @@ public protocol TableRecord {
     /// > static let databaseSelection: [any SQLSelectable] = [.allColumns]
     /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
+    
+    /// The value that provides database components to the query interface.
+    ///
+    /// By default, it is `Columns.self`. This default definition might
+    /// change in future GRDB versions.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// Player.databaseComponents.score // A Column
+    /// let request = Player.order(\.score.desc)
+    /// ```
+    static var databaseComponents: DatabaseComponents { get }
 }
 
 extension TableRecord {
@@ -232,6 +344,12 @@ extension TableRecord {
     }
 }
 
+extension TableRecord where DatabaseComponents == Columns.Type {
+    public static var databaseComponents: DatabaseComponents {
+        Columns.self
+    }
+}
+
 extension TableRecord {
     
     // MARK: - Counting All
@@ -269,7 +387,12 @@ extension TableRecord {
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [Column("id"), Column("name")]
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
     ///     }
     /// }
     ///
@@ -632,6 +755,72 @@ extension TableRecord {
 // MARK: - Batch Update
 
 extension TableRecord {
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
+    throws -> Int
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(databaseComponents))
+    }
+
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignment: A closure that returns an assignment.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignment: (DatabaseComponents) -> ColumnAssignment)
+    throws -> Int
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignment(databaseComponents)])
+    }
     
     /// Updates all records, and returns the number of updated records.
     ///

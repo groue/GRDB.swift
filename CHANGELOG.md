@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.5.x` Releases - [7.5.0](#750)
 - `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
 - `7.3.x` Releases - [7.3.0](#730)
 - `7.2.x` Releases - [7.2.0](#720)
@@ -135,6 +136,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.5.0
+
+Released May 11, 2025
+
+- **New**: Make it possible to create a raw FTS5Pattern without any database connection by [@groue](https://github.com/groue) in [#1764](https://github.com/groue/GRDB.swift/pull/1764)
+- **New**: Build request with closures by [@groue](https://github.com/groue) in [#1759](https://github.com/groue/GRDB.swift/pull/1759)
 
 ## 7.4.1
 

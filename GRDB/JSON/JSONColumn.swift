@@ -28,7 +28,7 @@
 ///     enum Columns {
 ///         static let id = Column(CodingKeys.id)
 ///         static let name = Column(CodingKeys.name)
-///         static let address = JSONColumn(CodingKeys.address) // JSONColumn!
+///         static let address = JSONColumn(CodingKeys.address) // JSONColumn
 ///     }
 /// }
 ///
@@ -43,7 +43,7 @@
 ///     // Fetch all country codes
 ///     // SELECT DISTINCT address ->> 'countryCode' FROM player
 ///     let countryCodes: [String] = try Player
-///         .select(Player.Columns.address["countryCode"], as: String.self)
+///         .select({ $0.address["countryCode"] }, as: String.self)
 ///         .distinct()
 ///         .fetchAll(db)
 /// }
@@ -59,8 +59,10 @@
 /// > extension Player: FetchableRecord, PersistableRecord {
 /// >     // That's another valid way to define columns.
 /// >     // But we don't have any JSONColumn this time.
-/// >     enum Columns: String, ColumnExpression {
-/// >         case id, name, address
+/// >     enum Columns {
+/// >         static let id = Column("id")
+/// >         static let name = Column("name")
+/// >         static let address = Column("address")
 /// >     }
 /// > }
 /// >
@@ -68,7 +70,7 @@
 /// >     // Fetch all country codes
 /// >     // SELECT DISTINCT address ->> 'countryCode' FROM player
 /// >     let countryCodes: [String] = try Player
-/// >         .select(Player.Columns.address.asJSON["countryCode"], as: String.self)
+/// >         .select({ $0.address.asJSON["countryCode"] }, as: String.self)
 /// >         .distinct()
 /// >         .fetchAll(db)
 /// > }

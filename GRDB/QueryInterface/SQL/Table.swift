@@ -48,6 +48,8 @@
 ///
 /// ### Updating Rows
 ///
+/// - ``updateAll(_:onConflict:assignment:)``
+/// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-4w9b``
 /// - ``updateAll(_:onConflict:_:)-4cvap``
 ///
@@ -56,7 +58,8 @@
 /// `Table` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3135k``
+/// - ``aliased(_:)-5dkyd``
 /// - ``all()``
 /// - ``annotated(with:)-6i101``
 /// - ``annotated(with:)-6x399``
@@ -740,11 +743,23 @@ extension Table {
         all().limit(limit, offset: offset)
     }
     
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
-    /// See ``TableRequest/aliased(_:)`` for more information.
-    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<RowDecoder> {
+    ///
+    /// See ``TableRequest/aliased(_:)-772vb`` for more information.
+    public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
+        all().aliased(alias)
+    }
+
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
+    ///
+    /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    ///
+    /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
     
@@ -1330,12 +1345,17 @@ extension Table {
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping @Sendable (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
 
     /// Creates an association to a common table expression.
@@ -1889,6 +1909,77 @@ extension Table {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignment: A closure that returns an assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignment: (DatabaseComponents) -> ColumnAssignment)
+    throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.databaseComponents)])
+    }
+    
+    /// Updates all rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
+    throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
+    }
+    
+    /// Updates all rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// let playerTable = Table("player")
     ///
     /// try dbQueue.write { db in
@@ -1939,4 +2030,8 @@ extension Table {
     {
         try updateAll(db, onConflict: conflictResolution, assignments)
     }
+}
+
+extension Table where RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
 }

@@ -214,7 +214,7 @@ Consider a scenario where you'd like to get a specific Player's row, but only wh
 let observation = ValueObservation.tracking(
     // Define the tracked database region
     // (the score column of the player with id 1)
-    region: Player.select(Column("score")).filter(id: 1),
+    region: Player.select(\.score).filter(id: 1),
     // Define what to fetch upon such change to the tracked region
     // (the player with id 1)
     fetch: { db in try Player.fetchOne(db, id: 1) }
@@ -262,6 +262,10 @@ You can filter out undesired duplicate notifications with the ``removeDuplicates
 **ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
 
 When needed, you can help GRDB optimize observations and reduce database contention:
+
+> Important: **Keep your number of observations bounded.**
+>
+> In particular, do not observe independently all elements in a list. Instead, observe the whole list in a single observation.
 
 > Tip: Stop observations when possible.
 >
