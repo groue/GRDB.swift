@@ -59,7 +59,7 @@ You can feed `DatabaseRegionObservation` with any type that conforms to the ``Da
 ```swift
 // Observe the score column of the 'player' table
 let observation = DatabaseRegionObservation(
-    tracking: Player.select(Column("score")))
+    tracking: Player.select(\.score))
 
 // Observe the 'score' column of the 'player' table
 let observation = DatabaseRegionObservation(

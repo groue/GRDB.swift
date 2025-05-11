@@ -214,7 +214,7 @@ extension Book.Kind: DatabaseValueConvertible { }
 
 // Fetch all novels
 let novels = try dbQueue.read { db in
-    try Book.filter(Column("kind") == Book.Kind.novel).fetchAll(db)
+    try Book.filter { $0.kind == Book.Kind.novel }.fetchAll(db)
 }
 ```
 
@@ -330,12 +330,12 @@ try dbQueue.read { db in
     // Fetch all authors, ordered by name,
     // in a localized case-insensitive fashion
     let sortedAuthors: [Author] = try Author.all()
-        .order(Author.Columns.name.collating(.localizedCaseInsensitiveCompare))
+        .order { $0.name.collating(.localizedCaseInsensitiveCompare) }
         .fetchAll(db)
     
     // Count French authors
     let frenchAuthorCount: Int = try Author.all()
-        .filter(Author.Columns.countryCode == "FR")
+        .filter { $0.countryCode == "FR" }
         .fetchCount(db)
 }
 ```
@@ -351,13 +351,12 @@ Define those methods in extensions of the ``DerivableRequest`` protocol, as belo
 extension DerivableRequest<Author> {
     /// Order authors by name, in a localized case-insensitive fashion
     func orderByName() -> Self {
-        let name = Author.Columns.name
-        return order(name.collating(.localizedCaseInsensitiveCompare))
+        order { $0.name.collating(.localizedCaseInsensitiveCompare) }
     }
     
     /// Filters authors from a country
     func filter(countryCode: String) -> Self {
-        filter(Author.Columns.countryCode == countryCode)
+        filter { $0.countryCode == countryCode }
     }
 }
 
@@ -365,13 +364,12 @@ extension DerivableRequest<Author> {
 extension DerivableRequest<Book> {
     /// Order books by title, in a localized case-insensitive fashion
     func orderByTitle() -> Self {
-        let title = Book.Columns.title
-        return order(title.collating(.localizedCaseInsensitiveCompare))
+        order { $0.title.collating(.localizedCaseInsensitiveCompare) }
     }
     
     /// Filters books by kind
     func filter(kind: Book.Kind) -> Self {
-        filter(Book.Columns.kind == kind)
+        filter { $0.kind == kind }
     }
 }
 ```
@@ -397,7 +395,7 @@ Extensions to the `DerivableRequest` protocol can not change the type of request
 extension QueryInterfaceRequest<Author> {
     // Selects authors' name
     func selectName() -> QueryInterfaceRequest<String> {
-        select(Author.Columns.name)
+        select { $0.name }
     }
 }
 

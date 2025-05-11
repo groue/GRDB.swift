@@ -217,7 +217,12 @@ public protocol TableRecord {
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [Column("id"), Column("name")]
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
     ///     }
     /// }
     ///
@@ -372,7 +377,12 @@ extension TableRecord {
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
     ///     static var databaseSelection: [any SQLSelectable] {
-    ///         [Column("id"), Column("name")]
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
     ///     }
     /// }
     ///
