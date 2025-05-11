@@ -263,6 +263,10 @@ You can filter out undesired duplicate notifications with the ``removeDuplicates
 
 When needed, you can help GRDB optimize observations and reduce database contention:
 
+> Important: **Keep your number of observations bounded.**
+>
+> In particular, do not observe independently all elements in a list. Instead, observe the whole list in a single observation.
+
 > Tip: Stop observations when possible.
 >
 > For example, if a `UIViewController` needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`.
