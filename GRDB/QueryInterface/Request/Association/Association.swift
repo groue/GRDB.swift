@@ -305,13 +305,13 @@ extension AssociationToOne {
 ///
 /// ### Building Association Aggregates
 ///
-/// - ``average(_:)-1rl6m``
+/// - ``average(_:)-4n3up``
 /// - ``count``
 /// - ``isEmpty``
-/// - ``max(_:)-32xmj``
-/// - ``min(_:)-ulrg``
-/// - ``sum(_:)-8jd26``
-/// - ``total(_:)-9ae2u``
+/// - ``max(_:)-1upp8``
+/// - ``min(_:)-7xc49``
+/// - ``sum(_:)-5p74s``
+/// - ``total(_:)-hudm``
 ///
 /// - ``AssociationAggregate``
 ///

@@ -747,7 +747,7 @@ extension Table {
     /// anonymous alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
-    /// 
+    ///
     /// See ``TableRequest/aliased(_:)-772vb`` for more information.
     public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
@@ -1932,11 +1932,11 @@ extension Table {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignment: (RowDecoder.ColumnsProvider) -> ColumnAssignment)
+        assignment: (DatabaseComponents) -> ColumnAssignment)
     throws -> Int
     where RowDecoder: TableRecord
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.columns)])
+        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.databaseComponents)])
     }
     
     /// Updates all rows, and returns the number of updated rows.
@@ -1968,11 +1968,11 @@ extension Table {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> Int
     where RowDecoder: TableRecord
     {
-        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Updates all rows, and returns the number of updated rows.
@@ -2030,4 +2030,8 @@ extension Table {
     {
         try updateAll(db, onConflict: conflictResolution, assignments)
     }
+}
+
+extension Table where RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
 }

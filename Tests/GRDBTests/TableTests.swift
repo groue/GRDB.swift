@@ -883,7 +883,7 @@ class TableTests: GRDBTestCase {
         }
     }
     
-    func test_updateAll_ColumnsProvider() throws {
+    func test_updateAll_DatabaseComponents() throws {
         struct Player: TableRecord {
             enum Columns {
                 static let score = Column("score")

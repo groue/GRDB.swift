@@ -57,7 +57,7 @@
 /// ### Changing The Type of Fetched Results
 ///
 /// - ``asRequest(of:)``
-/// - ``select(_:as:)-58954``
+/// - ``select(_:as:)-74lsr``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:as:)``
 /// - ``selectID()``
@@ -228,7 +228,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///
     /// Any previous selection is discarded.
     public func select<T>(
-        _ selection: (RowDecoder.ColumnsProvider) -> any SQLSelectable,
+        _ selection: (DatabaseComponents) -> any SQLSelectable,
         as type: T.Type = T.self)
     -> QueryInterfaceRequest<T>
     where RowDecoder: TableRecord
@@ -591,6 +591,10 @@ extension QueryInterfaceRequest {
     }
 }
 
+extension QueryInterfaceRequest where RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+}
+
 // MARK: - Check Existence
 
 extension QueryInterfaceRequest {
@@ -698,11 +702,11 @@ extension QueryInterfaceRequest {
     /// - precondition: The result of `select` is not empty.
     public func deleteAndFetchStatement(
         _ db: Database,
-        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
-        try deleteAndFetchStatement(db, selection: select(RowDecoder.columns))
+        try deleteAndFetchStatement(db, selection: select(RowDecoder.databaseComponents))
     }
     
     /// Returns a cursor over the records deleted by a
@@ -883,11 +887,11 @@ extension QueryInterfaceRequest {
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func deleteAndFetchStatement(
         _ db: Database,
-        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
-        try deleteAndFetchStatement(db, selection: select(RowDecoder.columns))
+        try deleteAndFetchStatement(db, selection: select(RowDecoder.databaseComponents))
     }
     
     /// Returns a cursor over the records deleted by a
@@ -1055,11 +1059,11 @@ extension QueryInterfaceRequest {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignment: (RowDecoder.ColumnsProvider) -> ColumnAssignment
+        assignment: (DatabaseComponents) -> ColumnAssignment
     ) throws -> Int
     where RowDecoder: TableRecord
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.columns)])
+        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.databaseComponents)])
     }
     
     /// Updates matching rows, and returns the number of updated rows.
@@ -1090,11 +1094,11 @@ extension QueryInterfaceRequest {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment]
+        assignments: (DatabaseComponents) -> [ColumnAssignment]
     ) throws -> Int
     where RowDecoder: TableRecord
     {
-        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Updates matching rows, and returns the number of updated rows.
@@ -1204,16 +1208,16 @@ extension QueryInterfaceRequest {
     public func updateAndFetchStatement(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment],
-        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+        assignments: (DatabaseComponents) -> [ColumnAssignment],
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
         try updateAndFetchStatement(
             db,
             onConflict: conflictResolution,
-            assignments(RowDecoder.columns),
-            selection: select(RowDecoder.columns))
+            assignments(RowDecoder.databaseComponents),
+            selection: select(RowDecoder.databaseComponents))
     }
     
     /// Returns an `UPDATE RETURNING` prepared statement.
@@ -1299,11 +1303,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchCursor(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> RecordCursor<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord
     {
-        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Returns a cursor over the records updated by an
@@ -1378,11 +1382,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> [RowDecoder]
     where RowDecoder: FetchableRecord & TableRecord
     {
-        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the array of
@@ -1449,11 +1453,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchSet(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> Set<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord & Hashable
     {
-        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the set of
@@ -1528,16 +1532,16 @@ extension QueryInterfaceRequest {
     public func updateAndFetchStatement(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment],
-        select: (RowDecoder.ColumnsProvider) -> [any SQLSelectable])
+        assignments: (DatabaseComponents) -> [ColumnAssignment],
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> Statement
     where RowDecoder: TableRecord
     {
         try updateAndFetchStatement(
             db,
             onConflict: conflictResolution,
-            assignments(RowDecoder.columns),
-            selection: select(RowDecoder.columns))
+            assignments(RowDecoder.databaseComponents),
+            selection: select(RowDecoder.databaseComponents))
     }
     
     /// Returns an `UPDATE RETURNING` prepared statement.
@@ -1625,11 +1629,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchCursor(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> RecordCursor<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord
     {
-        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchCursor(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Returns a cursor over the records updated by an
@@ -1706,11 +1710,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> [RowDecoder]
     where RowDecoder: FetchableRecord & TableRecord
     {
-        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the array of
@@ -1779,11 +1783,11 @@ extension QueryInterfaceRequest {
     public func updateAndFetchSet(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (RowDecoder.ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> Set<RowDecoder>
     where RowDecoder: FetchableRecord & TableRecord & Hashable
     {
-        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.columns))
+        try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
     /// Execute an `UPDATE RETURNING` statement and returns the set of

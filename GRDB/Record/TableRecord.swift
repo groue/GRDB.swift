@@ -61,11 +61,11 @@ import Foundation
 /// - ``all()``
 /// - ``annotated(with:)-4xoen``
 /// - ``annotated(with:)-8ce7u``
-/// - ``annotated(with:)-3szhm``
-/// - ``annotated(with:)-590fy``
+/// - ``annotated(with:)-9qvhi``
+/// - ``annotated(with:)-12q5i``
 /// - ``annotated(withOptional:)``
 /// - ``annotated(withRequired:)``
-/// - ``filter(_:)-67o9b``
+/// - ``filter(_:)-2l1zl``
 /// - ``filter(id:)``
 /// - ``filter(ids:)``
 /// - ``filter(key:)-9ey53``
@@ -84,15 +84,15 @@ import Foundation
 /// - ``matching(_:)-22m4o``
 /// - ``matching(_:)-1t8ph``
 /// - ``none()``
-/// - ``order(_:)-ij38``
-/// - ``order(_:)-9dxfg``
+/// - ``order(_:)-4h1zh``
+/// - ``order(_:)-21efu``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderByPrimaryKey()``
 /// - ``request(for:)``
-/// - ``select(_:)-8p7il``
-/// - ``select(_:)-31bbg``
-/// - ``select(_:as:)-2slxh``
+/// - ``select(_:)-8pytw``
+/// - ``select(_:)-3aslb``
+/// - ``select(_:as:)-9s48t``
 /// - ``select(literal:)``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
@@ -100,9 +100,9 @@ import Foundation
 /// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
-/// - ``columns``
+/// - ``databaseComponents``
 /// - ``Columns``
-/// - ``ColumnsProvider``
+/// - ``DatabaseComponents``
 ///
 /// ### Defining Associations
 ///
@@ -170,9 +170,10 @@ public protocol TableRecord {
     /// ```
     associatedtype Columns = Never
     
-    /// A type that provides access to columns in the query interface.
+    /// A type that provides database components to the query interface.
     ///
-    /// By default, it is `Columns.self`.
+    /// By default, it is `Columns.Type`. This default definition might
+    /// change in future GRDB versions.
     ///
     /// For example:
     ///
@@ -189,12 +190,12 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
-    /// Player.ColumnsProvider // Player.Columns.Type by default
-    /// Player.columns         // Instance of Player.ColumnsProvider
-    /// Player.columns.score   // A Column
+    /// Player.DatabaseComponents       // Player.Columns.Type by default
+    /// Player.databaseComponents       // Instance of Player.DatabaseComponents
+    /// Player.databaseComponents.score // A Column
     /// let request = Player.order(\.score.desc)
     /// ```
-    associatedtype ColumnsProvider = Columns.Type
+    associatedtype DatabaseComponents = Columns.Type
     
     /// The name of the database table used to build SQL queries.
     ///
@@ -269,9 +270,10 @@ public protocol TableRecord {
     /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
     
-    /// The value that provides access to columns in the query interface.
+    /// The value that provides database components to the query interface.
     ///
-    /// By default, it is `Columns.self`.
+    /// By default, it is `Columns.self`. This default definition might
+    /// change in future GRDB versions.
     ///
     /// For example:
     ///
@@ -288,10 +290,10 @@ public protocol TableRecord {
     ///     }
     /// }
     ///
-    /// Player.columns.score // A Column
+    /// Player.databaseComponents.score // A Column
     /// let request = Player.order(\.score.desc)
     /// ```
-    static var columns: ColumnsProvider { get }
+    static var databaseComponents: DatabaseComponents { get }
 }
 
 extension TableRecord {
@@ -342,8 +344,8 @@ extension TableRecord {
     }
 }
 
-extension TableRecord where ColumnsProvider == Columns.Type {
-    public static var columns: ColumnsProvider {
+extension TableRecord where DatabaseComponents == Columns.Type {
+    public static var databaseComponents: DatabaseComponents {
         Columns.self
     }
 }
@@ -781,10 +783,10 @@ extension TableRecord {
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (ColumnsProvider) -> [ColumnAssignment])
+        assignments: (DatabaseComponents) -> [ColumnAssignment])
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, assignments(columns))
+        try updateAll(db, onConflict: conflictResolution, assignments(databaseComponents))
     }
 
     /// Updates all records, and returns the number of updated records.
@@ -807,17 +809,17 @@ extension TableRecord {
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignments: A closure that returns an assignment.
+    /// - parameter assignment: A closure that returns an assignment.
     /// - returns: The number of updated records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignment: (ColumnsProvider) -> ColumnAssignment)
+        assignment: (DatabaseComponents) -> ColumnAssignment)
     throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment(columns)])
+        try updateAll(db, onConflict: conflictResolution, [assignment(databaseComponents)])
     }
     
     /// Updates all records, and returns the number of updated records.

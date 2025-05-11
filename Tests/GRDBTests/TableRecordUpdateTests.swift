@@ -119,7 +119,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAll_ColumnsProvider() throws {
+    func testRequestUpdateAll_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -241,7 +241,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchStatement_ColumnsProvider() throws {
+    func testRequestUpdateAndFetchStatement_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -306,7 +306,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchCursor_ColumnsProvider() throws {
+    func testRequestUpdateAndFetchCursor_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -361,7 +361,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchAll_ColumnsProvider() throws {
+    func testRequestUpdateAndFetchAll_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -415,7 +415,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
 
-    func testRequestUpdateAndFetchSet_ColumnsProvider() throws {
+    func testRequestUpdateAndFetchSet_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -452,7 +452,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testNilAssignment_ColumnsProvider() throws {
+    func testNilAssignment_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -474,7 +474,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testComplexAssignment_ColumnsProvider() throws {
+    func testComplexAssignment_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -511,7 +511,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentSubtractAndAssign_ColumnsProvider() throws {
+    func testAssignmentSubtractAndAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -563,7 +563,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentAddAndAssign_ColumnsProvider() throws {
+    func testAssignmentAddAndAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -615,7 +615,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentMultiplyAndAssign_ColumnsProvider() throws {
+    func testAssignmentMultiplyAndAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -667,7 +667,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentDivideAndAssign_ColumnsProvider() throws {
+    func testAssignmentDivideAndAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -719,7 +719,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentBitwiseAndAssign_ColumnsProvider() throws {
+    func testAssignmentBitwiseAndAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -771,7 +771,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentBitwiseOrAssign_ColumnsProvider() throws {
+    func testAssignmentBitwiseOrAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -823,7 +823,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentLeftShiftAssign_ColumnsProvider() throws {
+    func testAssignmentLeftShiftAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -875,7 +875,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testAssignmentRightShiftAssign_ColumnsProvider() throws {
+    func testAssignmentRightShiftAssign_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -927,7 +927,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testMultipleAssignments_ColumnsProvider() throws {
+    func testMultipleAssignments_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -953,7 +953,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
 
-    func testUpdateAllWithoutAssignmentDoesNotAccessTheDatabase_ColumnsProvider() throws {
+    func testUpdateAllWithoutAssignmentDoesNotAccessTheDatabase_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             clearSQLQueries()
@@ -988,7 +988,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testUpdateAllReturnsNumberOfUpdatedRows_ColumnsProvider() throws {
+    func testUpdateAllReturnsNumberOfUpdatedRows_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             try db.execute(sql: """
@@ -1060,7 +1060,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testConflictPolicyAbort_ColumnsProvider() throws {
+    func testConflictPolicyAbort_DatabaseComponents() throws {
         struct AbortPlayer: PersistableRecord {
             static let databaseTableName = "player"
             static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .abort)
@@ -1113,7 +1113,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testConflictPolicyIgnore_ColumnsProvider() throws {
+    func testConflictPolicyIgnore_DatabaseComponents() throws {
         struct IgnorePlayer: PersistableRecord {
             static let databaseTableName = "player"
             static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .ignore)
@@ -1167,7 +1167,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testConflictPolicyIgnoreWithTable_ColumnsProvider() throws {
+    func testConflictPolicyIgnoreWithTable_DatabaseComponents() throws {
         struct IgnorePlayer: PersistableRecord {
             static let databaseTableName = "player"
             static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .ignore)
@@ -1221,7 +1221,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testConflictPolicyCustom_ColumnsProvider() throws {
+    func testConflictPolicyCustom_DatabaseComponents() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -1314,7 +1314,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testJoinedRequestUpdate_ColumnsProvider() throws {
+    func testJoinedRequestUpdate_DatabaseComponents() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
                 static let team = belongsTo(Team.self)
@@ -1449,7 +1449,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testGroupedRequestUpdate_ColumnsProvider() throws {
+    func testGroupedRequestUpdate_DatabaseComponents() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
                 func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }

@@ -368,13 +368,15 @@ extension TableAlias {
 }
 
 extension TableAlias where RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
     /// Returns a result column that refers to the aliased table.
     public subscript<T>(
-        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+        dynamicMember keyPath: KeyPath<DatabaseComponents, T>
     ) -> SQLSelection
     where T: SQLSelectable
     {
-        self[RowDecoder.columns[keyPath: keyPath]]
+        self[RowDecoder.databaseComponents[keyPath: keyPath]]
     }
     
     /// Returns an SQL expression that refers to the aliased table.
@@ -406,30 +408,30 @@ extension TableAlias where RowDecoder: TableRecord {
     ///     .order { [authorAlias.name, $0.title] }
     /// ```
     public subscript<T>(
-        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+        dynamicMember keyPath: KeyPath<DatabaseComponents, T>
     ) -> SQLExpression
     where T: SQLSpecificExpressible &
     SQLSelectable &
     SQLOrderingTerm
     {
-        self[RowDecoder.columns[keyPath: keyPath]]
+        self[RowDecoder.databaseComponents[keyPath: keyPath]]
     }
     
     public subscript<T>(
-        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+        dynamicMember keyPath: KeyPath<DatabaseComponents, T>
     ) -> AnySQLJSONExpressible
     where T: SQLJSONExpressible &
     SQLSpecificExpressible &
     SQLSelectable &
     SQLOrderingTerm
     {
-        self[RowDecoder.columns[keyPath: keyPath]]
+        self[RowDecoder.databaseComponents[keyPath: keyPath]]
     }
     
     public subscript<T>(
-        dynamicMember keyPath: KeyPath<RowDecoder.ColumnsProvider, T>
+        dynamicMember keyPath: KeyPath<DatabaseComponents, T>
     ) -> SQLOrdering
     where T: SQLOrderingTerm {
-        self[RowDecoder.columns[keyPath: keyPath]]
+        self[RowDecoder.databaseComponents[keyPath: keyPath]]
     }
 }

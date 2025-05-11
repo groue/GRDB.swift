@@ -458,7 +458,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             do {
                 // Type.select(..., as:)
                 do {
-                    // ColumnsProvider
+                    // DatabaseComponents
                     do {
                         let value = try Reader
                             .select({ $0.name }, as: String.self)
@@ -503,7 +503,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 }
                 // request.select(..., as:)
                 do {
-                    // ColumnsProvider
+                    // DatabaseComponents
                     do {
                         let value = try Reader
                             .all()

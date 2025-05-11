@@ -1432,7 +1432,7 @@ extension PersistableRecordTests {
         }
     }
     
-    func test_insertAndFetch_selection_fetch_column_ColumnsProvider() throws {
+    func test_insertAndFetch_selection_fetch_column_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -1532,7 +1532,7 @@ extension PersistableRecordTests {
         }
     }
     
-    func test_insertAndFetch_selection_fetch_allColumns_ColumnsProvider() throws {
+    func test_insertAndFetch_selection_fetch_allColumns_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -1632,7 +1632,7 @@ extension PersistableRecordTests {
         }
     }
     
-    func test_insertAndFetch_selection_fetch_allColumns_excluding_ColumnsProvider() throws {
+    func test_insertAndFetch_selection_fetch_allColumns_excluding_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")

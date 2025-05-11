@@ -1714,19 +1714,19 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter([Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .and))),
             "SELECT * FROM \"readers\" WHERE (\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) }),
             "SELECT * FROM \"readers\" WHERE (\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .and) || false)),
             "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL)) OR 0")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) || false }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) || false }),
             "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL)) OR 0")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(![Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .and))),
             "SELECT * FROM \"readers\" WHERE NOT ((\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL))")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in ![columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in ![columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .and) }),
             "SELECT * FROM \"readers\" WHERE NOT ((\"id\" = 1) AND (\"name\" IS NOT NULL) AND (\"age\" IS NULL))")
     }
     
@@ -1773,19 +1773,19 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter([Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .or))),
             "SELECT * FROM \"readers\" WHERE (\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) }),
             "SELECT * FROM \"readers\" WHERE (\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL)")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .or) && true)),
             "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL)) AND 1")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) && true }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in [columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) && true }),
             "SELECT * FROM \"readers\" WHERE ((\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL)) AND 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(![Columns.id == 1, Columns.name != nil, Columns.age == nil].joined(operator: .or))),
             "SELECT * FROM \"readers\" WHERE NOT ((\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL))")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter { (columns: Reader.ColumnsProvider) in ![columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) }),
+            sql(dbQueue, tableRequest.filter { (columns: Reader.DatabaseComponents) in ![columns.id == 1, columns.name != nil, columns.age == nil].joined(operator: .or) }),
             "SELECT * FROM \"readers\" WHERE NOT ((\"id\" = 1) OR (\"name\" IS NOT NULL) OR (\"age\" IS NULL))")
     }
 

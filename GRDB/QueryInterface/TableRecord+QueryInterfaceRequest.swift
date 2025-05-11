@@ -78,7 +78,7 @@ extension TableRecord {
     /// let request = Player.select(\.score)
     /// ```
     public static func select(
-        _ selection: (ColumnsProvider) -> any SQLSelectable
+        _ selection: (DatabaseComponents) -> any SQLSelectable
     ) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
@@ -94,7 +94,7 @@ extension TableRecord {
     /// let request = Player.select { [$0.id, $0.score] }
     /// ```
     public static func select(
-        _ selection: (ColumnsProvider) -> [any SQLSelectable]
+        _ selection: (DatabaseComponents) -> [any SQLSelectable]
     ) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
@@ -217,7 +217,7 @@ extension TableRecord {
     /// let maxScore = try request.fetchOne(db) // Int?
     /// ```
     public static func select<RowDecoder>(
-        _ selection: (ColumnsProvider) -> any SQLSelectable,
+        _ selection: (DatabaseComponents) -> any SQLSelectable,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -395,7 +395,7 @@ extension TableRecord {
     /// let request = Player.annotated { ($0.score + $0.bonus).forKey("totalScore") }
     /// ```
     public static func annotated(
-        with selection: (ColumnsProvider) -> any SQLSelectable
+        with selection: (DatabaseComponents) -> any SQLSelectable
     ) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
     }
@@ -415,7 +415,7 @@ extension TableRecord {
     /// let request = Player.annotated { [($0.score + $0.bonus).forKey("totalScore")] }
     /// ```
     public static func annotated(
-        with selection: (ColumnsProvider) -> [any SQLSelectable]
+        with selection: (DatabaseComponents) -> [any SQLSelectable]
     ) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
     }
@@ -453,7 +453,7 @@ extension TableRecord {
     /// let request = Player.filter { $0.name == name }
     /// ```
     public static func filter(
-        _ predicate: (ColumnsProvider) -> any SQLSpecificExpressible
+        _ predicate: (DatabaseComponents) -> any SQLSpecificExpressible
     ) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
     }
@@ -632,7 +632,7 @@ extension TableRecord {
     /// let request = Player.order(\.score.desc)
     /// ```
     public static func order(
-        _ orderings: (ColumnsProvider) -> any SQLOrderingTerm
+        _ orderings: (DatabaseComponents) -> any SQLOrderingTerm
     ) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
@@ -648,7 +648,7 @@ extension TableRecord {
     /// let request = Player.order { [$0.score.desc, $0.name] }
     /// ```
     public static func order(
-        _ orderings: (ColumnsProvider) -> [any SQLOrderingTerm]
+        _ orderings: (DatabaseComponents) -> [any SQLOrderingTerm]
     ) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }

@@ -329,11 +329,11 @@ extension MutablePersistableRecord {
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         fetch: (Statement) throws -> T,
-        select: (ColumnsProvider) -> [any SQLSelectable])
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> T
     where Self: TableRecord
     {
-        try insertAndFetch(db, onConflict: conflictResolution, selection: select(Self.columns), fetch: fetch)
+        try insertAndFetch(db, onConflict: conflictResolution, selection: select(Self.databaseComponents), fetch: fetch)
     }
 #else
     /// Executes an `INSERT RETURNING` statement, and returns a new record built
@@ -578,11 +578,15 @@ extension MutablePersistableRecord {
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         fetch: (Statement) throws -> T,
-        select: (ColumnsProvider) -> [any SQLSelectable])
+        select: (DatabaseComponents) -> [any SQLSelectable])
     throws -> T
     where Self: TableRecord
     {
-        try insertAndFetch(db, onConflict: conflictResolution, selection: select(Self.columns), fetch: fetch)
+        try insertAndFetch(
+            db,
+            onConflict: conflictResolution,
+            selection: select(Self.databaseComponents),
+            fetch: fetch)
     }
 #endif
 }
