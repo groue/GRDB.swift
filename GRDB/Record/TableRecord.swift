@@ -49,6 +49,8 @@ import Foundation
 ///
 /// ### Updating Records
 ///
+/// - ``updateAll(_:onConflict:assignment:)``
+/// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-7vv9x``
 /// - ``updateAll(_:onConflict:_:)-7atfw``
 ///
@@ -758,7 +760,7 @@ extension TableRecord {
     ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = 0
-    ///     try Player.updateAll(db) { [$0.score.set(to: 0)] }
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
     /// }
     /// ```
     ///
@@ -779,6 +781,39 @@ extension TableRecord {
         try updateAll(db, onConflict: conflictResolution, assignments(columns))
     }
 
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: A closure that returns an assignment.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignment: (ColumnsProvider) -> ColumnAssignment)
+    throws -> Int
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignment(columns)])
+    }
+    
     /// Updates all records, and returns the number of updated records.
     ///
     /// For example:

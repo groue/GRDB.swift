@@ -896,12 +896,22 @@ class TableTests: GRDBTestCase {
                 t.column("score", .integer)
             }
             
-            // Use Table<Void> when we want to make sure the generic type is not used.
-            
+            do {
+                try Table<Player>("player").updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
             do {
                 try Table<Player>("player").updateAll(db) { [$0.score.set(to: 0)] }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db, onConflict: .ignore) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
                     """)
             }
             do {

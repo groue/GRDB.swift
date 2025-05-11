@@ -77,6 +77,7 @@
 ///
 /// ### Batch Update
 ///
+/// - ``updateAll(_:onConflict:assignment:)``
 /// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-9r4v``
 /// - ``updateAll(_:onConflict:_:)-49qg8``
@@ -1036,7 +1037,41 @@ extension QueryInterfaceRequest {
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = 0
     ///     let request = Player.all()
-    ///     try request.updateAll(db) { [$0.score.set(to: 0)] }
+    ///     try request.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignment: A closure that returns an assignment.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (RowDecoder.ColumnsProvider) -> ColumnAssignment
+    ) throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignments(RowDecoder.columns)])
+    }
+    
+    /// Updates matching rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     let request = Player.all()
+    ///     try request.updateAll(db) { $0.score.set(to: 0) }
     /// }
     /// ```
     ///
@@ -1797,9 +1832,9 @@ extension QueryInterfaceRequest {
 ///
 /// try dbQueue.write { db in
 ///     // UPDATE player SET score = 0
-///     try Player.updateAll(db) { [
+///     try Player.updateAll(db) {
 ///         $0.score.set(to: 0)
-///     ] }
+///     }
 /// }
 /// ```
 public struct ColumnAssignment {

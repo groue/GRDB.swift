@@ -30,7 +30,7 @@ private typealias Columns = Player.Columns
 
 private extension QueryInterfaceRequest<Player> {
     func incrementScore(_ db: Database) throws {
-        try updateAll(db) { [$0.score += 1] }
+        try updateAll(db) { $0.score += 1 }
     }
 }
 
@@ -123,78 +123,78 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try Player.filter { $0.name == "Arthur" }.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter { $0.name == "Arthur" }.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE \"name\" = 'Arthur'
                 """)
             
-            try Player.filter(key: 1).updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(key: 1).updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE "id" = 1
                 """)
             
-            try Player.filter(keys: [1, 2]).updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(keys: [1, 2]).updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
                 """)
             
-            try Player.filter(id: 1).updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(id: 1).updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE "id" = 1
-                    """)
+                UPDATE "player" SET "score" = 0 WHERE "id" = 1
+                """)
             
-            try Player.filter(ids: [1, 2]).updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(ids: [1, 2]).updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
-                    """)
+                UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
+                """)
             
-            try Player.filter(sql: "id = 1").updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(sql: "id = 1").updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE id = 1
                 """)
             
-            try Player.filter(sql: "id = 1").filter { $0.name == "Arthur" }.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.filter(sql: "id = 1").filter { $0.name == "Arthur" }.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE (id = 1) AND (\"name\" = 'Arthur')
                 """)
             
-            try Player.select { $0.name }.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.select { $0.name }.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try Player.order { $0.name }.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.order { $0.name }.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
             if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
-                try Player.limit(1).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.limit(1).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 LIMIT 1
                     """)
                 
-                try Player.order { $0.name }.updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.order { $0.name }.updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0
                     """)
                 
-                try Player.order { $0.name }.limit(1).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.order { $0.name }.limit(1).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 ORDER BY \"name\" LIMIT 1
                     """)
                 
-                try Player.order { $0.name }.limit(1, offset: 2).reversed().updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.order { $0.name }.limit(1, offset: 2).reversed().updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 ORDER BY \"name\" DESC LIMIT 1 OFFSET 2
                     """)
                 
-                try Player.limit(1, offset: 2).reversed().updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.limit(1, offset: 2).reversed().updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 LIMIT 1 OFFSET 2
                     """)
@@ -456,7 +456,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score.set(to: nil)] }
+            try Player.updateAll(db) { $0.score.set(to: nil) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = NULL
                 """)
@@ -478,7 +478,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score.set(to: $0.score * ($0.bonus + 1))] }
+            try Player.updateAll(db) { $0.score.set(to: $0.score * ($0.bonus + 1)) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * ("bonus" + 1)
                 """)
@@ -515,22 +515,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score -= 1] }
+            try Player.updateAll(db) { $0.score -= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" - 1
                 """)
             
-            try Player.updateAll(db) { [$0.score -= $0.bonus] }
+            try Player.updateAll(db) { $0.score -= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" - "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score -= -$0.bonus] }
+            try Player.updateAll(db) { $0.score -= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" - (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score -= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score -= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" - ("bonus" * 2)
                 """)
@@ -567,22 +567,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score += 1] }
+            try Player.updateAll(db) { $0.score += 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" + 1
                 """)
             
-            try Player.updateAll(db) { [$0.score += $0.bonus] }
+            try Player.updateAll(db) { $0.score += $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" + "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score += -$0.bonus] }
+            try Player.updateAll(db) { $0.score += -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" + (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score += $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score += $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" + ("bonus" * 2)
                 """)
@@ -619,22 +619,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score *= 1] }
+            try Player.updateAll(db) { $0.score *= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * 1
                 """)
             
-            try Player.updateAll(db) { [$0.score *= $0.bonus] }
+            try Player.updateAll(db) { $0.score *= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score *= -$0.bonus] }
+            try Player.updateAll(db) { $0.score *= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score *= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score *= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * ("bonus" * 2)
                 """)
@@ -671,22 +671,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score /= 1] }
+            try Player.updateAll(db) { $0.score /= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" / 1
                 """)
             
-            try Player.updateAll(db) { [$0.score /= $0.bonus] }
+            try Player.updateAll(db) { $0.score /= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" / "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score /= -$0.bonus] }
+            try Player.updateAll(db) { $0.score /= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" / (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score /= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score /= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" / ("bonus" * 2)
                 """)
@@ -723,22 +723,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score &= 1] }
+            try Player.updateAll(db) { $0.score &= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" & 1
                 """)
             
-            try Player.updateAll(db) { [$0.score &= $0.bonus] }
+            try Player.updateAll(db) { $0.score &= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" & "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score &= -$0.bonus] }
+            try Player.updateAll(db) { $0.score &= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" & (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score &= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score &= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" & ("bonus" * 2)
                 """)
@@ -775,22 +775,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score |= 1] }
+            try Player.updateAll(db) { $0.score |= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" | 1
                 """)
             
-            try Player.updateAll(db) { [$0.score |= $0.bonus] }
+            try Player.updateAll(db) { $0.score |= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" | "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score |= -$0.bonus] }
+            try Player.updateAll(db) { $0.score |= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" | (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score |= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score |= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" | ("bonus" * 2)
                 """)
@@ -827,22 +827,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score <<= 1] }
+            try Player.updateAll(db) { $0.score <<= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" << 1
                 """)
             
-            try Player.updateAll(db) { [$0.score <<= $0.bonus] }
+            try Player.updateAll(db) { $0.score <<= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" << "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score <<= -$0.bonus] }
+            try Player.updateAll(db) { $0.score <<= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" << (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score <<= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score <<= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" << ("bonus" * 2)
                 """)
@@ -879,22 +879,22 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score >>= 1] }
+            try Player.updateAll(db) { $0.score >>= 1 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" >> 1
                 """)
             
-            try Player.updateAll(db) { [$0.score >>= $0.bonus] }
+            try Player.updateAll(db) { $0.score >>= $0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" >> "bonus"
                 """)
             
-            try Player.updateAll(db) { [$0.score >>= -$0.bonus] }
+            try Player.updateAll(db) { $0.score >>= -$0.bonus }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" >> (-"bonus")
                 """)
             
-            try Player.updateAll(db) { [$0.score >>= $0.bonus * 2] }
+            try Player.updateAll(db) { $0.score >>= $0.bonus * 2 }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" >> ("bonus" * 2)
                 """)
@@ -998,15 +998,15 @@ class TableRecordUpdateTests: GRDBTestCase {
                 INSERT INTO player (id, name, score, bonus) VALUES (4, 'Diane', 0, 3);
                 """)
             
-            try XCTAssertEqual(Player.updateAll(db) { [$0.score += 1] }, 4)
-            try XCTAssertEqual(Player.filter(key: 1).updateAll(db) { [$0.score += 1] }, 1)
-            try XCTAssertEqual(Player.filter(key: 5).updateAll(db) { [$0.score += 1] }, 0)
-            try XCTAssertEqual(Player.filter { $0.bonus > 1 }.updateAll(db) { [$0.score += 1] }, 2)
+            try XCTAssertEqual(Player.updateAll(db) { $0.score += 1 }, 4)
+            try XCTAssertEqual(Player.filter(key: 1).updateAll(db) { $0.score += 1 }, 1)
+            try XCTAssertEqual(Player.filter(key: 5).updateAll(db) { $0.score += 1 }, 0)
+            try XCTAssertEqual(Player.filter { $0.bonus > 1 }.updateAll(db) { $0.score += 1 }, 2)
             if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
-                try XCTAssertEqual(Player.limit(1).updateAll(db) { [$0.score += 1] }, 1)
-                try XCTAssertEqual(Player.limit(2).updateAll(db) { [$0.score += 1] }, 2)
-                try XCTAssertEqual(Player.limit(2, offset: 3).updateAll(db) { [$0.score += 1] }, 1)
-                try XCTAssertEqual(Player.limit(10).updateAll(db) { [$0.score += 1] }, 4)
+                try XCTAssertEqual(Player.limit(1).updateAll(db) { $0.score += 1 }, 1)
+                try XCTAssertEqual(Player.limit(2).updateAll(db) { $0.score += 1 }, 2)
+                try XCTAssertEqual(Player.limit(2, offset: 3).updateAll(db) { $0.score += 1 }, 1)
+                try XCTAssertEqual(Player.limit(10).updateAll(db) { $0.score += 1 }, 4)
             }
         }
     }
@@ -1070,12 +1070,12 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try AbortPlayer.updateAll(db) { [$0.score.set(to: 0)] }
+            try AbortPlayer.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try AbortPlayer.all().updateAll(db) { [$0.score.set(to: 0)] }
+            try AbortPlayer.all().updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
@@ -1123,12 +1123,12 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try IgnorePlayer.updateAll(db) { [$0.score.set(to: 0)] }
+            try IgnorePlayer.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try IgnorePlayer.all().updateAll(db) { [$0.score.set(to: 0)] }
+            try IgnorePlayer.all().updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
@@ -1178,12 +1178,12 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try table.updateAll(db) { [$0.score.set(to: 0)] }
+            try table.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try table.all().updateAll(db) { [$0.score.set(to: 0)] }
+            try table.all().updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
@@ -1225,17 +1225,17 @@ class TableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db) { [$0.score.set(to: 0)] }
+            try Player.updateAll(db) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try Player.updateAll(db, onConflict: .ignore) { [$0.score.set(to: 0)] }
+            try Player.updateAll(db, onConflict: .ignore) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try Player.all().updateAll(db, onConflict: .ignore) { [$0.score.set(to: 0)] }
+            try Player.all().updateAll(db, onConflict: .ignore) { $0.score.set(to: 0) }
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
@@ -1344,7 +1344,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             }
             
             do {
-                try Player.including(required: Player.team).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.including(required: Player.team).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (\
                     SELECT "player"."id" \
@@ -1354,7 +1354,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             }
             do {
                 // Regression test for https://github.com/groue/GRDB.swift/issues/758
-                try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (\
                     SELECT "player"."id" \
@@ -1364,7 +1364,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             }
             do {
                 let alias = TableAlias(name: "p")
-                try Player.aliased(alias).including(required: Player.team).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.aliased(alias).including(required: Player.team).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (\
                     SELECT "p"."id" \
@@ -1373,7 +1373,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Team.having(Team.players.isEmpty).updateAll(db) { [$0.active.set(to: false)] }
+                try Team.having(Team.players.isEmpty).updateAll(db) { $0.active.set(to: false) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "team" SET "active" = 0 WHERE "id" IN (\
                     SELECT "team"."id" \
@@ -1384,7 +1384,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Team.including(all: Team.players).updateAll(db) { [$0.active.set(to: false)] }
+                try Team.including(all: Team.players).updateAll(db) { $0.active.set(to: false) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "team" SET "active" = 0
                     """)
@@ -1474,7 +1474,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                 t.primaryKey(["countryCode", "citizenId"])
             }
             do {
-                try Player.all().groupByPrimaryKey().updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.all().groupByPrimaryKey().updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (\
                     SELECT "id" \
@@ -1483,7 +1483,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Player.all().group(Column.rowID).updateAll(db) { [$0.score.set(to: 0)] }
+                try Player.all().group(Column.rowID).updateAll(db) { $0.score.set(to: 0) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE "id" IN (\
                     SELECT "id" \
@@ -1492,7 +1492,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Passport.all().groupByPrimaryKey().updateAll(db) { [$0.active.set(to: true)] }
+                try Passport.all().groupByPrimaryKey().updateAll(db) { $0.active.set(to: true) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "passport" SET "active" = 1 WHERE "rowid" IN (\
                     SELECT "rowid" \
@@ -1501,7 +1501,7 @@ class TableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Passport.all().group(Column.rowID).updateAll(db) { [$0.active.set(to: true)] }
+                try Passport.all().group(Column.rowID).updateAll(db) { $0.active.set(to: true) }
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "passport" SET "active" = 1 WHERE "rowid" IN (\
                     SELECT "rowid" \

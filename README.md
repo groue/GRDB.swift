@@ -1767,7 +1767,7 @@ See the [query interface](#the-query-interface) for batch updates:
 ```swift
 try Player
     .filter { $0.team == "red" }
-    .updateAll(db) { [$0.score += 1] }
+    .updateAll(db) { $0.score += 1 }
 ```
 
 :point_right: update methods are available for types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
@@ -3237,7 +3237,7 @@ try dbQueue.write { db in
     // Batch update
     try Player
         .filter { $0.team == "Reds" }
-        .updateAll(db) { [$0.score += 100] }
+        .updateAll(db) { $0.score += 100 }
     
     // Batch delete
     try Player
@@ -4448,34 +4448,34 @@ try Player.updateAll(db) { [
 // UPDATE player SET score = 0 WHERE team = 'Reds'
 try Player
     .filter { $0.team == "Reds" }
-    .updateAll(db) { [$0.score.set(to: 0)] }
+    .updateAll(db) { $0.score.set(to: 0) }
 
 // UPDATE player SET isGreat = 1 ORDER BY score DESC LIMIT 10
 try Player
     .order(\.score.desc)
     .limit(10)
-    .updateAll(db) { [$0.isGreat.set(to: true)] }
+    .updateAll(db) { $0.isGreat.set(to: true) }
 
 // UPDATE country SET population = 67848156 WHERE id = 'FR'
 try Country
     .filter(id: "FR")
-    .updateAll(db) { [$0.population.set(to: 67_848_156)] }
+    .updateAll(db) { $0.population.set(to: 67_848_156) }
 ```
 
 Column assignments accept any expression:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db) { [
+try Player.updateAll(db) {
     $0.score.set(to: $0.score + $0.bonus * 2)
-] }
+}
 ```
 
 As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db) { [$0.score += $0.bonus * 2] }
+try Player.updateAll(db) { $0.score += $0.bonus * 2 }
 ```
 
 Default [Conflict Resolution] rules apply, and you may also provide a specific one:
