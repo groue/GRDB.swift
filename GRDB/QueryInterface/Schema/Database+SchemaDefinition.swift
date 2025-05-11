@@ -339,7 +339,7 @@ extension Database {
     /// // CREATE VIEW hero AS SELECT * FROM player WHERE isHero == 1
     /// try db.create(
     ///     view: "hero",
-    ///     as: Player.filter(Column("isHero") == true))
+    ///     as: Player.filter(\.isHero))
     /// ```
     ///
     /// When creating views in <doc:Migrations>, it is not recommended to

@@ -86,7 +86,7 @@ extension SQLOrdering {
 }
 
 extension SQLOrdering {
-    func qualified(with alias: TableAlias) -> SQLOrdering {
+    func qualified(with alias: TableAliasBase) -> SQLOrdering {
         switch impl {
         case .expression(let expression):
             return .expression(expression.qualified(with: alias))

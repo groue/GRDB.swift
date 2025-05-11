@@ -22,14 +22,23 @@ public protocol TypedRequest<RowDecoder> {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``annotated(with:)-4qcem``
-/// - ``annotated(with:)-6ehs4``
+/// - ``annotated(with:)-56y26``
+/// - ``annotated(with:)-9nuwi``
 /// - ``annotatedWhenConnected(with:)``
-/// - ``select(_:)-30yzl``
-/// - ``select(_:)-7e2y5``
+/// - ``select(_:)-90gu2``
+/// - ``select(_:)-4iv1w``
 /// - ``select(literal:)``
 /// - ``select(sql:arguments:)``
 /// - ``selectWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``annotated(with:)-4qcem``
+/// - ``annotated(with:)-6ehs4``
+/// - ``select(_:)-30yzl``
+/// - ``select(_:)-7e2y5``
 public protocol SelectionRequest {
     /// Defines the result columns.
     ///
@@ -209,6 +218,122 @@ extension SelectionRequest {
     }
 }
 
+extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Defines the result column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT score FROM player
+    /// let request = Player.all().select(\.score)
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select(\.id)
+    ///     .select(\.score)
+    /// ```
+    public func select(
+        _ selection: (DatabaseComponents) -> any SQLSelectable
+    ) -> Self {
+        select(selection(Self.RowDecoder.databaseComponents))
+    }
+
+    /// Defines the result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = Player.all().select { [$0.id, $0.score] }
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select { [$0.id] }
+    ///     .select { [$0.score] }
+    /// ```
+    public func select(
+        _ selection: (DatabaseComponents) -> [any SQLSelectable]
+    ) -> Self {
+        select(selection(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Appends a result column to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     ($0.score + $0.bonus).forKey("totalScore")
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (DatabaseComponents) -> any SQLSelectable
+    ) -> Self {
+        annotated(with: selection(Self.RowDecoder.databaseComponents))
+    }
+
+    /// Appends result columns to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     [($0.score + $0.bonus).forKey("totalScore")]
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (DatabaseComponents) -> [any SQLSelectable]
+    ) -> Self {
+        annotated(with: selection(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - FilteredRequest
 
 /// A request that can filter database rows.
@@ -221,11 +346,17 @@ extension SelectionRequest {
 /// ### The WHERE and JOIN ON Clauses
 ///
 /// - ``all()``
-/// - ``filter(_:)``
+/// - ``filter(_:)-5l0gu``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``filterWhenConnected(_:)``
 /// - ``none()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``filter(_:)-48a4t``
 public protocol FilteredRequest {
     /// Filters the fetched rows with a boolean SQL expression.
     ///
@@ -310,6 +441,34 @@ extension FilteredRequest {
   }
 }
 
+extension FilteredRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter { 42 }` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Filters the fetched rows with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = Player.all().filter { $0.name == name }
+    /// ```
+    public func filter(
+        _ predicate: (DatabaseComponents) -> any SQLSpecificExpressible
+    ) -> Self {
+        filter(predicate(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - TableRequest
 
 /// A request that feeds from a database table
@@ -322,7 +481,7 @@ extension FilteredRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3k5h4``
 /// - ``TableAlias``
 ///
 /// ### The WHERE Clause
@@ -343,11 +502,23 @@ extension FilteredRequest {
 /// ### The ORDER BY Clause
 ///
 /// - ``orderByPrimaryKey()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-772vb``
 public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
     
     /// Returns a request that can be referred to with the provided alias.
+    func _aliased(_ alias: TableAliasBase) -> Self
+}
+
+extension TableRequest where Self: TypedRequest {
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// Use this method when you need to refer to this request from
     /// another request.
@@ -402,7 +573,77 @@ public protocol TableRequest {
     ///     .filter(sql: "b.publishDate >= a.deathDate")
     ///     .fetchAll(db)
     /// ```
-    func aliased(_ alias: TableAlias) -> Self
+    public func aliased(_ alias: TableAlias<Void>) -> Self {
+        self._aliased(alias)
+    }
+    
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
+    ///
+    /// Use this method when you need to refer to this request from
+    /// another request.
+    ///
+    /// The first example fetches posthumous books:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     enum Columns {
+    ///         static let deathDate = Column("deathDate")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///     enum Columns {
+    ///         static let publishDate = Column("publishDate")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // WHERE book.publishDate >= author.deathDate
+    /// let authorAlias = TableAlias<Author>()
+    /// let posthumousBooks = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .filter { $0.publishDate >= authorAlias.deathDate }
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The second example sorts books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias<Author>()
+    /// let books = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order { [authorAlias.name, $0.title] }
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The third example uses named ``TableAlias`` so that SQL snippets can
+    /// refer to SQL tables with those names:
+    ///
+    /// ```swift
+    /// // SELECT b.*
+    /// // FROM book b
+    /// // JOIN author a ON a.id = b.authorId
+    /// //              AND a.countryCode = 'FR'
+    /// // WHERE b.publishDate >= a.deathDate
+    /// let bookAlias = TableAlias<Book>(name: "b")
+    /// let authorAlias = TableAlias<Author>(name: "a")
+    /// let posthumousFrenchBooks = try Book.aliased(bookAlias)
+    ///     .joining(required: Book.author.aliased(authorAlias)
+    ///         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
+    ///     .filter(sql: "b.publishDate >= a.deathDate")
+    ///     .fetchAll(db)
+    /// ```
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> Self {
+        self._aliased(alias)
+    }
 }
 
 extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
@@ -723,18 +964,26 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// ### The GROUP BY Clause
 ///
-/// - ``group(_:)-edak``
-/// - ``group(_:)-4216o``
+/// - ``group(_:)-9z116``
+/// - ``group(_:)-43p07``
 /// - ``group(literal:)``
 /// - ``group(sql:arguments:)``
 /// - ``groupWhenConnected(_:)``
 ///
 /// ### The HAVING Clause
 ///
-/// - ``having(_:)``
+/// - ``having(_:)-6zfvb``
 /// - ``having(literal:)``
 /// - ``having(sql:arguments:)``
 /// - ``havingWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``group(_:)-edak``
+/// - ``group(_:)-4216o``
+/// - ``having(_:)-2ssg9``
 public protocol AggregatingRequest {
     /// Returns an aggregate request grouped on the given SQL expressions.
     ///
@@ -925,6 +1174,71 @@ extension AggregatingRequest {
     }
 }
 
+extension AggregatingRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Returns an aggregate request grouped on the given SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group(\.teamId)
+    /// ```
+    ///
+    /// Any previous grouping is discarded.
+    public func group(
+        _ expression: (DatabaseComponents) -> any SQLExpressible
+    ) -> Self {
+        group(expression(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Returns an aggregate request grouped on the given SQL expressions.
+    public func group(
+        _ expressions: (DatabaseComponents) -> [any SQLExpressible]
+    ) -> Self {
+        group(expressions(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Filters the aggregated groups with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// // HAVING MAX(score) > 1000
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group(\.teamId)
+    ///     .having { max($0.score) > 1000 }
+    /// ```
+    public func having(
+        _ predicate: (DatabaseComponents) -> any SQLExpressible
+    ) -> Self {
+        having(predicate(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - OrderedRequest
 
 /// A request that can sort database rows.
@@ -933,14 +1247,21 @@ extension AggregatingRequest {
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``order(_:)-63rzl``
-/// - ``order(_:)-6co0m``
+/// - ``order(_:)-54bt8``
+/// - ``order(_:)-7jcay``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderWhenConnected(_:)``
 /// - ``reversed()``
 /// - ``unordered()``
 /// - ``withStableOrder()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``order(_:)-63rzl``
+/// - ``order(_:)-6co0m``
 public protocol OrderedRequest {
     /// Sorts the fetched rows according to the given SQL ordering terms.
     ///
@@ -978,9 +1299,15 @@ public protocol OrderedRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player ORDER BY name DESC
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .reversed()
     /// ```
     ///
@@ -994,12 +1321,16 @@ public protocol OrderedRequest {
     
     /// Returns a request without any ordering.
     ///
-    /// For example:
-    ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .unordered()
     /// ```
     func unordered() -> Self
@@ -1089,6 +1420,74 @@ extension OrderedRequest {
     public func order(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         order(sqlLiteral)
+    }
+}
+
+extension OrderedRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Sorts the fetched rows according to the given SQL ordering term.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all().order(\.name)
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC
+    /// let request = Player.all().order(\.score.desc)
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order(\.score.desc)
+    ///     .order(\.name)
+    /// ```
+    public func order(
+        _ ordering: (DatabaseComponents) -> any SQLOrderingTerm
+    ) -> Self {
+        order(ordering(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Sorts the fetched rows according to the given SQL ordering terms.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc, $0.name] }
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc] }
+    ///     .order { [$0.name] }
+    /// ```
+    public func order(
+        _ orderings: (DatabaseComponents) -> [any SQLOrderingTerm]
+    ) -> Self {
+        order(orderings(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -1234,12 +1633,17 @@ extension JoinableRequest {
     /// For example, we can fetch only books whose author is French:
     ///
     /// ```swift
-    /// struct Author: TableRecord, FetchableRecord, Decodable { }
-    /// struct Book: TableRecord, FetchableRecord, Decodable {
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
     ///     static let author = belongsTo(Author.self)
     /// }
     ///
-    /// let frenchAuthors = Book.author.filter(Column("countryCode") == "FR")
+    /// let frenchAuthors = Book.author.filter { $0.countryCode == "FR" }
     /// let bookInfos = try Book.all()
     ///     .joining(required: frenchAuthors)
     ///     .fetchAll(db)
@@ -1256,9 +1660,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, TableRecord, FetchableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player LEFT JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withOptional: teamColor)
     /// ```
     ///
@@ -1284,9 +1698,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(optional:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color)
     ///     .joining(optional: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
@@ -1308,9 +1722,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let color = Column("color")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, FetchableRecord, TableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withRequired: teamColor)
     /// ```
     ///
@@ -1336,9 +1760,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(required:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color])
     ///     .joining(required: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {
@@ -1367,7 +1791,7 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``TableRequest/aliased(_:)``
+/// - ``TableRequest/aliased(_:)-3k5h4``
 /// - ``TableAlias``
 ///
 /// ### The WITH Clause
@@ -1376,12 +1800,12 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``SelectionRequest/annotated(with:)-4qcem``
-/// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``SelectionRequest/annotated(with:)-56y26``
+/// - ``SelectionRequest/annotated(with:)-9nuwi``
 /// - ``SelectionRequest/annotatedWhenConnected(with:)``
 /// - ``distinct()``
-/// - ``SelectionRequest/select(_:)-30yzl``
-/// - ``SelectionRequest/select(_:)-7e2y5``
+/// - ``SelectionRequest/select(_:)-90gu2``
+/// - ``SelectionRequest/select(_:)-4iv1w``
 /// - ``SelectionRequest/select(literal:)``
 /// - ``SelectionRequest/select(sql:arguments:)``
 /// - ``SelectionRequest/selectWhenConnected(_:)``
@@ -1389,7 +1813,7 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### The WHERE Clause
 ///
 /// - ``FilteredRequest/all()``
-/// - ``FilteredRequest/filter(_:)``
+/// - ``FilteredRequest/filter(_:)-5l0gu``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
@@ -1405,21 +1829,21 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The GROUP BY and HAVING Clauses
 ///
-/// - ``AggregatingRequest/group(_:)-edak``
-/// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/group(_:)-9z116``
+/// - ``AggregatingRequest/group(_:)-43p07``
 /// - ``AggregatingRequest/group(literal:)``
 /// - ``AggregatingRequest/group(sql:arguments:)``
 /// - ``TableRequest/groupByPrimaryKey()``
 /// - ``AggregatingRequest/groupWhenConnected(_:)``
-/// - ``AggregatingRequest/having(_:)``
+/// - ``AggregatingRequest/having(_:)-6zfvb``
 /// - ``AggregatingRequest/having(literal:)``
 /// - ``AggregatingRequest/having(sql:arguments:)``
 /// - ``AggregatingRequest/havingWhenConnected(_:)``
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``OrderedRequest/order(_:)-63rzl``
-/// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``OrderedRequest/order(_:)-54bt8``
+/// - ``OrderedRequest/order(_:)-7jcay``
 /// - ``OrderedRequest/order(literal:)``
 /// - ``OrderedRequest/order(sql:arguments:)``
 /// - ``OrderedRequest/orderWhenConnected(_:)``
@@ -1450,6 +1874,23 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``SelectionRequest``
 /// - ``TableRequest``
 /// - ``TypedRequest``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``TableRequest/aliased(_:)-772vb``
+/// - ``SelectionRequest/annotated(with:)-4qcem``
+/// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``FilteredRequest/filter(_:)-48a4t``
+/// - ``AggregatingRequest/group(_:)-edak``
+/// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/having(_:)-2ssg9``
+/// - ``OrderedRequest/order(_:)-63rzl``
+/// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``SelectionRequest/select(_:)-30yzl``
+/// - ``SelectionRequest/select(_:)-7e2y5``
 public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredRequest,
                                               JoinableRequest, OrderedRequest,
                                               SelectionRequest, TableRequest
@@ -1459,11 +1900,17 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT DISTINCT * FROM player
     /// let request = Player.all().distinct()
     ///
     /// // SELECT DISTINCT name FROM player
-    /// let request = Player.select(Column("name")).distinct()
+    /// let request = Player.select(\.name).distinct()
     /// ```
     func distinct() -> Self
     
@@ -1476,18 +1923,31 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS

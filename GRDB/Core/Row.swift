@@ -1735,11 +1735,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1784,11 +1790,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1816,11 +1828,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1852,11 +1870,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """

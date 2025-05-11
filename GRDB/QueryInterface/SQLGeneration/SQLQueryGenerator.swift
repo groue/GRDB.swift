@@ -573,7 +573,7 @@ struct SQLQueryGenerator: Refinable {
 ///     LIMIT ...    -- limit
 private struct SQLQualifiedRelation: Sendable {
     /// All aliases, including aliases of joined relations
-    var allAliases: [TableAlias] {
+    var allAliases: [TableAliasBase] {
         joins.reduce(into: [source.alias].compactMap { $0 }) {
             $0.append(contentsOf: $1.value.relation.allAliases)
         }
@@ -739,7 +739,7 @@ extension SQLQualifiedRelation: Refinable { }
 /// A "qualified" source, where all tables are identified with a table alias.
 private struct SQLQualifiedSource {
     var tableName: String
-    var alias: TableAlias
+    var alias: TableAliasBase
     
     init(_ source: SQLSource) {
         self.tableName = source.tableName
@@ -788,13 +788,13 @@ private struct SQLQualifiedJoin: Refinable {
         self.relation = SQLQualifiedRelation(child.relation)
     }
     
-    func sql(_ context: SQLGenerationContext, leftAlias: TableAlias) throws -> String {
+    func sql(_ context: SQLGenerationContext, leftAlias: TableAliasBase) throws -> String {
         try sql(context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
     private func sql(
         _ context: SQLGenerationContext,
-        leftAlias: TableAlias,
+        leftAlias: TableAliasBase,
         allowingInnerJoin allowsInnerJoin: Bool)
     throws -> String
     {

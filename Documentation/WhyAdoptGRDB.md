@@ -207,13 +207,13 @@ try player.updateChanges {
 
 // SELECT * FROM player ORDER BY score DESC LIMIT 10
 let bestPlayers: [Player] = try Player
-    .order(scoreColumn.desc)
+    .order(\.score.desc)
     .limit(10)
     .fetchAll(db)
 
 // SELECT MAX(score) FROM player
 let maximumScore: Int? = try Player
-    .select(max(scoreColumn))
+    .select { max($0.score) }
     .asRequestOf(Int.self)
     .fetchOne(db)
 

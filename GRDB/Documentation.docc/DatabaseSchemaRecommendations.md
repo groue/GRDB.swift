@@ -262,11 +262,11 @@ try dbQueue.write { db in
     
     // Use instead:
     let player = try Player
-        .filter(Column("teamId") == 42 && Column("position") == 1)
+        .filter { $0.teamId == 42 && $0.position == 1 }
         .fetchOne(db)
 
     try Player
-        .filter(Column("name") == "Arthur")
+        .filter { $0.name == "Arthur" }
         .deleteAll(db)
 }
 ```

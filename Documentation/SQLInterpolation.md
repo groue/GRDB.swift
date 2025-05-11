@@ -175,7 +175,7 @@ func date(_ expression: SQLExpressible) -> SQLExpression {
     SQL("DATE(\(expression))").sqlExpression
 }
 
-let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+let request = Player.filter { date($0.createdAt) == "2020-01-23" }
 ```
 
 

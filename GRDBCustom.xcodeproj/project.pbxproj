@@ -47,6 +47,7 @@
 		562205FE1E420EA2005860AC /* DatabasePoolConcurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560A37AA1C90085D00949E71 /* DatabasePoolConcurrencyTests.swift */; };
 		562205FF1E420EA2005860AC /* DatabasePoolReadOnlyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56EA869D1C932597002BB4DF /* DatabasePoolReadOnlyTests.swift */; };
 		562206091E420EB2005860AC /* DatabaseQueueConcurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363BC1C93FD5E000BE133 /* DatabaseQueueConcurrencyTests.swift */; };
+		56231A462DCF3A28007676E4 /* TableAlias.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56231A452DCF3A28007676E4 /* TableAlias.swift */; };
 		56231E6325CEBF08001DFD2F /* RowDecodingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56231E6025CEBF06001DFD2F /* RowDecodingError.swift */; };
 		5623931B1DECC02000A6B01F /* RowFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393171DECC02000A6B01F /* RowFetchTests.swift */; };
 		562393331DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */; };
@@ -500,6 +501,7 @@
 		561F38DA2AC8914D0051EEE9 /* JSONColumnTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONColumnTests.swift; sourceTree = "<group>"; };
 		561F38F02AC9CE220051EEE9 /* DatabaseDataEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		561F38F52AC9CE5A0051EEE9 /* DatabaseDataDecodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDataDecodingStrategyTests.swift; sourceTree = "<group>"; };
+		56231A452DCF3A28007676E4 /* TableAlias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableAlias.swift; sourceTree = "<group>"; };
 		56231E6025CEBF06001DFD2F /* RowDecodingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowDecodingError.swift; sourceTree = "<group>"; };
 		562393171DECC02000A6B01F /* RowFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFetchTests.swift; sourceTree = "<group>"; };
 		5623932F1DEDFC5700A6B01F /* AnyCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyCursorTests.swift; sourceTree = "<group>"; };
@@ -1275,6 +1277,7 @@
 				5656A82A2295BD56001FF3FF /* SQLQueryGenerator.swift */,
 				56F89E182A585E0D002FE2AA /* SQLTableAlterationGenerator.swift */,
 				56F89E192A585E0D002FE2AA /* SQLTableGenerator.swift */,
+				56231A452DCF3A28007676E4 /* TableAlias.swift */,
 			);
 			path = SQLGeneration;
 			sourceTree = "<group>";
@@ -1989,6 +1992,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5656A8712295BD56001FF3FF /* HasOneThroughAssociation.swift in Sources */,
+				56231A462DCF3A28007676E4 /* TableAlias.swift in Sources */,
 				56713FE32691F487006153C3 /* JSONRequiredEncoder.swift in Sources */,
 				5685C1962AD52EF200DA4B7A /* ListDumpFormat.swift in Sources */,
 				566BD7332927AFD600595649 /* ValueConcurrentObserver.swift in Sources */,

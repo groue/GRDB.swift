@@ -10,11 +10,23 @@ private struct A : TableRecord {
     static let child = hasOne(A.self)
     static let b1 = belongsTo(B.self, key: "b1", using: ForeignKey(["bid1"]))
     static let b2 = belongsTo(B.self, key: "b2", using: ForeignKey(["bid2"]))
+    
+    enum Columns {
+        static let id = Column("id")
+        static let bid1 = Column("bid1")
+        static let bid2 = Column("bid2")
+        static let parentId = Column("parentId")
+        static let name = Column("name")
+    }
 }
 private struct B : TableRecord {
     static let databaseTableName = "b"
     static let a1 = hasOne(A.self, key: "a1", using: ForeignKey(["bid1"]))
     static let a2 = hasOne(A.self, key: "a1", using: ForeignKey(["bid2"]))
+    
+    enum Columns {
+        static let id = Column("id")
+    }
 }
 
 /// Tests for table name conflicts, recursive associations,
@@ -117,6 +129,86 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
             }
         }
     }
+    
+    #if compiler(>=6.1)
+    func testTableAliasBasics_swift61() throws {
+        // A table reference qualifies all unqualified selectables, expressions, and orderings
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let alias = TableAlias<A>()
+                
+                let expectedSQL = """
+                    SELECT "name" \
+                    FROM "a" \
+                    WHERE ("id" = 1) AND ("name" IS NOT NULL) AND ("name" = 'foo') \
+                    GROUP BY "name" \
+                    HAVING "name" \
+                    ORDER BY "name"
+                    """
+                
+                do {
+                    let request = A
+                        .aliased(alias)
+                        .select(\.name)
+                        .filter(key: 1)
+                        .filter { $0.name != nil && alias.name == "foo" }
+                        .group(\.name)
+                        .having(\.name)
+                        .order(\.name)
+                    try assertEqualSQL(db, request, expectedSQL)
+                }
+                do {
+                    let request = A
+                        .select(\.name)
+                        .filter(key: 1)
+                        .filter { $0.name != nil && alias.name == "foo" }
+                        .group(\.name)
+                        .having(\.name)
+                        .order(\.name)
+                        .aliased(alias)
+                    try assertEqualSQL(db, request, expectedSQL)
+                }
+            }
+            do {
+                let alias = TableAlias<A>(name: "customA")
+                
+                let expectedSQL = """
+                    SELECT "customA"."name" \
+                    FROM "a" "customA" \
+                    WHERE ("customA"."id" = 1) AND ("customA"."name" IS NOT NULL) AND ("customA"."name" = 'foo') \
+                    GROUP BY "customA"."name" \
+                    HAVING "customA"."name" \
+                    ORDER BY "customA"."name"
+                    """
+                
+                do {
+                    let request = A
+                        .aliased(alias)
+                        .select(\.name)
+                        .filter(key: 1)
+                        .filter { $0.name != nil && alias.name == "foo" }
+                        .group(\.name)
+                        .having(\.name)
+                        .order(\.name)
+                    try assertEqualSQL(db, request, expectedSQL)
+                }
+                do {
+                    let request = A
+                        .select(\.name)
+                        .filter(key: 1)
+                        .filter { $0.name != nil && alias.name == "foo" }
+                        .group(\.name)
+                        .having(\.name)
+                        .order(\.name)
+                        .aliased(alias)
+                    try assertEqualSQL(db, request, expectedSQL)
+                }
+            }
+        }
+    }
+    #endif
     
     func testRecursiveRelationDepth1() throws {
         // A.include(A.parent)

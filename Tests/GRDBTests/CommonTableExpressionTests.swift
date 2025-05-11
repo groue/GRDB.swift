@@ -26,7 +26,12 @@ class CommonTableExpressionTests: GRDBTestCase {
     }
     
     func testQuery() throws {
-        struct T: TableRecord { }
+        struct T: TableRecord {
+            enum Columns {
+                static let id = Column("id")
+            }
+        }
+        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -96,6 +101,20 @@ class CommonTableExpressionTests: GRDBTestCase {
                     LEFT JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression<T>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .including(optional: T.association(to: cte, on: { $0.id > $1.id }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    LEFT JOIN "cte" ON "t"."id" > "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include SQL request as a CTE
             do {
@@ -112,6 +131,22 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    literal: "SELECT 1 as id")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id == $1["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 as id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include a filtered SQL request as a CTE
             do {
@@ -145,6 +180,23 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    columns: [],
+                    literal: "SELECT 1 AS id")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id == $1["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 AS id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include SQL request as a CTE (custom column name)
             do {
@@ -162,6 +214,23 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression(
+                    named: "cte",
+                    columns: ["id", "a"],
+                    literal: "SELECT 1, 2")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id == $1["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte"("id", "a") AS (SELECT 1, 2) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include SQL request as a CTE (empty ON clause)
             do {
@@ -192,6 +261,20 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression<T>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .joining(required: T.association(to: cte, on: { $0.id > $1.id }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" > "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include filtered CTE
             do {
@@ -253,6 +336,21 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression<T>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id > $1.id }))
+                    .including(required: T.association(to: cte, on: { $0.id > $1.id }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" > "cte"."id"
+                    """)
+            }
+            #endif
             
             // Include one CTE twice with same key but different condition (last condition wins)
             do {
@@ -268,6 +366,21 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON ("t"."id" + "cte"."id") = 1
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression<T>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id > $1.id }))
+                    .including(required: T.association(to: cte, on: { $0.id + $1.id == 1 }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON ("t"."id" + "cte"."id") = 1
+                    """)
+            }
+            #endif
             
             // Include one CTE twice with different keys
             do {
@@ -284,6 +397,22 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" "cte2" ON "t"."id" < "cte2"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let cte = CommonTableExpression<T>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { $0.id > $1.id }).forKey("a"))
+                    .including(required: T.association(to: cte, on: { $0.id < $1.id }).forKey("b"))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte1".*, "cte2".* \
+                    FROM "t" \
+                    JOIN "cte" "cte1" ON "t"."id" > "cte1"."id" \
+                    JOIN "cte" "cte2" ON "t"."id" < "cte2"."id"
+                    """)
+            }
+            #endif
             
             // Chain CTE includes
             do {

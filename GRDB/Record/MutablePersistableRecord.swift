@@ -61,6 +61,7 @@
 /// - ``insertAndFetch(_:onConflict:)``
 /// - ``insertAndFetch(_:onConflict:as:)``
 /// - ``insertAndFetch(_:onConflict:selection:fetch:)``
+/// - ``insertAndFetch(_:onConflict:fetch:select:)``
 /// - ``upsertAndFetch(_:onConflict:doUpdate:)``
 /// - ``upsertAndFetch(_:as:onConflict:doUpdate:)``
 ///

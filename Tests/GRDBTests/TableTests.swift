@@ -883,6 +883,46 @@ class TableTests: GRDBTestCase {
         }
     }
     
+    func test_updateAll_DatabaseComponents() throws {
+        struct Player: TableRecord {
+            enum Columns {
+                static let score = Column("score")
+            }
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            
+            do {
+                try Table<Player>("player").updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db) { [$0.score.set(to: 0)] }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db, onConflict: .ignore) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db, onConflict: .ignore) { [$0.score.set(to: 0)] }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
+                    """)
+            }
+        }
+    }
+
     func test_exists() throws {
         try makeDatabaseQueue().write { db in
             try db.create(table: "player") { t in

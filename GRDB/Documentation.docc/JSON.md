@@ -36,10 +36,16 @@ try db.create(table: "player") { t in
 >         JSONColumn("address")["country"],
 >     ])
 >
+> struct Player: FetchableRecord, TableRecord {
+>     enum Columns {
+>         static let address = JSONColumn("address") 
+>     }
+> }
+>
 > // SELECT * FROM player
 > // WHERE address ->> 'country' = 'DE'
 > let germanPlayers = try Player
->     .filter(JSONColumn("address")["country"] == "DE")
+>     .filter { $0.address["country"] == "DE" }
 >     .fetchAll(db)
 > ```
 
@@ -104,10 +110,16 @@ extension Team: FetchableRecord, PersistableRecord {
 > struct Address: Codable { ... }
 > extension Address: DatabaseValueConvertible {}
 >
+> struct Player: FetchableRecord, TableRecord {
+>     enum Columns {
+>         static let address = JSONColumn("address") 
+>     }
+> }
+>
 > // SELECT * FROM player
 > // WHERE address = '{"street": "...", "city": "...", "country": "..."}'
 > let players = try Player
->     .filter(JSONColumn("address") == Address(...))
+>     .filter { $0.address == Address(...) }
 >     .fetchAll(db)
 > ```
 >

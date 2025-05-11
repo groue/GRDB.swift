@@ -93,7 +93,7 @@ Columns are special expressions that allow some optimizations and niceties:
     ValueObservation.tracking { db in
         try Player.fetchOne(db, id: 1)
         // or
-        try Player.filter(Column("id") == 1).fetchOne(db)
+        try Player.filter { $0.id == 1 }.fetchOne(db)
     }
     
     // Non-optimized observations
@@ -110,7 +110,7 @@ Columns are special expressions that allow some optimizations and niceties:
     // Nicer SQL
     // SELECT * FROM player WHERE id = 1
     try Player.fetchOne(db, id: 1)
-    try Player.filter(Column("id") == 1).fetchOne(db)
+    try Player.filter { $0.id == 1 }.fetchOne(db)
     
     // Less nice SQL
     // SELECT * FROM player WHERE id = 1 LIMIT 1
@@ -261,7 +261,7 @@ The basic value types conform to [DatabaseValueConvertible] so that they can fee
 ```swift
 // SELECT * FROM player WHERE name = 'O''Brien'
 //                                   ~~~~~~~~~~
-Player.filter(Column("name") == "O'Brien")
+Player.filter { $0.name == "O'Brien" }
 ```
 
 ### QueryInterfaceRequest
@@ -346,8 +346,9 @@ Functions and methods that build an SQL expression should return an SQLExpressio
 
 ```swift
 // SELECT * FROM player WHERE LENGTH(name) > 0
-let expression = length(Column("name")) > 0 // SQLExpression
-Player.filter(expression)
+Player.filter {
+    length($0.name) > 0 // SQLExpression
+}
 ```
 
 When it looks like GRDB APIs are unable to build a particular expression, use [SQL]:
@@ -358,7 +359,7 @@ func date(_ value: SQLSpecificExpressible) -> SQLExpression {
 }
 
 // SELECT * FROM player WHERE DATE(createdAt) = '2020-01-23'
-let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+let request = Player.filter { date($0.createdAt) == "2020-01-23" }
 ```
 
 This technique, based on [SQL Interpolation], is composable and works well even when several tables are involved. See how the `createdAt` column below is correctly attributed to the `player` table:
@@ -368,7 +369,7 @@ This technique, based on [SQL Interpolation], is composable and works well even 
 // JOIN team ON team.id = player.teamId
 // WHERE DATE(player.createdAt) = '2020-01-23'
 let request = Player
-    .filter(date(Column("createdAt")) == "2020-01-23")
+    .filter { date($0.createdAt) == "2020-01-23" }
     .including(required: Player.team)
 ```
 
@@ -583,7 +584,7 @@ SQLSubqueryable provides the GRDB support for subqueries. Its [SQLSpecificExpres
 // SELECT * FROM player
 // WHERE score >= (SELECT AVG(score) FROM player)
 let averageScore = Player.select(average(Column("score")))
-Player.filter(Column("score") >= averageScore)
+Player.filter { $0.score >= averageScore }
 ```
 
 SQLSubqueryable has the `contains(_:)` and `exists()` methods that support the `value IN (subquery)` and `EXISTS (subquery)` expressions.
