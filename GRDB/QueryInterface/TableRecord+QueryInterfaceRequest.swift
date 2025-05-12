@@ -78,9 +78,9 @@ extension TableRecord {
     /// let request = Player.select(\.score)
     /// ```
     public static func select(
-        _ selection: (DatabaseComponents) -> any SQLSelectable
-    ) -> QueryInterfaceRequest<Self> {
-        all().select(selection)
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().select(selection)
     }
     
     /// Returns a request that selects the provided result columns.
@@ -94,9 +94,9 @@ extension TableRecord {
     /// let request = Player.select { [$0.id, $0.score] }
     /// ```
     public static func select(
-        _ selection: (DatabaseComponents) -> [any SQLSelectable]
-    ) -> QueryInterfaceRequest<Self> {
-        all().select(selection)
+        _ selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().select(selection)
     }
     
     /// Returns a request that selects the provided SQL string.
@@ -217,11 +217,11 @@ extension TableRecord {
     /// let maxScore = try request.fetchOne(db) // Int?
     /// ```
     public static func select<RowDecoder>(
-        _ selection: (DatabaseComponents) -> any SQLSelectable,
-        as type: RowDecoder.Type = RowDecoder.self)
-    -> QueryInterfaceRequest<RowDecoder>
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable,
+        as type: RowDecoder.Type = RowDecoder.self
+    ) rethrows -> QueryInterfaceRequest<RowDecoder>
     {
-        all().select(selection, as: type)
+        try all().select(selection, as: type)
     }
     
     /// Returns a request that selects the provided SQL string, and defines the
@@ -395,9 +395,9 @@ extension TableRecord {
     /// let request = Player.annotated { ($0.score + $0.bonus).forKey("totalScore") }
     /// ```
     public static func annotated(
-        with selection: (DatabaseComponents) -> any SQLSelectable
-    ) -> QueryInterfaceRequest<Self> {
-        all().annotated(with: selection)
+        with selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().annotated(with: selection)
     }
     
     /// Returns a request with the provided result columns appended to the
@@ -415,9 +415,9 @@ extension TableRecord {
     /// let request = Player.annotated { [($0.score + $0.bonus).forKey("totalScore")] }
     /// ```
     public static func annotated(
-        with selection: (DatabaseComponents) -> [any SQLSelectable]
-    ) -> QueryInterfaceRequest<Self> {
-        all().annotated(with: selection)
+        with selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().annotated(with: selection)
     }
     
     // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
@@ -453,9 +453,9 @@ extension TableRecord {
     /// let request = Player.filter { $0.name == name }
     /// ```
     public static func filter(
-        _ predicate: (DatabaseComponents) -> any SQLSpecificExpressible
-    ) -> QueryInterfaceRequest<Self> {
-        all().filter(predicate)
+        _ predicate: (DatabaseComponents) throws -> any SQLSpecificExpressible
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().filter(predicate)
     }
     
     /// Returns a request filtered by primary key.
@@ -632,9 +632,9 @@ extension TableRecord {
     /// let request = Player.order(\.score.desc)
     /// ```
     public static func order(
-        _ orderings: (DatabaseComponents) -> any SQLOrderingTerm
-    ) -> QueryInterfaceRequest<Self> {
-        all().order(orderings)
+        _ orderings: (DatabaseComponents) throws -> any SQLOrderingTerm
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().order(orderings)
     }
     
     /// Returns a request sorted according to the given SQL ordering terms.
@@ -648,9 +648,9 @@ extension TableRecord {
     /// let request = Player.order { [$0.score.desc, $0.name] }
     /// ```
     public static func order(
-        _ orderings: (DatabaseComponents) -> [any SQLOrderingTerm]
-    ) -> QueryInterfaceRequest<Self> {
-        all().order(orderings)
+        _ orderings: (DatabaseComponents) throws -> [any SQLOrderingTerm]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().order(orderings)
     }
     
     /// Returns a request sorted by primary key.

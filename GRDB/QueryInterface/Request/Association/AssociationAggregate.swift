@@ -179,11 +179,11 @@ extension AssociationToMany {
     /// }
     /// ```
     public func average(
-        _ expression: (DatabaseComponents) -> some SQLSpecificExpressible
-    ) -> AssociationAggregate<OriginRowDecoder>
+        _ expression: (DatabaseComponents) throws -> some SQLSpecificExpressible
+    ) rethrows -> AssociationAggregate<OriginRowDecoder>
     where RowDecoder: TableRecord
     {
-        average(expression(RowDecoder.databaseComponents))
+        try average(expression(RowDecoder.databaseComponents))
     }
     
     /// Returns the maximum value of the given expression in associated records.
@@ -276,11 +276,11 @@ extension AssociationToMany {
     /// }
     /// ```
     public func max(
-        _ expression: (DatabaseComponents) -> some SQLSpecificExpressible
-    ) -> AssociationAggregate<OriginRowDecoder>
+        _ expression: (DatabaseComponents) throws -> some SQLSpecificExpressible
+    ) rethrows -> AssociationAggregate<OriginRowDecoder>
     where RowDecoder: TableRecord
     {
-        max(expression(RowDecoder.databaseComponents))
+        try max(expression(RowDecoder.databaseComponents))
     }
     
     /// Returns the minimum value of the given expression in associated records.
@@ -373,11 +373,11 @@ extension AssociationToMany {
     /// }
     /// ```
     public func min(
-        _ expression: (DatabaseComponents) -> some SQLSpecificExpressible
-    ) -> AssociationAggregate<OriginRowDecoder>
+        _ expression: (DatabaseComponents) throws -> some SQLSpecificExpressible
+    ) rethrows -> AssociationAggregate<OriginRowDecoder>
     where RowDecoder: TableRecord
     {
-        min(expression(RowDecoder.databaseComponents))
+        try min(expression(RowDecoder.databaseComponents))
     }
     
     /// Returns the sum of the given expression in associated records.
@@ -434,7 +434,7 @@ extension AssociationToMany {
     /// Returns the sum of the given expression in associated records.
     ///
     /// This aggregate invokes the `SUM` SQL function.
-    /// See also ``AssociationToMany/total(_:)-hudm`` and
+    /// See also ``AssociationToMany/total(_:)-6dd9d`` and
     /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
@@ -478,11 +478,11 @@ extension AssociationToMany {
     /// }
     /// ```
     public func sum(
-        _ expression: (DatabaseComponents) -> some SQLSpecificExpressible
-    ) -> AssociationAggregate<OriginRowDecoder>
+        _ expression: (DatabaseComponents) throws -> some SQLSpecificExpressible
+    ) rethrows -> AssociationAggregate<OriginRowDecoder>
     where RowDecoder: TableRecord
     {
-        sum(expression(RowDecoder.databaseComponents))
+        try sum(expression(RowDecoder.databaseComponents))
     }
     
     /// Returns the sum of the given expression in associated records.
@@ -541,7 +541,7 @@ extension AssociationToMany {
     /// Returns the sum of the given expression in associated records.
     ///
     /// This aggregate invokes the `TOTAL` SQL function.
-    /// See also ``AssociationToMany/sum(_:)-5p74s`` and
+    /// See also ``AssociationToMany/sum(_:)-47yg7`` and
     /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     ///
     /// For example:
@@ -585,11 +585,11 @@ extension AssociationToMany {
     /// }
     /// ```
     public func total(
-        _ expression: (DatabaseComponents) -> some SQLSpecificExpressible
-    ) -> AssociationAggregate<OriginRowDecoder>
+        _ expression: (DatabaseComponents) throws -> some SQLSpecificExpressible
+    ) rethrows -> AssociationAggregate<OriginRowDecoder>
     where RowDecoder: TableRecord
     {
-        total(expression(RowDecoder.databaseComponents))
+        try total(expression(RowDecoder.databaseComponents))
     }
 }
 

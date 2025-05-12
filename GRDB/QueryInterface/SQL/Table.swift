@@ -1932,8 +1932,8 @@ extension Table {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignment: (DatabaseComponents) -> ColumnAssignment)
-    throws -> Int
+        assignment: (DatabaseComponents) throws -> ColumnAssignment
+    ) throws -> Int
     where RowDecoder: TableRecord
     {
         try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.databaseComponents)])
@@ -1968,8 +1968,8 @@ extension Table {
     public func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        assignments: (DatabaseComponents) -> [ColumnAssignment])
-    throws -> Int
+        assignments: (DatabaseComponents) throws -> [ColumnAssignment]
+    ) throws -> Int
     where RowDecoder: TableRecord
     {
         try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
