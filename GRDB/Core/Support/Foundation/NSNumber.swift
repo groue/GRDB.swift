@@ -1,4 +1,4 @@
-#if !os(Linux) && !os(Windows)
+#if !os(Linux) && !os(Windows) && !os(Android)
 import Foundation
 
 private let integerRoundingBehavior = NSDecimalNumberHandler(

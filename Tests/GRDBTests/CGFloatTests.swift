@@ -1,3 +1,4 @@
+#if canImport(CoreGraphics)
 import XCTest
 import CoreGraphics
 import GRDB
@@ -21,3 +22,4 @@ class CGFloatTests: GRDBTestCase {
         }
     }
 }
+#endif
