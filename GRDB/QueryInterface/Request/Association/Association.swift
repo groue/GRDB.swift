@@ -33,7 +33,7 @@ import Foundation
 ///
 /// - ``ForeignKey``
 /// - ``Inflections``
-public protocol Association: DerivableRequest {
+public protocol Association: DerivableRequest, Sendable {
     // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
     // type safety:
     //
@@ -164,7 +164,7 @@ extension Association {
 
 // TableRequest conformance
 extension Association {
-    public func aliased(_ alias: TableAlias) -> Self {
+    public func _aliased(_ alias: TableAliasBase) -> Self {
         withDestinationRelation { relation in
             relation = relation.aliased(alias)
         }
@@ -173,7 +173,9 @@ extension Association {
 
 // SelectionRequest conformance
 extension Association {
-    public func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
+    public func selectWhenConnected(
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.selectWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
@@ -181,7 +183,9 @@ extension Association {
         }
     }
     
-    public func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self {
+    public func annotatedWhenConnected(
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.annotatedWhenConnected { db in
                 try selection(db).map(\.sqlSelection)
@@ -192,7 +196,9 @@ extension Association {
 
 // FilteredRequest conformance
 extension Association {
-    public func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
+    public func filterWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.filterWhenConnected { db in
                 try predicate(db).sqlExpression
@@ -203,7 +209,9 @@ extension Association {
 
 // OrderedRequest conformance
 extension Association {
-    public func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self {
+    public func orderWhenConnected(
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm]
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.orderWhenConnected { db in
                 try orderings(db).map(\.sqlOrdering)
@@ -239,7 +247,9 @@ extension Association {
 
 // AggregatingRequest conformance
 extension Association {
-    public func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self {
+    public func groupWhenConnected(
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible]
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.groupWhenConnected { db in
                 try expressions(db).map(\.sqlExpression)
@@ -247,7 +257,9 @@ extension Association {
         }
     }
     
-    public func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self {
+    public func havingWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self {
         withDestinationRelation { relation in
             relation = relation.havingWhenConnected { db in
                 try predicate(db).sqlExpression
@@ -293,15 +305,25 @@ extension AssociationToOne {
 ///
 /// ### Building Association Aggregates
 ///
-/// - ``average(_:)``
+/// - ``average(_:)-1ehdb``
 /// - ``count``
 /// - ``isEmpty``
-/// - ``max(_:)``
-/// - ``min(_:)``
-/// - ``sum(_:)``
-/// - ``total(_:)``
+/// - ``max(_:)-a32j``
+/// - ``min(_:)-41jp8``
+/// - ``sum(_:)-47yg7``
+/// - ``total(_:)-6dd9d``
 ///
 /// - ``AssociationAggregate``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``average(_:)-4bbk9``
+/// - ``max(_:)-4g5ut``
+/// - ``min(_:)-6al4w``
+/// - ``sum(_:)-6ge96``
+/// - ``total(_:)-56v8i``
 public protocol AssociationToMany: Association { }
 
 extension AssociationToMany {

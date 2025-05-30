@@ -82,7 +82,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
+- See [FTS3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
 > **Note**: In case you were still wondering, it is recommended to read the SQLite documentation: [FTS3 & FTS4](https://www.sqlite.org/fts3.html) and [FTS5](https://www.sqlite.org/fts5.html).
 
@@ -91,7 +91,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 **FTS3 and FTS4 full-text tables store and index textual content.**
 
-Create tables with the `create(virtualTable:using:)` method:
+Create tables with the `create(virtualTable:options:using:_:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE document USING fts3(content)
@@ -301,7 +301,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -316,7 +316,7 @@ Use them in the [query interface](../README.md#the-query-interface):
 let documents = try Document.matching(pattern).fetchAll(db)
 
 // Search in a specific column:
-let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
+let documents = try Document.filter { $0.content.match(pattern) }.fetchAll(db)
 ```
 
 
@@ -326,7 +326,7 @@ let documents = try Document.filter(Column("content").match(pattern)).fetchAll(d
 
 To use FTS5, you'll need a [custom SQLite build] that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
-Create FTS5 tables with the `create(virtualTable:using:)` method:
+Create FTS5 tables with the `create(virtualTable:options:using:_:)` method:
 
 ```swift
 // CREATE VIRTUAL TABLE document USING fts5(content)
@@ -550,7 +550,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -565,7 +565,7 @@ Use them in the [query interface](../README.md#the-query-interface):
 let documents = try Document.matching(pattern).fetchAll(db)
 
 // Search in a specific column:
-let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
+let documents = try Document.filter { $0.content.match(pattern) }.fetchAll(db)
 ```
 
 
@@ -689,7 +689,7 @@ let books = Book.fetchAll(db, sql: sql, arguments: [pattern])
 
 **You can define [record](../README.md#records) types around the full-text virtual tables.**
 
-The primary key of those tables is the hidden `rowid` column. If you need to fetch, delete, and update full-text records by primary key, you will have to expose this column to the record type. See [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) for more information.
+The primary key of those tables is the hidden `rowid` column. If you need to fetch, delete, and update full-text records by primary key, you will have to expose this column to the record type. See [The Database Schema](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseschema) for more information.
 
 ## Unicode Full-Text Gotchas
 

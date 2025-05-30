@@ -41,10 +41,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let migrator = DatabaseMigrator()
             let publisher = migrator.migratePublisher(writer)
@@ -128,7 +124,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "")
-            migrator.asyncMigrate(writer, completion: { dbResult in
+            migrator.asyncMigrate(writer, completion: { [migrator2] dbResult in
                 // No migration error
                 let db = try! dbResult.get()
                 
@@ -153,10 +149,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisher() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("createPersons") { db in
@@ -209,10 +201,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
 
     func testEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             let migrator = DatabaseMigrator()
             let expectation = self.expectation(description: "")
@@ -235,10 +223,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testNonEmptyMigratorPublisherIsAsynchronous() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test(writer: some DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
@@ -262,10 +246,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherDefaultScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test<Writer: DatabaseWriter>(writer: Writer) {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
@@ -291,10 +271,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherCustomScheduler() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Combine is not available")
-        }
-        
         func test<Writer: DatabaseWriter>(writer: Writer) {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
@@ -679,9 +655,11 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         migrator.registerMigration("1", migrate: { _ in })
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
         
         migrator.registerMigration("2", migrate: { _ in })
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
     }
     
@@ -693,10 +671,48 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         migrator.registerMigration("1", migrate: { _ in })
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
         
         migrator.registerMigration("2", migrate: { _ in })
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
+    }
+    
+    func testHasSchemaChangesWorksWithReadonlyConfig() throws {
+        // 1st version of the migrator
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+        }
+        
+        // 2nd version of the migrator
+        var migrator2 = DatabaseMigrator()
+        migrator2.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer) // <- schema change, because reasons (development)
+            }
+        }
+        
+        let dbName = ProcessInfo.processInfo.globallyUniqueString
+        let dbQueue = try makeDatabaseQueue(filename: dbName)
+        
+        try XCTAssertFalse(dbQueue.read(migrator1.hasSchemaChanges))
+        try migrator1.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator1.hasSchemaChanges))
+        try dbQueue.close()
+        
+        // check that the migrator doesn't fail for a readonly connection
+        dbConfiguration.readonly = true
+        let readonlyQueue = try makeDatabaseQueue(filename: dbName)
+        
+        try XCTAssertFalse(readonlyQueue.read(migrator1.hasSchemaChanges))
+        try XCTAssertTrue(readonlyQueue.read(migrator2.hasSchemaChanges))
     }
     
     func testEraseDatabaseOnSchemaChange() throws {
@@ -738,10 +754,58 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // ... unless database gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
+        try XCTAssertTrue(dbQueue.read(migrator2.hasSchemaChanges))
         try migrator2.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator2.hasSchemaChanges))
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
     }
     
+    func testManualEraseDatabaseOnSchemaChange() throws {
+        // 1st version of the migrator
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+        }
+        
+        // 2nd version of the migrator
+        var migrator2 = DatabaseMigrator()
+        migrator2.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer) // <- schema change, because reasons (development)
+            }
+        }
+        migrator2.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        // Apply 1st migrator
+        let dbQueue = try makeDatabaseQueue()
+        try migrator1.migrate(dbQueue)
+        
+        // Test than 2nd migrator can't run...
+        do {
+            try migrator2.migrate(dbQueue)
+            XCTFail("Expected DatabaseError")
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+            XCTAssertEqual(error.message, "table player has no column named score")
+        }
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1"])
+        
+        // ... unless database gets erased
+        if try dbQueue.read(migrator2.hasSchemaChanges) {
+            try dbQueue.erase()
+        }
+        try migrator2.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator2.hasSchemaChanges))
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
+    }
+
     func testEraseDatabaseOnSchemaChangeWithConfiguration() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()
@@ -787,7 +851,9 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // ... unless database gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
+        try XCTAssertTrue(dbQueue.read(migrator2.hasSchemaChanges))
         try migrator2.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator2.hasSchemaChanges))
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
     }
     
@@ -795,13 +861,13 @@ class DatabaseMigratorTests : GRDBTestCase {
         var migrator = DatabaseMigrator()
         migrator.eraseDatabaseOnSchemaChange = true
         
-        var witness = 1
+        let mutex = Mutex(0)
         migrator.registerMigration("1") { db in
+            let value = mutex.increment()
             try db.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY);
                 INSERT INTO t1(id) VALUES (?)
-                """, arguments: [witness])
-            witness += 1
+                """, arguments: [value])
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -816,6 +882,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 CREATE TABLE t2(id INTEGER PRIMARY KEY);
                 """)
         }
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
         try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 1)
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
@@ -842,6 +909,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         // Then 2nd migration does not erase database
+        try XCTAssertFalse(dbQueue.read(migrator.hasSchemaChanges))
         try migrator.migrate(dbQueue)
         try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t") }, 1)
     }
@@ -869,7 +937,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 INSERT INTO t1(id) VALUES (2)
                 """)
         }
+        try XCTAssertTrue(dbQueue.read(migrator2.hasSchemaChanges))
         try migrator2.migrate(dbQueue)
+        try XCTAssertFalse(dbQueue.read(migrator2.hasSchemaChanges))
         try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 2)
     }
     

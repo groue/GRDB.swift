@@ -1,7 +1,7 @@
 /// The virtual table module for the FTS4 full-text engine.
 ///
 /// To create FTS4 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+/// ``Database/create(virtualTable:options:using:_:)``:
 ///
 /// ```swift
 /// // CREATE VIRTUAL TABLE document USING fts4(content)
@@ -31,7 +31,7 @@ public struct FTS4 {
     /// }
     /// ```
     ///
-    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
+    /// See ``Database/create(virtualTable:options:using:_:)``
     public init() { }
 }
 
@@ -102,6 +102,16 @@ extension FTS4: VirtualTableModule {
         case .synchronized(let contentTable):
             // https://www.sqlite.org/fts3.html#_external_content_fts4_tables_
             
+            if definition.configuration.temporary {
+                // SQLite can't rebuild the index of temporary tables:
+                //
+                // sqlite> CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
+                // sqlite> CREATE VIRTUAL TABLE temp.ft USING fts4(content="t", b, c);
+                // sqlite> INSERT INTO ft(ft) VALUES('rebuild');
+                // Runtime error: SQL logic error
+                fatalError("Temporary external content FTS4 tables are not supported.")
+            }
+            
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
             let content = contentTable.quotedDatabaseIdentifier
@@ -149,7 +159,7 @@ extension FTS4: VirtualTableModule {
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
-/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
+/// ``Database/create(virtualTable:options:using:_:)`` method:
 ///
 /// ```swift
 /// try db.create(virtualTable: "document", using: FTS4()) { t in // t is FTS4TableDefinition

@@ -43,8 +43,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extension Inflections {
-    /// The default inflections
-    public static var `default`: Inflections = {
+    /// The default inflections.
+    ///
+    /// This global variable is not concurrency-safe. If you modify the
+    /// default inflections, do it once, early in the lifetime of your
+    /// application, before you access query interface methods.
+    nonisolated(unsafe) public static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
@@ -59,7 +63,7 @@ extension Inflections {
         inflections.plural("^(ax|test)is$", "$1es")
         inflections.plural("(octop|vir)us$", "$1i")
         inflections.plural("(octop|vir)i$", "$1i")
-        inflections.plural("(alias|status)$", "$1es")
+        inflections.plural("(alias|bias|canvas|focus|gas|lens|status)$", "$1es")
         inflections.plural("(bu)s$", "$1ses")
         inflections.plural("(buffal|tomat|her)o$", "$1oes")
         inflections.plural("([ti])um$", "$1a")
@@ -98,13 +102,12 @@ extension Inflections {
         inflections.singular("(cris|test)(is|es)$", "$1is")
         inflections.singular("^(a)x[ie]s$", "$1xis")
         inflections.singular("(octop|vir)(us|i)$", "$1us")
-        inflections.singular("(alias|status)(es)?$", "$1")
+        inflections.singular("(alias|bias|canvas|focus|gas|lens|status)(es)?$", "$1")
         inflections.singular("^(ox)en$", "$1")
         inflections.singular("(vert|ind)ices$", "$1ex")
         inflections.singular("(matr)ices$", "$1ix")
         inflections.singular("(quiz)zes$", "$1")
         inflections.singular("(database)s$", "$1")
-        inflections.singular("(canvas)(es)?$", "$1")
         
         inflections.uncountableWords([
             "advice",

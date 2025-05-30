@@ -1,6 +1,15 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
-#if !os(Linux)
+#if !os(Linux) && !os(Windows)
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID: DatabaseValueConvertible {
     /// Returns a BLOB database value containing the uuid bytes.
@@ -8,7 +17,7 @@ extension NSUUID: DatabaseValueConvertible {
         var uuidBytes = ContiguousArray(repeating: UInt8(0), count: 16)
         return uuidBytes.withUnsafeMutableBufferPointer { buffer in
             getBytes(buffer.baseAddress!)
-            return NSData(bytes: buffer.baseAddress, length: 16).databaseValue
+            return Data(bytes: buffer.baseAddress!, count: 16).databaseValue
         }
     }
     

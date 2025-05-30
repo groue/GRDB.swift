@@ -2,6 +2,12 @@
 
 /// A base class for types that can be fetched and persisted in the database.
 ///
+/// ## Overview
+///
+/// - warning: `Record` is a legacy GRDB type. Since GRDB 7, it is not
+///   recommended to define record types by subclassing the `Record` class.
+///   See <doc:SwiftConcurrency> for more information.
+///
 /// ## Topics
 ///
 /// ### Creating Record Instances
@@ -101,7 +107,7 @@ open class Record {
     /// try PartialPlayer.fetchAll(db)
     /// ```
     open class var databaseSelection: [any SQLSelectable] {
-        [AllColumns()]
+        [.allColumns]
     }
     
     /// Encodes the record into the provided persistence container.
@@ -201,8 +207,7 @@ open class Record {
         var newValueIterator = try PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
-            while let (column, newValue) = newValueIterator.next() {
-                let newDbValue = newValue?.databaseValue ?? .null
+            while let (column, newDbValue) = newValueIterator.next() {
                 guard let oldRow, let oldDbValue: DatabaseValue = oldRow[column] else {
                     return (column, nil)
                 }
@@ -281,6 +286,7 @@ open class Record {
     /// your implementation.
     ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The updated columns.
     open func willUpdate(_ db: Database, columns: Set<String>) throws { }
     
     /// Called around the record update.
@@ -348,7 +354,7 @@ open class Record {
     /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter update: A function that updates the record. Its result is
+    /// - parameter save: A function that saves the recordsave: A function that saves the record. Its result is
     ///   reserved for GRDB usage.
     open func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
         _ = try save()
@@ -431,3 +437,9 @@ open class Record {
 extension Record: TableRecord { }
 extension Record: PersistableRecord { }
 extension Record: FetchableRecord { }
+
+// Explicit non-conformance to Sendable, because persistence methods mutate
+// the instance (`referenceRow`). Nothing prevents a single Record instance
+// from being concurrencly persisted in two distinct database connections.
+@available(*, unavailable)
+extension Record: Sendable { }

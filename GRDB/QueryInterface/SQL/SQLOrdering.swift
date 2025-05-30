@@ -12,7 +12,7 @@
 /// function arguments, prefer the ``SQLOrderingTerm`` protocol.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/syntax/ordering-term.html>
-public struct SQLOrdering {
+public struct SQLOrdering: Sendable {
     private var impl: Impl
     
     private enum Impl {
@@ -86,7 +86,7 @@ extension SQLOrdering {
 }
 
 extension SQLOrdering {
-    func qualified(with alias: TableAlias) -> SQLOrdering {
+    func qualified(with alias: TableAliasBase) -> SQLOrdering {
         switch impl {
         case .expression(let expression):
             return .expression(expression.qualified(with: alias))

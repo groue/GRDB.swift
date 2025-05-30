@@ -11,7 +11,7 @@ public final class DatabasePool {
     /// It is constant, until close() sets it to nil.
     private var readerPool: Pool<SerializedDatabase>?
     
-    @LockedBox var databaseSnapshotCount = 0
+    let databaseSnapshotCountMutex = Mutex(0)
     
     /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
     private var suspensionObservers: [NSObjectProtocol] = []
@@ -62,17 +62,15 @@ public final class DatabasePool {
         // an opened transaction.
         readerConfiguration.allowsUnsafeTransactions = false
         
-        var readerCount = 0
         readerPool = Pool(
             maximumCount: configuration.maximumReaderCount,
             qos: configuration.readQoS,
-            makeElement: {
-                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            makeElement: { [readerConfiguration] index in
                 return try SerializedDatabase(
                     path: path,
                     configuration: readerConfiguration,
                     defaultLabel: "GRDB.DatabasePool",
-                    purpose: "reader.\(readerCount)")
+                    purpose: "reader.\(index)")
             })
         
         // Set up journal mode unless readonly
@@ -118,10 +116,6 @@ public final class DatabasePool {
         
         configuration.readonly = true
         
-        // Readers use deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        configuration.defaultTransactionKind = .deferred
-        
         // <https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode>
         // > But there are some obscure cases where a query against a WAL-mode
         // > database can return SQLITE_BUSY, so applications should be prepared
@@ -148,7 +142,7 @@ public final class DatabasePool {
     }
 }
 
-// @unchecked because of databaseSnapshotCount, readerPool and suspensionObservers
+// @unchecked because of readerPool and suspensionObservers
 extension DatabasePool: @unchecked Sendable { }
 
 extension DatabasePool {
@@ -357,7 +351,47 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func read<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                // The block isolation comes from the DEFERRED transaction.
+                                try db.beginTransaction(.deferred)
+                                try db.clearSchemaCacheIfNeeded()
+                                return try value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -401,7 +435,43 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func unsafeRead<T: Sendable>(
+        _ value: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            readerPool.asyncGet { result in
+                do {
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
+                    reader.async { db in
+                        defer {
+                            releaseReader(.reuse)
+                        }
+                        do {
+                            let result = try dbAccess.inDatabase(db) {
+                                try db.clearSchemaCacheIfNeeded()
+                                return try value(db)
+                            }
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             value(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -446,25 +516,9 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        // The semaphore that blocks until futureResult is defined:
-        let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: Result<T, Error>? = nil
-        
-        asyncConcurrentRead { dbResult in
-            // Fetch and release the future
-            futureResult = dbResult.flatMap { db in Result { try value(db) } }
-            futureSemaphore.signal()
-        }
-        
-        return DatabaseFuture {
-            // Block the future until results are fetched
-            _ = futureSemaphore.wait(timeout: .distantFuture)
-            return try futureResult!.get()
-        }
-    }
-    
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         asyncConcurrentRead(value)
     }
     
@@ -505,7 +559,9 @@ extension DatabasePool: DatabaseReader {
     /// ```
     ///
     /// - parameter value: A function that accesses the database.
-    public func asyncConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncConcurrentRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -644,8 +700,7 @@ extension DatabasePool: DatabaseReader {
     
     // MARK: - WAL Snapshot Transactions
     
-    // swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
     func walSnapshotTransaction() throws -> WALSnapshotTransaction {
         guard let readerPool else {
@@ -665,7 +720,9 @@ extension DatabasePool: DatabaseReader {
     ///
     /// - important: The `completion` argument is executed in a serial
     ///   dispatch queue, so make sure you use the transaction asynchronously.
-    func asyncWALSnapshotTransaction(_ completion: @escaping (Result<WALSnapshotTransaction, Error>) -> Void) {
+    func asyncWALSnapshotTransaction(
+        _ completion: @escaping @Sendable (Result<WALSnapshotTransaction, Error>) -> Void
+    ) {
         guard let readerPool else {
             completion(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -691,9 +748,8 @@ extension DatabasePool: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         if configuration.readonly {
             // The easy case: the database does not change
             return _addReadOnly(
@@ -722,9 +778,8 @@ extension DatabasePool: DatabaseReader {
     private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
         let observer = ValueConcurrentObserver(
@@ -746,6 +801,12 @@ extension DatabasePool: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    public func writeWithoutTransaction<T: Sendable>(
+        _ updates: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         guard let readerPool else {
@@ -756,7 +817,29 @@ extension DatabasePool: DatabaseWriter {
         }
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func barrierWriteWithoutTransaction<T: Sendable>(
+        _ updates: @escaping @Sendable (Database) throws -> T
+    ) async throws -> T {
+        let dbAccess = CancellableDatabaseAccess()
+        return try await dbAccess.withCancellableContinuation { continuation in
+            asyncBarrierWriteWithoutTransaction { dbResult in
+                do {
+                    try dbAccess.checkCancellation()
+                    let db = try dbResult.get()
+                    let result = try dbAccess.inDatabase(db) {
+                        try updates(db)
+                    }
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    public func asyncBarrierWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
             return
@@ -788,9 +871,10 @@ extension DatabasePool: DatabaseWriter {
     ///
     /// - precondition: This method is not reentrant.
     /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is the ``Configuration/defaultTransactionKind`` of the
-    ///       the ``configuration``.
+    ///     - kind: The transaction type.
+    ///
+    ///       If nil, the transaction kind is DEFERRED when the database
+    ///       connection is read-only, and IMMEDIATE otherwise.
     ///     - updates: A function that updates the database.
     /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func writeInTransaction(
@@ -809,7 +893,9 @@ extension DatabasePool: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Database) -> Void
+    ) {
         writer.async(updates)
     }
 }
@@ -867,11 +953,10 @@ extension DatabasePool {
             path: path,
             configuration: DatabasePool.readerConfiguration(writer.configuration),
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\($databaseSnapshotCount.increment())")
+            purpose: "snapshot.\(databaseSnapshotCountMutex.increment())")
     }
     
-    // swiftlint:disable:next line_length
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER && (compiler(>=5.7.1) || !(os(macOS) || targetEnvironment(macCatalyst))))
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
     /// Creates a database snapshot that allows concurrent accesses to an
     /// unchanging database content, as it exists at the moment the snapshot
     /// is created.

@@ -29,6 +29,7 @@ import Foundation
 /// - ``exists(_:id:)``
 /// - ``exists(_:key:)-60hf2``
 /// - ``exists(_:key:)-6ha6``
+/// - ``recordNotFound(_:)``
 ///
 /// ### Throwing Record Not Found Errors
 ///
@@ -40,7 +41,7 @@ import Foundation
 ///
 /// - ``deleteAll(_:)``
 /// - ``deleteAll(_:ids:)``
-/// - ``deleteAll(_:keys:)-jbkm``
+/// - ``deleteAll(_:keys:)-5l3ih``
 /// - ``deleteAll(_:keys:)-5s1jg``
 /// - ``deleteOne(_:id:)``
 /// - ``deleteOne(_:key:)-413u8``
@@ -48,29 +49,29 @@ import Foundation
 ///
 /// ### Updating Records
 ///
-/// - ``updateAll(_:onConflict:_:)-7vv9x``
-/// - ``updateAll(_:onConflict:_:)-7atfw``
+/// - ``updateAll(_:onConflict:assignment:)``
+/// - ``updateAll(_:onConflict:assignments:)``
 ///
 /// ### Building Query Interface Requests
 ///
 /// `TableRecord` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods as static methods on the type itself.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-sdcd``
 /// - ``all()``
-/// - ``annotated(with:)-3zi1n``
 /// - ``annotated(with:)-4xoen``
 /// - ``annotated(with:)-8ce7u``
-/// - ``annotated(with:)-79389``
+/// - ``annotated(with:)-58am5``
+/// - ``annotated(with:)-12jwq``
 /// - ``annotated(withOptional:)``
 /// - ``annotated(withRequired:)``
-/// - ``filter(_:)``
+/// - ``filter(_:)-4xvdh``
 /// - ``filter(id:)``
 /// - ``filter(ids:)``
 /// - ``filter(key:)-9ey53``
 /// - ``filter(key:)-34lau``
 /// - ``filter(keys:)-4hq8y``
-/// - ``filter(keys:)-7skw1``
+/// - ``filter(keys:)-s1q0``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``having(_:)``
@@ -83,22 +84,25 @@ import Foundation
 /// - ``matching(_:)-22m4o``
 /// - ``matching(_:)-1t8ph``
 /// - ``none()``
-/// - ``order(_:)-9rc11``
-/// - ``order(_:)-2033k``
+/// - ``order(_:)-4j3ej``
+/// - ``order(_:)-53dja``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderByPrimaryKey()``
 /// - ``request(for:)``
-/// - ``select(_:)-1gvtj``
-/// - ``select(_:)-5oylt``
-/// - ``select(_:as:)-1puz3``
-/// - ``select(_:as:)-tjh0``
+/// - ``select(_:)-1bgd1``
+/// - ``select(_:)-8yqls``
+/// - ``select(_:as:)-7zz91``
 /// - ``select(literal:)``
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
+/// - ``databaseComponents``
+/// - ``Columns``
+/// - ``DatabaseComponents``
 ///
 /// ### Defining Associations
 ///
@@ -112,7 +116,87 @@ import Foundation
 /// - ``hasOne(_:key:using:)-4g9tm``
 /// - ``hasOne(_:key:using:)-4v5xa``
 /// - ``hasOne(_:through:using:key:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-py77``
+/// - ``annotated(with:)-3zi1n``
+/// - ``annotated(with:)-79389``
+/// - ``filter(_:)-5u85w``
+/// - ``order(_:)-9rc11``
+/// - ``order(_:)-2033k``
+/// - ``select(_:)-1gvtj``
+/// - ``select(_:)-5oylt``
+/// - ``select(_:as:)-1puz3``
+/// - ``select(_:as:)-tjh0``
+/// - ``updateAll(_:onConflict:_:)-7vv9x``
+/// - ``updateAll(_:onConflict:_:)-7atfw``
 public protocol TableRecord {
+    /// A type that defines columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// `Codable` types can define their columns from their coding keys:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    /// ```
+    associatedtype Columns = Never
+    
+    /// A type that provides database components to the query interface.
+    ///
+    /// By default, it is `Columns.Type`. This default definition might
+    /// change in future GRDB versions.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// Player.DatabaseComponents       // Player.Columns.Type by default
+    /// Player.databaseComponents       // Instance of Player.DatabaseComponents
+    /// Player.databaseComponents.score // A Column
+    /// let request = Player.order(\.score.desc)
+    /// ```
+    associatedtype DatabaseComponents = Columns.Type
+    
     /// The name of the database table used to build SQL queries.
     ///
     /// For example:
@@ -133,15 +217,28 @@ public protocol TableRecord {
     ///
     /// ```swift
     /// struct Player: TableRecord {
-    ///     static let databaseSelection: [any SQLSelectable] = [AllColumns()]
+    ///     // This is the default
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns]
+    ///     }
     /// }
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection: [any SQLSelectable] = [
-    ///         Column("id"),
-    ///         Column("name"),
-    ///     ]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// struct Team: TableRecord {
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [.allColumns(excluding: ["generatedColumn"])]
+    ///     }
     /// }
     ///
     /// // SELECT * FROM player
@@ -149,13 +246,54 @@ public protocol TableRecord {
     ///
     /// // SELECT id, name FROM player
     /// try PartialPlayer.fetchAll(db)
+    ///
+    /// // SELECT id, name, color FROM team
+    /// try Team.fetchAll(db)
     /// ```
     ///
     /// > Important: Make sure the `databaseSelection` property is
     /// > explicitly declared as `[any SQLSelectable]`. If it is not, the
     /// > Swift compiler may silently miss the protocol requirement,
     /// > resulting in sticky `SELECT *` requests.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseSelection' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[any SQLSelectable]' may have shared
+    /// > // mutable state.
+    /// > static let databaseSelection: [any SQLSelectable] = [.allColumns]
+    /// > ```
     static var databaseSelection: [any SQLSelectable] { get }
+    
+    /// The value that provides database components to the query interface.
+    ///
+    /// By default, it is `Columns.self`. This default definition might
+    /// change in future GRDB versions.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord, Codable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
+    /// Player.databaseComponents.score // A Column
+    /// let request = Player.order(\.score.desc)
+    /// ```
+    static var databaseComponents: DatabaseComponents { get }
 }
 
 extension TableRecord {
@@ -200,9 +338,15 @@ extension TableRecord {
         defaultDatabaseTableName
     }
     
-    /// The default selection is all columns: `[AllColumns()]`.
+    /// The default selection is all columns: `[.allColumns]`.
     public static var databaseSelection: [any SQLSelectable] {
-        [AllColumns()]
+        [.allColumns]
+    }
+}
+
+extension TableRecord where DatabaseComponents == Columns.Type {
+    public static var databaseComponents: DatabaseComponents {
+        Columns.self
     }
 }
 
@@ -242,7 +386,14 @@ extension TableRecord {
     ///
     /// struct PartialPlayer: TableRecord {
     ///     static let databaseTableName = "player"
-    ///     static let databaseSelection = [Column("id"), Column("name")]
+    ///     static var databaseSelection: [any SQLSelectable] {
+    ///         [Columns.id, Columns.name]
+    ///     }
+    ///
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let name = Column("name")
+    ///     }
     /// }
     ///
     /// try dbQueue.write { db in
@@ -318,7 +469,6 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns whether a record exists for this primary key.
     ///
@@ -410,11 +560,10 @@ extension TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<Keys>(_ db: Database, keys: Keys)
-    throws -> Int
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
+    public static func deleteAll(
+        _ db: Database,
+        keys: some Collection<some DatabaseValueConvertible>
+    ) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -454,7 +603,6 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Deletes records identified by their primary keys, and returns the number
     /// of deleted records.
@@ -483,9 +631,10 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted records.
     @discardableResult
-    public static func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
-    where IDS: Collection, IDS.Element == ID
-    {
+    public static func deleteAll(
+        _ db: Database,
+        ids: some Collection<ID>
+    ) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -606,6 +755,70 @@ extension TableRecord {
 // MARK: - Batch Update
 
 extension TableRecord {
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (DatabaseComponents) throws -> [ColumnAssignment]
+    ) throws -> Int {
+        try updateAll(db, onConflict: conflictResolution, assignments(databaseComponents))
+    }
+
+    /// Updates all records, and returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignment: A closure that returns an assignment.
+    /// - returns: The number of updated records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignment: (DatabaseComponents) throws -> ColumnAssignment
+    ) throws -> Int {
+        try updateAll(db, onConflict: conflictResolution, [assignment(databaseComponents)])
+    }
     
     /// Updates all records, and returns the number of updated records.
     ///
@@ -697,6 +910,15 @@ extension TableRecord {
 public enum RecordError: Error {
     /// A record does not exist in the database.
     ///
+    /// This error can be thrown from methods that update, such as
+    /// ``MutablePersistableRecord/update(_:onConflict:)``. In this case,
+    /// the error means that the database was not changed.
+    ///
+    /// It can also be thrown from methods that inserts or update with a
+    /// `RETURNING` clause, and the `IGNORE` conflict policy. In this case,
+    /// the error notifies that a conflict has prevented the change from
+    /// being applied.
+    ///
     /// - parameters:
     ///     - databaseTableName: The table of the missing record.
     ///     - key: The key of the missing record (column and values).
@@ -720,13 +942,10 @@ extension TableRecord {
     ///   any error that prevented the `RecordError` from being constructed.
     public static func recordNotFound(_ db: Database, key: some DatabaseValueConvertible) -> any Error {
         do {
-            let primaryKey = try db.primaryKey(databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
+            let column = try db.filteringPrimaryKeyColumn(databaseTableName)
             return RecordError.recordNotFound(
                 databaseTableName: databaseTableName,
-                key: [primaryKey.columns[0]: key.databaseValue])
+                key: [column: key.databaseValue])
         } catch {
             return error
         }
@@ -740,7 +959,30 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+extension TableRecord where Self: EncodableRecord {
+    /// Returns an error that tells that the record does not exist in
+    /// the database.
+    ///
+    /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or
+    ///   any error that prevented the `RecordError` from being constructed.
+    public func recordNotFound(_ db: Database) -> any Error {
+        do {
+            let databaseTableName = type(of: self).databaseTableName
+            let primaryKey = try db.primaryKey(databaseTableName)
+            
+            let container = try PersistenceContainer(db, self)
+            let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
+                ($0, container.databaseValue(at: $0))
+            })
+            return RecordError.recordNotFound(
+                databaseTableName: databaseTableName,
+                key: key)
+        } catch {
+            return error
+        }
+    }
+}
+
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns an error for a record that does not exist in the database.
     ///
@@ -757,4 +999,10 @@ public typealias PersistenceError = RecordError
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval
-private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
+///
+/// Assume this non-Sendable cache of strings can be used from multiple
+/// threads concurrently, because the NSCache documentation says:
+///
+/// > You can add, remove, and query items in the cache from different
+/// > threads without having to lock the cache yourself.
+nonisolated(unsafe) private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()

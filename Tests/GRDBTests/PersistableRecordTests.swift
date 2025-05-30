@@ -183,6 +183,8 @@ private struct PartialPlayer: Codable, PersistableRecord, FetchableRecord {
         case id, name
     }
     
+    typealias Columns = FullPlayer.Columns
+    
     func willInsert(_ db: Database) throws {
         callbacks.willInsertCount += 1
     }
@@ -248,6 +250,12 @@ private struct FullPlayer: Codable, PersistableRecord, FetchableRecord {
     
     enum CodingKeys: String, CodingKey {
         case id, name, score
+    }
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
     }
     
     let callbacks = Callbacks()
@@ -1328,7 +1336,7 @@ extension PersistableRecordTests {
 extension PersistableRecordTests {
     func test_insertAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1340,9 +1348,9 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.insertAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
@@ -1375,9 +1383,9 @@ extension PersistableRecordTests {
         }
     }
     
-    func test_insertAndFetch_selection_fetch() throws {
+    func test_insertAndFetch_selection_fetch_column() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1389,7 +1397,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)!
@@ -1423,14 +1431,10 @@ extension PersistableRecordTests {
             }
         }
     }
-}
-
-// MARK: - Save and Fetch
-
-extension PersistableRecordTests {
-    func test_saveAndFetch_as() throws {
+    
+    func test_insertAndFetch_selection_fetch_column_DatabaseComponents() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1442,9 +1446,264 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let score = try partialPlayer.insertAndFetch(db) { (statement: Statement) in
+                    try Int.fetchOne(statement)!
+                } select: {
+                    [$0.score]
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+
+    func test_insertAndFetch_selection_fetch_allColumns() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.insertAndFetch(db, selection: [.allColumns]) { (statement: Statement) in
+                    try Row.fetchOne(statement)!
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 1000])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_insertAndFetch_selection_fetch_allColumns_DatabaseComponents() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.insertAndFetch(db) { (statement: Statement) in
+                    try Row.fetchOne(statement)!
+                } select: { _ in
+                    [.allColumns]
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 1000])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_insertAndFetch_selection_fetch_allColumns_excluding() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.insertAndFetch(db, selection: [.allColumns(excluding: ["score"])]) { (statement: Statement) in
+                    try Row.fetchOne(statement)!
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur"])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_insertAndFetch_selection_fetch_allColumns_excluding_DatabaseComponents() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.insertAndFetch(db) { (statement: Statement) in
+                    try Row.fetchOne(statement)!
+                } select: { _ in
+                    [.allColumns(excluding: ["score"])]
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur"])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+}
+
+// MARK: - Save and Fetch
+
+extension PersistableRecordTests {
+    func test_saveAndFetch_as() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
                 XCTAssert(sqlQueries.contains("""
@@ -1479,8 +1738,8 @@ extension PersistableRecordTests {
             do {
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                clearSQLQueries()
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
@@ -1515,9 +1774,9 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
                 XCTAssert(sqlQueries.contains("""
@@ -1551,9 +1810,9 @@ extension PersistableRecordTests {
         }
     }
     
-    func test_saveAndFetch_selection_fetch() throws {
+    func test_saveAndFetch_selection_fetch_column() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1565,7 +1824,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1602,7 +1861,7 @@ extension PersistableRecordTests {
             do {
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
                 }
@@ -1638,7 +1897,7 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1673,6 +1932,256 @@ extension PersistableRecordTests {
             }
         }
     }
+    
+    func test_saveAndFetch_selection_fetch_allColumns() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns]) { (
+                    statement: Statement
+                ) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 1000])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+            
+            do {
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                try partialPlayer.delete(db)
+                clearSQLQueries()
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns]) { (statement: Statement) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (1,'Arthur') RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 1000])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 1)
+            }
+            
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns]) { (statement: Statement) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 1000])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_saveAndFetch_selection_fetch_allColumns_excluding() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(name: "Arthur")
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns(excluding: ["score"])]) { (
+                    statement: Statement
+                ) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur"])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+            
+            do {
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                try partialPlayer.delete(db)
+                clearSQLQueries()
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns(excluding: ["score"])]) { (statement: Statement) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (1,'Arthur') RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur"])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 1)
+            }
+            
+            do {
+                clearSQLQueries()
+                let partialPlayer = PartialPlayer(id: 1, name: "Arthur")
+                let row = try partialPlayer.saveAndFetch(db, selection: [.allColumns(excluding: ["score"])]) { (statement: Statement) in
+                    try Row.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
+                XCTAssert(sqlQueries.contains("""
+                    UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING "id", "name"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(row, ["id": 1, "name": "Arthur"])
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
 }
 
 // MARK: - Upsert
@@ -1680,7 +2189,7 @@ extension PersistableRecordTests {
 extension PersistableRecordTests {
     func test_upsert() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -1817,7 +2326,7 @@ extension PersistableRecordTests {
 
     func test_upsertAndFetch_do_update_set_where() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -1962,7 +2471,7 @@ extension PersistableRecordTests {
     
     func test_upsertAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -1974,7 +2483,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let player = FullPlayer(id: 1, name: "Arthur", score: 1000)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2018,7 +2527,7 @@ extension PersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let player = FullPlayer(id: 1, name: "Barbara", score: 100)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2065,7 +2574,7 @@ extension PersistableRecordTests {
 
     func test_upsertAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -2077,7 +2586,7 @@ extension PersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let partialPlayer = PartialPlayer(name: "Arthur")
                 let fullPlayer = try partialPlayer.upsertAndFetch(db, as: FullPlayer.self)
                 

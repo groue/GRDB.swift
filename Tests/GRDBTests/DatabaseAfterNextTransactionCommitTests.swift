@@ -42,7 +42,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var commitCount = 0
+            let commitCountMutex = Mutex(0)
             weak var deallocationWitness: Witness? = nil
             do {
                 let witness = Witness()
@@ -51,19 +51,19 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                 db.afterNextTransaction { _ in
                     // use witness
                     withExtendedLifetime(witness, { })
-                    commitCount += 1
+                    commitCountMutex.increment()
                 }
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(commitCount, 0)
+            XCTAssertEqual(commitCountMutex.load(), 0)
             try db.execute(sql: startSQL)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 0, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -73,9 +73,9 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 1, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 0, "\(startSQL); \(endSQL)")
             }
         }
     }
@@ -85,8 +85,8 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
-            var commitCount = 0
-            var rollbackCount = 0
+            let commitCountMutex = Mutex(0)
+            let rollbackCountMutex = Mutex(0)
             try db.execute(sql: startSQL)
             
             weak var deallocationWitness: Witness? = nil
@@ -98,25 +98,25 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
                     onCommit: { _ in
                         // use witness
                         withExtendedLifetime(witness, { })
-                        commitCount += 1
+                        commitCountMutex.increment()
                     },
                     onRollback: { _ in
                         // use witness
                         withExtendedLifetime(witness, { })
-                        rollbackCount += 1
+                        rollbackCountMutex.increment()
                     })
             }
             
             XCTAssertNotNil(deallocationWitness)
-            XCTAssertEqual(commitCount, 0)
+            XCTAssertEqual(commitCountMutex.load(), 0)
             try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCountMutex.load(), 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCountMutex.load(), 1, "\(startSQL); \(endSQL)")
             }
             XCTAssertNil(deallocationWitness)
             
@@ -126,11 +126,11 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             }
             switch expectedCompletion {
             case .commit:
-                XCTAssertEqual(commitCount, 1, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCountMutex.load(), 0, "\(startSQL); \(endSQL)")
             case .rollback:
-                XCTAssertEqual(commitCount, 0, "\(startSQL); \(endSQL)")
-                XCTAssertEqual(rollbackCount, 1, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(commitCountMutex.load(), 0, "\(startSQL); \(endSQL)")
+                XCTAssertEqual(rollbackCountMutex.load(), 1, "\(startSQL); \(endSQL)")
             }
         }
     }

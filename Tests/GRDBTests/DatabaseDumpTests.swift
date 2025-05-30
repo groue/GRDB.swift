@@ -229,10 +229,6 @@ final class DatabaseDumpTests: GRDBTestCase {
     // MARK: - JSON
     
     func test_json_value_formatting() throws {
-        guard #available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *) else {
-            throw XCTSkip("Skip because this test relies on JSONEncoder.OutputFormatting.withoutEscapingSlashes")
-        }
-        
         try makeValuesDatabase().read { db in
             let stream = TestStream()
             try db.dumpSQL("SELECT * FROM value ORDER BY name", format: .json(), to: stream)
@@ -1277,7 +1273,7 @@ final class DatabaseDumpTests: GRDBTestCase {
     }
     
     func test_dumpSchema_ignores_shadow_tables() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("Can't detect shadow tables")
         }
         
@@ -1481,7 +1477,7 @@ final class DatabaseDumpTests: GRDBTestCase {
     }
     
     func test_dumpContent_ignores_shadow_tables() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("Can't detect shadow tables")
         }
         

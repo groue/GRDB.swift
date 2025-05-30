@@ -13,7 +13,7 @@ class BadlyMangledStuff : Record {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
     }
     
@@ -48,7 +48,9 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setup)
+        migrator.registerMigration("createBadlyMangledStuff") {
+            try BadlyMangledStuff.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

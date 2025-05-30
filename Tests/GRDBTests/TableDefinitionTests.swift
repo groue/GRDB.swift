@@ -47,7 +47,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testStrictTableCreationOption() throws {
-        guard sqlite3_libversion_number() >= 3037000 else {
+        guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("STRICT tables are not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -195,7 +195,7 @@ class TableDefinitionTests: GRDBTestCase {
     func testColumnIndexed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "test") { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
@@ -210,7 +210,7 @@ class TableDefinitionTests: GRDBTestCase {
     func testColumnIndexedInheritsIfNotExistsFlag() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.create(table: "test", options: [.ifNotExists]) { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
@@ -358,7 +358,7 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testColumnGeneratedAs() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3031000 else {
+        guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
 #else
@@ -724,7 +724,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("a", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.add(column: "b", .text)
                 t.add(column: "c", .integer).notNull().defaults(to: 1)
@@ -751,7 +751,7 @@ class TableDefinitionTests: GRDBTestCase {
                     t.column("a", .text)
                 }
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.alter(table: "hiddenRowIdTable") { t in
                     t.add(column: "ref").references("hiddenRowIdTable")
                 }
@@ -766,7 +766,7 @@ class TableDefinitionTests: GRDBTestCase {
                     t.column("a", .text)
                 }
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try db.alter(table: "explicitPrimaryKey") { t in
                     t.add(column: "ref").references("explicitPrimaryKey")
                 }
@@ -793,21 +793,16 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testAlterTableRenameColumn() throws {
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
-        }
-        #endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
                 t.column("a", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.rename(column: "a", to: "b")
                 t.add(column: "c")
@@ -821,14 +816,9 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testAlterTableRenameColumnInvalidatesSchemaCache() throws {
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 13, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
-        }
-        #endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -845,7 +835,7 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testAlterTableAddGeneratedVirtualColumn() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3031000 else {
+        guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
 #else
@@ -861,7 +851,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("c", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.add(column: "d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.add(column: "e", .text).generatedAs(sql: "substr(c,b,b+1)", .virtual)
@@ -880,7 +870,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableDropColumn() throws {
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -895,7 +885,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .text)
             }
             
-            sqlQueries.removeAll()
+            clearSQLQueries()
             try db.alter(table: "test") { t in
                 t.drop(column: "b")
             }
@@ -904,7 +894,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableDropColumnInvalidatesSchemaCache() throws {
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER

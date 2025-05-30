@@ -308,18 +308,31 @@ extension TableRecord {
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS
@@ -334,17 +347,22 @@ extension TableRecord {
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<Self>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
     
     /// Creates an association to a common table expression.
@@ -567,6 +585,19 @@ extension TableRecord where Self: EncodableRecord {
             fatalError("Not implemented: request association without any foreign key")
             
         case let .foreignKey(foreignKey):
+            // Build the sendable persistence container before building the
+            // request, and catch the eventual error in a Result, so that it
+            // is thrown later, when the request is executed. This allows
+            // this method to not throw:
+            //
+            // extension Player {
+            //   // We don't want this property to have a throwing getter:
+            //   var team: QueryInterfaceRequest<Team> {
+            //     request(for: Player.team)
+            //   }
+            // }
+            let persistenceContainer = Result { try PersistenceContainer(self) }
+            
             let destinationRelation = association
                 ._sqlAssociation
                 .with {
@@ -574,7 +605,7 @@ extension TableRecord where Self: EncodableRecord {
                         // Filter the pivot on self
                         try foreignKey
                             .joinMapping(db, from: Self.databaseTableName)
-                            .joinExpression(leftRows: [PersistenceContainer(db, self)])
+                            .joinExpression(leftRows: [persistenceContainer.get()])
                     }
                 }
                 .destinationRelation()
@@ -687,12 +718,17 @@ extension TableRecord {
     /// For example, we can fetch only books whose author is French:
     ///
     /// ```swift
-    /// struct Author: TableRecord, FetchableRecord, Decodable { }
+    /// struct Author: TableRecord, FetchableRecord, Decodable {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
     /// struct Book: TableRecord, FetchableRecord, Decodable {
     ///     static let author = belongsTo(Author.self)
     /// }
     ///
-    /// let frenchAuthors = Book.author.filter(Column("countryCode") == "FR")
+    /// let frenchAuthors = Book.author.filter { $0.countryCode == "FR" }
     /// let bookInfos = try Book
     ///     .joining(required: frenchAuthors)
     ///     .fetchAll(db)
@@ -713,9 +749,19 @@ extension TableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let color = Column("color")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, FetchableRecord, TableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player LEFT JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.annotated(withOptional: teamColor)
     /// ```
     ///
@@ -737,9 +783,19 @@ extension TableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let color = Column("color")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, FetchableRecord, TableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.annotated(withRequired: teamColor)
     /// ```
     ///

@@ -1,10 +1,19 @@
 #if SQLITE_ENABLE_FTS5
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// The virtual table module for the FTS5 full-text engine.
 ///
 /// To create FTS5 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+/// ``Database/create(virtualTable:options:using:_:)``:
 ///
 /// ```swift
 /// // CREATE VIRTUAL TABLE document USING fts5(content)
@@ -60,7 +69,7 @@ public struct FTS5 {
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
-        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
+        @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.27+
         case remove
         #endif
     }
@@ -76,7 +85,7 @@ public struct FTS5 {
     /// }
     /// ```
     ///
-    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
+    /// See ``Database/create(virtualTable:options:using:_:)``
     public init() { }
     
     // Support for FTS5Pattern initializers. Don't make public. Users tokenize
@@ -108,46 +117,6 @@ public struct FTS5 {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#extending_fts5>
     public static func api(_ db: Database) -> UnsafePointer<fts5_api> {
-        // Access to FTS5 is one of the rare SQLite api which was broken in
-        // SQLite 3.20.0+, for security reasons:
-        //
-        // Starting SQLite 3.20.0+, we need to use the new sqlite3_bind_pointer api.
-        // The previous way to access FTS5 does not work any longer.
-        //
-        // So let's see which SQLite version we are linked against:
-        
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
-        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        #else
-        // GRDB is linked against the system SQLite.
-        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
-            return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-        } else {
-            return api_v1(db)
-        }
-        #endif
-    }
-    
-    private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-        guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
-            fatalError("FTS5 is not available")
-        }
-        return data.withUnsafeBytes {
-            $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
-        }
-    }
-    
-    // Technique given by Jordan Rose:
-    // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
-    private static func api_v2(
-        _ db: Database,
-        // swiftlint:disable:next line_length
-        _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<CChar>?, CInt, CUnsignedInt, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<CChar>?>?) -> CInt,
-        // swiftlint:disable:next line_length
-        _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, CInt, UnsafeMutableRawPointer?, UnsafePointer<CChar>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> CInt)
-    -> UnsafePointer<fts5_api>
-    {
         var statement: SQLiteStatement? = nil
         var api: UnsafePointer<fts5_api>? = nil
         let type: StaticString = "fts5_api_ptr"
@@ -174,7 +143,7 @@ extension FTS5: VirtualTableModule {
     
     /// Reserved; part of the VirtualTableModule protocol.
     ///
-    /// See Database.create(virtualTable:using:)
+    /// See Database.create(virtualTable:options:using:_:)
     public func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS5TableDefinition {
         FTS5TableDefinition(configuration: configuration)
     }
@@ -250,13 +219,23 @@ extension FTS5: VirtualTableModule {
     
     /// Reserved; part of the VirtualTableModule protocol.
     ///
-    /// See Database.create(virtualTable:using:)
+    /// See Database.create(virtualTable:options:using:_:)
     public func database(_ db: Database, didCreate tableName: String, using definition: FTS5TableDefinition) throws {
         switch definition.contentMode {
         case .raw:
             break
         case .synchronized(let contentTable):
             // https://sqlite.org/fts5.html#external_content_tables
+            
+            if definition.configuration.temporary {
+                // SQLite can't rebuild the index of temporary tables:
+                //
+                // sqlite> CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
+                // sqlite> CREATE VIRTUAL TABLE temp.ft USING fts5(content="t",content_rowid="a",b,c);
+                // sqlite> INSERT INTO ft(ft) VALUES('rebuild');
+                // Runtime error: SQL logic error
+                fatalError("Temporary external content FTS5 tables are not supported.")
+            }
             
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
@@ -305,7 +284,7 @@ extension FTS5: VirtualTableModule {
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
-/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
+/// ``Database/create(virtualTable:options:using:_:)`` method:
 ///
 /// ```swift
 /// try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition

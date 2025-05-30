@@ -12,7 +12,7 @@ class Pet : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE pets (
                 UUID TEXT NOT NULL PRIMARY KEY,
@@ -51,7 +51,9 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPet", migrate: Pet.setup)
+        migrator.registerMigration("createPet") {
+            try Pet.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

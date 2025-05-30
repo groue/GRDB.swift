@@ -27,8 +27,8 @@ try db.create(table: "player") { t in
 > Tip: When an application performs queries on values embedded inside JSON columns, indexes can help performance:
 >
 > ```swift
-> // CREATE INDEX "player_on_country" 
-> // ON "player"("address" ->> 'country')
+> // CREATE INDEX player_on_country 
+> // ON player(address ->> 'country')
 > try db.create(
 >     index: "player_on_country",
 >     on: "player",
@@ -36,10 +36,16 @@ try db.create(table: "player") { t in
 >         JSONColumn("address")["country"],
 >     ])
 >
+> struct Player: FetchableRecord, TableRecord {
+>     enum Columns {
+>         static let address = JSONColumn("address") 
+>     }
+> }
+>
 > // SELECT * FROM player
-> // WHERE "address" ->> 'country' = 'DE'
+> // WHERE address ->> 'country' = 'DE'
 > let germanPlayers = try Player
->     .filter(JSONColumn("address")["country"] == "DE")
+>     .filter { $0.address["country"] == "DE" }
 >     .fetchAll(db)
 > ```
 
@@ -92,9 +98,32 @@ struct Team: Codable {
 extension Team: FetchableRecord, PersistableRecord {
     // Support SQLite JSON functions and operators
     // by storing JSON data as database text:
-    static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+        .text
+    }
 }
 ```
+
+> Tip: Conform your `Codable` property to `DatabaseValueConvertible` if you want to be able to filter on specific values of it:
+>
+> ```swift
+> struct Address: Codable { ... }
+> extension Address: DatabaseValueConvertible {}
+>
+> struct Player: FetchableRecord, TableRecord {
+>     enum Columns {
+>         static let address = JSONColumn("address") 
+>     }
+> }
+>
+> // SELECT * FROM player
+> // WHERE address = '{"street": "...", "city": "...", "country": "..."}'
+> let players = try Player
+>     .filter { $0.address == Address(...) }
+>     .fetchAll(db)
+> ```
+>
+> Take care that SQLite will compare strings, not JSON objects: white-space and key ordering matter. For this comparison to succeed, make sure that the database contains values that are formatted exactly like a serialized `Address`.
 
 ## Manipulate JSON values at the database level
 
@@ -129,7 +158,7 @@ The `->` and `->>` SQL operators are available on the ``SQLJSONExpressible`` pro
 ### Build new JSON values at the SQL level
 
 - ``Database/json(_:)``
-- ``Database/jsonArray(_:)-8xxe3``
+- ``Database/jsonArray(_:)-8p2p8``
 - ``Database/jsonArray(_:)-469db``
 - ``Database/jsonObject(_:)``
 - ``Database/jsonQuote(_:)``

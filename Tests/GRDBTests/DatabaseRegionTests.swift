@@ -556,7 +556,7 @@ class DatabaseRegionTests : GRDBTestCase {
         //
         // See also testRowIdNameInUpdateStatement
         
-        guard sqlite3_libversion_number() < 3019003 else {
+        guard Database.sqliteLibVersionNumber < 3019003 else {
             // This test fails on SQLite 3.19.3 (iOS 11.2) and SQLite 3.21.0 (custom build),
             // but succeeds on SQLite 3.16.0 (iOS 10.3.1).
             // TODO: evaluate the consequences

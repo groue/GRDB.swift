@@ -40,7 +40,7 @@
 ///
 /// - ``deleteAll(_:)``
 /// - ``deleteAll(_:ids:)``
-/// - ``deleteAll(_:keys:)-5t865``
+/// - ``deleteAll(_:keys:)-594uc``
 /// - ``deleteAll(_:keys:)-28sff``
 /// - ``deleteOne(_:id:)``
 /// - ``deleteOne(_:key:)-404su``
@@ -48,6 +48,8 @@
 ///
 /// ### Updating Rows
 ///
+/// - ``updateAll(_:onConflict:assignment:)``
+/// - ``updateAll(_:onConflict:assignments:)``
 /// - ``updateAll(_:onConflict:_:)-4w9b``
 /// - ``updateAll(_:onConflict:_:)-4cvap``
 ///
@@ -56,7 +58,8 @@
 /// `Table` provide convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods.
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3135k``
+/// - ``aliased(_:)-5dkyd``
 /// - ``all()``
 /// - ``annotated(with:)-6i101``
 /// - ``annotated(with:)-6x399``
@@ -69,7 +72,7 @@
 /// - ``filter(ids:)``
 /// - ``filter(key:)-tw3i``
 /// - ``filter(key:)-4sun7``
-/// - ``filter(keys:)-85e0v``
+/// - ``filter(keys:)-5ws7f``
 /// - ``filter(keys:)-qqgf``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
@@ -94,6 +97,7 @@
 /// - ``select(literal:as:)``
 /// - ``select(sql:arguments:)``
 /// - ``select(sql:arguments:as:)``
+/// - ``selectID()``
 /// - ``selectPrimaryKey(as:)``
 /// - ``with(_:)``
 ///
@@ -424,6 +428,40 @@ extension Table {
         all().selectPrimaryKey(as: type)
     }
     
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let table = Table<Player>("player")
+    ///
+    /// // SELECT id FROM player
+    /// let request = try table.selectID()
+    /// ```
+    ///
+    /// **Important**: if the record type has an `ID` type that is an
+    /// optional, such as `Int64?`, it is recommended to prefer
+    /// ``selectPrimaryKey(as:)`` instead:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64?
+    /// }
+    ///
+    /// let table = Table<Player>("player")
+    ///
+    /// // NOT RECOMMENDED: Set<Int64?>
+    /// let ids = try table.selectID().fetchSet(db)
+    ///
+    /// // BETTER: Set<Int64>
+    /// let ids = try table.selectPrimaryKey(as: Int64.self).fetchSet(db)
+    /// ```
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
+    where RowDecoder: Identifiable
+    {
+        all().selectID()
+    }
+    
     /// Returns a request with the provided result columns appended to the
     /// table columns.
     ///
@@ -507,10 +545,9 @@ extension Table {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public func filter<Keys>(keys: Keys)
-    -> QueryInterfaceRequest<RowDecoder>
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
+    public func filter(
+        keys: some Collection<some DatabaseValueConvertible>
+    ) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(keys: keys)
     }
     
@@ -706,11 +743,23 @@ extension Table {
         all().limit(limit, offset: offset)
     }
     
-    /// Returns a request that can be referred to with the provided alias.
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
-    /// See ``TableRequest/aliased(_:)`` for more information.
-    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<RowDecoder> {
+    ///
+    /// See ``TableRequest/aliased(_:)-772vb`` for more information.
+    public func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<RowDecoder> {
+        all().aliased(alias)
+    }
+
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
+    ///
+    /// `table.aliased(alias)` is equivalent to `table.all().aliased(alias)`.
+    ///
+    /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         all().aliased(alias)
     }
     
@@ -723,7 +772,6 @@ extension Table {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
@@ -775,9 +823,9 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<RowDecoder>
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func filter(
+        ids: some Collection<RowDecoder.ID>
+    ) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(ids: ids)
     }
 }
@@ -1292,17 +1340,22 @@ extension Table {
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
+    ///   First argument is a ``TableAlias`` for the left table, second
+    ///   argument an alias for the right table.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> any SQLExpressible)
+        on condition: @escaping @Sendable (
+            _ left: TableAlias<RowDecoder>,
+            _ right: TableAlias<Destination>
+        ) -> any SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             to: cte.relationForAll,
-            condition: .expression { condition($0, $1).sqlExpression })
+            condition: .expression { left, right in
+                condition(TableAlias(root: left), TableAlias(root: right)).sqlExpression
+            })
     }
 
     /// Creates an association to a common table expression.
@@ -1546,7 +1599,6 @@ extension Table {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
@@ -1644,11 +1696,10 @@ extension Table {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows.
     @discardableResult
-    public func deleteAll<Keys>(_ db: Database, keys: Keys)
-    throws -> Int
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
+    public func deleteAll(
+        _ db: Database,
+        keys: some Collection<some DatabaseValueConvertible>
+    ) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -1688,7 +1739,6 @@ extension Table {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension Table
 where RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
@@ -1723,9 +1773,10 @@ where RowDecoder: Identifiable,
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted rows.
     @discardableResult
-    public func deleteAll<IDS>(_ db: Database, ids: IDS) throws -> Int
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func deleteAll(
+        _ db: Database,
+        ids: some Collection<RowDecoder.ID>
+    ) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -1858,6 +1909,77 @@ extension Table {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignment: A closure that returns an assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignment: (DatabaseComponents) throws -> ColumnAssignment
+    ) throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignment(RowDecoder.databaseComponents)])
+    }
+    
+    /// Updates all rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// let playerTable = Table<Player>("player")
+    ///
+    /// try dbQueue.write { db in
+    ///     // UPDATE player SET score = 0
+    ///     try playerTable.updateAll(db) { $0.score.set(to: 0) }
+    /// }
+    /// ```
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: A closure that returns an array of
+    ///   column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        assignments: (DatabaseComponents) throws -> [ColumnAssignment]
+    ) throws -> Int
+    where RowDecoder: TableRecord
+    {
+        try updateAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
+    }
+    
+    /// Updates all rows, and returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
     /// let playerTable = Table("player")
     ///
     /// try dbQueue.write { db in
@@ -1908,4 +2030,8 @@ extension Table {
     {
         try updateAll(db, onConflict: conflictResolution, assignments)
     }
+}
+
+extension Table where RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
 }

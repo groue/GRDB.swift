@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 extension FetchableRecord where Self: Decodable {
@@ -52,8 +61,8 @@ extension FetchableRecord where Self: Decodable {
 /// The behavior of the decoder depends on the decoded type. See:
 ///
 /// - ``FetchableRecord/databaseColumnDecodingStrategy-6uefz``
-/// - ``FetchableRecord/databaseDataDecodingStrategy-71bh1``
-/// - ``FetchableRecord/databaseDateDecodingStrategy-78y03``
+/// - ``FetchableRecord/databaseDataDecodingStrategy(for:)``
+/// - ``FetchableRecord/databaseDateDecodingStrategy(for:)``
 /// - ``FetchableRecord/databaseDecodingUserInfo-77jim``
 /// - ``FetchableRecord/databaseJSONDecoder(for:)-7lmxd``
 public class FetchableRecordDecoder {
@@ -276,13 +285,13 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Data.self {
-                    return try R.databaseDataDecodingStrategy.decodeIfPresent(
-                        fromRow: row,
-                        atUncheckedIndex: index) as! T?
+                    return try R
+                        .databaseDataDecodingStrategy(for: column)
+                        .decodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if type == Date.self {
-                    return try R.databaseDateDecodingStrategy.decodeIfPresent(
-                        fromRow: row,
-                        atUncheckedIndex: index) as! T?
+                    return try R
+                        .databaseDateDecodingStrategy(for: column)
+                        .decodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
                     return try type.fastDecodeIfPresent(fromRow: row, atUncheckedIndex: index) as! T?
                 } else if let type = T.self as? any DatabaseValueConvertible.Type {
@@ -325,9 +334,13 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Data.self {
-                    return try R.databaseDataDecodingStrategy.decode(fromRow: row, atUncheckedIndex: index) as! T
+                    return try R
+                        .databaseDataDecodingStrategy(for: column)
+                        .decode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if type == Date.self {
-                    return try R.databaseDateDecodingStrategy.decode(fromRow: row, atUncheckedIndex: index) as! T
+                    return try R
+                        .databaseDateDecodingStrategy(for: column)
+                        .decode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
                     return try type.fastDecode(fromRow: row, atUncheckedIndex: index) as! T
                 } else if let type = T.self as? any DatabaseValueConvertible.Type {
@@ -643,11 +656,16 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     func decode(_ type: String.Type) throws -> String { try row.decode(atIndex: columnIndex) }
     
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-        // TODO: not tested
         if type == Data.self {
-            return try R.databaseDataDecodingStrategy.decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
+            let columnName = row.impl.columnName(atUncheckedIndex: columnIndex)
+            return try R
+                .databaseDataDecodingStrategy(for: columnName)
+                .decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if type == Date.self {
-            return try R.databaseDateDecodingStrategy.decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
+            let columnName = row.impl.columnName(atUncheckedIndex: columnIndex)
+            return try R
+                .databaseDateDecodingStrategy(for: columnName)
+                .decode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
             return try type.fastDecode(fromRow: row, atUncheckedIndex: columnIndex) as! T
         } else if let type = T.self as? any DatabaseValueConvertible.Type {
@@ -658,7 +676,8 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     }
 }
 
-private let iso8601Formatter: ISO8601DateFormatter = {
+// Assume this non-Sendable instance can be used from multiple threads concurrently.
+nonisolated(unsafe) private let iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
     return formatter

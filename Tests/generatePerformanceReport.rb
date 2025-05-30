@@ -35,7 +35,7 @@ samples = JSON.parse(STDIN.read)
 # have checkouts for all dependencies.
 
 # BUILD_ROOT
-exit 1 unless `xcodebuild -showBuildSettings -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj -target GRDBOSXPerformanceComparisonTests -disableAutomaticPackageResolution` =~ /BUILD_ROOT = (.*)$/
+exit 1 unless `xcodebuild -showBuildSettings -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj -scheme GRDBOSXPerformanceComparisonTests -disableAutomaticPackageResolution` =~ /BUILD_ROOT = (.*)$/
 BUILD_ROOT = $1
 
 # DERIVED_DATA

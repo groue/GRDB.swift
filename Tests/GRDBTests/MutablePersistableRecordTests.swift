@@ -172,6 +172,8 @@ private struct PartialPlayer: Codable, MutablePersistableRecord, FetchableRecord
         case id, name
     }
     
+    typealias Columns = FullPlayer.Columns
+    
     mutating func willInsert(_ db: Database) throws {
         callbacks.willInsertCount += 1
     }
@@ -238,6 +240,12 @@ private struct FullPlayer: Codable, MutablePersistableRecord, FetchableRecord {
     
     enum CodingKeys: String, CodingKey {
         case id, name, score
+    }
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
     }
     
     let callbacks = Callbacks()
@@ -1249,7 +1257,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
 extension MutablePersistableRecordTests {
     func test_insertAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1261,7 +1269,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let player = FullPlayer(id: nil, name: "Arthur", score: 1000)
-            let insertedPlayer = try XCTUnwrap(player.insertAndFetch(db))
+            let insertedPlayer = try player.insertAndFetch(db)
             XCTAssertEqual(insertedPlayer.id, 1)
             XCTAssertEqual(insertedPlayer.name, "Arthur")
             XCTAssertEqual(insertedPlayer.score, 1000)
@@ -1270,7 +1278,7 @@ extension MutablePersistableRecordTests {
     
     func test_insertAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1282,9 +1290,9 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.insertAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING *
@@ -1320,7 +1328,7 @@ extension MutablePersistableRecordTests {
     
     func test_insertAndFetch_selection_fetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1332,7 +1340,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)!
@@ -1368,11 +1376,102 @@ extension MutablePersistableRecordTests {
 
             do {
                 // Test onConflict: .ignore
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var player = FullPlayer(id: 1, name: "Barbara", score: 100)
                 try XCTAssertTrue(player.exists(db))
                 let score = try player.insertAndFetch(db, onConflict: .ignore, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT OR IGNORE INTO "player" ("id", "name", "score") VALUES (1,'Barbara',100) RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(player.id, 1)
+                XCTAssertNil(score)
+                
+                XCTAssertEqual(player.callbacks.willInsertCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(player.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(player.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(player.callbacks.willSaveCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(player.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(player.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(player.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(player.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(player.callbacks.didDeleteCount, 0)
+            }
+        }
+    }
+    
+    func test_insertAndFetch_fetch_select() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                clearSQLQueries()
+                var partialPlayer = PartialPlayer(name: "Arthur")
+                let score = try partialPlayer.insertAndFetch(db) { (statement: Statement) in
+                    try Int.fetchOne(statement)!
+                } select: {
+                    [$0.score]
+                }
+                
+                XCTAssert(sqlQueries.contains("""
+                    INSERT INTO "player" ("id", "name") VALUES (NULL,'Arthur') RETURNING "score"
+                    """), sqlQueries.joined(separator: "\n"))
+                
+                XCTAssertEqual(partialPlayer.id, 1)
+                XCTAssertEqual(score, 1000)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willInsertCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundInsertExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didInsertCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willUpdateCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundUpdateExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didUpdateCount, 0)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willSaveCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveEnterCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.aroundSaveExitCount, 1)
+                XCTAssertEqual(partialPlayer.callbacks.didSaveCount, 1)
+                
+                XCTAssertEqual(partialPlayer.callbacks.willDeleteCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteEnterCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.aroundDeleteExitCount, 0)
+                XCTAssertEqual(partialPlayer.callbacks.didDeleteCount, 0)
+            }
+
+            do {
+                // Test onConflict: .ignore
+                clearSQLQueries()
+                var player = FullPlayer(id: 1, name: "Barbara", score: 100)
+                try XCTAssertTrue(player.exists(db))
+                let score = try player.insertAndFetch(db, onConflict: .ignore) { (statement: Statement) in
+                    try Int.fetchOne(statement)
+                } select: {
+                    [$0.score]
                 }
                 
                 XCTAssert(sqlQueries.contains("""
@@ -1411,7 +1510,7 @@ extension MutablePersistableRecordTests {
 extension MutablePersistableRecordTests {
     func test_saveAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1423,7 +1522,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let player = FullPlayer(id: nil, name: "Arthur", score: 1000)
-            let savedPlayer = try XCTUnwrap(player.saveAndFetch(db))
+            let savedPlayer = try player.saveAndFetch(db)
             XCTAssertEqual(savedPlayer.id, 1)
             XCTAssertEqual(savedPlayer.name, "Arthur")
             XCTAssertEqual(savedPlayer.score, 1000)
@@ -1432,7 +1531,7 @@ extension MutablePersistableRecordTests {
     
     func test_saveAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1444,9 +1543,9 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("UPDATE") })
                 XCTAssert(sqlQueries.contains("""
@@ -1482,8 +1581,8 @@ extension MutablePersistableRecordTests {
             do {
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                clearSQLQueries()
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.contains("""
                     UPDATE "player" SET "name"='Arthur' WHERE "id"=1 RETURNING *
@@ -1519,9 +1618,9 @@ extension MutablePersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
-                let fullPlayer = try XCTUnwrap(partialPlayer.saveAndFetch(db, as: FullPlayer.self))
+                let fullPlayer = try partialPlayer.saveAndFetch(db, as: FullPlayer.self)
                 
                 XCTAssert(sqlQueries.allSatisfy { !$0.contains("INSERT") })
                 XCTAssert(sqlQueries.contains("""
@@ -1558,7 +1657,7 @@ extension MutablePersistableRecordTests {
     
     func test_saveAndFetch_selection_fetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1570,7 +1669,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1608,7 +1707,7 @@ extension MutablePersistableRecordTests {
             do {
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 try partialPlayer.delete(db)
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
                 }
@@ -1645,7 +1744,7 @@ extension MutablePersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(id: 1, name: "Arthur")
                 let score = try partialPlayer.saveAndFetch(db, selection: [Column("score")]) { (statement: Statement) in
                     try Int.fetchOne(statement)
@@ -1688,7 +1787,7 @@ extension MutablePersistableRecordTests {
 extension MutablePersistableRecordTests {
     func test_updateAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1709,7 +1808,7 @@ extension MutablePersistableRecordTests {
             player.name = "Barbara"
             
             do {
-                let updatedPlayer = try XCTUnwrap(player.updateAndFetch(db))
+                let updatedPlayer = try player.updateAndFetch(db)
                 XCTAssertEqual(updatedPlayer.id, 1)
                 XCTAssertEqual(updatedPlayer.name, "Barbara")
                 XCTAssertEqual(updatedPlayer.score, 1000)
@@ -1739,7 +1838,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1760,7 +1859,7 @@ extension MutablePersistableRecordTests {
             player.name = "Barbara"
             
             do {
-                let updatedPlayer = try XCTUnwrap(player.updateAndFetch(db, as: PartialPlayer.self))
+                let updatedPlayer = try player.updateAndFetch(db, as: PartialPlayer.self)
                 XCTAssertEqual(updatedPlayer.id, 1)
                 XCTAssertEqual(updatedPlayer.name, "Barbara")
             }
@@ -1789,7 +1888,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateAndFetch_selection_fetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1802,7 +1901,7 @@ extension MutablePersistableRecordTests {
         try dbQueue.inDatabase { db in
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
-                _ = try player.updateAndFetch(db, selection: [AllColumns()]) { statement in
+                _ = try player.updateAndFetch(db, selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTFail("Expected RecordError")
@@ -1813,7 +1912,7 @@ extension MutablePersistableRecordTests {
             player.score = 0
 
             do {
-                let row = try player.updateAndFetch(db, selection: [AllColumns()]) { statement in
+                let row = try player.updateAndFetch(db, selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTAssertEqual(row, ["id": 1, "name": "Barbara", "score": 0])
@@ -1843,7 +1942,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateAndFetch_columns_selection_fetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1856,7 +1955,7 @@ extension MutablePersistableRecordTests {
         try dbQueue.inDatabase { db in
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
-                _ = try player.updateAndFetch(db, columns: [Column("score")], selection: [AllColumns()]) { statement in
+                _ = try player.updateAndFetch(db, columns: [Column("score")], selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTFail("Expected RecordError")
@@ -1867,7 +1966,7 @@ extension MutablePersistableRecordTests {
             player.score = 0
 
             do {
-                let row = try player.updateAndFetch(db, columns: [Column("score")], selection: [AllColumns()]) { statement in
+                let row = try player.updateAndFetch(db, columns: [Column("score")], selection: [.allColumns]) { statement in
                     try Row.fetchOne(statement)
                 }
                 XCTAssertEqual(row, ["id": 1, "name": "Arthur", "score": 0])
@@ -1897,7 +1996,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateChangesAndFetch_modify() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -1958,7 +2057,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateChangesAndFetch_as_modify() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -2018,7 +2117,7 @@ extension MutablePersistableRecordTests {
     
     func test_updateChangesAndFetch_selection_fetch_modify() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
 #else
@@ -2032,7 +2131,7 @@ extension MutablePersistableRecordTests {
             var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
             do {
                 _ = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
+                    db, selection: [.allColumns],
                     fetch: { statement in try Row.fetchOne(statement) },
                     modify: { $0.name = "Barbara" })
                 XCTFail("Expected RecordError")
@@ -2041,16 +2140,20 @@ extension MutablePersistableRecordTests {
             try player.insert(db)
             
             do {
-                let updatedRow = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
-                    fetch: { statement in try Row.fetchOne(statement) },
+                // Update with no change
+                let update = try player.updateChangesAndFetch(
+                    db, selection: [.allColumns],
+                    fetch: { statement in
+                        XCTFail("Should not be called")
+                        return "ignored"
+                    },
                     modify: { $0.name = "Barbara" })
-                XCTAssertNil(updatedRow)
+                XCTAssertNil(update)
             }
             
             do {
                 let updatedRow = try player.updateChangesAndFetch(
-                    db, selection: [AllColumns()],
+                    db, selection: [.allColumns],
                     fetch: { statement in try Row.fetchOne(statement) },
                     modify: { $0.name = "Craig" })
                 XCTAssertEqual(updatedRow, ["id": 1, "name": "Craig", "score": 1000])
@@ -2084,7 +2187,7 @@ extension MutablePersistableRecordTests {
 extension MutablePersistableRecordTests {
     func test_upsert() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -2233,7 +2336,7 @@ extension MutablePersistableRecordTests {
 
     func test_upsertAndFetch_do_update_set_where() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -2389,7 +2492,7 @@ extension MutablePersistableRecordTests {
     
     func test_upsertAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -2401,7 +2504,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var player = FullPlayer(id: 1, name: "Arthur", score: 1000)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2445,7 +2548,7 @@ extension MutablePersistableRecordTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var player = FullPlayer(id: 1, name: "Barbara", score: 100)
                 let upsertedPlayer = try player.upsertAndFetch(db)
                 
@@ -2492,7 +2595,7 @@ extension MutablePersistableRecordTests {
 
     func test_upsertAndFetch_as() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else
@@ -2504,7 +2607,7 @@ extension MutablePersistableRecordTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 var partialPlayer = PartialPlayer(name: "Arthur")
                 let fullPlayer = try partialPlayer.upsertAndFetch(db, as: FullPlayer.self)
                 

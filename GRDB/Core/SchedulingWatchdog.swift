@@ -1,3 +1,6 @@
+#if !canImport(Darwin)
+@preconcurrency
+#endif
 import Dispatch
 
 /// SchedulingWatchdog makes sure that databases connections are used on correct
@@ -21,9 +24,17 @@ import Dispatch
 ///
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
-final class SchedulingWatchdog {
+final class SchedulingWatchdog: @unchecked Sendable {
+    // @unchecked Sendable because mutable `allowedDatabases` is only
+    // accessed from the serial dispatch queue the instance is attached to.
+    
     private static let watchDogKey = DispatchSpecificKey<SchedulingWatchdog>()
+    
+    /// The databases allowed in the current dispatch queue.
+    ///
+    /// MUST be accessed from the serial dispatch queue the instance is attached to.
     private(set) var allowedDatabases: [Database]
+    
     var databaseObservationBroker: DatabaseObservationBroker?
     
     private init(allowedDatabase database: Database) {
@@ -36,10 +47,14 @@ final class SchedulingWatchdog {
         queue.setSpecific(key: watchDogKey, value: watchdog)
     }
     
-    func inheritingAllowedDatabases<T>(from other: SchedulingWatchdog, execute body: () throws -> T) rethrows -> T {
-        let backup = allowedDatabases
-        allowedDatabases.append(contentsOf: other.allowedDatabases)
-        defer { allowedDatabases = backup }
+    /// Must be called from a DispatchQueue with an attached SchedulingWatchdog.
+    static func inheritingAllowedDatabases<T>(
+        _ allowedDatabases: [Database], execute body: () throws -> T
+    ) rethrows -> T {
+        let watchdog = current!
+        let backup = watchdog.allowedDatabases
+        watchdog.allowedDatabases.append(contentsOf: allowedDatabases)
+        defer { watchdog.allowedDatabases = backup }
         return try body()
     }
     
@@ -58,11 +73,11 @@ final class SchedulingWatchdog {
         current?.allows(db) ?? false
     }
     
-    static var current: SchedulingWatchdog? {
-        DispatchQueue.getSpecific(key: watchDogKey)
-    }
-    
     func allows(_ db: Database) -> Bool {
         allowedDatabases.contains { $0 === db }
+    }
+    
+    static var current: SchedulingWatchdog? {
+        DispatchQueue.getSpecific(key: watchDogKey)
     }
 }

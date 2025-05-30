@@ -235,7 +235,11 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
+            return try makeStatement(
+                db, sql: sql,
+                arguments: context.arguments,
+                returning: selection,
+                from: relation.source.tableName)
             
         case .unique:
             return try makeTrivialDeleteStatement(db, selection: selection)
@@ -264,7 +268,11 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
+        return try makeStatement(
+            db, sql: sql,
+            arguments: context.arguments,
+            returning: selection,
+            from: tableName)
     }
     
     /// Returns an `UPDATE` statement, with `RETURNING` clause if `selection`
@@ -323,7 +331,11 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
+            return try makeStatement(
+                db, sql: sql,
+                arguments: context.arguments,
+                returning: selection,
+                from: relation.source.tableName)
             
         case .unique:
             return try makeTrivialUpdateStatement(
@@ -380,7 +392,11 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        return try makeStatement(db, sql: sql, arguments: context.arguments, returning: selection)
+        return try makeStatement(
+            db, sql: sql,
+            arguments: context.arguments,
+            returning: selection,
+            from: tableName)
     }
     
     // Support for the RETURNING clause
@@ -388,7 +404,8 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         sql: String,
         arguments: StatementArguments,
-        returning selection: [any SQLSelectable])
+        returning selection: [any SQLSelectable],
+        from tableName: String)
     throws -> Statement
     {
         if selection.isEmpty {
@@ -396,12 +413,17 @@ struct SQLQueryGenerator: Refinable {
             statement.arguments = arguments
             return statement
         } else {
-            let context = SQLGenerationContext(db)
+            // Generate the RETURNING clause by turning selection into SQL.
+            // Make sure the selection is qualified with a table alias, so
+            // that selectables such as `.allColumns(excluding:)` can query
+            // the database about the database table.
+            let alias = TableAlias(tableName: tableName)
+            let context = SQLGenerationContext(db, aliases: [alias])
             var sql = sql
             var arguments = arguments
             sql += " RETURNING "
             sql += try selection
-                .map { try $0.sqlSelection.sql(context) }
+                .map { try $0.sqlSelection.qualified(with: alias).sql(context) }
                 .joined(separator: ", ")
             arguments += context.arguments
             let statement = try db.makeStatement(sql: sql)
@@ -513,6 +535,9 @@ struct SQLQueryGenerator: Refinable {
     }
 }
 
+// This type is marked as `Sendable` in order to avoid compiler warnings,
+// but it should not need to be: instances are synchronously created, used,
+// and discarded.
 /// To generate SQL, we need a "qualified" relation, where all tables,
 /// expressions, etc, are qualified with table aliases.
 ///
@@ -546,10 +571,9 @@ struct SQLQueryGenerator: Refinable {
 ///     HAVING ...   -- havingExpressionPromise
 ///     ORDER BY ... -- ordering
 ///     LIMIT ...    -- limit
-
-private struct SQLQualifiedRelation {
+private struct SQLQualifiedRelation: Sendable {
     /// All aliases, including aliases of joined relations
-    var allAliases: [TableAlias] {
+    var allAliases: [TableAliasBase] {
         joins.reduce(into: [source.alias].compactMap { $0 }) {
             $0.append(contentsOf: $1.value.relation.allAliases)
         }
@@ -715,7 +739,7 @@ extension SQLQualifiedRelation: Refinable { }
 /// A "qualified" source, where all tables are identified with a table alias.
 private struct SQLQualifiedSource {
     var tableName: String
-    var alias: TableAlias
+    var alias: TableAliasBase
     
     init(_ source: SQLSource) {
         self.tableName = source.tableName
@@ -764,13 +788,13 @@ private struct SQLQualifiedJoin: Refinable {
         self.relation = SQLQualifiedRelation(child.relation)
     }
     
-    func sql(_ context: SQLGenerationContext, leftAlias: TableAlias) throws -> String {
+    func sql(_ context: SQLGenerationContext, leftAlias: TableAliasBase) throws -> String {
         try sql(context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
     private func sql(
         _ context: SQLGenerationContext,
-        leftAlias: TableAlias,
+        leftAlias: TableAliasBase,
         allowingInnerJoin allowsInnerJoin: Bool)
     throws -> String
     {

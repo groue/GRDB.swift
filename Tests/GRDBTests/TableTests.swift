@@ -44,6 +44,12 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.select([Column("id"), Column("name")]), """
                     SELECT "id", "name" FROM "player"
                     """)
+                try assertEqualSQL(db, t.select(.allColumns), """
+                    SELECT * FROM "player"
+                    """)
+                try assertEqualSQL(db, t.select(.allColumns(excluding: ["name"])), """
+                    SELECT "id" FROM "player"
+                    """)
                 try assertEqualSQL(db, t.select(sql: "id, ?", arguments: ["O'Brien"]), """
                     SELECT id, 'O''Brien' FROM "player"
                     """)
@@ -117,7 +123,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 struct Player: Identifiable { var id: Int64 }
                 let t = Table<Player>("player")
                 
@@ -127,9 +133,11 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
+                
+                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 struct Player: Identifiable { var id: Int64? }
                 let t = Table<Player>("player")
                 
@@ -142,6 +150,8 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
+                
+                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
         }
     }
@@ -806,7 +816,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -821,7 +831,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -830,7 +840,7 @@ class TableTests: GRDBTestCase {
                     DELETE FROM "country" WHERE "code" = 'FR'
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<Country>("country").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
                 
@@ -873,6 +883,46 @@ class TableTests: GRDBTestCase {
         }
     }
     
+    func test_updateAll_DatabaseComponents() throws {
+        struct Player: TableRecord {
+            enum Columns {
+                static let score = Column("score")
+            }
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            
+            do {
+                try Table<Player>("player").updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db) { [$0.score.set(to: 0)] }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db, onConflict: .ignore) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Player>("player").updateAll(db, onConflict: .ignore) { [$0.score.set(to: 0)] }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
+                    """)
+            }
+        }
+    }
+
     func test_exists() throws {
         try makeDatabaseQueue().write { db in
             try db.create(table: "player") { t in
@@ -920,7 +970,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
 
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
@@ -930,7 +980,7 @@ class TableTests: GRDBTestCase {
                     """)
             }
             
-            if #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) {
+            do {
                 // Optional ID
                 struct Country: Identifiable { var id: String? }
                 
@@ -939,7 +989,7 @@ class TableTests: GRDBTestCase {
                     SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
                     """)
                 
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try XCTAssertFalse(Table<Country>("country").exists(db, id: nil))
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

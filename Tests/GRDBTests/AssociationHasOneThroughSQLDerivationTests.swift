@@ -4,27 +4,48 @@ import GRDB
 private struct A: TableRecord {
     static let b = belongsTo(B.self)
     static let c = hasOne(C.self, through: b, using: B.c)
-    static let restrictedC = hasOne(RestrictedC.self, through: b, using: B.restrictedC)
+    static let restrictedC1 = hasOne(RestrictedC1.self, through: b, using: B.restrictedC1)
+    static let restrictedC2 = hasOne(RestrictedC2.self, through: b, using: B.restrictedC2)
     static let extendedC = hasOne(ExtendedC.self, through: b, using: B.extendedC)
+    
+    enum Columns {
+        static let id = Column("id")
+        static let bid = Column("bid")
+    }
 }
 
 private struct B: TableRecord {
     static let c = belongsTo(C.self)
-    static let restrictedC = belongsTo(RestrictedC.self)
+    static let restrictedC1 = belongsTo(RestrictedC1.self)
+    static let restrictedC2 = belongsTo(RestrictedC2.self)
     static let extendedC = belongsTo(ExtendedC.self)
+    
+    enum Columns {
+        static let id = Column("id")
+        static let cid = Column("cid")
+    }
 }
 
 private struct C: TableRecord {
+    enum Columns {
+        static let id = Column("id")
+        static let name = Column("name")
+    }
 }
 
-private struct RestrictedC : TableRecord {
+private struct RestrictedC1 : TableRecord {
     static let databaseTableName = "c"
-    static let databaseSelection: [any SQLSelectable] = [Column("name")]
+    static var databaseSelection: [any SQLSelectable] { [Column("name")] }
+}
+
+private struct RestrictedC2 : TableRecord {
+    static let databaseTableName = "c"
+    static var databaseSelection: [any SQLSelectable] { [.allColumns(excluding: ["id"])] }
 }
 
 private struct ExtendedC : TableRecord {
     static let databaseTableName = "c"
-    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+    static var databaseSelection: [any SQLSelectable] { [.allColumns, .rowID] }
 }
 
 /// Test SQL generation
@@ -56,7 +77,13 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 JOIN "b" ON "b"."id" = "a"."bId" \
                 JOIN "c" ON "c"."id" = "b"."cId"
                 """)
-            try assertEqualSQL(db, A.including(required: A.restrictedC), """
+            try assertEqualSQL(db, A.including(required: A.restrictedC1), """
+                SELECT "a".*, "c"."name" \
+                FROM "a" \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId"
+                """)
+            try assertEqualSQL(db, A.including(required: A.restrictedC2), """
                 SELECT "a".*, "c"."name" \
                 FROM "a" \
                 JOIN "b" ON "b"."id" = "a"."bId" \
@@ -87,8 +114,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
             do {
                 let request = A.including(required: A.c
                     .select(
-                        AllColumns(),
-                        Column.rowID))
+                        .allColumns,
+                        .rowID))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".*, "c"."rowid" \
                     FROM "a" \
@@ -111,6 +138,24 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let aAlias = TableAlias<A>()
+                let request = A
+                    .aliased(aAlias)
+                    .including(required: A.c
+                        .select { [
+                            $0.name,
+                            ($0.id + aAlias.id).forKey("foo")
+                        ] })
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "c"."name", "c"."id" + "a"."id" AS "foo" \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId"
+                    """)
+            }
+            #endif
         }
     }
     
@@ -180,17 +225,34 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
     func testFilterAssociationInWhereClause() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cAlias = TableAlias()
-            let request = A
-                .including(required: A.c.aliased(cAlias))
-                .filter(cAlias[Column("name")] != nil)
-            try assertEqualSQL(db, request, """
-                SELECT "a".*, "c".* \
-                FROM "a" \
-                JOIN "b" ON "b"."id" = "a"."bId" \
-                JOIN "c" ON "c"."id" = "b"."cId" \
-                WHERE "c"."name" IS NOT NULL
-                """)
+            do {
+                let cAlias = TableAlias()
+                let request = A
+                    .including(required: A.c.aliased(cAlias))
+                    .filter(cAlias[Column("name")] != nil)
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "c".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId" \
+                    WHERE "c"."name" IS NOT NULL
+                    """)
+            }
+            #if compiler(>=6.1)
+            do {
+                let cAlias = TableAlias<C>()
+                let request = A
+                    .including(required: A.c.aliased(cAlias))
+                    .filter { _ in cAlias.name != nil }
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "c".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId" \
+                    WHERE "c"."name" IS NOT NULL
+                    """)
+            }
+            #endif
         }
     }
     

@@ -1,3 +1,3 @@
 # Migrations
 
-This guide [has moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations).
+This guide [has moved](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/migrations).

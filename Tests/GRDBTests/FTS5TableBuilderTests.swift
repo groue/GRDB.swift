@@ -16,7 +16,33 @@ class FTS5TableBuilderTests: GRDBTestCase {
         }
     }
 
-    func testOptions() throws {
+    func test_option_ifNotExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .ifNotExists, using: FTS5()) { t in
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts5(content)")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func test_option_temporary() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .temporary, using: FTS5()) { t in
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE temp.\"documents\" USING fts5(content)")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func testLegacyOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", ifNotExists: true, using: FTS5()) { t in
@@ -130,7 +156,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
     }
     #elseif !GRDBCIPHER
     func testUnicode61TokenizerDiacriticsRemove() throws {
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip()
         }
         
@@ -251,8 +277,8 @@ class FTS5TableBuilderTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
         }
     }
-
-    func testFTS5SynchronizationIfNotExists() throws {
+    
+    func testFTS5Synchronization_with_ifNotExists_option() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "documents") { t in
@@ -260,7 +286,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 t.column("content", .text)
             }
             assertDidExecute(sql: "CREATE TABLE \"documents\" (\"id\" INTEGER PRIMARY KEY, \"content\" TEXT)")
-            try db.create(virtualTable: "ft_documents", ifNotExists: true, using: FTS5()) { t in
+            try db.create(virtualTable: "ft_documents", options: .ifNotExists, using: FTS5()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
             }
@@ -338,7 +364,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1390>
     func testIssue1390() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        guard sqlite3_libversion_number() >= 3035000 else {
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
 #else

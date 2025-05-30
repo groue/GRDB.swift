@@ -203,7 +203,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         // They were introduced on 2018-07-13 in https://sqlite.org/src/info/80d2b9e635e3100f
         // Next version is 3.25.0.
         // So we assume support for categories was introduced in SQLite 3.25.0.
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("FTS5 unicode61 tokenizer categories are not available")
         }
         
@@ -363,7 +363,7 @@ class FTS5TokenizerTests: GRDBTestCase {
         // They were introduced on 2018-07-13 in https://sqlite.org/src/info/80d2b9e635e3100f
         // Next version is 3.25.0.
         // So we assume support for categories was introduced in SQLite 3.25.0.
-        guard sqlite3_libversion_number() >= 3025000 else {
+        guard Database.sqliteLibVersionNumber >= 3025000 else {
             throw XCTSkip("FTS5 unicode61 tokenizer categories are not available")
         }
         

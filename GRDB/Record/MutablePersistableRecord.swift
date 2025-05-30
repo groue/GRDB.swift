@@ -61,6 +61,7 @@
 /// - ``insertAndFetch(_:onConflict:)``
 /// - ``insertAndFetch(_:onConflict:as:)``
 /// - ``insertAndFetch(_:onConflict:selection:fetch:)``
+/// - ``insertAndFetch(_:onConflict:fetch:select:)``
 /// - ``upsertAndFetch(_:onConflict:doUpdate:)``
 /// - ``upsertAndFetch(_:as:onConflict:doUpdate:)``
 ///
@@ -69,8 +70,8 @@
 /// See inherited ``TableRecord`` methods for batch updates.
 ///
 /// - ``update(_:onConflict:)``
-/// - ``update(_:onConflict:columns:)-4foo1``
-/// - ``update(_:onConflict:columns:)-5hxyx``
+/// - ``update(_:onConflict:columns:)-5qfk``
+/// - ``update(_:onConflict:columns:)-9fip4``
 /// - ``updateChanges(_:onConflict:from:)``
 /// - ``updateChanges(_:onConflict:modify:)``
 ///
@@ -78,8 +79,8 @@
 ///
 /// - ``updateAndFetch(_:onConflict:)``
 /// - ``updateAndFetch(_:onConflict:as:)``
-/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-7s7y1``
-/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-30d2v``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-98dtr``
+/// - ``updateAndFetch(_:onConflict:columns:selection:fetch:)-9npht``
 /// - ``updateAndFetch(_:onConflict:selection:fetch:)``
 /// - ``updateChangesAndFetch(_:onConflict:modify:)``
 /// - ``updateChangesAndFetch(_:onConflict:as:modify:)``
@@ -193,6 +194,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// Default implementation does nothing.
     ///
     /// - parameter db: A database connection.
+    /// - parameter columns: The updated columns.
     func willUpdate(_ db: Database, columns: Set<String>) throws
     
     /// Persistence callback called around the record update.
@@ -253,7 +255,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter update: A function that updates the record. Its result is
+    /// - parameter save: A function that saves the record. Its result is
     ///   reserved for GRDB usage.
     func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws
     

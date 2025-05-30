@@ -67,6 +67,38 @@ extension TableRecord {
         all().select(selection)
     }
     
+    /// Returns a request that selects the provided result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT score FROM player
+    /// let request = Player.select(\.score)
+    /// ```
+    public static func select(
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().select(selection)
+    }
+    
+    /// Returns a request that selects the provided result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = Player.select { [$0.id, $0.score] }
+    /// ```
+    public static func select(
+        _ selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().select(selection)
+    }
+    
     /// Returns a request that selects the provided SQL string.
     ///
     /// For example:
@@ -163,6 +195,35 @@ extension TableRecord {
         all().select(selection, as: type)
     }
     
+    /// Returns a request that selects the provided result columns, and defines
+    /// the type of decoded rows.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT id FROM player
+    /// let request = Player.select(\.id, as: Int.self)
+    /// let scores = try request.fetchSet(db) // Set<Int>
+    ///
+    /// // SELECT MAX(score) FROM player
+    /// let request = Player.select({ max($0.score) }, as: Int.self)
+    /// let maxScore = try request.fetchOne(db) // Int?
+    /// ```
+    public static func select<RowDecoder>(
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable,
+        as type: RowDecoder.Type = RowDecoder.self
+    ) rethrows -> QueryInterfaceRequest<RowDecoder>
+    {
+        try all().select(selection, as: type)
+    }
+    
     /// Returns a request that selects the provided SQL string, and defines the
     /// type of decoded rows.
     ///
@@ -251,6 +312,36 @@ extension TableRecord {
         all().selectPrimaryKey(as: type)
     }
     
+    /// Returns a request that selects the primary key.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // SELECT id FROM player
+    /// let request = try Player.selectID()
+    /// ```
+    ///
+    /// **Important**: if the record type has an `ID` type that is an
+    /// optional, such as `Int64?`, it is recommended to prefer
+    /// ``selectPrimaryKey(as:)`` instead:
+    ///
+    /// ```swift
+    /// struct Player: Identifiable {
+    ///     var id: Int64?
+    /// }
+    ///
+    /// // NOT RECOMMENDED: Set<Int64?>
+    /// let ids = try Player.selectID().fetchSet(db)
+    ///
+    /// // BETTER: Set<Int64>
+    /// let ids = try Player.selectPrimaryKey(as: Int64.self).fetchSet(db)
+    /// ```
+    public static func selectID() -> QueryInterfaceRequest<Self.ID>
+    where Self: Identifiable
+    {
+        all().selectID()
+    }
+    
     /// Returns a request with the provided result columns appended to the
     /// record selection.
     ///
@@ -289,6 +380,46 @@ extension TableRecord {
         all().annotated(with: selection)
     }
     
+    /// Returns a request with the provided result columns appended to the
+    /// record selection.
+    ///
+    /// The record selection is determined by
+    /// ``TableRecord/databaseSelection-7iphs``, which defaults to all columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.annotated { ($0.score + $0.bonus).forKey("totalScore") }
+    /// ```
+    public static func annotated(
+        with selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().annotated(with: selection)
+    }
+    
+    /// Returns a request with the provided result columns appended to the
+    /// record selection.
+    ///
+    /// The record selection is determined by
+    /// ``TableRecord/databaseSelection-7iphs``, which defaults to all columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.annotated { [($0.score + $0.bonus).forKey("totalScore")] }
+    /// ```
+    public static func annotated(
+        with selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().annotated(with: selection)
+    }
+    
     // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
     // prevent the `Player.filter(42)` misuse.
     // See https://github.com/groue/GRDB.swift/pull/864
@@ -305,6 +436,26 @@ extension TableRecord {
     /// ```
     public static func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
+    }
+    
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Returns a request filtered with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = Player.filter { $0.name == name }
+    /// ```
+    public static func filter(
+        _ predicate: (DatabaseComponents) throws -> any SQLSpecificExpressible
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().filter(predicate)
     }
     
     /// Returns a request filtered by primary key.
@@ -343,10 +494,9 @@ extension TableRecord {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public static func filter<Keys>(keys: Keys)
-    -> QueryInterfaceRequest<Self>
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
+    public static func filter(
+        keys: some Collection<some DatabaseValueConvertible>
+    ) -> QueryInterfaceRequest<Self> {
         all().filter(keys: keys)
     }
     
@@ -471,6 +621,38 @@ extension TableRecord {
         all().order(orderings)
     }
     
+    /// Returns a request sorted according to the given SQL ordering term.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC
+    /// let request = Player.order(\.score.desc)
+    /// ```
+    public static func order(
+        _ orderings: (DatabaseComponents) throws -> any SQLOrderingTerm
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().order(orderings)
+    }
+    
+    /// Returns a request sorted according to the given SQL ordering terms.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord { }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = Player.order { [$0.score.desc, $0.name] }
+    /// ```
+    public static func order(
+        _ orderings: (DatabaseComponents) throws -> [any SQLOrderingTerm]
+    ) rethrows -> QueryInterfaceRequest<Self> {
+        try all().order(orderings)
+    }
+    
     /// Returns a request sorted by primary key.
     ///
     /// All primary keys are supported:
@@ -566,8 +748,45 @@ extension TableRecord {
     ///     .joining(required: Book.author.filter(Column("deathDate") <= bookAlias[Column("publishDate")])
     /// ```
     ///
-    /// See ``TableRequest/aliased(_:)`` for more information.
-    public static func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<Self> {
+    /// See ``TableRequest/aliased(_:)-772vb`` for more information.
+    public static func aliased(_ alias: TableAlias<Void>) -> QueryInterfaceRequest<Self> {
+        all().aliased(alias)
+    }
+    
+    /// Returns a request that can be referred to with the provided alias.
+    ///
+    /// Use this method when you need to refer to this table from
+    /// another request.
+    ///
+    /// For example, the request below fetches posthumous books:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let deathDate = Column("deathDate")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///
+    ///     enum Columns {
+    ///         static let publishDate = Column("publishDate")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// //            AND author.deathDate <= book.publishDate
+    /// let bookAlias = TableAlias<Book>()
+    /// let request = Book
+    ///     .aliased(bookAlias)
+    ///     .joining(required: Book.author.filter { $0.deathDate <= bookAlias.publishDate })
+    /// ```
+    ///
+    /// See ``TableRequest/aliased(_:)-3k5h4`` for more information.
+    public static func aliased(_ alias: TableAlias<Self>) -> QueryInterfaceRequest<Self> {
         all().aliased(alias)
     }
     
@@ -577,18 +796,31 @@ extension TableRecord {
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS
@@ -605,7 +837,6 @@ extension TableRecord {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// Returns a request filtered by primary key.
     ///
@@ -651,9 +882,9 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public static func filter<IDS>(ids: IDS) -> QueryInterfaceRequest<Self>
-    where IDS: Collection, IDS.Element == ID
-    {
+    public static func filter(
+        ids: some Collection<ID>
+    ) -> QueryInterfaceRequest<Self> {
         all().filter(ids: ids)
     }
 }

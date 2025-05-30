@@ -118,11 +118,17 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     
     fileprivate func encode<T>(_ value: T, forKey key: any CodingKey) throws where T: Encodable {
         if let data = value as? Data {
-            persist(Record.databaseDataEncodingStrategy.encode(data), forKey: key)
+            let column = keyEncodingStrategy.column(forKey: key)
+            let dbValue = try Record.databaseDataEncodingStrategy(for: column).encode(data)
+            _persistenceContainer[column] = dbValue
         } else if let date = value as? Date {
-            persist(Record.databaseDateEncodingStrategy.encode(date), forKey: key)
+            let column = keyEncodingStrategy.column(forKey: key)
+            let dbValue = Record.databaseDateEncodingStrategy(for: column).encode(date)
+            _persistenceContainer[column] = dbValue
         } else if let uuid = value as? UUID {
-            persist(Record.databaseUUIDEncodingStrategy.encode(uuid), forKey: key)
+            let column = keyEncodingStrategy.column(forKey: key)
+            let dbValue = Record.databaseUUIDEncodingStrategy(for: column).encode(uuid)
+            _persistenceContainer[column] = dbValue
         } else if let value = value as? any DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
             persist(value.databaseValue, forKey: key)
@@ -150,7 +156,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
                     // eventually perform JSON decoding.
                     // TODO: possible optimization: avoid this conversion to string,
                     // and store raw data bytes as an SQLite string
-                    let jsonString = String(data: jsonData, encoding: .utf8)!
+                    let jsonString = String(decoding: jsonData, as: UTF8.self)
                     persist(jsonString, forKey: key)
                 }
             }
@@ -223,7 +229,7 @@ extension RecordEncoder: SingleValueEncodingContainer {
         unsupportedSingleValueEncoding()
     }
     
-    func encode<T>(_ value: T) throws where T : Encodable {
+    func encode<T>(_ value: T) throws where T: Encodable {
         if let record = value as? EncodableRecord {
             try record.encode(to: &_persistenceContainer)
         } else {

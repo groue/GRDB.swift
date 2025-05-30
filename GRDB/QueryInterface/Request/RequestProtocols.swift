@@ -22,14 +22,23 @@ public protocol TypedRequest<RowDecoder> {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``annotated(with:)-4qcem``
-/// - ``annotated(with:)-6ehs4``
+/// - ``annotated(with:)-9wodv``
+/// - ``annotated(with:)-69r3``
 /// - ``annotatedWhenConnected(with:)``
-/// - ``select(_:)-30yzl``
-/// - ``select(_:)-7e2y5``
+/// - ``select(_:)-270ge``
+/// - ``select(_:)-4jw13``
 /// - ``select(literal:)``
 /// - ``select(sql:arguments:)``
 /// - ``selectWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``annotated(with:)-4qcem``
+/// - ``annotated(with:)-6ehs4``
+/// - ``select(_:)-30yzl``
+/// - ``select(_:)-7e2y5``
 public protocol SelectionRequest {
     /// Defines the result columns.
     ///
@@ -58,7 +67,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func selectWhenConnected(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func selectWhenConnected(
+        _ selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
     
     /// Appends result columns to the selected columns.
     ///
@@ -78,7 +89,9 @@ public protocol SelectionRequest {
     ///
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
-    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
+    func annotatedWhenConnected(
+        with selection: @escaping @Sendable (Database) throws -> [any SQLSelectable]
+    ) -> Self
 }
 
 extension SelectionRequest {
@@ -100,7 +113,8 @@ extension SelectionRequest {
     ///     .select([Column("score")])
     /// ```
     public func select(_ selection: [any SQLSelectable]) -> Self {
-        selectWhenConnected { _ in selection }
+        let selection = selection.map(\.sqlSelection)
+        return selectWhenConnected { _ in selection }
     }
     
     /// Defines the result columns.
@@ -186,7 +200,8 @@ extension SelectionRequest {
     /// let request = Player.all().annotated(with: [totalScore])
     /// ```
     public func annotated(with selection: [any SQLSelectable]) -> Self {
-        annotatedWhenConnected(with: { _ in selection })
+        let selection = selection.map(\.sqlSelection)
+        return annotatedWhenConnected(with: { _ in selection })
     }
     
     /// Appends result columns to the selected columns.
@@ -203,6 +218,122 @@ extension SelectionRequest {
     }
 }
 
+extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Defines the result column.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT score FROM player
+    /// let request = Player.all().select(\.score)
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select(\.id)
+    ///     .select(\.score)
+    /// ```
+    public func select(
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> Self {
+        try select(selection(Self.RowDecoder.databaseComponents))
+    }
+
+    /// Defines the result columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT id, score FROM player
+    /// let request = Player.all().select { [$0.id, $0.score] }
+    /// ```
+    ///
+    /// Any previous selection is replaced:
+    ///
+    /// ```swift
+    /// // SELECT score FROM player
+    /// let request = Player.all()
+    ///     .select { [$0.id] }
+    ///     .select { [$0.score] }
+    /// ```
+    public func select(
+        _ selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> Self {
+        try select(selection(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Appends a result column to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     ($0.score + $0.bonus).forKey("totalScore")
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> Self {
+        try annotated(with: selection(Self.RowDecoder.databaseComponents))
+    }
+
+    /// Appends result columns to the selected columns.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let bonus = Column("bonus")
+    ///     }
+    /// }
+    ///
+    /// // SELECT *, score + bonus AS totalScore FROM player
+    /// let request = Player.all().annotated {
+    ///     [($0.score + $0.bonus).forKey("totalScore")]
+    /// }
+    /// ```
+    ///
+    /// - parameter selection: A closure that accepts a database connection and
+    ///   returns an array of result columns.
+    public func annotated(
+        with selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> Self {
+        try annotated(with: selection(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - FilteredRequest
 
 /// A request that can filter database rows.
@@ -215,11 +346,17 @@ extension SelectionRequest {
 /// ### The WHERE and JOIN ON Clauses
 ///
 /// - ``all()``
-/// - ``filter(_:)``
+/// - ``filter(_:)-7j0nw``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``filterWhenConnected(_:)``
 /// - ``none()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``filter(_:)-48a4t``
 public protocol FilteredRequest {
     /// Filters the fetched rows with a boolean SQL expression.
     ///
@@ -240,7 +377,9 @@ public protocol FilteredRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func filterWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func filterWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension FilteredRequest {
@@ -257,7 +396,8 @@ extension FilteredRequest {
     /// let request = Player.all().filter(Column("name") == name)
     /// ```
     public func filter(_ predicate: some SQLSpecificExpressible) -> Self {
-        filterWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return filterWhenConnected { _ in predicate }
     }
     
     /// Filters the fetched rows with an SQL string.
@@ -301,6 +441,34 @@ extension FilteredRequest {
   }
 }
 
+extension FilteredRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter { 42 }` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Filters the fetched rows with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player WHERE name = 'O''Brien'
+    /// let name = "O'Brien"
+    /// let request = Player.all().filter { $0.name == name }
+    /// ```
+    public func filter(
+        _ predicate: (DatabaseComponents) throws -> any SQLSpecificExpressible
+    ) rethrows -> Self {
+        try filter(predicate(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - TableRequest
 
 /// A request that feeds from a database table
@@ -313,7 +481,7 @@ extension FilteredRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``aliased(_:)``
+/// - ``aliased(_:)-3k5h4``
 /// - ``TableAlias``
 ///
 /// ### The WHERE Clause
@@ -322,7 +490,7 @@ extension FilteredRequest {
 /// - ``filter(ids:)``
 /// - ``filter(key:)-1p9sq``
 /// - ``filter(key:)-2te6v``
-/// - ``filter(keys:)-6ggt1``
+/// - ``filter(keys:)-9p9i5``
 /// - ``filter(keys:)-8fbn9``
 /// - ``matching(_:)-3s3zr``
 /// - ``matching(_:)-7c1e8``
@@ -334,11 +502,23 @@ extension FilteredRequest {
 /// ### The ORDER BY Clause
 ///
 /// - ``orderByPrimaryKey()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer record aliases over anonymous aliases.
+///
+/// - ``aliased(_:)-772vb``
 public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
     
     /// Returns a request that can be referred to with the provided alias.
+    func _aliased(_ alias: TableAliasBase) -> Self
+}
+
+extension TableRequest where Self: TypedRequest {
+    /// Returns a request that can be referred to with the provided
+    /// anonymous alias.
     ///
     /// Use this method when you need to refer to this request from
     /// another request.
@@ -393,7 +573,77 @@ public protocol TableRequest {
     ///     .filter(sql: "b.publishDate >= a.deathDate")
     ///     .fetchAll(db)
     /// ```
-    func aliased(_ alias: TableAlias) -> Self
+    public func aliased(_ alias: TableAlias<Void>) -> Self {
+        self._aliased(alias)
+    }
+    
+    /// Returns a request that can be referred to with the provided
+    /// record alias.
+    ///
+    /// Use this method when you need to refer to this request from
+    /// another request.
+    ///
+    /// The first example fetches posthumous books:
+    ///
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     enum Columns {
+    ///         static let deathDate = Column("deathDate")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    ///     enum Columns {
+    ///         static let publishDate = Column("publishDate")
+    ///     }
+    /// }
+    ///
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // WHERE book.publishDate >= author.deathDate
+    /// let authorAlias = TableAlias<Author>()
+    /// let posthumousBooks = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .filter { $0.publishDate >= authorAlias.deathDate }
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The second example sorts books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias<Author>()
+    /// let books = try Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order { [authorAlias.name, $0.title] }
+    ///     .fetchAll(db)
+    /// ```
+    ///
+    /// The third example uses named ``TableAlias`` so that SQL snippets can
+    /// refer to SQL tables with those names:
+    ///
+    /// ```swift
+    /// // SELECT b.*
+    /// // FROM book b
+    /// // JOIN author a ON a.id = b.authorId
+    /// //              AND a.countryCode = 'FR'
+    /// // WHERE b.publishDate >= a.deathDate
+    /// let bookAlias = TableAlias<Book>(name: "b")
+    /// let authorAlias = TableAlias<Author>(name: "a")
+    /// let posthumousFrenchBooks = try Book.aliased(bookAlias)
+    ///     .joining(required: Book.author.aliased(authorAlias)
+    ///         .filter(sql: "a.countryCode = ?", arguments: ["FR"]))
+    ///     .filter(sql: "b.publishDate >= a.deathDate")
+    ///     .fetchAll(db)
+    /// ```
+    public func aliased(_ alias: TableAlias<RowDecoder>) -> Self {
+        self._aliased(alias)
+    }
 }
 
 extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
@@ -431,9 +681,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// ```
     ///
     /// - parameter keys: A collection of primary keys
-    public func filter<Sequence: Swift.Sequence>(keys: Sequence)
-    -> Self
-    where Sequence.Element: DatabaseValueConvertible
+    public func filter<Keys>(keys: Keys) -> Self
+    where Keys: Collection, Keys.Element: DatabaseValueConvertible
     {
         // In order to encode keys in the database, we perform a runtime check
         // for EncodableRecord, and look for a customized encoding strategy.
@@ -442,51 +691,70 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? any EncodableRecord.Type {
-            if Sequence.Element.self == Data.self || Sequence.Element.self == Optional<Data>.self {
-                let strategy = recordType.databaseDataEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Data?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
-            } else if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
-                let strategy = recordType.databaseDateEncodingStrategy
-                let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
-            } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
-                let strategy = recordType.databaseUUIDEncodingStrategy
-                let keys = keys.map { ($0 as! UUID?).map(strategy.encode)?.databaseValue }
-                return filter(rawKeys: keys)
+            if Keys.Element.self == Data.self || Keys.Element.self == Optional<Data>.self {
+                let datas = keys.compactMap { ($0 as! Data?) }
+                if datas.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
+                    let strategy = recordType.databaseDataEncodingStrategy(for: column)
+                    let expressions = try datas.map { try strategy.encode($0).sqlExpression }
+                    return expressions
+                })
+            } else if Keys.Element.self == Date.self || Keys.Element.self == Optional<Date>.self {
+                let dates = keys.compactMap { ($0 as! Date?) }
+                if dates.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
+                    let strategy = recordType.databaseDateEncodingStrategy(for: column)
+                    let expressions = dates.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
+            } else if Keys.Element.self == UUID.self || Keys.Element.self == Optional<UUID>.self {
+                let uuids = keys.compactMap { ($0 as! UUID?) }
+                if uuids.isEmpty {
+                    // Don't hit the database
+                    return none()
+                }
+                
+                return filterWhenConnected(keys: { [databaseTableName] db in
+                    let column = try db.filteringPrimaryKeyColumn(databaseTableName)
+                    let strategy = recordType.databaseUUIDEncodingStrategy(for: column)
+                    let expressions = uuids.map { strategy.encode($0).sqlExpression }
+                    return expressions
+                })
             }
         }
         
-        return filter(rawKeys: keys)
+        let expressions = keys.map { $0.sqlExpression }
+        if expressions.isEmpty {
+            // Don't hit the database
+            return none()
+        }
+        return filterWhenConnected(keys: { _ in expressions })
     }
     
     /// Creates a request filtered by primary key.
     ///
     ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(rawKeys: [1, 2, 3])
+    ///     let request = try Player...filterWhenConnected(keys: { db in [1, 2, 3] })
     ///
     /// - parameter keys: A collection of primary keys
-    func filter<Keys>(rawKeys: Keys) -> Self
-    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
-    {
-        // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
-        // change the SQLite results anyway.
-        let expressions = rawKeys.map {
-            $0.databaseValue.sqlExpression
-        }
-        
-        if expressions.isEmpty {
-            // Don't hit the database
-            return none()
-        }
-        
+    fileprivate func filterWhenConnected(keys: @escaping @Sendable (Database) throws -> [SQLExpression]) -> Self {
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
-            let primaryKey = try db.primaryKey(databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-            return SQLCollection.array(expressions).contains(Column(primaryKey.columns[0]).sqlExpression)
+            // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
+            // change the SQLite results anyway.
+            let expressions = try keys(db)
+            let column = try db.filteringPrimaryKeyColumn(databaseTableName)
+            return SQLCollection.array(expressions).contains(Column(column).sqlExpression)
         }
     }
     
@@ -545,6 +813,11 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             return none()
         }
         
+        // Turn key values into sendable DatabaseValue
+        let keys = keys.map { key in
+            key.mapValues { $0?.databaseValue ?? .null }
+        }
+        
         let databaseTableName = self.databaseTableName
         return filterWhenConnected { db in
             try keys
@@ -583,7 +856,6 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     }
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
       Self: TypedRequest,
@@ -620,9 +892,7 @@ where Self: FilteredRequest,
     /// ```
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<IDS>(ids: IDS) -> Self
-    where IDS: Collection, IDS.Element == RowDecoder.ID
-    {
+    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
         filter(keys: ids)
     }
 }
@@ -694,18 +964,26 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// ### The GROUP BY Clause
 ///
-/// - ``group(_:)-edak``
-/// - ``group(_:)-4216o``
+/// - ``group(_:)-5soxm``
+/// - ``group(_:)-32exm``
 /// - ``group(literal:)``
 /// - ``group(sql:arguments:)``
 /// - ``groupWhenConnected(_:)``
 ///
 /// ### The HAVING Clause
 ///
-/// - ``having(_:)``
+/// - ``having(_:)-27hlo``
 /// - ``having(literal:)``
 /// - ``having(sql:arguments:)``
 /// - ``havingWhenConnected(_:)``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``group(_:)-edak``
+/// - ``group(_:)-4216o``
+/// - ``having(_:)-2ssg9``
 public protocol AggregatingRequest {
     /// Returns an aggregate request grouped on the given SQL expressions.
     ///
@@ -729,7 +1007,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter expressions: A closure that accepts a database connection
     ///   and returns an array of SQL expressions.
-    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
+    func groupWhenConnected(
+        _ expressions: @escaping @Sendable (Database) throws -> [any SQLExpressible]
+    ) -> Self
     
     /// Filters the aggregated groups with a boolean SQL expression.
     ///
@@ -753,7 +1033,9 @@ public protocol AggregatingRequest {
     ///
     /// - parameter predicate: A closure that accepts a database connection and
     ///   returns a boolean SQL expression.
-    func havingWhenConnected(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
+    func havingWhenConnected(
+        _ predicate: @escaping @Sendable (Database) throws -> any SQLExpressible
+    ) -> Self
 }
 
 extension AggregatingRequest {
@@ -774,7 +1056,8 @@ extension AggregatingRequest {
     ///
     /// - parameter expressions: An array of SQL expressions.
     public func group(_ expressions: [any SQLExpressible]) -> Self {
-        groupWhenConnected { _ in expressions }
+        let expressions = expressions.map(\.sqlExpression)
+        return groupWhenConnected { _ in expressions }
     }
     
     /// Returns an aggregate request grouped on the given SQL expressions.
@@ -849,7 +1132,8 @@ extension AggregatingRequest {
     ///     .having(max(Column("score")) > 1000)
     /// ```
     public func having(_ predicate: some SQLExpressible) -> Self {
-        havingWhenConnected { _ in predicate }
+        let predicate = predicate.sqlExpression
+        return havingWhenConnected { _ in predicate }
     }
     
     /// Filters the aggregated groups with an SQL string.
@@ -890,6 +1174,71 @@ extension AggregatingRequest {
     }
 }
 
+extension AggregatingRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Returns an aggregate request grouped on the given SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group(\.teamId)
+    /// ```
+    ///
+    /// Any previous grouping is discarded.
+    public func group(
+        _ expression: (DatabaseComponents) throws -> any SQLExpressible
+    ) rethrows -> Self {
+        try group(expression(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Returns an aggregate request grouped on the given SQL expressions.
+    public func group(
+        _ expressions: (DatabaseComponents) throws -> [any SQLExpressible]
+    ) rethrows -> Self {
+        try group(expressions(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Filters the aggregated groups with a boolean SQL expression.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let teamId = Column("teamId")
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
+    /// // SELECT teamId, MAX(score)
+    /// // FROM player
+    /// // GROUP BY teamId
+    /// // HAVING MAX(score) > 1000
+    /// let request = Player
+    ///     .select { [$0.teamId, max($0.score)] }
+    ///     .group(\.teamId)
+    ///     .having { max($0.score) > 1000 }
+    /// ```
+    public func having(
+        _ predicate: (DatabaseComponents) throws -> any SQLExpressible
+    ) rethrows -> Self {
+        try having(predicate(Self.RowDecoder.databaseComponents))
+    }
+}
+
 // MARK: - OrderedRequest
 
 /// A request that can sort database rows.
@@ -898,14 +1247,21 @@ extension AggregatingRequest {
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``order(_:)-63rzl``
-/// - ``order(_:)-6co0m``
+/// - ``order(_:)-5q7wj``
+/// - ``order(_:)-711zj``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderWhenConnected(_:)``
 /// - ``reversed()``
 /// - ``unordered()``
 /// - ``withStableOrder()``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above.
+///
+/// - ``order(_:)-63rzl``
+/// - ``order(_:)-6co0m``
 public protocol OrderedRequest {
     /// Sorts the fetched rows according to the given SQL ordering terms.
     ///
@@ -934,16 +1290,24 @@ public protocol OrderedRequest {
     ///
     /// - parameter orderings: A closure that accepts a database connection and
     ///   returns an array of SQL ordering terms.
-    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
+    func orderWhenConnected(
+        _ orderings: @escaping @Sendable (Database) throws -> [any SQLOrderingTerm]
+    ) -> Self
     
     /// Returns a request with reversed ordering.
     ///
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player ORDER BY name DESC
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .reversed()
     /// ```
     ///
@@ -957,12 +1321,16 @@ public protocol OrderedRequest {
     
     /// Returns a request without any ordering.
     ///
-    /// For example:
-    ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT * FROM player
     /// let request = Player.all()
-    ///     .order(Column("name"))
+    ///     .order(\.name)
     ///     .unordered()
     /// ```
     func unordered() -> Self
@@ -996,7 +1364,8 @@ extension OrderedRequest {
     ///     .order(Column("name"))
     /// ```
     public func order(_ orderings: any SQLOrderingTerm...) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL ordering terms.
@@ -1018,7 +1387,8 @@ extension OrderedRequest {
     ///     .order([Column("name")])
     /// ```
     public func order(_ orderings: [any SQLOrderingTerm]) -> Self {
-        orderWhenConnected { _ in orderings }
+        let orderings = orderings.map(\.sqlOrdering)
+        return orderWhenConnected { _ in orderings }
     }
     
     /// Sorts the fetched rows according to the given SQL string.
@@ -1050,6 +1420,74 @@ extension OrderedRequest {
     public func order(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         order(sqlLiteral)
+    }
+}
+
+extension OrderedRequest where Self: TypedRequest, Self.RowDecoder: TableRecord {
+    public typealias DatabaseComponents = RowDecoder.DatabaseComponents
+    
+    /// Sorts the fetched rows according to the given SQL ordering term.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all().order(\.name)
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC
+    /// let request = Player.all().order(\.score.desc)
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order(\.score.desc)
+    ///     .order(\.name)
+    /// ```
+    public func order(
+        _ ordering: (DatabaseComponents) throws -> any SQLOrderingTerm
+    ) rethrows -> Self {
+        try order(ordering(Self.RowDecoder.databaseComponents))
+    }
+    
+    /// Sorts the fetched rows according to the given SQL ordering terms.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
+    /// // SELECT * FROM player ORDER BY score DESC, name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc, $0.name] }
+    /// ```
+    ///
+    /// Any previous ordering is discarded:
+    ///
+    /// ```swift
+    /// // SELECT * FROM player ORDER BY name
+    /// let request = Player.all()
+    ///     .order { [$0.score.desc] }
+    ///     .order { [$0.name] }
+    /// ```
+    public func order(
+        _ orderings: (DatabaseComponents) throws -> [any SQLOrderingTerm]
+    ) rethrows -> Self {
+        try order(orderings(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -1195,12 +1633,17 @@ extension JoinableRequest {
     /// For example, we can fetch only books whose author is French:
     ///
     /// ```swift
-    /// struct Author: TableRecord, FetchableRecord, Decodable { }
-    /// struct Book: TableRecord, FetchableRecord, Decodable {
+    /// struct Author: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Book: TableRecord, FetchableRecord {
     ///     static let author = belongsTo(Author.self)
     /// }
     ///
-    /// let frenchAuthors = Book.author.filter(Column("countryCode") == "FR")
+    /// let frenchAuthors = Book.author.filter { $0.countryCode == "FR" }
     /// let bookInfos = try Book.all()
     ///     .joining(required: frenchAuthors)
     ///     .fetchAll(db)
@@ -1217,9 +1660,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let countryCode = Column("countryCode")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, TableRecord, FetchableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player LEFT JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withOptional: teamColor)
     /// ```
     ///
@@ -1245,9 +1698,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(optional:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color)
     ///     .joining(optional: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
@@ -1269,9 +1722,19 @@ extension JoinableRequest where Self: SelectionRequest {
     /// For example:
     ///
     /// ```swift
+    /// struct Team: TableRecord {
+    ///     enum Columns {
+    ///         static let color = Column("color")
+    ///     }
+    /// }
+    ///
+    /// struct Player: Decodable, FetchableRecord, TableRecord {
+    ///     static let team = belongsTo(Team.self)
+    /// }
+    ///
     /// // SELECT player.*, team.color
     /// // FROM player JOIN team ...
-    /// let teamColor = Player.team.select(Column("color"))
+    /// let teamColor = Player.team.select(\.color)
     /// let request = Player.all().annotated(withRequired: teamColor)
     /// ```
     ///
@@ -1297,9 +1760,9 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ``JoinableRequest/joining(required:)``:
     ///
     /// ```swift
-    /// let teamAlias = TableAlias()
+    /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias[Column("color")])
+    ///     .annotated(with: teamAlias.color])
     ///     .joining(required: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {
@@ -1328,7 +1791,7 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### Instance Methods
 ///
-/// - ``TableRequest/aliased(_:)``
+/// - ``TableRequest/aliased(_:)-3k5h4``
 /// - ``TableAlias``
 ///
 /// ### The WITH Clause
@@ -1337,12 +1800,12 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``SelectionRequest/annotated(with:)-4qcem``
-/// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``SelectionRequest/annotated(with:)-9wodv``
+/// - ``SelectionRequest/annotated(with:)-69r3``
 /// - ``SelectionRequest/annotatedWhenConnected(with:)``
 /// - ``distinct()``
-/// - ``SelectionRequest/select(_:)-30yzl``
-/// - ``SelectionRequest/select(_:)-7e2y5``
+/// - ``SelectionRequest/select(_:)-270ge``
+/// - ``SelectionRequest/select(_:)-4jw13``
 /// - ``SelectionRequest/select(literal:)``
 /// - ``SelectionRequest/select(sql:arguments:)``
 /// - ``SelectionRequest/selectWhenConnected(_:)``
@@ -1350,12 +1813,12 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### The WHERE Clause
 ///
 /// - ``FilteredRequest/all()``
-/// - ``FilteredRequest/filter(_:)``
+/// - ``FilteredRequest/filter(_:)-7j0nw``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
 /// - ``TableRequest/filter(key:)-2te6v``
-/// - ``TableRequest/filter(keys:)-6ggt1``
+/// - ``TableRequest/filter(keys:)-9p9i5``
 /// - ``TableRequest/filter(keys:)-8fbn9``
 /// - ``FilteredRequest/filter(literal:)``
 /// - ``FilteredRequest/filter(sql:arguments:)``
@@ -1366,21 +1829,21 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The GROUP BY and HAVING Clauses
 ///
-/// - ``AggregatingRequest/group(_:)-edak``
-/// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/group(_:)-5soxm``
+/// - ``AggregatingRequest/group(_:)-32exm``
 /// - ``AggregatingRequest/group(literal:)``
 /// - ``AggregatingRequest/group(sql:arguments:)``
 /// - ``TableRequest/groupByPrimaryKey()``
 /// - ``AggregatingRequest/groupWhenConnected(_:)``
-/// - ``AggregatingRequest/having(_:)``
+/// - ``AggregatingRequest/having(_:)-27hlo``
 /// - ``AggregatingRequest/having(literal:)``
 /// - ``AggregatingRequest/having(sql:arguments:)``
 /// - ``AggregatingRequest/havingWhenConnected(_:)``
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``OrderedRequest/order(_:)-63rzl``
-/// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``OrderedRequest/order(_:)-5q7wj``
+/// - ``OrderedRequest/order(_:)-711zj``
 /// - ``OrderedRequest/order(literal:)``
 /// - ``OrderedRequest/order(sql:arguments:)``
 /// - ``OrderedRequest/orderWhenConnected(_:)``
@@ -1411,6 +1874,23 @@ extension JoinableRequest where Self: SelectionRequest {
 /// - ``SelectionRequest``
 /// - ``TableRequest``
 /// - ``TypedRequest``
+///
+/// ### Legacy APIs
+///
+/// It is recommended to prefer the closure-based apis defined above, as
+/// well as record aliases over anonymous aliases.
+///
+/// - ``TableRequest/aliased(_:)-772vb``
+/// - ``SelectionRequest/annotated(with:)-4qcem``
+/// - ``SelectionRequest/annotated(with:)-6ehs4``
+/// - ``FilteredRequest/filter(_:)-48a4t``
+/// - ``AggregatingRequest/group(_:)-edak``
+/// - ``AggregatingRequest/group(_:)-4216o``
+/// - ``AggregatingRequest/having(_:)-2ssg9``
+/// - ``OrderedRequest/order(_:)-63rzl``
+/// - ``OrderedRequest/order(_:)-6co0m``
+/// - ``SelectionRequest/select(_:)-30yzl``
+/// - ``SelectionRequest/select(_:)-7e2y5``
 public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredRequest,
                                               JoinableRequest, OrderedRequest,
                                               SelectionRequest, TableRequest
@@ -1420,11 +1900,17 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let name = Column("name")
+    ///     }
+    /// }
+    ///
     /// // SELECT DISTINCT * FROM player
     /// let request = Player.all().distinct()
     ///
     /// // SELECT DISTINCT name FROM player
-    /// let request = Player.select(Column("name")).distinct()
+    /// let request = Player.select(\.name).distinct()
     /// ```
     func distinct() -> Self
     
@@ -1437,18 +1923,31 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     /// latest message:
     ///
     /// ```swift
-    /// let latestMessageRequest = Message
-    ///     .annotated(with: max(Column("date")))
-    ///     .group(Column("chatID"))
+    /// struct Chat: TableRecord {
+    ///     enum Columns {
+    ///         static let id = Column("id")
+    ///     }
+    /// }
     ///
-    /// let latestMessageCTE = CommonTableExpression(
+    /// struct Message: TableRecord {
+    ///     enum Columns {
+    ///         static let date = Column("date")
+    ///         static let chatId = Column("chatId")
+    ///     }
+    /// }
+    ///
+    /// let latestMessageRequest = Message
+    ///     .annotated { max($0.date) }
+    ///     .group(\.chatId)
+    ///
+    /// let latestMessageCTE = CommonTableExpression<Message>(
     ///     named: "latestMessage",
     ///     request: latestMessageRequest)
     ///
     /// let latestMessageAssociation = Chat.association(
     ///     to: latestMessageCTE,
     ///     on: { chat, latestMessage in
-    ///         chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         chat.id == latestMessage.chatId
     ///     })
     ///
     /// // WITH latestMessage AS

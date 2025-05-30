@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// An SQLite result code.
@@ -405,6 +414,10 @@ public struct DatabaseError: Error {
 extension DatabaseError {
     static func connectionIsClosed() -> Self {
         DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+    }
+    
+    static func snapshotIsLost() -> Self {
+        DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
     }
 }
 

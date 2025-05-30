@@ -175,7 +175,7 @@ func date(_ expression: SQLExpressible) -> SQLExpression {
     SQL("DATE(\(expression))").sqlExpression
 }
 
-let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+let request = Player.filter { date($0.createdAt) == "2020-01-23" }
 ```
 
 
@@ -365,7 +365,7 @@ Let's extend Player with database methods.
 
 This chapter lists all kinds of supported interpolations.
 
-- Types adopting the [TableRecord] protocol and [Table](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table) instances:
+- Types adopting the [TableRecord] protocol and [Table](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/table) instances:
 
     ```swift
     struct Player: TableRecord { ... }
@@ -395,7 +395,9 @@ This chapter lists all kinds of supported interpolations.
     
     struct AltPlayer: TableRecord {
         static let databaseTableName = "player"
-        static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
+        static var databaseSelection: [any SQLSelectable] {
+            [Column("id"), Column("name")]
+        }
     }
     
     // SELECT player.id, player.name FROM player

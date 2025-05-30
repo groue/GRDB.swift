@@ -42,8 +42,11 @@ final class DAO<Record: MutablePersistableRecord> {
     func upsertStatement(
         _ db: Database,
         onConflict conflictTargetColumns: [String],
-        doUpdate assignments: ((_ excluded: TableAlias) -> [ColumnAssignment])?,
-        updateCondition: ((_ existing: TableAlias, _ excluded: TableAlias) -> any SQLExpressible)? = nil,
+        doUpdate assignments: ((_ excluded: TableAlias<Record>) -> [ColumnAssignment])?,
+        updateCondition: ((
+            _ existing: TableAlias<Record>,
+            _ excluded: TableAlias<Record>
+        ) -> any SQLExpressible)? = nil,
         returning selection: [any SQLSelectable])
     throws -> Statement
     {
@@ -73,7 +76,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // that no information stored in the record is lost, unless explicitly
         // requested by the user.
         sql += " DO UPDATE SET "
-        let excluded = TableAlias(name: "excluded")
+        let excluded = TableAlias<Record>(name: "excluded")
         var assignments = assignments?(excluded) ?? []
         let lowercaseExcludedColumns = Set(primaryKey.columns.map { $0.lowercased() })
             .union(conflictTargetColumns.map { $0.lowercased() })
@@ -119,7 +122,7 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         // WHERE
-        let existing = TableAlias(name: databaseTableName)
+        let existing = TableAlias<Record>(name: databaseTableName)
         if let condition = updateCondition?(existing, excluded) {
             let context = SQLGenerationContext(db)
             sql += try " WHERE " + condition.sqlExpression.sql(context)
@@ -142,7 +145,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -173,7 +176,7 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         let updatedValues = updatedColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         
         let query = UpdateQuery(
@@ -193,7 +196,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -212,7 +215,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer.databaseValue(at: $0)
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -229,7 +232,7 @@ final class DAO<Record: MutablePersistableRecord> {
     /// Throws a RecordError.recordNotFound error
     func recordNotFound() throws -> Never {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
-            ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
+            ($0, persistenceContainer.databaseValue(at: $0))
         })
         throw RecordError.recordNotFound(
             databaseTableName: databaseTableName,
@@ -249,12 +252,17 @@ final class DAO<Record: MutablePersistableRecord> {
             statement.setUncheckedArguments(arguments)
             return statement
         } else {
-            let context = SQLGenerationContext(db)
+            // Generate the RETURNING clause by turning selection into SQL.
+            // Make sure the selection is qualified with a table alias, so
+            // that selectables such as `.allColumns(excluding:)` can query
+            // the database about the database table.
+            let alias = TableAliasBase(tableName: databaseTableName)
+            let context = SQLGenerationContext(db, aliases: [alias])
             var sql = sql
             var arguments = arguments
             sql += " RETURNING "
             sql += try selection
-                .map { try $0.sqlSelection.sql(context) }
+                .map { try $0.sqlSelection.qualified(with: alias).sql(context) }
                 .joined(separator: ", ")
             arguments += context.arguments
             let statement = try db.internalCachedStatement(sql: sql)
@@ -273,29 +281,33 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[InsertQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
-        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
-        default:
-            sql = """
-            INSERT OR \(onConflict.rawValue) \
-            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-            VALUES (\(valuesSQL))
-            """
+        
+        return Self.cacheLock.withLock { cache in
+            let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+            let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            default:
+                sql = """
+                INSERT OR \(onConflict.rawValue) \
+                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 
@@ -309,30 +321,34 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
+    private static let cacheLock: ReadWriteLock<[UpdateQuery: String]> = ReadWriteLock([:])
     var sql: String {
-        if let sql = Self.sqlCache[self] {
+        if let sql = Self.cacheLock.read({ $0[self] }) {
             return sql
         }
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        let sql: String
-        switch onConflict {
-        case .abort:
-            sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
-        default:
-            sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+        
+        return Self.cacheLock.withLock { cache in
+            let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
+            let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+            let sql: String
+            switch onConflict {
+            case .abort:
+                sql = """
+                    UPDATE \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            default:
+                sql = """
+                    UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+                    SET \(updateSQL) \
+                    WHERE \(whereSQL)
+                    """
+            }
+            
+            cache[self] = sql
+            return sql
         }
-        Self.sqlCache[self] = sql
-        return sql
     }
 }
 

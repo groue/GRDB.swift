@@ -1,6 +1,6 @@
 # Concurrency
 
-GRDB helps your app deal with SQLite concurrency.
+GRDB helps your app deal with Swift and SQLite concurrency.
 
 ## Overview
 
@@ -84,9 +84,7 @@ try dbQueue.write { db in
 
 🔀 **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are four ways to access the database asynchronously:
 
-- **Swift concurrency**  (async/await)
-    
-    [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+- **Swift concurrency** (async/await)
     
     ```swift
     let playerCount = try await dbQueue.read { db in
@@ -99,9 +97,13 @@ try dbQueue.write { db in
     }
     ```
 
-    See ``DatabaseReader/read(_:)-4w6gy`` and ``DatabaseWriter/write(_:)-88g7e``.
+    See ``DatabaseReader/read(_:)-4d1da`` and ``DatabaseWriter/write(_:)-3db50``.
     
     Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
+    
+    The async database access methods honor task cancellation. Once an async Task is cancelled, reads and writes throw `CancellationError`, and any transaction is rollbacked.
+    
+    See <doc:SwiftConcurrency> for more information about GRDB and Swift 6.
 
 - **Combine publishers**
     
@@ -277,31 +279,7 @@ let newPlayerCount = try dbPool.write { db in
 }
 ```
 
-➡️ The synchronous solution is the ``DatabaseWriter/concurrentRead(_:)`` method. It must be called from within a write access, outside of any transaction. It returns a ``DatabaseFuture`` which you consume any time later, with the ``DatabaseFuture/wait()`` method:
-
-```swift
-let future: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
-    // Increment the number of players
-    try db.inTransaction {
-        try Player(...).insert(db)
-        return .commit
-    }
-    
-    // <- Not in a transaction here
-    return dbPool.concurrentRead { db
-        try Player.fetchCount(db)
-    }
-}
-
-do {
-    // Handle the new player count - guaranteed greater than zero
-    let newPlayerCount = try future.wait()
-} catch {
-    // Handle error
-}
-```
-
-🔀 The asynchronous version of `concurrentRead` is ``DatabasePool/asyncConcurrentRead(_:)``:
+🔀 The solution is ``DatabasePool/asyncConcurrentRead(_:)``. It must be called from within a write access, outside of any transaction:
 
 ```swift
 try dbPool.writeWithoutTransaction { db in
@@ -324,10 +302,9 @@ try dbPool.writeWithoutTransaction { db in
 }
 ```
 
-Both ``DatabaseWriter/concurrentRead(_:)`` and ``DatabasePool/asyncConcurrentRead(_:)`` block until they can guarantee their closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes this closure.
+The ``DatabasePool/asyncConcurrentRead(_:)`` method blocks until it can guarantee its closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes the closure.
 
 In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
-
 
 ![DatabasePool Concurrent Read](DatabasePoolConcurrentRead.png)
 
@@ -341,8 +318,9 @@ Types that conform to ``TransactionObserver`` can also use those methods in thei
 - ``DatabaseReader``
 - ``DatabaseSnapshotReader``
 
-### Advanced Concurrency
+### Going Further
 
+- <doc:SwiftConcurrency>
 - <doc:DatabaseSharing>
 
 

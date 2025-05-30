@@ -4,8 +4,10 @@ import XCTest
 class PoolTests: XCTestCase {
     /// Returns a Pool whose elements are incremented integers: 1, 2, 3...
     private func makeCounterPool(maximumCount: Int) -> Pool<Int> {
-        let count = ReadWriteBox(wrappedValue: 0)
-        return Pool(maximumCount: maximumCount, makeElement: count.increment)
+        let countMutex = Mutex(0)
+        return Pool(maximumCount: maximumCount, makeElement: { _ in
+            countMutex.increment()
+        })
     }
     
     func testElementsAreReused() throws {

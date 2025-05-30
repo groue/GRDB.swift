@@ -5,23 +5,39 @@ import GRDB
 private struct A : TableRecord {
     static let databaseTableName = "a"
     static let b = hasOne(B.self)
-    static let restrictedB = hasOne(RestrictedB.self)
+    static let restrictedB1 = hasOne(RestrictedB1.self)
+    static let restrictedB2 = hasOne(RestrictedB2.self)
     static let extendedB = hasOne(ExtendedB.self)
+    
+    enum Columns {
+        static let id = Column("id")
+    }
 }
 
 private struct B : TableRecord {
     static let a = belongsTo(A.self)
     static let databaseTableName = "b"
+    
+    enum Columns {
+        static let id = Column("id")
+        static let aid = Column("aid")
+        static let name = Column("name")
+    }
 }
 
-private struct RestrictedB : TableRecord {
+private struct RestrictedB1 : TableRecord {
     static let databaseTableName = "b"
-    static let databaseSelection: [any SQLSelectable] = [Column("name")]
+    static var databaseSelection: [any SQLSelectable] { [Column("name")] }
+}
+
+private struct RestrictedB2 : TableRecord {
+    static let databaseTableName = "b"
+    static var databaseSelection: [any SQLSelectable] { [.allColumns(excluding: ["id"])] }
 }
 
 private struct ExtendedB : TableRecord {
     static let databaseTableName = "b"
-    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
+    static var databaseSelection: [any SQLSelectable] { [.allColumns, .rowID] }
 }
 
 /// Test SQL generation
@@ -48,8 +64,13 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 FROM "a" \
                 JOIN "b" ON "b"."aid" = "a"."id"
                 """)
-            try assertEqualSQL(db, A.including(required: A.restrictedB), """
+            try assertEqualSQL(db, A.including(required: A.restrictedB1), """
                 SELECT "a".*, "b"."name" \
+                FROM "a" \
+                JOIN "b" ON "b"."aid" = "a"."id"
+                """)
+            try assertEqualSQL(db, A.including(required: A.restrictedB2), """
+                SELECT "a".*, "b"."aid", "b"."name" \
                 FROM "a" \
                 JOIN "b" ON "b"."aid" = "a"."id"
                 """)
@@ -76,8 +97,8 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
             do {
                 let request = A.including(required: A.b
                     .select(
-                        AllColumns(),
-                        Column.rowID))
+                        .allColumns,
+                        .rowID))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".*, "b"."rowid" \
                     FROM "a" \
@@ -89,15 +110,32 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 let request = A
                     .aliased(aAlias)
                     .including(required: A.b
-                    .select(
-                        Column("name"),
-                        (Column("id") + aAlias[Column("id")]).forKey("foo")))
+                        .select(
+                            Column("name"),
+                            (Column("id") + aAlias[Column("id")]).forKey("foo")))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
                     FROM "a" \
                     JOIN "b" ON "b"."aid" = "a"."id"
                     """)
             }
+            #if compiler(>=6.1)
+            do {
+                let aAlias = TableAlias<A>()
+                let request = A
+                    .aliased(aAlias)
+                    .including(required: A.b
+                        .select { [
+                            $0.name,
+                            ($0.id + aAlias.id).forKey("foo"),
+                        ] })
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id"
+                    """)
+            }
+            #endif
         }
     }
     
@@ -161,16 +199,32 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
     func testFilterAssociationInWhereClause() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let bAlias = TableAlias()
-            let request = A
-                .including(required: A.b.aliased(bAlias))
-                .filter(bAlias[Column("name")] != nil)
-            try assertEqualSQL(db, request, """
-                SELECT "a".*, "b".* \
-                FROM "a" \
-                JOIN "b" ON "b"."aid" = "a"."id" \
-                WHERE "b"."name" IS NOT NULL
-                """)
+            do {
+                let bAlias = TableAlias()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter(bAlias[Column("name")] != nil)
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #if compiler(>=6.1)
+            do {
+                let bAlias = TableAlias<B>()
+                let request = A
+                    .including(required: A.b.aliased(bAlias))
+                    .filter { _ in bAlias.name != nil }
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON "b"."aid" = "a"."id" \
+                    WHERE "b"."name" IS NOT NULL
+                    """)
+            }
+            #endif
         }
     }
     

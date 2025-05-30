@@ -46,21 +46,23 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+        Strategy.strategy
+    }
     var date: Date
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension RecordWithDate: Identifiable {
     var id: Date { date }
 }
 
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: EncodableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+        Strategy.strategy
+    }
     var date: Date?
 }
 
-@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension RecordWithOptionalDate: Identifiable {
     var id: Date? { date }
 }
@@ -260,10 +262,6 @@ extension DatabaseDateEncodingStrategyTests {
     }
     
     func testFilterID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
@@ -340,10 +338,6 @@ extension DatabaseDateEncodingStrategyTests {
     }
     
     func testDeleteID() throws {
-        guard #available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
         try makeDatabaseQueue().write { db in
             try db.create(table: "t") { $0.primaryKey("id", .datetime) }
             
@@ -376,7 +370,7 @@ extension DatabaseDateEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }
@@ -396,7 +390,7 @@ extension DatabaseDateEncodingStrategyTests {
             }
             
             do {
-                sqlQueries.removeAll()
+                clearSQLQueries()
                 try Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteOne(db, id: nil)
                 XCTAssertNil(lastSQLQuery) // Database not hit
             }

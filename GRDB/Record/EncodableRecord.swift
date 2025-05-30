@@ -20,11 +20,11 @@ import Foundation // For JSONEncoder
 /// ### Configuring Persistence for the Standard Encodable Protocol
 ///
 /// - ``databaseColumnEncodingStrategy-5sx4v``
-/// - ``databaseDataEncodingStrategy-9y0c7``
-/// - ``databaseDateEncodingStrategy-2gtc1``
-/// - ``databaseEncodingUserInfo-8upii``
+/// - ``databaseDataEncodingStrategy(for:)``
+/// - ``databaseDateEncodingStrategy(for:)``
 /// - ``databaseJSONEncoder(for:)-6x62c``
-/// - ``databaseUUIDEncodingStrategy-2t96q``
+/// - ``databaseUUIDEncodingStrategy(for:)``
+/// - ``databaseEncodingUserInfo-8upii``
 /// - ``DatabaseColumnEncodingStrategy``
 /// - ``DatabaseDataEncodingStrategy``
 /// - ``DatabaseDateEncodingStrategy``
@@ -89,7 +89,9 @@ public protocol EncodableRecord {
     ///
     /// struct Player: PersistableRecord, Encodable {
     ///     // Customize the encoder name when encoding a database row
-    ///     static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    ///     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [encoderName: "Database"]
+    ///     }
     ///
     ///     func encode(to encoder: Encoder) throws {
     ///         // Print the encoder name
@@ -108,6 +110,23 @@ public protocol EncodableRecord {
     /// encoder.userInfo = [encoderName: "JSON"]
     /// let data = try encoder.encode(player)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseEncodingUserInfo` property is
+    /// > explicitly declared as `[CodingUserInfoKey: Any]`. If it is not,
+    /// > the Swift compiler may silently miss the protocol requirement.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseEncodingUserInfo' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[CodingUserInfoKey: Any]' may have shared
+    /// > // mutable state.
+    /// > static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    /// > ```
     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// Returns the `JSONEncoder` that encodes the value for a given column.
@@ -127,13 +146,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+    ///     static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
+    ///         .text
+    ///     }
     ///
     ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
     ///     var jsonData: Data
     /// }
     /// ```
-    static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy { get }
+    static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy
     
     /// The strategy for encoding `Date` columns.
     ///
@@ -145,13 +166,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Encoded as an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy
     
     /// The strategy for encoding `UUID` columns.
     ///
@@ -163,13 +186,15 @@ public protocol EncodableRecord {
     ///
     /// ```swift
     /// struct Player: EncodableRecord, Encodable {
-    ///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    ///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
+    ///         .uppercaseString
+    ///     }
     ///
     ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     ///     var uuid: UUID
     /// }
     /// ```
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
+    static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy
     
     /// The strategy for converting coding keys to column names.
     ///
@@ -221,19 +246,19 @@ extension EncodableRecord {
     
     /// Returns the default strategy for encoding `Data` columns:
     /// ``DatabaseDataEncodingStrategy/deferredToData``.
-    public static var databaseDataEncodingStrategy: DatabaseDataEncodingStrategy {
+    public static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
         .deferredToData
     }
     
     /// Returns the default strategy for encoding `Date` columns:
     /// ``DatabaseDateEncodingStrategy/deferredToDate``.
-    public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
+    public static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
         .deferredToDate
     }
     
     /// Returns the default strategy for encoding `UUID` columns:
     /// ``DatabaseUUIDEncodingStrategy/deferredToUUID``.
-    public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
+    public static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
         .deferredToUUID
     }
     
@@ -252,7 +277,7 @@ extension EncodableRecord {
     ///   database representation.
     public var databaseDictionary: [String: DatabaseValue] {
         get throws {
-            try Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+            try Dictionary(uniqueKeysWithValues: PersistenceContainer(self))
         }
     }
 }
@@ -330,19 +355,32 @@ extension EncodableRecord {
 ///
 /// `PersistenceContainer` is the argument of the
 /// ``EncodableRecord/encode(to:)-k9pf`` method.
-public struct PersistenceContainer {
-    // fileprivate for Row(_:PersistenceContainer)
+public struct PersistenceContainer: Sendable {
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    fileprivate var storage: OrderedDictionary<String, (any DatabaseValueConvertible)?>
+    private var storage: OrderedDictionary<CaseInsensitiveIdentifier, DatabaseValue>
     
     /// The value associated with the given column.
+    ///
+    /// The getter may not return the exact same value that has been
+    /// previously set. The only guarantee is that both are encoded
+    /// identically in the database.
     public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
-        get { self[caseInsensitive: column] }
-        set { storage.updateValue(newValue, forKey: column) }
+        get {
+            storage[CaseInsensitiveIdentifier(rawValue: column)]
+        }
+        set {
+            storage.updateValue(
+                newValue?.databaseValue ?? .null,
+                forKey: CaseInsensitiveIdentifier(rawValue: column))
+        }
     }
     
     /// The value associated with the given column.
+    ///
+    /// The getter may not return the exact same value that has been
+    /// previously set. The only guarantee is that both are encoded
+    /// identically in the database.
     public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         get { self[column.name] }
         set { self[column.name] = newValue }
@@ -372,70 +410,42 @@ public struct PersistenceContainer {
     }
     
     /// Columns stored in the container, ordered like values.
-    var columns: [String] { Array(storage.keys) }
+    var columns: [String] { storage.keys.map(\.rawValue) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [(any DatabaseValueConvertible)?] { Array(storage.values) }
+    var values: [DatabaseValue] { storage.values }
     
-    /// Accesses the value associated with the given column, in a
-    /// case-insensitive fashion.
-    subscript(caseInsensitive column: String) -> (any DatabaseValueConvertible)? {
-        get {
-            if let value = storage[column] {
-                return value
-            }
-            let lowercaseColumn = column.lowercased()
-            for (key, value) in storage where key.lowercased() == lowercaseColumn {
-                return value
-            }
-            return nil
-        }
-        set {
-            if storage[column] != nil {
-                storage[column] = newValue
-                return
-            }
-            let lowercaseColumn = column.lowercased()
-            for key in storage.keys where key.lowercased() == lowercaseColumn {
-                storage[key] = newValue
-                return
-            }
-            
-            storage[column] = newValue
-        }
-    }
-    
-    // Returns nil if column is not defined
-    func value(forCaseInsensitiveColumn column: String) -> DatabaseValue? {
-        let lowercaseColumn = column.lowercased()
-        for (key, value) in storage where key.lowercased() == lowercaseColumn {
-            return value?.databaseValue ?? .null
-        }
-        return nil
-    }
-    
-    var isEmpty: Bool { storage.isEmpty }
-    
-    /// An iterator over the (column, value) pairs
-    func makeIterator() -> IndexingIterator<OrderedDictionary<String, (any DatabaseValueConvertible)?>> {
-        storage.makeIterator()
+    /// Returns ``DatabaseValue/null`` if column is not defined
+    func databaseValue(at column: String) -> DatabaseValue {
+        storage[CaseInsensitiveIdentifier(rawValue: column)] ?? .null
     }
     
     @usableFromInline
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
-        var newValueIterator = makeIterator()
+        var newValueIterator = storage.makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
-            while let (column, newValue) = newValueIterator.next() {
-                let oldValue = container[caseInsensitive: column]
-                let oldDbValue = oldValue?.databaseValue ?? .null
-                let newDbValue = newValue?.databaseValue ?? .null
+            while let (column, newDbValue) = newValueIterator.next() {
+                let oldDbValue = container.storage[column] ?? .null
                 if newDbValue != oldDbValue {
-                    return (column, oldDbValue)
+                    return (column.rawValue, oldDbValue)
                 }
             }
             return nil
         }
+    }
+}
+
+extension PersistenceContainer: RandomAccessCollection {
+    public typealias Index = Int
+    
+    public var startIndex: Int { storage.startIndex }
+    public var endIndex: Int { storage.endIndex }
+    
+    /// Returns the (column, value) pair at given index.
+    public subscript(position: Int) -> (String, DatabaseValue) {
+        let element = storage[position]
+        return (element.key.rawValue, element.value)
     }
 }
 
@@ -445,7 +455,7 @@ extension Row {
     }
     
     convenience init(_ container: PersistenceContainer) {
-        self.init(Dictionary(container.storage))
+        self.init(impl: ArrayRowImpl(columns: container.lazy.map { ($0, $1) }))
     }
 }
 
@@ -460,13 +470,15 @@ extension Row {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDataEncodingStrategy = DatabaseDataEncodingStrategy.text
+///     static func databaseDataEncodingStrategy(for column: Column) -> DatabaseDataEncodingStrategy {
+///         .text
+///     }
 ///
 ///     // Encoded as SQL text. Data must contain valid UTF8 bytes.
 ///     var jsonData: Data
 /// }
 /// ```
-public enum DatabaseDataEncodingStrategy {
+public enum DatabaseDataEncodingStrategy: Sendable {
     /// Encodes `Data` columns as SQL blob.
     case deferredToData
     
@@ -474,15 +486,17 @@ public enum DatabaseDataEncodingStrategy {
     case text
     
     /// Encodes `Data` column as the result of the user-provided function.
-    case custom((Data) -> (any DatabaseValueConvertible)?)
+    case custom(@Sendable (Data) -> (any DatabaseValueConvertible)?)
     
-    func encode(_ data: Data) -> DatabaseValue {
+    func encode(_ data: Data) throws -> DatabaseValue {
         switch self {
         case .deferredToData:
             return data.databaseValue
         case .text:
             guard let string = String(data: data, encoding: .utf8) else {
-                fatalError("Invalid UTF8 data")
+                throw EncodingError.invalidValue(data, EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "Non-UTF8 data can't be encoded as text in the database"))
             }
             return string.databaseValue
         case .custom(let format):
@@ -502,13 +516,20 @@ public enum DatabaseDataEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
+///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {`
+///         .timeIntervalSince1970
+///     }
 ///
 ///     // Encoded as an epoch timestamp
 ///     var creationDate: Date
 /// }
 /// ```
-public enum DatabaseDateEncodingStrategy {
+public enum DatabaseDateEncodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3 beta. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO: remove @unchecked when the compiler issue is fixed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
@@ -538,9 +559,10 @@ public enum DatabaseDateEncodingStrategy {
     case formatted(DateFormatter)
     
     /// Encodes the result of the user-provided function
-    case custom((Date) -> (any DatabaseValueConvertible)?)
+    case custom(@Sendable (Date) -> (any DatabaseValueConvertible)?)
     
-    private static let iso8601Formatter: ISO8601DateFormatter = {
+    // Assume this non-Sendable instance can be used from multiple threads concurrently.
+    nonisolated(unsafe) private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
         return formatter
@@ -579,7 +601,9 @@ public enum DatabaseDateEncodingStrategy {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {`
+///         .uppercaseString
+///     }
 ///
 ///     // Encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///     var uuid: UUID
@@ -626,7 +650,7 @@ public enum DatabaseUUIDEncodingStrategy: Sendable {
 ///     var playerID: String
 /// }
 /// ```
-public enum DatabaseColumnEncodingStrategy {
+public enum DatabaseColumnEncodingStrategy: Sendable {
     /// A key encoding strategy that doesn’t change key names during encoding.
     case useDefaultKeys
     
@@ -634,7 +658,7 @@ public enum DatabaseColumnEncodingStrategy {
     case convertToSnakeCase
     
     /// A key encoding strategy defined by the closure you supply.
-    case custom((any CodingKey) -> String)
+    case custom(@Sendable (any CodingKey) -> String)
     
     func column(forKey key: some CodingKey) -> String {
         switch self {

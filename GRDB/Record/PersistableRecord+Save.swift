@@ -39,7 +39,6 @@ extension PersistableRecord {
 
 extension PersistableRecord {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
     /// returns a new record built from the saved row.
     ///
@@ -52,26 +51,30 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`. The result can be nil when
-    ///   the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     public func saveAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try willSave(db)
         
-        var success: (saved: PersistenceSuccess, returned: T?)?
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
             success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
-                    try T.fetchOne($0)
+                    if let result = try T.fetchOne($0) {
+                        return result
+                    }
+                    throw recordNotFound(db)
                 })
             return success!.saved
         }
@@ -128,7 +131,6 @@ extension PersistableRecord {
         return success.returned
     }
 #else
-    // TODO: GRDB7 make it unable to return an optional
     /// Executes an `INSERT RETURNING` or `UPDATE RETURNING` statement, and
     /// returns a new record built from the saved row.
     ///
@@ -141,27 +143,31 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`. The result can be nil when
-    ///   the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func saveAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try willSave(db)
         
-        var success: (saved: PersistenceSuccess, returned: T?)?
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
             success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
-                    try T.fetchOne($0)
+                    if let result = try T.fetchOne($0) {
+                        return result
+                    }
+                    throw recordNotFound(db)
                 })
             return success!.saved
         }

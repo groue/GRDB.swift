@@ -339,7 +339,7 @@ extension Database {
     /// // CREATE VIEW hero AS SELECT * FROM player WHERE isHero == 1
     /// try db.create(
     ///     view: "hero",
-    ///     as: Player.filter(Column("isHero") == true))
+    ///     as: Player.filter(\.isHero))
     /// ```
     ///
     /// When creating views in <doc:Migrations>, it is not recommended to
@@ -356,7 +356,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
     ///
     /// - parameters:
-    ///     - view: The view name.
+    ///     - name: The view name.
     ///     - options: View creation options.
     ///     - columns: The columns of the view. If nil, the columns are the
     ///       columns of the request.
@@ -410,7 +410,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createview.html>
     ///
     /// - parameters:
-    ///     - view: The view name.
+    ///     - name: The view name.
     ///     - options: View creation options.
     ///     - columns: The columns of the view. If nil, the columns are the
     ///       columns of the request.

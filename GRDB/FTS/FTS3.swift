@@ -1,7 +1,7 @@
 /// The virtual table module for the FTS3 full-text engine.
 ///
 /// To create FTS3 tables, use the ``Database`` method
-/// ``Database/create(virtualTable:ifNotExists:using:_:)``:
+/// ``Database/create(virtualTable:options:using:_:)``:
 ///
 /// ```swift
 /// // CREATE VIRTUAL TABLE document USING fts3(content)
@@ -47,7 +47,7 @@ public struct FTS3 {
         #elseif !GRDBCIPHER
         /// Remove diacritics from Latin script characters. This option matches
         /// the `remove_diacritics=2` tokenizer argument.
-        @available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) // SQLite 3.27+
+        @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.27+
         case remove
         #endif
     }
@@ -63,7 +63,7 @@ public struct FTS3 {
     /// }
     /// ```
     ///
-    /// See ``Database/create(virtualTable:ifNotExists:using:_:)``
+    /// See ``Database/create(virtualTable:options:using:_:)``
     public init() { }
     
     /// Returns an array of tokens found in the string argument.
@@ -143,7 +143,7 @@ extension FTS3: VirtualTableModule {
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
-/// ``Database/create(virtualTable:ifNotExists:using:_:)`` method:
+/// ``Database/create(virtualTable:options:using:_:)`` method:
 ///
 /// ```swift
 /// try db.create(virtualTable: "document", using: FTS3()) { t in // t is FTS3TableDefinition

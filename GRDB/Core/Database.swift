@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A raw SQLite connection, suitable for the SQLite C API.
@@ -112,9 +121,16 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``clearSchemaCache()``
 /// - ``logError``
 /// - ``releaseMemory()``
+/// - ``sqliteLibVersionNumber``
 /// - ``trace(options:_:)``
+///
+/// ### Supporting Types
+///
+/// - ``BusyCallback``
+/// - ``BusyMode``
 /// - ``CheckpointMode``
 /// - ``DatabaseBackupProgress``
+/// - ``LogErrorFunction``
 /// - ``StorageClass``
 /// - ``TraceEvent``
 /// - ``TracingOptions``
@@ -124,8 +140,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - SQLite C API
     
-    // TODO: make it non optional, since one can't get a `Database` instance
-    // after `close()`.
     /// The raw SQLite connection, suitable for the SQLite C API.
     ///
     /// The result is nil after the database has been successfully closed with
@@ -136,8 +150,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The error logging function.
     ///
+    /// SQLite can be configured to invoke a callback function containing
+    /// an error code and a terse error message whenever anomalies occur.
+    ///
+    /// This global error callback must be configured early in the lifetime
+    /// of your application:
+    ///
+    /// ```swift
+    /// Database.logError = { (resultCode, message) in
+    ///     NSLog("%@", "SQLite error \(resultCode): \(message)")
+    /// }
+    /// ```
+    ///
+    /// - warning: Database.logError must be set before any database
+    ///   connection is opened. This includes the connections that your
+    ///   application opens with GRDB, but also connections opened by
+    ///   other tools, such as third-party libraries. Setting it after a
+    ///   connection has been opened is an SQLite misuse, and has no effect.
+    ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -271,6 +303,21 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    
+    /// An integer equal to [`SQLITE_VERSION_NUMBER`](https://www.sqlite.org/c3ref/c_source_id.html).
+    ///
+    /// This property returns the result of `sqlite3_libversion_number()`.
+    ///
+    /// ```swift
+    /// // Prints, for example, "3048000"
+    /// print(Database.sqliteLibVersionNumber)
+    /// ```
+    @inline(__always)
+    @inlinable
+    public static var sqliteLibVersionNumber: CInt {
+        sqlite3_libversion_number()
+    }
+    
     /// Whether the database region selected by statement execution is
     /// recorded into `selectedRegion` by `track(_:)`.
     ///
@@ -281,17 +328,40 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// `isRecordingSelectedRegion` is true.
     var selectedRegion = DatabaseRegion()
     
-    /// Support for `checkForAbortedTransaction()`
-    var isInsideTransactionBlock = false
-    
-    /// Support for `checkForSuspensionViolation(from:)`
-    @LockedBox var isSuspended = false
-    
     /// Support for `checkForSuspensionViolation(from:)`
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
+    // MARK: - Suspension
+    
+    struct Suspension {
+        /// If true, the database is suspended and should not acquire any
+        /// write lock in order to avoid the 0xDEAD10CC exception.
+        var isSuspended: Bool
+        
+        /// If true, the database access has been cancelled.
+        var isCancelled: Bool
+        
+        /// If true, the database throws an error when it is cancelled.
+        var interruptsWhenCancelled: Bool
+        
+        func checkCancellation() throws {
+            if isCancelled, interruptsWhenCancelled {
+                throw CancellationError()
+            }
+        }
+    }
+    
+    /// Support for `checkForSuspensionViolation(from:)`
+    let suspensionMutex = Mutex(Suspension(
+        isSuspended: false,
+        isCancelled: false,
+        interruptsWhenCancelled: true))
+    
     // MARK: - Transaction Date
+    
+    /// Support for `checkForAbortedTransaction()`
+    var isInsideTransactionBlock = false
     
     enum AutocommitState {
         case off
@@ -354,10 +424,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var trace: ((TraceEvent) -> Void)?
     
     /// The registered custom SQL functions.
-    private var functions = Set<DatabaseFunction>()
+    private var functions: [DatabaseFunction.ID: DatabaseFunction] = [:]
     
     /// The registered custom SQL collations.
-    private var collations = Set<DatabaseCollation>()
+    private var collations: [DatabaseCollation.ID: DatabaseCollation] = [:]
     
     /// Support for `beginReadOnly()` and `endReadOnly()`.
     private var readOnlyDepth = 0
@@ -604,7 +674,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         guard code == SQLITE_OK else {
             // So there remain some unfinalized prepared statement somewhere.
             if let log = Self.logError {
-                if code == SQLITE_BUSY {
+                if ResultCode(rawValue: code).primaryResultCode == .SQLITE_BUSY {
                     // Let the user know about unfinalized statements that did
                     // prevent the connection from closing properly.
                     var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
@@ -700,13 +770,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(function: DatabaseFunction) {
-        functions.update(with: function)
+        functions[function.id] = function
         function.install(in: self)
     }
     
     /// Removes a custom SQL function.
     public func remove(function: DatabaseFunction) {
-        functions.remove(function)
+        functions.removeValue(forKey: function.id)
         function.uninstall(in: self)
     }
     
@@ -727,7 +797,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// let dbPool = try DatabasePool(path: ..., configuration: config)
     /// ```
     public func add(collation: DatabaseCollation) {
-        collations.update(with: collation)
+        collations[collation.id] = collation
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
         let code = sqlite3_create_collation_v2(
             sqliteConnection,
@@ -746,7 +816,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Removes a collation.
     public func remove(collation: DatabaseCollation) {
-        collations.remove(collation)
+        collations.removeValue(forKey: collation.id)
         sqlite3_create_collation_v2(
             sqliteConnection,
             collation.name,
@@ -1118,22 +1188,25 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Suspension ends with `resume()`.
     func suspend() {
-        $isSuspended.update { isSuspended in
-            if isSuspended {
-                return
+        let needsInterrupt = suspensionMutex.withLock { suspension in
+            if suspension.isSuspended {
+                return false
             }
             
-            // Prevent future lock acquisition
-            isSuspended = true
-            
-            // Interrupt the database because this may trigger an
-            // SQLITE_INTERRUPT error which may itself abort a transaction and
-            // release a lock. See <https://www.sqlite.org/c3ref/interrupt.html>
+            suspension.isSuspended = true
+            return true
+        }
+        
+        if needsInterrupt {
+            // Interrupting the database can trigger an SQLITE_INTERRUPT
+            // error which may itself abort a transaction and
+            // release a database lock, which is our goal.
+            // See <https://www.sqlite.org/c3ref/interrupt.html>
+            //
+            // Maybe interrupt will not release any lock. To address this,
+            // we'll issue a rollback on next database access which requires
+            // a lock. See `checkForSuspensionViolation(from:).`
             interrupt()
-            
-            // Now what about the eventual remaining lock? We'll issue a
-            // rollback on next database access which requires a lock, in
-            // checkForSuspensionViolation(from:).
         }
     }
     
@@ -1145,7 +1218,53 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// See suspend().
     func resume() {
-        isSuspended = false
+        suspensionMutex.withLock {
+            $0.isSuspended = false
+        }
+    }
+    
+    /// Cancels the current database access. All statements but ROLLBACK
+    /// will throw `CancellationError`, until `uncancel()` is called.
+    ///
+    /// This method can be called from any thread.
+    func cancel() {
+        let needsInterrupt = suspensionMutex.withLock { suspension in
+            if suspension.isCancelled {
+                return false
+            }
+            
+            suspension.isCancelled = true
+            return suspension.interruptsWhenCancelled
+        }
+        
+        if needsInterrupt {
+            interrupt()
+        }
+    }
+    
+    /// Undo `cancel()`.
+    func uncancel() {
+        suspensionMutex.withLock {
+            $0.isCancelled = false
+        }
+    }
+    
+    /// Within the given closure, Task cancellation does not interrupt
+    /// database accesses.
+    func ignoringCancellation<T>(_ value: () throws -> T) rethrows -> T {
+        let previous = suspensionMutex.withLock {
+            let previous = $0.interruptsWhenCancelled
+            $0.interruptsWhenCancelled = false
+            return previous
+        }
+        
+        defer {
+            suspensionMutex.withLock {
+                $0.interruptsWhenCancelled = previous
+            }
+        }
+        
+        return try value()
     }
     
     /// Support for `checkForSuspensionViolation(from:)`
@@ -1169,15 +1288,57 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return journalMode
     }
     
-    /// If the database is suspended, and executing the statement would lock the
-    /// database in a way that may trigger the [`0xdead10cc` exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report),
-    /// this method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    /// Prevents a statement from running, if the database is suspended, or
+    /// if the current database access is cancelled by Task cancellation.
     ///
-    /// See `suspend()` and ``Configuration/observesSuspensionNotifications``.
+    /// Transaction rollbacks are always allowed. For other statements:
+    ///
+    /// - When database access is cancelled, this method
+    ///   throws `CancellationError`.
+    ///
+    /// - When database is suspensed, and if the statement would lock the
+    ///   database in a way that may trigger the 0xDEAD10CC exception, this
+    ///   method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    ///
+    /// See `cancel()`, `suspend()` and
+    /// ``Configuration/observesSuspensionNotifications``.
     func checkForSuspensionViolation(from statement: Statement) throws {
-        try $isSuspended.read { isSuspended in
-            guard isSuspended else {
-                return
+        // No reason for suspension should prevent rollbacks:
+        //
+        // - A rollback releases the write lock when the database
+        //  is interrupted, when preventing 0xDEAD10CC.
+        //
+        // - A rollback properly closes a transaction that fails because
+        //   it runs in a Task that was cancelled.
+        //
+        // Finally, a rollback must be run by GRDB, not by a direct call
+        // to `sqlite3_exec`, so that transaction observers are
+        // properly notified.
+        if statement.transactionEffect == .rollbackTransaction {
+            return
+        }
+        
+        // Suspension should not prevent adjusting the read-only mode.
+        // See <https://github.com/groue/GRDB.swift/issues/1715>.
+        if statement.isQueryOnlyPragma {
+            return
+        }
+        
+        // How should we interrupt the statement?
+        enum Interrupt {
+            case abort  // Rollback and throw SQLITE_ABORT
+            case cancel // Throw CancellationError
+        }
+        
+        let interrupt: Interrupt? = try suspensionMutex.withLock { suspension in
+            // Check for cancellation first, so that the only error that
+            // a user sees when a Task is cancelled is CancellationError.
+            if suspension.isCancelled, suspension.interruptsWhenCancelled {
+                return .cancel
+            }
+            
+            guard suspension.isSuspended else {
+                return nil
             }
             
             if try journalMode() == "wal" && statement.isReadonly {
@@ -1188,7 +1349,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // Those are not read-only:
                 // - INSERT ...
                 // - BEGIN IMMEDIATE TRANSACTION
-                return
+                return nil
             }
             
             if statement.releasesDatabaseLock {
@@ -1197,15 +1358,24 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 // - ROLLBACK
                 // - ROLLBACK TRANSACTION TO SAVEPOINT
                 // - RELEASE SAVEPOINT
-                return
+                return nil
             }
             
+            // Assume statement can acquire a write lock: abort.
+            return .abort
+        }
+        
+        switch interrupt {
+        case nil:
+            break
+            
+        case .cancel:
+            throw CancellationError()
+            
+        case .abort:
             // Attempt at releasing an eventual lock with ROLLBACk,
             // as explained in Database.suspend().
-            //
-            // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop in checkForSuspensionViolation(from:)
-            _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            try? rollback()
             
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
@@ -1275,14 +1445,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   Use ``inSavepoint(_:)`` instead.
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil).
+    ///     - kind: The transaction type.
     ///
-    ///       If nil, and the database connection is read-only, the transaction
-    ///       kind is ``TransactionKind/deferred``.
-    ///
-    ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is the ``Configuration/defaultTransactionKind``
-    ///       of the ``configuration``.
+    ///       If nil, the transaction kind is DEFERRED when the current
+    ///       database access is read-only, and IMMEDIATE otherwise.
     ///     - operations: A function that executes SQL statements and returns
     ///       either ``TransactionCompletion/commit`` or ``TransactionCompletion/rollback``.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or the
@@ -1406,8 +1572,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             // By default, top level SQLite savepoints open a
             // deferred transaction.
             //
-            // But GRDB database configuration mandates a default transaction
-            // kind that we have to honor.
+            // But GRDB prefers immediate transactions for writes.
             //
             // Besides, starting some (?) SQLCipher/SQLite version, SQLite has a
             // bug. Returning 1 from `sqlite3_commit_hook` does not leave the
@@ -1495,18 +1660,22 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil).
+    ///     - kind: The transaction type.
     ///
-    ///       If nil, and the database connection is read-only, the transaction
-    ///       kind is ``TransactionKind/deferred``.
-    ///
-    ///       If nil, and the database connection is not read-only, the
-    ///       transaction kind is the ``Configuration/defaultTransactionKind``
-    ///       of the ``configuration``.
+    ///       If nil, the transaction kind is DEFERRED when the current
+    ///       database access is read-only, and IMMEDIATE otherwise.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         // SQLite throws an error for non-deferred transactions when read-only.
-        let kind = kind ?? (isReadOnly ? .deferred : configuration.defaultTransactionKind)
+        // We prefer immediate transactions for writes, so that write
+        // transactions can not overlap. This reduces the opportunity for
+        // SQLITE_BUSY, which is immediately thrown whenever a transaction
+        // is upgraded after an initial read and a concurrent processes
+        // has acquired the write lock beforehand. This SQLITE_BUSY error
+        // can not be avoided with a busy timeout.
+        //
+        // See <https://github.com/groue/GRDB.swift/issues/1483>.
+        let kind = kind ?? (isReadOnly ? .deferred : .immediate)
         try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(sqlite3_get_autocommit(sqliteConnection) == 0)
     }
@@ -1577,7 +1746,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Frees as much memory as possible.
     public func releaseMemory() {
         SchedulingWatchdog.preconditionValidQueue(self)
-        sqlite3_db_release_memory(sqliteConnection)
+        if let sqliteConnection {
+            sqlite3_db_release_memory(sqliteConnection)
+        }
         schemaCache.clear()
         internalStatementCache.clear()
         publicStatementCache.clear()
@@ -1816,8 +1987,8 @@ extension Database {
     
     // MARK: - Database-Related Types
     
-    /// See BusyMode and <https://www.sqlite.org/c3ref/busy_handler.html>
-    public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
+    /// See ``BusyMode`` and <https://www.sqlite.org/c3ref/busy_handler.html>
+    public typealias BusyCallback = @Sendable (_ numberOfTries: Int) -> Bool
     
     /// When there are several connections to a database, a connection may try
     /// to access the database while it is locked by another connection.
@@ -1845,7 +2016,7 @@ extension Database {
     /// - <https://www.sqlite.org/c3ref/busy_handler.html>
     /// - <https://www.sqlite.org/lang_transaction.html>
     /// - <https://www.sqlite.org/wal.html>
-    public enum BusyMode {
+    public enum BusyMode: Sendable {
         /// The `SQLITE_BUSY` error is immediately returned to the connection
         /// that tries to access the locked database.
         case immediateError
@@ -1923,7 +2094,6 @@ extension Database {
         /// The SQL for the column type (`"TEXT"`, `"BLOB"`, etc.)
         public let rawValue: String
         
-        // TODO: GRDB7 make it an failable initializer that returns nil when rawValue is empty (or blank).
         /// Creates an SQL column type.
         public init(rawValue: String) {
             self.rawValue = rawValue
@@ -1939,6 +2109,9 @@ extension Database {
         /// to throw errors if any of their arguments are binary blobs.
         /// That's the reason why it is recommended to store JSON as text.
         public static let jsonText = ColumnType(rawValue: "TEXT")
+        
+        /// The `BLOB` column type, suitable for JSONB columns.
+        public static let jsonb = ColumnType(rawValue: "BLOB")
         
         /// The `INTEGER` column type.
         public static let integer = ColumnType(rawValue: "INTEGER")
@@ -2006,7 +2179,7 @@ extension Database {
     }
     
     /// An error log function that takes an error code and message.
-    public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    public typealias LogErrorFunction = @Sendable (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// An SQLite storage class.
     ///

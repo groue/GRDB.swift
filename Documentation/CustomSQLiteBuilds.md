@@ -3,9 +3,9 @@ Custom SQLite Builds
 
 By default, GRDB uses the version of SQLite that ships with the target operating system.
 
-**You can build GRDB with a custom build of [SQLite 3.44.0](https://www.sqlite.org/changes.html).**
+**You can build GRDB with a custom build of [SQLite 3.47.2](https://www.sqlite.org/changes.html).**
 
-A custom SQLite build can activate extra SQLite features, and extra GRDB features as well, such as support for the [FTS5 full-text search engine](../../../#full-text-search), and [SQLite Pre-Update Hooks](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver).
+A custom SQLite build can activate extra SQLite features, and extra GRDB features as well, such as support for the [FTS5 full-text search engine](../../../#full-text-search), and [SQLite Pre-Update Hooks](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver).
 
 GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib), which uses the same SQLite configuration as the one used by Apple in its operating systems, and lets you add extra compilation options that leverage the features you need.
 
@@ -21,7 +21,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     
 2. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5`, `SQLITE_ENABLE_PREUPDATE_HOOK`.
     
-    It is recommended that you enable the `SQLITE_ENABLE_SNAPSHOT` option. It allows GRDB to optimize [ValueObservation](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation) when you use a [Database Pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool).
+    It is recommended that you enable the `SQLITE_ENABLE_SNAPSHOT` option. It allows GRDB to optimize [ValueObservation](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation) when you use a [Database Pool](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasepool).
 
 3. Create a folder named `GRDBCustomSQLite` somewhere in your project directory.
 

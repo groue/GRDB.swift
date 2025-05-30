@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A database row.
@@ -51,6 +60,8 @@ import Foundation
 /// - ``subscript(_:)-3tp8o``
 /// - ``subscript(_:)-4k8od``
 /// - ``subscript(_:)-9rbo7``
+/// - ``coalesce(_:)-359k7``
+/// - ``coalesce(_:)-6nbah``
 /// - ``withUnsafeData(named:_:)``
 /// - ``dataNoCopy(named:)``
 ///
@@ -661,6 +672,53 @@ extension Row {
     @available(*, deprecated, message: "Use withUnsafeData(at:_:) instead.")
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
         dataNoCopy(named: column.name)
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce(["nickname", "name"])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row["nickname"] ?? row["name"]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<String>
+    ) -> T? {
+        for column in columns {
+            if let value = self[column] as T? {
+                return value
+            }
+        }
+        return nil
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce([Column("nickname"), Column("name")])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row[Column("nickname")] ?? row[Column("name")]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<any ColumnExpression>
+    ) -> T? {
+        return coalesce(columns.lazy.map { $0.name })
     }
 }
 
@@ -1424,8 +1482,7 @@ extension Row {
     /// elements are undefined.
     ///
     /// - parameters:
-    ///     - db: A database connection.
-    ///     - sql: An SQL string.
+    ///     - statement: The statement to iterate.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A ``RowCursor`` over fetched rows.
@@ -1678,11 +1735,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1713,7 +1776,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A ``RowCursor`` over fetched rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RowCursor {
@@ -1727,11 +1790,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1744,7 +1813,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
@@ -1759,11 +1828,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1776,7 +1851,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
@@ -1795,11 +1870,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1812,7 +1893,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
@@ -2191,7 +2272,7 @@ extension Row {
         ///
         /// See ``Row/scopesTree`` for more information.
         ///
-        /// - parameter key: An association key.
+        /// - parameter name: The scope name.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
@@ -2387,9 +2468,7 @@ extension RowImpl {
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init<Columns>(columns: Columns)
-    where Columns: Collection, Columns.Element == (String, DatabaseValue)
-    {
+    init(columns: some Collection<(String, DatabaseValue)>) {
         self.columns = Array(columns)
     }
     

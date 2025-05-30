@@ -13,7 +13,29 @@ class FTS3TableBuilderTests: GRDBTestCase {
         }
     }
 
-    func testOptions() throws {
+    func test_option_ifNotExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .ifNotExists, using: FTS3())
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts3")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func test_option_temporary() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .temporary, using: FTS3())
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE temp.\"documents\" USING fts3")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func testLegacyOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", ifNotExists: true, using: FTS3())
@@ -76,7 +98,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
     }
     #elseif !GRDBCIPHER
     func testUnicode61TokenizerDiacriticsRemove() throws {
-        guard #available(iOS 14, macOS 10.16, tvOS 14, watchOS 7, *) else {
+        guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip()
         }
         let dbQueue = try makeDatabaseQueue()

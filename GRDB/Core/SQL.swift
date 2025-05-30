@@ -39,7 +39,7 @@
 ///
 /// - ``append(literal:)``
 /// - ``append(sql:arguments:)``
-public struct SQL {
+public struct SQL: Sendable {
     /// `SQL.Element` is a component of an `SQL` literal.
     ///
     /// Elements can be qualified with table aliases, and this is how `SQL`
@@ -118,7 +118,7 @@ public struct SQL {
             }
         }
         
-        fileprivate func qualified(with alias: TableAlias) -> Element {
+        fileprivate func qualified(with alias: TableAliasBase) -> Element {
             switch self {
             case .sql:
                 // A raw SQL string can't be qualified with a table alias,
@@ -192,7 +192,7 @@ public struct SQL {
         try elements.map { try $0.sql(context) }.joined()
     }
     
-    func qualified(with alias: TableAlias) -> SQL {
+    func qualified(with alias: TableAliasBase) -> SQL {
         SQL(elements: elements.map { $0.qualified(with: alias) })
     }
 }

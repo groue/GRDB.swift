@@ -1,7 +1,19 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
+#if !canImport(Darwin)
+@preconcurrency
+#endif
 import Dispatch
 import Foundation
 
-public struct Configuration {
+public struct Configuration: Sendable {
     
     // MARK: - Misc options
     
@@ -132,7 +144,7 @@ public struct Configuration {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // By default, sensitive information is NOT printed
     ///     // when an error occurs:
@@ -161,7 +173,7 @@ public struct Configuration {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // Sensitive information is printed in DEBUG builds:
     ///     print(error)
@@ -186,7 +198,7 @@ public struct Configuration {
     
     // MARK: - Managing SQLite Connections
     
-    private var setups: [(Database) throws -> Void] = []
+    private var setups: [@Sendable (Database) throws -> Void] = []
     
     /// Defines a function to run whenever an SQLite connection is opened.
     ///
@@ -223,33 +235,11 @@ public struct Configuration {
     ///
     /// On newly created databases files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
-    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+    public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
     }
     
     // MARK: - Transactions
-    
-    /// The default kind of write transactions.
-    ///
-    /// The default is ``Database/TransactionKind/deferred``.
-    ///
-    /// You can change the default transaction kind. For example, you can force
-    /// all write transactions to be `IMMEDIATE`:
-    ///
-    /// ```swift
-    /// var config = Configuration()
-    /// config.defaultTransactionKind = .immediate
-    /// let dbQueue = try DatabaseQueue(configuration: config)
-    ///
-    /// // BEGIN IMMEDIATE TRANSACTION; ...; COMMIT TRANSACTION;
-    /// try dbQueue.write { db in ... }
-    /// ```
-    ///
-    /// This property is ignored for read-only transactions. Those always open
-    /// `DEFERRED` SQLite transactions.
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
-    public var defaultTransactionKind: Database.TransactionKind = .deferred
     
     /// A boolean value indicating whether it is valid to leave a transaction
     /// opened at the end of a database access method.
@@ -445,9 +435,25 @@ public struct Configuration {
     /// through a `SerializedDatabase`.
     var threadingMode = Database.ThreadingMode.default
     
-    var SQLiteConnectionDidOpen: (() -> Void)?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
-    var SQLiteConnectionDidClose: (() -> Void)?
+    private(set) var SQLiteConnectionDidOpen: (@Sendable () -> Void)?
+    private(set) var SQLiteConnectionWillClose: (@Sendable (SQLiteConnection) -> Void)?
+    private(set) var SQLiteConnectionDidClose: (@Sendable () -> Void)?
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidOpen(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidOpen = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionWillClose(_ callback: @escaping @Sendable (SQLiteConnection) -> Void) {
+        SQLiteConnectionWillClose = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidClose(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidClose = callback
+    }
+    
     var SQLiteOpenFlags: CInt {
         var flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         if sqlite3_libversion_number() >= 3037000 {

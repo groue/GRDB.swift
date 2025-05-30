@@ -13,7 +13,29 @@ class FTS4TableBuilderTests: GRDBTestCase {
         }
     }
 
-    func testOptions() throws {
+    func test_option_ifNotExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .ifNotExists, using: FTS4())
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts4")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func test_option_temporary() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", options: .temporary, using: FTS4())
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE temp.\"documents\" USING fts4")
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+        }
+    }
+
+    func testLegacyOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", ifNotExists: true, using: FTS4())
@@ -193,8 +215,8 @@ class FTS4TableBuilderTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
         }
     }
-
-    func testFTS4SynchronizationIfNotExists() throws {
+    
+    func testFTS4Synchronization_with_ifNotExists_option() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
             try db.create(table: "documents") { t in
@@ -202,7 +224,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("content", .text)
             }
             assertDidExecute(sql: "CREATE TABLE \"documents\" (\"id\" INTEGER PRIMARY KEY, \"content\" TEXT)")
-            try db.create(virtualTable: "ft_documents", ifNotExists: true, using: FTS4()) { t in
+            try db.create(virtualTable: "ft_documents", options: .ifNotExists, using: FTS4()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
             }
@@ -210,7 +232,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE TRIGGER IF NOT EXISTS \"__ft_documents_bu\" BEFORE UPDATE ON \"documents\" BEGIN\n    DELETE FROM \"ft_documents\" WHERE docid=old.\"id\";\nEND")
         }
     }
-
+    
     func testFTS4SynchronizationCleanup() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -272,16 +294,16 @@ class FTS4TableBuilderTests: GRDBTestCase {
     
     func testFTS4Compression() throws {
         // Based on https://github.com/groue/GRDB.swift/issues/369
-        var compressCalled = false
-        var uncompressCalled = false
+        let compressCalledMutex = Mutex(false)
+        let uncompressCalledMutex = Mutex(false)
         
         dbConfiguration.prepareDatabase { db in
             db.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
-                compressCalled = true
+                compressCalledMutex.store(true)
                 return dbValues[0]
             }))
             db.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
-                uncompressCalled = true
+                uncompressCalledMutex.store(true)
                 return dbValues[0]
             }))
         }
@@ -296,12 +318,12 @@ class FTS4TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, compress=\"zipit\", uncompress=\"unzipit\")")
             
             try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["abc"])
-            XCTAssertTrue(compressCalled)
+            XCTAssertTrue(compressCalledMutex.load())
         }
         
         try dbPool.read { db in
             _ = try Row.fetchOne(db, sql: "SELECT * FROM documents")
-            XCTAssertTrue(uncompressCalled)
+            XCTAssertTrue(uncompressCalledMutex.load())
         }
     }
 }

@@ -5,10 +5,22 @@ extension ValueObservation {
     /// - parameter predicate: A closure to evaluate whether two values are
     ///   equivalent, for purposes of filtering. Return true from this closure
     ///   to indicate that the second element is a duplicate of the first.
-    public func removeDuplicates(by predicate: @escaping (Reducer.Value, Reducer.Value) -> Bool)
-    -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
-    {
-        mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
+    public func removeDuplicates(
+        by predicate: sending @escaping (Reducer.Value, Reducer.Value) -> Bool
+    ) -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>> {
+        // The predicate is marked `sending`, which allows us to statically
+        // determine that it will have no other uses after this call.
+        // (according to <https://github.com/swiftlang/swift-evolution/blob/main/proposals/0433-mutex.md#interactions-with-swift-concurrency>)
+        //
+        // And because `predicate` will only be used serially, in the
+        // reducer queue of `ValueObservation` observers, we can say that
+        // this is safe.
+        //
+        // Anyway if we would not accept non-sendable closures, we could
+        // not deal with `Equatable.==`...
+        nonisolated(unsafe) let predicate = predicate
+        
+        return mapReducer { ValueReducers.RemoveDuplicates($0, predicate: predicate) }
     }
 }
 
@@ -67,7 +79,7 @@ extension ValueReducers {
     /// previously observed value.
     ///
     /// See ``ValueObservation/removeDuplicates()``.
-    public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer {
+    public struct RemoveDuplicates<Base: ValueReducer>: ValueReducer {
         private var base: Base
         private var previousValue: Base.Value?
         private var predicate: (Base.Value, Base.Value) -> Bool
@@ -77,7 +89,11 @@ extension ValueReducers {
             self.predicate = predicate
         }
         
-        public mutating func _value(_ fetched: Base.Fetched) throws -> Base.Value? {
+        public func _makeFetcher() -> Base.Fetcher {
+            base._makeFetcher()
+        }
+        
+        public mutating func _value(_ fetched: Base.Fetcher.Value) throws -> Base.Value? {
             guard let value = try base._value(fetched) else {
                 return nil
             }
@@ -88,11 +104,5 @@ extension ValueReducers {
             self.previousValue = value
             return value
         }
-    }
-}
-
-extension ValueReducers.RemoveDuplicates: ValueReducer where Base: ValueReducer {
-    public func _fetch(_ db: Database) throws -> Base.Fetched {
-        try base._fetch(db)
     }
 }

@@ -107,10 +107,10 @@ import GRDB
 import Tagged
 
 // Add database support to Tagged values
-extension Tagged: SQLExpressible where RawValue: SQLExpressible { }
-extension Tagged: StatementBinding where RawValue: StatementBinding { }
-extension Tagged: StatementColumnConvertible where RawValue: StatementColumnConvertible { }
-extension Tagged: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
+extension Tagged: @retroactive SQLExpressible where RawValue: SQLExpressible { }
+extension Tagged: @retroactive StatementBinding where RawValue: StatementBinding { }
+extension Tagged: @retroactive StatementColumnConvertible where RawValue: StatementColumnConvertible { }
+extension Tagged: @retroactive DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
 ```
 
 This makes it possible to use `Tagged` values in all the expected places:

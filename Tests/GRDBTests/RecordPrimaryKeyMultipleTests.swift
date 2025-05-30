@@ -14,7 +14,7 @@ private class Citizenship : Record, Hashable {
         super.init()
     }
     
-    static func setup(inDatabase db: Database) throws {
+    static func setup(_ db: Database) throws {
         try db.execute(sql: """
             CREATE TABLE citizenships (
                 personName TEXT NOT NULL,
@@ -61,7 +61,9 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createCitizenship", migrate: Citizenship.setup)
+        migrator.registerMigration("createCitizenship") {
+            try Citizenship.setup($0)
+        }
         try migrator.migrate(dbWriter)
     }
     

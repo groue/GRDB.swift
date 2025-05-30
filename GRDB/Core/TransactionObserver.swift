@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 extension Database {
     
     // MARK: - Database Observation
@@ -101,14 +110,17 @@ extension Database {
     /// - parameter onCommit: A closure executed on transaction commit.
     /// - parameter onRollback: A closure executed on transaction rollback.
     public func afterNextTransaction(
-        onCommit: @escaping (Database) -> Void,
-        onRollback: @escaping (Database) -> Void = { _ in })
+        onCommit: @escaping @Sendable (Database) -> Void,
+        onRollback: @escaping @Sendable (Database) -> Void = { _ in })
     {
         class TransactionHandler: TransactionObserver {
-            let onCommit: (Database) -> Void
-            let onRollback: (Database) -> Void
+            let onCommit: @Sendable (Database) -> Void
+            let onRollback: @Sendable (Database) -> Void
 
-            init(onCommit: @escaping (Database) -> Void, onRollback: @escaping (Database) -> Void) {
+            init(
+                onCommit: @escaping @Sendable (Database) -> Void,
+                onRollback: @escaping @Sendable (Database) -> Void
+            ) {
                 self.onCommit = onCommit
                 self.onRollback = onRollback
             }
@@ -537,8 +549,12 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         if !database.isReadOnly {
-            for observation in transactionObservations {
-                observation.databaseDidCommit(database)
+            // Observers must be able to access the database, even if the
+            // task that has performed the commit is cancelled.
+            database.ignoringCancellation {
+                for observation in transactionObservations {
+                    observation.databaseDidCommit(database)
+                }
             }
         }
         
@@ -601,8 +617,13 @@ class DatabaseObservationBroker {
         
         if notifyTransactionObservers {
             assert(!database.isReadOnly, "Read-only transactions are not notified")
-            for observation in transactionObservations {
-                observation.databaseDidRollback(database)
+            
+            // Observers must be able to access the database, even if the
+            // task that has performed the commit is cancelled.
+            database.ignoringCancellation {
+                for observation in transactionObservations {
+                    observation.databaseDidRollback(database)
+                }
             }
         }
         databaseDidEndTransaction()

@@ -67,7 +67,12 @@ extension SQLInterpolation {
     ///     let player: Player = ...
     ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
     public mutating func appendInterpolation(columnsOf recordType: (some TableRecord).Type, tableAlias: String? = nil) {
-        let alias = TableAlias(name: tableAlias ?? recordType.databaseTableName)
+        // Make sure we provide the tableName, so that we can interpolate
+        // the columns of a type whose `databaseSelection` contains an
+        // instance of `AllColumnsExcluding`.
+        let alias = TableAlias(
+            tableName: recordType.databaseTableName,
+            userName: tableAlias ?? recordType.databaseTableName)
         elements.append(contentsOf: recordType.databaseSelection
                             .map { CollectionOfOne(.selection($0.sqlSelection.qualified(with: alias))) }
                             .joined(separator: CollectionOfOne(.sql(", "))))
@@ -79,7 +84,7 @@ extension SQLInterpolation {
     ///
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT \(AllColumns()) FROM player
+    ///         SELECT \(.allColumns) FROM player
     ///         """
     public mutating func appendInterpolation(_ selection: some SQLSelectable) {
         elements.append(.selection(selection.sqlSelection))
@@ -89,7 +94,7 @@ extension SQLInterpolation {
     ///
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT \(AllColumns()) FROM player
+    ///         SELECT \(.allColumns) FROM player
     ///         """
     @_disfavoredOverload
     public mutating func appendInterpolation(_ selection: (any SQLSelectable)?) {
@@ -194,7 +199,7 @@ extension SQLInterpolation {
     
     /// Appends the request SQL (not wrapped inside parentheses).
     ///
-    ///     let subquery = Player.select(max(Column("score")))
+    ///     let subquery = Player.select { max($0.score) }
     ///     // or
     ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     ///
@@ -227,9 +232,9 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE id IN \(ids)
     ///         """
-    public mutating func appendInterpolation<S>(_ sequence: S)
-    where S: Sequence, S.Element: SQLExpressible
-    {
+    public mutating func appendInterpolation(
+        _ sequence: some Sequence<some SQLExpressible>
+    ) {
         let e: [SQL.Element] = sequence.map { .expression($0.sqlExpression) }
         if e.isEmpty {
             appendLiteral("(SELECT NULL WHERE NULL)")
@@ -255,9 +260,9 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
-    public mutating func appendInterpolation<S>(_ sequence: S)
-    where S: Sequence, S.Element == any SQLExpressible
-    {
+    public mutating func appendInterpolation(
+        _ sequence: some Sequence<any SQLExpressible>
+    ) {
         appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
     

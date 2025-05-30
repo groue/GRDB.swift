@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A format that prints database rows as a JSON array.
@@ -43,9 +52,7 @@ public struct JSONDumpFormat: Sendable {
     public static var defaultEncoder: JSONEncoder {
         // This encoder MUST NOT CHANGE, because some people rely on this format.
         let encoder = JSONEncoder()
-        if #available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *) {
-            encoder.outputFormatting = .withoutEscapingSlashes
-        }
+        encoder.outputFormatting = .withoutEscapingSlashes
         encoder.nonConformingFloatEncodingStrategy = .convertToString(
             positiveInfinity: "inf",
             negativeInfinity: "-inf",
@@ -159,10 +166,7 @@ extension JSONDumpFormat: DumpFormat {
     
     private func formattedValue(_ value: some Encodable) throws -> String {
         let data = try encoder.encode(value)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw EncodingError.invalidValue(data, .init(codingPath: [], debugDescription: "Invalid JSON data"))
-        }
-        return string
+        return String(decoding: data, as: UTF8.self)
     }
 }
 
