@@ -131,8 +131,10 @@ class DatabaseQueueTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "GRDB.DatabaseQueue")
+            #endif
         }
     }
     
@@ -146,8 +148,10 @@ class DatabaseQueueTests: GRDBTestCase {
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
+            #if canImport(Darwin) // __dispatch_queue_get_label unavailable on non-Darwin platforms
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "Toreador")
+            #endif
         }
     }
     
@@ -239,6 +243,9 @@ class DatabaseQueueTests: GRDBTestCase {
             // > because DISPATCH_QUEUE_OVERCOMMIT is not a public API. I don't
             // > know of a way to get a reference to the overcommit queue using
             // > only public APIs.
+            #if !canImport(Darwin)
+            throw XCTSkip("__dispatch_get_global_queue unavailable")
+            #else
             let DISPATCH_QUEUE_OVERCOMMIT: UInt = 2
             let targetQueue = __dispatch_get_global_queue(
                 Int(qos.qosClass.rawValue.rawValue),
@@ -252,6 +259,7 @@ class DatabaseQueueTests: GRDBTestCase {
             try dbQueue.read { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
+            #endif
         }
         
         try test(qos: .background)
