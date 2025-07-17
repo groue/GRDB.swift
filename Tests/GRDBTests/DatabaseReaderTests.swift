@@ -1,6 +1,8 @@
 import XCTest
 import GRDB
 
+@TaskLocal private var localUUID = UUID()
+
 class DatabaseReaderTests : GRDBTestCase {
     func testAnyDatabaseReader() throws {
         // This test passes if this code compiles.
@@ -339,6 +341,25 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
 #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshotPool())
+#endif
+    }
+    
+    // MARK: - Task locals
+    
+    func testReadCanAccessTaskLocal() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbReader.read { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
     
