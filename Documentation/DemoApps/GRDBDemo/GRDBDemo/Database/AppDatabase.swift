@@ -130,7 +130,7 @@ extension AppDatabase {
     
     /// Refresh all players (by performing some random changes, for demo purpose).
     func refreshPlayers() async throws {
-        try await dbWriter.write { [self] db in
+        try await dbWriter.write { db in
             if try Player.all().isEmpty(db) {
                 // When database is empty, insert new random players
                 try createRandomPlayers(db)
