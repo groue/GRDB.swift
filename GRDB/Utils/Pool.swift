@@ -63,6 +63,7 @@ final class Pool<T: Sendable>: Sendable {
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue
+    private let barrierActor: DispatchQueueActor
     private let semaphoreWaitingQueue: DispatchQueue // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
     private let semaphoreWaitingActor: DispatchQueueActor
     
@@ -84,6 +85,7 @@ final class Pool<T: Sendable>: Sendable {
         self.itemsSemaphore = DispatchSemaphore(value: maximumCount)
         self.itemsGroup = DispatchGroup()
         self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", qos: qos, attributes: [.concurrent])
+        self.barrierActor = DispatchQueueActor(queue: barrierQueue, flags: [.barrier])
         self.semaphoreWaitingQueue = DispatchQueue(label: "GRDB.Pool.wait", qos: qos)
         self.semaphoreWaitingActor = DispatchQueueActor(queue: semaphoreWaitingQueue)
     }
@@ -198,6 +200,15 @@ final class Pool<T: Sendable>: Sendable {
     /// any other element is dequeued.
     func barrier<R>(execute barrier: () throws -> R) rethrows -> R {
         try barrierQueue.sync(flags: [.barrier]) {
+            itemsGroup.wait()
+            return try barrier()
+        }
+    }
+    
+    func barrier<R: Sendable>(
+        execute barrier: sending () throws -> sending R
+    ) async rethrows -> sending R {
+        try await barrierActor.execute {
             itemsGroup.wait()
             return try barrier()
         }
