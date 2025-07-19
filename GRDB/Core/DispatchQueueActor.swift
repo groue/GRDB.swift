@@ -6,9 +6,9 @@ import Dispatch
 actor DispatchQueueActor {
     private let executor: DispatchQueueExecutor
     
-    /// - precondition: the queue is serial.
-    init(queue: DispatchQueue) {
-        self.executor = DispatchQueueExecutor(queue: queue)
+    /// - precondition: the queue is serial, or flags contains `.barrier`.
+    init(queue: DispatchQueue, flags: DispatchWorkItemFlags = []) {
+        self.executor = DispatchQueueExecutor(queue: queue, flags: flags)
     }
     
     nonisolated var unownedExecutor: UnownedSerialExecutor {
@@ -22,13 +22,15 @@ actor DispatchQueueActor {
 
 private final class DispatchQueueExecutor: SerialExecutor {
     private let queue: DispatchQueue
+    private let flags: DispatchWorkItemFlags
     
-    init(queue: DispatchQueue) {
+    init(queue: DispatchQueue, flags: DispatchWorkItemFlags) {
         self.queue = queue
+        self.flags = flags
     }
     
     func enqueue(_ job: UnownedJob) {
-        queue.async {
+        queue.async(flags: flags) {
             job.runSynchronously(on: self.asUnownedSerialExecutor())
         }
     }
