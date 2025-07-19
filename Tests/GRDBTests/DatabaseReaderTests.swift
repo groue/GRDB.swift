@@ -363,6 +363,23 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
+    func testUnsafeReadCanAccessTaskLocal() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbReader.unsafeRead { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+    
     // MARK: - Task Cancellation
     
     func test_read_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
