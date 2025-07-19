@@ -64,6 +64,7 @@ final class Pool<T: Sendable>: Sendable {
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue
     private let semaphoreWaitingQueue: DispatchQueue // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
+    private let semaphoreWaitingActor: DispatchQueueActor
     
     /// Creates a Pool.
     ///
@@ -84,6 +85,7 @@ final class Pool<T: Sendable>: Sendable {
         self.itemsGroup = DispatchGroup()
         self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", qos: qos, attributes: [.concurrent])
         self.semaphoreWaitingQueue = DispatchQueue(label: "GRDB.Pool.wait", qos: qos)
+        self.semaphoreWaitingActor = DispatchQueueActor(queue: semaphoreWaitingQueue)
     }
     
     /// Returns a tuple (element, release)
@@ -114,6 +116,15 @@ final class Pool<T: Sendable>: Sendable {
         }
     }
     
+    /// Returns a tuple (element, release)
+    /// Client must call release(), only once, after the element has been used.
+    func get() async throws -> ElementAndRelease {
+        // See asyncGet(_:)
+        try await semaphoreWaitingActor.execute {
+            try self.get()
+        }
+    }
+    
     /// Eventually produces a tuple (element, release), where element is
     /// intended to be used asynchronously.
     ///
@@ -139,6 +150,14 @@ final class Pool<T: Sendable>: Sendable {
         let (element, completion) = try get()
         defer { completion(.reuse) }
         return try block(element)
+    }
+    
+    /// Performs an asynchronous block with an element. The element turns
+    /// available after the block has executed.
+    func get<U>(block: (T) async throws -> U) async throws -> U {
+        let (element, completion) = try await get()
+        defer { completion(.reuse) }
+        return try await block(element)
     }
     
     private func release(_ item: Item, completion: PoolCompletion) {
