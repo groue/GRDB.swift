@@ -300,30 +300,19 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            readerPool.asyncGet { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            releaseReader(self.poolCompletion(db))
-                        }
-                        do {
-                            let result = try dbAccess.inDatabase(db) {
-                                try value(db)
-                            }
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+        let (reader, releaseReader) = try await readerPool.get()
+        var readerCompletion: PoolCompletion?
+        defer {
+            // readerCompletion might be null in cancelled database accesses
+            releaseReader(readerCompletion ?? .reuse)
         }
+        let (result, completion) = try await reader.execute { db in
+            let result = Result { try value(db) }
+            let completion = poolCompletion(db)
+            return (result, completion)
+        }
+        readerCompletion = completion
+        return try result.get()
     }
     
     public func asyncRead(
