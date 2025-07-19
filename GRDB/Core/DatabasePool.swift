@@ -359,33 +359,16 @@ extension DatabasePool: DatabaseReader {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            readerPool.asyncGet { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            try? db.commit() // Ignore commit error
-                            releaseReader(.reuse)
-                        }
-                        do {
-                            let result = try dbAccess.inDatabase(db) {
-                                // The block isolation comes from the DEFERRED transaction.
-                                try db.beginTransaction(.deferred)
-                                try db.clearSchemaCacheIfNeeded()
-                                return try value(db)
-                            }
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+        return try await readerPool.get { reader in
+            try await reader.execute { db in
+               defer {
+                   try? db.commit() // Ignore commit error
+               }
+               // The block isolation comes from the DEFERRED transaction.
+               try db.beginTransaction(.deferred)
+               try db.clearSchemaCacheIfNeeded()
+               return try value(db)
+           }
         }
     }
     
