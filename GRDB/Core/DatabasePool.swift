@@ -801,7 +801,7 @@ extension DatabasePool: DatabaseWriter {
             try Task.checkCancellation()
             return try await readerPool.barrier {
                 try Task.checkCancellation()
-                let value = try writer.sync { db in
+                return try writer.sync { db in
                     defer {
                         db.uncancel()
                     }
@@ -809,9 +809,6 @@ extension DatabasePool: DatabaseWriter {
                     try Task.checkCancellation()
                     return try updates(db)
                 }
-                #warning("TODO: remove this check, and fix tests accordingly. The database access has succeeded, it's useless to lose its result.")
-                try Task.checkCancellation()
-                return value
             }
         } onCancel: {
             cancelMutex.withLock { $0?() }

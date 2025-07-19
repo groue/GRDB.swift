@@ -540,7 +540,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    func test_writeWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+    func test_successful_writeWithoutTransaction_is_not_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
             let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
@@ -548,17 +548,14 @@ class DatabaseWriterTests : GRDBTestCase {
                 await semaphore.wait()
                 try await dbWriter.writeWithoutTransaction { db in
                     try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    XCTAssertTrue(Task.isCancelled)
                 }
             }
             cancelledTaskMutex.store(task)
             semaphore.signal()
             
-            do {
-                try await task.value
-                XCTFail("Expected error")
-            } catch {
-                XCTAssert(error is CancellationError)
-            }
+            // Task has completed without any error
+            try await task.value
             
             // Database access is restored after cancellation (no error is thrown)
             try await dbWriter.writeWithoutTransaction { db in
@@ -802,7 +799,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    func test_barrierWriteWithoutTransaction_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+    func test_successful_barrierWriteWithoutTransaction_is_not_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             let semaphore = AsyncSemaphore(value: 0)
             let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
@@ -810,17 +807,14 @@ class DatabaseWriterTests : GRDBTestCase {
                 await semaphore.wait()
                 try await dbWriter.barrierWriteWithoutTransaction { db in
                     try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    XCTAssertTrue(Task.isCancelled)
                 }
             }
             cancelledTaskMutex.store(task)
             semaphore.signal()
             
-            do {
-                try await task.value
-                XCTFail("Expected error")
-            } catch {
-                XCTAssert(error is CancellationError)
-            }
+            // Task has completed without any error
+            try await task.value
             
             // Database access is restored after cancellation (no error is thrown)
             try await dbWriter.barrierWriteWithoutTransaction { db in

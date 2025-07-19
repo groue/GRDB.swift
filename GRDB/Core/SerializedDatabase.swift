@@ -261,10 +261,7 @@ final class SerializedDatabase {
                 }
                 cancelMutex.store(db.cancel)
                 try Task.checkCancellation()
-                let value = try block(db)
-                #warning("TODO: remove this check, and fix tests accordingly. The database access has succeeded, it's useless to lose its result.")
-                try Task.checkCancellation()
-                return value
+                return try block(db)
             }
         } onCancel: {
             cancelMutex.withLock { $0?() }
