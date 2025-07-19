@@ -5,6 +5,9 @@ final class SerializedDatabase {
     /// The database connection
     private let db: Database
     
+    /// The actor that performs asynchronous accesses
+    private let actor: DispatchQueueActor
+    
     /// The database configuration
     var configuration: Configuration { db.configuration }
     
@@ -55,6 +58,8 @@ final class SerializedDatabase {
         } else {
             self.queue = configuration.makeWriterDispatchQueue(label: identifier)
         }
+        self.actor = DispatchQueueActor(queue: queue)
+        
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {
@@ -245,20 +250,24 @@ final class SerializedDatabase {
     
     /// Asynchrously executes the block.
     func execute<T: Sendable>(
-        _ block: @escaping @Sendable (Database) throws -> T
+        _ block: @Sendable (Database) throws -> T
     ) async throws -> T {
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            self.async { db in
-                do {
-                    let result = try dbAccess.inDatabase(db) {
-                        try block(db)
-                    }
-                    continuation.resume(returning: result)
-                } catch {
-                    continuation.resume(throwing: error)
+        let cancelMutex = Mutex<(@Sendable () -> Void)?>(nil)
+        return try await withTaskCancellationHandler {
+            try await actor.execute {
+                defer {
+                    db.uncancel()
+                    preconditionNoUnsafeTransactionLeft(db)
                 }
+                cancelMutex.store(db.cancel)
+                try Task.checkCancellation()
+                let value = try block(db)
+                #warning("TODO: remove this check, and fix tests accordingly. The database access has succeeded, it's useless to lose its result.")
+                try Task.checkCancellation()
+                return value
             }
+        } onCancel: {
+            cancelMutex.withLock { $0?() }
         }
     }
     
@@ -305,6 +314,49 @@ final class SerializedDatabase {
 // It happens the job of SerializedDatabase is precisely to provide thread-safe
 // access to `Database`.
 extension SerializedDatabase: @unchecked Sendable { }
+
+// MARK: - DispatchQueueActor
+
+/// An actor that runs in a DispatchQueue.
+/// Inspired by <https://forums.swift.org/t/using-dispatchqueue-as-actors-serial-executor-under-linux/75260/3>
+private actor DispatchQueueActor {
+    private let executor: DispatchQueueExecutor
+    
+    /// - precondition: the queue is serial.
+    init(queue: DispatchQueue) {
+        self.executor = DispatchQueueExecutor(queue: queue)
+    }
+    
+    nonisolated var unownedExecutor: UnownedSerialExecutor {
+        executor.asUnownedSerialExecutor()
+    }
+    
+    func execute<T>(_ work: () throws -> T) rethrows -> T {
+        try work()
+    }
+}
+
+private final class DispatchQueueExecutor: SerialExecutor {
+    private let queue: DispatchQueue
+    
+    init(queue: DispatchQueue) {
+        self.queue = queue
+    }
+    
+    func enqueue(_ job: UnownedJob) {
+        self.queue.async {
+            job.runSynchronously(on: self.asUnownedSerialExecutor())
+        }
+    }
+    
+    func asUnownedSerialExecutor() -> UnownedSerialExecutor {
+        UnownedSerialExecutor(ordinary: self)
+    }
+    
+    func checkIsolated() {
+        dispatchPrecondition(condition: .onQueue(self.queue))
+    }
+}
 
 // MARK: - Task Cancellation Support
 
