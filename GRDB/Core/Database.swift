@@ -1149,7 +1149,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // See <https://www.sqlite.org/c3ref/interrupt.html>
     func interrupt() {
-        sqlite3_interrupt(sqliteConnection)
+        if let sqliteConnection {
+            sqlite3_interrupt(sqliteConnection)
+        }
     }
     
     // MARK: - Database Suspension
@@ -1223,22 +1225,31 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    /// Cancels the current database access. All statements but ROLLBACK
-    /// will throw `CancellationError`, until `uncancel()` is called.
-    ///
-    /// This method can be called from any thread.
-    func cancel() {
-        let needsInterrupt = suspensionMutex.withLock { suspension in
-            if suspension.isCancelled {
-                return false
+    /// Returns a closure that cancels the current database access.
+    /// Most statements will throw `CancellationError`, until `uncancel()`
+    /// is called.
+    var cancel: @Sendable () -> Void {
+        // Workaround the fact that SQLiteConnection is not Sendable.
+        struct Connection: @unchecked Sendable {
+            var sqliteConnection: SQLiteConnection?
+        }
+        let connection = Connection(sqliteConnection: sqliteConnection)
+        
+        return { [suspensionMutex, connection] in
+            let needsInterrupt = suspensionMutex.withLock { suspension in
+                if suspension.isCancelled {
+                    return false
+                }
+                
+                suspension.isCancelled = true
+                return suspension.interruptsWhenCancelled
             }
             
-            suspension.isCancelled = true
-            return suspension.interruptsWhenCancelled
-        }
-        
-        if needsInterrupt {
-            interrupt()
+            if needsInterrupt {
+                if let sqliteConnection = connection.sqliteConnection {
+                    sqlite3_interrupt(sqliteConnection)
+                }
+            }
         }
     }
     
@@ -1315,6 +1326,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // to `sqlite3_exec`, so that transaction observers are
         // properly notified.
         if statement.transactionEffect == .rollbackTransaction {
+            return
+        }
+        
+        // Commits when read-only are just like rollbacks above.
+        if statement.transactionEffect == .commitTransaction && isReadOnly {
             return
         }
         

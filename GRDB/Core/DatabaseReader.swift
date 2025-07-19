@@ -22,14 +22,14 @@ import Dispatch
 /// ### Reading from the Database
 ///
 /// - ``read(_:)-3806d``
-/// - ``read(_:)-4d1da``
+/// - ``read(_:)-5mfwu``
 /// - ``readPublisher(receiveOn:value:)``
 /// - ``asyncRead(_:)``
 ///
 /// ### Unsafe Methods
 ///
 /// - ``unsafeRead(_:)-5i7tf``
-/// - ``unsafeRead(_:)-5gsav``
+/// - ``unsafeRead(_:)-90w0p``
 /// - ``unsafeReentrantRead(_:)``
 /// - ``asyncUnsafeRead(_:)``
 ///
@@ -215,7 +215,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///   database access, or the error thrown by `value`, or
     ///   `CancellationError` if the task is cancelled.
     func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T
     
     /// Schedules read-only database operations for execution, and
@@ -319,7 +319,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     ///   database access, or the error thrown by `value`, or
     ///   `CancellationError` if the task is cancelled.
     func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T
     
     /// Schedules database operations for execution, and returns immediately.
@@ -652,7 +652,7 @@ extension AnyDatabaseReader: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.read(value)
     }
@@ -669,7 +669,7 @@ extension AnyDatabaseReader: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await base.unsafeRead(value)
     }

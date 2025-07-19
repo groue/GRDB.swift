@@ -352,40 +352,24 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
-        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            readerPool.asyncGet { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            try? db.commit() // Ignore commit error
-                            releaseReader(.reuse)
-                        }
-                        do {
-                            let result = try dbAccess.inDatabase(db) {
-                                // The block isolation comes from the DEFERRED transaction.
-                                try db.beginTransaction(.deferred)
-                                try db.clearSchemaCacheIfNeeded()
-                                return try value(db)
-                            }
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+        return try await readerPool.get { reader in
+            try await reader.execute { db in
+               defer {
+                   // Ignore commit error, but make sure we leave the transaction
+                   try? db.commit()
+                   assert(!db.isInsideTransaction)
+               }
+               // The block isolation comes from the DEFERRED transaction.
+               try db.beginTransaction(.deferred)
+               try db.clearSchemaCacheIfNeeded()
+               return try value(db)
+           }
         }
     }
     
@@ -403,7 +387,9 @@ extension DatabasePool: DatabaseReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     defer {
-                        try? db.commit() // Ignore commit error
+                        // Ignore commit error, but make sure we leave the transaction
+                        try? db.commit()
+                        assert(!db.isInsideTransaction)
                         releaseReader(.reuse)
                     }
                     do {
@@ -436,35 +422,16 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            readerPool.asyncGet { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            releaseReader(.reuse)
-                        }
-                        do {
-                            let result = try dbAccess.inDatabase(db) {
-                                try db.clearSchemaCacheIfNeeded()
-                                return try value(db)
-                            }
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
+        return try await readerPool.get { reader in
+            try await reader.execute { db in
+                try db.clearSchemaCacheIfNeeded()
+                return try value(db)
             }
         }
     }
@@ -584,7 +551,9 @@ extension DatabasePool: DatabaseReader {
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
                 defer {
-                    try? db.commit() // Ignore commit error
+                    // Ignore commit error, but make sure we leave the transaction
+                    try? db.commit()
+                    assert(!db.isInsideTransaction)
                     releaseReader(.reuse)
                 }
                 do {
@@ -802,7 +771,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func writeWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -818,22 +787,31 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func barrierWriteWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            asyncBarrierWriteWithoutTransaction { dbResult in
-                do {
-                    try dbAccess.checkCancellation()
-                    let db = try dbResult.get()
-                    let result = try dbAccess.inDatabase(db) {
-                        try updates(db)
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        // Pool.barrier does not support async calls (yet?).
+        // So we perform cancellation checks just as in
+        // the async version of SerializedDatabase.execute().
+        let cancelMutex = Mutex<(@Sendable () -> Void)?>(nil)
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await readerPool.barrier {
+                try Task.checkCancellation()
+                return try writer.sync { db in
+                    defer {
+                        db.uncancel()
                     }
-                    continuation.resume(returning: result)
-                } catch {
-                    continuation.resume(throwing: error)
+                    cancelMutex.store(db.cancel)
+                    try Task.checkCancellation()
+                    return try updates(db)
                 }
             }
+        } onCancel: {
+            cancelMutex.withLock { $0?() }
         }
     }
     

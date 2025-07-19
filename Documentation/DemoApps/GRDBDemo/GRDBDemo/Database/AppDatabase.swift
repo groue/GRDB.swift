@@ -12,7 +12,7 @@ import os.log
 /// let dbQueue = try DatabaseQueue(configuration: config)
 /// let appDatabase = try AppDatabase(dbQueue)
 /// ```
-final class AppDatabase: Sendable {
+struct AppDatabase: Sendable {
     /// Access to the database.
     ///
     /// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections>
@@ -130,7 +130,7 @@ extension AppDatabase {
     
     /// Refresh all players (by performing some random changes, for demo purpose).
     func refreshPlayers() async throws {
-        try await dbWriter.write { [self] db in
+        try await dbWriter.write { db in
             if try Player.all().isEmpty(db) {
                 // When database is empty, insert new random players
                 try createRandomPlayers(db)

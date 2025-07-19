@@ -1,6 +1,8 @@
 import XCTest
 import GRDB
 
+@TaskLocal private var localUUID = UUID()
+
 class DatabaseReaderTests : GRDBTestCase {
     func testAnyDatabaseReader() throws {
         // This test passes if this code compiles.
@@ -342,6 +344,42 @@ class DatabaseReaderTests : GRDBTestCase {
 #endif
     }
     
+    // MARK: - Task locals
+    
+    func testReadCanAccessTaskLocal() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbReader.read { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+    
+    func testUnsafeReadCanAccessTaskLocal() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbReader.unsafeRead { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+    }
+    
     // MARK: - Task Cancellation
     
     func test_read_is_cancelled_by_Task_cancellation_performed_before_database_access() async throws {
@@ -379,7 +417,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    func test_read_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+    func test_successful_read_is_not_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
             let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
@@ -387,17 +425,14 @@ class DatabaseReaderTests : GRDBTestCase {
                 await semaphore.wait()
                 try await dbReader.read { db in
                     try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    XCTAssertTrue(Task.isCancelled)
                 }
             }
             cancelledTaskMutex.store(task)
             semaphore.signal()
             
-            do {
-                try await task.value
-                XCTFail("Expected error")
-            } catch {
-                XCTAssert(error is CancellationError)
-            }
+            // Task has completed without any error
+            try await task.value
             
             // Database access is restored after cancellation (no error is thrown)
             try await dbReader.read { db in
@@ -530,7 +565,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
     
-    func test_unsafeRead_is_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
+    func test_successful_unsafeRead_is_not_cancelled_by_Task_cancellation_performed_after_database_access() async throws {
         func test(_ dbReader: some DatabaseReader) async throws {
             let semaphore = AsyncSemaphore(value: 0)
             let cancelledTaskMutex = Mutex<Task<Void, any Error>?>(nil)
@@ -538,17 +573,14 @@ class DatabaseReaderTests : GRDBTestCase {
                 await semaphore.wait()
                 try await dbReader.unsafeRead { db in
                     try XCTUnwrap(cancelledTaskMutex.load()).cancel()
+                    XCTAssertTrue(Task.isCancelled)
                 }
             }
             cancelledTaskMutex.store(task)
             semaphore.signal()
             
-            do {
-                try await task.value
-                XCTFail("Expected error")
-            } catch {
-                XCTAssert(error is CancellationError)
-            }
+            // Task has completed without any error
+            try await task.value
             
             // Database access is restored after cancellation (no error is thrown)
             try await dbReader.unsafeRead { db in
