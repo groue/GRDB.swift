@@ -1329,6 +1329,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             return
         }
         
+        // Commits when read-only are just like rollbacks above.
+        if statement.transactionEffect == .commitTransaction && isReadOnly {
+            return
+        }
+        
         // Suspension should not prevent adjusting the read-only mode.
         // See <https://github.com/groue/GRDB.swift/issues/1715>.
         if statement.isQueryOnlyPragma {
