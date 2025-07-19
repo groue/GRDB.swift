@@ -1,6 +1,8 @@
 import XCTest
 import GRDB
 
+@TaskLocal private var localUUID = UUID()
+
 class DatabaseWriterTests : GRDBTestCase {
     
     func testDatabaseQueueUnsafeReentrantWrite() throws {
@@ -412,6 +414,48 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(makeDatabaseQueue())
         try await test(makeDatabasePool())
     }
+    
+    // MARK: - Task locals
+    
+    func test_write_can_access_task_local() async throws {
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbWriter.write { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+    }
+    
+    func test_writeWithoutTransaction_can_access_task_local() async throws {
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbWriter.writeWithoutTransaction { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+    }
+    
+    func test_barrierWriteWithoutTransaction_can_access_task_local() async throws {
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let expectedUUID = UUID()
+            let dbUUID = try await $localUUID.withValue(expectedUUID) {
+                try await dbWriter.barrierWriteWithoutTransaction { db in localUUID }
+            }
+            XCTAssertEqual(dbUUID, expectedUUID)
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+    }
+
     
     // MARK: - Task Cancellation
     
