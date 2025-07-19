@@ -113,7 +113,9 @@ public final class DatabaseSnapshot {
     deinit {
         // Leave snapshot isolation
         reader.reentrantSync { db in
+            // Ignore commit error (we can not notify it), but make sure we leave the transaction
             try? db.commit()
+            assert(!db.isInsideTransaction)
         }
     }
     

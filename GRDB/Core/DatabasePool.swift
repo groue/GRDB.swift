@@ -361,7 +361,9 @@ extension DatabasePool: DatabaseReader {
         return try await readerPool.get { reader in
             try await reader.execute { db in
                defer {
-                   try? db.commit() // Ignore commit error
+                   // Ignore commit error, but make sure we leave the transaction
+                   try? db.commit()
+                   assert(!db.isInsideTransaction)
                }
                // The block isolation comes from the DEFERRED transaction.
                try db.beginTransaction(.deferred)
@@ -385,7 +387,9 @@ extension DatabasePool: DatabaseReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     defer {
-                        try? db.commit() // Ignore commit error
+                        // Ignore commit error, but make sure we leave the transaction
+                        try? db.commit()
+                        assert(!db.isInsideTransaction)
                         releaseReader(.reuse)
                     }
                     do {
@@ -547,7 +551,9 @@ extension DatabasePool: DatabaseReader {
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
                 defer {
-                    try? db.commit() // Ignore commit error
+                    // Ignore commit error, but make sure we leave the transaction
+                    try? db.commit()
+                    assert(!db.isInsideTransaction)
                     releaseReader(.reuse)
                 }
                 do {

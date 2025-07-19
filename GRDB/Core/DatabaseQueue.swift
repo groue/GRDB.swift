@@ -248,8 +248,9 @@ extension DatabaseQueue: DatabaseReader {
     ) {
         writer.async { db in
             defer {
-                // Ignore error because we can not notify it.
+                // Ignore commit error (we can not notify it), but make sure we leave the transaction
                 try? db.commit()
+                assert(!db.isInsideTransaction)
                 try? db.endReadOnly()
             }
             
@@ -296,8 +297,9 @@ extension DatabaseQueue: DatabaseReader {
             GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
 
             defer {
-                // Ignore error because we can not notify it.
+                // Ignore commit error (we can not notify it), but make sure we leave the transaction
                 try? db.commit()
+                assert(!db.isInsideTransaction)
                 try? db.endReadOnly()
             }
             
