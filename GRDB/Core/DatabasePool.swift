@@ -352,7 +352,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
@@ -422,7 +422,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
@@ -771,7 +771,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func writeWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -787,7 +787,7 @@ extension DatabasePool: DatabaseWriter {
     }
     
     public func barrierWriteWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()

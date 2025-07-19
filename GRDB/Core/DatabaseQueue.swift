@@ -234,7 +234,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute { db in
             try db.isolated(readOnly: true) {
@@ -273,7 +273,7 @@ extension DatabaseQueue: DatabaseReader {
     }
     
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(value)
     }
@@ -387,7 +387,7 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     public func writeWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
@@ -398,7 +398,7 @@ extension DatabaseQueue: DatabaseWriter {
     }
     
     public func barrierWriteWithoutTransaction<T: Sendable>(
-        _ updates: @escaping @Sendable (Database) throws -> T
+        _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }

@@ -294,7 +294,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
@@ -342,7 +342,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }
