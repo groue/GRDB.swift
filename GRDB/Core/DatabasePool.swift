@@ -354,7 +354,6 @@ extension DatabasePool: DatabaseReader {
     public func read<T: Sendable>(
         _ value: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
-        GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
