@@ -12,7 +12,7 @@ import os.log
 /// let dbQueue = try DatabaseQueue(configuration: config)
 /// let appDatabase = try AppDatabase(dbQueue)
 /// ```
-final class AppDatabase: Sendable {
+struct AppDatabase: Sendable {
     /// Access to the database.
     ///
     /// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections>
