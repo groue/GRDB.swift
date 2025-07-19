@@ -789,20 +789,32 @@ extension DatabasePool: DatabaseWriter {
     public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @escaping @Sendable (Database) throws -> T
     ) async throws -> T {
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            asyncBarrierWriteWithoutTransaction { dbResult in
-                do {
-                    try dbAccess.checkCancellation()
-                    let db = try dbResult.get()
-                    let result = try dbAccess.inDatabase(db) {
-                        try updates(db)
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        
+        // Pool.barrier does not support async calls (yet?).
+        // So we perform cancellation checks just as in
+        // the async version of SerializedDatabase.execute().
+        let cancelMutex = Mutex<(@Sendable () -> Void)?>(nil)
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await readerPool.barrier {
+                try Task.checkCancellation()
+                let value = try writer.sync { db in
+                    defer {
+                        db.uncancel()
                     }
-                    continuation.resume(returning: result)
-                } catch {
-                    continuation.resume(throwing: error)
+                    cancelMutex.store(db.cancel)
+                    try Task.checkCancellation()
+                    return try updates(db)
                 }
+                #warning("TODO: remove this check, and fix tests accordingly. The database access has succeeded, it's useless to lose its result.")
+                try Task.checkCancellation()
+                return value
             }
+        } onCancel: {
+            cancelMutex.withLock { $0?() }
         }
     }
     
