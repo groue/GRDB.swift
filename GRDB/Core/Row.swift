@@ -129,6 +129,10 @@ import Foundation
 ///
 /// - ``RowAdapter``
 ///
+/// ### Errors
+///
+/// - ``RowDecodingError``
+///
 /// ### Supporting Types
 ///
 /// - ``RowCursor``

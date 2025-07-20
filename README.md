@@ -4984,12 +4984,13 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [RecordError], or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError](#databaseerror), [RecordError], [RowDecodingError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
 - [DatabaseError](#databaseerror)
 - [RecordError]
+- [RowDecodingError]
 - [Fatal Errors](#fatal-errors)
 - [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
@@ -5093,6 +5094,18 @@ do {
 }
 ```
 
+
+### RowDecodingError
+
+📖 [`RowDecodingError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowdecodingerror)
+
+**RowDecodingError** is thrown when the application can not decode a value from a database row. For example:
+
+```swift
+let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+// RowDecodingError: could not decode String from database value NULL.
+let name = try row.decode(String.self, forColumn: "name")
+```
 
 ### Fatal Errors
 
@@ -6111,6 +6124,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [persistence methods]: #persistence-methods
 [Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
 [RecordError]: #recorderror
+[RowDecodingError]: #rowdecodingerror
 [Transactions and Savepoints]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactions
 [`DatabaseQueue`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue
 [Database queues]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue

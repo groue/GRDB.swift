@@ -24,6 +24,14 @@ enum RowKey: Hashable, Sendable {
 }
 
 /// A decoding error thrown when decoding a database row.
+///
+/// For example:
+///
+/// ```swift
+/// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+/// // RowDecodingError: could not decode String from database value NULL.
+/// let name = try row.decode(String.self, forColumn: "name")
+/// ```
 public struct RowDecodingError: Error {
     enum Impl {
         case keyNotFound(RowKey, Context)
