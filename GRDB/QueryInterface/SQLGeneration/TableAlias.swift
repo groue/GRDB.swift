@@ -290,6 +290,12 @@ extension TableAliasBase {
 /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#table-aliases> for more information and examples.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+///
+/// ## Topics
+///
+/// ## Supporting Types
+///
+/// - ``TableAliasBase``
 @dynamicMemberLookup
 public final class TableAlias<RowDecoder>: TableAliasBase, @unchecked Sendable {
     init(tableName: String, userName: String? = nil)
