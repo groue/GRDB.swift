@@ -23,9 +23,21 @@ enum RowKey: Hashable, Sendable {
     case prefetchKey(String)
 }
 
-/// A decoding error
-@usableFromInline
-enum RowDecodingError: Error {
+/// A decoding error thrown when decoding a database row.
+///
+/// For example:
+///
+/// ```swift
+/// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+/// // RowDecodingError: could not decode String from database value NULL.
+/// let name = try row.decode(String.self, forColumn: "name")
+/// ```
+public struct RowDecodingError: Error {
+    enum Impl {
+        case keyNotFound(RowKey, Context)
+        case valueMismatch(Any.Type, Context)
+    }
+    
     @usableFromInline
     struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
@@ -55,15 +67,17 @@ enum RowDecodingError: Error {
         }
     }
     
-    case keyNotFound(RowKey, Context)
-    case valueMismatch(Any.Type, Context)
-    
+    var impl: Impl
     var context: Context {
-        switch self {
+        switch impl {
         case .keyNotFound(_, let context),
              .valueMismatch(_, let context):
             return context
         }
+    }
+    
+    static func valueMismatch(_ type: Any.Type, _ context: Context) -> Self {
+        self.init(impl: .valueMismatch(type, context))
     }
     
     /// Convenience method that builds the
@@ -74,11 +88,10 @@ enum RowDecodingError: Error {
         databaseValue: DatabaseValue)
     -> Self
     {
-        valueMismatch(
-            type,
-            RowDecodingError.Context(decodingContext: context, debugDescription: """
-                could not decode \(type) from database value \(databaseValue)
-                """))
+        let context = RowDecodingError.Context(decodingContext: context, debugDescription: """
+            could not decode \(type) from database value \(databaseValue)
+            """)
+        return self.init(impl: .valueMismatch(type, context))
     }
     
     /// Convenience method that builds the
@@ -115,11 +128,15 @@ enum RowDecodingError: Error {
     /// error message.
     @usableFromInline
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
-        keyNotFound(
+        self.init(impl: .keyNotFound(
             .columnName(columnName),
             RowDecodingError.Context(decodingContext: context, debugDescription: """
                 column not found: \(String(reflecting: columnName))
-                """))
+                """)))
+    }
+    
+    static func keyNotFound(_ rowKey: RowKey, _ context: Context) -> Self {
+        self.init(impl: .keyNotFound(rowKey, context))
     }
 }
 
@@ -167,8 +184,7 @@ struct RowDecodingContext {
 }
 
 extension RowDecodingError: CustomStringConvertible {
-    @usableFromInline
-    var description: String {
+    public var description: String {
         let context = self.context
         let row = context.row
         var chunks: [String] = []

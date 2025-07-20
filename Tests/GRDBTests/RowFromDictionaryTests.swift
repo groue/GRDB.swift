@@ -26,7 +26,7 @@ class RowFromDictionaryTests : RowTestCase {
         XCTAssertEqual(bools, [false, true, true])
     }
     
-    func testRowValueAtIndex() {
+    func testRowValueAtIndex() throws {
         let dictionary: [String: (any DatabaseValueConvertible)?] = ["a": 0, "b": 1, "c": 2]
         let row = Row(dictionary)
         
@@ -40,14 +40,14 @@ class RowFromDictionaryTests : RowTestCase {
         assertRowRawValueEqual(row, index: cIndex, value: 2 as Int64)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, index: aIndex, value: 0 as Int)
-        assertRowConvertedValueEqual(row, index: bIndex, value: 1 as Int)
-        assertRowConvertedValueEqual(row, index: cIndex, value: 2 as Int)
+        try assertRowConvertedValueEqual(row, index: aIndex, value: 0 as Int)
+        try assertRowConvertedValueEqual(row, index: bIndex, value: 1 as Int)
+        try assertRowConvertedValueEqual(row, index: cIndex, value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, index: aIndex, value: CustomValue.a)
-        assertRowConvertedValueEqual(row, index: bIndex, value: CustomValue.b)
-        assertRowConvertedValueEqual(row, index: cIndex, value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, index: aIndex, value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, index: bIndex, value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, index: cIndex, value: CustomValue.c)
         
         // Expect fatal error:
         //
@@ -55,7 +55,7 @@ class RowFromDictionaryTests : RowTestCase {
         // row[3]
     }
     
-    func testRowValueNamed() {
+    func testRowValueNamed() throws {
         let row = Row(["a": 0, "b": 1, "c": 2])
         
         // Raw extraction
@@ -64,17 +64,17 @@ class RowFromDictionaryTests : RowTestCase {
         assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
-        assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
-        assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
+        try assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
+        try assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
+        try assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
-        assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
-        assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
     }
     
-    func testRowValueFromColumn() {
+    func testRowValueFromColumn() throws {
         let row = Row(["a": 0, "b": 1, "c": 2])
         
         // Raw extraction
@@ -83,14 +83,14 @@ class RowFromDictionaryTests : RowTestCase {
         assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
-        assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
-        assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
-        assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
-        assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
     }
     
     func testWithUnsafeData() throws {
