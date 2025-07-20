@@ -23,9 +23,8 @@ enum RowKey: Hashable, Sendable {
     case prefetchKey(String)
 }
 
-/// A decoding error
-@usableFromInline
-struct RowDecodingError: Error {
+/// A decoding error thrown when decoding a database row.
+public struct RowDecodingError: Error {
     enum Impl {
         case keyNotFound(RowKey, Context)
         case valueMismatch(Any.Type, Context)
@@ -177,8 +176,7 @@ struct RowDecodingContext {
 }
 
 extension RowDecodingError: CustomStringConvertible {
-    @usableFromInline
-    var description: String {
+    public var description: String {
         let context = self.context
         let row = context.row
         var chunks: [String] = []
