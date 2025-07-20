@@ -7,7 +7,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             var name: String
 
             init(row: Row) throws {
-                name = try row.decode(forKey: "name")
+                name = try row.decode(forColumn: "name")
             }
         }
         
@@ -123,7 +123,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             var value: Value
 
             init(row: Row) throws {
-                value = try row.decode(forKey: "value")
+                value = try row.decode(forColumn: "value")
             }
         }
         
@@ -592,7 +592,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             
             do {
                 let row = try Row.fetchOne(statement)!
-                _ = try row.decode(String.self, forKey: "name")
+                _ = try row.decode(String.self, forColumn: "name")
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error.impl {
@@ -644,7 +644,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             
             do {
                 _ = try Row.fetchCursor(statement)
-                    .map { try $0.decode(Int8.self, forKey: "missing") }
+                    .map { try $0.decode(Int8.self, forColumn: "missing") }
                     .next()
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
@@ -691,7 +691,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             
             do {
                 let row = try Row.fetchOne(statement)!
-                _ = try row.decode(Int8.self, forKey: "foo")
+                _ = try row.decode(Int8.self, forColumn: "foo")
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error.impl {
@@ -793,7 +793,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             
             do {
                 let row = try Row.fetchOne(statement)!
-                _ = try row.decode(Value.self, forKey: "name")
+                _ = try row.decode(Value.self, forColumn: "name")
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error.impl {

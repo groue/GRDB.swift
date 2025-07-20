@@ -452,7 +452,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
-        try! decode(Value.self, forKey: columnName)
+        try! decode(Value.self, forColumn: columnName)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -489,7 +489,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
-        try! decode(Value.self, forKey: columnName)
+        try! decode(Value.self, forColumn: columnName)
     }
     
     /// Returns `Int64`, `Double`, `String`, `Data` or nil, depending on the
@@ -533,7 +533,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ column: some ColumnExpression) -> Value {
-        try! decode(Value.self, forKey: column.name)
+        try! decode(Value.self, forColumn: column)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -573,7 +573,7 @@ extension Row {
     -> Value
     where Value: DatabaseValueConvertible & StatementColumnConvertible
     {
-        try! decode(Value.self, forKey: column.name)
+        try! decode(Value.self, forColumn: column)
     }
     
     /// Calls the given closure with the `Data` at given index.
@@ -1068,7 +1068,7 @@ extension Row {
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
     @inlinable
-    func decode<Value: DatabaseValueConvertible>(
+    public func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value
@@ -1086,9 +1086,9 @@ extension Row {
     /// or if the SQLite value can not be converted to `Value`, a
     /// `RowDecodingError` is thrown.
     @inlinable
-    func decode<Value: DatabaseValueConvertible>(
+    public func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn columnName: String)
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
@@ -1099,6 +1099,23 @@ extension Row {
             }
         }
         return try Value.decode(fromRow: self, atUncheckedIndex: index)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, or if the SQLite value is NULL,
+    /// or if the SQLite value can not be converted to `Value`, a
+    /// `RowDecodingError` is thrown.
+    @inlinable
+    public func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type = Value.self,
+        forColumn column: some ColumnExpression)
+    throws -> Value
+    {
+        try decode(type, forColumn: column.name)
     }
 }
 
@@ -1118,7 +1135,7 @@ extension Row {
     /// `RowDecodingError` is thrown.
     @inline(__always)
     @inlinable
-    func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value
@@ -1140,9 +1157,9 @@ extension Row {
     /// or if the SQLite value can not be converted to `Value`, a
     /// `RowDecodingError` is thrown.
     @inlinable
-    func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn columnName: String)
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
@@ -1153,6 +1170,27 @@ extension Row {
             }
         }
         return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// If the row does not contain the column, or if the SQLite value is NULL,
+    /// or if the SQLite value can not be converted to `Value`, a
+    /// `RowDecodingError` is thrown.
+    @inlinable
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type = Value.self,
+        forColumn column: some ColumnExpression)
+    throws -> Value
+    {
+        try decode(type, forColumn: column.name)
     }
     
     // Support for fast decoding in scoped rows
@@ -1217,7 +1255,7 @@ extension Row {
     /// null values.
     ///
     /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
-    func decodeIfPresent<Record: FetchableRecord>(
+    public func decodeIfPresent<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record?
@@ -1258,7 +1296,7 @@ extension Row {
     /// null values.
     ///
     /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
-    func decode<Record: FetchableRecord>(
+    public func decode<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record
@@ -1313,7 +1351,7 @@ extension Row {
     ///     let books: [Book] = row["books"]
     ///     print(books[0].title)
     ///     // Prints "Moby-Dick"
-    func decode<Collection>(
+    public func decode<Collection>(
         _ type: Collection.Type = Collection.self,
         forKey key: String)
     throws -> Collection
@@ -1364,7 +1402,7 @@ extension Row {
     ///     let books: Set<Book> = row["books"]
     ///     print(books.first!.title)
     ///     // Prints "Moby-Dick"
-    func decode<Record: FetchableRecord & Hashable>(
+    public func decode<Record: FetchableRecord & Hashable>(
         _ type: Set<Record>.Type = Set<Record>.self,
         forKey key: String)
     throws -> Set<Record>
