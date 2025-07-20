@@ -1546,6 +1546,7 @@ extension Row {
         Collection: RangeReplaceableCollection,
         Collection.Element: FetchableRecord
     {
+        // TODO: test independently
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
@@ -1608,6 +1609,7 @@ extension Row {
         forKey key: String)
     throws -> Set<Record>
     {
+        // TODO: test independently
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
