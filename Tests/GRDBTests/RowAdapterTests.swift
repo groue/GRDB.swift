@@ -42,14 +42,14 @@ class AdapterRowTests : RowTestCase {
             assertRowRawValueEqual(row, index: 2, value: 2 as Int64)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, index: 0, value: 0 as Int)
-            assertRowConvertedValueEqual(row, index: 1, value: 1 as Int)
-            assertRowConvertedValueEqual(row, index: 2, value: 2 as Int)
+            try assertRowConvertedValueEqual(row, index: 0, value: 0 as Int)
+            try assertRowConvertedValueEqual(row, index: 1, value: 1 as Int)
+            try assertRowConvertedValueEqual(row, index: 2, value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, index: 0, value: CustomValue.a)
-            assertRowConvertedValueEqual(row, index: 1, value: CustomValue.b)
-            assertRowConvertedValueEqual(row, index: 2, value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, index: 0, value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, index: 1, value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, index: 2, value: CustomValue.c)
             
             // Expect fatal error:
             //
@@ -70,14 +70,14 @@ class AdapterRowTests : RowTestCase {
             assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
-            assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
-            assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
+            try assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
+            try assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
+            try assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
-            assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
-            assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
         }
     }
     
@@ -93,14 +93,14 @@ class AdapterRowTests : RowTestCase {
             assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
-            assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
-            assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
-            assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
-            assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
         }
     }
     
