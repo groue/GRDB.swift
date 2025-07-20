@@ -843,6 +843,13 @@ row[...] as Int
 row[...] as Int?
 ```
 
+Throwing accessors exist as well. Their use is not encouraged, because a database decoding error is a programming error. If an application stores invalid data in the database file, that is a bug that needs to be fixed:
+
+```swift
+let name = try row.decode(String.self, atIndex: 0)
+let bookCount = try row.decode(Int.self, forColumn: "bookCount")
+```
+
 > **Warning**: avoid the `as!` and `as?` operators:
 > 
 > ```swift
