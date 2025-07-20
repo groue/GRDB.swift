@@ -2186,26 +2186,25 @@ struct BookInfo: FetchableRecord {
     
     init(row: Row) throws {
         book = try Book(row: row)
-        author = row["author"]
-        country = row["country"]
-        coverImage = row["coverImage"]
+        author = try row.decode(forKey: "author")
+        country = try row.decodeIfPresent(forKey: "country")
+        coverImage = try row.decodeIfPresent(forKey: "coverImage")
     }
 }
 
 let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
-You are already familiar with row subscripts to decode [database values](../README.md#column-values):
+When you extract a record from a row, GRDB looks up the tree of **association keys**:
 
 ```swift
-let name: String = row["name"]
+let author = try row.decode(Author.self, forKey: "author")
 ```
 
-When you extract a record instead of a value from a row, GRDB looks up the tree of **association keys**. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
+If the key is not found, or only associated with columns that are all NULL, an optional record is decoded as nil:
 
 ```swift
-let author: Author = row["author"]
-let country: Country? = row["country"]
+let country = try row.decodeIfPresent(Country.self, forKey: "country")
 ```
 
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
@@ -2221,7 +2220,7 @@ struct AuthorInfo: FetchableRecord {
     
     init(row: Row) throws {
         author = try Author(row: row)
-        books = row["books"]
+        books = try row.decode(forKey: "books")
     }
 }
 

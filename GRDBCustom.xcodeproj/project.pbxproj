@@ -262,6 +262,7 @@
 		56A8C2321D1914540096E9D4 /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C22F1D1914540096E9D4 /* UUID.swift */; };
 		56A8C2451D1918EF0096E9D4 /* FoundationNSUUIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C2361D1914790096E9D4 /* FoundationNSUUIDTests.swift */; };
 		56A8C2461D1918EF0096E9D4 /* FoundationUUIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C21E1D1914110096E9D4 /* FoundationUUIDTests.swift */; };
+		56AC93E12E291C9700DB6C74 /* DispatchQueueActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AC93E02E291C9700DB6C74 /* DispatchQueueActor.swift */; };
 		56AE6428222AACE300AD1B0B /* AssociationHasOneThroughSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AE6426222AACE300AD1B0B /* AssociationHasOneThroughSQLTests.swift */; };
 		56AF746E1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */; };
 		56AFEF3229969F7E00CA1E51 /* TransactionClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AFEF3029969F7E00CA1E51 /* TransactionClock.swift */; };
@@ -781,6 +782,7 @@
 		56A8C21E1D1914110096E9D4 /* FoundationUUIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationUUIDTests.swift; sourceTree = "<group>"; };
 		56A8C22F1D1914540096E9D4 /* UUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUID.swift; sourceTree = "<group>"; };
 		56A8C2361D1914790096E9D4 /* FoundationNSUUIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSUUIDTests.swift; sourceTree = "<group>"; };
+		56AC93E02E291C9700DB6C74 /* DispatchQueueActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchQueueActor.swift; sourceTree = "<group>"; };
 		56AE6426222AACE300AD1B0B /* AssociationHasOneThroughSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasOneThroughSQLTests.swift; sourceTree = "<group>"; };
 		56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleEscapingTests.swift; sourceTree = "<group>"; };
 		56AFEF3029969F7E00CA1E51 /* TransactionClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionClock.swift; sourceTree = "<group>"; };
@@ -1600,13 +1602,13 @@
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
 				560D923E1C672C3E00F4F92B /* DatabaseValueConvertible.swift */,
 				563363C31C942C37000BE133 /* DatabaseWriter.swift */,
+				56AC93E02E291C9700DB6C74 /* DispatchQueueActor.swift */,
 				5636E9BB1D22574100B9B05F /* FetchRequest.swift */,
 				56A238761B9C75030082EB20 /* Row.swift */,
 				567404871CEF84C8003ED5CC /* RowAdapter.swift */,
 				56231E6025CEBF06001DFD2F /* RowDecodingError.swift */,
 				56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */,
 				560A37A61C8FF6E500949E71 /* SerializedDatabase.swift */,
-				56D3332129C38D7A00430680 /* WALSnapshotTransaction.swift */,
 				56A6EB2226076F6A00C27594 /* SQL.swift */,
 				56E9FAC32210468500C703A8 /* SQLInterpolation.swift */,
 				56FBFED52210731000945324 /* SQLRequest.swift */,
@@ -1616,6 +1618,7 @@
 				56AFEF3029969F7E00CA1E51 /* TransactionClock.swift */,
 				566B91321FA4D3810012D5B0 /* TransactionObserver.swift */,
 				56564F3828637C9900A19E9F /* WALSnapshot.swift */,
+				56D3332129C38D7A00430680 /* WALSnapshotTransaction.swift */,
 				5605F1471C672E4000235C62 /* Support */,
 			);
 			path = Core;
@@ -2009,6 +2012,7 @@
 				566B910B1FA4C3970012D5B0 /* Database+Statements.swift in Sources */,
 				5656A8672295BD56001FF3FF /* HasOneAssociation.swift in Sources */,
 				566B91251FA4CF810012D5B0 /* Database+Schema.swift in Sources */,
+				56AC93E12E291C9700DB6C74 /* DispatchQueueActor.swift in Sources */,
 				5656A85F2295BD56001FF3FF /* FTS3+QueryInterface.swift in Sources */,
 				56012B82257404A400B4925B /* CommonTableExpression.swift in Sources */,
 				5656A8972295BD56001FF3FF /* SQLRelation.swift in Sources */,

@@ -22,11 +22,11 @@ public protocol TypedRequest<RowDecoder> {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``annotated(with:)-56y26``
-/// - ``annotated(with:)-9nuwi``
+/// - ``annotated(with:)-9wodv``
+/// - ``annotated(with:)-69r3``
 /// - ``annotatedWhenConnected(with:)``
-/// - ``select(_:)-90gu2``
-/// - ``select(_:)-4iv1w``
+/// - ``select(_:)-270ge``
+/// - ``select(_:)-4jw13``
 /// - ``select(literal:)``
 /// - ``select(sql:arguments:)``
 /// - ``selectWhenConnected(_:)``
@@ -246,9 +246,9 @@ extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecor
     ///     .select(\.score)
     /// ```
     public func select(
-        _ selection: (DatabaseComponents) -> any SQLSelectable
-    ) -> Self {
-        select(selection(Self.RowDecoder.databaseComponents))
+        _ selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> Self {
+        try select(selection(Self.RowDecoder.databaseComponents))
     }
 
     /// Defines the result columns.
@@ -276,9 +276,9 @@ extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecor
     ///     .select { [$0.score] }
     /// ```
     public func select(
-        _ selection: (DatabaseComponents) -> [any SQLSelectable]
-    ) -> Self {
-        select(selection(Self.RowDecoder.databaseComponents))
+        _ selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> Self {
+        try select(selection(Self.RowDecoder.databaseComponents))
     }
     
     /// Appends a result column to the selected columns.
@@ -302,9 +302,9 @@ extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecor
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
     public func annotated(
-        with selection: (DatabaseComponents) -> any SQLSelectable
-    ) -> Self {
-        annotated(with: selection(Self.RowDecoder.databaseComponents))
+        with selection: (DatabaseComponents) throws -> any SQLSelectable
+    ) rethrows -> Self {
+        try annotated(with: selection(Self.RowDecoder.databaseComponents))
     }
 
     /// Appends result columns to the selected columns.
@@ -328,9 +328,9 @@ extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecor
     /// - parameter selection: A closure that accepts a database connection and
     ///   returns an array of result columns.
     public func annotated(
-        with selection: (DatabaseComponents) -> [any SQLSelectable]
-    ) -> Self {
-        annotated(with: selection(Self.RowDecoder.databaseComponents))
+        with selection: (DatabaseComponents) throws -> [any SQLSelectable]
+    ) rethrows -> Self {
+        try annotated(with: selection(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -346,7 +346,7 @@ extension SelectionRequest where Self: TypedRequest, Self.RowDecoder: TableRecor
 /// ### The WHERE and JOIN ON Clauses
 ///
 /// - ``all()``
-/// - ``filter(_:)-5l0gu``
+/// - ``filter(_:)-7j0nw``
 /// - ``filter(literal:)``
 /// - ``filter(sql:arguments:)``
 /// - ``filterWhenConnected(_:)``
@@ -463,9 +463,9 @@ extension FilteredRequest where Self: TypedRequest, Self.RowDecoder: TableRecord
     /// let request = Player.all().filter { $0.name == name }
     /// ```
     public func filter(
-        _ predicate: (DatabaseComponents) -> any SQLSpecificExpressible
-    ) -> Self {
-        filter(predicate(Self.RowDecoder.databaseComponents))
+        _ predicate: (DatabaseComponents) throws -> any SQLSpecificExpressible
+    ) rethrows -> Self {
+        try filter(predicate(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -964,15 +964,15 @@ extension TableRequest where Self: AggregatingRequest {
 ///
 /// ### The GROUP BY Clause
 ///
-/// - ``group(_:)-9z116``
-/// - ``group(_:)-43p07``
+/// - ``group(_:)-5soxm``
+/// - ``group(_:)-32exm``
 /// - ``group(literal:)``
 /// - ``group(sql:arguments:)``
 /// - ``groupWhenConnected(_:)``
 ///
 /// ### The HAVING Clause
 ///
-/// - ``having(_:)-6zfvb``
+/// - ``having(_:)-27hlo``
 /// - ``having(literal:)``
 /// - ``having(sql:arguments:)``
 /// - ``havingWhenConnected(_:)``
@@ -1199,16 +1199,16 @@ extension AggregatingRequest where Self: TypedRequest, Self.RowDecoder: TableRec
     ///
     /// Any previous grouping is discarded.
     public func group(
-        _ expression: (DatabaseComponents) -> any SQLExpressible
-    ) -> Self {
-        group(expression(Self.RowDecoder.databaseComponents))
+        _ expression: (DatabaseComponents) throws -> any SQLExpressible
+    ) rethrows -> Self {
+        try group(expression(Self.RowDecoder.databaseComponents))
     }
     
     /// Returns an aggregate request grouped on the given SQL expressions.
     public func group(
-        _ expressions: (DatabaseComponents) -> [any SQLExpressible]
-    ) -> Self {
-        group(expressions(Self.RowDecoder.databaseComponents))
+        _ expressions: (DatabaseComponents) throws -> [any SQLExpressible]
+    ) rethrows -> Self {
+        try group(expressions(Self.RowDecoder.databaseComponents))
     }
     
     /// Filters the aggregated groups with a boolean SQL expression.
@@ -1233,9 +1233,9 @@ extension AggregatingRequest where Self: TypedRequest, Self.RowDecoder: TableRec
     ///     .having { max($0.score) > 1000 }
     /// ```
     public func having(
-        _ predicate: (DatabaseComponents) -> any SQLExpressible
-    ) -> Self {
-        having(predicate(Self.RowDecoder.databaseComponents))
+        _ predicate: (DatabaseComponents) throws -> any SQLExpressible
+    ) rethrows -> Self {
+        try having(predicate(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -1247,8 +1247,8 @@ extension AggregatingRequest where Self: TypedRequest, Self.RowDecoder: TableRec
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``order(_:)-54bt8``
-/// - ``order(_:)-7jcay``
+/// - ``order(_:)-5q7wj``
+/// - ``order(_:)-711zj``
 /// - ``order(literal:)``
 /// - ``order(sql:arguments:)``
 /// - ``orderWhenConnected(_:)``
@@ -1454,9 +1454,9 @@ extension OrderedRequest where Self: TypedRequest, Self.RowDecoder: TableRecord 
     ///     .order(\.name)
     /// ```
     public func order(
-        _ ordering: (DatabaseComponents) -> any SQLOrderingTerm
-    ) -> Self {
-        order(ordering(Self.RowDecoder.databaseComponents))
+        _ ordering: (DatabaseComponents) throws -> any SQLOrderingTerm
+    ) rethrows -> Self {
+        try order(ordering(Self.RowDecoder.databaseComponents))
     }
     
     /// Sorts the fetched rows according to the given SQL ordering terms.
@@ -1485,9 +1485,9 @@ extension OrderedRequest where Self: TypedRequest, Self.RowDecoder: TableRecord 
     ///     .order { [$0.name] }
     /// ```
     public func order(
-        _ orderings: (DatabaseComponents) -> [any SQLOrderingTerm]
-    ) -> Self {
-        order(orderings(Self.RowDecoder.databaseComponents))
+        _ orderings: (DatabaseComponents) throws -> [any SQLOrderingTerm]
+    ) rethrows -> Self {
+        try order(orderings(Self.RowDecoder.databaseComponents))
     }
 }
 
@@ -1800,12 +1800,12 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The SELECT Clause
 ///
-/// - ``SelectionRequest/annotated(with:)-56y26``
-/// - ``SelectionRequest/annotated(with:)-9nuwi``
+/// - ``SelectionRequest/annotated(with:)-9wodv``
+/// - ``SelectionRequest/annotated(with:)-69r3``
 /// - ``SelectionRequest/annotatedWhenConnected(with:)``
 /// - ``distinct()``
-/// - ``SelectionRequest/select(_:)-90gu2``
-/// - ``SelectionRequest/select(_:)-4iv1w``
+/// - ``SelectionRequest/select(_:)-270ge``
+/// - ``SelectionRequest/select(_:)-4jw13``
 /// - ``SelectionRequest/select(literal:)``
 /// - ``SelectionRequest/select(sql:arguments:)``
 /// - ``SelectionRequest/selectWhenConnected(_:)``
@@ -1813,7 +1813,7 @@ extension JoinableRequest where Self: SelectionRequest {
 /// ### The WHERE Clause
 ///
 /// - ``FilteredRequest/all()``
-/// - ``FilteredRequest/filter(_:)-5l0gu``
+/// - ``FilteredRequest/filter(_:)-7j0nw``
 /// - ``TableRequest/filter(id:)``
 /// - ``TableRequest/filter(ids:)``
 /// - ``TableRequest/filter(key:)-1p9sq``
@@ -1829,21 +1829,21 @@ extension JoinableRequest where Self: SelectionRequest {
 ///
 /// ### The GROUP BY and HAVING Clauses
 ///
-/// - ``AggregatingRequest/group(_:)-9z116``
-/// - ``AggregatingRequest/group(_:)-43p07``
+/// - ``AggregatingRequest/group(_:)-5soxm``
+/// - ``AggregatingRequest/group(_:)-32exm``
 /// - ``AggregatingRequest/group(literal:)``
 /// - ``AggregatingRequest/group(sql:arguments:)``
 /// - ``TableRequest/groupByPrimaryKey()``
 /// - ``AggregatingRequest/groupWhenConnected(_:)``
-/// - ``AggregatingRequest/having(_:)-6zfvb``
+/// - ``AggregatingRequest/having(_:)-27hlo``
 /// - ``AggregatingRequest/having(literal:)``
 /// - ``AggregatingRequest/having(sql:arguments:)``
 /// - ``AggregatingRequest/havingWhenConnected(_:)``
 ///
 /// ### The ORDER BY Clause
 ///
-/// - ``OrderedRequest/order(_:)-54bt8``
-/// - ``OrderedRequest/order(_:)-7jcay``
+/// - ``OrderedRequest/order(_:)-5q7wj``
+/// - ``OrderedRequest/order(_:)-711zj``
 /// - ``OrderedRequest/order(literal:)``
 /// - ``OrderedRequest/order(sql:arguments:)``
 /// - ``OrderedRequest/orderWhenConnected(_:)``

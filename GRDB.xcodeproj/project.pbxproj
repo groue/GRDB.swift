@@ -273,6 +273,7 @@
 		56A5EF0F1EF7F20B00F03071 /* ForeignKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A5EF0E1EF7F20B00F03071 /* ForeignKeyInfoTests.swift */; };
 		56A8C2301D1914540096E9D4 /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C22F1D1914540096E9D4 /* UUID.swift */; };
 		56AACAA822ACED7100A40F2A /* Fetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AACAA722ACED7100A40F2A /* Fetch.swift */; };
+		56AC93DF2E291C4700DB6C74 /* DispatchQueueActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AC93DE2E291C4700DB6C74 /* DispatchQueueActor.swift */; };
 		56AE64122229A53700AD1B0B /* HasOneThroughAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AE64112229A53700AD1B0B /* HasOneThroughAssociation.swift */; };
 		56AE6424222AAC9500AD1B0B /* AssociationHasOneThroughSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AE6423222AAC9500AD1B0B /* AssociationHasOneThroughSQLTests.swift */; };
 		56AFEF2F29969F6E00CA1E51 /* TransactionClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AFEF2E29969F6E00CA1E51 /* TransactionClock.swift */; };
@@ -769,6 +770,7 @@
 		56A8C22F1D1914540096E9D4 /* UUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUID.swift; sourceTree = "<group>"; };
 		56A8C2361D1914790096E9D4 /* FoundationNSUUIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSUUIDTests.swift; sourceTree = "<group>"; };
 		56AACAA722ACED7100A40F2A /* Fetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetch.swift; sourceTree = "<group>"; };
+		56AC93DE2E291C4700DB6C74 /* DispatchQueueActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchQueueActor.swift; sourceTree = "<group>"; };
 		56AE64112229A53700AD1B0B /* HasOneThroughAssociation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HasOneThroughAssociation.swift; sourceTree = "<group>"; };
 		56AE6423222AAC9500AD1B0B /* AssociationHasOneThroughSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasOneThroughSQLTests.swift; sourceTree = "<group>"; };
 		56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleEscapingTests.swift; sourceTree = "<group>"; };
@@ -1595,13 +1597,13 @@
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
 				560D923E1C672C3E00F4F92B /* DatabaseValueConvertible.swift */,
 				563363C31C942C37000BE133 /* DatabaseWriter.swift */,
+				56AC93DE2E291C4700DB6C74 /* DispatchQueueActor.swift */,
 				5636E9BB1D22574100B9B05F /* FetchRequest.swift */,
 				56A238761B9C75030082EB20 /* Row.swift */,
 				567404871CEF84C8003ED5CC /* RowAdapter.swift */,
 				566B9C1F25C6CC24004542CF /* RowDecodingError.swift */,
 				56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */,
 				560A37A61C8FF6E500949E71 /* SerializedDatabase.swift */,
-				56D3331F29C38D6700430680 /* WALSnapshotTransaction.swift */,
 				56E9FAD7221053DC00C703A8 /* SQL.swift */,
 				569D6DDD220EF9E100A058A9 /* SQLInterpolation.swift */,
 				56FBFED82210731A00945324 /* SQLRequest.swift */,
@@ -1611,6 +1613,7 @@
 				56AFEF2E29969F6E00CA1E51 /* TransactionClock.swift */,
 				566B91321FA4D3810012D5B0 /* TransactionObserver.swift */,
 				56B7EE822863781300C0525F /* WALSnapshot.swift */,
+				56D3331F29C38D6700430680 /* WALSnapshotTransaction.swift */,
 				5605F1471C672E4000235C62 /* Support */,
 			);
 			path = Core;
@@ -2180,6 +2183,7 @@
 				563B8FC524A1D3B9007A48C9 /* OnDemandFuture.swift in Sources */,
 				5656A8B02295BFD7001FF3FF /* TableRecord+QueryInterfaceRequest.swift in Sources */,
 				5613ED4421A95B2C00DC7A68 /* ValueReducer.swift in Sources */,
+				56AC93DF2E291C4700DB6C74 /* DispatchQueueActor.swift in Sources */,
 				5636E9BC1D22574100B9B05F /* FetchRequest.swift in Sources */,
 				566DDE0D288D763C0000DCFB /* Fixits.swift in Sources */,
 				56BB6EA91D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */,

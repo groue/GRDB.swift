@@ -22,7 +22,10 @@ private struct PlayerWithRequiredTeam: FetchableRecord {
     
     init(row: Row) throws {
         player = try Player(row: row)
-        team = row[Player.teamScope]
+        let subscriptTeam: Team = row[Player.teamScope]
+        let decodedTeam: Team = try row.decode(forKey: Player.teamScope)
+        XCTAssertEqual(subscriptTeam.id, decodedTeam.id)
+        team = subscriptTeam
     }
 }
 
@@ -32,7 +35,10 @@ private struct PlayerWithOptionalTeam: FetchableRecord {
     
     init(row: Row) throws {
         player = try Player(row: row)
-        team = row[Player.teamScope]
+        let subscriptTeam: Team? = row[Player.teamScope]
+        let decodedTeam: Team? = try row.decodeIfPresent(forKey: Player.teamScope)
+        XCTAssertEqual(subscriptTeam?.id, decodedTeam?.id)
+        team = subscriptTeam
     }
 }
 

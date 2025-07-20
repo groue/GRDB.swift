@@ -113,7 +113,9 @@ public final class DatabaseSnapshot {
     deinit {
         // Leave snapshot isolation
         reader.reentrantSync { db in
+            // Ignore commit error (we can not notify it), but make sure we leave the transaction
             try? db.commit()
+            assert(!db.isInsideTransaction)
         }
     }
     
@@ -152,7 +154,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await reader.execute(value)
     }
@@ -173,7 +175,7 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }

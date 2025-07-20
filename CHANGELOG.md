@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.6.x` Releases - [7.6.0](#760)
 - `7.5.x` Releases - [7.5.0](#750)
 - `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
 - `7.3.x` Releases - [7.3.0](#730)
@@ -136,6 +137,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.6.0
+
+Released July 20, 2025
+
+- **New**: All closures that accept DatabaseComponents can throw by [@groue](https://github.com/groue) in [#1768](https://github.com/groue/GRDB.swift/pull/1768)
+- **New**: Add Sendable conformance to DatabasePreUpdateEvent.Kind, matching DatabaseEvent.Kind by [@Jason-Abbott](https://github.com/Jason-Abbott) in [#1773](https://github.com/groue/GRDB.swift/pull/1773)
+- **New**: Add custom build instruction for hardened runtime by [@Jason-Abbott](https://github.com/Jason-Abbott) in [#1776](https://github.com/groue/GRDB.swift/pull/1776)
+- **New**: Access task locals from asynchronous database accesses by [@groue](https://github.com/groue) in [#1794](https://github.com/groue/GRDB.swift/pull/1794)
+- **New**: Throwing row accessors by [@groue](https://github.com/groue) in [#1796](https://github.com/groue/GRDB.swift/pull/1796)
 
 ## 7.5.0
 

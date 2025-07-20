@@ -15,7 +15,7 @@
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
 </p>
 
-**Latest release**: May 11, 2025 • [version 7.5.0](https://github.com/groue/GRDB.swift/tree/v7.5.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: July 20, 2025 • [version 7.6.0](https://github.com/groue/GRDB.swift/tree/v7.6.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
@@ -841,6 +841,13 @@ You can also use the `as` type casting operator:
 ```swift
 row[...] as Int
 row[...] as Int?
+```
+
+Throwing accessors exist as well. Their use is not encouraged, because a database decoding error is a programming error. If an application stores invalid data in the database file, that is a bug that needs to be fixed:
+
+```swift
+let name = try row.decode(String.self, atIndex: 0)
+let bookCount = try row.decode(Int.self, forColumn: "bookCount")
 ```
 
 > **Warning**: avoid the `as!` and `as?` operators:
@@ -4984,12 +4991,13 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [RecordError], or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError](#databaseerror), [RecordError], [RowDecodingError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
 - [DatabaseError](#databaseerror)
 - [RecordError]
+- [RowDecodingError]
 - [Fatal Errors](#fatal-errors)
 - [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
@@ -5093,6 +5101,18 @@ do {
 }
 ```
 
+
+### RowDecodingError
+
+📖 [`RowDecodingError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowdecodingerror)
+
+**RowDecodingError** is thrown when the application can not decode a value from a database row. For example:
+
+```swift
+let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+// RowDecodingError: could not decode String from database value NULL.
+let name = try row.decode(String.self, forColumn: "name")
+```
 
 ### Fatal Errors
 
@@ -6111,6 +6131,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [persistence methods]: #persistence-methods
 [Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
 [RecordError]: #recorderror
+[RowDecodingError]: #rowdecodingerror
 [Transactions and Savepoints]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactions
 [`DatabaseQueue`]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue
 [Database queues]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasequeue

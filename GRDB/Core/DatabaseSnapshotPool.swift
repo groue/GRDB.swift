@@ -294,36 +294,25 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     }
     
     public func read<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let dbAccess = CancellableDatabaseAccess()
-        return try await dbAccess.withCancellableContinuation { continuation in
-            readerPool.asyncGet { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            releaseReader(self.poolCompletion(db))
-                        }
-                        do {
-                            let result = try dbAccess.inDatabase(db) {
-                                try value(db)
-                            }
-                            continuation.resume(returning: result)
-                        } catch {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+        let (reader, releaseReader) = try await readerPool.get()
+        var readerCompletion: PoolCompletion?
+        defer {
+            // readerCompletion might be null in cancelled database accesses
+            releaseReader(readerCompletion ?? .reuse)
         }
+        let (result, completion) = try await reader.execute { db in
+            let result = Result { try value(db) }
+            let completion = poolCompletion(db)
+            return (result, completion)
+        }
+        readerCompletion = completion
+        return try result.get()
     }
     
     public func asyncRead(
@@ -353,7 +342,7 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     // `DatabaseSnapshotReader`,  because of
     // <https://github.com/apple/swift/issues/74469>.
     public func unsafeRead<T: Sendable>(
-        _ value: @escaping @Sendable (Database) throws -> T
+        _ value: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await read(value)
     }
