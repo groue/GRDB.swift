@@ -25,7 +25,12 @@ enum RowKey: Hashable, Sendable {
 
 /// A decoding error
 @usableFromInline
-enum RowDecodingError: Error {
+struct RowDecodingError: Error {
+    enum Impl {
+        case keyNotFound(RowKey, Context)
+        case valueMismatch(Any.Type, Context)
+    }
+    
     @usableFromInline
     struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
@@ -55,15 +60,17 @@ enum RowDecodingError: Error {
         }
     }
     
-    case keyNotFound(RowKey, Context)
-    case valueMismatch(Any.Type, Context)
-    
+    var impl: Impl
     var context: Context {
-        switch self {
+        switch impl {
         case .keyNotFound(_, let context),
              .valueMismatch(_, let context):
             return context
         }
+    }
+    
+    static func valueMismatch(_ type: Any.Type, _ context: Context) -> Self {
+        self.init(impl: .valueMismatch(type, context))
     }
     
     /// Convenience method that builds the
@@ -74,11 +81,10 @@ enum RowDecodingError: Error {
         databaseValue: DatabaseValue)
     -> Self
     {
-        valueMismatch(
-            type,
-            RowDecodingError.Context(decodingContext: context, debugDescription: """
-                could not decode \(type) from database value \(databaseValue)
-                """))
+        let context = RowDecodingError.Context(decodingContext: context, debugDescription: """
+            could not decode \(type) from database value \(databaseValue)
+            """)
+        return self.init(impl: .valueMismatch(type, context))
     }
     
     /// Convenience method that builds the
@@ -115,11 +121,15 @@ enum RowDecodingError: Error {
     /// error message.
     @usableFromInline
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
-        keyNotFound(
+        self.init(impl: .keyNotFound(
             .columnName(columnName),
             RowDecodingError.Context(decodingContext: context, debugDescription: """
                 column not found: \(String(reflecting: columnName))
-                """))
+                """)))
+    }
+    
+    static func keyNotFound(_ rowKey: RowKey, _ context: Context) -> Self {
+        self.init(impl: .keyNotFound(rowKey, context))
     }
 }
 

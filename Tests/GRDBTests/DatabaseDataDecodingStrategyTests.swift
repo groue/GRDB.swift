@@ -126,7 +126,7 @@ extension DatabaseDataDecodingStrategyTests {
                     XCTFail("Unexpected Data")
                 }
             } catch let error as RowDecodingError {
-                switch error {
+                switch error.impl {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
                         could not decode Data from database value "invalid" - \
