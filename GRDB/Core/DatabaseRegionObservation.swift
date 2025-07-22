@@ -201,7 +201,7 @@ extension DatabasePublishers {
             self.observation = observation
         }
         
-        public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
+        public func receive<S>(subscriber: S) where S: Subscriber & SendableMetatype, Failure == S.Failure, Output == S.Input {
             let subscription = DatabaseRegionSubscription(
                 writer: writer,
                 observation: observation,
@@ -212,7 +212,7 @@ extension DatabasePublishers {
     
     private class DatabaseRegionSubscription<Downstream>:
         Subscription, @unchecked Sendable
-    where Downstream: Subscriber,
+    where Downstream: Subscriber & SendableMetatype,
           Downstream.Failure == Error,
           Downstream.Input == Database
     {

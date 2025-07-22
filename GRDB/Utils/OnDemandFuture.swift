@@ -27,7 +27,7 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
         self.attemptToFulfill = attemptToFulfill
     }
     
-    func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
+    func receive<S>(subscriber: S) where S: Subscriber & SendableMetatype, Failure == S.Failure, Output == S.Input {
         let subscription = OnDemandFutureSubscription(
             attemptToFulfill: attemptToFulfill,
             downstream: subscriber)
@@ -35,7 +35,7 @@ struct OnDemandFuture<Output, Failure: Error>: Publisher {
     }
 }
 
-private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription, @unchecked Sendable {
+private class OnDemandFutureSubscription<Downstream: Subscriber & SendableMetatype>: Subscription, @unchecked Sendable {
     // @unchecked because `state` is protected with `lock`.
     typealias Promise = @Sendable (Result<Downstream.Input, Downstream.Failure>) -> Void
     

@@ -134,7 +134,7 @@ import Foundation
 /// - ``select(_:as:)-tjh0``
 /// - ``updateAll(_:onConflict:_:)-7vv9x``
 /// - ``updateAll(_:onConflict:_:)-7atfw``
-public protocol TableRecord {
+public protocol TableRecord: SendableMetatype {
     /// A type that defines columns.
     ///
     /// For example:

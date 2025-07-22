@@ -457,7 +457,7 @@ extension Table {
     /// let ids = try table.selectPrimaryKey(as: Int64.self).fetchSet(db)
     /// ```
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
-    where RowDecoder: Identifiable
+    where RowDecoder: Identifiable & SendableMetatype
     {
         all().selectID()
     }

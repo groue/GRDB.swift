@@ -39,7 +39,7 @@ import Foundation // For JSONEncoder
 /// - ``databaseChanges(from:)``
 /// - ``databaseChanges(modify:)``
 /// - ``databaseEquals(_:)``
-public protocol EncodableRecord {
+public protocol EncodableRecord: SendableMetatype {
     /// Encodes the record into the provided persistence container.
     ///
     /// In your implementation of this method, store in the `container` argument

@@ -360,7 +360,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     .fetchSet(db)
     /// ```
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
-    where RowDecoder: Identifiable
+    where RowDecoder: Identifiable & SendableMetatype
     {
         selectWhenConnected { db in
             let primaryKey = try db.primaryKey(self.databaseTableName)

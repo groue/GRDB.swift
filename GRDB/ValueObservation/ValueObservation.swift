@@ -511,7 +511,7 @@ extension DatabasePublishers {
             self.start = start
         }
         
-        public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
+        public func receive<S>(subscriber: S) where S: Subscriber & SendableMetatype, Failure == S.Failure, Output == S.Input {
             let subscription = ValueSubscription(
                 start: start,
                 downstream: subscriber)
@@ -521,7 +521,7 @@ extension DatabasePublishers {
     
     private class ValueSubscription<Downstream>:
         Subscription, @unchecked Sendable
-    where Downstream: Subscriber,
+    where Downstream: Subscriber & SendableMetatype,
           Downstream.Failure == Error
     {
         // @unchecked Sendable because `cancellable` and `state` are
