@@ -9,6 +9,8 @@ A custom SQLite build can activate extra SQLite features, and extra GRDB feature
 
 GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib), which uses the same SQLite configuration as the one used by Apple in its operating systems, and lets you add extra compilation options that leverage the features you need.
 
+> Warning: The technique described here is not compatible with the Swift Package Manager (SPM). It will create [build issues](https://github.com/groue/GRDB.swift/issues/1709) with SPM companion librairies such as [GRDBQuery](https://github.com/groue/GRDBQuery) or [GRDBSnapshotTesting](https://github.com/groue/GRDBSnapshotTesting).   
+
 **To install GRDB with a custom SQLite build:**
 
 1. Clone the GRDB git repository, checkout the latest tagged version:
