@@ -803,6 +803,7 @@ extension DatabasePool: DatabaseWriter {
                 try Task.checkCancellation()
                 return try writer.sync { db in
                     defer {
+                        cancelMutex.store(nil)
                         db.uncancel()
                     }
                     cancelMutex.store(db.cancel)
