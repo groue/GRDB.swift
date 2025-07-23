@@ -256,6 +256,7 @@ final class SerializedDatabase {
         return try await withTaskCancellationHandler {
             try await actor.execute {
                 defer {
+                    cancelMutex.store(nil)
                     db.uncancel()
                     preconditionNoUnsafeTransactionLeft(db)
                 }
