@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.6.x` Releases - [7.6.0](#760)
+- `7.6.x` Releases - [7.6.0](#760) - [7.6.1](#761)
 - `7.5.x` Releases - [7.5.0](#750)
 - `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
 - `7.3.x` Releases - [7.3.0](#730)
@@ -138,6 +138,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 7.6.1
+
+Released July 23, 2025
+
+- **Fixed**: Fix race condition regarding Task cancellation by [@groue](https://github.com/groue) in [#1797](https://github.com/groue/GRDB.swift/pull/1797)
+ 
 ## 7.6.0
 
 Released July 20, 2025
