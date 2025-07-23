@@ -9,7 +9,7 @@ import SQLite3
 
 #if canImport(string_h)
 import string_h
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
 import Glibc
 #elseif os(macOS) || os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
 import Darwin
