@@ -43,9 +43,13 @@ class DatabaseMigratorTests : GRDBTestCase {
     func testEmptyMigratorPublisher() throws {
         func test(writer: some DatabaseWriter) throws {
             let migrator = DatabaseMigrator()
+            #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on platform")
+            #else
             let publisher = migrator.migratePublisher(writer)
             let recorder = publisher.record()
             try wait(for: recorder.single, timeout: 1)
+            #endif
         }
         
         try Test(test).run { try DatabaseQueue() }
@@ -175,6 +179,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             do {
+                #if !canImport(Combine)
+                throw XCTSkip("Combine not supported on platform")
+                #else
                 let publisher = migrator.migratePublisher(writer)
                 let recorder = publisher.record()
                 try wait(for: recorder.single, timeout: 1)
@@ -182,9 +189,13 @@ class DatabaseMigratorTests : GRDBTestCase {
                     XCTAssertTrue(try db.tableExists("persons"))
                     XCTAssertTrue(try db.tableExists("pets"))
                 }
+                #endif
             }
             
             do {
+                #if !canImport(Combine)
+                throw XCTSkip("Combine not supported on platform")
+                #else
                 let publisher = migrator2.migratePublisher(writer)
                 let recorder = publisher.record()
                 try wait(for: recorder.single, timeout: 1)
@@ -192,6 +203,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     XCTAssertTrue(try db.tableExists("persons"))
                     XCTAssertFalse(try db.tableExists("pets"))
                 }
+                #endif
             }
         }
         
@@ -205,6 +217,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             let migrator = DatabaseMigrator()
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
+            #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on platform")
+            #else
             let cancellable = migrator.migratePublisher(writer).sink(
                 receiveCompletion: { _ in },
                 receiveValue: { _ in
@@ -215,6 +230,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             semaphore.signal()
             waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
+            #endif
         }
         
         try Test(test).run { try DatabaseQueue() }
@@ -228,6 +244,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             migrator.registerMigration("first", migrate: { _ in })
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
+            #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on platform")
+            #else
             let cancellable = migrator.migratePublisher(writer).sink(
                 receiveCompletion: { _ in },
                 receiveValue: { _ in
@@ -238,6 +257,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             semaphore.signal()
             waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
+            #endif
         }
         
         try Test(test).run { try DatabaseQueue() }
@@ -246,11 +266,14 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherDefaultScheduler() throws {
-        func test<Writer: DatabaseWriter>(writer: Writer) {
+        func test<Writer: DatabaseWriter>(writer: Writer) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2 // value + completion
+            #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on platform")
+            #else
             let cancellable = migrator.migratePublisher(writer).sink(
                 receiveCompletion: { completion in
                     dispatchPrecondition(condition: .onQueue(.main))
@@ -263,6 +286,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
+            #endif
         }
         
         try Test(test).run { try DatabaseQueue() }
@@ -271,12 +295,15 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigratorPublisherCustomScheduler() throws {
-        func test<Writer: DatabaseWriter>(writer: Writer) {
+        func test<Writer: DatabaseWriter>(writer: Writer) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("first", migrate: { _ in })
             let queue = DispatchQueue(label: "test")
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2 // value + completion
+            #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on platform")
+            #else
             let cancellable = migrator.migratePublisher(writer, receiveOn: queue).sink(
                 receiveCompletion: { completion in
                     dispatchPrecondition(condition: .onQueue(queue))
@@ -289,6 +316,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
+            #endif
         }
         
         try Test(test).run { try DatabaseQueue() }

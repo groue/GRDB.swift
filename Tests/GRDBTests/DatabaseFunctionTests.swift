@@ -336,9 +336,11 @@ class DatabaseFunctionTests: GRDBTestCase {
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                #if canImport(ObjectiveC) // non-Darwin platforms bridge NSError differently and do not set the message the same
                 XCTAssertTrue(error.message!.contains("CustomErrorDomain"))
                 XCTAssertTrue(error.message!.contains("123"))
                 XCTAssertTrue(error.message!.contains("custom error message"))
+                #endif
             }
         }
     }
