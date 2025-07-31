@@ -277,6 +277,121 @@ class FTS5TokenizerTests: GRDBTestCase {
         }
     }
     
+    func testTrigramTokenizer() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3034000 else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .trigram()
+                t.column("content")
+            }
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertFalse(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
+            
+            // substring match
+            XCTAssertTrue(match(db, "sequence", "que"))
+        }
+    }
+    
+    func testTrigramTokenizerCaseSensitive() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3034000 else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #endif
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .trigram(caseSensitive: true)
+                t.column("content")
+            }
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertFalse(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertFalse(match(db, "jérôme", "JÉRÔME"))
+            
+            // substring match
+            XCTAssertTrue(match(db, "sequence", "que"))
+            
+            // substring match with too short query
+            XCTAssertFalse(match(db, "sequence", "qu"))
+        }
+    }
+    
+    func testTrigramTokenizerDiacriticsRemove() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3045000 else {
+            throw XCTSkip("FTS5 trigram tokenizer remove_diacritics is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    t.tokenizer = .trigram(removeDiacritics: .remove)
+                    t.column("content")
+                }
+            } catch {
+                print(error)
+                throw error
+            }
+            
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertTrue(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
+            
+            // substring match
+            XCTAssertTrue(match(db, "sequence", "que"))
+            
+            // substring match with too short query
+            XCTAssertFalse(match(db, "sequence", "qu"))
+        }
+        #else
+        throw XCTSkip("FTS5 trigram tokenizer remove_diacritics is not available")
+        #endif
+    }
+    
     func testTokenize() throws {
         try makeDatabaseQueue().inDatabase { db in
             let ascii = try db.makeTokenizer(.ascii())
@@ -354,6 +469,47 @@ class FTS5TokenizerTests: GRDBTestCase {
             try XCTAssertEqual(porter.tokenize(query: "title:brest").map(\.token), ["titl", "brest"])
             try XCTAssertEqual(unicode61.tokenize(query: "title:brest").map(\.token), ["title", "brest"])
             try XCTAssertEqual(unicode61WithDiacritics.tokenize(query: "title:brest").map(\.token), ["title", "brest"])
+        }
+    }
+    
+    func testTokenizeTrigram() throws {
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard sqlite3_libversion_number() >= 3034000 else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("FTS5 trigram tokenizer is not available")
+        }
+        #endif
+        
+        try makeDatabaseQueue().inDatabase { db in
+            let trigram = try db.makeTokenizer(.trigram())
+            
+            // Empty query
+            try XCTAssertEqual(trigram.tokenize(query: "").map(\.token), [])
+            try XCTAssertEqual(trigram.tokenize(query: "?!").map(\.token), [])
+            
+            // Token queries
+            try XCTAssertEqual(trigram.tokenize(query: "Moby").map(\.token), ["mob", "oby"])
+            try XCTAssertEqual(trigram.tokenize(query: "écarlates").map(\.token), ["éca", "car", "arl", "rla", "lat", "ate", "tes"])
+            try XCTAssertEqual(trigram.tokenize(query: "fooéı👨👨🏿🇫🇷🇨🇮").map(\.token), ["foo", "ooé", "oéı", "éı👨", "ı👨👨", "👨👨🏿", "👨🏿🇫", "\u{0001F3FF}🇫🇷", "🇫🇷🇨", "🇷🇨🇮"])
+            try XCTAssertEqual(trigram.tokenize(query: "SQLite database").map(\.token), ["sql", "qli", "lit", "ite", "te ", "e d", " da", "dat", "ata", "tab", "aba", "bas", "ase"])
+            try XCTAssertEqual(trigram.tokenize(query: "Édouard Manet").map(\.token), ["édo", "dou", "oua", "uar", "ard", "rd ", "d m", " ma", "man", "ane", "net"])
+            
+            // Prefix queries
+            try XCTAssertEqual(trigram.tokenize(query: "*").map(\.token), [])
+            try XCTAssertEqual(trigram.tokenize(query: "Robin*").map(\.token), ["rob", "obi", "bin", "in*"])
+            
+            // Phrase queries
+            try XCTAssertEqual(trigram.tokenize(query: "\"foulent muscles\"").map(\.token), ["\"fo", "fou", "oul", "ule", "len", "ent", "nt ", "t m", " mu", "mus", "usc", "scl", "cle", "les", "es\""])
+            try XCTAssertEqual(trigram.tokenize(query: "\"Kim Stan* Robin*\"").map(\.token), ["\"ki", "kim", "im ", "m s", " st", "sta", "tan", "an*", "n* ", "* r", " ro", "rob", "obi", "bin", "in*", "n*\""])
+            
+            // Logical queries
+            try XCTAssertEqual(trigram.tokenize(query: "years AND months").map(\.token), ["yea", "ear", "ars", "rs ", "s a", " an", "and", "nd ", "d m", " mo", "mon", "ont", "nth", "ths"])
+            
+            // column queries
+            try XCTAssertEqual(trigram.tokenize(query: "title:brest").map(\.token), ["tit", "itl", "tle", "le:", "e:b", ":br", "bre", "res", "est"])
         }
     }
     
