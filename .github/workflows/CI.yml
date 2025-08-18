@@ -53,7 +53,7 @@ jobs:
             destination: "OS=18.1,name=Apple TV"
             name: "tvOS"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project GRDB.xcodeproj -scheme GRDB -destination "${{ matrix.destination }}" OTHER_SWIFT_FLAGS='$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' GCC_PREPROCESSOR_DEFINITIONS='$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' clean test
   SPM:
@@ -70,7 +70,7 @@ jobs:
             runsOn: macOS-14
             name: "Xcode 16.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: make test_SPM test_install_SPM
   SQLCipher3:
@@ -87,7 +87,7 @@ jobs:
             runsOn: macOS-14
             name: "Xcode 16.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: make test_framework_SQLCipher3Encrypted
   SQLCipher4:
@@ -104,7 +104,7 @@ jobs:
             runsOn: macOS-14
             name: "Xcode 16.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: make test_framework_SQLCipher4Encrypted
   CustomSQLite:
@@ -121,7 +121,7 @@ jobs:
             runsOn: macOS-14
             name: "Xcode 16.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBCustomSQLiteOSX
   XCFramework:
@@ -138,7 +138,7 @@ jobs:
             runsOn: macOS-14
             name: "Xcode 16.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
         run: make test_universal_xcframework
     
