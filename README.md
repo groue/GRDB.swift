@@ -17,7 +17,7 @@
 
 ---
 
-<a href="https://menial.co.uk/base/"><img alt="Base: The best SQLite database editor for macOS" src="https://raw.githubusercontent.com/groue/GRDB.swift/dev/sponsor-base/Sponsors/base.png"></a>
+<a href="https://menial.co.uk/base/"><img alt="Base: The best SQLite database editor for macOS" src="https://raw.githubusercontent.com/groue/GRDB.swift/master/Sponsors/base.png"></a>
 
 <p align="center">
     <strong>Thank you to <a href="https://menial.co.uk/base/">Base</a> for sponsoring GRDB</strong><br />Base is a small, powerful, comfortable SQLite editor for everyone on macOS.
