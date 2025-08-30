@@ -12,13 +12,13 @@ extension Database {
     struct SchemaCache {
         /// The available schema identifiers, in the order of SQLite resolution:
         /// temp, main, then attached databases.
-        var schemaIdentifiers: [SchemaIdentifier]?
+        var schemaIDs: [DatabaseSchemaID]?
         
         /// The schema cache for each identifier.
-        fileprivate var schemas: [SchemaIdentifier: DatabaseSchemaCache] = [:]
+        fileprivate var schemas: [DatabaseSchemaID: DatabaseSchemaCache] = [:]
         
         /// The schema cache for a given identifier
-        subscript(schemaID: SchemaIdentifier) -> DatabaseSchemaCache { // internal so that it can be tested
+        subscript(schemaID: DatabaseSchemaID) -> DatabaseSchemaCache { // internal so that it can be tested
             get {
                 schemas[schemaID] ?? DatabaseSchemaCache()
             }
@@ -28,69 +28,8 @@ extension Database {
         }
         
         mutating func clear() {
-            schemaIdentifiers = nil
+            schemaIDs = nil
             schemas.removeAll()
-        }
-    }
-    
-    /// An SQLite schema. See <https://sqlite.org/lang_naming.html>
-    enum SchemaIdentifier: Hashable {
-        /// The main database
-        case main
-        
-        /// The temp database
-        case temp
-        
-        /// An attached database: <https://sqlite.org/lang_attach.html>
-        case attached(String)
-        
-        /// The name of the schema in SQL queries.
-        ///
-        /// For example:
-        ///
-        ///     SELECT * FROM main.player;
-        ///     --            ~~~~
-        var sql: String {
-            switch self {
-            case .main: return "main"
-            case .temp: return "temp"
-            case let .attached(name): return name
-            }
-        }
-        
-        /// The name of the master sqlite table
-        var masterTableName: String { // swiftlint:disable:this inclusive_language
-            switch self {
-            case .main: return "sqlite_master"
-            case .temp: return "sqlite_temp_master"
-            case let .attached(name): return "\(name).sqlite_master"
-            }
-        }
-        
-        /// The name of the master sqlite table, without the schema name.
-        var unqualifiedMasterTableName: String { // swiftlint:disable:this inclusive_language
-            switch self {
-            case .main, .attached: return "sqlite_master"
-            case .temp: return "sqlite_temp_master"
-            }
-        }
-    }
-    
-    /// The identifier of a database table or view.
-    struct TableIdentifier {
-        /// The SQLite schema
-        var schemaID: SchemaIdentifier
-        
-        /// The table or view name
-        var name: String
-        
-        /// Returns the receiver, quoted for safe insertion as an identifier in
-        /// an SQL query.
-        ///
-        ///     // SELECT * FROM temp.player
-        ///     db.execute(sql: "SELECT * FROM \(table.quotedDatabaseIdentifier)")
-        var quotedDatabaseIdentifier: String {
-            "\(schemaID.sql).\(name.quotedDatabaseIdentifier)"
         }
     }
     
@@ -145,40 +84,37 @@ extension Database {
         }
     }
     
-    /// The list of database schemas, in the order of SQLite resolution:
-    /// temp, main, then attached databases.
-    func schemaIdentifiers() throws -> [SchemaIdentifier] {
-        if let schemaIdentifiers = schemaCache.schemaIdentifiers {
-            return schemaIdentifiers
+    /// Fetches the list of database schemas, in the order of SQLite
+    /// resolution: temp, main, then attached databases (as documented at
+    /// <https://www.sqlite.org/lang_naming.html>).
+    func fetchSchemaIdentifiers() throws -> [DatabaseSchemaID] {
+        if let schemaIDs = schemaCache.schemaIDs {
+            return schemaIDs
         }
         
-        var schemaIdentifiers = try Array(Row
+        var schemaIDs = try Array(Row
             .fetchCursor(self, sql: "PRAGMA database_list")
-            .map { row -> SchemaIdentifier in
-                switch row[1] as String {
-                case "main": return .main
-                case "temp": return .temp
-                case let other: return .attached(other)
-                }
+            .map { row -> DatabaseSchemaID in
+                DatabaseSchemaID(name: row[1] as String)
             })
         
         // Temp schema shadows all other schemas: put it first
-        if let tempIdx = schemaIdentifiers.firstIndex(of: .temp) {
-            schemaIdentifiers.swapAt(tempIdx, 0)
+        if let tempIdx = schemaIDs.firstIndex(of: .temp) {
+            schemaIDs.swapAt(tempIdx, 0)
         }
         
-        schemaCache.schemaIdentifiers = schemaIdentifiers
-        return schemaIdentifiers
+        schemaCache.schemaIDs = schemaIDs
+        return schemaIDs
     }
     
-    /// The `SchemaIdentifier` named `schemaName` if it exists.
+    /// The `DatabaseSchemaID` named `schemaName`, if it exists.
     ///
-    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or 
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
     /// if no such schema exists.
-    private func schemaIdentifier(named schemaName: String) throws -> SchemaIdentifier {
-        let allIdentifiers = try schemaIdentifiers()
-        if let result = allIdentifiers.first(where: { $0.sql.lowercased() == schemaName.lowercased() }) {
-            return result
+    private func schemaIdentifier(named schemaName: String) throws -> DatabaseSchemaID {
+        let schemaIDs = try fetchSchemaIdentifiers()
+        if let schemaID = schemaIDs.first(where: { $0.name.lowercased() == schemaName.lowercased() }) {
+            return schemaID
         } else {
             throw DatabaseError.noSuchSchema(schemaName)
         }
@@ -187,8 +123,8 @@ extension Database {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Returns information about a table or a view
     func table(_ tableName: String) throws -> TableInfo? {
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try table(for: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try table(for: DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
@@ -196,7 +132,7 @@ extension Database {
     }
     
     /// Returns information about a table or a view
-    func table(for table: TableIdentifier) throws -> TableInfo? {
+    func table(for table: DatabaseObjectID) throws -> TableInfo? {
         // Maybe SQLCipher is too old: check actual version
         GRDBPrecondition(sqlite3_libversion_number() >= 3037000, "SQLite 3.37+ required")
         return try _table(for: table)
@@ -205,8 +141,8 @@ extension Database {
     /// Returns information about a table or a view
     @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
     func table(_ tableName: String) throws -> TableInfo? {
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try table(for: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try table(for: DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
@@ -215,12 +151,12 @@ extension Database {
     
     /// Returns information about a table or a view
     @available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) // SQLite 3.37+
-    func table(for table: TableIdentifier) throws -> TableInfo? {
+    func table(for table: DatabaseObjectID) throws -> TableInfo? {
         try _table(for: table)
     }
 #endif
     /// Returns information about a table or a view
-    private func _table(for table: TableIdentifier) throws -> TableInfo? {
+    private func _table(for table: DatabaseObjectID) throws -> TableInfo? {
         assert(sqlite3_libversion_number() >= 3037000, "SQLite 3.37+ required")
         SchedulingWatchdog.preconditionValidQueue(self)
         
@@ -229,7 +165,7 @@ extension Database {
         }
         
         guard let tableInfo = try TableInfo
-            .fetchOne(self, sql: "PRAGMA \(table.schemaID.sql).table_list(\(table.name.quotedDatabaseIdentifier))")
+            .fetchOne(self, sql: "PRAGMA \(table.schemaID.name).table_list(\(table.name.quotedDatabaseIdentifier))")
         else {
             // table does not exist
             schemaCache[table.schemaID].set(tableInfo: .missing, forTable: table.name)
@@ -263,12 +199,12 @@ extension Database {
             return try exists(type: .table, name: name, in: schemaName)
         }
         
-        return try schemaIdentifiers().contains {
+        return try fetchSchemaIdentifiers().contains {
             try exists(type: .table, name: name, in: $0)
         }
     }
     
-    private func tableExists(_ table: TableIdentifier) throws -> Bool {
+    private func tableExists(_ table: DatabaseObjectID) throws -> Bool {
         try exists(type: .table, name: table.name, in: table.schemaID)
     }
     
@@ -286,7 +222,7 @@ extension Database {
         // > "sqlite_".
         tableName.starts(with: "sqlite_") || tableName.starts(with: "pragma_")
     }
-        
+    
     /// Returns whether a table is an internal GRDB table.
     ///
     /// Those are tables whose name begins with `grdb_`.
@@ -318,7 +254,7 @@ extension Database {
             return try exists(type: .view, name: name, in: schemaName)
         }
         
-        return try schemaIdentifiers().contains {
+        return try fetchSchemaIdentifiers().contains {
             try exists(type: .view, name: name, in: $0)
         }
     }
@@ -347,7 +283,7 @@ extension Database {
             return try exists(type: .trigger, name: name, in: schemaName)
         }
         
-        return try schemaIdentifiers().contains {
+        return try fetchSchemaIdentifiers().contains {
             try exists(type: .trigger, name: name, in: $0)
         }
     }
@@ -362,14 +298,15 @@ extension Database {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or
     /// if the specified schema does not exist
     private func exists(type: SchemaObjectType, name: String, in schemaName: String) throws -> Bool {
-        if let schemaID = try schemaIdentifiers().first(where: { $0.sql.lowercased() == schemaName.lowercased() }) {
+        let schemaIDs = try fetchSchemaIdentifiers()
+        if let schemaID = schemaIDs.first(where: { $0.name.lowercased() == schemaName.lowercased() }) {
             return try exists(type: type, name: name, in: schemaID)
         } else {
             throw DatabaseError.noSuchSchema(schemaName)
         }
     }
     
-    private func exists(type: SchemaObjectType, name: String, in schemaID: SchemaIdentifier) throws -> Bool {
+    private func exists(type: SchemaObjectType, name: String, in schemaID: DatabaseSchemaID) throws -> Bool {
         // SQLite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
         try schema(schemaID).containsObjectNamed(name, ofType: type)
@@ -390,8 +327,9 @@ extension Database {
     /// }
     /// ```
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is nil, known schemas are iterated in
+    /// SQLite resolution order, and the first matching result is returned.
+    /// For more information, see <https://www.sqlite.org/lang_naming.html>.
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
     /// the specified schema does not exist, or if no such table exists in
@@ -401,8 +339,8 @@ extension Database {
             return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: primaryKey(_:))
         }
         
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try primaryKey(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try primaryKey(DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
@@ -440,7 +378,7 @@ extension Database {
     }
     
     /// Returns nil if table does not exist
-    private func primaryKey(_ table: TableIdentifier) throws -> PrimaryKeyInfo? {
+    private func primaryKey(_ table: DatabaseObjectID) throws -> PrimaryKeyInfo? {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         if let primaryKey = schemaCache[table.schemaID].primaryKey(table.name) {
@@ -448,7 +386,7 @@ extension Database {
         }
         
         if try !tableExists(table) {
-            // Views, CTEs, etc.
+            // Views, CTEs, etc. have no primary key.
             schemaCache[table.schemaID].set(primaryKey: .missing, forTable: table.name)
             return nil
         }
@@ -539,7 +477,7 @@ extension Database {
     /// Returns whether the table has a rowid column.
     ///
     /// - precondition: table exists.
-    private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
+    private func tableHasRowID(_ table: DatabaseObjectID) throws -> Bool {
         // No need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
         
@@ -601,8 +539,9 @@ extension Database {
     /// because the columns contain the primary key or a unique index, use
     /// ``table(_:hasUniqueKey:)``.
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is nil, known schemas are iterated in
+    /// SQLite resolution order, and the first matching result is returned.
+    /// For more information, see <https://www.sqlite.org/lang_naming.html>.
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
     /// the specified schema does not exist, or if no such table or view
@@ -613,8 +552,8 @@ extension Database {
             return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: indexes(on:))
         }
         
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try indexes(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try indexes(on: DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
@@ -622,14 +561,14 @@ extension Database {
     }
     
     /// Returns nil if table does not exist
-    private func indexes(on table: TableIdentifier) throws -> [IndexInfo]? {
+    private func indexes(on table: DatabaseObjectID) throws -> [IndexInfo]? {
         if let indexes = schemaCache[table.schemaID].indexes(on: table.name) {
             return indexes.value
         }
         
         let indexes = try Row
             // [seq:0 name:"index" unique:0 origin:"c" partial:0]
-            .fetchAll(self, sql: "PRAGMA \(table.schemaID.sql).index_list(\(table.name.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: "PRAGMA \(table.schemaID.name).index_list(\(table.name.quotedDatabaseIdentifier))")
             .compactMap { row -> IndexInfo? in
                 let indexName: String = row[1]
                 let unique: Bool = row[2]
@@ -638,7 +577,7 @@ extension Database {
                 let indexInfoRows = try Row
                     // [seqno:0 cid:2 name:"column"]
                     .fetchAll(self, sql: """
-                        PRAGMA \(table.schemaID.sql).index_info(\(indexName.quotedDatabaseIdentifier))
+                        PRAGMA \(table.schemaID.name).index_info(\(indexName.quotedDatabaseIdentifier))
                         """)
                     // Sort by rank
                     .sorted(by: { ($0[0] as Int) < ($1[0] as Int) })
@@ -702,8 +641,9 @@ extension Database {
     
     /// Returns the foreign keys defined on table named `tableName`.
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is nil, known schemas are iterated in
+    /// SQLite resolution order, and the first matching result is returned.
+    /// For more information, see <https://www.sqlite.org/lang_naming.html>.
     ///
     /// For example:
     ///
@@ -725,8 +665,8 @@ extension Database {
             return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: foreignKeys(on:))
         }
         
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try foreignKeys(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try foreignKeys(on: DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
@@ -734,7 +674,7 @@ extension Database {
     }
     
     /// Returns nil if table does not exist
-    private func foreignKeys(on table: TableIdentifier) throws -> [ForeignKeyInfo]? {
+    private func foreignKeys(on table: DatabaseObjectID) throws -> [ForeignKeyInfo]? {
         if let foreignKeys = schemaCache[table.schemaID].foreignKeys(on: table.name) {
             return foreignKeys.value
         }
@@ -745,7 +685,7 @@ extension Database {
             mapping: [(origin: String, destination: String?, seq: Int)])] = []
         var previousId: Int?
         for row in try Row.fetchAll(self, sql: """
-            PRAGMA \(table.schemaID.sql).foreign_key_list(\(table.name.quotedDatabaseIdentifier))
+            PRAGMA \(table.schemaID.name).foreign_key_list(\(table.name.quotedDatabaseIdentifier))
             """)
         {
             // row = [id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"..."]
@@ -820,23 +760,23 @@ extension Database {
         if let schemaName {
             let schemaID = try schemaIdentifier(named: schemaName)
             if try exists(type: .table, name: tableName, in: schemaID) {
-                return try foreignKeyViolations(in: TableIdentifier(schemaID: schemaID, name: tableName))
+                return try foreignKeyViolations(in: DatabaseObjectID(name: tableName, schemaID: schemaID))
             } else {
                 throw DatabaseError.noSuchTable(tableName)
             }
         }
         
-        for schemaIdentifier in try schemaIdentifiers() {
-            if try exists(type: .table, name: tableName, in: schemaIdentifier) {
-                return try foreignKeyViolations(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName))
+        for schemaID in try fetchSchemaIdentifiers() {
+            if try exists(type: .table, name: tableName, in: schemaID) {
+                return try foreignKeyViolations(in: DatabaseObjectID(name: tableName, schemaID: schemaID))
             }
         }
         throw DatabaseError.noSuchTable(tableName)
     }
     
-    private func foreignKeyViolations(in table: TableIdentifier) throws -> RecordCursor<ForeignKeyViolation> {
+    private func foreignKeyViolations(in table: DatabaseObjectID) throws -> RecordCursor<ForeignKeyViolation> {
         try ForeignKeyViolation.fetchCursor(self, sql: """
-            PRAGMA \(table.schemaID.sql).foreign_key_check(\(table.name.quotedDatabaseIdentifier))
+            PRAGMA \(table.schemaID.name).foreign_key_check(\(table.name.quotedDatabaseIdentifier))
             """)
     }
     
@@ -884,45 +824,48 @@ extension Database {
     /// such table exists in the main or temp schema, or in an
     /// attached database.
     func canonicalTableName(_ tableName: String) throws -> String? {
-        for schemaIdentifier in try schemaIdentifiers() {
+        for schemaID in try fetchSchemaIdentifiers() {
             // Regular tables
-            if let result = try schema(schemaIdentifier).canonicalName(tableName, ofType: .table) {
+            if let result = try schema(schemaID).canonicalName(tableName, ofType: .table) {
                 return result
             }
             
             // Master table (sqlite_master, sqlite_temp_master)
-            // swiftlint:disable:next inclusive_language
-            let masterTableName = schemaIdentifier.unqualifiedMasterTableName
-            if tableName.lowercased() == masterTableName.lowercased() {
-                return masterTableName
+            let schemaTableName = schemaID.unqualifiedSchemaTableName
+            if tableName.lowercased() == schemaTableName.lowercased() {
+                return schemaTableName
             }
         }
         return nil
     }
     
-    func schema(_ schemaID: SchemaIdentifier) throws -> SchemaInfo {
+    func schema(_ schemaID: DatabaseSchemaID) throws -> SchemaInfo {
         if let schemaInfo = schemaCache[schemaID].schemaInfo {
             return schemaInfo
         }
-        let schemaInfo = try SchemaInfo(self, masterTableName: schemaID.masterTableName)
+        let schemaInfo = try SchemaInfo(self, schemaTableName: schemaID.schemaTableName)
         schemaCache[schemaID].schemaInfo = schemaInfo
         return schemaInfo
     }
     
     /// Attempts to perform a table introspection function on a given
-    /// table and schema
+    /// table and schema.
     ///
     /// - parameter tableName: The name of the table to examine
     /// - parameter schemaName: The name of the schema to check
     /// - parameter introspector: An introspection function taking a
-    /// `TableIdentifier` as the only parameter
+    ///     `DatabaseObjectID` as the only parameter. It the result
+    ///     is nil, introspection fails and this method throws
+    ///     `DatabaseError.noSuchTable`.
     private func introspect<T>(
         tableNamed tableName: String,
         inSchemaNamed schemaName: String,
-        using introspector: (TableIdentifier) throws -> T?
+        using introspector: (DatabaseObjectID) throws -> T?
     ) throws -> T {
-        let schemaIdentifier = try schemaIdentifier(named: schemaName)
-        if let result = try introspector(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        let schemaID = try schemaIdentifier(named: schemaName)
+        let table = DatabaseObjectID(name: tableName, schemaID: schemaID)
+        
+        if let result = try introspector(table) {
             return result
         } else {
             throw DatabaseError.noSuchTable(tableName)
@@ -934,8 +877,9 @@ extension Database {
     
     /// Returns the columns in a table or a view.
     ///
-    /// When `schemaName` is not specified, known schemas are iterated in
-    /// SQLite resolution order and the first matching result is returned.
+    /// When `schemaName` is nil, known schemas are iterated in
+    /// SQLite resolution order, and the first matching result is returned.
+    /// For more information, see <https://www.sqlite.org/lang_naming.html>.
     ///
     /// For example:
     ///
@@ -957,16 +901,16 @@ extension Database {
             return try introspect(tableNamed: tableName, inSchemaNamed: schemaName, using: columns(in:))
         }
         
-        for schemaIdentifier in try schemaIdentifiers() {
-            if let result = try columns(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+        for schemaID in try fetchSchemaIdentifiers() {
+            if let result = try columns(in: DatabaseObjectID(name: tableName, schemaID: schemaID)) {
                 return result
             }
         }
         throw DatabaseError.noSuchTable(tableName)
     }
     
-    /// Returns nil if table does not exist
-    private func columns(in table: TableIdentifier) throws -> [ColumnInfo]? {
+    /// Returns nil if table does not exist.
+    private func columns(in table: DatabaseObjectID) throws -> [ColumnInfo]? {
         if let columns = schemaCache[table.schemaID].columns(in: table.name) {
             return columns.value
         }
@@ -1013,10 +957,10 @@ extension Database {
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  | 0
         let columnInfoQuery: String
         if sqlite3_libversion_number() < 3026000 {
-            columnInfoQuery = "PRAGMA \(table.schemaID.sql).table_info(\(table.name.quotedDatabaseIdentifier))"
+            columnInfoQuery = "PRAGMA \(table.schemaID.name).table_info(\(table.name.quotedDatabaseIdentifier))"
         } else {
             // Use PRAGMA table_xinfo so that we can load generated columns
-            columnInfoQuery = "PRAGMA \(table.schemaID.sql).table_xinfo(\(table.name.quotedDatabaseIdentifier))"
+            columnInfoQuery = "PRAGMA \(table.schemaID.name).table_xinfo(\(table.name.quotedDatabaseIdentifier))"
         }
         let columns = try ColumnInfo
             .fetchAll(self, sql: columnInfoQuery)
@@ -1107,6 +1051,109 @@ extension Database {
             // View: check all columns for existence
             return try columns(in: tableName).map(\.name)
         }
+    }
+}
+
+/// The identifier of an SQLite schema.
+///
+/// For more information, see <https://sqlite.org/lang_naming.html>
+public struct DatabaseSchemaID: Hashable, Sendable {
+    private enum Impl: Hashable {
+        /// The main database
+        case main
+        
+        /// The temp database
+        case temp
+        
+        /// An attached database: <https://sqlite.org/lang_attach.html>
+        case attached(String)
+    }
+    
+    private var impl: Impl
+    
+    private init(impl: Impl) {
+        self.impl = impl
+    }
+    
+    init(name: String) {
+        switch name {
+        case "main": self = .main
+        case "temp": self = .temp
+        case let other: self = .attached(other)
+        }
+    }
+    
+    /// The identifier of the "main" database schema.
+    public static let main = DatabaseSchemaID(impl: .main)
+    
+    /// The identifier of the "temp" database schema.
+    public static let temp = DatabaseSchemaID(impl: .temp)
+    
+    /// The identifier of an attached database schema.
+    public static func attached(_ name: String) -> DatabaseSchemaID {
+        DatabaseSchemaID(impl: .attached(name))
+    }
+    
+    /// The name of the schema, suitable for inclusion in SQL queries.
+    ///
+    /// For example:
+    ///
+    ///     SELECT * FROM main.player;
+    ///                   ~~~~
+    public var name: String {
+        switch impl {
+        case .main: return "main"
+        case .temp: return "temp"
+        case let .attached(name): return name
+        }
+    }
+    
+    /// The name of the schema sqlite table.
+    ///
+    /// For more information, see <https://sqlite.org/schematab.html>
+    public var schemaTableName: String {
+        switch impl {
+        case .main: return "sqlite_master"
+        case .temp: return "sqlite_temp_master"
+        case let .attached(name): return "\(name).sqlite_master"
+        }
+    }
+    
+    /// The name of the schema sqlite table, without the schema name.
+    var unqualifiedSchemaTableName: String {
+        switch impl {
+        case .main, .attached: return "sqlite_master"
+        case .temp: return "sqlite_temp_master"
+        }
+    }
+}
+
+/// The identifier of an object in the database (table, view, etc.)
+public struct DatabaseObjectID: Hashable, Sendable {
+    /// The object name.
+    public var name: String
+    
+    /// The SQLite schema.
+    public var schemaID: DatabaseSchemaID
+    
+    public init(name: String, schemaID: DatabaseSchemaID) {
+        self.name = name
+        self.schemaID = schemaID
+    }
+    
+    /// Returns a quoted version of the identifier, for safe insertion in
+    /// an SQL query.
+    ///
+    /// For example:
+    ///
+    /// ```
+    /// let object = DatabaseObjectID(name: "player", schemaID: .temp)
+    ///
+    /// // SELECT * FROM temp.player
+    /// db.execute(sql: "SELECT * FROM \(object.quotedDatabaseIdentifier)")
+    /// ```
+    var quotedDatabaseIdentifier: String {
+        "\(schemaID.name).\(name.quotedDatabaseIdentifier)"
     }
 }
 
@@ -1480,7 +1527,7 @@ public struct PrimaryKeyInfo: Sendable {
             return columnInfos
         }
     }
-
+    
     /// When not nil, the name of the column that contains the
     /// `INTEGER PRIMARY KEY`.
     public var rowIDColumn: String? {
@@ -1587,7 +1634,7 @@ struct TableInfo: FetchableRecord {
         static let virtual = Kind(rawValue: "virtual")
     }
     
-    var schemaID: Database.SchemaIdentifier
+    var schemaID: DatabaseSchemaID
     var name: String
     var kind: Kind
     var columnCount: Int
@@ -1595,15 +1642,7 @@ struct TableInfo: FetchableRecord {
     var strict: Bool
     
     init(row: Row) throws {
-        switch row[0] as String {
-        case "main":
-            schemaID = .main
-        case "temp":
-            schemaID = .temp
-        case let name:
-            schemaID = .attached(name)
-        }
-        
+        schemaID = DatabaseSchemaID(name: row[0] as String)
         name = row[1]
         kind = Kind(rawValue: row[2])
         columnCount = row[3]
@@ -1667,10 +1706,10 @@ struct SchemaInfo: Equatable {
 }
 
 extension SchemaInfo {
-    /// - parameter masterTable: "sqlite_master" or "sqlite_temp_master"
-    init(_ db: Database, masterTableName: String) throws { // swiftlint:disable:this inclusive_language
+    /// - parameter schemaTableName: "sqlite_master" or "sqlite_temp_master"
+    init(_ db: Database, schemaTableName: String) throws {
         objects = try SchemaObject.fetchSet(db, sql: """
-                SELECT type, name, tbl_name, sql FROM \(masterTableName)
-                """)
+            SELECT type, name, tbl_name, sql FROM \(schemaTableName)
+            """)
     }
 }
