@@ -385,9 +385,25 @@ extension Database {
             return primaryKey.value
         }
         
-        if try !tableExists(table) {
-            // Views, CTEs, etc. have no primary key.
+        if let primaryKey = try fetchPrimitivePrimaryKey(forTable: table) {
+            schemaCache[table.schemaID].set(primaryKey: .value(primaryKey), forTable: table.name)
+            return primaryKey
+        } else {
             schemaCache[table.schemaID].set(primaryKey: .missing, forTable: table.name)
+            return nil
+        }
+    }
+    
+    /// Fetches the primary key for the database table identified
+    /// by `table`, or returns nil if the database schema does not contain
+    /// that table.
+    ///
+    /// This method relies entirely on SQLite schema introspection.
+    func fetchPrimitivePrimaryKey(forTable table: DatabaseObjectID) throws -> PrimaryKeyInfo? {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        
+        if try !tableExists(table) {
+            // Only tables have a primary key. Views, CTE, etc. do not.
             return nil
         }
         
@@ -414,22 +430,20 @@ extension Database {
         // 0   | id    | INTEGER | 0       | NULL       | 1  |
         // 1   | name  | TEXT    | 0       | NULL       | 0  |
         // 2   | score | INTEGER | 0       | NULL       | 0  |
-        
         guard let columns = try self.columns(in: table) else {
             // table does not exist
-            schemaCache[table.schemaID].set(primaryKey: .missing, forTable: table.name)
             return nil
         }
         
-        let primaryKey: PrimaryKeyInfo
         let pkColumns = columns
             .filter { $0.primaryKeyIndex > 0 }
             .sorted { $0.primaryKeyIndex < $1.primaryKeyIndex }
         
         switch pkColumns.count {
         case 0:
-            // No explicit primary key => primary key is hidden rowID column
-            primaryKey = .hiddenRowID
+            // No explicit primary key => primary key is the hidden rowID column
+            return .hiddenRowID
+            
         case 1:
             // Single column
             let pkColumn = pkColumns[0]
@@ -455,17 +469,15 @@ extension Database {
             // FIXME: We ignore the exception, and consider all INTEGER primary
             // keys as aliases for the rowid:
             if pkColumn.type.uppercased() == "INTEGER" {
-                primaryKey = .rowID(pkColumn)
+                return .rowID(pkColumn)
             } else {
-                primaryKey = try .regular([pkColumn], tableHasRowID: tableHasRowID(table))
+                return try .regular([pkColumn], tableHasRowID: tableHasRowID(table))
             }
+            
         default:
             // Multi-columns primary key
-            primaryKey = try .regular(pkColumns, tableHasRowID: tableHasRowID(table))
+            return try .regular(pkColumns, tableHasRowID: tableHasRowID(table))
         }
-        
-        schemaCache[table.schemaID].set(primaryKey: .value(primaryKey), forTable: table.name)
-        return primaryKey
     }
     
     /// Returns whether the column identifies the rowid column
