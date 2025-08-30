@@ -335,7 +335,7 @@ Documentation
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Data Protection](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections)
-- :bulb: [Migrating From GRDB 6 to GRDB 7](Documentation/Documentation/GRDB7MigrationGuide.md)
+- :bulb: [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 - :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
 - :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices)
 
@@ -2194,7 +2194,7 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 > **Note**: Upsert apis are available from SQLite 3.35.0+: iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build] or [SQLCipher](#encryption).
 >
-> **Note**: With regard to [persistence callbacks](#available-callbacks), an upsert behaves exactly like an insert. In particular: the `aroundInsert(_:)` and `didInsert(_:)` callbacks reports the rowid of the inserted or updated row; `willUpdate`, `aroundUdate`, `didUdate` are not called.
+> **Note**: With regard to [persistence callbacks](#available-callbacks), an upsert behaves exactly like an insert. In particular: the `aroundInsert(_:)` and `didInsert(_:)` callbacks reports the rowid of the inserted or updated row; `willUpdate`, `aroundUpdate`, `didUpdate` are not called.
 
 [PersistableRecord] provides three upsert methods:
 
@@ -3008,7 +3008,7 @@ try player.insert(db)
 > // INSERT OR IGNORE INTO player ... RETURNING *
 > do {
 >     let insertedPlayer = try player.insertAndFetch(db) {
->     // Succesful insertion
+>     // Successful insertion
 > catch RecordError.recordNotFound {
 >     // Failed insertion due to IGNORE policy
 > }
