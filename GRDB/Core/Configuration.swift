@@ -87,7 +87,7 @@ public struct Configuration: Sendable {
     ///   with the number of snapshots.
     ///
     /// The default configuration label is nil.
-    public var label: String? = nil
+    public var label: String?
     
     /// A boolean value indicating whether SQLite 3.29+ interprets
     /// double-quoted strings as string literals when they does not match any
@@ -329,7 +329,7 @@ public struct Configuration: Sendable {
     
     /// The behavior in case of SQLITE_BUSY error, for read-only connections.
     /// If nil, GRDB picks a default one.
-    var readonlyBusyMode: Database.BusyMode? = nil
+    var readonlyBusyMode: Database.BusyMode?
     
     /// The maximum number of concurrent reader connections.
     ///
@@ -387,7 +387,7 @@ public struct Configuration: Sendable {
     /// ``qos`` property.
     ///
     /// The default is nil.
-    public var targetQueue: DispatchQueue? = nil
+    public var targetQueue: DispatchQueue?
     
     /// The target dispatch queue for write database accesses.
     ///
@@ -395,7 +395,7 @@ public struct Configuration: Sendable {
     /// by ``targetQueue``.
     ///
     /// The default is nil.
-    public var writeTargetQueue: DispatchQueue? = nil
+    public var writeTargetQueue: DispatchQueue?
 
 #if os(iOS)
     /// A boolean value indicating whether the database connection releases

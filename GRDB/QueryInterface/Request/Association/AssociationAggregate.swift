@@ -636,7 +636,7 @@ public struct AssociationAggregate<RowDecoder> {
     fileprivate let preparation: AssociationAggregatePreparation<RowDecoder>
     
     /// The SQL name for the value of this aggregate. See forKey(_:).
-    var key: String? = nil
+    var key: String?
     
     /// Extends the request with the associated records used to compute the
     /// aggregate, and returns the aggregated expression.

@@ -18,7 +18,6 @@ disabled_rules:
   - non_optional_string_data_conversion
   - opening_brace
   - optional_data_string_conversion
-  - redundant_optional_initialization
   - syntactic_sugar
   - todo
   - trailing_comma

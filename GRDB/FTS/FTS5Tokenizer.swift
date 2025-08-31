@@ -208,7 +208,7 @@ extension Database {
             
             self.xTokenizer = xTokenizer
             
-            var tokenizerPointer: OpaquePointer? = nil
+            var tokenizerPointer: OpaquePointer?
             let code: CInt
             if arguments.isEmpty {
                 code = xCreate(contextPointer, nil, 0, &tokenizerPointer)

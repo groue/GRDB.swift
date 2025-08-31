@@ -169,7 +169,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   connection has been opened is an SQLite misuse, and has no effect.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -459,7 +459,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     private static func openConnection(path: String, flags: CInt) throws -> SQLiteConnection {
         // See <https://www.sqlite.org/c3ref/open.html>
-        var sqliteConnection: SQLiteConnection? = nil
+        var sqliteConnection: SQLiteConnection?
         let code = sqlite3_open_v2(path, &sqliteConnection, flags, nil)
         guard code == SQLITE_OK else {
             // https://www.sqlite.org/c3ref/open.html
@@ -1286,7 +1286,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
         // that we don't create an infinite loop in checkForSuspensionViolation(from:)
-        var statement: SQLiteStatement? = nil
+        var statement: SQLiteStatement?
         let sql = "PRAGMA journal_mode"
         sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
         defer { sqlite3_finalize(statement) }
@@ -1483,7 +1483,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: Error?
         let needsRollback: Bool
         do {
             let completion = try operations()
@@ -1626,7 +1626,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: Error?
         let needsRollback: Bool
         do {
             let completion = try operations()

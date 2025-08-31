@@ -571,7 +571,7 @@ extension Database {
         // We don't use `try makeStatement(sql:)` in order to avoid throwing an
         // error (this annoys users who set a breakpoint on Swift errors).
         let sql = "SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)"
-        var statement: SQLiteStatement? = nil
+        var statement: SQLiteStatement?
         let code = sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
         defer { sqlite3_finalize(statement) }
         return code == SQLITE_OK
@@ -743,7 +743,7 @@ extension Database {
             id: Int,
             destinationTable: String,
             mapping: [(origin: String, destination: String?, seq: Int)])] = []
-        var previousId: Int? = nil
+        var previousId: Int?
         for row in try Row.fetchAll(self, sql: """
             PRAGMA \(table.schemaID.sql).foreign_key_list(\(table.name.quotedDatabaseIdentifier))
             """)
