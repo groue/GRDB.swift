@@ -368,7 +368,8 @@ extension Database {
     /// Returns the name of the single-column primary key.
     ///
     /// A fatal error is raised if the primary key has several columns, or
-    /// if `tableName` is the name of a database view.
+    /// if `tableName` is the name of a database view that is not customized
+    /// with the schemaSource.
     func filteringPrimaryKeyColumn(_ tableName: String) throws -> String {
         do {
             let primaryKey = try primaryKey(tableName)
@@ -561,6 +562,7 @@ extension Database {
     
     /// Returns whether the column identifies the rowid column
     func columnIsRowID(_ column: String, of tableName: String) throws -> Bool {
+        #warning("TODO: test with database views")
         let pk = try primaryKey(tableName)
         return pk.rowIDColumn == column || (pk.tableHasRowID && column.uppercased() == "ROWID")
     }
@@ -1156,6 +1158,7 @@ extension Database {
                 return primaryKey.columns
             }
         } else {
+            #warning("TODO: use the primary key if available")
             // View: check all columns for existence
             return try columns(in: tableName).map(\.name)
         }
@@ -1703,13 +1706,15 @@ public struct PrimaryKeyInfo: Sendable {
             //  try db.primaryKey("player").fastPrimaryKeyColumn // "rowid"
             return Column.rowID.name
         } else if columns.count == 1 {
-            // WITHOUT ROWID table: use primary key column
+            // WITHOUT ROWID table or view customized with the schemaSource:
+            // use primary key column
             //
             //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...) WITHOUT ROWID
             //  try db.primaryKey("player").fastPrimaryKeyColumn // "uuid"
             return columns[0]
         } else {
-            // WITHOUT ROWID table with a multi-columns primary key
+            // WITHOUT ROWID table or view customized with the schemaSource
+            // with a multi-columns primary key
             return nil
         }
     }
