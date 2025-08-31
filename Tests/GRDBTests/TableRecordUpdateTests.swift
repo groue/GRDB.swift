@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
+private struct Player: Codable, Identifiable, PersistableRecord, FetchableRecord, Hashable {
     var id: Int64
     var name: String
     var score: Int
@@ -24,7 +24,45 @@ private struct Player: Codable, PersistableRecord, FetchableRecord, Hashable {
     }
 }
 
-extension Player: Identifiable { }
+private struct PlayerView: Codable, Identifiable, PersistableRecord, FetchableRecord, Hashable {
+    var id: Int64
+    var name: String
+    var score: Int
+    var bonus: Int
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+        static let bonus = Column(CodingKeys.bonus)
+    }
+    
+    static func createTable(_ db: Database) throws {
+        try db.execute(sql: """
+            CREATE VIEW playerView AS SELECT * FROM player;
+            -- Insert trigger
+            CREATE TRIGGER playerView_insert
+            INSTEAD OF INSERT ON playerView
+            BEGIN
+              INSERT INTO player (id, name, score, bonus)
+              VALUES (NEW.id, NEW.name, NEW.score, NEW.bonus);
+            END;
+            -- Update trigger
+            CREATE TRIGGER playerView_update
+            INSTEAD OF UPDATE ON playerView
+            BEGIN
+              UPDATE player SET name = NEW.name, score = NEW.score, bonus = NEW.bonus
+              WHERE id = OLD.id;
+            END;
+            """)
+    }
+}
+
+private struct ViewSchemaSource: DatabaseSchemaSource {
+    func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+        ["id"]
+    }
+}
 
 private typealias Columns = Player.Columns
 
@@ -35,7 +73,7 @@ private extension QueryInterfaceRequest<Player> {
 }
 
 class TableRecordUpdateTests: GRDBTestCase {
-    func testRequestUpdateAll() throws {
+    func testRequestUpdateAll_table() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             let assignment = Columns.score.set(to: 0)
@@ -119,7 +157,95 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAll_DatabaseComponents() throws {
+    func testRequestUpdateAll_view() throws {
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            let assignment = Columns.score.set(to: 0)
+            
+            try PlayerView.updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            try PlayerView.filter { $0.name == "Arthur" }.updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE \"name\" = 'Arthur'
+                """)
+            
+            try PlayerView.filter(key: 1).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" = 1
+                """)
+            
+            try PlayerView.filter(keys: [1, 2]).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" IN (1, 2)
+                """)
+            
+            try PlayerView.filter(id: 1).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 WHERE "id" = 1
+                    """)
+            
+            try PlayerView.filter(ids: [1, 2]).updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 WHERE "id" IN (1, 2)
+                    """)
+            
+            try PlayerView.filter(sql: "id = 1").updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE id = 1
+                """)
+            
+            try PlayerView.filter(sql: "id = 1").filter { $0.name == "Arthur" }.updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE (id = 1) AND (\"name\" = 'Arthur')
+                """)
+            
+            try PlayerView.select { $0.name }.updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            try PlayerView.order { $0.name }.updateAll(db, assignment)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
+                try PlayerView.limit(1).updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 LIMIT 1
+                    """)
+                
+                try PlayerView.order { $0.name }.updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0
+                    """)
+                
+                try PlayerView.order { $0.name }.limit(1).updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 ORDER BY \"name\" LIMIT 1
+                    """)
+                
+                try PlayerView.order { $0.name }.limit(1, offset: 2).reversed().updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 ORDER BY \"name\" DESC LIMIT 1 OFFSET 2
+                    """)
+                
+                try PlayerView.limit(1, offset: 2).reversed().updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 LIMIT 1 OFFSET 2
+                    """)
+            }
+        }
+    }
+    
+    func testRequestUpdateAll_DatabaseComponents_table() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
@@ -202,7 +328,94 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchStatement() throws {
+    func testRequestUpdateAll_DatabaseComponents_view() throws {
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            
+            try PlayerView.updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            try PlayerView.filter { $0.name == "Arthur" }.updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE \"name\" = 'Arthur'
+                """)
+            
+            try PlayerView.filter(key: 1).updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" = 1
+                """)
+            
+            try PlayerView.filter(keys: [1, 2]).updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" IN (1, 2)
+                """)
+            
+            try PlayerView.filter(id: 1).updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" = 1
+                """)
+            
+            try PlayerView.filter(ids: [1, 2]).updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE "id" IN (1, 2)
+                """)
+            
+            try PlayerView.filter(sql: "id = 1").updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE id = 1
+                """)
+            
+            try PlayerView.filter(sql: "id = 1").filter { $0.name == "Arthur" }.updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0 WHERE (id = 1) AND (\"name\" = 'Arthur')
+                """)
+            
+            try PlayerView.select { $0.name }.updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            try PlayerView.order { $0.name }.updateAll(db) { $0.score.set(to: 0) }
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "playerView" SET "score" = 0
+                """)
+            
+            if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
+                try PlayerView.limit(1).updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 LIMIT 1
+                    """)
+                
+                try PlayerView.order { $0.name }.updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0
+                    """)
+                
+                try PlayerView.order { $0.name }.limit(1).updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 ORDER BY \"name\" LIMIT 1
+                    """)
+                
+                try PlayerView.order { $0.name }.limit(1, offset: 2).reversed().updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 ORDER BY \"name\" DESC LIMIT 1 OFFSET 2
+                    """)
+                
+                try PlayerView.limit(1, offset: 2).reversed().updateAll(db) { $0.score.set(to: 0) }
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "playerView" SET "score" = 0 LIMIT 1 OFFSET 2
+                    """)
+            }
+        }
+    }
+    
+    func testRequestUpdateAndFetchStatement_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -241,7 +454,46 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchStatement_DatabaseComponents() throws {
+    func testRequestUpdateAndFetchStatement_view() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            let assignment = Columns.score.set(to: 0)
+            
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [Column("score")])
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING \"score\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["score"])
+            }
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [.allColumns])
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING *")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "name", "score", "bonus"])
+            }
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db, [assignment], selection: [.allColumns(excluding: ["name"])])
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING \"id\", \"score\", \"bonus\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "score", "bonus"])
+            }
+        }
+    }
+    
+    func testRequestUpdateAndFetchStatement_DatabaseComponents_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -279,7 +531,46 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
 
-    func testRequestUpdateAndFetchCursor() throws {
+    func testRequestUpdateAndFetchStatement_DatabaseComponents_view() throws {
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db) { [$0.score.set(to: 0)] } select: { [$0.score] }
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING \"score\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["score"])
+            }
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db) { [$0.score.set(to: 0)] } select: { _ in [.allColumns] }
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING *")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "name", "score", "bonus"])
+            }
+            do {
+                let request = PlayerView.all()
+                let statement = try request.updateAndFetchStatement(db) { [$0.score.set(to: 0)] } select: { _ in [.allColumns(excluding: ["name"])] }
+                XCTAssertEqual(statement.sql, "UPDATE \"playerView\" SET \"score\" = ? RETURNING \"id\", \"score\", \"bonus\"")
+                XCTAssertEqual(statement.arguments, [0])
+                XCTAssertEqual(statement.columnNames, ["id", "score", "bonus"])
+            }
+        }
+    }
+
+    func testRequestUpdateAndFetchCursor_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -306,7 +597,47 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchCursor_DatabaseComponents() throws {
+    func testRequestUpdateAndFetchCursor_view() throws {
+        #warning("TODO: document this caveat")
+        // Mixing INSTEAD OF triggers and RETURNING used to trigger a bug
+        // that was fixed in SQLite 3.42. The SQLite test linked below
+        // landed on 2023-03-28, and SQLite 3.42 shipped on 2023-05-16.
+        // (iOS 17.2, macOS 14.2, tvOS 17.2, watchOS 10.2)
+        // <https://sqlite.org/src/artifact/db532cde>
+        guard Database.sqliteLibVersionNumber >= 3042000 else {
+            throw XCTSkip("RETURNING and INSTEAD OF are buggy")
+        }
+        
+#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        // Fail in iOS 15.5 (SQLite 3.37)
+        // Fail in iOS 16.4 (SQLite 3.39)
+        // Fail in iOS 17.0 (SQLite 3.39)
+        // Passes in iOS 17.2 (SQLite 3.43)
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            try PlayerView(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try PlayerView(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try PlayerView(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = PlayerView.filter { $0.id != 2 }
+            let cursor = try request.updateAndFetchCursor(db, [Columns.score += 100])
+            let updatedPlayers = try Array(cursor).sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                PlayerView(id: 1, name: "Arthur", score: 110, bonus: 0),
+                PlayerView(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+    
+    func testRequestUpdateAndFetchCursor_DatabaseComponents_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -333,7 +664,42 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchAll() throws {
+    func testRequestUpdateAndFetchCursor_DatabaseComponents_view() throws {
+        // Mixing INSTEAD OF triggers and RETURNING used to trigger a bug
+        // that was fixed in SQLite 3.42. The SQLite test linked below
+        // landed on 2023-03-28, and SQLite 3.42 shipped on 2023-05-16.
+        // (iOS 17.2, macOS 14.2, tvOS 17.2, watchOS 10.2)
+        // <https://sqlite.org/src/artifact/db532cde>
+        guard Database.sqliteLibVersionNumber >= 3042000 else {
+            throw XCTSkip("RETURNING and INSTEAD OF are buggy")
+        }
+        
+#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            try PlayerView(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try PlayerView(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try PlayerView(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = PlayerView.filter { $0.id != 2 }
+            let cursor = try request.updateAndFetchCursor(db) { [$0.score += 100] }
+            let updatedPlayers = try Array(cursor).sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                PlayerView(id: 1, name: "Arthur", score: 110, bonus: 0),
+                PlayerView(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+    
+    func testRequestUpdateAndFetchAll_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -361,7 +727,43 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    func testRequestUpdateAndFetchAll_DatabaseComponents() throws {
+    func testRequestUpdateAndFetchAll_view() throws {
+        // Mixing INSTEAD OF triggers and RETURNING used to trigger a bug
+        // that was fixed in SQLite 3.42. The SQLite test linked below
+        // landed on 2023-03-28, and SQLite 3.42 shipped on 2023-05-16.
+        // (iOS 17.2, macOS 14.2, tvOS 17.2, watchOS 10.2)
+        // <https://sqlite.org/src/artifact/db532cde>
+        guard Database.sqliteLibVersionNumber >= 3042000 else {
+            throw XCTSkip("RETURNING and INSTEAD OF are buggy")
+        }
+        
+#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            try PlayerView(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try PlayerView(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try PlayerView(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = PlayerView.filter { $0.id != 2 }
+            let updatedPlayers = try request
+                .updateAndFetchAll(db, [Columns.score += 100])
+                .sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                PlayerView(id: 1, name: "Arthur", score: 110, bonus: 0),
+                PlayerView(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+    
+    func testRequestUpdateAndFetchAll_DatabaseComponents_table() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
@@ -385,6 +787,42 @@ class TableRecordUpdateTests: GRDBTestCase {
             XCTAssertEqual(updatedPlayers, [
                 Player(id: 1, name: "Arthur", score: 110, bonus: 0),
                 Player(id: 3, name: "Craig", score: 130, bonus: 20),
+            ])
+        }
+    }
+
+    func testRequestUpdateAndFetchAll_DatabaseComponents_view() throws {
+        // Mixing INSTEAD OF triggers and RETURNING used to trigger a bug
+        // that was fixed in SQLite 3.42. The SQLite test linked below
+        // landed on 2023-03-28, and SQLite 3.42 shipped on 2023-05-16.
+        // (iOS 17.2, macOS 14.2, tvOS 17.2, watchOS 10.2)
+        // <https://sqlite.org/src/artifact/db532cde>
+        guard Database.sqliteLibVersionNumber >= 3042000 else {
+            throw XCTSkip("RETURNING and INSTEAD OF are buggy")
+        }
+        
+#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("RETURNING clause is not available")
+        }
+#endif
+        // Views need a schema source
+        dbConfiguration.schemaSource = ViewSchemaSource()
+        
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            try PlayerView.createTable(db)
+            try PlayerView(id: 1, name: "Arthur", score: 10, bonus: 0).insert(db)
+            try PlayerView(id: 2, name: "Barbara", score: 20, bonus: 10).insert(db)
+            try PlayerView(id: 3, name: "Craig", score: 30, bonus: 20).insert(db)
+
+            let request = PlayerView.filter { $0.id != 2 }
+            let updatedPlayers = try request
+                .updateAndFetchAll(db) { [$0.score += 100] }
+                .sorted(by: { $0.id < $1.id })
+            XCTAssertEqual(updatedPlayers, [
+                PlayerView(id: 1, name: "Arthur", score: 110, bonus: 0),
+                PlayerView(id: 3, name: "Craig", score: 130, bonus: 20),
             ])
         }
     }
@@ -1242,6 +1680,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    #warning("TODO: duplicate test with views")
     func testJoinedRequestUpdate() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
@@ -1314,6 +1753,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    #warning("TODO: duplicate test with views")
     func testJoinedRequestUpdate_DatabaseComponents() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
