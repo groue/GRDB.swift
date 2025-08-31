@@ -26,8 +26,16 @@ class PrimaryKeyInfoTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                XCTAssertEqual(error.message, "no such table: items")
-                XCTAssertEqual(error.description, "SQLite error 1: no such table: items")
+                XCTAssertEqual(error.message, """
+                    The database view 'items' has no primary key. \
+                    To support views, provide a custom schema source \
+                    in Configuration.schemaSource.
+                    """)
+                XCTAssertEqual(error.description, """
+                    SQLite error 1: The database view 'items' has no primary key. \
+                    To support views, provide a custom schema source \
+                    in Configuration.schemaSource.
+                    """)
             }
         }
     }
@@ -273,8 +281,14 @@ class PrimaryKeyInfoTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                XCTAssertEqual(error.message, "no such table: playerView")
-                XCTAssertEqual(error.description, "SQLite error 1: no such table: playerView")
+                XCTAssertEqual(error.message, """
+                    The database view 'playerView' has no primary key, \
+                    according to Configuration.schemaSource.
+                    """)
+                XCTAssertEqual(error.description, """
+                    SQLite error 1: The database view 'playerView' has no primary key, \
+                    according to Configuration.schemaSource.
+                    """)
             }
         }
     }
@@ -307,8 +321,14 @@ class PrimaryKeyInfoTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-                XCTAssertEqual(error.message, "no such table: playerView")
-                XCTAssertEqual(error.description, "SQLite error 1: no such table: playerView")
+                XCTAssertEqual(error.message, """
+                    The database view 'playerView' has no primary key, \
+                    according to Configuration.schemaSource.
+                    """)
+                XCTAssertEqual(error.description, """
+                    SQLite error 1: The database view 'playerView' has no primary key, \
+                    according to Configuration.schemaSource.
+                    """)
             }
         }
     }

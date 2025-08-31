@@ -347,7 +347,22 @@ extension Database {
                 return result
             }
         }
-        throw DatabaseError.noSuchTable(tableName)
+        
+        if (try? viewExists(tableName, in: schemaName)) == true {
+            if configuration.schemaSource == nil {
+                throw DatabaseError(message: """
+                    The database view '\(tableName)' has no primary key. \
+                    To support views, provide a custom schema source in Configuration.schemaSource.
+                    """)
+            } else {
+                throw DatabaseError(message: """
+                    The database view '\(tableName)' has no primary key, \
+                    according to Configuration.schemaSource.
+                    """)
+            }
+        } else {
+            throw DatabaseError.noSuchTable(tableName)
+        }
     }
     
     /// Returns the name of the single-column primary key.
@@ -370,10 +385,18 @@ extension Database {
             if case .SQLITE_ERROR = error.resultCode,
                (try? viewExists(tableName)) == true
             {
-                fatalError("""
-                    Filtering by primary key is not available on the database view '\(tableName)'. \
-                    Use `filter(Column("...") == value)` instead.
-                    """)
+                if configuration.schemaSource == nil {
+                    fatalError("""
+                        Filtering by primary key is not available on the database view '\(tableName)'. \
+                        Instead, use `filter(Column("...") == value)`, or provide \
+                        a custom schema source in Configuration.schemaSource.
+                        """)
+                } else {
+                    fatalError("""
+                        Filtering by primary key requires a single-column primary key in the view '\(tableName)'. \
+                        No such primary key is configured by Configuration.schemaSource.
+                        """)
+                }
             } else {
                 throw error
             }
