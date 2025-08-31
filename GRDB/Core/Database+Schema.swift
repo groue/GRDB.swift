@@ -1067,6 +1067,9 @@ extension Database {
     /// returns the columns of the unique key, ordered as the matching index (or
     /// primary key). The case of returned columns is not guaranteed to match
     /// the case of input columns.
+    ///
+    /// This method accepts both tables and views. For views, the primary
+    /// key returned by the schemaSource is considered as a unique key.
     func columnsForUniqueKey(
         _ columns: some Collection<String>,
         in tableName: String
@@ -1077,23 +1080,26 @@ extension Database {
             return nil
         }
         
-        // Check rowid
-        let primaryKey = try self.primaryKey(tableName)
-        if primaryKey.tableHasRowID && lowercasedColumns == ["rowid"] {
-            return ["rowid"]
+        // Check primaryKey (ignoring views if the schemaSource does not customize them).
+        if let primaryKey = try? self.primaryKey(tableName) {
+            if primaryKey.tableHasRowID && lowercasedColumns == ["rowid"] {
+                return ["rowid"]
+            }
+            
+            // Check primaryKey
+            if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
+                return primaryKey.columns
+            }
         }
         
-        // Check primaryKey
-        if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
-            return primaryKey.columns
-        }
-        
-        // Check unique indexes
-        let matchingIndex = try indexes(on: tableName).first { index in
-            index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
-        }
-        if let matchingIndex {
-            return matchingIndex.columns
+        // Check unique indexes (ignoring views)
+        if try tableExists(tableName) {
+            let matchingIndex = try indexes(on: tableName).first { index in
+                index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
+            }
+            if let matchingIndex {
+                return matchingIndex.columns
+            }
         }
         
         // No matching unique key found

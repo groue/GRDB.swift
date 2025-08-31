@@ -71,9 +71,37 @@ class IndexInfoTests: GRDBTestCase {
             try XCTAssertFalse(db.table("citizenships", hasUniqueKey: ["year"]))
             try XCTAssertFalse(db.table("citizenships", hasUniqueKey: ["personId"]))
             try XCTAssertFalse(db.table("citizenships", hasUniqueKey: ["countryIsoCode"]))
+            
+            try db.execute(sql: "CREATE VIEW personView AS SELECT * FROM persons")
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["rowid"]))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["id"]))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["email"]))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: []))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["name"]))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["id", "email"]))
         }
     }
     
+    func testColumnsThatUniquelyIdentityRows_with_view_and_schema_source() throws {
+        struct MySchemaSource: DatabaseSchemaSource {
+            func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                ["id"]
+            }
+        }
+        
+        dbConfiguration.schemaSource = MySchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
+            try db.execute(sql: "CREATE VIEW personView AS SELECT * FROM persons")
+
+            try XCTAssertTrue(db.table("personView", hasUniqueKey: ["id"]))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: []))
+            try XCTAssertFalse(db.table("personView", hasUniqueKey: ["name"]))
+            try XCTAssertTrue(db.table("personView", hasUniqueKey: ["id", "email"]))
+        }
+    }
+
     // Regression test for https://github.com/groue/GRDB.swift/issues/840
     func testIndexOnExpressionIsExcluded() throws {
         let dbQueue = try makeDatabaseQueue()
