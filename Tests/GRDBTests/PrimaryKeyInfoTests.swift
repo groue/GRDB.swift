@@ -242,4 +242,109 @@ class PrimaryKeyInfoTests: GRDBTestCase {
             XCTAssertTrue(primaryKey.tableHasRowID)
         }
     }
+    
+    // MARK: - Customization with DatabaseSchemaSource
+    
+    func test_custom_schemaSource_nil_result() throws {
+        struct MySchemaSource: DatabaseSchemaSource {
+            func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                nil
+            }
+        }
+        
+        dbConfiguration.schemaSource = MySchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT, score INTEGER)")
+            try db.execute(sql: "CREATE VIEW playerView as SELECT id AS playerId, name FROM player")
+            
+            do {
+                let primaryKey = try db.primaryKey("player")
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["id"])
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+                XCTAssertEqual(primaryKey.columns, ["id"])
+                XCTAssertEqual(primaryKey.rowIDColumn, "id")
+                XCTAssertTrue(primaryKey.isRowID)
+                XCTAssertTrue(primaryKey.tableHasRowID)
+            }
+            
+            do {
+                _ = try db.primaryKey("playerView")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: playerView")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: playerView")
+            }
+        }
+    }
+    
+    func test_custom_schemaSource_empty_result() throws {
+        struct MySchemaSource: DatabaseSchemaSource {
+            func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                []
+            }
+        }
+        
+        dbConfiguration.schemaSource = MySchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT, score INTEGER)")
+            try db.execute(sql: "CREATE VIEW playerView as SELECT id AS playerId, name FROM player")
+            
+            do {
+                let primaryKey = try db.primaryKey("player")
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["id"])
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+                XCTAssertEqual(primaryKey.columns, ["id"])
+                XCTAssertEqual(primaryKey.rowIDColumn, "id")
+                XCTAssertTrue(primaryKey.isRowID)
+                XCTAssertTrue(primaryKey.tableHasRowID)
+            }
+            
+            do {
+                _ = try db.primaryKey("playerView")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: playerView")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: playerView")
+            }
+        }
+    }
+    
+    func test_custom_schemaSource_custom_primary_key() throws {
+        struct MySchemaSource: DatabaseSchemaSource {
+            func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                ["playerId"]
+            }
+        }
+        
+        dbConfiguration.schemaSource = MySchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT, score INTEGER)")
+            try db.execute(sql: "CREATE VIEW playerView as SELECT id AS playerId, name FROM player")
+            
+            do {
+                let primaryKey = try db.primaryKey("player")
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["id"])
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+                XCTAssertEqual(primaryKey.columns, ["id"])
+                XCTAssertEqual(primaryKey.rowIDColumn, "id")
+                XCTAssertTrue(primaryKey.isRowID)
+                XCTAssertTrue(primaryKey.tableHasRowID)
+            }
+            
+            do {
+                let primaryKey = try db.primaryKey("playerView")
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["playerId"])
+                XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+                XCTAssertEqual(primaryKey.columns, ["playerId"])
+                XCTAssertNil(primaryKey.rowIDColumn)
+                XCTAssertFalse(primaryKey.isRowID)
+                XCTAssertFalse(primaryKey.tableHasRowID)
+            }
+        }
+    }
 }
