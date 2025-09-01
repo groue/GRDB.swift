@@ -491,6 +491,8 @@
 		567B5C4C2AD32F7000629622 /* DatabaseDumpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567B5C492AD32F7000629622 /* DatabaseDumpTests.swift */; };
 		567B5C4D2AD32F7000629622 /* DatabaseReaderDumpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567B5C4A2AD32F7000629622 /* DatabaseReaderDumpTests.swift */; };
 		567B5C4E2AD32F7000629622 /* DatabaseReaderDumpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567B5C4A2AD32F7000629622 /* DatabaseReaderDumpTests.swift */; };
+		568515AB2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568515AA2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift */; };
+		568515AC2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568515AA2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift */; };
 		568C3F7F2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */; };
 		568C3F802A5AB36900A2309D /* ForeignKeyDefinitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
@@ -752,6 +754,7 @@
 		567B5C282AD32A2D00629622 /* SharedValueObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedValueObservationTests.swift; sourceTree = "<group>"; };
 		567B5C492AD32F7000629622 /* DatabaseDumpTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDumpTests.swift; sourceTree = "<group>"; };
 		567B5C4A2AD32F7000629622 /* DatabaseReaderDumpTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReaderDumpTests.swift; sourceTree = "<group>"; };
+		568515AA2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordMappedOnMutableViewTests.swift; sourceTree = "<group>"; };
 		568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ForeignKeyDefinitionTests.swift; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		56DFC3B22C84798300DFE5DC /* AsyncSemaphore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSemaphore.swift; sourceTree = "<group>"; };
@@ -1019,6 +1022,7 @@
 				56419C9F24A54054004967E1 /* Record+QueryInterfaceRequestTests.swift */,
 				56419D0C24A5405B004967E1 /* RecordEditedTests.swift */,
 				56419CAE24A54054004967E1 /* RecordInitializersTests.swift */,
+				568515AA2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift */,
 				567B5C262AD32A2D00629622 /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */,
 				56419D4224A5405F004967E1 /* RecordMinimalPrimaryKeyRowIDTests.swift */,
 				56419D0824A5405B004967E1 /* RecordMinimalPrimaryKeySingleTests.swift */,
@@ -1217,9 +1221,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1256,9 +1264,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1380,6 +1392,7 @@
 				56419E4F24A54062004967E1 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				567B5C412AD32A2D00629622 /* SharedValueObservationTests.swift in Sources */,
 				56419E9F24A54063004967E1 /* FetchableRecordTests.swift in Sources */,
+				568515AB2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */,
 				56419E3324A54062004967E1 /* MutablePersistableRecordChangesTests.swift in Sources */,
 				56419DFF24A54062004967E1 /* DatabaseCollationTests.swift in Sources */,
 				56419E9B24A54063004967E1 /* FTS3RecordTests.swift in Sources */,
@@ -1630,6 +1643,7 @@
 				56419E5024A54062004967E1 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				567B5C422AD32A2D00629622 /* SharedValueObservationTests.swift in Sources */,
 				56419EA024A54063004967E1 /* FetchableRecordTests.swift in Sources */,
+				568515AC2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */,
 				56419E3424A54062004967E1 /* MutablePersistableRecordChangesTests.swift in Sources */,
 				56419E0024A54062004967E1 /* DatabaseCollationTests.swift in Sources */,
 				56419E9C24A54063004967E1 /* FTS3RecordTests.swift in Sources */,
