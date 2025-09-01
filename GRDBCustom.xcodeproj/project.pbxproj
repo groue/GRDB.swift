@@ -220,6 +220,7 @@
 		567E420A242AB3CB00CAAD2C /* FailureTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567E4207242AB3CB00CAAD2C /* FailureTestCase.swift */; };
 		567F45AB1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		568068341EBBA26100EFB8AA /* SQLRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568068301EBBA26100EFB8AA /* SQLRequestTests.swift */; };
+		568515A62E66C2C60082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568515A52E66C2C60082E9A1 /* RecordMappedOnMutableViewTests.swift */; };
 		5685C1962AD52EF200DA4B7A /* ListDumpFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5685C1942AD52EF200DA4B7A /* ListDumpFormat.swift */; };
 		56894F332604FC1E00268F4D /* Table.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56894F322604FC1E00268F4D /* Table.swift */; };
 		56894FE3260658A400268F4D /* Decimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56894FA0260657F600268F4D /* Decimal.swift */; };
@@ -700,6 +701,7 @@
 		567E4207242AB3CB00CAAD2C /* FailureTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureTestCase.swift; sourceTree = "<group>"; };
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
+		568515A52E66C2C60082E9A1 /* RecordMappedOnMutableViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordMappedOnMutableViewTests.swift; sourceTree = "<group>"; };
 		5685C1942AD52EF200DA4B7A /* ListDumpFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListDumpFormat.swift; sourceTree = "<group>"; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		56894F322604FC1E00268F4D /* Table.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Table.swift; sourceTree = "<group>"; };
@@ -1013,6 +1015,7 @@
 				56B021C81D8C0D3900B239BB /* MutablePersistableRecordPersistenceConflictPolicyTests.swift */,
 				563363A91C933FF8000BE133 /* MutablePersistableRecordTests.swift */,
 				563363AA1C933FF8000BE133 /* PersistableRecordTests.swift */,
+				568515A52E66C2C60082E9A1 /* RecordMappedOnMutableViewTests.swift */,
 			);
 			name = PersistableRecord;
 			sourceTree = "<group>";
@@ -2257,6 +2260,7 @@
 				563B06D32185E04600B38F35 /* ValueObservationReadonlyTests.swift in Sources */,
 				567F45AB1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */,
 				F3BA80A61CFB2F91003DC1BA /* GRDBTestCase.swift in Sources */,
+				568515A62E66C2C60082E9A1 /* RecordMappedOnMutableViewTests.swift in Sources */,
 				56959621222C458A002CB7C9 /* AssociationHasManyThroughSQLTests.swift in Sources */,
 				5657AB411D108BA9006283EF /* FoundationNSDataTests.swift in Sources */,
 				560233CF2724339A00529DF3 /* SharedValueObservationTests.swift in Sources */,
