@@ -421,6 +421,16 @@ public struct Configuration: Sendable {
     /// reveals that a lot of time is spent opening new SQLite connections.
     public var persistentReadOnlyConnections = false
     
+    // MARK: - Database Schema
+    
+    /// A custom schema source.
+    ///
+    /// The use case for a custom schema source is enabling GRDB features that
+    /// would not work with the built-in schema introspection that is provided
+    /// by SQLite. For example, a custom schema source can help record types
+    /// that read or write in a database view.
+    public var schemaSource: (any DatabaseSchemaSource)?
+    
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration.

@@ -331,6 +331,9 @@ extension Database {
     /// SQLite resolution order, and the first matching result is returned.
     /// For more information, see <https://www.sqlite.org/lang_naming.html>.
     ///
+    /// Database views are supported, if the connection is configured with
+    /// a schema source. See ``Configuration/schemaSource``.
+    ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
     /// the specified schema does not exist, or if no such table exists in
     /// the main or temp schema, or in an attached database.
@@ -385,7 +388,20 @@ extension Database {
             return primaryKey.value
         }
         
-        if let primaryKey = try fetchPrimitivePrimaryKey(forTable: table) {
+        var primaryKey: PrimaryKeyInfo?
+        
+        if let schemaSource = configuration.schemaSource,
+           try viewExists(table.name, in: table.schemaID.name),
+           let primaryKeyColumns = try schemaSource.columnsForPrimaryKey(self, inView: table)
+        {
+            primaryKey = try fetchPrimitivePrimaryKey(forView: table, columns: primaryKeyColumns)
+        }
+        
+        if primaryKey == nil {
+            primaryKey = try fetchPrimitivePrimaryKey(forTable: table)
+        }
+        
+        if let primaryKey {
             schemaCache[table.schemaID].set(primaryKey: .value(primaryKey), forTable: table.name)
             return primaryKey
         } else {
@@ -471,13 +487,53 @@ extension Database {
             if pkColumn.type.uppercased() == "INTEGER" {
                 return .rowID(pkColumn)
             } else {
-                return try .regular([pkColumn], tableHasRowID: tableHasRowID(table))
+                return try .regular([pkColumn], tableHasRowID: fetchTableHasRowID(table))
             }
             
         default:
             // Multi-columns primary key
-            return try .regular(pkColumns, tableHasRowID: tableHasRowID(table))
+            return try .regular(pkColumns, tableHasRowID: fetchTableHasRowID(table))
         }
+    }
+    
+    /// Fetches a customized primary key for the database view identified
+    /// by `view`.
+    ///
+    /// Nil is returned in the view does not exist, or if `columns` is empty.
+    ///
+    /// - precondition: If the view exists, columns must exist, must
+    ///   identify a unique row, and must be not null.
+    func fetchPrimitivePrimaryKey(
+        forView view: DatabaseObjectID,
+        columns: [String]
+    ) throws -> PrimaryKeyInfo? {
+        if columns.isEmpty {
+            return nil
+        }
+        
+        guard let infos = try fetchPrimitiveColumns(in: view) else {
+            // View does not exist
+            return nil
+        }
+        
+        let pkInfos = columns.enumerated().map { index, column in
+            guard var info = infos.first(where: { $0.name.lowercased() == column.lowercased() }) else {
+                // The requested column does not exist in the database schema.
+                // Is it a programmer error, or a runtime error?
+                // Let's make it a programmer error to start with.
+                fatalError("""
+                    No such column in \(view.schemaID.viewNameInErrorMessages(view.name)): \(column)
+                    """)
+            }
+            
+            // Rewrite primaryKeyIndex, and use a 1-based index, as
+            // documented in https://www.sqlite.org/pragma.html#pragma_table_info
+            info.primaryKeyIndex = index + 1
+            
+            return info
+        }
+        
+        return .regular(pkInfos, tableHasRowID: false /* views have no rowid */)
     }
     
     /// Returns whether the column identifies the rowid column
@@ -489,19 +545,16 @@ extension Database {
     /// Returns whether the table has a rowid column.
     ///
     /// - precondition: table exists.
-    private func tableHasRowID(_ table: DatabaseObjectID) throws -> Bool {
-        // No need to cache the result, because this information feeds
-        // `PrimaryKeyInfo`, which is cached.
-        
+    private func fetchTableHasRowID(_ table: DatabaseObjectID) throws -> Bool {
         // Prefer PRAGMA table_list if available
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         // Maybe SQLCipher is too old: check actual version
         if sqlite3_libversion_number() >= 3037000 {
-            return try self.table(for: table)!.hasRowID
+            return try self.table(for: table)!.isWithoutRowIDTable == false
         }
 #else
         if #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) { // SQLite 3.37+
-            return try self.table(for: table)!.hasRowID
+            return try self.table(for: table)!.isWithoutRowIDTable == false
         }
 #endif
         
@@ -927,6 +980,30 @@ extension Database {
             return columns.value
         }
         
+        if var columns = try fetchPrimitiveColumns(in: table) {
+            // Discard hidden columns, so that the result of this method
+            // matches the columns in `SELECT *`, and avoids surprises.
+            columns = columns.filter {
+                // https://www.sqlite.org/pragma.html#pragma_table_xinfo
+                $0.hidden != 1
+            }
+            schemaCache[table.schemaID].set(columns: .value(columns), forTable: table.name)
+            return columns
+        } else {
+            // Table does not exist
+            schemaCache[table.schemaID].set(columns: .missing, forTable: table.name)
+            return nil
+        }
+    }
+    
+    /// Fetches the columns in the database table identified by `table`, or
+    /// returns nil if the database schema does not contain that table.
+    ///
+    /// This method relies entirely on SQLite schema introspection. Starting
+    /// SQLite 3.26.0, it returns all columns, including
+    /// [generated columns](https://www.sqlite.org/gencol.html) and
+    /// [hidden columns](https://www.sqlite.org/vtab.html#hiddencol).
+    func fetchPrimitiveColumns(in table: DatabaseObjectID) throws -> [ColumnInfo]? {
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -976,23 +1053,13 @@ extension Database {
         }
         let columns = try ColumnInfo
             .fetchAll(self, sql: columnInfoQuery)
-            .filter {
-                // Purpose: keep generated columns, but discard hidden ones.
-                // The "hidden" column magic numbers come from the SQLite
-                // source code. The values 2 and 3 refer to virtual and stored
-                // generated columns, respectively, and 1 refer to hidden one.
-                // Search for COLFLAG_HIDDEN in
-                // https://www.sqlite.org/cgi/src/file?name=src/pragma.c&ci=fca8dc8b578f215a
-                $0.hidden != 1
-            }
             .sorted(by: { $0.cid < $1.cid })
+        
         if columns.isEmpty {
             // Table does not exist
-            schemaCache[table.schemaID].set(columns: .missing, forTable: table.name)
             return nil
         }
         
-        schemaCache[table.schemaID].set(columns: .value(columns), forTable: table.name)
         return columns
     }
     
@@ -1138,6 +1205,17 @@ public struct DatabaseSchemaID: Hashable, Sendable {
         case .temp: return "sqlite_temp_master"
         }
     }
+    
+    func viewNameInErrorMessages(_ viewName: String) -> String {
+        switch impl {
+        case .main:
+            return "view \(viewName)"
+        case .temp:
+            return "temporary view \(viewName)"
+        case .attached(let schemaName):
+            return "view \(schemaName).\(viewName)"
+        }
+    }
 }
 
 /// The identifier of an object in the database (table, view, etc.)
@@ -1242,7 +1320,7 @@ public struct ColumnInfo: FetchableRecord, Sendable {
     /// The one-based index of the column in the primary key.
     ///
     /// For columns that are not part of the primary key, it is zero.
-    public let primaryKeyIndex: Int
+    public fileprivate(set) var primaryKeyIndex: Int
     
     public init(row: Row) {
         cid = row["cid"]
@@ -1650,7 +1728,8 @@ struct TableInfo: FetchableRecord {
     var name: String
     var kind: Kind
     var columnCount: Int
-    var hasRowID: Bool
+    /// False for tables with a rowid, and for views.
+    var isWithoutRowIDTable: Bool
     var strict: Bool
     
     init(row: Row) throws {
@@ -1658,7 +1737,7 @@ struct TableInfo: FetchableRecord {
         name = row[1]
         kind = Kind(rawValue: row[2])
         columnCount = row[3]
-        hasRowID = !row[4]
+        isWithoutRowIDTable = row[4]
         strict = row[5]
     }
 }

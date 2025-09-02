@@ -96,6 +96,7 @@ do {
 - ``persistentReadOnlyConnections``
 - ``prepareDatabase(_:)``
 - ``publicStatementArguments``
+- ``schemaSource``
 - ``transactionClock``
 - ``TransactionClock``
 
@@ -106,3 +107,7 @@ do {
 - ``writeQoS``
 - ``targetQueue``
 - ``writeTargetQueue``
+
+### Supporting Types
+
+- ``DatabaseSchemaSource``
