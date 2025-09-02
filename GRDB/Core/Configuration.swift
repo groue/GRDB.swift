@@ -429,6 +429,10 @@ public struct Configuration: Sendable {
     /// would not work with the built-in schema introspection that is provided
     /// by SQLite. For example, a custom schema source can help record types
     /// that read or write in a database view.
+    ///
+    /// The schema source has not effect during database migrations
+    /// performed by ``DatabaseMigrator``. Those access the raw SQLite
+    /// schema, unaltered.
     public var schemaSource: (any DatabaseSchemaSource)?
     
     // MARK: - Factory Configuration

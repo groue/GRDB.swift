@@ -827,7 +827,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     // or unique index).
                     guard let columns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
                         if (try? db.viewExists(databaseTableName)) == true {
-                            if db.configuration.schemaSource == nil {
+                            if db.schemaSource == nil {
                                 fatalError("""
                                     view \(databaseTableName) has no unique key on column(s) \
                                     \(key.keys.sorted().joined(separator: ", ")). To support \
