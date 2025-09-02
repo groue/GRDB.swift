@@ -276,6 +276,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// The cache for the available database schemas (main, temp, attached databases).
     var schemaCache = SchemaCache()
     
+    /// To modify the schemaSource, use `withSchemaSource`.
+    var schemaSource: (any DatabaseSchemaSource)?
+    
     /// The cache for statements managed by GRDB. It is distinct from
     /// `publicStatementCache` so that we do not mess with statement arguments
     /// set by the user.
@@ -442,6 +445,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        self.schemaSource = configuration.schemaSource
         self.path = path
         
         // We do not report read-only transactions to transaction observers, so

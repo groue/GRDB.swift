@@ -35,6 +35,24 @@ extension Database {
     
     // MARK: - Database Schema
     
+    /// Runs the provided closure with the provided schema source.
+    func withSchemaSource<T>(
+        _ schemaSource: (any DatabaseSchemaSource)?,
+        execute block: () throws -> T
+    ) rethrows -> T {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        
+        let previousSchemaSource = self.schemaSource
+        self.schemaSource = schemaSource
+        defer {
+            self.schemaSource = previousSchemaSource
+            clearSchemaCache() // Clear from cache the information loaded from the new schema source.
+        }
+        
+        clearSchemaCache() // Clear from cache the information loaded from the previous schema source.
+        return try block()
+    }
+    
     /// Returns the current schema version (`PRAGMA schema_version`).
     ///
     /// For example:
@@ -349,7 +367,7 @@ extension Database {
         }
         
         if (try? viewExists(tableName, in: schemaName)) == true {
-            if configuration.schemaSource == nil {
+            if schemaSource == nil {
                 throw DatabaseError(message: """
                     The database view '\(tableName)' has no primary key. \
                     To support views, provide a custom schema source in Configuration.schemaSource.
@@ -386,7 +404,7 @@ extension Database {
             if case .SQLITE_ERROR = error.resultCode,
                (try? viewExists(tableName)) == true
             {
-                if configuration.schemaSource == nil {
+                if schemaSource == nil {
                     fatalError("""
                         Filtering by primary key is not available on the database view '\(tableName)'. \
                         Instead, use `filter(Column("...") == value)`, or provide \
@@ -414,7 +432,7 @@ extension Database {
         
         var primaryKey: PrimaryKeyInfo?
         
-        if let schemaSource = configuration.schemaSource,
+        if let schemaSource,
            try viewExists(table.name, in: table.schemaID.name),
            let primaryKeyColumns = try schemaSource.columnsForPrimaryKey(self, inView: table)
         {
