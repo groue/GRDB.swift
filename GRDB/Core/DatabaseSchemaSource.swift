@@ -42,6 +42,10 @@
 /// ### Customizing the Database Schema
 ///
 /// - ``columnsForPrimaryKey(_:inView:)``
+///
+/// ### Chaining Schema Sources
+///
+/// - ``then(_:)``
 public protocol DatabaseSchemaSource: Sendable {
     /// Returns the names of the columns for the primary key in the
     /// provided database view.
@@ -116,5 +120,35 @@ extension DatabaseSchemaSource {
         inView view: DatabaseObjectID
     ) throws -> [String]? {
         nil
+    }
+}
+
+// MARK: - Combined2SchemaSource
+
+extension DatabaseSchemaSource {
+    /// Returns a schema source that queries `other` when this source does
+    /// not perform customization.
+    public func then(_ other: some DatabaseSchemaSource) -> some DatabaseSchemaSource {
+        Chained2SchemaSource(first: self, second: other)
+    }
+}
+
+// TODO: move to parameter packs eventually. Parameter packs in generic types
+// are only available in macOS 14.0.0 or newer.
+// This schema source is designed to tame bad citizens that customize tables
+// and views they do not own (such as insufficienly robust schema sources
+// exposed by external libraries). We should NEVER MERGE the results of the
+// schema sources.
+struct Chained2SchemaSource<Source1, Source2>: DatabaseSchemaSource
+where Source1: DatabaseSchemaSource,
+      Source2: DatabaseSchemaSource
+{
+    var first: Source1
+    var second: Source2
+    
+    func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+        if let result = try first.columnsForPrimaryKey(db, inView: view) { return result }
+        if let result = try second.columnsForPrimaryKey(db, inView: view) { return result }
+        return nil
     }
 }
