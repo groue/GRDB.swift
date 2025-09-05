@@ -430,9 +430,11 @@ public struct Configuration: Sendable {
     /// by SQLite. For example, a custom schema source can help record types
     /// that read or write in a database view.
     ///
-    /// The schema source has not effect during database migrations
-    /// performed by ``DatabaseMigrator``. Those access the raw SQLite
-    /// schema, unaltered.
+    /// The schema source is automatically disabled during database
+    /// migrations performed by ``DatabaseMigrator``: those access the raw
+    /// SQLite schema, unaltered. If a migration needs a schema source,
+    /// you may call ``Database/withSchemaSource(_:execute:)`` from within
+    /// the body of a migration.
     public var schemaSource: (any DatabaseSchemaSource)?
     
     // MARK: - Factory Configuration

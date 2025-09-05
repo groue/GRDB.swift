@@ -1125,6 +1125,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             migrator.registerMigration("A") { db in
                 try db.execute(sql: "CREATE VIEW myView as SELECT 1 AS id")
                 // Cache is empty, and schemaSource is disabled.
+                XCTAssertNil(db.schemaSource)
                 XCTAssertThrowsError(try db.primaryKey("myView"))
             }
             try migrator.migrate(dbQueue)
@@ -1132,15 +1133,37 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         try dbQueue.inDatabase { db in
             // Cache was cleared, and schemaSource is active.
+            XCTAssertNotNil(db.schemaSource)
             XCTAssertNoThrow(try db.primaryKey("myView"))
         }
         
         do {
             migrator.registerMigration("B") { db in
                 // Cache was cleared again, and schemaSource is disabled.
+                XCTAssertNil(db.schemaSource)
                 XCTAssertThrowsError(try db.primaryKey("myView"))
             }
             try migrator.migrate(dbQueue)
         }
+    }
+    
+    func test_schemaSource_can_be_restored_during_migrations() throws {
+        struct SchemaSource: DatabaseSchemaSource {
+            func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                ["id"]
+            }
+        }
+        
+        dbConfiguration.schemaSource = SchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        var migrator = DatabaseMigrator()
+        
+        migrator.registerMigration("A") { db in
+            try db.execute(sql: "CREATE VIEW myView as SELECT 1 AS id")
+            try db.withSchemaSource(SchemaSource()) {
+                XCTAssertNoThrow(try db.primaryKey("myView"))
+            }
+        }
+        try migrator.migrate(dbQueue)
     }
 }

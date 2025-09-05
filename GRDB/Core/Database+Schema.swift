@@ -35,8 +35,8 @@ extension Database {
     
     // MARK: - Database Schema
     
-    /// Runs the provided closure with the provided schema source.
-    func withSchemaSource<T>(
+    /// Executes the wrapped statements with the provided schema source.
+    public func withSchemaSource<T>(
         _ schemaSource: (any DatabaseSchemaSource)?,
         execute block: () throws -> T
     ) rethrows -> T {
