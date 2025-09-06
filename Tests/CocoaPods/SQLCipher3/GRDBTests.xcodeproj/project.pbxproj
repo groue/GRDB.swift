@@ -497,11 +497,13 @@
 		568C3F802A5AB36900A2309D /* ForeignKeyDefinitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
+		56BCA2662E6C294600E4F08D /* DatabaseSchemaSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA2652E6C294600E4F08D /* DatabaseSchemaSourceTests.swift */; };
+		56BCA2672E6C294600E4F08D /* DatabaseSchemaSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BCA2652E6C294600E4F08D /* DatabaseSchemaSourceTests.swift */; };
 		56DFC3B32C84798300DFE5DC /* AsyncSemaphore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DFC3B22C84798300DFE5DC /* AsyncSemaphore.swift */; };
 		56DFC3B42C84798300DFE5DC /* AsyncSemaphore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DFC3B22C84798300DFE5DC /* AsyncSemaphore.swift */; };
 		56F61DF0283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
 		56F61DF1283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
-		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		5B33E6E34F941B4C839A714F /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		98AB0B01EB11B33719AE412E /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2436BF42B9FCD6552E7076 /* Pods_GRDBTests.framework */; };
 		F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */; };
 /* End PBXBuildFile section */
@@ -757,6 +759,7 @@
 		568515AA2E66C2F40082E9A1 /* RecordMappedOnMutableViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordMappedOnMutableViewTests.swift; sourceTree = "<group>"; };
 		568C3F7E2A5AB36900A2309D /* ForeignKeyDefinitionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ForeignKeyDefinitionTests.swift; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
+		56BCA2652E6C294600E4F08D /* DatabaseSchemaSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseSchemaSourceTests.swift; sourceTree = "<group>"; };
 		56DFC3B22C84798300DFE5DC /* AsyncSemaphore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSemaphore.swift; sourceTree = "<group>"; };
 		56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		56F61DEE283D484700AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
@@ -772,7 +775,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B33E6E34F941B4C839A714F /* (null) in Frameworks */,
+				5B33E6E34F941B4C839A714F /* BuildFile in Frameworks */,
 				98AB0B01EB11B33719AE412E /* Pods_GRDBTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -938,6 +941,7 @@
 				56419CF724A5405A004967E1 /* DatabaseRegionObservationTests.swift */,
 				56419D2624A5405D004967E1 /* DatabaseRegionTests.swift */,
 				56419CB324A54055004967E1 /* DatabaseSavepointTests.swift */,
+				56BCA2652E6C294600E4F08D /* DatabaseSchemaSourceTests.swift */,
 				567B5C222AD32A2D00629622 /* DatabaseSnapshotPoolTests.swift */,
 				56419CE624A54058004967E1 /* DatabaseSnapshotTests.swift */,
 				56419CD624A54057004967E1 /* DatabaseSuspensionTests.swift */,
@@ -1221,13 +1225,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1264,13 +1264,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1497,6 +1493,7 @@
 				56419DD124A54062004967E1 /* ValueObservationRecordTests.swift in Sources */,
 				56419E1124A54062004967E1 /* ForeignKeyInfoTests.swift in Sources */,
 				56419DC724A54062004967E1 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */,
+				56BCA2672E6C294600E4F08D /* DatabaseSchemaSourceTests.swift in Sources */,
 				56419EF524A54063004967E1 /* AssociationTableAliasTestsSQLTests.swift in Sources */,
 				56419D6F24A54062004967E1 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				56419E7324A54062004967E1 /* TruncateOptimizationTests.swift in Sources */,
@@ -1748,6 +1745,7 @@
 				56419DD224A54062004967E1 /* ValueObservationRecordTests.swift in Sources */,
 				56419E1224A54062004967E1 /* ForeignKeyInfoTests.swift in Sources */,
 				56419DC824A54062004967E1 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */,
+				56BCA2662E6C294600E4F08D /* DatabaseSchemaSourceTests.swift in Sources */,
 				56419EF624A54063004967E1 /* AssociationTableAliasTestsSQLTests.swift in Sources */,
 				56419D7024A54062004967E1 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				56419E7424A54062004967E1 /* TruncateOptimizationTests.swift in Sources */,
