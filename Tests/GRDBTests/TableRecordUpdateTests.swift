@@ -1680,7 +1680,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    #warning("TODO: duplicate test with views")
+    // TODO: duplicate test with views?
     func testJoinedRequestUpdate() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
@@ -1753,7 +1753,7 @@ class TableRecordUpdateTests: GRDBTestCase {
         }
     }
     
-    #warning("TODO: duplicate test with views")
+    // TODO: duplicate test with views?
     func testJoinedRequestUpdate_DatabaseComponents() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {

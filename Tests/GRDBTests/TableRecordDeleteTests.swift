@@ -776,7 +776,7 @@ class TableRecordDeleteTests: GRDBTestCase {
         }
     }
     
-    #warning("TODO: duplicate test with views")
+    // TODO: duplicate test with views?
     func testJoinedRequestDeleteAll() throws {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: MutablePersistableRecord {
@@ -837,7 +837,7 @@ class TableRecordDeleteTests: GRDBTestCase {
         }
     }
     
-    #warning("TODO: duplicate test with views")
+    // TODO: duplicate test with views?
     func testJoinedRequestDeleteAndFetch() throws {
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         guard Database.sqliteLibVersionNumber >= 3035000 else {
