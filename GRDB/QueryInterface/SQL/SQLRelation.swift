@@ -286,7 +286,6 @@ extension SQLRelation: Refinable {
         with { relation in
             relation.ordering = relation.ordering.appending(Ordering(orderings: { [relation] db in
                 do {
-                    #warning("TODO: test with views")
                     // Order by primary key. Don't order by rowid because those are
                     // not stable: rowids can change after a vacuum.
                     return try db.primaryKey(source.tableName).columns.map { SQLExpression.column($0).sqlOrdering }
