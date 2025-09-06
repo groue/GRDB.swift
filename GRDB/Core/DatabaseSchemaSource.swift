@@ -27,15 +27,24 @@
 /// let dbQueue = try DatabaseQueue(path: "/path/to/db.sqlite", configuration: config)
 /// ```
 ///
-/// For temporary use, call ``Database/withSchemaSource(_:execute:)``:
+/// ## Schema Sources and Migrations
+///
+/// By default, schema sources are disabled during <doc:Migrations>. In
+/// migrations that need a schema source, you can use
+/// ``Database/withSchemaSource(_:execute:)``:
 ///
 /// ```swift
-/// try dbQueue.read { db in
+/// migrator.registerMigration("My migration") { db in
+///     // No schema source is enabled at this point.
 ///     try db.withSchemaSource(MySchemaSource()) {
-///         ...
+///         // Here the provided schema source is in effect.
 ///     }
 /// }
 /// ```
+///
+/// Take care that **a good migration is a migration that is never
+/// modified once it has shipped**: check
+/// <doc:Migrations#Good-Practices-for-Defining-Migrations>.
 ///
 /// ## Topics
 ///
@@ -54,16 +63,22 @@ public protocol DatabaseSchemaSource: Sendable {
     /// to specify that the view has no primary key. The default
     /// implementation returns nil.
     ///
-    /// In your implementation, make sure that:
+    /// In your implementation, make sure that the returned columns define
+    /// a genuine **primary key**:
     ///
-    /// - The returned columns exist in the database schema.
-    /// - The returned columns identify unique rows.
-    /// - The returned columns do not contain NULL values.
+    /// - All columns exist in the provided view.
+    /// - The set of columns reliably identifies and distinguishes between
+    ///   each individual row in the view.
+    /// - No column contains NULL values.
+    ///
+    /// It is a programmer error with undefined consequences to miss
+    /// those requirements.
     ///
     /// For example:
     ///
     /// ```swift
-    /// // A schema source that specifies that views have an "id" primary key.
+    /// // A schema source that specifies that all views are identified by
+    /// // their "id" column:
     /// struct MySchemaSource: DatabaseSchemaSource {
     ///     func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) {
     ///         ["id"]
@@ -88,18 +103,32 @@ public protocol DatabaseSchemaSource: Sendable {
     /// }
     /// ```
     ///
-    /// When you are developing a library that accesses database files owned
-    /// by the users of your library, then you you should allow the host
-    /// application to deal with their own views. To do so, return nil for
-    /// views that your library does not manage. When necessary, use the
-    /// `db` argument in order to query the database schema.
+    /// ### Schema Sources in Libraries
+    ///
+    /// When you are developing a schema source for a library, some extra
+    /// care is necessary whenever the database file is owned by the users
+    /// of your library. Your users may define views for their own purposes,
+    /// and your library knows nothing about the eventual primary key of
+    /// those views.
+    ///
+    /// In this case, make your schema source `public`, and have this method
+    /// return `nil` for those unknow views. If needed, use the `db`
+    /// argument and query the database schema with
+    /// <doc:DatabaseSchemaIntrospection> methods.
+    ///
+    /// For example:
     ///
     /// ```swift
-    /// struct MyLbrarySchemaSource: DatabaseSchemaSource {
-    ///     func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) {
+    /// // A well-behaved schema source defined by a library is public
+    /// // and returns nil for unknown views.
+    /// public struct MyLibrarySchemaSource: DatabaseSchemaSource {
+    ///     public func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) {
     ///         if view.name == "playerView" {
     ///             // This is a view managed by my library:
     ///             return ["id"]
+    ///         } else if try db.tableExists(view.name + "MyLibrary") {
+    ///             // This is a view managed by my library:
+    ///             return ["uuid"]
     ///         } else {
     ///             // Not a view managed by my library:
     ///             // don't mess with user's schema
@@ -108,6 +137,28 @@ public protocol DatabaseSchemaSource: Sendable {
     ///     }
     /// }
     /// ```
+    ///
+    /// With such a setup, your user will be able to deal with their
+    /// own views, by chaining your schema source with other ones
+    /// (see ``DatabaseSchemaSource/then(_:)``):
+    ///
+    /// ```swift
+    /// // Application code
+    /// import MyLibrary
+    /// import GRDB
+    ///
+    /// let myLibrarySchemaSource = MyLibrarySchemaSource()
+    /// let customSchemaSource = TheirCustomSchemaSource()
+    /// let schemaSource = myLibrarySchemaSource.then(customSchemaSource)
+    ///
+    /// var config = Configuration()
+    /// config.schemaSource = schemaSource
+    /// let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+    /// ```
+    ///
+    /// - Parameters:
+    ///     - db: A database connection.
+    ///     - view: The identifier of a database view.
     func columnsForPrimaryKey(
         _ db: Database,
         inView view: DatabaseObjectID
@@ -128,6 +179,18 @@ extension DatabaseSchemaSource {
 extension DatabaseSchemaSource {
     /// Returns a schema source that queries `other` when this source does
     /// not perform customization.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let schemaSource1 = SomeSchemaSource()
+    /// let schemaSource2 = AnotherSchemaSource()
+    /// let schemaSource = schemaSource1.then(schemaSource2)
+    ///
+    /// var config = Configuration()
+    /// config.schemaSource = schemaSource
+    /// let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+    /// ```
     public func then(_ other: some DatabaseSchemaSource) -> some DatabaseSchemaSource {
         Chained2SchemaSource(first: self, second: other)
     }
