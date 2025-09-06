@@ -12,7 +12,8 @@
 /// GRDB features that need a primary key, such as the
 /// ``FetchableRecord/find(_:id:)`` record method, or the persistence
 /// methods of the ``PersistableRecord`` protocol, then use a schema source
-/// that implements the ``columnsForPrimaryKey(_:inView:)`` method.
+/// that implements the ``columnsForPrimaryKey(_:inView:)`` method. See
+/// <doc:ViewRecords> for a detailed guide about such views.
 ///
 /// ## Enabling a Schema Source
 ///
