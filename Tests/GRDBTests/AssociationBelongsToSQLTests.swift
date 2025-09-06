@@ -2359,5 +2359,41 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     """)
             }
         }
+        
+        do {
+            // View with custom primary key.
+            // Existence check is performed on the primary key.
+            struct SchemaSource: DatabaseSchemaSource {
+                func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
+                    ["id"]
+                }
+            }
+            dbConfiguration.schemaSource = SchemaSource()
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "author") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("name", .text)
+                }
+                try db.create(table: "book") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("authorID", .integer)
+                }
+                try db.execute(sql: """
+                    CREATE VIEW authorView AS SELECT * FROM author
+                    """)
+                
+                let association = Book.belongsTo(Table("authorView"), using: ForeignKey(["authorId"], to: ["id"]))
+                let authorAlias = TableAlias()
+                let request = Book
+                    .joining(optional: association.aliased(authorAlias))
+                    .filter(!authorAlias.exists)
+                try assertEqualSQL(db, request, """
+                    SELECT "book".* FROM "book" \
+                    LEFT JOIN "authorView" ON "authorView"."id" = "book"."authorId" \
+                    WHERE "authorView"."id" IS NULL
+                    """)
+            }
+        }
     }
 }

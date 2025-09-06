@@ -580,7 +580,6 @@ extension Database {
     
     /// Returns whether the column identifies the rowid column
     func columnIsRowID(_ column: String, of tableName: String) throws -> Bool {
-        #warning("TODO: test with database views")
         let pk = try primaryKey(tableName)
         return pk.rowIDColumn == column || (pk.tableHasRowID && column.uppercased() == "ROWID")
     }
@@ -1153,8 +1152,8 @@ extension Database {
     ///
     /// The returned array is never empty.
     func existenceCheckColumns(in tableName: String) throws -> [String] {
-        if try tableExists(tableName) {
-            // Table: only check the primary key columns for existence
+        do {
+            // Check the primary key columns for existence
             let primaryKey = try self.primaryKey(tableName)
             if let rowIDColumn = primaryKey.rowIDColumn {
                 // Prefer the user-provided name of the rowid
@@ -1175,10 +1174,15 @@ extension Database {
                 //  try db.existenceCheckColumns(in: "player") // ["uuid"]
                 return primaryKey.columns
             }
-        } else {
-            #warning("TODO: use the primary key if available")
-            // View: check all columns for existence
-            return try columns(in: tableName).map(\.name)
+        } catch let error as DatabaseError {
+            if case .SQLITE_ERROR = error.resultCode,
+               (try? viewExists(tableName)) == true
+            {
+                // View without primary key: check all columns for existence
+                return try columns(in: tableName).map(\.name)
+            } else {
+                throw error
+            }
         }
     }
 }
