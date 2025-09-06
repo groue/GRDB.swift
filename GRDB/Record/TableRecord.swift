@@ -209,6 +209,10 @@ public protocol TableRecord: GRDBSendableMetatype {
     /// // SELECT * FROM player
     /// try Player.fetchAll(db)
     /// ```
+    ///
+    /// You can specify the name of a database table, or the name of a
+    /// database view. When you target a database view, some extra
+    /// configuration might be needed. Please check <doc:ViewRecords>.
     static var databaseTableName: String { get }
     
     /// The columns selected by the record.

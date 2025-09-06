@@ -23,7 +23,7 @@ private struct Team: Codable,
     var id: String
     var name: String
     
-    static let captain = hasOne(Captain.self, using: ForeignKey(["teamId"]))
+    static let captain = hasOne(Captain.self, using: Captain.teamForeignKey)
 }
 
 private struct Captain: Codable,
@@ -36,7 +36,12 @@ private struct Captain: Codable,
     var name: String
     var teamId: String
     
-    static let team = belongsTo(Team.self, using: ForeignKey(["teamId"]))
+    enum Columns {
+        static let teamId = Column(CodingKeys.teamId)
+    }
+    
+    static let teamForeignKey = ForeignKey([Columns.teamId])
+    static let team = belongsTo(Team.self, using: teamForeignKey)
 }
 
 private struct SchemaSource: DatabaseSchemaSource {
@@ -51,68 +56,125 @@ private struct SchemaSource: DatabaseSchemaSource {
 }
 
 class RecordMappedOnMutableViewTests : GRDBTestCase {
-    static func setupDatabase(_ db: Database) throws {
-        try db.create(table: "team") { t in
-            t.primaryKey("id", .text)
-            t.column("name", .text).notNull()
+    private lazy var migrator: DatabaseMigrator = {
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("Teams and players") { db in
+            try db.create(table: "team") { t in
+                t.primaryKey("id", .text)
+                t.column("name", .text).notNull()
+            }
+            
+            try db.create(table: "player") { t in
+                t.primaryKey("id", .text)
+                t.column("name", .text).notNull()
+                t.belongsTo("team", onDelete: .setNull)
+                t.column("isCaptain", .boolean).notNull()
+            }
+            
+            // One unique captain per team
+            try db.create(
+                indexOn: "player", columns: ["teamId"],
+                options: .unique,
+                condition: Column("isCaptain"))
         }
         
-        try db.create(table: "player") { t in
-            t.primaryKey("id", .text)
-            t.column("name", .text).notNull()
-            t.belongsTo("team", onDelete: .setNull)
-            t.column("isCaptain", .boolean).notNull()
-        }
-        
-        try db.create(indexOn: "player", columns: ["teamId"], options: .unique, condition: Column("isCaptain"))
-        
-        try db.execute(sql: """
-            CREATE VIEW captain AS
-                SELECT player.id, player.name, player.teamId
+        migrator.registerMigration("Read-only captains") { db in
+            try db.execute(sql: """
+                CREATE VIEW captain AS
+                SELECT id, name, teamId
                 FROM player
-                WHERE isCaptain;
-            
-            -- Insert trigger
-            CREATE TRIGGER captain_insert
-            INSTEAD OF INSERT ON captain
-            BEGIN
-                -- Remove previous captain
-                UPDATE player SET isCaptain = 0
-                WHERE teamId = NEW.teamId AND isCaptain = 1;
+                WHERE isCaptain AND teamId IS NOT NULL;
+                """)
+        }
+        
+        migrator.registerMigration("Captain CRUD") { db in
+            try db.execute(sql: """
+                -- Insert trigger
+                CREATE TRIGGER captain_insert
+                INSTEAD OF INSERT ON captain
+                BEGIN
+                    -- Remove previous captain
+                    UPDATE player SET isCaptain = 0
+                    WHERE teamId = NEW.teamId AND isCaptain;
+                    
+                    -- Insert new captain
+                    INSERT INTO player(id, name, teamId, isCaptain)
+                    VALUES (NEW.id, NEW.name, NEW.teamId, 1);
+                END;
                 
-                -- Insert new captain
-                INSERT INTO player(id, name, teamId, isCaptain)
-                VALUES (NEW.id, NEW.name, NEW.teamId, 1);
-            END;
-            
-            -- Update trigger
-            CREATE TRIGGER captain_update
-            INSTEAD OF UPDATE ON captain
-            BEGIN
-                -- Remove previous captain
-                UPDATE player SET isCaptain = 0
-                WHERE teamId = NEW.teamId AND isCaptain = 1 AND id <> OLD.id;
+                -- Update trigger
+                CREATE TRIGGER captain_update
+                INSTEAD OF UPDATE ON captain
+                BEGIN
+                    -- Remove previous captain
+                    UPDATE player SET isCaptain = 0
+                    WHERE teamId = NEW.teamId AND isCaptain AND id <> NEW.id;
+                    
+                    -- Update captain
+                    UPDATE player SET name = NEW.name, teamId = NEW.teamId, isCaptain = 1
+                    WHERE id = NEW.id;
+                END;
                 
-                -- Update captain
-                UPDATE player SET name = NEW.name, teamId = NEW.teamId, isCaptain = 1
-                WHERE id = OLD.id;
-            END;
+                -- Delete trigger
+                CREATE TRIGGER captain_delete
+                INSTEAD OF DELETE ON captain
+                BEGIN
+                    DELETE FROM player WHERE id = OLD.id;
+                END;
+                """)
+        }
+        
+        return migrator
+    }()
+    
+    func test_read_only() throws {
+        // No schema source, no CRUD
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue, upTo: "Read-only captains")
+        try dbQueue.write { db in
+            try Team(id: "red", name: "Red").insert(db)
+            try Team(id: "blue", name: "Blue").insert(db)
+            try Player(id: "alice", name: "Alice", teamId: "red", isCaptain: true).insert(db)
+            try Player(id: "bob", name: "Bob", teamId: "blue", isCaptain: true).insert(db)
+            try Player(id: "craig", name: "Craig", teamId: "blue", isCaptain: false).insert(db)
+
+            let captains = try Captain.fetchAll(db)
+            XCTAssertEqual(captains.count, 2)
+            XCTAssert(captains.contains(Captain(id: "alice", name: "Alice", teamId: "red")))
+            XCTAssert(captains.contains(Captain(id: "bob", name: "Bob", teamId: "blue")))
+        }
+    }
+    
+    func test_read_only_primary_key() throws {
+        // No CRUD
+        dbConfiguration.schemaSource = SchemaSource()
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue, upTo: "Read-only captains")
+        try dbQueue.write { db in
+            try Team(id: "red", name: "Red").insert(db)
+            try Team(id: "blue", name: "Blue").insert(db)
+            try Player(id: "alice", name: "Alice", teamId: "red", isCaptain: true).insert(db)
+            try Player(id: "bob", name: "Bob", teamId: "blue", isCaptain: true).insert(db)
+            try Player(id: "craig", name: "Craig", teamId: "blue", isCaptain: false).insert(db)
             
-            -- Delete trigger
-            CREATE TRIGGER captain_delete
-            INSTEAD OF DELETE ON captain
-            BEGIN
-                DELETE FROM player WHERE id = OLD.id;
-            END;
-            """)
+            let captains = try Captain.orderByPrimaryKey().fetchAll(db)
+            XCTAssertEqual(captains, [
+                Captain(id: "alice", name: "Alice", teamId: "red"),
+                Captain(id: "bob", name: "Bob", teamId: "blue"),
+            ])
+            
+            let alice = try Captain.find(db, id: "alice")
+            XCTAssertEqual(alice, Captain(id: "alice", name: "Alice", teamId: "red"))
+            
+            try db.dumpTables(["team", "player", "captain"])
+        }
     }
     
     func test_CRUD() throws {
         dbConfiguration.schemaSource = SchemaSource()
         let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
         try dbQueue.write { db in
-            try Self.setupDatabase(db)
-            
             let red = Team(id: "red", name: "Red")
             try red.insert(db)
             
@@ -176,9 +238,8 @@ class RecordMappedOnMutableViewTests : GRDBTestCase {
     func test_fetch_by_primary_key() throws {
         dbConfiguration.schemaSource = SchemaSource()
         let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
         try dbQueue.write { db in
-            try Self.setupDatabase(db)
-            
             try Team(id: "red", name: "Red").insert(db)
             try Captain(id: "alice", name: "Alice", teamId: "red").insert(db)
             
@@ -203,8 +264,8 @@ class RecordMappedOnMutableViewTests : GRDBTestCase {
     func test_stable_order() throws {
         dbConfiguration.schemaSource = SchemaSource()
         let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
         try dbQueue.write { db in
-            try Self.setupDatabase(db)
             let request = Captain.all().withStableOrder()
             try assertEqualSQL(db, request, "SELECT * FROM \"captain\" ORDER BY \"id\"")
         }
@@ -213,9 +274,8 @@ class RecordMappedOnMutableViewTests : GRDBTestCase {
     func test_team_has_one_captain_request() throws {
         dbConfiguration.schemaSource = SchemaSource()
         let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
         try dbQueue.write { db in
-            try Self.setupDatabase(db)
-            
             let red = Team(id: "red", name: "Red")
             try red.insert(db)
             
@@ -276,9 +336,8 @@ class RecordMappedOnMutableViewTests : GRDBTestCase {
     func test_captain_belongs_to_team_request() throws {
         dbConfiguration.schemaSource = SchemaSource()
         let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
         try dbQueue.write { db in
-            try Self.setupDatabase(db)
-            
             try Team(id: "red", name: "Red").insert(db)
             try Team(id: "blue", name: "Blue").insert(db)
 
