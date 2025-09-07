@@ -4,8 +4,8 @@
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 ///
-/// The use case for a custom schema source is enabling GRDB features that
-/// would not work with the built-in schema introspection that is provided
+/// The use case for a custom schema source is to enable GRDB features that
+/// would not work with the built-in schema introspection provided
 /// by SQLite.
 ///
 /// For example, if your database schema contains a view and you wish to use
@@ -60,9 +60,9 @@ public protocol DatabaseSchemaSource: Sendable {
     /// Returns the names of the columns for the primary key in the
     /// provided database view.
     ///
-    /// Return nil if no customization should happen. Return an empty array
-    /// to specify that the view has no primary key. The default
-    /// implementation returns nil.
+    /// Return `nil` if no customization should happen. Return an empty
+    /// array to specify that the view has no primary key. The default
+    /// implementation returns `nil`.
     ///
     /// In your implementation, make sure that the returned columns define
     /// a genuine **primary key**:
@@ -113,7 +113,7 @@ public protocol DatabaseSchemaSource: Sendable {
     /// those views.
     ///
     /// In this case, make your schema source `public`, and have this method
-    /// return `nil` for those unknow views. If needed, use the `db`
+    /// return `nil` for those unknown views. If needed, use the `db`
     /// argument and query the database schema with
     /// <doc:DatabaseSchemaIntrospection> methods.
     ///
@@ -179,7 +179,7 @@ extension DatabaseSchemaSource {
 
 extension DatabaseSchemaSource {
     /// Returns a schema source that queries `other` when this source does
-    /// not perform customization.
+    /// not perform a customization.
     ///
     /// For example:
     ///
