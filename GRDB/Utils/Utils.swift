@@ -23,6 +23,14 @@ public func databaseQuestionMarks(count: Int) -> String {
     repeatElement("?", count: count).joined(separator: ",")
 }
 
+#if compiler(>=6.2)
+/// A synonym for `SendableMetatype` in Swift 6.2, and `Any` otherwise.
+public typealias GRDBSendableMetatype = SendableMetatype
+#else
+/// A synonym for `SendableMetatype` in Swift 6.2, and `Any` otherwise.
+public typealias GRDBSendableMetatype = Any
+#endif
+
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.
