@@ -27,14 +27,10 @@ class PrimaryKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message, """
-                    The database view 'items' has no primary key. \
-                    To support views, provide a custom schema source \
-                    in Configuration.schemaSource.
+                    database view items has no primary key
                     """)
                 XCTAssertEqual(error.description, """
-                    SQLite error 1: The database view 'items' has no primary key. \
-                    To support views, provide a custom schema source \
-                    in Configuration.schemaSource.
+                    SQLite error 1: database view items has no primary key
                     """)
             }
         }
@@ -282,12 +278,10 @@ class PrimaryKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message, """
-                    The database view 'playerView' has no primary key, \
-                    according to Configuration.schemaSource.
+                    database view playerView has no primary key
                     """)
                 XCTAssertEqual(error.description, """
-                    SQLite error 1: The database view 'playerView' has no primary key, \
-                    according to Configuration.schemaSource.
+                    SQLite error 1: database view playerView has no primary key
                     """)
             }
         }
@@ -322,12 +316,10 @@ class PrimaryKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message, """
-                    The database view 'playerView' has no primary key, \
-                    according to Configuration.schemaSource.
+                    database view playerView has no primary key
                     """)
                 XCTAssertEqual(error.description, """
-                    SQLite error 1: The database view 'playerView' has no primary key, \
-                    according to Configuration.schemaSource.
+                    SQLite error 1: database view playerView has no primary key
                     """)
             }
         }
