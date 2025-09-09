@@ -827,20 +827,10 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
                     // or unique index).
                     guard let columns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
                         if (try? db.viewExists(databaseTableName)) == true {
-                            if db.schemaSource == nil {
-                                fatalError("""
-                                    view \(databaseTableName) has no unique key on column(s) \
-                                    \(key.keys.sorted().joined(separator: ", ")). To support \
-                                    keys in views, provide a custom schema source in \
-                                    Configuration.schemaSource.
-                                    """)
-                            } else {
-                                fatalError("""
-                                    view \(databaseTableName) has no unique key on column(s) \
-                                    \(key.keys.sorted().joined(separator: ", ")), \
-                                    according to Configuration.schemaSource.
-                                    """)
-                            }
+                            fatalError("""
+                                database view \(databaseTableName) has no unique key on column(s) \
+                                \(key.keys.sorted().joined(separator: ", "))
+                                """)
                         } else {
                             fatalError("""
                                 table \(databaseTableName) has no unique key on column(s) \

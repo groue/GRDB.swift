@@ -14,7 +14,7 @@ let captains = try Captain.fetchAll(db)
 let captainCount = try Captain.fetchCount(db)
 
 // KO: Requires extra configuration
-// SQLite error 1: The database view 'captain' has no primary key.
+// SQLite error 1: database view captain has no primary key
 var bob = try Captain.find(db, id: "bob")
 bob.name = "Bobby"
 // SQLite error 1: cannot modify captain because it is a view
