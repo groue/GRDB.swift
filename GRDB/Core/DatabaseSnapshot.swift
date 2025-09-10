@@ -113,8 +113,13 @@ public final class DatabaseSnapshot {
     deinit {
         // Leave snapshot isolation
         reader.reentrantSync { db in
-            // Ignore commit error (we can not notify it), but make sure we leave the transaction
-            try? db.commit()
+            // Commit or rollback, but make sure we leave the read-only transaction
+            // (commit may fail with a CancellationError).
+            do {
+                try db.commit()
+            } catch {
+                try? db.rollback()
+            }
             assert(!db.isInsideTransaction)
         }
     }

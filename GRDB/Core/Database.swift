@@ -1744,7 +1744,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         if isInsideTransaction {
             try execute(sql: "ROLLBACK TRANSACTION")
         }
-        assert(sqlite3_get_autocommit(sqliteConnection) != 0)
+        assert(!isInsideTransaction)
     }
     
     /// Commits a database transaction.
