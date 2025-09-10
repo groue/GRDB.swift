@@ -361,6 +361,7 @@ extension DatabasePool: DatabaseReader {
         return try await readerPool.get { reader in
             try await reader.execute { db in
                defer {
+                   #warning("TODO: when Task is cancelled, this commit fails, and we're still in a transaction")
                    // Ignore commit error, but make sure we leave the transaction
                    try? db.commit()
                    assert(!db.isInsideTransaction)
