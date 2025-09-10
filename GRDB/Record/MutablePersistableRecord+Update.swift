@@ -956,8 +956,10 @@ extension MutablePersistableRecord {
             // Nil primary key
             try dao.recordNotFound()
         }
+        let prevCount = db.totalChangesCount
         let returned = try fetch(statement)
-        if db.changesCount == 0 {
+        let changesCount = db.totalChangesCount - prevCount
+        if changesCount == 0 {
             // No row was updated
             try dao.recordNotFound()
         }

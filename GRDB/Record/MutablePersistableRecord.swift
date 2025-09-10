@@ -184,6 +184,11 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// }
     /// ```
     ///
+    /// - important: Due to an SQLite limitation, this callback is
+    ///   unreliable when the record type writes into a database view
+    ///   through an INSTEAD OF trigger. The `inserted.rowID` value is
+    ///   not the rowid of the inserted row.
+    ///
     /// - parameter inserted: Information about the inserted row.
     mutating func didInsert(_ inserted: InsertionSuccess)
     
