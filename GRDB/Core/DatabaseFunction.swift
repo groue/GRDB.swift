@@ -492,7 +492,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
 ///     try Int.fetchOne(db, sql: "SELECT mysum(i) FROM test")! // 3
 /// }
 /// ```
-public protocol DatabaseAggregate {
+public protocol DatabaseAggregate: GRDBSendableMetatype {
     /// Creates an aggregate.
     ///
     /// A new instance is created for each aggregation.

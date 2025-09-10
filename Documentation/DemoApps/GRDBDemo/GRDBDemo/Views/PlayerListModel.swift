@@ -56,7 +56,7 @@ import GRDB
         
         // Start observing the database.
         // Previous observation, if any, is cancelled.
-        cancellable = observation.start(in: appDatabase.reader) { error in
+        cancellable = observation.start(in: appDatabase.reader, scheduling: .immediate) { error in
             // Handle error
         } onChange: { [unowned self] players in
             self.players = players

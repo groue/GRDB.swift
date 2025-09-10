@@ -229,5 +229,11 @@ Task {
 }
 ```
 
+## Topics
+
+### Supporting Types
+
+- ``GRDBSendableMetatype``
+
 [demo apps]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide/

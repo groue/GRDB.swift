@@ -11,7 +11,7 @@
 // which is its `Fetcher`.
 
 /// Implementation details of `ValueReducer`.
-public protocol _ValueReducer {
+public protocol _ValueReducer: GRDBSendableMetatype {
     /// The Sendable type that fetches database values
     associatedtype Fetcher: _ValueReducerFetcher
     
