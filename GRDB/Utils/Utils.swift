@@ -24,10 +24,12 @@ public func databaseQuestionMarks(count: Int) -> String {
 }
 
 #if compiler(>=6.2)
-/// A synonym for `SendableMetatype` in Swift 6.2, and `Any` otherwise.
+/// A synonym for the standard `SendableMetatype` protocol in Swift 6.2,
+/// and `Any` in previous compiler versions.
 public typealias GRDBSendableMetatype = SendableMetatype
 #else
-/// A synonym for `SendableMetatype` in Swift 6.2, and `Any` otherwise.
+/// A synonym for the standard `SendableMetatype` protocol in Swift 6.2,
+/// and `Any` in previous compiler versions.
 public typealias GRDBSendableMetatype = Any
 #endif
 
