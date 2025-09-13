@@ -806,7 +806,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) in
                 let collation = Unmanaged<DatabaseCollation>.fromOpaque(collationPointer!).takeUnretainedValue()
-                return CInt(collation.function(length1, buffer1, length2, buffer2).rawValue)
+                return collation.xCompare(length1, buffer1.unsafelyUnwrapped, length2, buffer2.unsafelyUnwrapped)
             }, nil)
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
