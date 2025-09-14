@@ -148,11 +148,11 @@ extension FTS5Tokenizer {
     private func tokenize(_ string: String, for tokenization: FTS5Tokenization)
     throws -> [(token: String, flags: FTS5TokenFlags)]
     {
-        try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
+        try string.utf8CString.withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
             guard let addr = buffer.baseAddress else {
                 return []
             }
-            let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: CChar.self)
+            let pText = addr
             let nText = CInt(buffer.count)
             
             var context = TokenizeContext()
