@@ -43,3 +43,7 @@ private final class DispatchQueueExecutor: SerialExecutor {
         dispatchPrecondition(condition: .onQueue(queue))
     }
 }
+
+#if os(Linux)
+    extension DispatchQueueExecutor: @unchecked Sendable {}
+#endif
