@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -27,6 +27,12 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 
+// whether the "GRDBCIPHER" should be enabled by default; used for testing
+var GRDBCIPHERENV = (ProcessInfo.processInfo.environment["GRDBCIPHER"] ?? "0") != "0"
+var GRDBDependencies: [Target.Dependency] = ["GRDBSQLite"]
+GRDBDependencies += [.product(name: "SQLCipher", package: "swift-sqlcipher", condition: .when(traits: ["GRDBCIPHER"]))]
+dependencies.append(.package(url: "https://github.com/skiptools/swift-sqlcipher.git", from: "1.3.0"))
+
 let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
@@ -41,6 +47,10 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
+    traits: [
+        .trait(name: "GRDBCIPHER", description: "Use the SQLCipher library rather than the vendored SQLite"),
+        .default(enabledTraits: GRDBCIPHERENV ? ["GRDBCIPHER"] : []) // GRDBCIPHER is not enabled by default
+    ],
     dependencies: dependencies,
     targets: [
         .systemLibrary(
@@ -48,7 +58,7 @@ let package = Package(
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["GRDBSQLite"],
+            dependencies: GRDBDependencies,
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
@@ -85,3 +95,23 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+// The GRDB_PERFORMANCE_TESTS environment variable enables
+// the performance tests to be included in the package, which can be run with:
+// GRDB_PERFORMANCE_TESTS=1 swift test --filter GRDBPerformanceTests
+if ProcessInfo.processInfo.environment["GRDB_PERFORMANCE_TESTS"] == "1" {
+    package.targets.append(
+        Target.testTarget(
+            name: "GRDBPerformanceTests",
+            dependencies: ["GRDB"],
+            path: "Tests/Performance/GRDBPerformance",
+            cSettings: cSettings,
+            swiftSettings: swiftSettings + [
+                // Tests still use the Swift 5 language mode.
+                .swiftLanguageMode(.v5),
+                .enableUpcomingFeature("InferSendableFromCaptures"),
+                .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
+            ])
+    )
+}
+
