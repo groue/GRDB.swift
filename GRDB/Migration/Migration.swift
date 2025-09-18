@@ -8,20 +8,36 @@ struct Migration: Sendable {
     
     let identifier: String
     var foreignKeyChecks: ForeignKeyChecks
-    let migrate: @Sendable (Database) throws -> Void
+    // Private so that the guarantees of `run(_:)` are enforced.
+    private let migrate: @Sendable (Database) throws -> Void
+    
+    init(
+        identifier: String,
+        foreignKeyChecks: ForeignKeyChecks,
+        migrate: @escaping @Sendable (Database) throws -> Void
+    ) {
+        self.identifier = identifier
+        self.foreignKeyChecks = foreignKeyChecks
+        self.migrate = migrate
+    }
     
     func run(_ db: Database) throws {
-        if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
-            switch foreignKeyChecks {
-            case .deferred:
-                try runWithDeferredForeignKeysChecks(db)
-            case .immediate:
+        // Migrations access the raw SQLite schema, without alteration due
+        // to the schemaSource. The goal is to ensure that migrations are
+        // immutable, immune from spooky actions at a distance.
+        try db.withSchemaSource(nil) {
+            if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
+                switch foreignKeyChecks {
+                case .deferred:
+                    try runWithDeferredForeignKeysChecks(db)
+                case .immediate:
+                    try runWithImmediateForeignKeysChecks(db)
+                case .disabled:
+                    try runWithDisabledForeignKeysChecks(db)
+                }
+            } else {
                 try runWithImmediateForeignKeysChecks(db)
-            case .disabled:
-                try runWithDisabledForeignKeysChecks(db)
             }
-        } else {
-            try runWithImmediateForeignKeysChecks(db)
         }
     }
     

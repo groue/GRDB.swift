@@ -256,8 +256,8 @@ extension DatabaseRegion {
             }
         } else {
             // full database
-            return try db.schemaIdentifiers().flatMap { schemaIdentifier in
-                let schema = try db.schema(schemaIdentifier)
+            return try db.fetchSchemaIdentifiers().flatMap { schemaID in
+                let schema = try db.schema(schemaID)
                 return try schema.objects
                     .filter { $0.type == .table }
                     .flatMap { table in

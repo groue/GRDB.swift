@@ -53,7 +53,8 @@ extension MutablePersistableRecord {
             // Nil primary key
             return false
         }
+        let prevCount = db.totalChangesCount
         try statement.execute()
-        return db.changesCount > 0
+        return (db.totalChangesCount - prevCount) > 0
     }
 }

@@ -29,6 +29,8 @@ Get information about schema objects such as tables, columns, indexes, foreign k
 
 ### Supporting Types
 
+- ``DatabaseSchemaID``
+- ``DatabaseObjectID``
 - ``ColumnInfo``
 - ``ForeignKeyInfo``
 - ``IndexInfo``
