@@ -113,6 +113,11 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``resumeNotification``
 /// - ``suspendNotification``
 ///
+/// ### The Schema Source
+///
+/// - ``schemaSource``
+/// - ``withSchemaSource(_:execute:)``
+///
 /// ### Other Database Operations
 ///
 /// - ``add(tokenizer:)``
@@ -186,6 +191,19 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The database configuration.
     public let configuration: Configuration
+    
+    /// The current schema source.
+    ///
+    /// By default, it is the ``Configuration/schemaSource``
+    /// of ``configuration``. To modify the schema source,
+    /// use ``withSchemaSource(_:execute:)``.
+    ///
+    /// The schema source is automatically disabled (nil) during database
+    /// migrations performed by ``DatabaseMigrator``: those access the raw
+    /// SQLite schema, unaltered. If a migration needs a schema source,
+    /// you may call ``Database/withSchemaSource(_:execute:)`` from within
+    /// the body of a migration.
+    public internal(set) var schemaSource: (any DatabaseSchemaSource)?
     
     /// A description of this database connection.
     ///
@@ -442,6 +460,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        self.schemaSource = configuration.schemaSource
         self.path = path
         
         // We do not report read-only transactions to transaction observers, so
