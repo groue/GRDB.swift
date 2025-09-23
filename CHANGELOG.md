@@ -138,6 +138,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: Update GRDB7MigrationGuide.md reference by [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) in [#1807](https://github.com/groue/GRDB.swift/pull/1807)
+- **New**: Persistable Database Views by [@groue](https://github.com/groue) in [#1810](https://github.com/groue/GRDB.swift/pull/1810)
+- **New**: Support for Xcode 26 by [@groue](https://github.com/groue) in [#1813](https://github.com/groue/GRDB.swift/pull/1813)
+- **Fixed**: Fix another race condition regarding Task cancellation, completing [#1797](https://github.com/groue/GRDB.swift/pull/1797)
+
 ## 7.6.1
 
 Released July 23, 2025
