@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.7.x` Releases - [7.7.0](#770)
 - `7.6.x` Releases - [7.6.0](#760) - [7.6.1](#761)
 - `7.5.x` Releases - [7.5.0](#750)
 - `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
@@ -138,7 +139,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 7.7.0
+
+Released September 23, 2025
 
 - **New**: Update GRDB7MigrationGuide.md reference by [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) in [#1807](https://github.com/groue/GRDB.swift/pull/1807)
 - **New**: Persistable Database Views by [@groue](https://github.com/groue) in [#1810](https://github.com/groue/GRDB.swift/pull/1810)
