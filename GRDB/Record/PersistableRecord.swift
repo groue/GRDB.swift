@@ -73,6 +73,11 @@ public protocol PersistableRecord: MutablePersistableRecord {
     /// - note: If you need a mutating variant of this method, adopt the
     ///   ``MutablePersistableRecord`` protocol instead.
     ///
+    /// - important: Due to an SQLite limitation, this callback is
+    ///   unreliable when the record type writes into a database view
+    ///   through an INSTEAD OF trigger. The `inserted.rowID` value is
+    ///   not the rowid of the inserted row.
+    ///
     /// - parameter inserted: Information about the inserted row.
     func didInsert(_ inserted: InsertionSuccess)
 }

@@ -87,7 +87,7 @@ public struct Configuration: Sendable {
     ///   with the number of snapshots.
     ///
     /// The default configuration label is nil.
-    public var label: String? = nil
+    public var label: String?
     
     /// A boolean value indicating whether SQLite 3.29+ interprets
     /// double-quoted strings as string literals when they does not match any
@@ -329,7 +329,7 @@ public struct Configuration: Sendable {
     
     /// The behavior in case of SQLITE_BUSY error, for read-only connections.
     /// If nil, GRDB picks a default one.
-    var readonlyBusyMode: Database.BusyMode? = nil
+    var readonlyBusyMode: Database.BusyMode?
     
     /// The maximum number of concurrent reader connections.
     ///
@@ -387,7 +387,7 @@ public struct Configuration: Sendable {
     /// ``qos`` property.
     ///
     /// The default is nil.
-    public var targetQueue: DispatchQueue? = nil
+    public var targetQueue: DispatchQueue?
     
     /// The target dispatch queue for write database accesses.
     ///
@@ -395,7 +395,7 @@ public struct Configuration: Sendable {
     /// by ``targetQueue``.
     ///
     /// The default is nil.
-    public var writeTargetQueue: DispatchQueue? = nil
+    public var writeTargetQueue: DispatchQueue?
 
 #if os(iOS)
     /// A boolean value indicating whether the database connection releases
@@ -420,6 +420,22 @@ public struct Configuration: Sendable {
     /// Consider setting this flag to true when profiling your application
     /// reveals that a lot of time is spent opening new SQLite connections.
     public var persistentReadOnlyConnections = false
+    
+    // MARK: - Database Schema
+    
+    /// A custom schema source.
+    ///
+    /// The use case for a custom schema source is enabling GRDB features that
+    /// would not work with the built-in schema introspection that is provided
+    /// by SQLite. For example, a custom schema source can help record types
+    /// that read or write in a database view.
+    ///
+    /// The schema source is automatically disabled during database
+    /// migrations performed by ``DatabaseMigrator``: those access the raw
+    /// SQLite schema, unaltered. If a migration needs a schema source,
+    /// you may call ``Database/withSchemaSource(_:execute:)`` from within
+    /// the body of a migration.
+    public var schemaSource: (any DatabaseSchemaSource)?
     
     // MARK: - Factory Configuration
     

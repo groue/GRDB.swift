@@ -70,7 +70,10 @@ class GRDBTestCase: XCTestCase {
     var sqlQueries: [String] { _sqlQueriesMutex.load() }
     
     // Automatically updated by default dbConfiguration
-    var lastSQLQuery: String? { sqlQueries.last }
+    var lastSQLQuery: String? {
+        // Skip comments that may be inserted by triggers and virtual tables.
+        sqlQueries.last { !$0.hasPrefix("--") }
+    }
     
     override func setUp() {
         super.setUp()

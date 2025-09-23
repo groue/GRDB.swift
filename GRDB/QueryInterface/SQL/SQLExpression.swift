@@ -1592,7 +1592,7 @@ extension SQLExpression {
         case let .associativeBinary(op, expressions):
             assert(expressions.count > 1)
             if op == .and {
-                var result: Set<Int64>? = nil
+                var result: Set<Int64>?
                 for expression in expressions {
                     if let expressionRowIDs = try expression.identifyingRowIDs(db, for: alias) {
                         if var rowIDs = result {
@@ -2020,8 +2020,8 @@ struct SQLAggregateFunctionInvocation {
     var name: String
     var arguments: [SQLExpression]
     var isDistinct = false
-    var ordering: SQLOrdering? = nil // SQLite 3.44.0+
-    var filter: SQLExpression? = nil // @available(iOS 14, macOS 10.16, tvOS 14, *) SQLite 3.30+
+    var ordering: SQLOrdering? // SQLite 3.44.0+
+    var filter: SQLExpression? // @available(iOS 14, macOS 10.16, tvOS 14, *) SQLite 3.30+
     
     /// A boolean value indicating if a function is known to return a
     /// JSON value.

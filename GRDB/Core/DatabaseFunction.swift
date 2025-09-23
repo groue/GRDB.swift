@@ -82,20 +82,43 @@ public final class DatabaseFunction: Identifiable, Sendable {
     ///       such as `Int`, `String`, `Date`, etc. The array is guaranteed to
     ///       have exactly `argumentCount` elements, provided `argumentCount` is
     ///       not nil.
-    public init(
+    public convenience init(
         _ name: String,
         argumentCount: Int? = nil,
         pure: Bool = false,
         function: @escaping @Sendable ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
+        self.init(name, argumentCount: argumentCount, pure: pure) { (argc, argv, context) in
+            let arguments = (0..<Int(argc)).map { index in
+                DatabaseValue(sqliteValue: argv[index]!)
+            }
+            let result = try function(arguments)
+            switch result?.databaseValue.storage ?? .null {
+            case .null:
+                sqlite3_result_null(context)
+            case .int64(let int64):
+                sqlite3_result_int64(context, int64)
+            case .double(let double):
+                sqlite3_result_double(context, double)
+            case .string(let string):
+                sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+            case .blob(let data):
+                data.withUnsafeBytes {
+                    sqlite3_result_blob(context, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
+                }
+            }
+        }
+    }
+    
+    init(
+        _ name: String,
+        argumentCount: Int? = nil,
+        pure: Bool = false,
+        xFunc: @escaping XFunc)
+    {
         self.id = ID(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
         self.isPure = pure
-        self.kind = .function { (argc, argv) in
-            let arguments = (0..<Int(argc)).map { index in
-                DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
-            }
-            return try function(arguments)
-        }
+        self.kind = .function(xFunc)
     }
     
     /// Creates an SQL aggregate function.
@@ -256,11 +279,10 @@ public final class DatabaseFunction: Identifiable, Sendable {
     /// Feeds the `pApp` parameter of sqlite3_create_function_v2
     /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private class FunctionDefinition {
-        let compute: (CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?
-        init(compute: @escaping (CInt, UnsafeMutablePointer<OpaquePointer?>?)
-             throws -> (any DatabaseValueConvertible)?)
+        let xFunc: XFunc
+        init(xFunc: @escaping XFunc)
         {
-            self.compute = compute
+            self.xFunc = xFunc
         }
     }
     
@@ -283,11 +305,19 @@ public final class DatabaseFunction: Identifiable, Sendable {
         }
     }
     
+    /// Feeds the `xFunc` parameter of sqlite3_create_function_v2
+    /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
+    typealias XFunc = @Sendable (
+        _ argc: CInt,
+        _ argv: UnsafeMutablePointer<OpaquePointer?>,
+        _ context: OpaquePointer?
+    ) throws -> Void
+    
     /// A function kind: an "SQL function" or an "aggregate".
     /// See <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private enum Kind: Sendable {
         /// A regular function: SELECT f(1)
-        case function(@Sendable (CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?)
+        case function(XFunc)
         
         /// An aggregate: SELECT f(foo) FROM bar GROUP BY baz
         case aggregate(@Sendable () -> any DatabaseAggregate)
@@ -296,8 +326,8 @@ public final class DatabaseFunction: Identifiable, Sendable {
         /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
         var definition: AnyObject {
             switch self {
-            case .function(let compute):
-                return FunctionDefinition(compute: compute)
+            case .function(let xFunc):
+                return FunctionDefinition(xFunc: xFunc)
             case .aggregate(let makeAggregate):
                 return AggregateDefinition(makeAggregate: makeAggregate)
             }
@@ -312,9 +342,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
                     .fromOpaque(sqlite3_user_data(sqliteContext))
                     .takeUnretainedValue()
                 do {
-                    try DatabaseFunction.report(
-                        result: definition.compute(argc, argv),
-                        in: sqliteContext)
+                    try definition.xFunc(argc, argv.unsafelyUnwrapped, sqliteContext)
                 } catch {
                     DatabaseFunction.report(error: error, in: sqliteContext)
                 }
@@ -464,7 +492,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
 ///     try Int.fetchOne(db, sql: "SELECT mysum(i) FROM test")! // 3
 /// }
 /// ```
-public protocol DatabaseAggregate {
+public protocol DatabaseAggregate: GRDBSendableMetatype {
     /// Creates an aggregate.
     ///
     /// A new instance is created for each aggregation.

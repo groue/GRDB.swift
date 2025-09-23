@@ -677,4 +677,52 @@ class DatabaseReaderTests : GRDBTestCase {
         try await test(AnyDatabaseReader(makeDatabaseQueue()))
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/pull/1797
+    func test_cancellation_does_not_impact_other_tasks() async throws {
+        func test(_ dbReader: some DatabaseReader) async throws {
+            // Numbers that have the test fail more or less reliably
+            // (on my machine) unless the #1797 patch is applied.
+            let repeatCount = 30
+            let taskCount = 400
+            for _ in 0..<repeatCount {
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for i in 0..<taskCount{
+                        let task = Task {
+                            try await dbReader.read { db in
+                                try db.execute(sql: "SELECT 1")
+                            }
+                        }
+                        group.addTask {
+                            if i.isMultiple(of: 2) {
+                                Task {
+                                    // For the test to fail, we need to be lucky, here:
+                                    // Cancellation must occur after the database access
+                                    // has completed, but before `read` has returned. This
+                                    // triggers the failure of unrelated tasks because
+                                    // the database enters the cancelled state
+                                    // (fixed by #1797).
+                                    task.cancel()
+                                }
+                                // Ignore expected CancellationError
+                                try? await task.value
+                            } else {
+                                // Unexpected CancellationError fails the test
+                                try await task.value
+                            }
+                        }
+                    }
+                    try await group.waitForAll()
+                }
+            }
+        }
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        try await test(makeDatabasePool().makeSnapshotPool())
+#endif
+        try await test(AnyDatabaseReader(makeDatabaseQueue()))
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
 }

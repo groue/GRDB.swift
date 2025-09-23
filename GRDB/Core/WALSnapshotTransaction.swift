@@ -15,7 +15,13 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             // WALSnapshotTransaction may be deinitialized in the dispatch
             // queue of its reader: allow reentrancy.
             let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false) { db in
-                try? db.commit()
+                // Commit or rollback, but try hard to leave the read-only transaction
+                // (commit may fail with a CancellationError).
+                do {
+                    try db.commit()
+                } catch {
+                    try? db.rollback()
+                }
                 return db.isInsideTransaction
             }
             release(isInsideTransaction)

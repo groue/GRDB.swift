@@ -361,8 +361,13 @@ extension DatabasePool: DatabaseReader {
         return try await readerPool.get { reader in
             try await reader.execute { db in
                defer {
-                   // Ignore commit error, but make sure we leave the transaction
-                   try? db.commit()
+                   // Commit or rollback, but make sure we leave the read-only transaction
+                   // (commit may fail with a CancellationError).
+                   do {
+                       try db.commit()
+                   } catch {
+                       try? db.rollback()
+                   }
                    assert(!db.isInsideTransaction)
                }
                // The block isolation comes from the DEFERRED transaction.
@@ -387,8 +392,13 @@ extension DatabasePool: DatabaseReader {
                 // Second async jump because that's how `Pool.async` has to be used.
                 reader.async { db in
                     defer {
-                        // Ignore commit error, but make sure we leave the transaction
-                        try? db.commit()
+                        // Commit or rollback, but make sure we leave the read-only transaction
+                        // (commit may fail with a CancellationError).
+                        do {
+                            try db.commit()
+                        } catch {
+                            try? db.rollback()
+                        }
                         assert(!db.isInsideTransaction)
                         releaseReader(.reuse)
                     }
@@ -551,8 +561,13 @@ extension DatabasePool: DatabaseReader {
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
                 defer {
-                    // Ignore commit error, but make sure we leave the transaction
-                    try? db.commit()
+                    // Commit or rollback, but make sure we leave the read-only transaction
+                    // (commit may fail with a CancellationError).
+                    do {
+                        try db.commit()
+                    } catch {
+                        try? db.rollback()
+                    }
                     assert(!db.isInsideTransaction)
                     releaseReader(.reuse)
                 }

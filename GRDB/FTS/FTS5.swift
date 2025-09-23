@@ -117,8 +117,8 @@ public struct FTS5 {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#extending_fts5>
     public static func api(_ db: Database) -> UnsafePointer<fts5_api> {
-        var statement: SQLiteStatement? = nil
-        var api: UnsafePointer<fts5_api>? = nil
+        var statement: SQLiteStatement?
+        var api: UnsafePointer<fts5_api>?
         let type: StaticString = "fts5_api_ptr"
         
         let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)

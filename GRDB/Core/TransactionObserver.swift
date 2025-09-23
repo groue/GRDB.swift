@@ -1494,7 +1494,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt)
     -> DatabaseValue?
     {
-        var value: SQLiteValue? = nil
+        var value: SQLiteValue?
         guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
         if let value {
             return DatabaseValue(sqliteValue: value)

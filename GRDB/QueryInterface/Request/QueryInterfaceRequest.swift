@@ -362,11 +362,13 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID>
     where RowDecoder: Identifiable
     {
-        selectWhenConnected { db in
-            let primaryKey = try db.primaryKey(self.databaseTableName)
+        let databaseTableName = self.databaseTableName
+        
+        return selectWhenConnected { db in
+            let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
+                "selectID requires a single-column primary key in the table \(databaseTableName)")
             return [Column(primaryKey.columns[0])]
         }.asRequest(of: RowDecoder.ID.self)
     }
@@ -633,8 +635,9 @@ extension QueryInterfaceRequest {
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
         let statement = try SQLQueryGenerator(relation: relation).makeDeleteStatement(db)
+        let prevCount = db.totalChangesCount
         try statement.execute()
-        return db.changesCount
+        return db.totalChangesCount - prevCount
     }
 }
 
@@ -1133,8 +1136,9 @@ extension QueryInterfaceRequest {
             // database not hit
             return 0
         }
+        let prevCount = db.totalChangesCount
         try updateStatement.execute()
-        return db.changesCount
+        return db.totalChangesCount - prevCount
     }
     
     /// Updates matching rows, and returns the number of updated rows.

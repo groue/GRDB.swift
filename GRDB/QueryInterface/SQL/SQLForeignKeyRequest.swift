@@ -123,7 +123,7 @@ struct SQLForeignKeyRequest {
     }
     
     private func tableType(_ db: Database, for name: String) throws -> TableType? {
-        for schemaID in try db.schemaIdentifiers() {
+        for schemaID in try db.fetchSchemaIdentifiers() {
             if try db.schema(schemaID).containsObjectNamed(name, ofType: .table) {
                 return TableType(isView: false)
             }

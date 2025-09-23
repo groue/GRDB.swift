@@ -113,6 +113,11 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// - ``resumeNotification``
 /// - ``suspendNotification``
 ///
+/// ### The Schema Source
+///
+/// - ``schemaSource``
+/// - ``withSchemaSource(_:execute:)``
+///
 /// ### Other Database Operations
 ///
 /// - ``add(tokenizer:)``
@@ -169,7 +174,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   connection has been opened is an SQLite misuse, and has no effect.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/errlog.html>
-    nonisolated(unsafe) public static var logError: LogErrorFunction? = nil {
+    nonisolated(unsafe) public static var logError: LogErrorFunction? {
         didSet {
             if logError != nil {
                 _registerErrorLogCallback { (_, code, message) in
@@ -186,6 +191,19 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// The database configuration.
     public let configuration: Configuration
+    
+    /// The current schema source.
+    ///
+    /// By default, it is the ``Configuration/schemaSource``
+    /// of ``configuration``. To modify the schema source,
+    /// use ``withSchemaSource(_:execute:)``.
+    ///
+    /// The schema source is automatically disabled (nil) during database
+    /// migrations performed by ``DatabaseMigrator``: those access the raw
+    /// SQLite schema, unaltered. If a migration needs a schema source,
+    /// you may call ``Database/withSchemaSource(_:execute:)`` from within
+    /// the body of a migration.
+    public internal(set) var schemaSource: (any DatabaseSchemaSource)?
     
     /// A description of this database connection.
     ///
@@ -442,6 +460,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        self.schemaSource = configuration.schemaSource
         self.path = path
         
         // We do not report read-only transactions to transaction observers, so
@@ -459,7 +478,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     private static func openConnection(path: String, flags: CInt) throws -> SQLiteConnection {
         // See <https://www.sqlite.org/c3ref/open.html>
-        var sqliteConnection: SQLiteConnection? = nil
+        var sqliteConnection: SQLiteConnection?
         let code = sqlite3_open_v2(path, &sqliteConnection, flags, nil)
         guard code == SQLITE_OK else {
             // https://www.sqlite.org/c3ref/open.html
@@ -806,7 +825,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) in
                 let collation = Unmanaged<DatabaseCollation>.fromOpaque(collationPointer!).takeUnretainedValue()
-                return CInt(collation.function(length1, buffer1, length2, buffer2).rawValue)
+                return collation.xCompare(length1, buffer1.unsafelyUnwrapped, length2, buffer2.unsafelyUnwrapped)
             }, nil)
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
@@ -1286,7 +1305,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
         // that we don't create an infinite loop in checkForSuspensionViolation(from:)
-        var statement: SQLiteStatement? = nil
+        var statement: SQLiteStatement?
         let sql = "PRAGMA journal_mode"
         sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
         defer { sqlite3_finalize(statement) }
@@ -1483,7 +1502,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: Error?
         let needsRollback: Bool
         do {
             let completion = try operations()
@@ -1626,7 +1645,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
-        var firstError: Error? = nil
+        var firstError: Error?
         let needsRollback: Bool
         do {
             let completion = try operations()
@@ -1744,7 +1763,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         if isInsideTransaction {
             try execute(sql: "ROLLBACK TRANSACTION")
         }
-        assert(sqlite3_get_autocommit(sqliteConnection) != 0)
+        assert(!isInsideTransaction)
     }
     
     /// Commits a database transaction.
