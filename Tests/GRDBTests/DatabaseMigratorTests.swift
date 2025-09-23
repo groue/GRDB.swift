@@ -1109,4 +1109,67 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
     }
+    
+    // https://github.com/groue/GRDB.swift/discussions/1817
+    func test_discussion_1817() throws {
+        var oldMigrator = DatabaseMigrator()
+        oldMigrator.registerMigration("team") { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text).notNull()
+            }
+        }
+        oldMigrator.registerMigration("player") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.belongsTo("team").notNull()
+                t.column("name", .text).defaults(to: "Anonymous").notNull()
+            }
+        }
+        
+        var newMigrator = DatabaseMigrator()
+        let collapsedMigrationIdentifier = "player"
+        let collapsedSQL = try oldMigrator.schemaSQL(upTo: collapsedMigrationIdentifier)
+        newMigrator.registerMigration(collapsedMigrationIdentifier) { db in
+            try db.execute(sql: collapsedSQL)
+        }
+
+        do {
+            let dbQueue = try DatabaseQueue()
+            try oldMigrator.migrate(dbQueue)
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertTrue(newMigrator.hasCompletedMigrations(db))
+                try XCTAssertFalse(newMigrator.hasBeenSuperseded(db))
+            }
+        }
+
+        do {
+            let dbQueue = try DatabaseQueue()
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertTrue(newMigrator.hasCompletedMigrations(db))
+                try XCTAssertFalse(newMigrator.hasBeenSuperseded(db))
+            }
+        }
+    }
+}
+
+extension DatabaseMigrator {
+    func schemaSQL(upTo migrationIdentifier: String) throws -> String {
+        let dbQueue = try DatabaseQueue()
+        try migrate(dbQueue, upTo: migrationIdentifier)
+        class OutputStream: TextOutputStream {
+            var buffer = ""
+            func write(_ string: String) {
+                buffer += string
+            }
+        }
+        let stream = OutputStream()
+        try dbQueue.dumpSchema(to: stream)
+        return stream.buffer
+            .components(separatedBy: "\n")
+            .dropFirst() // Remove "sqlite_master" line
+            .joined(separator: "\n")
+    }
 }
