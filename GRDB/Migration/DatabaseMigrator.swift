@@ -18,6 +18,7 @@ import Foundation
 /// ### Registering Migrations
 ///
 /// - ``registerMigration(_:foreignKeyChecks:migrate:)``
+/// - ``registerMigration(_:foreignKeyChecks:merging:migrate:)``
 /// - ``ForeignKeyChecks``
 ///
 /// ### Configuring a DatabaseMigrator
@@ -161,9 +162,8 @@ public struct DatabaseMigrator: Sendable {
     
     /// Registers a migration.
     ///
-    /// The registered migration is appended to the list of migrations to run:
-    /// it will execute after previously registered migrations, and before
-    /// migrations that are registered later.
+    /// The registered migration is appended to the list of migrations. It
+    /// will execute after previously registered migrations.
     ///
     /// For example:
     ///
@@ -215,6 +215,107 @@ public struct DatabaseMigrator: Sendable {
         foreignKeyChecks: ForeignKeyChecks = .deferred,
         migrate: @escaping @Sendable (Database) throws -> Void)
     {
+        registerMigration(identifier, foreignKeyChecks: foreignKeyChecks, merging: []) { db, ids in
+            precondition(ids.isEmpty)
+            try migrate(db)
+        }
+    }
+    
+    /// Registers a merged migration.
+    ///
+    /// Like migrations registered with ``registerMigration(_:foreignKeyChecks:migrate:)``,
+    /// the merged migration is appended to the list of migrations. It
+    /// will execute after previously registered migrations.
+    ///
+    /// A merged migration merges and replaces a set of migrations defined
+    /// in a previous version of the application. For example, to merge the
+    /// migrations "v1", "v2" and "v3", redefine the "v3" migration so that
+    /// it merges "v1" and "v2", as in the example below.
+    ///
+    /// The second argument of the `migrate` closure is the subset of merged
+    /// migrations that have already been applied when the merged
+    /// migration runs.
+    ///
+    /// ```swift
+    /// // Old code
+    /// migrator.registerMigration("v1") { db in
+    ///     // Apply schema version 1
+    /// }
+    /// migrator.registerMigration("v2") { db in
+    ///     // Apply schema version 2
+    /// }
+    /// migrator.registerMigration("v3") { db in
+    ///     // Apply schema version 3
+    /// }
+    ///
+    /// // New code:
+    /// // - Migrations v1 and v2 are deleted.
+    /// // - Migration v3 is redefined and merges v1 and v2:
+    /// migrator.registerMigration("v3", merging: ["v1", "v2"]) { db, appliedIDs in
+    ///     if !appliedIDs.contains("v1") {
+    ///         // Apply schema version 1
+    ///     }
+    ///     if !appliedIDs.contains("v2") {
+    ///         // Apply schema version 2
+    ///     }
+    ///     // Apply schema version 3
+    /// }
+    /// ```
+    ///
+    /// In the above sample code, the merged migration is named like the
+    /// last one of the merged set. You can also give it a brand new name,
+    /// as in the alternative below. Notice the different logic in the
+    /// migration code.
+    ///
+    /// **In all cases avoid naming the merged migration like the first
+    /// elements in the merged set** (`v1` or `v2` in our example).
+    ///
+    /// ```swift
+    /// // Alternative new code:
+    /// // - Migrations v1, v2 and v3 are deleted.
+    /// // - The new migration v3-new merges v1, v2 and v3:
+    /// migrator.registerMigration("v3-new", merging: ["v1", "v2", "v3"]) { db, appliedIDs in
+    ///     if !appliedIDs.contains("v1") {
+    ///         // Apply schema version 1
+    ///     }
+    ///     if !appliedIDs.contains("v2") {
+    ///         // Apply schema version 2
+    ///     }
+    ///     if !appliedIDs.contains("v3") {
+    ///         // Apply schema version 3
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - identifier: The migration identifier.
+    ///     - mergedIdentifiers: A set of previous migration identifiers
+    ///       that are merged in this migration.
+    ///     - foreignKeyChecks: This parameter is ignored if the database
+    ///       ``Configuration`` has disabled foreign keys.
+    ///
+    ///       The default `.deferred` checks have the migration run with
+    ///       disabled foreign keys, until foreign keys are checked right before
+    ///       changes are committed on disk. These deferred checks are not
+    ///       executed if the migrator is the result of
+    ///       ``disablingDeferredForeignKeyChecks()``.
+    ///
+    ///       The `.immediate` checks have the migration run with foreign
+    ///       keys enabled. Make sure you only use `.immediate` if the migration
+    ///       does not perform schema changes described in
+    ///       <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
+    ///     - migrate: A closure that performs database operations. The
+    ///       first argument is a database connection. The second argument
+    ///       is the set of previous migrations that has been applied when
+    ///       the merged migration runs.
+    /// - precondition: No migration with the same identifier as already
+    ///   been registered.
+    public mutating func registerMigration(
+        _ identifier: String,
+        foreignKeyChecks: ForeignKeyChecks = .deferred,
+        merging mergedIdentifiers: Set<String> = [],
+        migrate: @escaping @Sendable (_ db: Database, _ appliedIdentifiers: Set<String>) throws -> Void)
+    {
         let migrationChecks: Migration.ForeignKeyChecks
         switch foreignKeyChecks {
         case .deferred:
@@ -226,7 +327,11 @@ public struct DatabaseMigrator: Sendable {
         case .immediate:
             migrationChecks = .immediate
         }
-        registerMigration(Migration(identifier: identifier, foreignKeyChecks: migrationChecks, migrate: migrate))
+        registerMigration(Migration(
+            identifier: identifier,
+            mergedIdentifiers: mergedIdentifiers,
+            foreignKeyChecks: migrationChecks,
+            migrate: migrate))
     }
     
     // MARK: - Applying Migrations
@@ -450,6 +555,16 @@ public struct DatabaseMigrator: Sendable {
     
     // MARK: - Non public
     
+    private struct Execution {
+        enum Mode {
+            case run(mergedIdentifiers: Set<String>)
+            case deleteMergedIdentifiers
+        }
+        
+        var migration: Migration
+        var mode: Mode
+    }
+    
     private mutating func registerMigration(_ migration: Migration) {
         GRDBPrecondition(
             !_migrations.map({ $0.identifier }).contains(migration.identifier),
@@ -457,8 +572,8 @@ public struct DatabaseMigrator: Sendable {
         _migrations.append(migration)
     }
     
-    /// Returns unapplied migration identifier,
-    private func unappliedMigrations(upTo targetIdentifier: String, appliedIdentifiers: [String]) -> [Migration] {
+    /// Returns unapplied migration executions
+    private func unappliedExecutions(upTo targetIdentifier: String, appliedIdentifiers: Set<String>) -> [Execution] {
         var expectedMigrations: [Migration] = []
         for migration in _migrations {
             expectedMigrations.append(migration)
@@ -472,32 +587,52 @@ public struct DatabaseMigrator: Sendable {
             expectedMigrations.last?.identifier == targetIdentifier,
             "undefined migration: \(String(reflecting: targetIdentifier))")
         
-        return expectedMigrations.filter { !appliedIdentifiers.contains($0.identifier) }
+        return expectedMigrations.compactMap { migration in
+            if appliedIdentifiers.contains(migration.identifier) {
+                if migration.mergedIdentifiers.isDisjoint(with: appliedIdentifiers) {
+                    // Nothing to do
+                    return nil
+                } else {
+                    // Migration is applied, but we have some merged identifiers to delete
+                    return Execution(migration: migration, mode: .deleteMergedIdentifiers)
+                }
+            } else {
+                // Migration is not applied yet.
+                let appliedMergedIdentifiers = migration.mergedIdentifiers.intersection(appliedIdentifiers)
+                return Execution(migration: migration, mode: .run(mergedIdentifiers: appliedMergedIdentifiers))
+            }
+        }
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
         try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
-        let appliedIdentifiers = try self.appliedMigrations(db)
         
         // Subsequent migration must not be applied
+        let appliedMigrations = try self.appliedMigrations(db) // Only known ids
         if let targetIndex = _migrations.firstIndex(where: { $0.identifier == targetIdentifier }),
-           let lastAppliedIdentifier = appliedIdentifiers.last,
-           let lastAppliedIndex = _migrations.firstIndex(where: { $0.identifier == lastAppliedIdentifier }),
+           let lastAppliedMigration = appliedMigrations.last,
+           let lastAppliedIndex = _migrations.firstIndex(where: { $0.identifier == lastAppliedMigration }),
            targetIndex < lastAppliedIndex
         {
             fatalError("database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
         }
         
-        let unappliedMigrations = self.unappliedMigrations(
+        let appliedIdentifiers = try self.appliedIdentifiers(db) // All ids, even unknown ones
+        let unappliedExecutions = self.unappliedExecutions(
             upTo: targetIdentifier,
             appliedIdentifiers: appliedIdentifiers)
         
-        if unappliedMigrations.isEmpty {
+        if unappliedExecutions.isEmpty {
             return
         }
         
-        for migration in unappliedMigrations {
-            try migration.run(db)
+        for execution in unappliedExecutions {
+            switch execution.mode {
+            case .run(let mergedIdentifiers):
+                try execution.migration.run(db, mergedIdentifiers: mergedIdentifiers)
+            case .deleteMergedIdentifiers:
+                try execution.migration.deleteMergedIdentifiers(db)
+            }
         }
     }
     
