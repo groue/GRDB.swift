@@ -6,7 +6,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     private let jsonFunction = (Database.sqliteLibVersionNumber >= 3045000) ? "JSONB" : "JSON"
     
     func test_Database_json() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -41,7 +41,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonb() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -74,7 +74,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_asJSON() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -135,7 +135,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonArray() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -190,7 +190,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonArray_from_SQLJSONExpressible() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -311,7 +311,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbArray() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -364,7 +364,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbArray_from_SQLJSONExpressible() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -483,7 +483,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonArrayLength() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -518,7 +518,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonArrayLength_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -561,7 +561,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonErrorPosition() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3042000 else {
             throw XCTSkip("JSON_ERROR_JSON is not available")
@@ -594,7 +594,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonExtract_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -637,7 +637,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonExtract_atPaths() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -672,7 +672,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbExtract_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -713,7 +713,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbExtract_atPaths() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -746,7 +746,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonInsert() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -801,7 +801,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbInsert() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -862,7 +862,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonReplace() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -917,7 +917,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbReplace() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -978,7 +978,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonSet() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1033,7 +1033,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbSet() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1094,7 +1094,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonObject_from_Dictionary() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1197,7 +1197,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonObject_from_Array() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1280,7 +1280,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonObject_from_KeyValuePairs() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1363,7 +1363,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbObject_from_Dictionary() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1500,7 +1500,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbObject_from_Array() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1610,7 +1610,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbObject_from_KeyValuePairs() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1720,7 +1720,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonPatch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1763,7 +1763,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbPatch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1804,7 +1804,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonRemove_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1847,7 +1847,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonRemove_atPaths() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1882,7 +1882,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbRemove_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1923,7 +1923,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbRemove_atPaths() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -1956,7 +1956,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonType() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -1991,7 +1991,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonType_atPath() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2034,7 +2034,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonIsValid() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2069,7 +2069,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonIsValid_options() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSON_VALID options are not available")
@@ -2103,7 +2103,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
 
     func test_Database_jsonQuote() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2150,7 +2150,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupArray() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2181,7 +2181,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupArray_from_JSON() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2209,7 +2209,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupArray_from_JSONB() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2235,7 +2235,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupArray_filter() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2266,7 +2266,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupArray_order() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3044000 else {
             throw XCTSkip("JSON support is not available")
@@ -2303,7 +2303,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbGroupArray() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2332,7 +2332,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbGroupArray_filter() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2361,7 +2361,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbGroupArray_order() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2398,7 +2398,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupObject() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2425,7 +2425,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonGroupObject_filter() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2452,7 +2452,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbGroupObject() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2477,7 +2477,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_Database_jsonbGroupObject_filter() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2502,7 +2502,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_JSON_index_and_generated_columns() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -2562,7 +2562,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     }
     
     func test_JSONB_index_and_generated_columns() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3045000 else {
             throw XCTSkip("JSONB is not available")
@@ -2620,7 +2620,7 @@ final class JSONExpressionsTests: GRDBTestCase {
     
 // TODO: Enable when those apis are ready.
 //     func test_ColumnAssignment() throws {
-// #if GRDBCUSTOMSQLITE || GRDBCIPHER
+// #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 //         // Prevent SQLCipher failures
 //         guard Database.sqliteLibVersionNumber >= 3038000 else {
 //             throw XCTSkip("JSON support is not available")

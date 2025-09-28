@@ -517,7 +517,7 @@ public struct SQLExpression: Sendable {
         /// The `>>` bitwise right shift operator
         static let rightShift = BinaryOperator(">>")
         
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         /// The `->` SQL operator
         static let jsonExtractJSON = BinaryOperator("->", isJSONValue: true)
         
@@ -2121,7 +2121,7 @@ extension SQLExpression {
         }
     }
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Returns an expression suitable in JSON building contexts.
     var jsonBuilderExpression: SQLExpression {
         switch preferredJSONInterpretation {
@@ -2383,7 +2383,7 @@ extension SQLSpecificExpressible {
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }
-    #elseif !GRDBCIPHER
+    #elseif !SQLITE_HAS_CODEC
     /// An ordering term for ascending order (nulls last).
     @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+
     public var ascNullsLast: SQLOrdering {

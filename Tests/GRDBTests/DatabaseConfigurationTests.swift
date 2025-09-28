@@ -27,7 +27,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         try pool.makeSnapshot().read { _ in }
         XCTAssertEqual(connectionCountMutex.load(), 5)
         
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try pool.makeSnapshotPool().read { _ in }
         XCTAssertEqual(connectionCountMutex.load(), 6)
 #endif
@@ -74,7 +74,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 XCTFail("Expected TestError")
             } catch is TestError { }
             
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
             do {
                 errorMutex.store(TestError())
                 _ = try pool.makeSnapshotPool()

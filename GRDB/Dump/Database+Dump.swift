@@ -324,7 +324,7 @@ extension Database {
     }
     
     private func isShadowTable(_ tableName: String) throws -> Bool {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Maybe SQLCipher is too old: check actual version
         if Database.sqliteLibVersionNumber >= 3037000 {
             guard let table = try table(tableName) else {

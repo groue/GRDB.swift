@@ -79,7 +79,7 @@ public final class TableAlteration {
         alterations.append(.addColumnLiteral(literal))
     }
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Renames a column.
     ///
     /// For example:

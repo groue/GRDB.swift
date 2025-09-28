@@ -40,7 +40,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }
@@ -85,7 +85,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool().makeSnapshotPool())
 #endif
     }

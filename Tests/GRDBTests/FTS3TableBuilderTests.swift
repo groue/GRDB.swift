@@ -96,7 +96,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"remove_diacritics=2\")")
         }
     }
-    #elseif !GRDBCIPHER
+    #elseif !SQLITE_HAS_CODEC
     func testUnicode61TokenizerDiacriticsRemove() throws {
         guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip()

@@ -10,7 +10,7 @@ public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("ABS", [value.sqlExpression])
 }
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 /// The `AVG` SQL aggregate function.
 ///
 /// For example:
@@ -163,7 +163,7 @@ public func max(
     .simpleFunction("MAX", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
 }
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 /// The `MAX` SQL aggregate function.
 ///
 /// For example:
@@ -224,7 +224,7 @@ public func min(
     .simpleFunction("MIN", [value1.sqlExpression, value2.sqlExpression] + values.map(\.sqlExpression))
 }
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 /// The `MIN` SQL aggregate function.
 ///
 /// For example:
@@ -269,7 +269,7 @@ public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
 }
 #endif
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 /// The `SUM` SQL aggregate function.
 ///
 /// For example:
@@ -333,7 +333,7 @@ public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
 }
 #endif
 
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
 /// The `TOTAL` SQL aggregate function.
 ///
 /// For example:

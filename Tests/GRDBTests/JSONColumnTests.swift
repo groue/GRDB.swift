@@ -3,7 +3,7 @@ import GRDB
 
 final class JSONColumnTests: GRDBTestCase {
     func test_JSONColumn_derived_from_CodingKey() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON support is not available")
@@ -45,7 +45,7 @@ final class JSONColumnTests: GRDBTestCase {
     }
     
     func test_JSON_EXTRACT() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON_EXTRACT is not available")
@@ -77,7 +77,7 @@ final class JSONColumnTests: GRDBTestCase {
     }
     
     func test_extraction_operators() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3038000 else {
             throw XCTSkip("JSON operators are not available")

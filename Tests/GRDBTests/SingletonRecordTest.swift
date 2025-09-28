@@ -187,7 +187,7 @@ class SingletonRecordTest: GRDBTestCase {
     }
     
     func test_upsert_in_empty_database() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
@@ -210,7 +210,7 @@ class SingletonRecordTest: GRDBTestCase {
     }
     
     func test_upsert_in_populated_database() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }

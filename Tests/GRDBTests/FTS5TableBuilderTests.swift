@@ -154,7 +154,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='''unicode61'' ''remove_diacritics'' ''2''')")
         }
     }
-    #elseif !GRDBCIPHER
+    #elseif !SQLITE_HAS_CODEC
     func testUnicode61TokenizerDiacriticsRemove() throws {
         guard #available(iOS 14, macOS 10.16, tvOS 14, *) else {
             throw XCTSkip()
@@ -363,7 +363,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
     
     // Regression test for <https://github.com/groue/GRDB.swift/issues/1390>
     func testIssue1390() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }

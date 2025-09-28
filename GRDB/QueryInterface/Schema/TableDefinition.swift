@@ -15,7 +15,7 @@ public struct TableOptions: OptionSet, Sendable {
     /// Such tables can not be tracked with <doc:DatabaseObservation> tools.
     public static let withoutRowID = TableOptions(rawValue: 1 << 2)
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Creates a [STRICT](https://www.sqlite.org/stricttables.html) table.
     public static let strict = TableOptions(rawValue: 1 << 3)
 #else

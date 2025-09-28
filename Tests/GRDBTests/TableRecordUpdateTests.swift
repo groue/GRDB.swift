@@ -416,7 +416,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchStatement_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -455,7 +455,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchStatement_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -494,7 +494,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchStatement_DatabaseComponents_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -532,7 +532,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
 
     func testRequestUpdateAndFetchStatement_DatabaseComponents_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -571,7 +571,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
 
     func testRequestUpdateAndFetchCursor_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -608,7 +608,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             throw XCTSkip("RETURNING and INSTEAD OF are buggy")
         }
         
-#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -638,7 +638,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchCursor_DatabaseComponents_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -674,7 +674,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             throw XCTSkip("RETURNING and INSTEAD OF are buggy")
         }
         
-#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -700,7 +700,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchAll_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -737,7 +737,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             throw XCTSkip("RETURNING and INSTEAD OF are buggy")
         }
         
-#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -764,7 +764,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAndFetchAll_DatabaseComponents_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -801,7 +801,7 @@ class TableRecordUpdateTests: GRDBTestCase {
             throw XCTSkip("RETURNING and INSTEAD OF are buggy")
         }
         
-#if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -828,7 +828,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
 
     func testRequestUpdateAndFetchSet() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -854,7 +854,7 @@ class TableRecordUpdateTests: GRDBTestCase {
     }
 
     func testRequestUpdateAndFetchSet_DatabaseComponents() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
