@@ -2796,3 +2796,50 @@ extension MutablePersistableRecordTests {
         } catch DatabaseError.SQLITE_MISUSE { }
     }
 }
+
+#if SQLITE_ENABLE_FTS5
+class Issue1820Tests: GRDBTestCase {
+    // Regression test for https://github.com/groue/GRDB.swift/issues/1820
+    func testIssue1820() throws {
+        struct Serving: Codable, FetchableRecord, PersistableRecord {
+          let id: UUID
+          var description: String
+          var foodId: String
+          
+          static let author = hasOne(Food.self)
+        }
+
+        struct Food: Codable, FetchableRecord, PersistableRecord {
+          let id: UUID
+          var name: String
+          var foodId: String
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        defer {
+            print(sqlQueries.joined(separator: "\n"))
+        }
+        try dbQueue.write { db in
+            try db.create(table: "food") { t in
+              t.column("id", .blob).primaryKey()
+              t.column("name", .text)
+              t.column("foodId", .text).unique()
+            }
+            
+            try db.create(table: "serving") { t in
+              t.column("id", .blob).primaryKey()
+              t.column("description", .text)
+              t.column("foodId", .text).references("food", column: "foodId")
+            }
+            
+            try db.create(virtualTable: "food_fts", using: FTS5()) { t in
+              t.synchronize(withTable: "food")
+              t.column("name")
+            }
+            
+            try Food(id: UUID(), name: "Apple", foodId: "apple").save(db)
+            try Serving(id: UUID(), description: "Apple", foodId: "apple").save(db)
+        }
+    }
+}
+#endif
