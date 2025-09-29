@@ -53,8 +53,10 @@ extension MutablePersistableRecord {
             // Nil primary key
             return false
         }
-        let prevCount = db.totalChangesCount
-        try statement.execute()
-        return (db.totalChangesCount - prevCount) > 0
+        var changesCount = 0
+        try db.countChanges(&changesCount, forTable: type(of: self).databaseTableName) {
+            try statement.execute()
+        }
+        return changesCount > 0
     }
 }
