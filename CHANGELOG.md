@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
-- `7.7.x` Releases - [7.7.0](#770)
+- `7.7.x` Releases - [7.7.0](#770) - [7.7.1](#771)
 - `7.6.x` Releases - [7.6.0](#760) - [7.6.1](#761)
 - `7.5.x` Releases - [7.5.0](#750)
 - `7.4.x` Releases - [7.4.0](#740) - [7.4.1](#741)
@@ -138,6 +138,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.7.1
+
+Released September 29, 2025
+
+- **Fixed**: Fix the save() method for record types with attached triggers by [@groue](https://github.com/groue) in [#1822](https://github.com/groue/GRDB.swift/pull/1822)
 
 ## 7.7.0
 
