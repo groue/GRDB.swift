@@ -635,9 +635,11 @@ extension QueryInterfaceRequest {
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
         let statement = try SQLQueryGenerator(relation: relation).makeDeleteStatement(db)
-        let prevCount = db.totalChangesCount
-        try statement.execute()
-        return db.totalChangesCount - prevCount
+        var changesCount = 0
+        try db.countChanges(&changesCount, forTable: relation.source.tableName) {
+            try statement.execute()
+        }
+        return changesCount
     }
 }
 
@@ -1136,9 +1138,11 @@ extension QueryInterfaceRequest {
             // database not hit
             return 0
         }
-        let prevCount = db.totalChangesCount
-        try updateStatement.execute()
-        return db.totalChangesCount - prevCount
+        var changesCount = 0
+        try db.countChanges(&changesCount, forTable: relation.source.tableName) {
+            try updateStatement.execute()
+        }
+        return changesCount
     }
     
     /// Updates matching rows, and returns the number of updated rows.

@@ -2019,6 +2019,34 @@ extension Database {
 #endif
 
 extension Database {
+    /// Returns the count of changes executed by one statement execution.
+    func countChanges<T>(_ count: inout Int, forTable tableName: String, updates: () throws -> T) throws -> T {
+        // Database.changesCount calls sqlite3_changes(), whose documentation says:
+        //
+        // > https://sqlite.org/c3ref/changes.html
+        // > Changes to a view that are intercepted by INSTEAD OF triggers are not counted.
+        //
+        // We want to support INSTEAD OF triggers, so we prefer to use
+        // sqlite3_total_changes() for views.
+        //
+        // At the same time, FTS5 has sqlite3_total_changes() report changes
+        // even when database is not changed (https://github.com/groue/GRDB.swift/issues/1820)
+        //
+        // Well, let's do our best:
+        if try viewExists(tableName) {
+            let prevCount = totalChangesCount
+            let result = try updates()
+            count = totalChangesCount - prevCount
+            return result
+        } else {
+            let result = try updates()
+            count = changesCount
+            return result
+        }
+    }
+}
+
+extension Database {
     
     // MARK: - Database-Related Types
     
