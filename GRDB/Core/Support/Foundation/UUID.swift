@@ -1,15 +1,14 @@
-// Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 import Foundation
 
-#if !os(Linux) && !os(Windows)
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+    import GRDBSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID: DatabaseValueConvertible {
     /// Returns a BLOB database value containing the uuid bytes.
@@ -20,7 +19,7 @@ extension NSUUID: DatabaseValueConvertible {
             return Data(bytes: buffer.baseAddress!, count: 16).databaseValue
         }
     }
-    
+
     /// Returns a `NSUUID` from the specified database value.
     ///
     /// If the database value contains a string, parses this string as an uuid.
@@ -33,16 +32,22 @@ extension NSUUID: DatabaseValueConvertible {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
             return data.withUnsafeBytes {
-                self.init(uuidBytes: $0.bindMemory(to: UInt8.self).baseAddress)
+                #if canImport(Darwin)
+                    self.init(uuidBytes: $0.bindMemory(to: UInt8.self).baseAddress)
+                #else
+                    guard let uuidBytes = $0.bindMemory(to: UInt8.self).baseAddress else {
+                        return nil as Self?
+                    }
+                    return NSUUID(uuidBytes: uuidBytes) as? Self
+                #endif
             }
         case .string(let string):
-            return self.init(uuidString: string)
+            return NSUUID(uuidString: string) as? Self
         default:
             return nil
         }
     }
 }
-#endif
 
 /// UUID adopts DatabaseValueConvertible
 extension UUID: DatabaseValueConvertible {
@@ -52,7 +57,7 @@ extension UUID: DatabaseValueConvertible {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }
-    
+
     /// Returns a `UUID` from the specified database value.
     ///
     /// If the database value contains a string, parses this string as an uuid.
@@ -88,8 +93,8 @@ extension UUID: StatementColumnConvertible {
             self.init(uuid: uuid.uuid)
         case SQLITE_BLOB:
             guard sqlite3_column_bytes(sqliteStatement, index) == 16,
-                  let blob = sqlite3_column_blob(sqliteStatement, index) else
-            {
+                let blob = sqlite3_column_blob(sqliteStatement, index)
+            else {
                 return nil
             }
             self.init(uuid: blob.assumingMemoryBound(to: uuid_t.self).pointee)
