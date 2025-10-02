@@ -25,7 +25,7 @@
 
 ---
 
-**Latest release**: September 29, 2025 • [version 7.7.1](https://github.com/groue/GRDB.swift/tree/v7.7.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
+**Latest release**: October 2, 2025 • [version 7.8.0](https://github.com/groue/GRDB.swift/tree/v7.8.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 6 to GRDB 7](Documentation/GRDB7MigrationGuide.md)
 
 **Requirements**: iOS 13.0+ / macOS 10.15+ / tvOS 13.0+ / watchOS 7.0+ &bull; SQLite 3.20.0+ &bull; Swift 6+ / Xcode 16+
 
