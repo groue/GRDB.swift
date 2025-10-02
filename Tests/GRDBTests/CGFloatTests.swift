@@ -3,7 +3,7 @@ import XCTest
 
 #if canImport(CoreGraphics)
     import CoreGraphics
-#elseif !os(Darwin)
+#elseif !canImport(Darwin)
     import Foundation
 #endif
 

@@ -5,7 +5,7 @@ extension NSURL: DatabaseValueConvertible {
 
     /// Returns a TEXT database value containing the absolute URL.
     public var databaseValue: DatabaseValue {
-        #if !os(Darwin)
+        #if !canImport(Darwin)
             absoluteString.databaseValue
         #else
             absoluteString?.databaseValue ?? .null
