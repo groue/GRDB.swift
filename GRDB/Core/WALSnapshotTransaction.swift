@@ -1,4 +1,4 @@
-#if SQLITE_ENABLE_SNAPSHOT || ((!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Darwin)
+#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Darwin)
     /// A long-live read-only WAL transaction.
     ///
     /// `WALSnapshotTransaction` **takes ownership** of its reader
