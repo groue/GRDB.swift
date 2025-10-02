@@ -1,4 +1,3 @@
-#if !os(Linux) && !os(Windows)
 import Foundation
 
 private let integerRoundingBehavior = NSDecimalNumberHandler(
@@ -11,7 +10,7 @@ private let integerRoundingBehavior = NSDecimalNumberHandler(
 
 /// NSNumber adopts DatabaseValueConvertible
 extension NSNumber: DatabaseValueConvertible {
-    
+
     /// A database value.
     ///
     /// If the number is an integer `NSDecimalNumber`, returns an INTEGER
@@ -22,13 +21,13 @@ extension NSNumber: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         // Don't lose precision: store integers that fits in Int64 as Int64
         if let decimal = self as? NSDecimalNumber,
-           decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
-           decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,   // decimal <= Int64.max
-           decimal.compare(NSDecimalNumber(value: Int64.min)) != .orderedAscending     // decimal >= Int64.min
+            decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
+            decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,  // decimal <= Int64.max
+            decimal.compare(NSDecimalNumber(value: Int64.min)) != .orderedAscending  // decimal >= Int64.min
         {
             return int64Value.databaseValue
         }
-        
+
         switch String(cString: objCType) {
         case "c":
             return Int64(int8Value).databaseValue
@@ -69,7 +68,7 @@ extension NSNumber: DatabaseValueConvertible {
             fatalError("DatabaseValueConvertible: Unsupported NSNumber type: \(objCType)")
         }
     }
-    
+
     /// Returns a `NSNumber` from the specified database value.
     ///
     /// If the database value is an integer or a double, returns an `NSNumber`
@@ -81,11 +80,19 @@ extension NSNumber: DatabaseValueConvertible {
     /// Otherwise, returns nil.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
+        case .int64(let int64) where self is NSDecimalNumber.Type:
+            let number = NSDecimalNumber(value: int64)
+            return number as? Self
         case .int64(let int64):
-            return self.init(value: int64)
+            let number = NSNumber(value: int64)
+            return number as? Self
+        case .double(let double) where self is NSDecimalNumber.Type:
+            let number = NSDecimalNumber(value: double)
+            return number as? Self
         case .double(let double):
-            return self.init(value: double)
-        case let .string(string):
+            let number = NSNumber(value: double)
+            return number as? Self
+        case .string(let string):
             // Must match Decimal.fromDatabaseValue(_:)
             guard let decimal = Decimal(string: string, locale: posixLocale) else { return nil }
             return NSDecimalNumber(decimal: decimal) as? Self
@@ -93,7 +100,7 @@ extension NSNumber: DatabaseValueConvertible {
             return nil
         }
     }
+
 }
 
 private let posixLocale = Locale(identifier: "en_US_POSIX")
-#endif
