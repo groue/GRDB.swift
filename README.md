@@ -4597,7 +4597,66 @@ try Player.customRequest().fetchAll(db) // [Player]
 Encryption
 ==========
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4+.**
+**GRDB can encrypt your database with [SQLCipher](https://www.sqlcipher.net) v3.4+.**
+
+### Swift Package Manager Integration (SQLCipher v4.11+)
+
+Use the `GRDB.swift` Swift Package and specify the `SQLCipher` trait:
+
+```swift
+depdencies: [
+  .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.9.0", traits: ["SQLCipher"])
+]
+```
+
+As of Xcode 16.4 (16F6), there's no direct way in the Xcode UI to select trait variations so you'll need to use a local wrapper package to pull in the GRDB dependency with the `SQLCipher` trait enabled:
+
+```swift
+// swift-tools-version: 6.1
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
+import PackageDescription
+
+let package = Package(
+    name: "AppDependencies",
+    platforms: [
+        .macOS(.v10_14),
+        .iOS(.v13),
+        .macCatalyst(.v13),
+        .watchOS(.v8),
+        .tvOS(.v15),
+        .visionOS(.v1)
+    ],
+    products: [
+        .library(
+            name: "AppDependencies",
+            targets: ["AppDependencies"]),
+    ],
+    dependencies: [
+        .package(
+            url: "https://github.com/groue/GRDB.swift.git",
+            from: "7.9.0",
+            traits: ["SQLCipher"])
+    ],
+    targets: [
+        .target(
+            name: "AppDependencies",
+            dependencies: [
+                .product(
+                    name: "GRDB",
+                    package: "GRDB.swift")
+            ]
+        )
+    ]
+)
+```
+
+Within Xcode add your local `AppDependencies` wrapper package as a package dependency and GRDB with SQLCipher functionality will be accessible.
+
+### CocoaPods (SQLCipher v3.4-v4.10)
+
+> [!WARNING]
+> CocoaPods has transitioned to [read-only maintainence mode](https://blog.cocoapods.org/CocoaPods-Specs-Repo/) and is scheduled to be deprecated from GRDB
 
 Use [CocoaPods](http://cocoapods.org/), and specify in your `Podfile`:
 
@@ -4616,6 +4675,8 @@ Make sure you remove any existing `pod 'GRDB.swift'` from your Podfile. `GRDB.sw
 - [Creating or Opening an Encrypted Database](#creating-or-opening-an-encrypted-database)
 - [Changing the Passphrase of an Encrypted Database](#changing-the-passphrase-of-an-encrypted-database)
 - [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database)
+- [SQLCipher Logging](#enabling-sqlcipher-logging)
+- [SQLCipher Information Accessors](#sqlcipher-information-accessors)
 - [Security Considerations](#security-considerations)
 
 
@@ -4735,6 +4796,120 @@ try existingDBQueue.inDatabase { db in
 
 // Now the export is completed, and the existing database can be deleted.
 ```
+
+### SQLCipher Logging
+
+To instruct SQLCipher to log internal debugging and operational information, use the convenience method `enableCipherLogging(logLevel:)`.
+
+Logs will be output to the target device using `os_log`.
+
+The supplied logLevel will determine the granularity of the logs output. Available logLevels are:
+
+```
+none
+error
+warn
+info
+debug
+trace
+```
+
+Each level will be more verbose than the last, and particularly with debug and trace the logging system will generate significant log volume.
+
+If `enableCipherLogging(logLevel:)` is called without supplying a logLevel, the default logLevel of `debug` will be used.
+
+This convenience method only logs to the target device, but it's also possible to log to a file using `PRAGMA cipher_log = <file_path>;` directly. Please see the [SQLCipher API docs](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_log) for additional information.
+
+Enable cipher logging when first setting up the db configuration or after it is setup:
+
+```
+var config = Configuration()
+config.prepareDatabase { db in
+    try db.enableCipherLogging()
+    try db.usePassphrase("secret")
+}
+
+let dbQueue = try DatabaseQueue(path: NSTemporaryDirectory().appending("test.db"), configuration: config)
+```
+
+Example output:
+
+```
+DEBUG CORE sqlite3_key: db=104E22830
+DEBUG CORE sqlite3_key_v2: db=104E22830 zDb=main db_index=0
+DEBUG CORE sqlcipherCodecAttach: db=104E22830, nDb=0
+DEBUG MEMORY sqlcipher_codec_ctx_init: allocating context
+DEBUG MEMORY sqlcipher_codec_ctx_init: allocating kdf_salt
+DEBUG MEMORY sqlcipher_codec_ctx_init: allocating hmac_kdf_salt
+DEBUG CORE sqlcipher_codec_ctx_reserve_setup: base_reserve=16 block_sz=16 md_size=64 reserve=80
+DEBUG CORE sqlcipher_codec_ctx_reserve_setup: base_reserve=16 block_sz=16 md_size=64 reserve=80
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating context
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating key
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating hmac_key
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating context
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating key
+DEBUG MEMORY sqlcipher_cipher_ctx_init: allocating hmac_key
+DEBUG CORE sqlcipher_cipher_ctx_copy: target=128009220, source=128009190
+DEBUG CORE sqlcipherCodecAttach: calling sqlcipherPagerSetCodec()
+DEBUG CORE codec_set_btree_to_codec_pagesize: sqlite3BtreeSetPageSize() size=4096 reserve=80
+DEBUG CORE codec_set_btree_to_codec_pagesize: sqlite3BtreeSetPageSize returned 0
+DEBUG CORE sqlcipherCodecAttach: calling sqlite3BtreeSecureDelete()
+DEBUG CORE sqlcipherCodecAttach: calling sqlite3BtreeSetAutoVacuum()
+DEBUG MEMORY codec_ctx_free: iCtx=7FF7BC080088
+DEBUG MEMORY cipher_ctx_free: iCtx=128008110
+DEBUG MEMORY cipher_ctx_free: iCtx=128008118
+```
+
+You can disable cipher logging with `disableCipherLogging()`, following up on the previous example:
+
+```
+try dbQueue.inDatabase { db in
+    try db.disableCipherLogging()
+}
+```
+
+### SQLCipher Information Accessors
+
+GRDB provides convenience accessors to get information about the SQLCipher version, the provider, the provider version, and the fips status.
+
+`cipherVersion`: Returns the SQLCipher version
+- https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_version
+
+```
+let cipherVersion = try dbQueue.read { db in
+    return db.cipherVersion
+}
+```
+
+`cipherProvider`: Returns the compiled crypto provider. The database must be keeyed before requesting the name of the crypto provider.
+- https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_provider
+
+```
+let cipherProvider = try dbQueue.read { db in
+    return db.cipherProvider
+}
+```
+
+`cipherProviderVersion`: Returns the version number provided from the compiled crypto provider. This value, if known, is available only after the database has been keyed.
+- https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_provider_version
+
+```
+let cipherProviderVersion = try dbQueue.read { db in
+    return db.cipherProviderVersion
+}
+```
+
+`cipherFipsStatus`: Returns the SQLCipher fips status: 1 for fips mode, 0 for non-fips mode. The FIPS status will not be initialized until the database connection has been keyed.
+- https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_fips_status
+
+```
+let cipherFipsStatus = try dbQueue.read { db in
+    return db.cipherFipsStatus
+}
+```
+
+
+
 
 
 ### Security Considerations
