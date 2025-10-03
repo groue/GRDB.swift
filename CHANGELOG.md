@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.8.x` Releases - [7.8.0](#780)
 - `7.7.x` Releases - [7.7.0](#770) - [7.7.1](#771)
 - `7.6.x` Releases - [7.6.0](#760) - [7.6.1](#761)
 - `7.5.x` Releases - [7.5.0](#750)
@@ -138,6 +139,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.8.0
+
+Released October 2, 2025
+
+- **New**: Merged Migrations by [@groue](https://github.com/groue) in [#1818](https://github.com/groue/GRDB.swift/pull/1818)
 
 ## 7.7.1
 

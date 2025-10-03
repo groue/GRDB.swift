@@ -22,12 +22,34 @@ class DatabaseMigratorTests: GRDBTestCase {
             try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
         #endif
+        #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on this platform")
+        #else
+            func test(writer: some DatabaseWriter) throws {
+                let migrator = DatabaseMigrator()
+                try migrator.migrate(writer)
+            }
+
+            try Test(test).run { try DatabaseQueue() }
+            try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        #endif
     }
 
     func testEmptyMigratorAsync() throws {
         func test(writer: some DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let migrator = DatabaseMigrator()
+            migrator.asyncMigrate(
+                writer,
+                completion: { dbResult in
+                    // No migration error
+                    let db = try! dbResult.get()
+
+                    // Write access
+                    try! db.execute(sql: "CREATE TABLE t(a)")
+                    expectation.fulfill()
+                })
             migrator.asyncMigrate(
                 writer,
                 completion: { dbResult in
@@ -48,9 +70,31 @@ class DatabaseMigratorTests: GRDBTestCase {
             try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
         #endif
+
+        #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on this platform")
+        #else
+            try Test(test).run { try DatabaseQueue() }
+            try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        #endif
     }
 
     func testEmptyMigratorPublisher() throws {
+        #if !canImport(Combine)
+            throw XCTSkip("Combine not supported on this platform")
+        #else
+            func test(writer: some DatabaseWriter) throws {
+                let migrator = DatabaseMigrator()
+                let publisher = migrator.migratePublisher(writer)
+                let recorder = publisher.record()
+                try wait(for: recorder.single, timeout: 1)
+            }
+
+            try Test(test).run { try DatabaseQueue() }
+            try Test(test).runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            try Test(test).runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+        #endif
         #if !canImport(Combine)
             throw XCTSkip("Combine not supported on this platform")
         #else
@@ -77,8 +121,23 @@ class DatabaseMigratorTests: GRDBTestCase {
                             id INTEGER PRIMARY KEY,
                             name TEXT)
                         """)
+                try db.execute(
+                    sql: """
+                        CREATE TABLE persons (
+                            id INTEGER PRIMARY KEY,
+                            name TEXT)
+                        """)
             }
             migrator.registerMigration("createPets") { db in
+                try db.execute(
+                    sql: """
+                        CREATE TABLE pets (
+                            id INTEGER PRIMARY KEY,
+                            masterID INTEGER NOT NULL
+                                     REFERENCES persons(id)
+                                     ON DELETE CASCADE ON UPDATE CASCADE,
+                            name TEXT)
+                        """)
                 try db.execute(
                     sql: """
                         CREATE TABLE pets (
@@ -1376,6 +1435,132 @@ class DatabaseMigratorTests: GRDBTestCase {
             try dbQueue.read { db in
                 try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
                 try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+    }
+
+    func
+        test_merged_migrations_named_like_the_last_that_includes_itself_in_the_list_of_merged_migrations()
+        throws
+    {
+        // Original migrator
+        var oldMigrator = DatabaseMigrator()
+        oldMigrator.registerMigration("v1") { db in
+            try db.execute(sql: "CREATE TABLE t1(a)")
+        }
+        oldMigrator.registerMigration("v2") { db in
+            try db.execute(sql: "CREATE TABLE t2(a)")
+        }
+        oldMigrator.registerMigration("v3") { db in
+            try db.execute(sql: "CREATE TABLE t3(a)")
+        }
+        oldMigrator.registerMigration("v4") { db in
+            try db.execute(sql: "CREATE TABLE t4(a)")
+        }
+        oldMigrator.registerMigration("v5") { db in
+            try db.execute(sql: "CREATE TABLE t5(a)")
+        }
+
+        // New migrator merges v2, v3, and v4 into v4
+        var newMigrator = DatabaseMigrator()
+        newMigrator.registerMigration("v1") { db in
+            try db.execute(sql: "CREATE TABLE t1(a)")
+        }
+        // SUT: the migration identifier is included in the list of merged identifiers.
+        newMigrator.registerMigration("v4", merging: ["v2", "v3", "v4"]) { db, appliedIDs in
+            if !appliedIDs.contains("v2") {
+                try db.execute(sql: "CREATE TABLE t2(a)")
+            }
+            if !appliedIDs.contains("v3") {
+                try db.execute(sql: "CREATE TABLE t3(a)")
+            }
+            try db.execute(sql: "CREATE TABLE t4(a)")
+        }
+        newMigrator.registerMigration("v5") { db in
+            try db.execute(sql: "CREATE TABLE t5(a)")
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try oldMigrator.migrate(dbQueue, upTo: "v1")
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try oldMigrator.migrate(dbQueue, upTo: "v2")
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try oldMigrator.migrate(dbQueue, upTo: "v3")
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try oldMigrator.migrate(dbQueue, upTo: "v4")
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+                    String
+                        .fetchSet(db, sql: "SELECT name FROM sqlite_master")
+                        .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
+            }
+        }
+
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try oldMigrator.migrate(dbQueue, upTo: "v5")
+
+            try newMigrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertEqual(newMigrator.appliedIdentifiers(db), ["v1", "v4", "v5"])
+                try XCTAssertTrue(
+
                     String
                         .fetchSet(db, sql: "SELECT name FROM sqlite_master")
                         .isSuperset(of: ["t1", "t2", "t3", "t4", "t5"]))
