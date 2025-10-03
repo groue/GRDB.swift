@@ -4,7 +4,7 @@
 import GRDBSQLite
 #elseif GRDBCIPHER
 import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#elseif !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
 import SQLite3
 #endif
 
@@ -65,7 +65,7 @@ public struct FTS5 {
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
         case remove
-        #elseif !GRDBCIPHER
+        #elseif !SQLITE_HAS_CODEC
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0

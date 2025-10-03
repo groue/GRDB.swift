@@ -1256,7 +1256,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
 
 extension MutablePersistableRecordTests {
     func test_insertAndFetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1277,7 +1277,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_insertAndFetch_as() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1327,7 +1327,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_insertAndFetch_selection_fetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1414,7 +1414,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_insertAndFetch_fetch_select() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1509,7 +1509,7 @@ extension MutablePersistableRecordTests {
 
 extension MutablePersistableRecordTests {
     func test_saveAndFetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1530,7 +1530,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_saveAndFetch_as() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1656,7 +1656,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_saveAndFetch_selection_fetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1786,7 +1786,7 @@ extension MutablePersistableRecordTests {
 
 extension MutablePersistableRecordTests {
     func test_updateAndFetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1837,7 +1837,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateAndFetch_as() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1887,7 +1887,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateAndFetch_selection_fetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1941,7 +1941,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateAndFetch_columns_selection_fetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1995,7 +1995,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateChangesAndFetch_modify() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -2056,7 +2056,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateChangesAndFetch_as_modify() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -2116,7 +2116,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_updateChangesAndFetch_selection_fetch_modify() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -2186,7 +2186,7 @@ extension MutablePersistableRecordTests {
 
 extension MutablePersistableRecordTests {
     func test_upsert() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
@@ -2335,7 +2335,7 @@ extension MutablePersistableRecordTests {
     }
 
     func test_upsertAndFetch_do_update_set_where() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
@@ -2491,7 +2491,7 @@ extension MutablePersistableRecordTests {
     }
     
     func test_upsertAndFetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }
@@ -2594,7 +2594,7 @@ extension MutablePersistableRecordTests {
     }
 
     func test_upsertAndFetch_as() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("UPSERT is not available")
         }

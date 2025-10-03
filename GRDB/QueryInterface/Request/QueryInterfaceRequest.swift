@@ -646,7 +646,7 @@ extension QueryInterfaceRequest {
 // MARK: - Batch Delete and Fetch
 
 extension QueryInterfaceRequest {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Returns a `DELETE RETURNING` prepared statement.
     ///
     /// For example:
@@ -1176,7 +1176,7 @@ extension QueryInterfaceRequest {
 // MARK: - Batch Update and Fetch
 
 extension QueryInterfaceRequest {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Returns an `UPDATE RETURNING` prepared statement.
     ///
     /// For example:

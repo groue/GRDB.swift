@@ -4,7 +4,7 @@
 import GRDBSQLite
 #elseif GRDBCIPHER
 import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#elseif !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
 import SQLite3
 #endif
 

@@ -50,7 +50,7 @@ class TableDefinitionTests: GRDBTestCase {
         guard Database.sqliteLibVersionNumber >= 3037000 else {
             throw XCTSkip("STRICT tables are not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        #if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15.4, macOS 12.4, tvOS 15.4, watchOS 8.5, *) else {
             throw XCTSkip("STRICT tables are not available")
         }
@@ -357,7 +357,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testColumnGeneratedAs() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
@@ -834,7 +834,7 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableAddGeneratedVirtualColumn() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3031000 else {
             throw XCTSkip("Generated columns are not available")
         }
@@ -873,7 +873,7 @@ class TableDefinitionTests: GRDBTestCase {
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        #if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
@@ -897,7 +897,7 @@ class TableDefinitionTests: GRDBTestCase {
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        #if !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
         guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }

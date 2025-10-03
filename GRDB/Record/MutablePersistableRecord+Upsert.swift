@@ -1,7 +1,7 @@
 // MARK: - Upsert
 
 extension MutablePersistableRecord {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Executes an `INSERT ON CONFLICT DO UPDATE` statement.
     ///
     /// The upsert behavior is triggered by a violation of any uniqueness

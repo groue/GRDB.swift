@@ -2414,7 +2414,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     func testAvgExpression_filter() throws {
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
@@ -2520,7 +2520,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     func testAggregateMinExpression_filter() throws {
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
@@ -2582,7 +2582,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     func testAggregateMaxExpression_filter() throws {
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
@@ -2627,7 +2627,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     func testSumExpression_filter() throws {
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
@@ -2654,7 +2654,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT SUM(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
     }
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     func testSumExpression_order() throws {
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3044000 else {
@@ -2708,7 +2708,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     func testTotalExpression_filter() throws {
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3030000 else {
             throw XCTSkip("FILTER clause on aggregate functions is not available")
@@ -2735,7 +2735,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT TOTAL(\"age\" / 2) FILTER (WHERE \"age\" > 0) FROM \"readers\"")
     }
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     func testTotalExpression_order() throws {
         // Prevent SQLCipher failures
         guard Database.sqliteLibVersionNumber >= 3044000 else {

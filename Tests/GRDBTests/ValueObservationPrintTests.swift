@@ -55,7 +55,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -92,7 +92,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -130,7 +130,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }
@@ -168,7 +168,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabaseQueue(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config))
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshot())
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC)
         try test(makeDatabasePool(filename: "test", configuration: config).makeSnapshotPool())
 #endif
     }

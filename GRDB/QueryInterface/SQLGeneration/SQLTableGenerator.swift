@@ -120,7 +120,7 @@ struct SQLTableGenerator {
             
             var tableOptions: [String] = []
             
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
             if options.contains(.strict) {
                 tableOptions.append("STRICT")
             }

@@ -98,7 +98,7 @@ public struct FTS3TokenizerDescriptor: Sendable {
         #if GRDBCUSTOMSQLITE
         case .remove:
             arguments.append("remove_diacritics=2")
-        #elseif !GRDBCIPHER
+        #elseif !SQLITE_HAS_CODEC
         case .remove:
             arguments.append("remove_diacritics=2")
         #endif

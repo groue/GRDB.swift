@@ -3,7 +3,7 @@
 import GRDBSQLite
 #elseif GRDBCIPHER
 import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#elseif !GRDBCUSTOMSQLITE && !SQLITE_HAS_CODEC
 import SQLite3
 #endif
 
@@ -138,7 +138,7 @@ extension Database {
         }
     }
     
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
     /// Returns information about a table or a view
     func table(_ tableName: String) throws -> TableInfo? {
         for schemaID in try fetchSchemaIdentifiers() {
@@ -572,7 +572,7 @@ extension Database {
     /// - precondition: table exists.
     private func fetchTableHasRowID(_ table: DatabaseObjectID) throws -> Bool {
         // Prefer PRAGMA table_list if available
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         // Maybe SQLCipher is too old: check actual version
         if sqlite3_libversion_number() >= 3037000 {
             return try self.table(for: table)!.isWithoutRowIDTable == false

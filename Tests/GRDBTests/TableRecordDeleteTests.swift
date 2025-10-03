@@ -445,7 +445,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchStatement_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -479,7 +479,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchStatement_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -513,7 +513,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchCursor_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -564,7 +564,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchCursor_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -617,7 +617,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchArray_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -645,7 +645,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchArray_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -675,7 +675,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchSet_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -701,7 +701,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchSet_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -729,7 +729,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchIds_table() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -752,7 +752,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testRequestDeleteAndFetchIds_view() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -839,7 +839,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     
     // TODO: duplicate test with views?
     func testJoinedRequestDeleteAndFetch() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
@@ -1006,7 +1006,7 @@ class TableRecordDeleteTests: GRDBTestCase {
     }
     
     func testGroupedRequestDeleteAndFetchCursor() throws {
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
             throw XCTSkip("RETURNING clause is not available")
         }
