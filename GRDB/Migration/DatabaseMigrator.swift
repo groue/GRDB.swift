@@ -327,6 +327,13 @@ public struct DatabaseMigrator: Sendable {
         case .immediate:
             migrationChecks = .immediate
         }
+        
+        // Remove the migration identifier from the list of merged identifiers.
+        // Arguably, the semantics are ambiguous. And raising a fatal error
+        // is a high price when we can just fix the input.
+        var mergedIdentifiers = mergedIdentifiers
+        mergedIdentifiers.remove(identifier)
+        
         registerMigration(Migration(
             identifier: identifier,
             mergedIdentifiers: mergedIdentifiers,
