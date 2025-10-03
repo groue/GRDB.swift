@@ -1,4 +1,4 @@
-#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && canImport(Darwin)
+#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
     // Import C SQLite functions
     #if SWIFT_PACKAGE
         import GRDBSQLite

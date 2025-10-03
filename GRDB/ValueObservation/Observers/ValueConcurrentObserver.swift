@@ -279,7 +279,7 @@ extension ValueConcurrentObserver {
     }
 }
 
-#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && canImport(Darwin)
+#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
     extension ValueConcurrentObserver {
         /// Synchronously starts the observation, and returns the initial value.
         ///
