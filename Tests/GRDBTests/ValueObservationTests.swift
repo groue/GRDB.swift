@@ -490,7 +490,7 @@ class ValueObservationTests: GRDBTestCase {
         }
 
         let expectedCounts: [Int]
-        #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER) && !os(Linux)
             // Optimization available
             expectedCounts = [0, 1]
         #else
@@ -545,7 +545,7 @@ class ValueObservationTests: GRDBTestCase {
         }
 
         let expectedCounts: [Int]
-        #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+        #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER) && !os(Linux)
             // Optimization available
             expectedCounts = [0, 1]
         #else
@@ -572,7 +572,7 @@ class ValueObservationTests: GRDBTestCase {
 
     // MARK: - Snapshot Observation
 
-    #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+    #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER) && !os(Linux)
         func testDatabaseSnapshotPoolObservation() throws {
             let dbPool = try makeDatabasePool()
             try dbPool.write {
@@ -1139,7 +1139,7 @@ class ValueObservationTests: GRDBTestCase {
                 }
 
                 let initialValueExpectation = self.expectation(description: "initialValue")
-                #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+                #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER) && !os(Linux)
                     initialValueExpectation.assertForOverFulfill = true
                 #else
                     // ValueObservation on DatabasePool will notify the first value twice
@@ -1204,7 +1204,7 @@ class ValueObservationTests: GRDBTestCase {
                 }
 
                 let initialValueExpectation = self.expectation(description: "")
-                #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+                #if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER) && !os(Linux)
                     initialValueExpectation.assertForOverFulfill = true
                 #else
                     // ValueObservation on DatabasePool will notify the first value twice
