@@ -1,4 +1,5 @@
-#if !os(Linux)
+import Foundation
+
 // Import C SQLite functions
 #if SWIFT_PACKAGE
 import GRDBSQLite
@@ -8,8 +9,6 @@ import SQLCipher
 import SQLite3
 #endif
 
-import Foundation
-
 /// Decimal adopts DatabaseValueConvertible
 extension Decimal: DatabaseValueConvertible {
     /// Returns a TEXT decimal value.
@@ -18,7 +17,7 @@ extension Decimal: DatabaseValueConvertible {
             .description(withLocale: Locale(identifier: "en_US_POSIX"))
             .databaseValue
     }
-    
+
     /// Creates an `Decimal` with the specified database value.
     ///
     /// If the database value contains a integer or a double, returns a
@@ -34,7 +33,7 @@ extension Decimal: DatabaseValueConvertible {
             return self.init(int64)
         case .double(let double):
             return self.init(double)
-        case let .string(string):
+        case .string(let string):
             // Must match NSNumber.fromDatabaseValue(_:)
             return self.init(string: string, locale: _posixLocale)
         default:
@@ -65,4 +64,3 @@ extension Decimal: StatementColumnConvertible {
 
 @usableFromInline
 let _posixLocale = Locale(identifier: "en_US_POSIX")
-#endif
