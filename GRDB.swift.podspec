@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
     ss.xcconfig = {
-      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5',
+      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5 -D GRDBFRAMEWORK',
     }
   end
   
