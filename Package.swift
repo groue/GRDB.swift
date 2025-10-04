@@ -42,13 +42,19 @@ let package = Package(
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
     dependencies: dependencies,
+    traits: [
+        "GRDBSQLite",
+        .default(enabledTraits: ["GRDBSQLite"]),
+    ],
     targets: [
         .systemLibrary(
             name: "GRDBSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["GRDBSQLite"],
+            dependencies: [
+                .target("GRDBSQLite", traits: ["GRDBSQLite"]),
+            ],
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
