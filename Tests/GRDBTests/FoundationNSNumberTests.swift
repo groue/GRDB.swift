@@ -3,7 +3,10 @@ import GRDB
 
 class FoundationNSNumberTests: GRDBTestCase {
     
-    func testNSNumberDatabaseValueToSwiftType() {
+    func testNSNumberDatabaseValueToSwiftType() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSNumber unavailable")
+        #else
         enum Storage {
             case integer
             case double
@@ -130,9 +133,13 @@ class FoundationNSNumberTests: GRDBTestCase {
             XCTAssertEqual(storage(number), .integer)
             XCTAssertEqual(Bool.fromDatabaseValue(number.databaseValue), false)
         }
+        #endif
     }
     
     func testNSNumberDatabaseRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSNumber unavailable")
+        #else
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSNumber) throws -> Bool {
             guard let back = try dbQueue.inDatabase({ try NSNumber.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
@@ -144,9 +151,13 @@ class FoundationNSNumberTests: GRDBTestCase {
         
         XCTAssertTrue(try roundTrip(NSNumber(value: Int32.min + 1)))
         XCTAssertTrue(try roundTrip(NSNumber(value: Double(10000000.01))))
+        #endif
     }
     
-    func testNSNumberDatabaseValueRoundTrip() {
+    func testNSNumberDatabaseValueRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSNumber unavailable")
+        #else
         func roundTrip(_ value: NSNumber) -> Bool
         {
             let dbValue = value.databaseValue
@@ -160,18 +171,26 @@ class FoundationNSNumberTests: GRDBTestCase {
         
         XCTAssertTrue(roundTrip(NSNumber(value: Int32.min + 1)))
         XCTAssertTrue(roundTrip(NSNumber(value: Double(10000000.01))))
+        #endif
     }
     
-    func testNSNumberFromDatabaseValueFailure() {
+    func testNSNumberFromDatabaseValueFailure() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSNumber unavailable")
+        #else
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_String = "foo".databaseValue
         let databaseValue_Blob = "bar".data(using: .utf8)!.databaseValue
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_String))
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Blob))
+        #endif
     }
     
     func testNSNumberDecodingFromText() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSNumber unavailable")
+        #else
         func test(_ value: String, isDecodedAs number: NSDecimalNumber) throws {
             let decodedFromDatabaseValue = NSNumber.fromDatabaseValue(value.databaseValue) as? NSDecimalNumber
             XCTAssertEqual(decodedFromDatabaseValue, number)
@@ -190,5 +209,6 @@ class FoundationNSNumberTests: GRDBTestCase {
         try test("-9223372036854775807", isDecodedAs: NSDecimalNumber(value: -9223372036854775807))
         try test("-9223372036854775808", isDecodedAs: NSDecimalNumber(value: -9223372036854775808))
         try test("18446744073709551615", isDecodedAs: NSDecimalNumber(value: UInt64(18446744073709551615)))
+        #endif
     }
 }

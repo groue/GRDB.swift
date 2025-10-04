@@ -1,8 +1,8 @@
 // Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
+#if GRDBCIPHER
 import SQLCipher
+#elseif SWIFT_PACKAGE
+import GRDBSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
 import SQLite3
 #endif
@@ -11,6 +11,8 @@ import SQLite3
 import string_h
 #elseif os(Linux)
 import Glibc
+#elseif canImport(Android)
+import Android
 #elseif os(macOS) || os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
 import Darwin
 #elseif os(Windows)

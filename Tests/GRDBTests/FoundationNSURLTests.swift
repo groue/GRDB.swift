@@ -4,6 +4,9 @@ import GRDB
 class FoundationNSURLTests: GRDBTestCase {
     
     func testNSURLDatabaseRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSURL unavailable")
+        #else
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSURL) throws -> Bool {
             guard let back = try dbQueue.inDatabase({ try NSURL.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
@@ -15,9 +18,13 @@ class FoundationNSURLTests: GRDBTestCase {
         
         XCTAssertTrue(try roundTrip(NSURL(string: "https://github.com/groue/GRDB.swift")!))
         XCTAssertTrue(try roundTrip(NSURL(fileURLWithPath: NSTemporaryDirectory())))
+        #endif
     }
     
-    func testNSURLDatabaseValueRoundTrip() {
+    func testNSURLDatabaseValueRoundTrip() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSURL unavailable")
+        #else
         
         func roundTrip(_ value: NSURL) -> Bool
         {
@@ -32,9 +39,13 @@ class FoundationNSURLTests: GRDBTestCase {
         
         XCTAssertTrue(roundTrip(NSURL(string: "https://github.com/groue/GRDB.swift")!))
         XCTAssertTrue(roundTrip(NSURL(fileURLWithPath: NSTemporaryDirectory())))
+        #endif
     }
     
-    func testNSURLFromDatabaseValueFailure() {
+    func testNSURLFromDatabaseValueFailure() throws {
+        #if !canImport(ObjectiveC)
+        throw XCTSkip("NSURL unavailable")
+        #else
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
@@ -43,6 +54,7 @@ class FoundationNSURLTests: GRDBTestCase {
         XCTAssertNil(NSURL.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSURL.fromDatabaseValue(databaseValue_Double))
         XCTAssertEqual(NSURL.fromDatabaseValue(databaseValue_Blob)!.absoluteString, "bar")
+        #endif
     }
     
 }
