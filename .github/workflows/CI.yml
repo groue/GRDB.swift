@@ -1,4 +1,4 @@
-# https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md
+# https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
 
 name: "GRDB CI"
 
@@ -40,17 +40,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
             destination: "platform=macOS"
             name: "macOS"
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            destination: "OS=18.1,name=iPhone 16 Pro"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            destination: "OS=18.5,name=iPhone 16 Pro"
             name: "iOS"
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            destination: "OS=18.1,name=Apple TV"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            destination: "OS=18.5,name=Apple TV"
             name: "tvOS"
     steps:
       - uses: actions/checkout@v5
@@ -66,9 +66,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            name: "Xcode 16.4"
     steps:
       - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
@@ -83,9 +83,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            name: "Xcode 16.4"
     steps:
       - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
@@ -100,9 +100,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            name: "Xcode 16.4"
     steps:
       - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
@@ -117,9 +117,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            name: "Xcode 16.4"
     steps:
       - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
@@ -134,9 +134,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - xcode: "Xcode_16.1.app"
-            runsOn: macOS-14
-            name: "Xcode 16.1"
+          - xcode: "Xcode_16.4.app"
+            runsOn: macOS-15
+            name: "Xcode 16.4"
     steps:
       - uses: actions/checkout@v5
       - name: ${{ matrix.name }}
