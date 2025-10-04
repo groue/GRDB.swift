@@ -119,7 +119,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let aAlias = TableAlias<A>()
                 let request = A
@@ -135,7 +134,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
-            #endif
         }
     }
     
@@ -178,7 +176,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let alias = TableAlias<A>()
                 let request = A
@@ -191,7 +188,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
                     """)
             }
-            #endif
             do {
                 let request = A.including(required: A.b.filter(key: ["id": 1]))
                 try assertEqualSQL(db, request, """
@@ -237,7 +233,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     WHERE "b"."name" IS NOT NULL
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let bAlias = TableAlias<B>()
                 let request = A
@@ -250,7 +245,6 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     WHERE "b"."name" IS NOT NULL
                     """)
             }
-            #endif
         }
     }
     

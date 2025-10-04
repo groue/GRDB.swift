@@ -271,8 +271,3 @@ struct AnyValueReducerFetcher<Fetched>: _ValueReducerFetcher {
         try _fetch(db)
     }
 }
-
-#if compiler(<6.1)
-// XCTestExpectation is Sendable starting Xcode 16.3 beta.
-extension XCTestExpectation: @unchecked Sendable { }
-#endif

@@ -101,7 +101,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     LEFT JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression<T>(named: "cte", request: T.all())
                 let request = T.all()
@@ -114,7 +113,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     LEFT JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #endif
             
             // Include SQL request as a CTE
             do {
@@ -131,7 +129,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
@@ -146,7 +143,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #endif
             
             // Include a filtered SQL request as a CTE
             do {
@@ -180,7 +176,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
@@ -196,7 +191,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #endif
             
             // Include SQL request as a CTE (custom column name)
             do {
@@ -214,7 +208,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression(
                     named: "cte",
@@ -230,7 +223,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
-            #endif
             
             // Include SQL request as a CTE (empty ON clause)
             do {
@@ -261,7 +253,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression<T>(named: "cte", request: T.all())
                 let request = T.all()
@@ -274,7 +265,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #endif
             
             // Include filtered CTE
             do {
@@ -336,7 +326,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression<T>(named: "cte", request: T.all())
                 let request = T.all()
@@ -350,7 +339,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-            #endif
             
             // Include one CTE twice with same key but different condition (last condition wins)
             do {
@@ -366,7 +354,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON ("t"."id" + "cte"."id") = 1
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression<T>(named: "cte", request: T.all())
                 let request = T.all()
@@ -380,7 +367,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON ("t"."id" + "cte"."id") = 1
                     """)
             }
-            #endif
             
             // Include one CTE twice with different keys
             do {
@@ -397,7 +383,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" "cte2" ON "t"."id" < "cte2"."id"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cte = CommonTableExpression<T>(named: "cte", request: T.all())
                 let request = T.all()
@@ -412,7 +397,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" "cte2" ON "t"."id" < "cte2"."id"
                     """)
             }
-            #endif
             
             // Chain CTE includes
             do {

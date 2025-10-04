@@ -303,11 +303,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order { $0.age }),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
-        #if compiler(>=6.1)
         XCTAssertEqual(
             sql(dbQueue, Reader.order(\.age)),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
-        #endif
         
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Columns.age.asc)),
@@ -315,11 +313,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order { $0.age.asc }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
-        #if compiler(>=6.1)
         XCTAssertEqual(
             sql(dbQueue, Reader.order(\.age.asc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
-        #endif
         
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Columns.age.desc)),
@@ -327,11 +323,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order { $0.age.desc }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
-        #if compiler(>=6.1)
         XCTAssertEqual(
             sql(dbQueue, Reader.order(\.age.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
-        #endif
         
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Columns.age, Columns.name.desc)),
@@ -354,11 +348,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order { $0.age.ascNullsLast }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
-        #if compiler(>=6.1)
         XCTAssertEqual(
             sql(dbQueue, Reader.order(\.age.ascNullsLast)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
-        #endif
         
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Columns.age.descNullsFirst)),
@@ -366,11 +358,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order { $0.age.descNullsFirst }),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
-        #if compiler(>=6.1)
         XCTAssertEqual(
             sql(dbQueue, Reader.order(\.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
-        #endif
         #elseif !GRDBCIPHER
         if #available(iOS 14, macOS 10.16, tvOS 14, *) {
             XCTAssertEqual(
@@ -379,11 +369,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(
                 sql(dbQueue, Reader.order { $0.age.ascNullsLast }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
-            #if compiler(>=6.1)
             XCTAssertEqual(
                 sql(dbQueue, Reader.order(\.age.ascNullsLast)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
-            #endif
             
             XCTAssertEqual(
                 sql(dbQueue, Reader.order(Columns.age.descNullsFirst)),
@@ -391,11 +379,9 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(
                 sql(dbQueue, Reader.order { $0.age.descNullsFirst }),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
-            #if compiler(>=6.1)
             XCTAssertEqual(
                 sql(dbQueue, Reader.order(\.age.descNullsFirst)),
                 "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
-            #endif
         }
         #endif
     }

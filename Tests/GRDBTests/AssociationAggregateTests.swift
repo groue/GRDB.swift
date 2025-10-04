@@ -122,7 +122,6 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
-    #if compiler(>=6.1)
     func testAggregateWithGroup_swift61() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -139,7 +138,6 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
         }
     }
-    #endif
     
     func testAnnotatedWithHasManyDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -296,7 +294,6 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
-    #if compiler(>=6.1)
     func testAnnotatedWithHasManyDefaultMax_Swift61() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -333,7 +330,6 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[3].maxPlayerScore, 0)
         }
     }
-    #endif
     
     func testAnnotatedWithHasManyDefaultMaxJoiningRequired() throws {
         // It is important to have an explicit test for this technique because

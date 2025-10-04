@@ -481,7 +481,6 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                         SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
                         """)
                 }
-                #if compiler(>=6.1)
                 do {
                     let teamAlias = TableAlias<Team>()
                     let player = Player.filter { $0.teamID == teamAlias.id }
@@ -490,7 +489,6 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                         SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
                         """)
                 }
-                #endif
             }
         }
         

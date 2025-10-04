@@ -138,7 +138,6 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let aAlias = TableAlias<A>()
                 let request = A
@@ -155,7 +154,6 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
-            #endif
         }
     }
     
@@ -238,7 +236,6 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     WHERE "c"."name" IS NOT NULL
                     """)
             }
-            #if compiler(>=6.1)
             do {
                 let cAlias = TableAlias<C>()
                 let request = A
@@ -252,7 +249,6 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     WHERE "c"."name" IS NOT NULL
                     """)
             }
-            #endif
         }
     }
     

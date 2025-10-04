@@ -130,7 +130,6 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
         }
     }
     
-    #if compiler(>=6.1)
     func testTableAliasBasics_swift61() throws {
         // A table reference qualifies all unqualified selectables, expressions, and orderings
         
@@ -208,7 +207,6 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
             }
         }
     }
-    #endif
     
     func testRecursiveRelationDepth1() throws {
         // A.include(A.parent)
