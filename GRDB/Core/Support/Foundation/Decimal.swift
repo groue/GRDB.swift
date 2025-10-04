@@ -2,11 +2,11 @@ import Foundation
 
 // Import C SQLite functions
 #if SWIFT_PACKAGE
-    import GRDBSQLite
+import GRDBSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// Decimal adopts DatabaseValueConvertible
