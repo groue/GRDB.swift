@@ -1,10 +1,13 @@
 // Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
+#if GRDBCIPHER // CocoaPods (SQLCipher subspec)
 import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#elseif GRDBFRAMEWORK // GRDB.xcodeproj or CocoaPods (standard subspec)
 import SQLite3
+#elseif GRDBCUSTOMSQLITE // GRDBCustom Framework
+// #elseif SomeTrait
+// import ...
+#else // Default SPM trait must be the default. It impossible to detect from Xcode.
+import GRDBSQLite
 #endif
 
 import Foundation
@@ -519,20 +522,16 @@ private struct SingleValueRowDecoder<R: FetchableRecord>: SingleValueDecodingCon
     func decode(_ type: Int16.Type) throws -> Int16 { try columnDecoder.decode(type) }
     func decode(_ type: Int32.Type) throws -> Int32 { try columnDecoder.decode(type) }
     func decode(_ type: Int64.Type) throws -> Int64 { try columnDecoder.decode(type) }
-#if compiler(>=6)
     @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
     func decode(_ type: Int128.Type) throws -> Int128 { try columnDecoder.decode(type) }
-#endif
     func decode(_ type: UInt.Type) throws -> UInt { try columnDecoder.decode(type) }
     func decode(_ type: UInt8.Type) throws -> UInt8 { try columnDecoder.decode(type) }
     func decode(_ type: UInt16.Type) throws -> UInt16 { try columnDecoder.decode(type) }
     func decode(_ type: UInt32.Type) throws -> UInt32 { try columnDecoder.decode(type) }
     func decode(_ type: UInt64.Type) throws -> UInt64 { try columnDecoder.decode(type) }
-#if compiler(>=6)
     @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
     func decode(_ type: UInt128.Type) throws -> UInt128 { try columnDecoder.decode(type) }
-#endif
-
+    
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         if let type = T.self as? any FetchableRecord.Type {
             // Prefer FetchableRecord decoding over Decodable.

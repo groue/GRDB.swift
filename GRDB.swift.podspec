@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }
   s.module_name = 'GRDB'
   
-  s.swift_versions = ['6']
+  s.swift_versions = ['6.1']
   s.ios.deployment_target = '13.0'
   s.osx.deployment_target = '10.15'
   s.watchos.deployment_target = '7.0'
@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
     ss.xcconfig = {
-      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5',
+      'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5 -D GRDBFRAMEWORK',
     }
   end
   

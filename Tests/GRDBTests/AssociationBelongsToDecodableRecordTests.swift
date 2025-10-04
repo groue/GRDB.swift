@@ -53,14 +53,12 @@ private extension QueryInterfaceRequest<Player> {
             .order { [teamAlias[Team.Columns.name], $0.name] }
     }
     
-#if compiler(>=6.1)
     func orderedByTeamName_swift61() -> QueryInterfaceRequest<Player> {
         let teamAlias = TableAlias<Team>()
         return self
             .joining(optional: PlayerWithOptionalTeam.team.aliased(teamAlias))
             .order { [teamAlias.name, $0.name] }
     }
-#endif
 }
 
 /// Test support for Decodable records
@@ -190,7 +188,6 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[0].team.name, "Reds")
     }
     
-#if compiler(>=6.1)
     func testRequestRefining_swift61() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player
@@ -212,5 +209,4 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[0].team.id, 1)
         XCTAssertEqual(records[0].team.name, "Reds")
     }
-#endif
 }

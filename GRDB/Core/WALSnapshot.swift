@@ -1,11 +1,14 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT
 // Import C SQLite functions
-#if SWIFT_PACKAGE
-import GRDBSQLite
-#elseif GRDBCIPHER
+#if GRDBCIPHER // CocoaPods (SQLCipher subspec)
 import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+#elseif GRDBFRAMEWORK // GRDB.xcodeproj or CocoaPods (standard subspec)
 import SQLite3
+#elseif GRDBCUSTOMSQLITE // GRDBCustom Framework
+// #elseif SomeTrait
+// import ...
+#else // Default SPM trait must be the default. It impossible to detect from Xcode.
+import GRDBSQLite
 #endif
 
 /// An instance of WALSnapshot records the state of a WAL mode database for some
@@ -15,18 +18,6 @@ import SQLite3
 /// that would happen between the initial fetch, and the start of the
 /// actual observation. This class has no other purpose, and is not intended to
 /// become public.
-///
-/// It does not work with SQLCipher, because SQLCipher does not support
-/// `SQLITE_ENABLE_SNAPSHOT` correctly: we have linker errors.
-/// See <https://github.com/ericsink/SQLitePCL.raw/issues/452>.
-///
-/// With custom SQLite builds, it only works if `SQLITE_ENABLE_SNAPSHOT`
-/// is defined.
-///
-/// With system SQLite, it works because the SDK exposes the C apis and
-/// since XCode 14.
-///
-/// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot: @unchecked Sendable {

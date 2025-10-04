@@ -1,11 +1,21 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
 import PackageDescription
 
+let darwinPlatforms: [Platform] = [
+    .iOS,
+    .macOS,
+    .macCatalyst,
+    .tvOS,
+    .visionOS,
+    .watchOS,
+]
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
+    // SQLite snapshots are available on the system SQLite on Darwin platforms.
+    .define("SQLITE_ENABLE_SNAPSHOT", .when(platforms: darwinPlatforms, traits: ["GRDBSQLite"])),
 ]
 var cSettings: [CSetting] = []
 var dependencies: [PackageDescription.Package.Dependency] = []
@@ -41,6 +51,10 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
+    traits: [
+        "GRDBSQLite",
+        .default(enabledTraits: ["GRDBSQLite"]),
+    ],
     dependencies: dependencies,
     targets: [
         .systemLibrary(
@@ -48,7 +62,9 @@ let package = Package(
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["GRDBSQLite"],
+            dependencies: [
+                .target(name: "GRDBSQLite", condition: .when(traits: ["GRDBSQLite"])),
+            ],
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
