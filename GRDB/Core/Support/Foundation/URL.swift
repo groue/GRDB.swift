@@ -1,6 +1,6 @@
 import Foundation
 
-#if !os(Linux) && !os(Windows)
+#if !os(Linux) && !os(Windows) && !os(Android)
 /// NSURL stores its absoluteString in the database.
 extension NSURL: DatabaseValueConvertible {
     
