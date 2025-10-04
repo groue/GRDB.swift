@@ -1,4 +1,4 @@
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+#if SQLITE_ENABLE_SNAPSHOT
 // Import C SQLite functions
 #if SWIFT_PACKAGE
 import GRDBSQLite
@@ -15,18 +15,6 @@ import SQLite3
 /// that would happen between the initial fetch, and the start of the
 /// actual observation. This class has no other purpose, and is not intended to
 /// become public.
-///
-/// It does not work with SQLCipher, because SQLCipher does not support
-/// `SQLITE_ENABLE_SNAPSHOT` correctly: we have linker errors.
-/// See <https://github.com/ericsink/SQLitePCL.raw/issues/452>.
-///
-/// With custom SQLite builds, it only works if `SQLITE_ENABLE_SNAPSHOT`
-/// is defined.
-///
-/// With system SQLite, it works because the SDK exposes the C apis and
-/// since XCode 14.
-///
-/// Yes, this is an awfully complex logic.
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot: @unchecked Sendable {
