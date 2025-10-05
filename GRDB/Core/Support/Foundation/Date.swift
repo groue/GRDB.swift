@@ -2,11 +2,11 @@ import Foundation
 
 // Import C SQLite functions
 #if SWIFT_PACKAGE
-    import GRDBSQLite
+import GRDBSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// NSDate is stored in the database using the format
@@ -85,26 +85,26 @@ extension Date: DatabaseValueConvertible {
     public init?(julianDay: Double) {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         // TODO: check for overflows one day, and return nil when computation can't complete.
-        let JD = Int64(julianDay * 86_400_000)
-        let Z = Int(((JD + 43_200_000) / 86_400_000))
+        let JD = Int64(julianDay * 86400000)
+        let Z = Int(((JD + 43200_000) / 86400000))
         var A = Int(((Double(Z) - 1867216.25) / 36524.25))
-        A = Z + 1 + A - (A / 4)
+        A = Z + 1 + A - (A/4)
         let B = A + 1524
-        let C = Int(((Double(B) - 122.1) / 365.25))
-        let D = (36525 * (C & 32767)) / 100
-        let E = Int((Double(B - D) / 30.6001))
-        let X1 = Int((30.6001 * Double(E)))
+        let C = Int(((Double(B) - 122.1)/365.25))
+        let D = (36525*(C&32767))/100
+        let E = Int((Double(B-D)/30.6001))
+        let X1 = Int((30.6001*Double(E)))
         let day = B - D - X1
-        let month = E < 14 ? E - 1 : E - 13
-        let year = month > 2 ? C - 4716 : C - 4715
-        var s = Int(((JD + 43_200_000) % 86_400_000))
-        var second = Double(s) / 1000.0
+        let month = E<14 ? E-1 : E-13
+        let year = month>2 ? C - 4716 : C - 4715
+        var s = Int(((JD + 43200000) % 86400000))
+        var second = Double(s)/1000.0
         s = Int(second)
         second -= Double(s)
-        let hour = s / 3600
-        s -= hour * 3600
-        let minute = s / 60
-        second += Double(s - minute * 60)
+        let hour = s/3600
+        s -= hour*3600
+        let minute = s/60
+        second += Double(s - minute*60)
 
         var dateComponents = DateComponents()
         dateComponents.year = year
@@ -136,9 +136,7 @@ extension Date: StatementColumnConvertible {
         case SQLITE_INTEGER, SQLITE_FLOAT:
             self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            guard
-                let components = DatabaseDateComponents(
-                    sqliteStatement: sqliteStatement, index: index),
+            guard let components = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index),
                 let date = Date(databaseDateComponents: components)
             else {
                 return nil
