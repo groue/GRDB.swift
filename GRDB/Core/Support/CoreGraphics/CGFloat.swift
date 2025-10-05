@@ -10,7 +10,7 @@ extension CGFloat: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         Double(self).databaseValue
     }
-
+    
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> CGFloat? {
         guard let double = Double.fromDatabaseValue(dbValue) else {
             return nil
