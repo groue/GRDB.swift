@@ -86,8 +86,8 @@ extension Date: DatabaseValueConvertible {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         // TODO: check for overflows one day, and return nil when computation can't complete.
         let JD = Int64(julianDay * 86400000)
-        let Z = Int(((JD + 43200_000) / 86400000))
-        var A = Int(((Double(Z) - 1867216.25) / 36524.25))
+        let Z = Int(((JD + 43200000)/86400000))
+        var A = Int(((Double(Z) - 1867216.25)/36524.25))
         A = Z + 1 + A - (A/4)
         let B = A + 1524
         let C = Int(((Double(B) - 122.1)/365.25))
@@ -137,7 +137,7 @@ extension Date: StatementColumnConvertible {
             self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
             guard let components = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index),
-                let date = Date(databaseDateComponents: components)
+               let date = Date(databaseDateComponents: components)
             else {
                 return nil
             }
