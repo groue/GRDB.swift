@@ -1,5 +1,7 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:pyenv",
     "python-envs.pythonProjects": [],
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4
 }
