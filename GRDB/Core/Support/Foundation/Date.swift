@@ -17,7 +17,7 @@ extension NSDate: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         (self as Date).databaseValue
     }
-
+    
     /// Creates an `NSDate` with the specified database value.
     ///
     /// If the database value contains a number, that number is interpreted as a
