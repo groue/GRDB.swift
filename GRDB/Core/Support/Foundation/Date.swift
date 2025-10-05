@@ -123,7 +123,7 @@ extension Date: DatabaseValueConvertible {
 }
 
 extension Date: StatementColumnConvertible {
-
+    
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameters:
