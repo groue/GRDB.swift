@@ -1,7 +1,7 @@
 #if canImport(CoreGraphics)
-    import CoreGraphics
+import CoreGraphics
 #elseif !canImport(Darwin)
-    import Foundation
+import Foundation
 #endif
 
 /// CGFloat adopts DatabaseValueConvertible
