@@ -80,7 +80,7 @@ extension Date: DatabaseValueConvertible {
         }
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
     }
-    
+
     /// Creates a date from a [Julian Day](https://en.wikipedia.org/wiki/Julian_day).
     public init?(julianDay: Double) {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
@@ -114,7 +114,7 @@ extension Date: DatabaseValueConvertible {
         dateComponents.minute = minute
         dateComponents.second = Int(second)
         dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
-
+        
         guard let date = UTCCalendar.date(from: dateComponents) else {
             return nil
         }
