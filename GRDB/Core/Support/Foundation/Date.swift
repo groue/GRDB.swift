@@ -17,7 +17,7 @@ extension NSDate: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         (self as Date).databaseValue
     }
-
+    
     /// Creates an `NSDate` with the specified database value.
     ///
     /// If the database value contains a number, that number is interpreted as a
@@ -114,7 +114,7 @@ extension Date: DatabaseValueConvertible {
         dateComponents.minute = minute
         dateComponents.second = Int(second)
         dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
-        
+
         guard let date = UTCCalendar.date(from: dateComponents) else {
             return nil
         }
