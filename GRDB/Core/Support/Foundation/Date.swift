@@ -68,7 +68,7 @@ extension Date: DatabaseValueConvertible {
         }
         return nil
     }
-
+    
     @usableFromInline
     init?(databaseDateComponents: DatabaseDateComponents) {
         guard databaseDateComponents.format.hasYMDComponents else {
@@ -80,7 +80,7 @@ extension Date: DatabaseValueConvertible {
         }
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
     }
-
+    
     /// Creates a date from a [Julian Day](https://en.wikipedia.org/wiki/Julian_day).
     public init?(julianDay: Double) {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
@@ -105,7 +105,7 @@ extension Date: DatabaseValueConvertible {
         s -= hour*3600
         let minute = s/60
         second += Double(s - minute*60)
-
+        
         var dateComponents = DateComponents()
         dateComponents.year = year
         dateComponents.month = month
@@ -114,7 +114,7 @@ extension Date: DatabaseValueConvertible {
         dateComponents.minute = minute
         dateComponents.second = Int(second)
         dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
-
+        
         guard let date = UTCCalendar.date(from: dateComponents) else {
             return nil
         }
@@ -137,7 +137,7 @@ extension Date: StatementColumnConvertible {
             self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
             guard let components = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index),
-            let date = Date(databaseDateComponents: components)
+                  let date = Date(databaseDateComponents: components)
             else {
                 return nil
             }
