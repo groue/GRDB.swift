@@ -686,53 +686,53 @@ extension DatabasePool: DatabaseReader {
     
     // MARK: - WAL Snapshot Transactions
 
-    #if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
-        /// Returns a long-lived WAL snapshot transaction on a reader connection.
-        func walSnapshotTransaction() throws -> WALSnapshotTransaction {
-            guard let readerPool else {
-                throw DatabaseError.connectionIsClosed()
-            }
-            
-            let (reader, releaseReader) = try readerPool.get()
-            return try WALSnapshotTransaction(
-                onReader: reader,
-                release: { isInsideTransaction in
-                    // Discard the connection if the transaction could not be
-                    // properly ended. If we'd reuse it, the next read would
-                    // fail because we'd fail starting a read transaction.
-                    releaseReader(isInsideTransaction ? .discard : .reuse)
-                })
+#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
+    /// Returns a long-lived WAL snapshot transaction on a reader connection.
+    func walSnapshotTransaction() throws -> WALSnapshotTransaction {
+        guard let readerPool else {
+            throw DatabaseError.connectionIsClosed()
         }
         
-        /// Returns a long-lived WAL snapshot transaction on a reader connection.
-        ///
-        /// - important: The `completion` argument is executed in a serial
-        ///   dispatch queue, so make sure you use the transaction asynchronously.
-        func asyncWALSnapshotTransaction(
-            _ completion: @escaping @Sendable (Result<WALSnapshotTransaction, Error>) -> Void
-        ) {
-            guard let readerPool else {
-                completion(.failure(DatabaseError.connectionIsClosed()))
-                return
-            }
-            
-            readerPool.asyncGet { result in
-                completion(
-                    result.flatMap { reader, releaseReader in
-                        Result {
-                            try WALSnapshotTransaction(
-                                onReader: reader,
-                                release: { isInsideTransaction in
-                                    // Discard the connection if the transaction could not be
-                                    // properly ended. If we'd reuse it, the next read would
-                                    // fail because we'd fail starting a read transaction.
-                                    releaseReader(isInsideTransaction ? .discard : .reuse)
-                                })
-                        }
-                    })
-            }
+        let (reader, releaseReader) = try readerPool.get()
+        return try WALSnapshotTransaction(
+            onReader: reader,
+            release: { isInsideTransaction in
+                // Discard the connection if the transaction could not be
+                // properly ended. If we'd reuse it, the next read would
+                // fail because we'd fail starting a read transaction.
+                releaseReader(isInsideTransaction ? .discard : .reuse)
+            })
+    }
+    
+    /// Returns a long-lived WAL snapshot transaction on a reader connection.
+    ///
+    /// - important: The `completion` argument is executed in a serial
+    ///   dispatch queue, so make sure you use the transaction asynchronously.
+    func asyncWALSnapshotTransaction(
+        _ completion: @escaping @Sendable (Result<WALSnapshotTransaction, Error>) -> Void
+    ) {
+        guard let readerPool else {
+            completion(.failure(DatabaseError.connectionIsClosed()))
+            return
         }
-    #endif
+        
+        readerPool.asyncGet { result in
+            completion(
+                result.flatMap { reader, releaseReader in
+                    Result {
+                        try WALSnapshotTransaction(
+                            onReader: reader,
+                            release: { isInsideTransaction in
+                                // Discard the connection if the transaction could not be
+                                // properly ended. If we'd reuse it, the next read would
+                                // fail because we'd fail starting a read transaction.
+                                releaseReader(isInsideTransaction ? .discard : .reuse)
+                            })
+                    }
+                })
+        }
+    }
+#endif
 
     // MARK: - Database Observation
 
