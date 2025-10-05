@@ -46,7 +46,7 @@ extension Date: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         storageDateFormatter.string(from: self).databaseValue
     }
-
+    
     /// Creates an `Date` with the specified database value.
     ///
     /// If the database value contains a number, that number is interpreted as a
@@ -80,7 +80,7 @@ extension Date: DatabaseValueConvertible {
         }
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
     }
-
+    
     /// Creates a date from a [Julian Day](https://en.wikipedia.org/wiki/Julian_day).
     public init?(julianDay: Double) {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
@@ -123,7 +123,7 @@ extension Date: DatabaseValueConvertible {
 }
 
 extension Date: StatementColumnConvertible {
-    
+
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameters:
