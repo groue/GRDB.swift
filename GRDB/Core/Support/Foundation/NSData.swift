@@ -2,12 +2,12 @@ import Foundation
 
 /// NSData is convertible to and from DatabaseValue.
 extension NSData: DatabaseValueConvertible {
-
+    
     /// Returns a BLOB database value.
     public var databaseValue: DatabaseValue {
         (self as Data).databaseValue
     }
-
+    
     /// Returns a `NSData` from the specified database value.
     ///
     /// If the database value contains a data blob, returns it.
