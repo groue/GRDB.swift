@@ -14,8 +14,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
         func commitAndRelease() {
             // WALSnapshotTransaction may be deinitialized in the dispatch
             // queue of its reader: allow reentrancy.
-            let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false)
-            { db in
+            let isInsideTransaction = reader.reentrantSync(allowingLongLivedTransaction: false) { db in
                 // Commit or rollback, but try hard to leave the read-only transaction
                 // (commit may fail with a CancellationError).
                 do {
@@ -62,9 +61,8 @@ final class WALSnapshotTransaction: @unchecked Sendable {
     ///   is no longer used.
     init(
         onReader reader: SerializedDatabase,
-        release: @escaping @Sendable (_ isInsideTransaction: Bool) -> Void
-    )
-        throws
+        release: @escaping @Sendable (_ isInsideTransaction: Bool) -> Void)
+    throws
     {
         assert(reader.configuration.readonly)
         let databaseAccess = DatabaseAccess(reader: reader, release: release)
