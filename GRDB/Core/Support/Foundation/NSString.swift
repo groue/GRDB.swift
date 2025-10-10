@@ -2,12 +2,12 @@ import Foundation
 
 /// NSString adopts DatabaseValueConvertible
 extension NSString: DatabaseValueConvertible {
-
+    
     /// Returns a TEXT database value.
     public var databaseValue: DatabaseValue {
         (self as String).databaseValue
     }
-
+    
     /// Returns a `NSString` from the specified database value.
     ///
     /// If the database value contains a string, returns it.
