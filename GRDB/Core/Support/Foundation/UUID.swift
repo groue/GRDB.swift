@@ -93,7 +93,7 @@ extension UUID: StatementColumnConvertible {
             self.init(uuid: uuid.uuid)
         case SQLITE_BLOB:
             guard sqlite3_column_bytes(sqliteStatement, index) == 16,
-                  let blob = sqlite3_column_blob(sqliteStatement, index) else 
+                  let blob = sqlite3_column_blob(sqliteStatement, index) else
             {
                 return nil
             }
