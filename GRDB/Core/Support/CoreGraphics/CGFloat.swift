@@ -1,5 +1,8 @@
 #if canImport(CoreGraphics)
 import CoreGraphics
+#elseif !canImport(Darwin)
+import Foundation
+#endif
 
 /// CGFloat adopts DatabaseValueConvertible
 extension CGFloat: DatabaseValueConvertible {
@@ -15,4 +18,3 @@ extension CGFloat: DatabaseValueConvertible {
         return CGFloat(double)
     }
 }
-#endif

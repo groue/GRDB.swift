@@ -1,4 +1,3 @@
-#if !os(Linux)
 // Import C SQLite functions
 #if SWIFT_PACKAGE
 import GRDBSQLite
@@ -65,4 +64,3 @@ extension Decimal: StatementColumnConvertible {
 
 @usableFromInline
 let _posixLocale = Locale(identifier: "en_US_POSIX")
-#endif

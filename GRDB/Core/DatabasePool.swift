@@ -1,5 +1,6 @@
 import Dispatch
 import Foundation
+
 #if os(iOS)
 import UIKit
 #endif
@@ -46,7 +47,7 @@ public final class DatabasePool {
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
         GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
-        
+
         // Writer
         writer = try SerializedDatabase(
             path: path,
@@ -93,7 +94,7 @@ public final class DatabasePool {
         }
         #endif
     }
-    
+
     deinit {
         // Remove block-based Notification observers.
         suspensionObservers.forEach(NotificationCenter.default.removeObserver(_:))
@@ -228,14 +229,15 @@ extension DatabasePool {
             name: UIApplication.didEnterBackgroundNotification,
             object: nil)
     }
-    
+
     @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = notification.object as? UIApplication else {
             return
         }
-        
-        let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
+
+        let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(
+            expirationHandler: nil)
         if task == .invalid {
             // Release memory synchronously
             releaseMemory()
@@ -255,7 +257,7 @@ extension DatabasePool {
             }
         }
     }
-    
+
     @objc
     private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
         releaseMemoryEventually()
@@ -319,23 +321,23 @@ extension DatabasePool: DatabaseReader {
         if configuration.observesSuspensionNotifications {
             let center = NotificationCenter.default
             suspensionObservers.append(center.addObserver(
-                forName: Database.suspendNotification,
-                object: nil,
-                queue: nil,
-                using: { [weak self] _ in self?.suspend() }
-            ))
+                    forName: Database.suspendNotification,
+                    object: nil,
+                    queue: nil,
+                    using: { [weak self] _ in self?.suspend() }
+                ))
             suspensionObservers.append(center.addObserver(
-                forName: Database.resumeNotification,
-                object: nil,
-                queue: nil,
-                using: { [weak self] _ in self?.resume() }
-            ))
+                    forName: Database.resumeNotification,
+                    object: nil,
+                    queue: nil,
+                    using: { [weak self] _ in self?.resume() }
+                ))
         }
     }
-    
+
     // MARK: - Reading from Database
     
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @_disfavoredOverload  // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
@@ -360,21 +362,21 @@ extension DatabasePool: DatabaseReader {
         
         return try await readerPool.get { reader in
             try await reader.execute { db in
-               defer {
-                   // Commit or rollback, but make sure we leave the read-only transaction
-                   // (commit may fail with a CancellationError).
-                   do {
-                       try db.commit()
-                   } catch {
-                       try? db.rollback()
-                   }
-                   assert(!db.isInsideTransaction)
-               }
-               // The block isolation comes from the DEFERRED transaction.
-               try db.beginTransaction(.deferred)
-               try db.clearSchemaCacheIfNeeded()
-               return try value(db)
-           }
+                defer {
+                    // Commit or rollback, but make sure we leave the read-only transaction
+                    // (commit may fail with a CancellationError).
+                    do {
+                        try db.commit()
+                    } catch {
+                        try? db.rollback()
+                    }
+                    assert(!db.isInsideTransaction)
+                }
+                // The block isolation comes from the DEFERRED transaction.
+                try db.beginTransaction(.deferred)
+                try db.clearSchemaCacheIfNeeded()
+                return try value(db)
+            }
         }
     }
     
@@ -417,7 +419,7 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+    @_disfavoredOverload  // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool else {
@@ -498,7 +500,7 @@ extension DatabasePool: DatabaseReader {
     ) {
         asyncConcurrentRead(value)
     }
-    
+
     /// Performs an asynchronous read access.
     ///
     /// This method must be called from the writer dispatch queue, outside of
@@ -683,8 +685,8 @@ extension DatabasePool: DatabaseReader {
     }
     
     // MARK: - WAL Snapshot Transactions
-    
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
+
+#if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
     func walSnapshotTransaction() throws -> WALSnapshotTransaction {
         guard let readerPool else {
@@ -692,12 +694,14 @@ extension DatabasePool: DatabaseReader {
         }
         
         let (reader, releaseReader) = try readerPool.get()
-        return try WALSnapshotTransaction(onReader: reader, release: { isInsideTransaction in
-            // Discard the connection if the transaction could not be
-            // properly ended. If we'd reuse it, the next read would
-            // fail because we'd fail starting a read transaction.
-            releaseReader(isInsideTransaction ? .discard : .reuse)
-        })
+        return try WALSnapshotTransaction(
+            onReader: reader,
+            release: { isInsideTransaction in
+                // Discard the connection if the transaction could not be
+                // properly ended. If we'd reuse it, the next read would
+                // fail because we'd fail starting a read transaction.
+                releaseReader(isInsideTransaction ? .discard : .reuse)
+            })
     }
     
     /// Returns a long-lived WAL snapshot transaction on a reader connection.
@@ -713,22 +717,25 @@ extension DatabasePool: DatabaseReader {
         }
         
         readerPool.asyncGet { result in
-            completion(result.flatMap { reader, releaseReader in
-                Result {
-                    try WALSnapshotTransaction(onReader: reader, release: { isInsideTransaction in
-                        // Discard the connection if the transaction could not be
-                        // properly ended. If we'd reuse it, the next read would
-                        // fail because we'd fail starting a read transaction.
-                        releaseReader(isInsideTransaction ? .discard : .reuse)
-                    })
-                }
-            })
+            completion(
+                result.flatMap { reader, releaseReader in
+                    Result {
+                        try WALSnapshotTransaction(
+                            onReader: reader,
+                            release: { isInsideTransaction in
+                                // Discard the connection if the transaction could not be
+                                // properly ended. If we'd reuse it, the next read would
+                                // fail because we'd fail starting a read transaction.
+                                releaseReader(isInsideTransaction ? .discard : .reuse)
+                            })
+                    }
+                })
         }
     }
 #endif
-    
+
     // MARK: - Database Observation
-    
+
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
@@ -740,14 +747,14 @@ extension DatabasePool: DatabaseReader {
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
-            
+
         } else if observation.requiresWriteAccess {
             // Observe from the writer database connection.
             return _addWriteOnly(
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
-            
+
         } else {
             // DatabasePool can perform concurrent observation
             return _addConcurrent(
@@ -756,7 +763,7 @@ extension DatabasePool: DatabaseReader {
                 onChange: onChange)
         }
     }
-    
+
     /// A concurrent observation fetches the initial value without waiting for
     /// the writer.
     private func _addConcurrent<Reducer: ValueReducer>(
@@ -779,19 +786,19 @@ extension DatabasePool: DatabaseReader {
 
 extension DatabasePool: DatabaseWriter {
     // MARK: - Writing in Database
-    
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+
+    @_disfavoredOverload  // SR-15150 Async overloading in protocol implementation fails
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
-    
+
     public func writeWithoutTransaction<T: Sendable>(
         _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         try await writer.execute(updates)
     }
-    
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
+
+    @_disfavoredOverload  // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
@@ -800,14 +807,14 @@ extension DatabasePool: DatabaseWriter {
             try writer.sync(updates)
         }
     }
-    
+
     public func barrierWriteWithoutTransaction<T: Sendable>(
         _ updates: @Sendable (Database) throws -> T
     ) async throws -> T {
         guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
-        
+
         // Pool.barrier does not support async calls (yet?).
         // So we perform cancellation checks just as in
         // the async version of SerializedDatabase.execute().
@@ -830,7 +837,7 @@ extension DatabasePool: DatabaseWriter {
             cancelMutex.withLock { $0?() }
         }
     }
-    
+
     public func asyncBarrierWriteWithoutTransaction(
         _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
     ) {
@@ -842,7 +849,7 @@ extension DatabasePool: DatabaseWriter {
             self.writer.sync { updates(.success($0)) }
         }
     }
-    
+
     /// Wraps database operations inside a database transaction.
     ///
     /// The `updates` function runs in the writer dispatch queue, serialized
@@ -873,8 +880,9 @@ extension DatabasePool: DatabaseWriter {
     /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func writeInTransaction(
         _ kind: Database.TransactionKind? = nil,
-        _ updates: (Database) throws -> Database.TransactionCompletion)
-    throws
+        _ updates: (Database) throws -> Database.TransactionCompletion
+    )
+        throws
     {
         try writer.sync { db in
             try db.inTransaction(kind) {
@@ -882,11 +890,11 @@ extension DatabasePool: DatabaseWriter {
             }
         }
     }
-    
+
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.reentrantSync(updates)
     }
-    
+
     public func asyncWriteWithoutTransaction(
         _ updates: @escaping @Sendable (Database) -> Void
     ) {
@@ -895,9 +903,9 @@ extension DatabasePool: DatabaseWriter {
 }
 
 extension DatabasePool {
-    
+
     // MARK: - Snapshots
-    
+
     /// Creates a database snapshot that serializes accesses to an unchanging
     /// database content, as it exists at the moment the snapshot is created.
     ///
@@ -942,31 +950,31 @@ extension DatabasePool {
                     "makeSnapshot() must not be called from inside a transaction.")
             }
         }
-        
+
         return try DatabaseSnapshot(
             path: path,
             configuration: DatabasePool.readerConfiguration(writer.configuration),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "snapshot.\(databaseSnapshotCountMutex.increment())")
     }
-    
-#if SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)
-    /// Creates a database snapshot that allows concurrent accesses to an
-    /// unchanging database content, as it exists at the moment the snapshot
-    /// is created.
-    ///
-    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
-    ///
-    /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
-    /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
-    /// or if this method is called from a write transaction, or if the
-    /// wal file is missing or truncated (size zero).
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
-    public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
-        try unsafeReentrantRead { db in
-            try DatabaseSnapshotPool(db)
+
+    #if (SQLITE_ENABLE_SNAPSHOT || (!GRDBCUSTOMSQLITE && !GRDBCIPHER)) && !os(Linux)
+        /// Creates a database snapshot that allows concurrent accesses to an
+        /// unchanging database content, as it exists at the moment the snapshot
+        /// is created.
+        ///
+        /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+        ///
+        /// A ``DatabaseError`` of code `SQLITE_ERROR` is thrown if the SQLite
+        /// database is not in the [WAL mode](https://www.sqlite.org/wal.html),
+        /// or if this method is called from a write transaction, or if the
+        /// wal file is missing or truncated (size zero).
+        ///
+        /// Related SQLite documentation: <https://www.sqlite.org/c3ref/snapshot_get.html>
+        public func makeSnapshotPool() throws -> DatabaseSnapshotPool {
+            try unsafeReentrantRead { db in
+                try DatabaseSnapshotPool(db)
+            }
         }
-    }
-#endif
+    #endif
 }

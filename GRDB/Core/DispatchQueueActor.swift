@@ -1,4 +1,4 @@
-import Dispatch
+@preconcurrency import Dispatch
 
 /// An actor that runs in a DispatchQueue.
 ///
