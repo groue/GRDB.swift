@@ -58,36 +58,30 @@ final class WALSnapshot: @unchecked Sendable {
             
             // Test condition 1:
             if sqlite3_get_autocommit(db.sqliteConnection) != 0 {
-                throw DatabaseError(
-                    resultCode: code,
-                    message: """
-                        Can't create snapshot because database is in autocommit mode.
-                        """)
+                throw DatabaseError(resultCode: code, message: """
+                    Can't create snapshot because database is in autocommit mode.
+                    """)
             }
             
             // Test condition 2:
             if let journalMode = try? String.fetchOne(db, sql: "PRAGMA journal_mode"),
-                journalMode != "wal"
+               journalMode != "wal"
             {
-                throw DatabaseError(
-                    resultCode: code,
-                    message: """
-                        Can't create snapshot because database is not in WAL mode.
-                        """)
+                throw DatabaseError(resultCode: code, message: """
+                    Can't create snapshot because database is not in WAL mode.
+                    """)
             }
             
             // Condition 3 can't happen because GRDB only calls this
             // initializer from read transactions.
             //
             // Hence it is condition 4 that is false:
-            throw DatabaseError(
-                resultCode: code,
-                message: """
-                    Can't create snapshot from a missing or empty wal file.
-                    """)
+            throw DatabaseError(resultCode: code, message: """
+                Can't create snapshot from a missing or empty wal file.
+                """)
         }
         guard let sqliteSnapshot else {
-            throw DatabaseError(resultCode: .SQLITE_INTERNAL)  // WTF SQLite?
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
         }
         self.sqliteSnapshot = sqliteSnapshot
     }
