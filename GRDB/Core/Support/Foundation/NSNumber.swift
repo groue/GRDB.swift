@@ -22,8 +22,8 @@ extension NSNumber: DatabaseValueConvertible {
         // Don't lose precision: store integers that fits in Int64 as Int64
         if let decimal = self as? NSDecimalNumber,
            decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
-           decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,  // decimal <= Int64.max
-           decimal.compare(NSDecimalNumber(value: Int64.min)) != .orderedAscending  // decimal >= Int64.min
+           decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,   // decimal <= Int64.max
+           decimal.compare(NSDecimalNumber(value: Int64.min)) != .orderedAscending     // decimal >= Int64.min
         {
             return int64Value.databaseValue
         }
@@ -100,7 +100,6 @@ extension NSNumber: DatabaseValueConvertible {
             return nil
         }
     }
-
 }
 
 private let posixLocale = Locale(identifier: "en_US_POSIX")
