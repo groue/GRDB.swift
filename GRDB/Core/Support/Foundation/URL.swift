@@ -21,4 +21,4 @@ extension NSURL: DatabaseValueConvertible {
 }
 
 /// URL stores its absoluteString in the database.
-extension URL: DatabaseValueConvertible {}
+extension URL: DatabaseValueConvertible { }
