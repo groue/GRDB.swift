@@ -1,13 +1,13 @@
-import Foundation
-
 // Import C SQLite functions
 #if SWIFT_PACKAGE
-    import GRDBSQLite
+import GRDBSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
+
+import Foundation
 
 /// NSUUID adopts DatabaseValueConvertible
 extension NSUUID: DatabaseValueConvertible {
@@ -19,7 +19,7 @@ extension NSUUID: DatabaseValueConvertible {
             return Data(bytes: buffer.baseAddress!, count: 16).databaseValue
         }
     }
-
+    
     /// Returns a `NSUUID` from the specified database value.
     ///
     /// If the database value contains a string, parses this string as an uuid.
@@ -57,7 +57,7 @@ extension UUID: DatabaseValueConvertible {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }
-
+    
     /// Returns a `UUID` from the specified database value.
     ///
     /// If the database value contains a string, parses this string as an uuid.
@@ -93,8 +93,8 @@ extension UUID: StatementColumnConvertible {
             self.init(uuid: uuid.uuid)
         case SQLITE_BLOB:
             guard sqlite3_column_bytes(sqliteStatement, index) == 16,
-                let blob = sqlite3_column_blob(sqliteStatement, index)
-            else {
+                let blob = sqlite3_column_blob(sqliteStatement, index) else 
+            {
                 return nil
             }
             self.init(uuid: blob.assumingMemoryBound(to: uuid_t.self).pointee)
