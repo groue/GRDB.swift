@@ -5,11 +5,11 @@
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
 final class WALSnapshotTransaction: @unchecked Sendable {
     // @unchecked because `databaseAccess` is protected by a mutex.
-
+    
     private struct DatabaseAccess {
         let reader: SerializedDatabase
         let release: @Sendable (_ isInsideTransaction: Bool) -> Void
-
+        
         // MUST be called only once
         func commitAndRelease() {
             // WALSnapshotTransaction may be deinitialized in the dispatch
@@ -28,14 +28,14 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             release(isInsideTransaction)
         }
     }
-
+    
     // TODO: consider using the serialized DispatchQueue of reader instead of a lock.
     /// nil when closed
     private let databaseAccessMutex: Mutex<DatabaseAccess?>
-
+    
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
-
+    
     /// Creates a long-live WAL transaction on a read-only connection.
     ///
     /// The `release` closure is always called. It is called when the
@@ -68,7 +68,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
     {
         assert(reader.configuration.readonly)
         let databaseAccess = DatabaseAccess(reader: reader, release: release)
-
+        
         do {
             // Open a long-lived transaction, and enter snapshot isolation
             self.walSnapshot = try reader.sync(allowingLongLivedTransaction: true) { db in
@@ -85,11 +85,11 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             throw error
         }
     }
-
+    
     deinit {
         close()
     }
-
+    
     /// Executes database operations in the snapshot transaction, and
     /// returns their result after they have finished executing.
     func read<T>(_ value: (Database) throws -> T) throws -> T {
@@ -97,12 +97,12 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             guard let databaseAccess else {
                 throw DatabaseError.snapshotIsLost()
             }
-
+            
             // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
             return try databaseAccess.reader.sync(value)
         }
     }
-
+    
     /// Schedules database operations for execution, and
     /// returns immediately.
     func asyncRead(_ value: @escaping @Sendable (Result<Database, Error>) -> Void) {
@@ -111,7 +111,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
                 value(.failure(DatabaseError.snapshotIsLost()))
                 return
             }
-
+            
             databaseAccess.reader.async { db in
                 // We should check the validity of the snapshot, as DatabaseSnapshotPool does.
                 // At least check if self was closed:
@@ -122,7 +122,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
             }
         }
     }
-
+    
     func close() {
         databaseAccessMutex.withLock { databaseAccess in
             databaseAccess?.commitAndRelease()
