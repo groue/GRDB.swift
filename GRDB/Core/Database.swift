@@ -6,6 +6,7 @@ import SQLite3
 #elseif GRDBCUSTOMSQLITE // GRDBCustom Framework
 #elseif SQLCIPHER
 import SQLCipher
+import SQLCipherConfig
 #else // Default SPM trait must be the default. It impossible to detect from Xcode.
 import GRDBSQLite
 #endif
@@ -640,24 +641,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
-    
-    #if SQLITE_HAS_CODEC
-    private func validateSQLCipher() throws {
-        // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
-        //
-        // > In order to avoid situations where SQLite might be used
-        // > improperly at runtime, we strongly recommend that
-        // > applications institute a runtime test to ensure that the
-        // > application is actually using SQLCipher on the active
-        // > connection.
-        if try String.fetchOne(self, sql: "PRAGMA cipher_version") == nil {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: """
-                GRDB is not linked against SQLCipher. \
-                Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
-                """)
-        }
-    }
-    #endif
     
     private func validateFormat() throws {
         // Users are surprised when they open a picture as a database and
@@ -1946,80 +1929,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
 // serialized database access dispatch queue (see `SerializedDatabase`).
 @available(*, unavailable)
 extension Database: Sendable { }
-
-#if SQLITE_HAS_CODEC
-extension Database {
-    
-    // MARK: - Encryption
-    
-    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
-    ///
-    /// Call this method from `Configuration.prepareDatabase`,
-    /// as in the example below:
-    ///
-    ///     var config = Configuration()
-    ///     config.prepareDatabase { db in
-    ///         try db.usePassphrase("secret")
-    ///     }
-    public func usePassphrase(_ passphrase: String) throws {
-        guard var data = passphrase.data(using: .utf8) else {
-            throw DatabaseError(message: "invalid passphrase")
-        }
-        defer {
-            data.resetBytes(in: 0..<data.count)
-        }
-        try usePassphrase(data)
-    }
-    
-    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
-    ///
-    /// Call this method from `Configuration.prepareDatabase`,
-    /// as in the example below:
-    ///
-    ///     var config = Configuration()
-    ///     config.prepareDatabase { db in
-    ///         try db.usePassphrase(passphraseData)
-    ///     }
-    public func usePassphrase(_ passphrase: Data) throws {
-        let code = passphrase.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0.baseAddress, CInt($0.count))
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    
-    /// Changes the passphrase used by an SQLCipher encrypted database.
-    public func changePassphrase(_ passphrase: String) throws {
-        guard var data = passphrase.data(using: .utf8) else {
-            throw DatabaseError(message: "invalid passphrase")
-        }
-        defer {
-            data.resetBytes(in: 0..<data.count)
-        }
-        try changePassphrase(data)
-    }
-    
-    /// Changes the passphrase used by an SQLCipher encrypted database.
-    public func changePassphrase(_ passphrase: Data) throws {
-        // FIXME: sqlite3_rekey is discouraged.
-        //
-        // https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320
-        //
-        // > We (Zetetic) have been discouraging the use of sqlite3_rekey in
-        // > favor of attaching a new database with the desired encryption
-        // > options and using sqlcipher_export() to migrate the contents and
-        // > schema of the original db into the new one:
-        // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
-        let code = passphrase.withUnsafeBytes {
-            sqlite3_rekey(sqliteConnection, $0.baseAddress, CInt($0.count))
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: lastErrorMessage)
-        }
-    }
-}
-#endif
 
 extension Database {
     /// Returns the count of changes executed by one statement execution.

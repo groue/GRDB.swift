@@ -26,6 +26,7 @@ var swiftSettings: [SwiftSetting] = [
     // TODO: when Xcode support traits, remove all mentions of SQLITE_DISABLE_SNAPSHOT and update as below:
     // .define("SQLITE_ENABLE_SNAPSHOT", .when(platforms: darwinPlatforms, traits: ["GRDBSQLite"])),
     .define("SQLITE_ENABLE_SNAPSHOT"),
+    .define("SQLITE_DISABLE_SNAPSHOT", sqlcipherTraitBuildSettingCondition),
     .define("SQLITE_HAS_CODEC", sqlcipherTraitBuildSettingCondition),
     .define("SQLCIPHER", sqlcipherTraitBuildSettingCondition)
 ]
