@@ -1,0 +1,4 @@
+module SQLCipherConfig {
+    header "SQLCipher_config.h"
+    export *
+}

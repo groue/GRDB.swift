@@ -12,6 +12,11 @@ let darwinPlatforms: [Platform] = [
     .visionOS,
     .watchOS,
 ]
+
+let sqlcipherTraitTargetCondition: TargetDependencyCondition? = .when(platforms: darwinPlatforms, traits: ["SQLCipher"])
+
+let sqlcipherTraitBuildSettingCondition: BuildSettingCondition? = .when(platforms: darwinPlatforms, traits: ["SQLCipher"])
+
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
     // Until Xcode has proper support for package traits, we must enable
@@ -21,9 +26,17 @@ var swiftSettings: [SwiftSetting] = [
     // TODO: when Xcode support traits, remove all mentions of SQLITE_DISABLE_SNAPSHOT and update as below:
     // .define("SQLITE_ENABLE_SNAPSHOT", .when(platforms: darwinPlatforms, traits: ["GRDBSQLite"])),
     .define("SQLITE_ENABLE_SNAPSHOT"),
+    .define("SQLITE_HAS_CODEC", sqlcipherTraitBuildSettingCondition),
+    .define("SQLCIPHER", sqlcipherTraitBuildSettingCondition)
 ]
-var cSettings: [CSetting] = []
-var dependencies: [PackageDescription.Package.Dependency] = []
+
+var cSettings: [CSetting] = [
+    .define("SQLITE_HAS_CODEC", to: nil, sqlcipherTraitBuildSettingCondition)
+]
+
+var dependencies: [PackageDescription.Package.Dependency] = [
+    .package(url: "https://github.com/sqlcipher/SQLCipher.swift.git", exact: "4.11.0")
+]
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
@@ -55,9 +68,11 @@ let package = Package(
         .library(name: "GRDBSQLite", targets: ["GRDBSQLite"]),
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
+        .library(name: "SQLCipherConfig", targets: ["SQLCipherConfig"])
     ],
     traits: [
         "GRDBSQLite",
+        .trait(name: "SQLCipher", description: "Enables SQLCipher encryption when a passphrase is supplied to Database"),
         .default(enabledTraits: ["GRDBSQLite"]),
     ],
     dependencies: dependencies,
@@ -66,14 +81,24 @@ let package = Package(
             name: "GRDBSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
+            name: "SQLCipherConfig",
+            dependencies: [.product(name: "SQLCipher", package: "SQLCipher.swift")]
+        ),
+        .target(
             name: "GRDB",
             dependencies: [
                 .target(name: "GRDBSQLite", condition: .when(traits: ["GRDBSQLite"])),
+                .product(name: "SQLCipher", package: "SQLCipher.swift", condition: sqlcipherTraitTargetCondition),
+                .target(
+                    name: "SQLCipherConfig",
+                    condition: sqlcipherTraitTargetCondition
+                )
             ],
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
             cSettings: cSettings,
-            swiftSettings: swiftSettings),
+            swiftSettings: swiftSettings
+),
         .testTarget(
             name: "GRDBTests",
             dependencies: ["GRDB"],
@@ -95,6 +120,7 @@ let package = Package(
                 .copy("GRDBTests/Betty.jpeg"),
                 .copy("GRDBTests/InflectionsTests.json"),
                 .copy("GRDBTests/Issue1383.sqlite"),
+                .copy("CocoaPods/SQLCipher4/db.SQLCipher3")
             ],
             cSettings: cSettings,
             swiftSettings: swiftSettings + [
@@ -102,7 +128,12 @@ let package = Package(
                 .swiftLanguageMode(.v5),
                 .enableUpcomingFeature("InferSendableFromCaptures"),
                 .enableUpcomingFeature("GlobalActorIsolatedTypesUsability"),
-            ])
+                .define(
+                    "GRDBCIPHER_USE_ENCRYPTION",
+                    sqlcipherTraitBuildSettingCondition
+                )
+            ]
+)
     ],
     swiftLanguageModes: [.v6]
 )

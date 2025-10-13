@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1C5348402E82DDCD00D5E58A /* Database+SQLCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C53483F2E82DDCD00D5E58A /* Database+SQLCipher.swift */; };
+		1C5348412E82DDCD00D5E58A /* Database+SQLCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C53483F2E82DDCD00D5E58A /* Database+SQLCipher.swift */; };
 		4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
 		4ED4BB592731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
 		56012B552573EED000B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
@@ -439,6 +441,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1C53483F2E82DDCD00D5E58A /* Database+SQLCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Database+SQLCipher.swift"; sourceTree = "<group>"; };
 		4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseBackupProgress.swift; sourceTree = "<group>"; };
 		4ED4BB582731DD25008B127D /* BackupTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		56012B542573EED000B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
@@ -1587,6 +1590,7 @@
 				56A238701B9C75030082EB20 /* Configuration.swift */,
 				56DAA2DA1DE9C827006E10C8 /* Cursor.swift */,
 				56A238711B9C75030082EB20 /* Database.swift */,
+				1C53483F2E82DDCD00D5E58A /* Database+SQLCipher.swift */,
 				566B91221FA4CF810012D5B0 /* Database+Schema.swift */,
 				566B91081FA4C3960012D5B0 /* Database+Statements.swift */,
 				4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */,
@@ -1963,6 +1967,7 @@
 				563DE4F3231A91E2005081B7 /* DatabaseConfigurationTests.swift in Sources */,
 				56BF2282241781C5003D86EB /* UtilsTests.swift in Sources */,
 				56CC9243201E034D00CB597E /* PrefixWhileCursorTests.swift in Sources */,
+				1C5348412E82DDCD00D5E58A /* Database+SQLCipher.swift in Sources */,
 				560714E3227DD0810091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */,
 				56D496841D813147008276D7 /* SelectStatementTests.swift in Sources */,
 				561F38D82AC88A550051EEE9 /* JSONColumnTests.swift in Sources */,
@@ -2272,6 +2277,7 @@
 				56256ED925D1B316008C2BDD /* ForeignKey.swift in Sources */,
 				56D51D001EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */,
 				56D110D328AFC81400E64463 /* PersistableRecord.swift in Sources */,
+				1C5348402E82DDCD00D5E58A /* Database+SQLCipher.swift in Sources */,
 				5653EB0920944C7C00F46237 /* Association.swift in Sources */,
 				56A238851B9C75030082EB20 /* DatabaseValue.swift in Sources */,
 				5671FC201DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift in Sources */,

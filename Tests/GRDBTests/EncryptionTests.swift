@@ -1,9 +1,15 @@
-#if SQLITE_HAS_CODEC
+#if GRDBCIPHER
 import XCTest
 import GRDB
 
 class EncryptionTests: GRDBTestCase {
     
+#if SWIFT_PACKAGE
+let testBundle = Bundle.module
+#else
+let testBundle = Bundle(for: GRDBTestCase.self)
+#endif
+
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithPassphrase() throws {
         do {
             var config = Configuration()
@@ -707,7 +713,6 @@ class EncryptionTests: GRDBTestCase {
             else { XCTFail("Unknown SQLCipher version"); return }
         
         if cipherMajorVersion >= 4 {
-            let testBundle = Bundle(for: type(of: self))
             let path = testBundle.url(forResource: "db", withExtension: "SQLCipher3")!.path
             var configuration = Configuration()
             configuration.prepareDatabase { db in
@@ -726,6 +731,52 @@ class EncryptionTests: GRDBTestCase {
                 let success = try dbPool.read { try String.fetchOne($0, sql: "SELECT a FROM t") }
                 XCTAssertEqual(success, "success")
             }
+        }
+    }
+
+    func testCipherVersion() throws {
+        try DatabaseQueue().inDatabase { db in
+            XCTAssertNotNil(db.cipherVersion, "SQLCipher not properly loaded")
+        }
+    }
+
+    func testCipherFipsStatus() throws {
+        var config = Configuration()
+        config.prepareDatabase { db in
+            try db.usePassphrase("secret")
+        }
+        let dbQueue = try makeDatabaseQueue(configuration: config)
+        dbQueue.inDatabase { db in
+            XCTAssertEqual("0", db.cipherFipsStatus)
+        }
+    }
+
+    func testCipherProvider() throws {
+        var config = Configuration()
+        config.prepareDatabase { db in
+            try db.usePassphrase("secret")
+        }
+        let dbQueue = try makeDatabaseQueue(configuration: config)
+        dbQueue.inDatabase { db in
+            XCTAssertEqual("commoncrypto", db.cipherProvider)
+        }
+    }
+
+    func testCipherProviderVersion() throws {
+        var config = Configuration()
+        config.prepareDatabase { db in
+            try db.usePassphrase("secret")
+        }
+        let dbQueue = try makeDatabaseQueue(configuration: config)
+        guard let cipherVersion = try dbQueue.read({ $0.cipherVersion }) else {
+            XCTFail("No Cipher Version found")
+            return
+        }
+        if "4.10.0".compare(cipherVersion, options: .numeric) == .orderedDescending {
+            throw XCTSkip("cipher_provider_version isn't available until SQLCipher 4.10.0")
+        }
+        dbQueue.inDatabase { db in
+            XCTAssertNotNil(db.cipherProviderVersion)
         }
     }
 }
