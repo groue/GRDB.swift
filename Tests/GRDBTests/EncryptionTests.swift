@@ -1,4 +1,4 @@
-#if GRDBCIPHER
+#if SQLITE_HAS_CODEC
 import XCTest
 import GRDB
 
