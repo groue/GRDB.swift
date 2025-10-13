@@ -115,3 +115,9 @@ Tests/SPM/Packages
 
 # Test products
 Tests/products
+
+# SPM Package.resolved
+**Package.resolved
+
+# SQLCipher SPM Test project xcworkspace
+Tests/SPM/sqlcipher/sqlcipher.xcodeproj/project.xcworkspace/

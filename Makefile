@@ -285,7 +285,7 @@ test_install_manual:
 	  clean build \
 	  $(XCPRETTY)
 
-test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release
+test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release test_install_SPM_SQLCipher
 
 test_install_SPM_Package:
 	rm -rf Tests/products
@@ -332,6 +332,30 @@ test_install_SPM_ios_release:
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
+
+test_install_SPM_SQLCipher:
+	rm -rf Tests/products
+	$(XCODEBUILD) \
+  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+  -scheme sqlcipher \
+  -destination $(MAX_IOS_DESTINATION) \
+  -configuration Release \
+  clean build \
+  $(XCPRETTY)
+	$(XCODEBUILD) \
+  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+  -scheme sqlcipher \
+  -destination "platform=macOS" \
+  -configuration Release \
+  clean build \
+  $(XCPRETTY)
+	$(XCODEBUILD) \
+  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+  -scheme sqlcipher \
+  -destination $(MAX_TVOS_DESTINATION) \
+  -configuration Release \
+  clean build \
+  $(XCPRETTY)
 
 test_install_customSQLite: SQLiteCustom
 	$(XCODEBUILD) \
