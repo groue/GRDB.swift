@@ -226,8 +226,8 @@ test_SPM:
 test_SPM_SQLCipher:
 	rm -rf Tests/products
 	$(SWIFT) package clean
-	$(SWIFT) build
-	$(SWIFT) build -c release
+	$(SWIFT) build --traits SQLCipher
+	$(SWIFT) build -c release --traits SQLCipher
 	set -o pipefail && $(SWIFT) test --parallel --traits SQLCipher
 
 test_universal_xcframework:
@@ -336,26 +336,26 @@ test_install_SPM_ios_release:
 test_install_SPM_SQLCipher:
 	rm -rf Tests/products
 	$(XCODEBUILD) \
-  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
-  -scheme sqlcipher \
-  -destination $(MAX_IOS_DESTINATION) \
-  -configuration Release \
-  clean build \
-  $(XCPRETTY)
+	  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+	  -scheme sqlcipher \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
 	$(XCODEBUILD) \
-  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
-  -scheme sqlcipher \
-  -destination "platform=macOS" \
-  -configuration Release \
-  clean build \
-  $(XCPRETTY)
+	  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+	  -scheme sqlcipher \
+	  -destination "platform=macOS" \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
 	$(XCODEBUILD) \
-  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
-  -scheme sqlcipher \
-  -destination $(MAX_TVOS_DESTINATION) \
-  -configuration Release \
-  clean build \
-  $(XCPRETTY)
+	  -project Tests/SPM/sqlcipher/sqlcipher.xcodeproj \
+	  -scheme sqlcipher \
+	  -destination $(MAX_TVOS_DESTINATION) \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
 
 test_install_customSQLite: SQLiteCustom
 	$(XCODEBUILD) \

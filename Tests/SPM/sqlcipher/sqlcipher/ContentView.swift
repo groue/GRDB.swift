@@ -1,11 +1,16 @@
 import SwiftUI
+import GRDB
 
 struct ContentView: View {
     var body: some View {
         VStack {
-            Text("Hello, world!")
+            Text("SQLCipher version: \(cipherVersion)")
         }
         .padding()
+    }
+
+    private var cipherVersion: String {
+        try! DatabaseQueue().read { try $0.cipherVersion ?? "Not SQLCipher" }
     }
 }
 

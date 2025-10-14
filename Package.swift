@@ -28,7 +28,6 @@ var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_SNAPSHOT"),
     .define("SQLITE_DISABLE_SNAPSHOT", sqlcipherTraitBuildSettingCondition),
     .define("SQLITE_HAS_CODEC", sqlcipherTraitBuildSettingCondition),
-    .define("SQLCIPHER", sqlcipherTraitBuildSettingCondition)
 ]
 
 var cSettings: [CSetting] = [
@@ -69,7 +68,6 @@ let package = Package(
         .library(name: "GRDBSQLite", targets: ["GRDBSQLite"]),
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
-        .library(name: "SQLCipherConfig", targets: ["SQLCipherConfig"])
     ],
     traits: [
         "GRDBSQLite",

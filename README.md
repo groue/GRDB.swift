@@ -4830,7 +4830,8 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: NSTemporaryDirectory().appending("test.db"), configuration: config)
 ```
 
-Example output:
+<details>
+    <summary>Example output:</summary>
 
 ```
 DEBUG CORE sqlite3_key: db=104E22830
@@ -4858,6 +4859,8 @@ DEBUG MEMORY cipher_ctx_free: iCtx=128008110
 DEBUG MEMORY cipher_ctx_free: iCtx=128008118
 ```
 
+</details>
+
 You can disable cipher logging with `disableCipherLogging()`, following up on the previous example:
 
 ```
@@ -4875,7 +4878,7 @@ GRDB provides convenience accessors to get information about the SQLCipher versi
 
 ```
 let cipherVersion = try dbQueue.read { db in
-    return db.cipherVersion
+    try db.cipherVersion
 }
 ```
 
@@ -4884,7 +4887,7 @@ let cipherVersion = try dbQueue.read { db in
 
 ```
 let cipherProvider = try dbQueue.read { db in
-    return db.cipherProvider
+    try db.cipherProvider
 }
 ```
 
@@ -4893,7 +4896,7 @@ let cipherProvider = try dbQueue.read { db in
 
 ```
 let cipherProviderVersion = try dbQueue.read { db in
-    return db.cipherProviderVersion
+    try db.cipherProviderVersion
 }
 ```
 
@@ -4902,7 +4905,7 @@ let cipherProviderVersion = try dbQueue.read { db in
 
 ```
 let cipherFipsStatus = try dbQueue.read { db in
-    return db.cipherFipsStatus
+    try db.cipherFipsStatus
 }
 ```
 

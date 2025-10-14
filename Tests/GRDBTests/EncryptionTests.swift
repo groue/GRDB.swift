@@ -736,7 +736,7 @@ let testBundle = Bundle(for: GRDBTestCase.self)
 
     func testCipherVersion() throws {
         try DatabaseQueue().inDatabase { db in
-            XCTAssertNotNil(db.cipherVersion, "SQLCipher not properly loaded")
+            XCTAssertNotNil(try db.cipherVersion, "SQLCipher not properly loaded")
         }
     }
 
@@ -746,8 +746,8 @@ let testBundle = Bundle(for: GRDBTestCase.self)
             try db.usePassphrase("secret")
         }
         let dbQueue = try makeDatabaseQueue(configuration: config)
-        dbQueue.inDatabase { db in
-            XCTAssertEqual("0", db.cipherFipsStatus)
+        try dbQueue.inDatabase { db in
+            XCTAssertEqual("0", try db.cipherFipsStatus)
         }
     }
 
@@ -757,8 +757,8 @@ let testBundle = Bundle(for: GRDBTestCase.self)
             try db.usePassphrase("secret")
         }
         let dbQueue = try makeDatabaseQueue(configuration: config)
-        dbQueue.inDatabase { db in
-            XCTAssertEqual("commoncrypto", db.cipherProvider)
+        try dbQueue.inDatabase { db in
+            XCTAssertEqual("commoncrypto", try db.cipherProvider)
         }
     }
 
@@ -768,15 +768,15 @@ let testBundle = Bundle(for: GRDBTestCase.self)
             try db.usePassphrase("secret")
         }
         let dbQueue = try makeDatabaseQueue(configuration: config)
-        guard let cipherVersion = try dbQueue.read({ $0.cipherVersion }) else {
+        guard let cipherVersion = try dbQueue.read({ try $0.cipherVersion }) else {
             XCTFail("No Cipher Version found")
             return
         }
         if "4.10.0".compare(cipherVersion, options: .numeric) == .orderedDescending {
             throw XCTSkip("cipher_provider_version isn't available until SQLCipher 4.10.0")
         }
-        dbQueue.inDatabase { db in
-            XCTAssertNotNil(db.cipherProviderVersion)
+        try dbQueue.inDatabase { db in
+            XCTAssertNotNil(try db.cipherProviderVersion)
         }
     }
 }

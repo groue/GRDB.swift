@@ -4,7 +4,7 @@ import SQLCipher
 #elseif GRDBFRAMEWORK // GRDB.xcodeproj or CocoaPods (standard subspec)
 import SQLite3
 #elseif GRDBCUSTOMSQLITE // GRDBCustom Framework
-#elseif SQLCIPHER
+#elseif SQLCipher
 import SQLCipher
 import SQLCipherConfig
 #else // Default SPM trait must be the default. It impossible to detect from Xcode.
@@ -1779,35 +1779,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     func erase() throws {
         #if SQLITE_HAS_CODEC
-        // SQLCipher does not support the backup API:
-        // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
-        // So we'll drop all database objects one after the other.
-        
-        // Prevent foreign keys from messing with drop table statements
-        let foreignKeysEnabled = try Bool.fetchOne(self, sql: "PRAGMA foreign_keys")!
-        if foreignKeysEnabled {
-            try execute(sql: "PRAGMA foreign_keys = OFF")
-        }
-        
-        try throwingFirstError(
-            execute: {
-                // Remove all database objects, one after the other
-                try inTransaction {
-                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-                    while let row = try Row.fetchOne(self, sql: sql) {
-                        let type: String = row["type"]
-                        let name: String = row["name"]
-                        try execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
-                    }
-                    return .commit
-                }
-            },
-            finally: {
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try execute(sql: "PRAGMA foreign_keys = ON")
-                }
-            })
+        try dropAllDatabaseObjects()
         #else
         try DatabaseQueue().backup(to: self)
         #endif

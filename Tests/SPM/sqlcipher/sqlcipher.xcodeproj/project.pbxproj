@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1C4FE57B2E9D909E00C066A8 /* AppDependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 1C4FE57A2E9D909E00C066A8 /* AppDependencies */; };
-		1CFE15162E9D92A900D98E29 /* AppDependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 1CFE15152E9D92A900D98E29 /* AppDependencies */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +29,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1C4FE57B2E9D909E00C066A8 /* AppDependencies in Frameworks */,
-				1CFE15162E9D92A900D98E29 /* AppDependencies in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,7 +20,7 @@ extension Database {
     ///
     /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_version
     public var cipherVersion: String? {
-        (try? String.fetchOne(self, sql: "PRAGMA cipher_version"))
+        get throws { try String.fetchOne(self, sql: "PRAGMA cipher_version") }
     }
     
     /// - Returns: the SQLCipher fips status: 1 for fips mode, 0 for non-fips mode
@@ -28,7 +28,7 @@ extension Database {
     ///
     /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_fips_status
     public var cipherFipsStatus: String? {
-        (try? String.fetchOne(self, sql: "PRAGMA cipher_fips_status"))
+        get throws { try String.fetchOne(self, sql: "PRAGMA cipher_fips_status") }
     }
     
     /// - Returns: The compiled crypto provider.
@@ -36,7 +36,7 @@ extension Database {
     ///
     /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_provider
     public var cipherProvider: String? {
-        (try? String.fetchOne(self, sql: "PRAGMA cipher_provider"))
+        get throws { try String.fetchOne(self, sql: "PRAGMA cipher_provider") }
     }
     
     /// - Returns: the version number provided from the compiled crypto provider.
@@ -44,7 +44,7 @@ extension Database {
     ///
     /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_provider_version
     public var cipherProviderVersion: String? {
-        (try? String.fetchOne(self, sql: "PRAGMA cipher_provider_version"))
+        get throws { try String.fetchOne(self, sql: "PRAGMA cipher_provider_version") }
     }
     
     /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
@@ -167,7 +167,7 @@ extension Database {
         // > applications institute a runtime test to ensure that the
         // > application is actually using SQLCipher on the active
         // > connection.
-        if cipherVersion == nil {
+        if try cipherVersion == nil {
             throw DatabaseError(resultCode: .SQLITE_MISUSE, message: """
                 GRDB is not linked against SQLCipher. \
                 Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
