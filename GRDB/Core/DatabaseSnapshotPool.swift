@@ -140,7 +140,7 @@ public final class DatabaseSnapshotPool {
         let walSnapshot = try db.isolated(readOnly: true) {
             try WALSnapshot(db)
         }
-        var holderConfig = Configuration()
+        var holderConfig = configuration
         holderConfig.allowsUnsafeTransactions = true
         snapshotHolder = try DatabaseQueue(path: path, configuration: holderConfig)
         try snapshotHolder.inDatabase { db in
@@ -199,7 +199,7 @@ public final class DatabaseSnapshotPool {
         var configuration = Self.configure(configuration)
         
         // Acquire and hold WAL snapshot
-        var holderConfig = Configuration()
+        var holderConfig = configuration
         holderConfig.allowsUnsafeTransactions = true
         snapshotHolder = try DatabaseQueue(path: path, configuration: holderConfig)
         let walSnapshot = try snapshotHolder.inDatabase { db in

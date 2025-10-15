@@ -12,24 +12,32 @@ class DatabaseConfigurationTests: GRDBTestCase {
             connectionCountMutex.increment()
         }
         
+        connectionCountMutex.store(0)
         _ = try DatabaseQueue(configuration: configuration)
         XCTAssertEqual(connectionCountMutex.load(), 1)
         
+        connectionCountMutex.store(0)
         _ = try makeDatabaseQueue(configuration: configuration)
-        XCTAssertEqual(connectionCountMutex.load(), 2)
+        XCTAssertEqual(connectionCountMutex.load(), 1)
         
+        connectionCountMutex.store(0)
         let pool = try makeDatabasePool(configuration: configuration)
-        XCTAssertEqual(connectionCountMutex.load(), 3)
+        XCTAssertEqual(connectionCountMutex.load(), 1) // writer
         
+        connectionCountMutex.store(0)
         try pool.read { _ in }
-        XCTAssertEqual(connectionCountMutex.load(), 4)
+        XCTAssertEqual(connectionCountMutex.load(), 1) // 1st reader
         
+        connectionCountMutex.store(0)
         try pool.makeSnapshot().read { _ in }
-        XCTAssertEqual(connectionCountMutex.load(), 5)
+        XCTAssertEqual(connectionCountMutex.load(), 1) // snapshot
         
 #if SQLITE_ENABLE_SNAPSHOT && !SQLITE_DISABLE_SNAPSHOT
-        try pool.makeSnapshotPool().read { _ in }
-        XCTAssertEqual(connectionCountMutex.load(), 6)
+        connectionCountMutex.store(0)
+        let snapshotPool = try pool.makeSnapshotPool()
+        XCTAssertEqual(connectionCountMutex.load(), 1) // snapshot
+        try snapshotPool.read { _ in }
+        XCTAssertEqual(connectionCountMutex.load(), 2) // 1st reader
 #endif
     }
     
