@@ -79,7 +79,7 @@ let package = Package(
             name: "GRDBSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
-            name: "SQLCipherConfig",
+            name: "GRDBSQLCipher",
             dependencies: [.product(name: "SQLCipher", package: "SQLCipher.swift")]
         ),
         .target(
@@ -88,7 +88,7 @@ let package = Package(
                 .target(name: "GRDBSQLite", condition: .when(traits: ["GRDBSQLite"])),
                 .product(name: "SQLCipher", package: "SQLCipher.swift", condition: sqlcipherTraitTargetCondition),
                 .target(
-                    name: "SQLCipherConfig",
+                    name: "GRDBSQLCipher",
                     condition: sqlcipherTraitTargetCondition
                 )
             ],
