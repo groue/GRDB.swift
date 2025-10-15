@@ -4597,7 +4597,7 @@ try Player.customRequest().fetchAll(db) // [Player]
 Encryption
 ==========
 
-**GRDB can encrypt your database with [SQLCipher](https://www.sqlcipher.net) v3.4+.**
+**GRDB can encrypt your database with [SQLCipher](https://www.zetetic.net/sqlcipher) v3.4+.**
 
 ### Swift Package Manager Integration (SQLCipher v4.11+)
 
