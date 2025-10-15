@@ -736,7 +736,7 @@ let testBundle = Bundle(for: GRDBTestCase.self)
 
     func testCipherVersion() throws {
         try DatabaseQueue().inDatabase { db in
-            XCTAssertNotNil(try db.cipherVersion, "SQLCipher not properly loaded")
+            _ = try db.cipherVersion
         }
     }
 
@@ -768,10 +768,7 @@ let testBundle = Bundle(for: GRDBTestCase.self)
             try db.usePassphrase("secret")
         }
         let dbQueue = try makeDatabaseQueue(configuration: config)
-        guard let cipherVersion = try dbQueue.read({ try $0.cipherVersion }) else {
-            XCTFail("No Cipher Version found")
-            return
-        }
+        let cipherVersion = try dbQueue.read { try $0.cipherVersion }
         if "4.10.0".compare(cipherVersion, options: .numeric) == .orderedDescending {
             throw XCTSkip("cipher_provider_version isn't available until SQLCipher 4.10.0")
         }

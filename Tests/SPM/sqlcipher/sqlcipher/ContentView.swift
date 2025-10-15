@@ -10,7 +10,7 @@ struct ContentView: View {
     }
 
     private var cipherVersion: String {
-        try! DatabaseQueue().read { try $0.cipherVersion ?? "Not SQLCipher" }
+        try! DatabaseQueue().read { try $0.cipherVersion }
     }
 }
 
