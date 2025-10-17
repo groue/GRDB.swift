@@ -34,7 +34,7 @@ var cSettings: [CSetting] = [
 ]
 
 var dependencies: [PackageDescription.Package.Dependency] = [
-    .package(url: "https://github.com/sqlcipher/SQLCipher.swift.git", exact: "4.11.0")
+    .package(url: "https://github.com/sqlcipher/SQLCipher.swift.git", from: "4.11.0")
 ]
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
