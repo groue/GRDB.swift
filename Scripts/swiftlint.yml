@@ -5,6 +5,7 @@ disabled_rules:
   - comment_spacing
   - cyclomatic_complexity
   - duplicate_enum_cases
+  - duplicate_imports
   - file_length
   - for_where
   - force_cast
@@ -62,7 +63,6 @@ opt_in_rules:
   - redundant_type_annotation
   - shorthand_optional_binding
   - sorted_first_last
-  - sorted_imports
   - toggle_bool
   - unhandled_throwing_task
   - vertical_parameter_alignment_on_call
