@@ -10,7 +10,9 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import protocol Foundation.CustomNSError
+import var Foundation.NSLocalizedDescriptionKey
+import var Foundation.NSLocalizedFailureReasonErrorKey
 
 /// An SQLite result code.
 ///

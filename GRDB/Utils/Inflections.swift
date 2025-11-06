@@ -1,4 +1,7 @@
-import Foundation
+import class Foundation.NSRegularExpression
+import struct Foundation.NSRange
+import var Foundation.NSNotFound
+import class Foundation.NSMutableString
 
 extension String {
     /// "player" -> "Player"

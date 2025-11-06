@@ -10,7 +10,9 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Data
+import struct Foundation.UUID
+import typealias Foundation.uuid_t
 
 /// A format that prints one line per database row, suitable
 /// for debugging.

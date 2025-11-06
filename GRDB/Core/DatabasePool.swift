@@ -1,5 +1,7 @@
 
-import Foundation
+import protocol Foundation.NSObjectProtocol
+import class Foundation.NotificationCenter
+import class Foundation.DispatchSemaphore
 #if os(iOS)
 import UIKit
 #endif

@@ -1,5 +1,5 @@
 #if canImport(Combine)
-import Foundation
+import protocol Foundation.LocalizedError
 
 /// An error that may be thrown when waiting for publisher expectations.
 public enum RecordingError: Error {

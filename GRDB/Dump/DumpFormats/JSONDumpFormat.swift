@@ -10,7 +10,8 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import class Foundation.JSONEncoder
+import struct Foundation.Data
 
 /// A format that prints database rows as a JSON array.
 ///

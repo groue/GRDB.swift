@@ -10,7 +10,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+
 
 /// A format that prints one line per database value. All blob values
 /// are interpreted as strings.

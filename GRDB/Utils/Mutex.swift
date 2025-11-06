@@ -1,4 +1,4 @@
-import Foundation
+import class Foundation.NSLock
 
 /// A Mutex protects a value with an NSLock.
 ///

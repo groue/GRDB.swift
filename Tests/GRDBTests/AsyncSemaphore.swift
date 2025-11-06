@@ -21,7 +21,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import Foundation
+import class Foundation.NSRecursiveLock
 
 /// An object that controls access to a resource across multiple execution
 /// contexts through use of a traditional counting semaphore.

@@ -1,4 +1,4 @@
-import Foundation
+import class Foundation.DispatchQueue
 
 /// A class that serializes accesses to an SQLite connection.
 final class SerializedDatabase {

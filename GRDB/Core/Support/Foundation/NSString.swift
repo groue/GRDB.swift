@@ -1,5 +1,5 @@
 #if !os(Linux)
-import Foundation
+import class Foundation.NSString
 
 /// NSString adopts DatabaseValueConvertible
 extension NSString: DatabaseValueConvertible {

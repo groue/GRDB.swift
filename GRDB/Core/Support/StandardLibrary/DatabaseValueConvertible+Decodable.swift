@@ -1,4 +1,4 @@
-import Foundation
+import struct Foundation.Data
 
 private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     let dbValue: DatabaseValue

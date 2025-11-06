@@ -10,7 +10,13 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import class Foundation.NSDate
+import struct Foundation.Date
+import struct Foundation.DateComponents
+import class Foundation.DateFormatter
+import struct Foundation.Calendar
+import struct Foundation.Locale
+import struct Foundation.TimeZone
 
 #if !os(Linux)
 /// NSDate is stored in the database using the format

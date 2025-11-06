@@ -1,4 +1,4 @@
-import Foundation
+import struct Foundation.Data
 
 /// Returns an array of row adapters that split a row according to the
 /// provided numbers of columns.

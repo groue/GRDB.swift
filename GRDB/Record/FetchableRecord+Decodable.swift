@@ -10,7 +10,10 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Data
+import struct Foundation.Date
+import struct Foundation.TimeInterval
+import class Foundation.ISO8601DateFormatter
 
 extension FetchableRecord where Self: Decodable {
     /// Creates a record from `row`, using the `Decodable` conformance.

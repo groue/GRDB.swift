@@ -1,4 +1,4 @@
-import Foundation
+import class Foundation.NSRecursiveLock
 
 /// The extent of the shared subscription to a ``SharedValueObservation``.
 public enum SharedValueObservationExtent: Sendable {

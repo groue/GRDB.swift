@@ -1,4 +1,4 @@
-import Foundation
+
 import XCTest
 @testable import GRDB // TODO: remove @testable when RowDecodingError is public
 

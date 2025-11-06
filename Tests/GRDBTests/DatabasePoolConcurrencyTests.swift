@@ -1,7 +1,7 @@
 import XCTest
 import class Dispatch.DispatchSemaphore
 import class Dispatch.DispatchQueue
-import Foundation
+
 @testable import GRDB
 
 class DatabasePoolConcurrencyTests: GRDBTestCase {

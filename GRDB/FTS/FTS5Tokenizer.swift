@@ -11,7 +11,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Data
 
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
 ///

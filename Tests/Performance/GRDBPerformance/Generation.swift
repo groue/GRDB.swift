@@ -1,5 +1,5 @@
 import XCTest
-import Foundation
+
 import GRDB
 #if GRDB_COMPARE
 import CoreData

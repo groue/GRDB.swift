@@ -1,4 +1,7 @@
-import Foundation
+import struct Foundation.Data
+import struct Foundation.Date
+import struct Foundation.UUID
+import func Foundation.autoreleasepool
 
 extension EncodableRecord where Self: Encodable {
     /// Encodes the record into the provided persistence container, using the

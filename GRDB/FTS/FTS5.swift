@@ -11,7 +11,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+
 
 /// The virtual table module for the FTS5 full-text engine.
 ///

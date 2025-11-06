@@ -1,4 +1,4 @@
-import Foundation
+import class Foundation.NSNull
 
 /// NSNull adopts DatabaseValueConvertible
 extension NSNull: DatabaseValueConvertible {

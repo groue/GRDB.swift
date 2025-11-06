@@ -1,4 +1,4 @@
-import Foundation
+import class Foundation.JSONEncoder
 
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void

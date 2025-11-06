@@ -10,7 +10,11 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Date
+import class Foundation.FileManager
+import struct Foundation.URL
+import struct Foundation.TimeInterval
+import struct Foundation.Notification
 
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = OpaquePointer

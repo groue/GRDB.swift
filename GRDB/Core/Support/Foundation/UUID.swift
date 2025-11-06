@@ -10,7 +10,10 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import class Foundation.NSUUID
+import struct Foundation.UUID
+import typealias Foundation.uuid_t
+import struct Foundation.Data
 
 #if !os(Linux) && !os(Windows)
 /// NSUUID adopts DatabaseValueConvertible

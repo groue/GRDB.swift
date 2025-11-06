@@ -1,5 +1,5 @@
 import class Dispatch.DispatchQueue
-import Foundation
+import class Foundation.Thread
 
 /// A type that determines when `ValueObservation` notifies its fresh values.
 ///

@@ -1,6 +1,6 @@
 #if canImport(Combine)
 import Combine
-import Foundation
+import class Foundation.NSRecursiveLock
 
 /// A publisher that eventually produces one value and then finishes or fails.
 ///

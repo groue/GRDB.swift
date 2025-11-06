@@ -1,4 +1,5 @@
-import Foundation
+import protocol Foundation.NSObjectProtocol
+import class Foundation.NotificationCenter
 
 #if os(iOS)
 import UIKit

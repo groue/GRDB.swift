@@ -1,8 +1,11 @@
 #if !canImport(Darwin)
 @preconcurrency import class Dispatch.DispatchSpecificKey
 @preconcurrency import class Dispatch.DispatchQueue
+#else
+import protocol Foundation.NSLocking
+import class Foundation.DispatchQueue
+import class Foundation.DispatchSpecificKey
 #endif
-import Foundation
 
 // MARK: - Public
 

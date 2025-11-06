@@ -1,4 +1,6 @@
-import Foundation
+import func Foundation.strlen
+import struct Foundation.DateComponents
+import struct Foundation.TimeZone
 
 // inspired by: http://jordansmith.io/performant-date-parsing/
 

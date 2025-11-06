@@ -1,7 +1,11 @@
 #if canImport(Combine)
 import Combine
 #endif
-import Foundation
+import struct Foundation.URL
+import class Foundation.ProcessInfo
+import func Foundation.NSTemporaryDirectory
+import class Foundation.FileManager
+import class Foundation.DispatchQueue
 
 // TODO: provide concurrent apis for migrations that run @Sendable closures.
 /// A `DatabaseMigrator` registers and applies database migrations.

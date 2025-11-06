@@ -1,5 +1,6 @@
 #if !os(Linux)
-import Foundation
+import class Foundation.NSData
+import struct Foundation.Data
 
 /// NSData is convertible to and from DatabaseValue.
 extension NSData: DatabaseValueConvertible {

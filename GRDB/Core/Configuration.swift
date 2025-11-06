@@ -15,7 +15,7 @@ import GRDBSQLite
 #endif
 import struct Dispatch.DispatchQoS
 import class Dispatch.DispatchQueue
-import Foundation
+
 
 public struct Configuration: Sendable {
     

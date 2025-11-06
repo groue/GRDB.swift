@@ -11,7 +11,9 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Decimal
+import class Foundation.NSDecimalNumber
+import struct Foundation.Locale
 
 /// Decimal adopts DatabaseValueConvertible
 extension Decimal: DatabaseValueConvertible {

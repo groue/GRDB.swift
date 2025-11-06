@@ -1,6 +1,6 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
-import Foundation
+
 import GRDB
 
 // A custom wrapper tokenizer that ignores some tokens

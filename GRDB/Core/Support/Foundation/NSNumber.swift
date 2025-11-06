@@ -1,5 +1,10 @@
 #if !os(Linux) && !os(Windows)
-import Foundation
+import class Foundation.NSDecimalNumberHandler
+import class Foundation.NSNumber
+import class Foundation.NSDecimalNumber
+import struct Foundation.Decimal
+import struct Foundation.Locale
+
 
 private let integerRoundingBehavior = NSDecimalNumberHandler(
     roundingMode: .plain,

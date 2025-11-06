@@ -1,4 +1,4 @@
-import Foundation
+import struct Foundation.Date
 
 /// A type that provides the moment of a transaction.
 ///

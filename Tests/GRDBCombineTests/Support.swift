@@ -1,6 +1,6 @@
 #if canImport(Combine)
 import Combine
-import Foundation
+
 import XCTest
 
 final class Test<Context> {

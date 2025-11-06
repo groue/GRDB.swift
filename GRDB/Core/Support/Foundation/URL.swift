@@ -1,4 +1,5 @@
-import Foundation
+import class Foundation.NSURL
+import struct Foundation.URL
 
 #if !os(Linux) && !os(Windows)
 /// NSURL stores its absoluteString in the database.

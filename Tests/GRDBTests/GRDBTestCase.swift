@@ -10,7 +10,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+
 import XCTest
 @testable import GRDB
 

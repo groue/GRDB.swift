@@ -10,7 +10,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Data
 
 /// Data is convertible to and from DatabaseValue.
 extension Data: DatabaseValueConvertible, StatementColumnConvertible {

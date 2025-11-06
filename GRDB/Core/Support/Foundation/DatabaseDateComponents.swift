@@ -10,7 +10,8 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.DateComponents
+import func Foundation.round
 
 /// A database value that holds date components.
 public struct DatabaseDateComponents: Sendable {

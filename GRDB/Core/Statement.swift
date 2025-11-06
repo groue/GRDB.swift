@@ -10,7 +10,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.CharacterSet
 
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer

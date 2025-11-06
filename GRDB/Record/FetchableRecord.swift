@@ -1,4 +1,7 @@
-import Foundation
+import class Foundation.JSONDecoder
+import struct Foundation.Data
+import struct Foundation.Date
+import class Foundation.DateFormatter
 
 /// A type that can decode itself from a database row.
 ///

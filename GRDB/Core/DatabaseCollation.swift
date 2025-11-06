@@ -10,7 +10,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import enum Foundation.ComparisonResult
 
 /// `DatabaseCollation` is a custom string comparison function used by SQLite.
 ///

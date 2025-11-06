@@ -1,5 +1,5 @@
 import XCTest
-import Foundation
+
 import GRDB
 
 class MutablePersistableRecordEncodableTests: GRDBTestCase { }

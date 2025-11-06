@@ -1,7 +1,7 @@
 #if canImport(Combine)
 import Combine
 #endif
-import Foundation
+import class Foundation.NSRecursiveLock
 
 public struct DatabaseRegionObservation: Sendable {
     /// A closure that is evaluated when the observation starts, and returns

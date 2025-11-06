@@ -1,4 +1,11 @@
-import Foundation // For JSONEncoder
+import class Foundation.JSONEncoder // For JSONEncoder
+import struct Foundation.Data
+import struct Foundation.Date
+import struct Foundation.UUID
+import class Foundation.DateFormatter
+import struct Foundation.CharacterSet
+import class Foundation.ISO8601DateFormatter
+import func Foundation.floor
 
 /// A type that can encode itself in a database row.
 ///

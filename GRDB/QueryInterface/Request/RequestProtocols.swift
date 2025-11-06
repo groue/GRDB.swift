@@ -1,5 +1,6 @@
-import Foundation
-
+import struct Foundation.Data
+import struct Foundation.Date
+import struct Foundation.UUID
 // MARK: - TypedRequest
 
 /// A request that knows how to decode database rows.

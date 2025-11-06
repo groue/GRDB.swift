@@ -11,7 +11,7 @@ import SQLite3
 import GRDBSQLite
 #endif
 
-import Foundation
+import struct Foundation.Data
 
 /// Flags that tell SQLite how to register a token.
 ///

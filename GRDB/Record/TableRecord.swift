@@ -1,4 +1,5 @@
-import Foundation
+import class Foundation.NSString
+import class Foundation.NSCache
 
 /// A type that builds database queries with the Swift language instead of SQL.
 ///

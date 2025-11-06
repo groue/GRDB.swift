@@ -1,4 +1,5 @@
-import Foundation
+import class Foundation.NSLock
+import class Foundation.DispatchQueue
 
 /// `ValueWriteOnlyObserver` observes the database for `ValueObservation`.
 ///

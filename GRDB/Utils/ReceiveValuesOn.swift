@@ -1,6 +1,6 @@
 #if canImport(Combine)
 import Combine
-import Foundation
+import class Foundation.NSRecursiveLock
 
 /// A publisher that delivers values to its downstream subscriber on a
 /// specific scheduler.

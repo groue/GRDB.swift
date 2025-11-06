@@ -1,7 +1,7 @@
 #if canImport(Combine)
 import Combine
 #endif
-import Foundation
+import class Foundation.NSRecursiveLock
 
 public struct ValueObservation<Reducer: ValueReducer>: Sendable {
     var events = ValueObservationEvents()
