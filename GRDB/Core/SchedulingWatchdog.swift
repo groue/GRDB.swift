@@ -1,7 +1,8 @@
 #if !canImport(Darwin)
 @preconcurrency
 #endif
-import Dispatch
+import class Dispatch.DispatchSpecificKey
+import class Dispatch.DispatchQueue
 
 /// SchedulingWatchdog makes sure that databases connections are used on correct
 /// dispatch queues, and warns the user with a fatal error whenever she misuses

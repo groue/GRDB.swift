@@ -1,4 +1,4 @@
-import Dispatch
+import class Dispatch.DispatchQueue
 
 /// A ReadWriteLock grants multiple readers and single-writer guarantees on
 /// a value. It is backed by a concurrent DispatchQueue.

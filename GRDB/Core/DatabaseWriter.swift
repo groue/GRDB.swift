@@ -1,7 +1,7 @@
 #if canImport(Combine)
 import Combine
 #endif
-import Dispatch
+import class Dispatch.DispatchQueue
 
 /// A type that writes into an SQLite database.
 ///

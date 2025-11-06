@@ -13,7 +13,8 @@ import GRDBSQLite
 #if !canImport(Darwin)
 @preconcurrency
 #endif
-import Dispatch
+import struct Dispatch.DispatchQoS
+import class Dispatch.DispatchQueue
 import Foundation
 
 public struct Configuration: Sendable {

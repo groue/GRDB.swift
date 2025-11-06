@@ -1,5 +1,5 @@
 import XCTest
-import Dispatch
+import class Dispatch.DispatchQueue
 @testable import GRDB
 
 class ValueObservationTests: GRDBTestCase {

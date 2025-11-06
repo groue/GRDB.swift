@@ -1,4 +1,8 @@
-import Dispatch
+import class Dispatch.DispatchSemaphore
+import class Dispatch.DispatchGroup
+import class Dispatch.DispatchQueue
+import struct Dispatch.DispatchQoS
+import struct Dispatch.DispatchWorkItemFlags
 
 /// A Pool maintains a set of elements that are built them on demand. A pool has
 /// a maximum number of elements.

@@ -1,5 +1,9 @@
 import XCTest
-import Dispatch
+import class Dispatch.DispatchQueue
+import struct Dispatch.DispatchQoS
+import func Dispatch.dispatchPrecondition
+import func Dispatch.__dispatch_get_global_queue
+import func Dispatch.__dispatch_queue_get_label
 import GRDB
 
 class DatabaseQueueTests: GRDBTestCase {

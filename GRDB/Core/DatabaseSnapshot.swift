@@ -1,4 +1,4 @@
-import Dispatch
+ 
 
 /// A database connection that serializes accesses to an unchanging
 /// database content, as it existed at the moment the snapshot was created.

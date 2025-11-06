@@ -1,5 +1,6 @@
 #if !canImport(Darwin)
-@preconcurrency import Dispatch
+@preconcurrency import class Dispatch.DispatchSpecificKey
+@preconcurrency import class Dispatch.DispatchQueue
 #endif
 import Foundation
 

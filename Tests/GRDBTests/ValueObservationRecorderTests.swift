@@ -1,4 +1,4 @@
-import Dispatch
+import class Dispatch.DispatchQueue
 import XCTest
 
 class ValueObservationRecorderTests: FailureTestCase {

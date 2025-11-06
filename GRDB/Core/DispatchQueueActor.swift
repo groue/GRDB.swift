@@ -1,4 +1,6 @@
-import Dispatch
+import class Dispatch.DispatchQueue
+import struct Dispatch.DispatchWorkItemFlags
+import func Dispatch.dispatchPrecondition
 
 /// An actor that runs in a DispatchQueue.
 ///

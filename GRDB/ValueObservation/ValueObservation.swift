@@ -1,7 +1,6 @@
 #if canImport(Combine)
 import Combine
 #endif
-import Dispatch
 import Foundation
 
 public struct ValueObservation<Reducer: ValueReducer>: Sendable {
