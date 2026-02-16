@@ -1,10 +1,9 @@
-Custom SQLCipher Fork
+Custom SQLCipher Builds
 =====================
 
-The officially supported fork of GRDB w/SQLCipher is available here: `<url to official fork coming soon>`
-This fork is maintained by GRDB in collaboration with the SQLCipher team and is the recommended fork to use to enable SQLCipher encryption for GRDB.
+To use the official SQLCipher package in conjunction with GRDB, you must fork GRDB, and modify `Package.swift`. Instructions are in the file itself, in comments that contain "GRDB+SQLCipher".
 
-If you have requirements that the official fork doesn't support, you're can fork GRDB yourself and include a custom copy of SQLCipher. This guide provides instructions for what is minimally required to get up and running with your fork:
+If you have requirements that the official SQLCipher package doesn't support, you can fork GRDB yourself and include a custom copy of SQLCipher. This guide provides instructions for what is minimally required to get up and running with your fork:
 
 1. [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) GRDB
 2. Clone the repository on your machine
