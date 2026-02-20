@@ -1,7 +1,7 @@
 Custom SQLCipher Builds
 =====================
 
-To use the official SQLCipher package in conjunction with GRDB, you must fork GRDB, and modify `Package.swift`. Instructions are in the file itself, in comments that contain "GRDB+SQLCipher".
+To use the official SQLCipher.swift package in conjunction with GRDB, you can use the official [fork of GRDB w/SQLCipher](https://github.com/sqlcipher/GRDB.swift). This fork is maintained by the SQLCipher team in collaboration with GRDB and is the recommended fork to use to enable SQLCipher encryption for GRDB.
 
 If you have requirements that the official SQLCipher package doesn't support, you can fork GRDB yourself and include a custom copy of SQLCipher. This guide provides instructions for what is minimally required to get up and running with your fork:
 

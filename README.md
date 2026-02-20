@@ -4589,7 +4589,7 @@ Encryption
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4+.**
 
-To use SQLCipher with [Swift Package Manager](https://swift.org/package-manager/), you must fork GRDB, and modify `Package.swift`. Instructions are in the file itself, in comments that contain "GRDB+SQLCipher".
+To use SQLCipher with [Swift Package Manager](https://swift.org/package-manager/), you can use the officially supported [fork of GRDB w/SQLCipher](https://github.com/sqlcipher/GRDB.swift). This fork is maintained by the SQLCipher team in collaboration with GRDB and is the recommended fork to use to enable SQLCipher encryption for GRDB.
 
 If you have requirements that the official SQLCipher package doesn't support, you can fork GRDB yourself and include a custom copy of SQLCipher using these [instructions](Documentation/CustomSQLCipherBuilds.md)
 
