@@ -210,5 +210,106 @@ public struct FTS5TokenizerDescriptor: Sendable {
         }
         return FTS5TokenizerDescriptor(components: components)
     }
+    
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
+    /// The "trigram" tokenizer.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .trigram()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    ///
+    /// - parameters:
+    ///     - caseSensitive: By default SQLite will perform case insensitive
+    ///     matching.
+    ///     - removeDiacritics: By default SQLite will not remove diacritics
+    ///     before matching.
+    public static func trigram(
+        caseSensitive: FTS5.TrigramCaseSensitiveOption? = nil,
+        removeDiacritics: FTS5.TrigramDiacriticsOption? = nil
+    ) -> FTS5TokenizerDescriptor {
+        var components = ["trigram"]
+        if let caseSensitive {
+            components.append(contentsOf: [
+                "case_sensitive", String(caseSensitive.rawValue)
+            ])
+        }
+        if let removeDiacritics {
+            components.append(contentsOf: [
+                "remove_diacritics", String(removeDiacritics.rawValue)
+            ])
+        }
+        return FTS5TokenizerDescriptor(components: components)
+    }
+    #else
+    /// The "trigram" tokenizer.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .trigram()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    ///
+    /// - parameters:
+    ///     - caseSensitive: By default SQLite will perform case insensitive
+    ///     matching.
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+ (3.34 actually)
+    public static func trigram(
+        caseSensitive: FTS5.TrigramCaseSensitiveOption? = nil
+    ) -> FTS5TokenizerDescriptor {
+        var components = ["trigram"]
+        if let caseSensitive {
+            components.append(contentsOf: [
+                "case_sensitive", String(caseSensitive.rawValue)
+            ])
+        }
+        return FTS5TokenizerDescriptor(components: components)
+    }
+    
+    /// The "trigram" tokenizer.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try db.create(virtualTable: "book", using: FTS5()) { t in
+    ///     t.tokenizer = .trigram()
+    /// }
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://sqlite.org/fts5.html#the_trigram_tokenizer>
+    ///
+    /// - parameters:
+    ///     - caseSensitive: By default SQLite will perform case insensitive
+    ///     matching.
+    ///     - removeDiacritics: By default SQLite will not remove diacritics
+    ///     before matching.
+    @available(*, unavailable, message: "Requires a future OS release that includes SQLite >=3.45")
+    public static func trigram(
+        caseSensitive: FTS5.TrigramCaseSensitiveOption? = nil,
+        removeDiacritics: FTS5.TrigramDiacriticsOption? = nil
+    ) -> FTS5TokenizerDescriptor {
+        var components = ["trigram"]
+        if let caseSensitive {
+            components.append(contentsOf: [
+                "case_sensitive", String(caseSensitive.rawValue)
+            ])
+        }
+        if let removeDiacritics {
+            components.append(contentsOf: [
+                "remove_diacritics", String(removeDiacritics.rawValue)
+            ])
+        }
+        return FTS5TokenizerDescriptor(components: components)
+    }
+    #endif
 }
 #endif

@@ -39,6 +39,8 @@ All SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) to
 
 - The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "database engine" gives the "databas" and "engin" tokens. The query "database engines" will match, because it produces the same tokens.
 
+- The [trigram](https://sqlite.org/fts5.html#the_trigram_tokenizer) tokenizer treats each contiguous sequence of three characters as a token to allow general substring matching. "Sequence" gives "seq", "equ", "que", "uen", "enc" and "nce". The queries "SEQUENCE", "SEQUEN", "QUENC" and "QUE" all match as they decompose into a subset of the same trigrams.
+
 However, built-in tokenizers don't match "first" with "1st", because they produce the different "first" and "1st" tokens.
 
 Nor do they match "Grossmann" with "Großmann", because they produce the different "grossmann" and "großmann" tokens.
