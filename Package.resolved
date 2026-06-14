@@ -1,0 +1,15 @@
+{
+  "originHash" : "f1025fb17c8fee081cbbf7273f5c682917a24f33d3c5fa4c9f86189b7008ac79",
+  "pins" : [
+    {
+      "identity" : "swift-toolchain-sqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-toolchain-sqlite",
+      "state" : {
+        "revision" : "05c9f4d17fae1eb586e716e11e5aa52bac464d00",
+        "version" : "1.0.10"
+      }
+    }
+  ],
+  "version" : 3
+}

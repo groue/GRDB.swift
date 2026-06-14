@@ -1,5 +1,4 @@
-module GRDBSQLite [system] {
+module GRDBSQLite {
     header "shim.h"
-    link "sqlite3"
     export *
 }

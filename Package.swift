@@ -15,11 +15,34 @@ let darwinPlatforms: [Platform] = [
 var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_FTS5"),
     .define("SQLITE_ENABLE_SNAPSHOT"),
-    // Not all Linux distributions have support for WAL snapshots.
-    .define("SQLITE_DISABLE_SNAPSHOT", .when(platforms: [.linux])),
+    // The amalgamation supplied by swiftlang/swift-toolchain-sqlite is
+    // built without SQLITE_ENABLE_SNAPSHOT (its library target declares
+    // no cSettings, and SwiftPM does not let us inject them into a binary
+    // dependency). The Swift call sites that reference sqlite3_snapshot_*
+    // are gated by `#if SQLITE_ENABLE_SNAPSHOT && !SQLITE_DISABLE_SNAPSHOT`,
+    // so applying SQLITE_DISABLE_SNAPSHOT unconditionally here keeps GRDB
+    // linking on every platform. Trade-off: snapshot-based ValueObservation
+    // optimisations are not available — the cost of switching to the
+    // swift-toolchain-sqlite route.
+    .define("SQLITE_DISABLE_SNAPSHOT"),
 ]
-var cSettings: [CSetting] = []
-var dependencies: [PackageDescription.Package.Dependency] = []
+var cSettings: [CSetting] = [
+    // Without SQLITE_CORE, sqlite3ext.h (exposed alongside sqlite3.h by
+    // SwiftToolchainCSQLite's modulemap) redefines sqlite3_db_config(...)
+    // and sqlite3_config(...) as macros that go through sqlite3_api->...,
+    // which is only valid in loadable-extension contexts. shim.c calls
+    // those functions directly, so without SQLITE_CORE the macro expansion
+    // breaks shim.c's compile. SQLITE_CORE skips that macro block (see
+    // sqlite3ext.h: `#if !defined(SQLITE_CORE) && ...`).
+    .define("SQLITE_CORE"),
+]
+var dependencies: [PackageDescription.Package.Dependency] = [
+    // Vendors the SQLite amalgamation as a regular SwiftPM target so that
+    // GRDB compiles on platforms without a system libsqlite3 — notably
+    // Swift's Static Linux SDK (musl-static), where the sysroot ships no
+    // sqlite3 and `.systemLibrary` would fail at `#include <sqlite3.h>`.
+    .package(url: "https://github.com/swiftlang/swift-toolchain-sqlite", from: "1.0.10"),
+]
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
@@ -62,9 +85,20 @@ let package = Package(
     dependencies: dependencies,
     targets: [
         // GRDB+SQLCipher: Delete the GRDBSQLite target
-        .systemLibrary(
+        //
+        // Thin shim over swiftlang/swift-toolchain-sqlite. shim.h declares
+        // wrappers around variadic sqlite3 calls that Swift can't import;
+        // shim.c provides the bodies (compiled with this target's cSettings).
+        // The SQLite amalgamation itself comes from the dependency.
+        .target(
             name: "GRDBSQLite",
-            providers: [.apt(["libsqlite3-dev"])]),
+            dependencies: [
+                .product(name: "SwiftToolchainCSQLite", package: "swift-toolchain-sqlite"),
+            ],
+            // shim.h and module.modulemap live at the target root, not in
+            // an `include/` subdirectory (SwiftPM's default).
+            publicHeadersPath: ".",
+            cSettings: cSettings),
         // GRDB+SQLCipher: Uncomment the GRDBSQLCipher target
         //.target(
         //    name: "GRDBSQLCipher",
