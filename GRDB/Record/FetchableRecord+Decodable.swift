@@ -581,16 +581,31 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
-        
+        let row = rows[currentIndex]
+
+        // Prefer DatabaseValueConvertible / StatementColumnConvertible over Decodable when the
+        // prefetched element is a scalar, matching the keyed and single-value containers. Without
+        // this, a scalar that is both Decodable and DatabaseValueConvertible (such as a UUID
+        // wrapper selected with `.select(Column("id"))`) decodes through Decodable and fails on a
+        // non-text database value. The selected value is at index 0; the association's grouping
+        // columns follow it. (https://github.com/groue/GRDB.swift/issues/1804)
+        if !(T.self is any FetchableRecord.Type), !row.isEmpty, type != Data.self, type != Date.self {
+            if let type = T.self as? any (DatabaseValueConvertible & StatementColumnConvertible).Type {
+                return try type.fastDecode(fromRow: row, atUncheckedIndex: 0) as! T
+            } else if let type = T.self as? any DatabaseValueConvertible.Type {
+                return try type.decode(fromRow: row, atUncheckedIndex: 0) as! T
+            }
+        }
+
         let columnDecodingStrategy: DatabaseColumnDecodingStrategy
         if let type = T.self as? any FetchableRecord.Type {
             columnDecodingStrategy = type.databaseColumnDecodingStrategy
         } else {
             columnDecodingStrategy = .useDefaultKeys
         }
-        
+
         let decoder = _RowDecoder<R>(
-            row: rows[currentIndex],
+            row: row,
             codingPath: codingPath,
             columnDecodingStrategy: columnDecodingStrategy)
         return try T(from: decoder)
