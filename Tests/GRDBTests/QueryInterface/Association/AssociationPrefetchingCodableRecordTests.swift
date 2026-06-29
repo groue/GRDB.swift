@@ -1526,4 +1526,52 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
             }
         }
     }
+
+    // Regression test for https://github.com/groue/GRDB.swift/issues/1804
+    // A scalar that is both Decodable and DatabaseValueConvertible must decode through
+    // DatabaseValueConvertible (not Decodable) when fetched from a prefetched hasMany association.
+    func testIncludingAllHasManyConvertibleScalar() throws {
+        struct UUIDWrapper: Codable, DatabaseValueConvertible, Hashable {
+            var uuid: UUID
+            init(_ uuid: UUID = UUID()) { self.uuid = uuid }
+            init(from decoder: any Decoder) throws { uuid = try UUID(from: decoder) }
+            func encode(to encoder: any Encoder) throws { try uuid.encode(to: encoder) }
+            var databaseValue: DatabaseValue { uuid.databaseValue }
+            static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UUIDWrapper? {
+                UUID.fromDatabaseValue(dbValue).map(UUIDWrapper.init)
+            }
+        }
+        struct Medal: Codable, TableRecord, FetchableRecord, PersistableRecord, Equatable {
+            var id: UUIDWrapper
+            var playerID: Int64
+        }
+        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord, Equatable {
+            static let medals = hasMany(Medal.self)
+            var id: Int64
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.primaryKey("id", .integer)
+            }
+            try db.create(table: "medal") { t in
+                t.primaryKey("id", .blob)
+                t.column("playerID", .integer).references("player")
+            }
+            let medalID = UUIDWrapper()
+            try Player(id: 1).insert(db)
+            try Medal(id: medalID, playerID: 1).insert(db)
+
+            struct PlayerInfo: Decodable, FetchableRecord, Equatable {
+                var player: Player
+                var medalIDs: [UUIDWrapper]
+            }
+            let request = Player
+                .including(all: Player.medals.select(Column("id")).forKey("medalIDs"))
+                .asRequest(of: PlayerInfo.self)
+            try XCTAssertEqual(request.fetchAll(db), [
+                PlayerInfo(player: Player(id: 1), medalIDs: [medalID]),
+            ])
+        }
+    }
 }
