@@ -1526,4 +1526,92 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
             }
         }
     }
+    
+    func testIncludingAllHasMany_PrefersDatabaseValueConvertibleOverDecodable() throws {
+        struct Value: Decodable, DatabaseValueConvertible, Equatable {
+            var string: String
+            
+            init(string: String) {
+                self.string = string
+            }
+            
+            init(from decoder: Decoder) throws {
+                string = try decoder.singleValueContainer().decode(String.self) + " (Decodable)"
+            }
+            
+            var databaseValue: DatabaseValue { fatalError("irrelevant") }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                String.fromDatabaseValue(databaseValue)
+                    .map { Value(string: $0 + " (DatabaseValueConvertible)") }
+            }
+        }
+        
+        struct Record: FetchableRecord, Decodable {
+            var a: A
+            var values: [Value]
+        }
+        
+        let request = A
+            .including(all: A
+                .hasMany(B.self, key: "values")
+                .select(Column("colb3"))
+                .orderByPrimaryKey())
+            .orderByPrimaryKey()
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let records = try Record.fetchAll(db, request)
+            XCTAssertEqual(records.map(\.values), [
+                [
+                    Value(string: "b1 (DatabaseValueConvertible)"),
+                    Value(string: "b2 (DatabaseValueConvertible)"),
+                ],
+                [Value(string: "b3 (DatabaseValueConvertible)")],
+                [],
+            ])
+        }
+    }
+    
+    func testIncludingAllHasMany_PrefersFetchableRecordOverDecodable() throws {
+        struct Value: FetchableRecord, Decodable, Equatable {
+            var string: String
+            
+            init(string: String) {
+                self.string = string
+            }
+            
+            init(row: Row) throws {
+                string = row["colb3"] + " (FetchableRecord)"
+            }
+            
+            init(from _: Decoder) throws {
+                string = "Decodable"
+            }
+        }
+        
+        struct Record: FetchableRecord, Decodable {
+            var a: A
+            var values: [Value]
+        }
+        
+        let request = A
+            .including(all: A
+                .hasMany(B.self, key: "values")
+                .orderByPrimaryKey())
+            .orderByPrimaryKey()
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let records = try Record.fetchAll(db, request)
+            XCTAssertEqual(records.map(\.values), [
+                [
+                    Value(string: "b1 (FetchableRecord)"),
+                    Value(string: "b2 (FetchableRecord)"),
+                ],
+                [Value(string: "b3 (FetchableRecord)")],
+                [],
+            ])
+        }
+    }
 }
