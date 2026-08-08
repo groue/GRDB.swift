@@ -142,6 +142,120 @@ class DatabaseRegionTests : GRDBTestCase {
         XCTAssertEqual(unions.map(\.description), ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
     }
     
+    func testRegionFormUnionTableColumn() {
+        var region = DatabaseRegion()
+        region.formUnion(table: "foo", column: "name")
+        
+        var expectedRegion = DatabaseRegion()
+        expectedRegion.formUnion(DatabaseRegion(table: "foo", columns: ["name"]))
+        XCTAssertEqual(region, expectedRegion)
+    }
+    
+    func testRegionFormUnionTableColumnWholeTable() {
+        do {
+            var region = DatabaseRegion(table: "foo", columns: ["name"])
+            region.formUnion(table: "foo", column: nil)
+            
+            var expectedRegion = DatabaseRegion(table: "foo", columns: ["name"])
+            expectedRegion.formUnion(DatabaseRegion(table: "foo"))
+            XCTAssertEqual(region, expectedRegion)
+        }
+        do {
+            var region = DatabaseRegion(table: "foo")
+            region.formUnion(table: "foo", column: "name")
+            
+            var expectedRegion = DatabaseRegion(table: "foo")
+            expectedRegion.formUnion(DatabaseRegion(table: "foo", columns: ["name"]))
+            XCTAssertEqual(region, expectedRegion)
+        }
+        do {
+            var region = DatabaseRegion(table: "foo", columns: ["name"])
+            region.formUnion(table: "foo", column: "")
+            
+            var expectedRegion = DatabaseRegion(table: "foo", columns: ["name"])
+            expectedRegion.formUnion(DatabaseRegion(table: "foo"))
+            XCTAssertEqual(region, expectedRegion)
+        }
+    }
+    
+    func testRegionFormUnionTableColumnRepeatedColumn() {
+        var region = DatabaseRegion()
+        region.formUnion(table: "foo", column: "name")
+        let expectedRegion = region
+        region.formUnion(table: "foo", column: "name")
+        
+        XCTAssertEqual(region, expectedRegion)
+    }
+    
+    func testRegionFormUnionTableColumnMultipleTables() {
+        var region = DatabaseRegion()
+        region.formUnion(table: "foo", column: "name")
+        region.formUnion(table: "bar", column: "score")
+        
+        var expectedRegion = DatabaseRegion()
+        expectedRegion.formUnion(DatabaseRegion(table: "foo", columns: ["name"]))
+        expectedRegion.formUnion(DatabaseRegion(table: "bar", columns: ["score"]))
+        XCTAssertEqual(region, expectedRegion)
+    }
+    
+    func testRegionFormUnionTableColumnCaseInsensitiveTable() {
+        var region = DatabaseRegion()
+        region.formUnion(table: "foo", column: "name")
+        region.formUnion(table: "FOO", column: "SCORE")
+        
+        var expectedRegion = DatabaseRegion()
+        expectedRegion.formUnion(DatabaseRegion(table: "foo", columns: ["name"]))
+        expectedRegion.formUnion(DatabaseRegion(table: "FOO", columns: ["SCORE"]))
+        XCTAssertEqual(region, expectedRegion)
+    }
+    
+    func testRegionFormUnionTableColumnAndRowIds() {
+        var region = DatabaseRegion(table: "foo", columns: ["name"])
+            .intersection(DatabaseRegion(table: "foo", rowIds: [1, 2]))
+        region.formUnion(table: "foo", column: "score")
+        
+        var expectedRegion = DatabaseRegion(table: "foo", columns: ["name"])
+            .intersection(DatabaseRegion(table: "foo", rowIds: [1, 2]))
+        expectedRegion.formUnion(DatabaseRegion(table: "foo", columns: ["score"]))
+        XCTAssertEqual(region, expectedRegion)
+        XCTAssertEqual(region.description, "foo(name,score)")
+    }
+    
+    func testRegionFormUnionTableColumnFullDatabase() {
+        var region = DatabaseRegion.fullDatabase
+        region.formUnion(table: "foo", column: "name")
+        
+        XCTAssertEqual(region, .fullDatabase)
+    }
+    
+    func testRegionFormUnionTableColumnSequenceEquivalence() {
+        let eventSequences: [[(table: String, column: String?)]] = [
+            [],
+            [("foo", "name")],
+            [("foo", "name"), ("foo", "name"), ("foo", "score")],
+            [("foo", "name"), ("bar", "score"), ("FOO", "email")],
+            [("foo", "name"), ("foo", nil), ("foo", "score")],
+            [("foo", nil), ("foo", "name")],
+            [("foo", "name"), ("foo", ""), ("bar", "score")],
+        ]
+        
+        for events in eventSequences {
+            var region = DatabaseRegion()
+            var expectedRegion = DatabaseRegion()
+            for event in events {
+                region.formUnion(table: event.table, column: event.column)
+                if let column = event.column, !column.isEmpty {
+                    expectedRegion.formUnion(DatabaseRegion(
+                        table: event.table,
+                        columns: [column]))
+                } else {
+                    expectedRegion.formUnion(DatabaseRegion(table: event.table))
+                }
+            }
+            XCTAssertEqual(region, expectedRegion)
+        }
+    }
+    
     func testRegionIntersection() {
         let regions = [
             DatabaseRegion.fullDatabase,

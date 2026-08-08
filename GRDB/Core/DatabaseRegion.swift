@@ -41,7 +41,7 @@
 /// - ``isModified(byEventsOfKind:)``
 /// - ``isModified(by:)``
 public struct DatabaseRegion: Sendable {
-    private let tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
+    private var tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
     
     private init(tableRegions: [CaseInsensitiveIdentifier: TableRegion]?) {
         self.tableRegions = tableRegions
@@ -160,6 +160,24 @@ public struct DatabaseRegion: Sendable {
     /// Inserts the given region into this region
     public mutating func formUnion(_ other: DatabaseRegion) {
         self = union(other)
+    }
+    
+    /// Adds one table-column read reported by the SQLite authorizer.
+    ///
+    /// This operation is O(1) amortized, so statement compilation does not
+    /// merge the accumulated region for each authorizer callback.
+    ///
+    /// - parameter table: A table name.
+    /// - parameter column: A column name, or nil or empty for all columns.
+    mutating func formUnion(table: String, column: String?) {
+        guard tableRegions != nil else { return }
+        
+        let table = CaseInsensitiveIdentifier(rawValue: table)
+        let column = column.flatMap {
+            $0.isEmpty ? nil : CaseInsensitiveIdentifier(rawValue: $0)
+        }
+        tableRegions?[table, default: TableRegion(columns: [], rowIds: nil)]
+            .formUnion(column: column)
     }
     
     /// Returns a region suitable for database observation
@@ -368,6 +386,17 @@ private struct TableRegion: Equatable {
         }
         
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
+    }
+    
+    /// Inserts a column read across all rows. A nil column means all
+    /// columns.
+    mutating func formUnion(column: CaseInsensitiveIdentifier?) {
+        rowIds = nil
+        guard let column else {
+            columns = nil
+            return
+        }
+        columns?.insert(column)
     }
     
     func contains(rowID: Int64) -> Bool {
