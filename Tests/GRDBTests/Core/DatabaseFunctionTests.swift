@@ -89,7 +89,20 @@ class DatabaseFunctionTests: GRDBTestCase {
             XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f()")!, "foo")
         }
     }
-
+    
+    func testFunctionReturningStringWithNulCharacter() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
+            // SQLite supports strings that contain a NUL character:
+            // https://sqlite.org/nulinstr.html
+            return "foo\u{0}bar"
+        }
+        try dbQueue.inDatabase { db in
+            db.add(function: fn)
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f()")!, "foo\u{0}bar")
+        }
+    }
+    
     func testFunctionReturningData() throws {
         let dbQueue = try makeDatabaseQueue()
         let fn = DatabaseFunction("f", argumentCount: 0) { dbValues in
@@ -167,7 +180,22 @@ class DatabaseFunctionTests: GRDBTestCase {
             XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f('foo')")!, "foo")
         }
     }
-
+    
+    func testFunctionArgumentStringWithNulCharacter() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
+            return String.fromDatabaseValue(dbValues[0])
+        }
+        try dbQueue.inDatabase { db in
+            db.add(function: fn)
+            // A NUL character can not be written in an SQL string literal:
+            // the string is passed as a statement argument.
+            XCTAssertEqual(
+                try String.fetchOne(db, sql: "SELECT f(?)", arguments: ["foo\u{0}bar"])!,
+                "foo\u{0}bar")
+        }
+    }
+    
     func testFunctionArgumentBlob() throws {
         let dbQueue = try makeDatabaseQueue()
         let fn = DatabaseFunction("f", argumentCount: 1) { (dbValues: [DatabaseValue]) in
