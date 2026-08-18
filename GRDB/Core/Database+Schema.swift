@@ -511,11 +511,12 @@ extension Database {
             // > DESC" clause, it does not become an alias for the rowid [...]
             //
             // FIXME: We ignore the exception, and consider all INTEGER primary
-            // keys as aliases for the rowid:
-            if pkColumn.type.uppercased() == "INTEGER" {
+            // keys of rowid tables as aliases for the rowid:
+            let tableHasRowID = try fetchTableHasRowID(table)
+            if pkColumn.type.uppercased() == "INTEGER" && tableHasRowID {
                 return .rowID(pkColumn)
             } else {
-                return try .regular([pkColumn], tableHasRowID: fetchTableHasRowID(table))
+                return .regular([pkColumn], tableHasRowID: tableHasRowID)
             }
             
         default:
