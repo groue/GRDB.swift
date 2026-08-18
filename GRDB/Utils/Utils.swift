@@ -16,6 +16,21 @@ extension String {
     }
 }
 
+// MARK: - String and SQLite text
+
+extension String {
+    /// Creates a string from a buffer of UTF-8 bytes, repairing invalid
+    /// UTF-8.
+    ///
+    /// Unlike `String(cString:)`, the result may contain zero bytes: the
+    /// buffer is delimited by `count`, not by a nul terminator.
+    init(utf8Bytes: UnsafePointer<UInt8>, count: CInt) {
+        self = String(
+            decoding: UnsafeRawBufferPointer(start: utf8Bytes, count: Int(count)),
+            as: UTF8.self)
+    }
+}
+
 /// Return as many question marks separated with commas as the *count* argument.
 ///
 ///     databaseQuestionMarks(count: 3) // "?,?,?"

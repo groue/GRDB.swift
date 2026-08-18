@@ -592,7 +592,9 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
+        self = String(
+            utf8Bytes: sqlite3_column_text(sqliteStatement, index)!,
+            count: sqlite3_column_bytes(sqliteStatement, index))
     }
     
     /// Returns a TEXT database value.
@@ -622,7 +624,18 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
-        sqlite3_bind_text(sqliteStatement, index, self, -1, SQLITE_TRANSIENT)
+        var string = self
+        return string.withUTF8 { buffer in
+            guard let baseAddress = buffer.baseAddress else {
+                // baseAddress may be nil for an empty string
+                return sqlite3_bind_text(sqliteStatement, index, "", 0, SQLITE_TRANSIENT)
+            }
+            return sqlite3_bind_text(
+                sqliteStatement, index,
+                UnsafeRawPointer(baseAddress).assumingMemoryBound(to: CChar.self),
+                CInt(buffer.count),
+                SQLITE_TRANSIENT)
+        }
     }
     
     /// Calls the given closure after binding a statement argument.
@@ -633,8 +646,19 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameter index: 1-based index to statement arguments.
     /// - parameter body: The closure to execute when argument is bound.
     func withBinding<T>(to sqliteStatement: SQLiteStatement, at index: CInt, do body: () throws -> T) throws -> T {
-        try withCString {
-            let code = sqlite3_bind_text(sqliteStatement, index, $0, -1, nil /* SQLITE_STATIC */)
+        var string = self
+        return try string.withUTF8 { buffer in
+            guard let baseAddress = buffer.baseAddress else {
+                // baseAddress may be nil for an empty string
+                let code = sqlite3_bind_text(sqliteStatement, index, "", 0, SQLITE_TRANSIENT)
+                try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
+                return try body()
+            }
+            let code = sqlite3_bind_text(
+                sqliteStatement, index,
+                UnsafeRawPointer(baseAddress).assumingMemoryBound(to: CChar.self),
+                CInt(buffer.count),
+                nil /* SQLITE_STATIC */)
             try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
             return try body()
         }
