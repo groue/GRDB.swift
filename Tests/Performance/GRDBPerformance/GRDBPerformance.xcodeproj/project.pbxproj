@@ -31,6 +31,8 @@
 		5690AFDC212058CB001530EA /* FetchRecordDecodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordDecodableTests.swift */; };
 		56A3FEAA27A85F4800B0292E /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 56A3FEA927A85F4800B0292E /* RealmSwift */; };
 		56A6F4AC29BBC8E200E22662 /* ArgumentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A6F4AB29BBC8E200E22662 /* ArgumentsTests.swift */; };
+		AA1F0001000000000000E001 /* FunctionResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1F0002000000000000E002 /* FunctionResultTests.swift */; };
+		AA1F0003000000000000E003 /* FetchStringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1F0004000000000000E004 /* FetchStringTests.swift */; };
 		56B6D0E52618BF78003CC455 /* FetchRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E42618BF78003CC455 /* FetchRecordOptimizedTests.swift */; };
 		56B6D0E62618BF78003CC455 /* FetchRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E42618BF78003CC455 /* FetchRecordOptimizedTests.swift */; };
 		56B6D0EA2618C00C003CC455 /* InsertRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E92618C00C003CC455 /* InsertRecordOptimizedTests.swift */; };
@@ -98,6 +100,8 @@
 		5690AFD72120589A001530EA /* InsertRecordEncodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordEncodableTests.swift; sourceTree = "<group>"; };
 		5690AFDA212058CB001530EA /* FetchRecordDecodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordDecodableTests.swift; sourceTree = "<group>"; };
 		56A6F4AB29BBC8E200E22662 /* ArgumentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArgumentsTests.swift; sourceTree = "<group>"; };
+		AA1F0002000000000000E002 /* FunctionResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunctionResultTests.swift; sourceTree = "<group>"; };
+		AA1F0004000000000000E004 /* FetchStringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchStringTests.swift; sourceTree = "<group>"; };
 		56B6D0E42618BF78003CC455 /* FetchRecordOptimizedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordOptimizedTests.swift; sourceTree = "<group>"; };
 		56B6D0E92618C00C003CC455 /* InsertRecordOptimizedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordOptimizedTests.swift; sourceTree = "<group>"; };
 		56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordClassTests.swift; sourceTree = "<group>"; };
@@ -161,6 +165,8 @@
 				56BB862D1BA98933001F9168 /* GRDBPerformanceComparisonTests-Bridging.h */,
 				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
 				56A6F4AB29BBC8E200E22662 /* ArgumentsTests.swift */,
+				AA1F0002000000000000E002 /* FunctionResultTests.swift */,
+				AA1F0004000000000000E004 /* FetchStringTests.swift */,
 				567071FA208A509C006AD95A /* DateParsingTests.swift */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
@@ -347,6 +353,8 @@
 				5690AFD82120589A001530EA /* InsertRecordEncodableTests.swift in Sources */,
 				56B6D0EA2618C00C003CC455 /* InsertRecordOptimizedTests.swift in Sources */,
 				56A6F4AC29BBC8E200E22662 /* ArgumentsTests.swift in Sources */,
+				AA1F0001000000000000E001 /* FunctionResultTests.swift in Sources */,
+				AA1F0003000000000000E003 /* FetchStringTests.swift in Sources */,
 				5690AFDB212058CB001530EA /* FetchRecordDecodableTests.swift in Sources */,
 				56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */,
 				56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */,

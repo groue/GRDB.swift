@@ -106,7 +106,18 @@ public final class DatabaseFunction: Identifiable, Sendable {
             case .double(let double):
                 sqlite3_result_double(context, double)
             case .string(let string):
-                sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+                var string = string
+                string.withUTF8 { buffer in
+                    guard let baseAddress = buffer.baseAddress else {
+                        // baseAddress may be nil for an empty string
+                        return sqlite3_result_text(context, "", 0, SQLITE_TRANSIENT)
+                    }
+                    sqlite3_result_text(
+                        context,
+                        UnsafeRawPointer(baseAddress).assumingMemoryBound(to: CChar.self),
+                        CInt(buffer.count),
+                        SQLITE_TRANSIENT)
+                }
             case .blob(let data):
                 data.withUnsafeBytes {
                     sqlite3_result_blob(context, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
@@ -448,7 +459,18 @@ public final class DatabaseFunction: Identifiable, Sendable {
         case .double(let double):
             sqlite3_result_double(sqliteContext, double)
         case .string(let string):
-            sqlite3_result_text(sqliteContext, string, -1, SQLITE_TRANSIENT)
+            var string = string
+            string.withUTF8 { buffer in
+                guard let baseAddress = buffer.baseAddress else {
+                    // baseAddress may be nil for an empty string
+                    return sqlite3_result_text(sqliteContext, "", 0, SQLITE_TRANSIENT)
+                }
+                sqlite3_result_text(
+                    sqliteContext,
+                    UnsafeRawPointer(baseAddress).assumingMemoryBound(to: CChar.self),
+                    CInt(buffer.count),
+                    SQLITE_TRANSIENT)
+            }
         case .blob(let data):
             data.withUnsafeBytes {
                 sqlite3_result_blob(sqliteContext, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
