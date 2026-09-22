@@ -59,6 +59,12 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
+    traits: [
+        .trait(
+            name: "SQLCipher",
+            description: "Enable SQLCipher.",
+        ),
+    ],
     dependencies: dependencies,
     targets: [
         // GRDB+SQLCipher: Delete the GRDBSQLite target
