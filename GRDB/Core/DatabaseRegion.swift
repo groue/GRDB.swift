@@ -41,7 +41,8 @@
 /// - ``isModified(byEventsOfKind:)``
 /// - ``isModified(by:)``
 public struct DatabaseRegion: Sendable {
-    private let tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
+    /// Nil means that the region is the full database.
+    private var tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
     
     private init(tableRegions: [CaseInsensitiveIdentifier: TableRegion]?) {
         self.tableRegions = tableRegions
@@ -77,17 +78,24 @@ public struct DatabaseRegion: Sendable {
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
-    /// Full columns in a table: (some columns in a table) × (all rows)
+    /// Some columns from all rows in a table.
     init(table: String, columns: Set<String>) {
         let table = CaseInsensitiveIdentifier(rawValue: table)
         let columns = Set(columns.map(CaseInsensitiveIdentifier.init))
         self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: nil)])
     }
     
-    /// Full rows in a table: (all columns in a table) × (some rows)
+    /// All columns from some rows in a table.
     init(table: String, rowIds: Set<Int64>) {
         let table = CaseInsensitiveIdentifier(rawValue: table)
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: rowIds)])
+    }
+    
+    /// Some columns from some rows in a table.
+    init(table: String, columns: Set<String>, rowIds: Set<Int64>) {
+        let table = CaseInsensitiveIdentifier(rawValue: table)
+        let columns = Set(columns.map(CaseInsensitiveIdentifier.init))
+        self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: rowIds)])
     }
     
     /// Returns the intersection of this region and the given one.
@@ -160,6 +168,22 @@ public struct DatabaseRegion: Sendable {
     /// Inserts the given region into this region
     public mutating func formUnion(_ other: DatabaseRegion) {
         self = union(other)
+    }
+    
+    /// Inserts all columns and rows from the given table.
+    mutating func insert(table: String) {
+        guard tableRegions != nil else { return }
+        let table = CaseInsensitiveIdentifier(rawValue: table)
+        tableRegions![table, default: TableRegion()].insertAllRowsAndColumns()
+    }
+    
+    /// Inserts the specified column and all rows from the given table.
+    mutating func insert(table: String, column: String) {
+        assert(!column.isEmpty)
+        guard tableRegions != nil else { return }
+        let table = CaseInsensitiveIdentifier(rawValue: table)
+        let column = CaseInsensitiveIdentifier(rawValue: column)
+        tableRegions![table, default: TableRegion(columns: [column])].insertAllRowsAndColumn(column)
     }
     
     /// Returns a region suitable for database observation
@@ -368,6 +392,18 @@ private struct TableRegion: Equatable {
         }
         
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
+    }
+    
+    mutating func insertAllRowsAndColumns() {
+        rowIds = nil
+        columns = nil
+    }
+    
+    mutating func insertAllRowsAndColumn(_ column: CaseInsensitiveIdentifier) {
+        rowIds = nil
+        if columns != nil {
+            columns!.insert(column)
+        }
     }
     
     func contains(rowID: Int64) -> Bool {
