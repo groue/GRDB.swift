@@ -76,7 +76,9 @@ let package = Package(
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDBSQLCipher",
-            dependencies: [.product(name: "SQLCipher", package: "SQLCipher.swift")]
+            dependencies: [
+                .product(name: "SQLCipher", package: "SQLCipher.swift", condition: .when(traits: ["SQLCipher"])),
+            ]
         ),
         .target(
             name: "GRDB",
