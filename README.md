@@ -4587,7 +4587,7 @@ try Player.customRequest().fetchAll(db) // [Player]
 Encryption
 ==========
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4+.**
+**GRDB can encrypt your database with [SQLCipher](https://www.zetetic.net/sqlcipher/) v3.4+.**
 
 To use SQLCipher with the [Swift Package Manager](https://swift.org/package-manager/), you must fork GRDB, and modify `Package.swift`. Instructions are in the file itself, in comments that contain "GRDB+SQLCipher".
 
