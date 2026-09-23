@@ -142,6 +142,64 @@ class DatabaseRegionTests : GRDBTestCase {
         XCTAssertEqual(unions.map(\.description), ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
     }
     
+    func testInsertTable() {
+        let regions = [
+            DatabaseRegion.fullDatabase,
+            DatabaseRegion(),
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "foo", columns: ["b", "c"]),
+            DatabaseRegion(table: "foo", rowIds: [1, 2]),
+            DatabaseRegion(table: "foo", columns: ["b"], rowIds: [2, 3]),
+            DatabaseRegion(table: "bar")]
+        
+        var unions: [DatabaseRegion] = []
+        for var region in regions {
+            region.insert(table: "foo")
+            unions.append(region)
+        }
+        
+        XCTAssertEqual(unions.map(\.description), [
+            "full database",
+            "foo(*)",
+            "foo(*)",
+            "foo(*)",
+            "foo(*)",
+            "foo(*)",
+            "foo(*)",
+            "bar(*),foo(*)",
+        ])
+    }
+    
+    func testInsertTableColumn() {
+        let regions = [
+            DatabaseRegion.fullDatabase,
+            DatabaseRegion(),
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "foo", columns: ["b", "c"]),
+            DatabaseRegion(table: "foo", rowIds: [1, 2]),
+            DatabaseRegion(table: "foo", columns: ["b"], rowIds: [2, 3]),
+            DatabaseRegion(table: "bar")]
+        
+        var unions: [DatabaseRegion] = []
+        for var region in regions {
+            region.insert(table: "foo", column: "a")
+            unions.append(region)
+        }
+        
+        XCTAssertEqual(unions.map(\.description), [
+            "full database",
+            "foo(a)",
+            "foo(*)",
+            "foo(a,b)",
+            "foo(a,b,c)",
+            "foo(*)",
+            "foo(a,b)",
+            "bar(*),foo(a)",
+        ])
+    }
+    
     func testRegionIntersection() {
         let regions = [
             DatabaseRegion.fullDatabase,
