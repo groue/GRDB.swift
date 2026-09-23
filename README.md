@@ -4589,7 +4589,9 @@ Encryption
 
 **GRDB can encrypt your database with [SQLCipher](https://www.zetetic.net/sqlcipher/) v3.4+.**
 
-To use SQLCipher with the [Swift Package Manager](https://swift.org/package-manager/), you must fork GRDB, and modify `Package.swift`. Instructions are in the file itself, in comments that contain "GRDB+SQLCipher".
+To use SQLCipher with the [Swift Package Manager](https://swift.org/package-manager/), edit the package traits for your Xcode project's Package Dependencies:
+- Enable `SQLCipher`
+- Disable `SQLite` (and any default trait)
 
 To use SQLCipher with [CocoaPods](http://cocoapods.org/), specify in your `Podfile`:
 
