@@ -17,9 +17,15 @@ var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_SNAPSHOT"),
     // Not all Linux distributions have support for WAL snapshots.
     .define("SQLITE_DISABLE_SNAPSHOT", .when(platforms: [.linux])),
+    .define("SQLITE_HAS_CODEC", .when(traits: ["SQLCipher"])),
+    .define("SQLCipher", .when(traits: ["SQLCipher"])),
 ]
-var cSettings: [CSetting] = []
-var dependencies: [PackageDescription.Package.Dependency] = []
+var cSettings: [CSetting] = [
+    .define("SQLITE_HAS_CODEC", .when(traits: ["SQLCipher"])),
+]
+var dependencies: [PackageDescription.Package.Dependency] = [
+    .package(url: "https://github.com/sqlcipher/SQLCipher.swift.git", from: "4.11.0"),
+]
 
 // Don't rely on those environment variables. They are ONLY testing conveniences:
 // $ SQLITE_ENABLE_PREUPDATE_HOOK=1 make test_SPM
@@ -38,12 +44,6 @@ if ProcessInfo.processInfo.environment["SPI_BUILDER"] == "1" {
     dependencies.append(.package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"))
 }
 
-// GRDB+SQLCipher: Uncomment those lines
-//dependencies.append(.package(url: "https://github.com/sqlcipher/SQLCipher.swift.git", from: "4.11.0"))
-//cSettings.append(.define("SQLITE_HAS_CODEC"))
-//swiftSettings.append(.define("SQLITE_HAS_CODEC"))
-//swiftSettings.append(.define("SQLCipher"))
-
 let package = Package(
     name: "GRDB",
     defaultLocalization: "en", // for tests
@@ -54,30 +54,38 @@ let package = Package(
         .watchOS(.v7),
     ],
     products: [
-        // GRDB+SQLCipher: Delete the GRDBSQLite library
         .library(name: "GRDBSQLite", targets: ["GRDBSQLite"]),
         .library(name: "GRDB", targets: ["GRDB"]),
         .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
+    traits: [
+        .default(enabledTraits: ["SQLite"]),
+        .trait(
+            name: "SQLite",
+            description: "Use SQLite without SQLCipher.",
+        ),
+        .trait(
+            name: "SQLCipher",
+            description: "Enable SQLCipher.",
+        ),
+    ],
     dependencies: dependencies,
     targets: [
-        // GRDB+SQLCipher: Delete the GRDBSQLite target
         .systemLibrary(
             name: "GRDBSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
-        // GRDB+SQLCipher: Uncomment the GRDBSQLCipher target
-        //.target(
-        //    name: "GRDBSQLCipher",
-        //    dependencies: [.product(name: "SQLCipher", package: "SQLCipher.swift")]
-        //),
+        .target(
+            name: "GRDBSQLCipher",
+            dependencies: [
+                .product(name: "SQLCipher", package: "SQLCipher.swift", condition: .when(traits: ["SQLCipher"])),
+            ]
+        ),
         .target(
             name: "GRDB",
             dependencies: [
-                // GRDB+SQLCipher: Delete the GRDBSQLite dependency
-                .target(name: "GRDBSQLite"),
-                // GRDB+SQLCipher: Uncomment the SQLCipher and GRDBSQLCipher dependencies
-                //.product(name: "SQLCipher", package: "SQLCipher.swift"),
-                //.target(name: "GRDBSQLCipher"),
+                .target(name: "GRDBSQLite", condition: .when(traits: ["SQLite"])),
+                .product(name: "SQLCipher", package: "SQLCipher.swift", condition: .when(traits: ["SQLCipher"])),
+                .target(name: "GRDBSQLCipher", condition: .when(traits: ["SQLCipher"])),
             ],
             path: "GRDB",
             resources: [.copy("PrivacyInfo.xcprivacy")],
