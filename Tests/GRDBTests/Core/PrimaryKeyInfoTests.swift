@@ -105,6 +105,36 @@ class PrimaryKeyInfoTests: GRDBTestCase {
         }
     }
     
+    func testIntegerPrimaryKeyWithoutRowID() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT) WITHOUT ROWID")
+            let primaryKey = try db.primaryKey("items")
+            XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["id"])
+            XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+            XCTAssertEqual(primaryKey.columns, ["id"])
+            // An INTEGER primary key is an alias for the rowid in rowid
+            // tables only: https://www.sqlite.org/lang_createtable.html
+            XCTAssertNil(primaryKey.rowIDColumn)
+            XCTAssertFalse(primaryKey.isRowID)
+            XCTAssertFalse(primaryKey.tableHasRowID)
+        }
+    }
+    
+    func testIntegerPrimaryKeyWithoutRowID2() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER, name TEXT, PRIMARY KEY (id)) WITHOUT ROWID")
+            let primaryKey = try db.primaryKey("items")
+            XCTAssertEqual(primaryKey.columnInfos?.map(\.name), ["id"])
+            XCTAssertEqual(primaryKey.columnInfos?.map(\.type), ["INTEGER"])
+            XCTAssertEqual(primaryKey.columns, ["id"])
+            XCTAssertNil(primaryKey.rowIDColumn)
+            XCTAssertFalse(primaryKey.isRowID)
+            XCTAssertFalse(primaryKey.tableHasRowID)
+        }
+    }
+    
     func testNonRowIDPrimaryKeyWithoutRowID() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
