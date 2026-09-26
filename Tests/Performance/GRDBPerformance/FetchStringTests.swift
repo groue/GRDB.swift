@@ -4,6 +4,9 @@ import GRDB
 /// Here we test the decoding of string columns. The other fetch tests in
 /// this target use an all-INT model, and never decode a string.
 class FetchStringTests: XCTestCase {
+    static let shortString = "foo"
+    static let longString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur felis eget nibh aliquet ullamcorper. Nam sodales, tellus a cursus tincidunt, arcu purus suscipit elit, nec congue erat ipsum a purus."
+    
     static let expectedRowCount = 200_000
     static let personRowCount = 100_000
     static let recordFetchesPerIteration = 5
@@ -110,7 +113,7 @@ class FetchStringTests: XCTestCase {
             try db.execute(sql: "CREATE TABLE item (short TEXT, long TEXT)")
             let statement = try db.makeStatement(sql: "INSERT INTO item (short, long) VALUES (?, ?)")
             for _ in 0..<Self.expectedRowCount {
-                try statement.execute(arguments: [ArgumentsTests.shortString, ArgumentsTests.longString])
+                try statement.execute(arguments: [FetchStringTests.shortString, FetchStringTests.longString])
             }
         }
         return dbQueue
