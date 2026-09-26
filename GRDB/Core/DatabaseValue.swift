@@ -147,7 +147,10 @@ public struct DatabaseValue: Hashable {
         case SQLITE_FLOAT:
             storage = .double(sqlite3_value_double(sqliteValue))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_value_text(sqliteValue)!))
+            let text = sqlite3_value_text(sqliteValue)
+            let byteCount = Int(sqlite3_value_bytes(sqliteValue))
+            let string = String(decoding: UnsafeBufferPointer(start: text, count: byteCount), as: UTF8.self)
+            storage = .string(string)
         case SQLITE_BLOB:
             if let bytes = sqlite3_value_blob(sqliteValue) {
                 let count = Int(sqlite3_value_bytes(sqliteValue))
@@ -171,7 +174,8 @@ public struct DatabaseValue: Hashable {
         case SQLITE_FLOAT:
             storage = .double(sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, index)))
+            let string = String(sqliteStatement: sqliteStatement, index: index)
+            storage = .string(string)
         case SQLITE_BLOB:
             if let bytes = sqlite3_column_blob(sqliteStatement, index) {
                 let count = Int(sqlite3_column_bytes(sqliteStatement, index))

@@ -592,7 +592,9 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
+        let text = sqlite3_column_text(sqliteStatement, index)
+        let byteCount = Int(sqlite3_column_bytes(sqliteStatement, index))
+        self = String(decoding: UnsafeBufferPointer(start: text, count: byteCount), as: UTF8.self)
     }
     
     /// Returns a TEXT database value.
