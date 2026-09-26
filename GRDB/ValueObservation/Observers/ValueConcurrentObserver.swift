@@ -452,8 +452,15 @@ extension ValueConcurrentObserver {
                     let isModified: Bool
                     if let currentWALSnapshot = try? WALSnapshot(writerDB) {
                         let ordering = initialFetchTransaction.walSnapshot.compare(currentWALSnapshot)
-                        assert(ordering <= 0, "Unexpected snapshot ordering")
-                        isModified = ordering < 0
+                        // We expect `ordering <= 0`, since the current
+                        // snapshot is captured after the snapshot of the
+                        // initial fetch. The current one is supposed to be
+                        // identical (no change), or newer (database was
+                        // changed since initial fetch). Yet SQLite has
+                        // a quirk, as revealed by <https://github.com/groue/GRDB.swift/issues/1883>
+                        // That's why we just check for a difference, and do
+                        // not `assert(ordering <= 0)`.
+                        isModified = ordering != 0
                     } else {
                         // Can't compare: assume the database was modified.
                         isModified = true
