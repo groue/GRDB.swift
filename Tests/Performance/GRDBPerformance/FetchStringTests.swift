@@ -38,6 +38,30 @@ class FetchStringTests: XCTestCase {
     func test_longString_databaseValue_performance() throws {
         try measureFetch(of: DatabaseValue.self, from: "long")
     }
+    
+    func test_shortString_as_argument() throws {
+        let dbQueue = try DatabaseQueue()
+        try dbQueue.write { db in
+            let statement = try db.makeStatement(sql: "SELECT ? WHERE 0")
+            measure {
+                for _ in 0..<100_000 {
+                    try! statement.execute(arguments: [FetchStringTests.shortString])
+                }
+            }
+        }
+    }
+
+    func test_longString_as_argument() throws {
+        let dbQueue = try DatabaseQueue()
+        try dbQueue.write { db in
+            let statement = try db.makeStatement(sql: "SELECT ? WHERE 0")
+            measure {
+                for _ in 0..<100_000 {
+                    try! statement.execute(arguments: [FetchStringTests.longString])
+                }
+            }
+        }
+    }
 
     func test_record_fetch_performance() throws {
         let dbQueue = try makePersonDatabase()
