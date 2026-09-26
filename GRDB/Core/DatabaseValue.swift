@@ -227,7 +227,7 @@ extension DatabaseValue: StatementBinding {
             let code = double.bind(to: sqliteStatement, at: index)
             try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
             return try body()
-        case .string(let string):
+        case .string(var string):
             return try string.withBinding(to: sqliteStatement, at: index, do: body)
         case .blob(let data):
             return try data.withBinding(to: sqliteStatement, at: index, do: body)

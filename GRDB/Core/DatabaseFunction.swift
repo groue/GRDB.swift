@@ -105,8 +105,10 @@ public final class DatabaseFunction: Identifiable, Sendable {
                 sqlite3_result_int64(context, int64)
             case .double(let double):
                 sqlite3_result_double(context, double)
-            case .string(let string):
-                sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+            case .string(var string):
+                string.withSQLiteText {
+                    sqlite3_result_text(context, $0, $1, SQLITE_TRANSIENT)
+                }
             case .blob(let data):
                 data.withUnsafeBytes {
                     sqlite3_result_blob(context, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
@@ -447,8 +449,10 @@ public final class DatabaseFunction: Identifiable, Sendable {
             sqlite3_result_int64(sqliteContext, int64)
         case .double(let double):
             sqlite3_result_double(sqliteContext, double)
-        case .string(let string):
-            sqlite3_result_text(sqliteContext, string, -1, SQLITE_TRANSIENT)
+        case .string(var string):
+            string.withSQLiteText {
+                sqlite3_result_text(sqliteContext, $0, $1, SQLITE_TRANSIENT)
+            }
         case .blob(let data):
             data.withUnsafeBytes {
                 sqlite3_result_blob(sqliteContext, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
