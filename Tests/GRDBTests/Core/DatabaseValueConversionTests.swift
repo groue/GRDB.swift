@@ -28,6 +28,8 @@ private let emojiData = emojiString.data(using: .utf8)
 private let nonUTF8Data = Data([0x80])
 private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
 private let jpegData = try! Data(contentsOf: testBundle.url(forResource: "Betty", withExtension: "jpeg")!)
+private let nulString = "foo\u{0}bar" // https://sqlite.org/nulinstr.html
+private let nulStringData = nulString.data(using: .utf8)
 
 class DatabaseValueConversionTests : GRDBTestCase {
     
@@ -253,6 +255,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
+        // nulString is turned to Text
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [nulString])
+            let sql = "SELECT textAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .text)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
+            return .rollback
+        }
+        
         // emojiData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -266,6 +284,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: emojiString, expectedDatabaseValueConversion: emojiString)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: emojiData, expectedDatabaseValueConversion: emojiData)
+            return .rollback
+        }
+        
+        // nulStringData is turned to Blob
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [nulStringData])
+            let sql = "SELECT textAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .blob)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
             return .rollback
         }
         
@@ -512,6 +546,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
+        // nulString is turned to Text
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [nulString])
+            let sql = "SELECT realAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .text)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
+            return .rollback
+        }
+        
         // emojiData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -525,6 +575,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: emojiString, expectedDatabaseValueConversion: emojiString)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: emojiData, expectedDatabaseValueConversion: emojiData)
+            return .rollback
+        }
+        
+        // nulStringData is turned to Blob
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [nulStringData])
+            let sql = "SELECT realAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .blob)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
             return .rollback
         }
         
@@ -699,6 +765,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
+        // nulString is turned to Text
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [nulString])
+            let sql = "SELECT noneAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .text)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
+            return .rollback
+        }
+        
         // emojiData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -712,6 +794,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: emojiString, expectedDatabaseValueConversion: emojiString)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: emojiData, expectedDatabaseValueConversion: emojiData)
+            return .rollback
+        }
+        
+        // nullStringData is turned to Blob
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [nulStringData])
+            let sql = "SELECT noneAffinity FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .blob)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
             return .rollback
         }
         
@@ -932,6 +1030,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
+        // nulString is turned to Text
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [nulString])
+            let sql = "SELECT \(columnName) FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .text)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
+            return .rollback
+        }
+        
         // emojiData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -945,6 +1059,22 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: emojiString, expectedDatabaseValueConversion: emojiString)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: emojiData, expectedDatabaseValueConversion: emojiData)
+            return .rollback
+        }
+        
+        // nulStringData is turned to Blob
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [nulStringData])
+            let sql = "SELECT \(columnName) FROM `values`"
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: sql)!.storageClass, .blob)
+            try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nulString, expectedDatabaseValueConversion: nulString)
+            try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nulStringData, expectedDatabaseValueConversion: nulStringData)
             return .rollback
         }
         
