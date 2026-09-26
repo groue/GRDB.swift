@@ -55,6 +55,25 @@ class FetchStringTests: XCTestCase {
         }
     }
 
+    private func measureFetch<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        of type: Value.Type,
+        from column: String) throws
+    {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            measure {
+                for _ in 0..<Self.fetchesPerIteration {
+                    let values = try! Value.fetchCursor(db, sql: "SELECT \(column) FROM item")
+                    var count = 0
+                    while try! values.next() != nil {
+                        count += 1
+                    }
+                    XCTAssertEqual(count, Self.expectedRowCount)
+                }
+            }
+        }
+    }
+
     private func measureFetch<Value: DatabaseValueConvertible>(
         of type: Value.Type,
         from column: String) throws
