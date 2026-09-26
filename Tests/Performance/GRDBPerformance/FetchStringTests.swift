@@ -41,11 +41,15 @@ class FetchStringTests: XCTestCase {
 
     func test_record_fetch_performance() throws {
         let dbQueue = try makePersonDatabase()
-        measure {
-            try! dbQueue.read { db in
+        try dbQueue.read { db in
+            measure {
                 for _ in 0..<Self.recordFetchesPerIteration {
-                    let people = try Person.fetchAll(db)
-                    XCTAssertEqual(people.count, Self.personRowCount)
+                    let people = try! Person.fetchCursor(db)
+                    var count = 0
+                    while try! people.next() != nil {
+                        count += 1
+                    }
+                    XCTAssertEqual(count, Self.personRowCount)
                 }
             }
         }
@@ -56,11 +60,15 @@ class FetchStringTests: XCTestCase {
         from column: String) throws
     {
         let dbQueue = try makeDatabaseQueue()
-        measure {
-            try! dbQueue.read { db in
+        try dbQueue.read { db in
+            measure {
                 for _ in 0..<Self.fetchesPerIteration {
-                    let values = try Value.fetchAll(db, sql: "SELECT \(column) FROM item")
-                    XCTAssertEqual(values.count, Self.expectedRowCount)
+                    let values = try! Value.fetchCursor(db, sql: "SELECT \(column) FROM item")
+                    var count = 0
+                    while try! values.next() != nil {
+                        count += 1
+                    }
+                    XCTAssertEqual(count, Self.expectedRowCount)
                 }
             }
         }
