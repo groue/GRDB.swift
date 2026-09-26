@@ -592,7 +592,9 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: CInt) {
-        self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
+        let text = sqlite3_column_text(sqliteStatement, index)
+        let byteCount = Int(sqlite3_column_bytes(sqliteStatement, index))
+        self = String(decoding: UnsafeBufferPointer(start: text, count: byteCount), as: UTF8.self)
     }
     
     /// Returns a TEXT database value.
@@ -622,21 +624,55 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
-        sqlite3_bind_text(sqliteStatement, index, self, -1, SQLITE_TRANSIENT)
+        var string = self
+        return string.withSQLiteText {
+            sqlite3_bind_text(sqliteStatement, index, $0, $1, SQLITE_TRANSIENT)
+        }
     }
     
     /// Calls the given closure after binding a statement argument.
     ///
     /// The binding is valid only during the execution of this method.
     ///
+    /// This method is mutating because the string is made contiguous
+    /// if necessary.
+    ///
     /// - parameter sqliteStatement: An SQLite statement.
     /// - parameter index: 1-based index to statement arguments.
     /// - parameter body: The closure to execute when argument is bound.
-    func withBinding<T>(to sqliteStatement: SQLiteStatement, at index: CInt, do body: () throws -> T) throws -> T {
-        try withCString {
-            let code = sqlite3_bind_text(sqliteStatement, index, $0, -1, nil /* SQLITE_STATIC */)
+    mutating func withBinding<T>(
+        to sqliteStatement: SQLiteStatement,
+        at index: CInt,
+        do body: () throws -> T
+    ) throws -> T {
+        try withSQLiteText {
+            let code = sqlite3_bind_text(sqliteStatement, index, $0, $1, nil /* SQLITE_STATIC */)
             try checkBindingSuccess(code: code, sqliteStatement: sqliteStatement)
             return try body()
+        }
+    }
+    
+    /// Runs body over the content of this string as an UTF8 string. This
+    /// method exists because it deals with the ASCII NUL (\0) characters,
+    /// unlike C strings.
+    ///
+    /// This method is mutating because the string is made contiguous
+    /// if necessary.
+    mutating func withSQLiteText<T>(
+        _ body: (UnsafePointer<CChar>, CInt) throws -> T
+    ) rethrows -> T {
+        try withUTF8 { utf8 in
+            guard let baseAddress = utf8.baseAddress else {
+                // Empty string: yield a non-nil pointer to the NUL string
+                // terminator, so that functions such as sqlite3_bind_text()
+                // unambiguously interpret it as the empty string.
+                return try withUnsafePointer(to: 0 as CChar) {
+                    try body($0, 0)
+                }
+            }
+            return try baseAddress.withMemoryRebound(to: CChar.self, capacity: utf8.count) {
+                try body($0, CInt(utf8.count))
+            }
         }
     }
 }

@@ -56,9 +56,8 @@ extension Decimal: StatementColumnConvertible {
         case SQLITE_FLOAT:
             self.init(sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            self.init(
-                string: String(cString: sqlite3_column_text(sqliteStatement, index)!),
-                locale: _posixLocale)
+            let string = String(sqliteStatement: sqliteStatement, index: index)
+            self.init(string: string, locale: _posixLocale)
         default:
             return nil
         }
