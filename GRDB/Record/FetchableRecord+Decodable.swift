@@ -582,17 +582,31 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
         
-        let columnDecodingStrategy: DatabaseColumnDecodingStrategy
+        let row = rows[currentIndex]
         if let type = T.self as? any FetchableRecord.Type {
-            columnDecodingStrategy = type.databaseColumnDecodingStrategy
-        } else {
-            columnDecodingStrategy = .useDefaultKeys
+            // Prefer FetchableRecord decoding over Decodable.
+            return try type.init(row: row) as! T
+        }
+        
+        // Prefer DatabaseValueConvertible decoding over Decodable.
+        let columnDecoder = ColumnDecoder<R>(
+            row: row,
+            columnIndex: 0,
+            codingPath: codingPath)
+        if type == Data.self {
+            return try columnDecoder.decode(type)
+        } else if type == Date.self {
+            return try columnDecoder.decode(type)
+        } else if T.self is any (DatabaseValueConvertible & StatementColumnConvertible).Type {
+            return try columnDecoder.decode(type)
+        } else if T.self is any DatabaseValueConvertible.Type {
+            return try columnDecoder.decode(type)
         }
         
         let decoder = _RowDecoder<R>(
-            row: rows[currentIndex],
+            row: row,
             codingPath: codingPath,
-            columnDecodingStrategy: columnDecodingStrategy)
+            columnDecodingStrategy: .useDefaultKeys)
         return try T(from: decoder)
     }
     
