@@ -2378,6 +2378,81 @@ extension PersistableRecordTests {
         }
     }
     
+    func test_upsert_INTEGER_primary_key_WITHOUT_ROWID() throws {
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        struct MyRecord: Codable, FetchableRecord, PersistableRecord {
+            var id: Int64
+            var name: String
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.execute(sql: """
+                CREATE TABLE myRecord(
+                  id INTEGER PRIMARY KEY,
+                  name TEXT NOT NULL
+                ) WITHOUT ROWID;
+                """)
+            
+            let record = MyRecord(id: 1, name: "foo")
+            try record.upsert(db)
+            
+            XCTAssertEqual(lastSQLQuery, """
+                INSERT INTO "myRecord" ("id", "name") \
+                VALUES (1,'foo') \
+                ON CONFLICT DO UPDATE SET "name" = "excluded"."name"
+                """)
+        }
+    }
+    
+    func test_upsertAndFetch_INTEGER_primary_key_WITHOUT_ROWID() throws {
+#if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
+        guard Database.sqliteLibVersionNumber >= 3035000 else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#else
+        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
+            throw XCTSkip("UPSERT is not available")
+        }
+#endif
+        
+        struct MyRecord: Codable, FetchableRecord, PersistableRecord {
+            var id: Int64
+            var name: String
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.execute(sql: """
+                CREATE TABLE myRecord(
+                  id INTEGER PRIMARY KEY,
+                  name TEXT NOT NULL
+                ) WITHOUT ROWID;
+                """)
+            
+            let record = MyRecord(id: 1, name: "foo")
+            let upserted = try record.upsertAndFetch(db)
+            
+            // No rowid in the RETURNING clause: the table has none
+            XCTAssertEqual(lastSQLQuery, """
+                INSERT INTO "myRecord" ("id", "name") \
+                VALUES (1,'foo') \
+                ON CONFLICT DO UPDATE SET "name" = "excluded"."name" \
+                RETURNING *
+                """)
+            
+            XCTAssertEqual(upserted.id, 1)
+            XCTAssertEqual(upserted.name, "foo")
+        }
+    }
+    
     func test_upsertAndFetch_do_update_set_where_with_default_strategy() throws {
 #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
         guard Database.sqliteLibVersionNumber >= 3035000 else {
