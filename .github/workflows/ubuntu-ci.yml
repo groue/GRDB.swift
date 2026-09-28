@@ -1,0 +1,96 @@
+# https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+
+name: "Linux CI"
+
+on:
+  push:
+    branches: 
+      - master
+      - development
+    paths:
+      - 'GRDB/**'
+      - 'Tests/**'
+      - '.github/workflows/**'
+      - 'Makefile'
+      - 'Package.swift'
+      - 'SQLiteCustom/src'
+  pull_request:
+    paths:
+      - 'GRDB/**'
+      - 'Tests/**'
+      - '.github/workflows/**'
+      - 'Makefile'
+      - 'Package.swift'
+      - 'SQLiteCustom/src'
+
+concurrency: 
+  group: ${{ github.ref_name }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+jobs:
+  build-and-test-on-linux:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        swift: ["6.2", "6.1"]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        
+      - name: Install Swift Dependencies
+        run: | 
+          sudo apt-get update 
+          sudo apt-get install -y \
+          binutils \
+          git \
+          gnupg2 \
+          libc6-dev \
+          libcurl4-openssl-dev \
+          libedit2 \
+          libgcc-13-dev \
+          libpython3-dev \
+          libsqlite3-0 \
+          libstdc++-13-dev \
+          libxml2-dev \
+          libz3-dev \
+          pkg-config \
+          python3-lldb \
+          tzdata \
+          unzip \
+          zip \
+          zlib1g-dev \
+          wget \
+          curl \
+          ca-certificates \
+          util-linux
+      
+      - name: Cache Swiftly toolchains
+        id: cache-swiftly
+        uses: actions/cache@v4
+        with:
+          path: ${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}
+          key: swiftly-${{ matrix.os }}-${{ matrix.swift }}
+      
+      - name: Install Swift Using Swiftly  
+        if: steps.cache-swiftly.outputs.cache-hit != 'true'
+        run: |
+          curl -O https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz
+          tar zxf swiftly-$(uname -m).tar.gz
+          ./swiftly init --quiet-shell-followup -y --skip-install
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          hash -r
+          swiftly install ${{ matrix.swift }} --assume-yes --use
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"  
+      
+      - name: Build SPM Package
+        run: |
+          swift build -c release
+      
+      - name: Run tests
+        run: |
+          swift test -c release
