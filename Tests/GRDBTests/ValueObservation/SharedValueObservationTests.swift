@@ -882,6 +882,110 @@ class SharedValueObservationTests: GRDBTestCase {
             break
         }
     }
+
+    // Regression test: a client can be cancelled from another thread while
+    // the shared observation is notifying a fresh value.
+    //
+    // Notifying clients and cancelling clients must not happen under the
+    // same lock. Otherwise, a notification that waits for a resource held by
+    // the cancelling thread deadlocks. This happens in practice when a client
+    // feeds an AsyncThrowingStream: `yield` waits for the consumer task's
+    // status record lock, while `swift_task_cancel` holds that lock and runs
+    // the stream's `onTermination` handler, which cancels the client.
+    func test_cancellation_from_other_thread_during_value_notification() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+
+        let sharedObservation = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(
+                in: dbQueue,
+                scheduling: .async(onQueue: DispatchQueue(label: "SharedValueObservationTests")),
+                extent: .observationLifetime)
+
+        let cancellableMutex: Mutex<AnyDatabaseCancellable?> = Mutex(nil)
+        let cancellationDidCompleteMutex: Mutex<Bool?> = Mutex(nil)
+        let exp = expectation(description: "")
+        let cancellable = sharedObservation.start(
+            onError: { XCTFail("Unexpected error \($0)") },
+            onChange: { value in
+                guard value == 1 else { return }
+                cancellationDidCompleteMutex.store(
+                    Self.cancelFromOtherThreadAndWait(cancellableMutex.load()))
+                exp.fulfill()
+            })
+        cancellableMutex.store(cancellable)
+
+        try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES") }
+        wait(for: [exp], timeout: 5)
+        XCTAssertEqual(cancellationDidCompleteMutex.load(), true)
+    }
+
+    // Regression test: a client can be cancelled from another thread while
+    // the shared observation is notifying an error.
+    //
+    // See test_cancellation_from_other_thread_during_value_notification.
+    func test_cancellation_from_other_thread_during_error_notification() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+
+        let fetchErrorMutex: Mutex<Error?> = Mutex(nil)
+        let sharedObservation = ValueObservation
+            .tracking { db -> Int in
+                try fetchErrorMutex.withLock { error in
+                    if let error { throw error }
+                }
+                return try Table("player").fetchCount(db)
+            }
+            .shared(
+                in: dbQueue,
+                scheduling: .async(onQueue: DispatchQueue(label: "SharedValueObservationTests")),
+                extent: .observationLifetime)
+
+        let cancellableMutex: Mutex<AnyDatabaseCancellable?> = Mutex(nil)
+        let cancellationDidCompleteMutex: Mutex<Bool?> = Mutex(nil)
+        let initialValueExp = expectation(description: "initial value")
+        let errorExp = expectation(description: "error")
+        let cancellable = sharedObservation.start(
+            onError: { _ in
+                cancellationDidCompleteMutex.store(
+                    Self.cancelFromOtherThreadAndWait(cancellableMutex.load()))
+                errorExp.fulfill()
+            },
+            onChange: { _ in
+                initialValueExp.fulfill()
+            })
+        cancellableMutex.store(cancellable)
+        wait(for: [initialValueExp], timeout: 5)
+
+        fetchErrorMutex.store(TestError())
+        try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES") }
+        wait(for: [errorExp], timeout: 5)
+        XCTAssertEqual(cancellationDidCompleteMutex.load(), true)
+    }
+
+    /// Cancels `cancellable` from another thread, and returns whether the
+    /// cancellation completed before a timeout.
+    ///
+    /// Waiting for the other thread models a notification callback that
+    /// waits for a resource held by a thread that is cancelling the client.
+    /// A timeout reveals a deadlock, without hanging the test suite.
+    private static func cancelFromOtherThreadAndWait(_ cancellable: AnyDatabaseCancellable?) -> Bool {
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            cancellable?.cancel()
+            semaphore.signal()
+        }
+        return semaphore.wait(timeout: .now() + 1) == .success
+    }
 }
 
 private class Log: TextOutputStream {
