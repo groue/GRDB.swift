@@ -181,6 +181,10 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
         let onError: @Sendable (Error) -> Void
         let onChange: @Sendable (Element) -> Void
         
+        /// Set when the client is cancelled, so that a notification that
+        /// was about to be sent when the client was cancelled is not sent.
+        let isCancelled = Mutex(false)
+        
         init(
             onError: @escaping @Sendable (Error) -> Void,
             onChange: @escaping @Sendable (Element) -> Void
@@ -299,8 +303,15 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     }
 #endif
     
+    // Clients are notified outside of the lock, because the lock is also
+    // acquired when a client is cancelled. Notifying under the lock would
+    // deadlock as soon as a notification waits for a thread that is
+    // cancelling a client. This happens when a client feeds an async
+    // sequence: `yield` waits for the consumer task, while the cancellation
+    // of this task cancels the client from its `onTermination` handler.
+    
     private func handleError(_ error: Error) {
-        withLock {
+        let notifiedClients = withLock {
             let notifiedClients = clients
             
             // State change
@@ -313,26 +324,31 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
                 lastResult = .failure(error)
             }
             
-            // Side effect
-            for client in notifiedClients {
-                client.onError(error)
-            }
+            return notifiedClients
+        }
+        
+        // Side effect
+        for client in notifiedClients where !client.isCancelled.load() {
+            client.onError(error)
         }
     }
     
     private func handleChange(_ value: Element) {
-        withLock {
+        let notifiedClients = withLock {
             // State change
             lastResult = .success(value)
             
-            // Side effect
-            for client in clients {
-                client.onChange(value)
-            }
+            return clients
+        }
+        
+        // Side effect
+        for client in notifiedClients where !client.isCancelled.load() {
+            client.onChange(value)
         }
     }
     
     private func handleCancel(_ client: Client) {
+        client.isCancelled.store(true)
         withLock {
             // State change
             clients.removeFirst(where: { $0 === client })
