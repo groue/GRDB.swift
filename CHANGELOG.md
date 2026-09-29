@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.12.x` Releases - [7.12.0](#7120)
 - `7.11.x` Releases - [7.11.0](#7110) - [7.11.1](#7111)
 - `7.10.x` Releases - [7.10.0](#7100)
 - `7.9.x` Releases - [7.9.0](#790)
@@ -142,6 +143,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.12.0
+
+Released September 29, 2026
+
+- **Fix**: Fix upsert for WITHOUT ROWID tables with an INTEGER primary key by [@nesevis](https://github.com/nesevis) in [#1879](https://github.com/groue/GRDB.swift/pull/1879)
+- **Fix**: Fix an accidentally quadratic behavior in SQLite statement compilation by [@guidedways](https://github.com/guidedways) and [@groue](https://github.com/groue) in [#1881](https://github.com/groue/GRDB.swift/pull/1881)
+- **Fix**: Work around an SQLite bug in WAL snapshot ordering by [@groue](https://github.com/groue) in [#1884](https://github.com/groue/GRDB.swift/pull/1884)
+- **New**: Add support for Strings that contain the NUL character by [@nesevis](https://github.com/nesevis) and [@groue](https://github.com/groue) in [#1885](https://github.com/groue/GRDB.swift/pull/1885)
 
 ## 7.11.1
 
