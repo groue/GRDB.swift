@@ -195,9 +195,13 @@ extension RowDecodingError: CustomStringConvertible {
         if let key = context.key {
             switch key {
             case let .columnIndex(columnIndex):
-                let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
-                let columnName = row.columnNames[rowIndex]
-                chunks.append("column: \(String(reflecting: columnName))")
+                // Check bounds before building the index: `index(_:offsetBy:)`
+                // traps when the result would land past `endIndex`.
+                if (0..<row.count).contains(columnIndex) {
+                    let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
+                    let columnName = row.columnNames[rowIndex]
+                    chunks.append("column: \(String(reflecting: columnName))")
+                }
                 chunks.append("column index: \(columnIndex)")
                 
             case let .columnName(columnName):

@@ -858,4 +858,19 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             }
         }
     }
+    
+    func testOutOfBoundsColumnIndexDescription() {
+        // The row captured in the error context may have fewer columns
+        // than the column index (e.g. an adapted or empty row).
+        // Formatting the error must not crash.
+        let error = RowDecodingError.valueMismatch(
+            String.self,
+            context: RowDecodingContext(row: Row(), key: .columnIndex(1)),
+            databaseValue: .null)
+        XCTAssertEqual(error.description, """
+            could not decode String from database value NULL - \
+            column index: 1, \
+            row: []
+            """)
+    }
 }
