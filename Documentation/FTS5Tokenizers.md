@@ -73,7 +73,7 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-**Create [full-text tables](../../../#create-fts5-virtual-tables) that use the custom tokenizer:**
+**Create [full-text tables](FullTextSearch.md#create-fts5-virtual-tables) that use the custom tokenizer:**
 
 ```swift
 try db.create(virtualTable: "documents", using: FTS5()) { t in
@@ -82,7 +82,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 }
 ```
 
-The full-text table can be fed and queried in [a regular way](../../../#full-text-search):
+The full-text table can be fed and queried in [a regular way](FullTextSearch.md):
 
 ```swift
 try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["..."])

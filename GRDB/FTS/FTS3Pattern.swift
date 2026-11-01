@@ -105,8 +105,8 @@ public struct FTS3Pattern: Sendable {
     /// For example:
     ///
     /// ```swift
-    /// FTS3Pattern(matchingAllTokensIn: "")        // nil
-    /// FTS3Pattern(matchingAllTokensIn: "foo bar") // foo* bar*
+    /// FTS3Pattern(matchingAllPrefixesIn: "")        // nil
+    /// FTS3Pattern(matchingAllPrefixesIn: "foo bar") // foo* bar*
     /// ```
     ///
     /// - parameter string: The string to turn into an FTS3 pattern.

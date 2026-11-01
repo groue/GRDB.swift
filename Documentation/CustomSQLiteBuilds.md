@@ -5,7 +5,7 @@ By default, GRDB uses the version of SQLite that ships with the target operating
 
 **You can build GRDB with a custom build of [SQLite 3.47.2](https://www.sqlite.org/changes.html).**
 
-A custom SQLite build can activate extra SQLite features, and extra GRDB features as well, such as support for the [FTS5 full-text search engine](../../../#full-text-search), and [SQLite Pre-Update Hooks](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver).
+A custom SQLite build can activate extra SQLite features, and extra GRDB features as well, such as support for the [FTS5 full-text search engine](FullTextSearch.md), and [SQLite Pre-Update Hooks](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/transactionobserver).
 
 GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib), which uses the same SQLite configuration as the one used by Apple in its operating systems, and lets you add extra compilation options that leverage the features you need.
 

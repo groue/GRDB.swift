@@ -40,7 +40,7 @@ try dbQueue.write { db in
     // Inside a transaction
 }
 
-try dbQueue.read { db
+try dbQueue.read { db in
     // Inside a transaction
 }
 ```
@@ -248,7 +248,7 @@ All you need is a little "concurrent thinking", based on those two basic facts:
     
     ```swift
     // or dbQueue.write, for that matter
-    let cookieCount = dbPool.read { db in
+    let cookieCount = try dbPool.read { db in
         try Cookie.fetchCount(db)
     }
     

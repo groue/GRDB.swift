@@ -33,7 +33,7 @@ Database access methods can return values:
 
 ```swift
 let playerCount = try dbPool.read { db in
-    try Place.fetchCount(db)
+    try Player.fetchCount(db)
 }
 
 let newPlayerCount = try dbPool.write { db -> Int in

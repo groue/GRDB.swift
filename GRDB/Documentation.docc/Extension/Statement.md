@@ -154,7 +154,7 @@ let statements = try db.allStatements(sql: """
 let players = try statements.flatMap { statement in
     try Player.fetchCursor(statement)
 }
-for let player = try players.next() { 
+while let player = try players.next() { 
     print(player.name)
 }
 ```

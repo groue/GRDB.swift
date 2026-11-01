@@ -2725,7 +2725,7 @@ extension RowImpl {
 }
 
 // TODO: merge with StatementCopyRowImpl eventually?
-/// See Row.init(dictionary:)
+/// See Row.init(_:)
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
@@ -2758,7 +2758,7 @@ struct ArrayRowImpl: RowImpl {
 extension ArrayRowImpl: Sendable { }
 
 // TODO: merge with ArrayRowImpl eventually?
-/// See Row.init(copiedFromStatementRef:sqliteStatement:)
+/// See Row.init(copiedFromSQLiteStatement:statement:)
 private struct StatementCopyRowImpl: RowImpl {
     let dbValues: ContiguousArray<DatabaseValue>
     let columnNames: [String]

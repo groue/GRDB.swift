@@ -235,13 +235,17 @@ Whenever you need to notify other processes that the database has been changed, 
 ```swift
 // Notify all changes made to the database
 let observation = DatabaseRegionObservation(tracking: .fullDatabase)
-let observer = try observation.start(in: dbPool) { db in
+let cancellable = observation.start(in: dbPool) { error in
+    // Handle error
+} onChange: { db in
     // Notify other processes
 }
 
 // Notify changes made to the "player" and "team" tables only
 let observation = DatabaseRegionObservation(tracking: Player.all(), Team.all())
-let observer = try observation.start(in: dbPool) { db in
+let cancellable = observation.start(in: dbPool) { error in
+    // Handle error
+} onChange: { db in
     // Notify other processes
 }
 ```

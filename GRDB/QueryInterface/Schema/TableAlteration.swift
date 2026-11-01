@@ -1,4 +1,4 @@
-/// A `TableDefinition` lets you modify the components of a database table.
+/// A `TableAlteration` lets you modify the components of a database table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
 /// ``Database/alter(table:body:)`` method:

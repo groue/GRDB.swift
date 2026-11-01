@@ -46,12 +46,12 @@
 ///
 ///         // SELECT book.*
 ///         // FROM book
-///         // LEFT JOIN author ON author.id = book.id
+///         // LEFT JOIN author ON author.id = book.authorId
 ///         Book.joining(optional: Book.author)
 ///
 ///         // SELECT book.*, author.*
 ///         // FROM book
-///         // LEFT JOIN author ON author.id = book.id
+///         // LEFT JOIN author ON author.id = book.authorId
 ///         Book.including(optional: Book.author)
 ///
 /// - `.oneRequired`:
@@ -61,19 +61,19 @@
 ///
 ///         // SELECT book.*
 ///         // FROM book
-///         // JOIN author ON author.id = book.id AND author.country = 'FR'
+///         // JOIN author ON author.id = book.authorId AND author.country = 'FR'
 ///         Book.joining(required: Book.author.filter(Column("country") == "FR"))
 ///
 ///         // SELECT book.*, author.*
 ///         // FROM book
-///         // JOIN author ON author.id = book.id AND author.country = 'FR'
+///         // JOIN author ON author.id = book.authorId AND author.country = 'FR'
 ///         Book.including(required: Book.author.filter(Column("country") == "FR"))
 ///
 /// - `.all`:
 ///
 ///     Such children are prefetched using an extra SQL request:
 ///
-///         // SELECT * FROM countries;
+///         // SELECT * FROM country;
 ///         // SELECT * FROM passport
 ///         //  WHERE countryCode IN ('BE', 'DE', 'FR', ...);
 ///         Country.including(all: Country.passports)
@@ -399,7 +399,7 @@ extension SQLRelation {
     ///     print(statement.sql)
     ///     // SELECT origin.*, destination.*
     ///     // FROM origin
-    ///     // JOIN destination ON destination.originId = origin.id
+    ///     // JOIN destination ON destination.id = origin.destinationId
     ///
     /// This method works for simple direct associations such as BelongsTo or
     /// HasMany in the above examples, but also for indirect associations such
@@ -789,14 +789,14 @@ extension SQLRelation {
 /// Conditions help eager loading of to-many associations:
 ///
 ///     // SELECT * FROM author WHERE ...
-///     // SELECT * FROM book WHERE author.id IN (1, 2, 3)
-///     //                          ~~~~~~~~~~~~~~~~~~~~~~
+///     // SELECT * FROM book WHERE authorId IN (1, 2, 3)
+///     //                          ~~~~~~~~~~~~~~~~~~~~~
 ///     Author.filter(...).including(all: Author.books)
 ///
 /// Conditions help fetch associated records:
 ///
-///     // SELECT * FROM book WHERE author.id = 1
-///     //                          ~~~~~~~~~~~~~
+///     // SELECT * FROM book WHERE authorId = 1
+///     //                          ~~~~~~~~~~~~
 ///     author.request(for: Author.books)
 enum SQLAssociationCondition: Sendable {
     /// A condition based on a foreign key.

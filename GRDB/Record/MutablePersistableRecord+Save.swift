@@ -100,7 +100,7 @@ extension MutablePersistableRecord {
     /// For example:
     ///
     ///     let player: Player = ...
-    ///     let savedPlayer = player.saveAndFetch(db)
+    ///     let savedPlayer = try player.saveAndFetch(db)
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If
@@ -228,7 +228,7 @@ extension MutablePersistableRecord {
     /// For example:
     ///
     ///     let player: Player = ...
-    ///     let savedPlayer = player.saveAndFetch(db)
+    ///     let savedPlayer = try player.saveAndFetch(db)
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution. If

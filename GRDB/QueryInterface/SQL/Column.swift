@@ -48,6 +48,7 @@ extension ColumnExpression {
     ///     enum Columns {
     ///         static let score = Column("score")
     ///         static let bonus = Column("bonus")
+    ///         static let name = Column("name")
     ///     }
     /// }
     ///
@@ -93,7 +94,7 @@ extension ColumnExpression where Self == Column {
 ///     }
 /// }
 ///
-/// try dbQueue.read { db in
+/// try dbQueue.write { db in
 ///     // DELETE FROM player WHERE score = 0
 ///     try Player
 ///         .filter { $0.score == 0 }

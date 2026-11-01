@@ -200,7 +200,7 @@ public final class FTS4TableDefinition {
     /// For example:
     ///
     /// ```swift
-    /// // CREATE VIRTUAL TABLE documents USING fts4(tokenize=porter)
+    /// // CREATE VIRTUAL TABLE document USING fts4(tokenize=porter)
     /// try db.create(virtualTable: "document", using: FTS4()) { t in
     ///     t.tokenizer = .porter
     /// }

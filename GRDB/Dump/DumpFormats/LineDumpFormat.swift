@@ -116,9 +116,6 @@ extension DumpFormat where Self == LineDumpFormat {
     /// A format that prints one line per database value. All blob values
     /// are interpreted as strings.
     ///
-    /// On each line, database values are separated by a separator (`|`
-    /// by default). Blob values are interpreted as UTF8 strings.
-    ///
     /// For example:
     ///
     /// ```swift

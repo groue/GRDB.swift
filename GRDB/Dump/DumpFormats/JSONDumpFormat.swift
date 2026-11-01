@@ -37,7 +37,7 @@ import Foundation
 /// // ]
 /// let encoder = JSONDumpFormat.defaultEncoder
 /// encoder.outputFormatting = .prettyPrinted
-/// try db.dumpRequest(Player.all(), format: .json(encoder))
+/// try db.dumpRequest(Player.all(), format: .json(encoder: encoder))
 /// ```
 public struct JSONDumpFormat: Sendable {
     /// The default `JSONEncoder` for database values.
@@ -199,7 +199,7 @@ extension DumpFormat where Self == JSONDumpFormat {
     /// // ]
     /// let encoder = JSONDumpFormat.defaultEncoder
     /// encoder.outputFormatting = .prettyPrinted
-    /// try db.dumpRequest(Player.all(), format: .json(encoder))
+    /// try db.dumpRequest(Player.all(), format: .json(encoder: encoder))
     /// ```
     ///
     /// - Parameter encoder: The JSONEncoder that formats individual

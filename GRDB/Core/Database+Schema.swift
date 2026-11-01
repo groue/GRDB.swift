@@ -255,7 +255,7 @@ extension Database {
     /// attached database.
     ///
     /// When `schemaName` is not specified, the result is true if any known
-    /// schema contains the table.
+    /// schema contains the view.
     ///
     /// For example:
     ///
@@ -284,7 +284,7 @@ extension Database {
     /// attached database.
     ///
     /// When `schemaName` is not specified, the result is true if any known
-    /// schema contains the table.
+    /// schema contains the trigger.
     ///
     /// For example:
     ///
@@ -615,7 +615,7 @@ extension Database {
     ///
     /// ```swift
     /// try dbQueue.read { db in
-    ///     let indexes = db.indexes(in: "player")
+    ///     let indexes = try db.indexes(on: "player")
     ///     for index in indexes {
     ///         print(index.columns)
     ///     }
@@ -743,7 +743,7 @@ extension Database {
     ///
     /// ```swift
     /// try dbQueue.read { db in
-    ///     let foreignKeys = try db.foreignKeys(in: "player")
+    ///     let foreignKeys = try db.foreignKeys(on: "player")
     ///     for foreignKey in foreignKeys {
     ///         print(foreignKey.destinationTable)
     ///     }
@@ -1281,7 +1281,7 @@ public struct DatabaseObjectID: Hashable, Sendable {
     /// let object = DatabaseObjectID(name: "player", schemaID: .temp)
     ///
     /// // SELECT * FROM temp.player
-    /// db.execute(sql: "SELECT * FROM \(object.quotedDatabaseIdentifier)")
+    /// try db.execute(sql: "SELECT * FROM \(object.quotedDatabaseIdentifier)")
     /// ```
     var quotedDatabaseIdentifier: String {
         "\(schemaID.name).\(name.quotedDatabaseIdentifier)"
@@ -1424,7 +1424,7 @@ public struct IndexInfo: Sendable{
 /// For example:
 ///
 /// ```swift
-/// try dbQueue.read {
+/// try dbQueue.read { db in
 ///     let violations = try db.foreignKeyViolations()
 ///     while let violation = try violations.next() {
 ///         // The name of the table that contains the `REFERENCES` clause
@@ -1482,7 +1482,7 @@ public struct ForeignKeyViolation: Sendable {
     ///
     /// ```
     /// FOREIGN KEY constraint violation - from player(teamId) to team(id),
-    /// in [id:1 teamId:2 name:"O'Brien" score: 1000]
+    /// in [id:1 teamId:2 name:"O'Brien" score:1000]
     /// ```
     ///
     /// See also ``description``.
@@ -1579,7 +1579,7 @@ extension ForeignKeyViolation: CustomStringConvertible {
 /// //   id INTEGER PRIMARY KEY,
 /// //   name TEXT
 /// // )
-/// let pk = try db.primaryKey("citizen")!
+/// let pk = try db.primaryKey("citizen")
 /// pk.columns     // ["id"]
 /// pk.rowIDColumn // "id"
 /// pk.isRowID     // true
@@ -1589,20 +1589,20 @@ extension ForeignKeyViolation: CustomStringConvertible {
 ///
 /// ```swift
 /// // CREATE TABLE country (
-/// //   isoCode TEXT NOT NULL PRIMARY KEY
+/// //   isoCode TEXT NOT NULL PRIMARY KEY,
 /// //   name TEXT
 /// // )
-/// let pk = try db.primaryKey("country")!
+/// let pk = try db.primaryKey("country")
 /// pk.columns     // ["isoCode"]
 /// pk.rowIDColumn // nil
 /// pk.isRowID     // false
 ///
 /// // CREATE TABLE citizenship (
-/// //   citizenID INTEGER NOT NULL REFERENCES citizen(id)
-/// //   countryIsoCode TEXT NOT NULL REFERENCES country(isoCode)
+/// //   citizenID INTEGER NOT NULL REFERENCES citizen(id),
+/// //   countryIsoCode TEXT NOT NULL REFERENCES country(isoCode),
 /// //   PRIMARY KEY (citizenID, countryIsoCode)
 /// // )
-/// let pk = try db.primaryKey("citizenship")!
+/// let pk = try db.primaryKey("citizenship")
 /// pk.columns     // ["citizenID", "countryIsoCode"]
 /// pk.rowIDColumn // nil
 /// pk.isRowID     // false

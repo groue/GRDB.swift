@@ -346,7 +346,7 @@ extension Cursor {
     ///
     ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let c = cursor.enumerated()
-    ///     while let (n, x) = c.next() {
+    ///     while let (n, x) = try c.next() {
     ///         print("\(n): \(x)")
     ///     }
     ///     // Prints: "0: foo"
@@ -396,10 +396,10 @@ extension Cursor {
     /// If the number of elements to drop exceeds the number of elements in
     /// the cursor, the result is an empty cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropFirst(2))
+    ///     let numbers = [1, 2, 3, 4, 5]
+    ///     try print(Array(AnyCursor(numbers).dropFirst(2)))
     ///     // Prints "[3, 4, 5]"
-    ///     try print(numbers.dropFirst(10))
+    ///     try print(Array(AnyCursor(numbers).dropFirst(10)))
     ///     // Prints "[]"
     ///
     /// - Parameter n: The number of elements to drop from the beginning of
@@ -415,7 +415,7 @@ extension Cursor {
     /// The following example drops the first element from a cursor of integers.
     ///
     ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropFirst())
+    ///     try print(Array(numbers.dropFirst()))
     ///     // Prints "[2, 3, 4, 5]"
     ///
     /// If the cursor has no elements, the result is an empty cursor.
@@ -431,10 +431,10 @@ extension Cursor {
     /// The cursor must be finite. If the number of elements to drop exceeds
     /// the number of elements in the cursor, the result is an empty array.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.dropLast(2))
+    ///     let numbers = [1, 2, 3, 4, 5]
+    ///     try print(AnyCursor(numbers).dropLast(2))
     ///     // Prints "[1, 2, 3]"
-    ///     try print(numbers.dropLast(10))
+    ///     try print(AnyCursor(numbers).dropLast(10))
     ///     // Prints "[]"
     ///
     /// - Parameter n: The number of elements to drop off the end of the
@@ -468,7 +468,7 @@ extension Cursor {
     ///     try print(numbers.dropLast())
     ///     // Prints "[1, 2, 3, 4]"
     ///
-    /// If the cursor has no elements, the result is an empty cursor.
+    /// If the cursor has no elements, the result is an empty array.
     ///
     /// - Returns: An array leaving off the last element of the cursor.
     public func dropLast() throws -> [Element] {
@@ -552,10 +552,10 @@ extension Cursor {
     /// If the maximum length exceeds the number of elements in the cursor,
     /// the result contains all the elements in the cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.prefix(2))
+    ///     let numbers = [1, 2, 3, 4, 5]
+    ///     try print(Array(AnyCursor(numbers).prefix(2)))
     ///     // Prints "[1, 2]"
-    ///     try print(numbers.prefix(10))
+    ///     try print(Array(AnyCursor(numbers).prefix(10)))
     ///     // Prints "[1, 2, 3, 4, 5]"
     ///
     /// - Parameter maxLength: The maximum number of elements to return. The
@@ -612,10 +612,10 @@ extension Cursor {
     /// elements in the cursor, the result contains all the elements in the
     /// cursor.
     ///
-    ///     let numbers = AnyCursor([1, 2, 3, 4, 5])
-    ///     try print(numbers.suffix(2))
+    ///     let numbers = [1, 2, 3, 4, 5]
+    ///     try print(AnyCursor(numbers).suffix(2))
     ///     // Prints "[4, 5]"
-    ///     try print(numbers.suffix(10))
+    ///     try print(AnyCursor(numbers).suffix(10))
     ///     // Prints "[1, 2, 3, 4, 5]"
     ///
     /// - Parameter maxLength: The maximum number of elements to return. The
@@ -857,7 +857,7 @@ extension DropWhileCursor: Cursor {
 ///     SELECT 'foo' UNION ALL SELECT 'bar'
 ///     """)
 /// let cursor = base.enumerated()
-/// while let (n, x) = cursor.next() {
+/// while let (n, x) = try cursor.next() {
 ///     print("\(n): \(x)")
 /// }
 /// // Prints: "0: foo"

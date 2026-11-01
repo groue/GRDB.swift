@@ -48,7 +48,7 @@ import Dispatch
 /// ```swift
 /// let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
 ///     try db.inTransaction {
-///         try Player.deleteAll()
+///         try Player.deleteAll(db)
 ///         return .commit
 ///     }
 ///

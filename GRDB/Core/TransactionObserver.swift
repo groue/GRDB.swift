@@ -80,7 +80,7 @@ extension Database {
     /// the database:
     ///
     /// ```swift
-    /// /// Inserts a region in the database, and start monitoring upon
+    /// /// Inserts a region in the database, and starts monitoring upon
     /// /// successful insertion.
     /// func startMonitoring(_ db: Database, region: CLRegion) throws {
     ///     // Make sure database is inside a transaction
@@ -1379,19 +1379,19 @@ public struct DatabasePreUpdateEvent {
     ///     ... and so forth
     public var depth: CInt { impl.depth }
     
-    /// The initial rowID of the row being changed for .Update and .Delete changes,
-    /// and nil for .Insert changes.
+    /// The initial rowID of the row being changed for .update and .delete changes,
+    /// and nil for .insert changes.
     public let initialRowID: Int64?
     
-    /// The final rowID of the row being changed for .Update and .Insert changes,
-    /// and nil for .Delete changes.
+    /// The final rowID of the row being changed for .update and .insert changes,
+    /// and nil for .delete changes.
     public let finalRowID: Int64?
     
     /// The initial database values in the row.
     ///
     /// Values appear in the same order as the columns in the table.
     ///
-    /// The result is nil if the event is an .Insert event.
+    /// The result is nil if the event is an .insert event.
     public var initialDatabaseValues: [DatabaseValue]? {
         guard kind == .update || kind == .delete else { return nil }
         return impl.initialDatabaseValues
@@ -1402,7 +1402,7 @@ public struct DatabasePreUpdateEvent {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// rightmost column.
     ///
-    /// The result is nil if the event is an .Insert event.
+    /// The result is nil if the event is an .insert event.
     public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard kind == .update || kind == .delete else { return nil }
@@ -1413,7 +1413,7 @@ public struct DatabasePreUpdateEvent {
     ///
     /// Values appear in the same order as the columns in the table.
     ///
-    /// The result is nil if the event is a .Delete event.
+    /// The result is nil if the event is a .delete event.
     public var finalDatabaseValues: [DatabaseValue]? {
         guard kind == .update || kind == .insert else { return nil }
         return impl.finalDatabaseValues
@@ -1424,7 +1424,7 @@ public struct DatabasePreUpdateEvent {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// rightmost column.
     ///
-    /// The result is nil if the event is a .Delete event.
+    /// The result is nil if the event is a .delete event.
     public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard kind == .update || kind == .insert else { return nil }
@@ -1636,6 +1636,7 @@ enum DatabaseEventPredicate {
     case all
     
     /// Filters events that match `observedEventKinds`, or are not
+    /// reported by the statement authorizer.
     ///
     /// - parameter observedEventKinds: Event kinds observed by
     ///   the TransactionObserver.

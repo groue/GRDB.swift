@@ -43,7 +43,7 @@ public class TableAliasBase: @unchecked Sendable {
         ///
         ///     // SELECT custom.*, team.*
         ///     // FROM player custom
-        ///     // JOIN team ON taem.id = custom.teamId
+        ///     // JOIN team ON team.id = custom.teamId
         ///     // WHERE custom.name = 'Arthur'
         ///     let customAlias = TableAlias(name: "custom")
         ///     let request = Player
@@ -193,7 +193,7 @@ public class TableAliasBase: @unchecked Sendable {
             //      let authors = Author.aliased(alias)...
             GRDBPrecondition(
                 tableName.lowercased() == initialTableName.lowercased(),
-                "A TableAlias most not be used to refer to multiple tables")
+                "A TableAlias must not be used to refer to multiple tables")
         case .proxy(let base):
             base.setTableName(tableName)
         }
@@ -293,7 +293,7 @@ extension TableAliasBase {
 ///
 /// ## Topics
 ///
-/// ## Supporting Types
+/// ### Supporting Types
 ///
 /// - ``TableAliasBase``
 @dynamicMemberLookup

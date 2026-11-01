@@ -107,7 +107,7 @@ public struct Inflections: Sendable {
     ///     inflections.plural("$", "s")
     ///     inflections.irregularSuffix("man", "men")
     ///     inflections.pluralize("man")      // "men"
-    ///     inflections.singularizes("women") // "woman"
+    ///     inflections.singularize("women") // "woman"
     ///
     /// - parameters:
     ///     - singular: The singular form.

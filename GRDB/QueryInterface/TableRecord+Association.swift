@@ -677,7 +677,7 @@ extension TableRecord {
     /// this request. Records that do not have an associated record
     /// are discarded.
     ///
-    /// For example, we can fetch books along with their eventual author:
+    /// For example, we can fetch books along with their author:
     ///
     /// ```swift
     /// struct Author: TableRecord, FetchableRecord, Decodable { }

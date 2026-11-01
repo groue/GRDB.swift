@@ -81,7 +81,7 @@ public final class DatabaseCollation: Identifiable, Sendable {
     ///     return (string1 as NSString).localizedStandardCompare(string2)
     /// }
     /// db.add(collation: collation)
-    /// try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE localized_standard")
+    /// try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE localized_standard)")
     /// ```
     ///
     /// - parameters:

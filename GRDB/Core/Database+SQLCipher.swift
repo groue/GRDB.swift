@@ -181,7 +181,7 @@ extension Database {
     
     /// Instructs SQLCipher to log internal debugging and operational information.
     ///
-    /// The supplied ``logLevel`` determines the granularity of the logs output.
+    /// The supplied `logLevel` determines the granularity of the logs output.
     ///
     /// See <https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_log>
     /// - Parameter logLevel: The granularity to use for the logging system - defaults to `DEBUG`.

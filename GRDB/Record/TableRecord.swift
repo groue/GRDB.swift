@@ -517,9 +517,9 @@ extension TableRecord {
     /// struct Citizenship: TableRecord { }
     ///
     /// try dbQueue.read { db in
-    ///     let playerExists = Player.exists(db, key: ["id": 1])
-    ///     let playerExists = Player.exists(db, key: ["email": "arthur@example.com"])
-    ///     let citizenshipExists = Citizenship.exists(db, key: [
+    ///     let playerExists = try Player.exists(db, key: ["id": 1])
+    ///     let playerExists = try Player.exists(db, key: ["email": "arthur@example.com"])
+    ///     let citizenshipExists = try Citizenship.exists(db, key: [
     ///         "citizenId": 1,
     ///         "countryCode": "FR",
     ///     ])

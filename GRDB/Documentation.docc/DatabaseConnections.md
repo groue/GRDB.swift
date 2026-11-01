@@ -33,7 +33,7 @@ You need a path to a database file in order to open a database connection.
 
 // Get the path to the database resource.
 // Replace `Bundle.main` with `Bundle.module` when you write a Swift Package.
-if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
+let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
 
 if let dbPath {
     // If the resource exists, open a read-only connection.

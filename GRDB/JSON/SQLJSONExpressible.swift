@@ -265,7 +265,7 @@ extension SQLJSONExpressible {
     ///
     /// // SELECT info -> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
-    /// let name = try Player
+    /// let address = try Player
     ///     .select({ $0.info.jsonRepresentation(atPath: "address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```
@@ -392,7 +392,7 @@ extension SQLJSONExpressible {
     ///
     /// // SELECT info -> 'address' FROM player
     /// // → '{"street":"Rue de Belleville","city":"Paris"}'
-    /// let name = try Player
+    /// let address = try Player
     ///     .select({ $0.info.jsonRepresentation(atPath: "address") }, as: String.self)
     ///     .fetchOne(db)
     /// ```

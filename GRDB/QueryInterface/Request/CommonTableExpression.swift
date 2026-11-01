@@ -294,7 +294,7 @@ extension CommonTableExpression {
     ///
     ///     let playerNameCTE = CommonTableExpression(
     ///         named: "playerName",
-    ///         request: Player.select(Column("name"))
+    ///         request: Player.select(Column("name")))
     ///
     ///     // name IN playerName
     ///     playerNameCTE.contains(Column("name"))
@@ -424,7 +424,7 @@ extension CommonTableExpression {
     /// - parameter condition: A function that returns the joining clause.
     ///   First argument is a ``TableAlias`` for the left table, second
     ///   argument an alias for the right table.
-    /// - returns: An association to the common table expression.
+    /// - returns: An association to the table record.
     public func association<Destination>(
         to destination: Destination.Type,
         on condition: @escaping @Sendable (
@@ -448,7 +448,7 @@ extension CommonTableExpression {
     ///
     /// - parameter destination: The record type at the other side of
     ///   the association.
-    /// - returns: An association to the common table expression.
+    /// - returns: An association to the table record.
     public func association<Destination>(
         to destination: Destination.Type)
     -> JoinAssociation<RowDecoder, Destination>
@@ -466,7 +466,7 @@ extension CommonTableExpression {
     /// - parameter condition: A function that returns the joining clause.
     ///   First argument is a ``TableAlias`` for the left table, second
     ///   argument an alias for the right table.
-    /// - returns: An association to the common table expression.
+    /// - returns: An association to the table.
     public func association<Destination>(
         to destination: Table<Destination>,
         on condition: @escaping @Sendable (
@@ -488,7 +488,7 @@ extension CommonTableExpression {
     /// The key of the returned association is the table name of `Destination`.
     ///
     /// - parameter destination: The table at the other side of the association.
-    /// - returns: An association to the common table expression.
+    /// - returns: An association to the table.
     public func association<Destination>(
         to destination: Table<Destination>)
     -> JoinAssociation<RowDecoder, Destination>

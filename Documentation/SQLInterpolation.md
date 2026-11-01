@@ -247,7 +247,7 @@ Let's extend Player with database methods.
     
     ```swift
     let player = try dbQueue.read { db in
-        // SELECT * player WHERE id = 42
+        // SELECT * FROM player WHERE id = 42
         try Player.filter(id: 42).fetchOne(db) // Player?
     }
     ```

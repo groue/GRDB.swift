@@ -144,14 +144,14 @@ extension Association {
     ///
     ///     // Consume rows:
     ///     let request = Player.including(required: Player.team)
-    ///     for row in Row.fetchAll(db, request) {
+    ///     for row in try Row.fetchAll(db, request) {
     ///         let team: Team = row["team"] // the association key
     ///     }
     ///
     /// The key can be redefined with the `forKey` method:
     ///
     ///     let request = Player.including(required: Player.team.forKey("custom"))
-    ///     for row in Row.fetchAll(db, request) {
+    ///     for row in try Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
     var key: SQLAssociationKey { _sqlAssociation.destination.key }

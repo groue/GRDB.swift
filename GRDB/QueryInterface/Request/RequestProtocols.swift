@@ -156,7 +156,7 @@ extension SelectionRequest {
     /// Any previous selection is discarded:
     ///
     /// ```swift
-    /// // SELECT score FROM player
+    /// // SELECT name FROM player
     /// let request = Player.all()
     ///     .select(sql: "id")
     ///     .select(sql: "name")
@@ -475,7 +475,7 @@ extension FilteredRequest where Self: TypedRequest, Self.RowDecoder: TableRecord
 ///
 /// ## Topics
 ///
-/// ## The Database Table
+/// ### The Database Table
 ///
 /// - ``databaseTableName``
 ///
@@ -673,10 +673,10 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// All single-column primary keys are supported:
     ///
     /// ```swift
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = Player.all().filter(keys: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = Country.all().filter(keys: ["FR", "US"])
     /// ```
     ///
@@ -891,10 +891,10 @@ where Self: FilteredRequest,
     /// All single-column primary keys are supported:
     ///
     /// ```swift
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = Player.all().filter(ids: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = Country.all().filter(ids: ["FR", "US"])
     /// ```
     ///
@@ -1605,7 +1605,7 @@ extension JoinableRequest {
     /// this request. Records that do not have an associated record
     /// are discarded.
     ///
-    /// For example, we can fetch books along with their eventual author:
+    /// For example, we can fetch books along with their author:
     ///
     /// ```swift
     /// struct Author: TableRecord, FetchableRecord, Decodable { }
@@ -1669,7 +1669,7 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ```swift
     /// struct Team: TableRecord {
     ///     enum Columns {
-    ///         static let countryCode = Column("countryCode")
+    ///         static let color = Column("color")
     ///     }
     /// }
     ///
@@ -1769,7 +1769,7 @@ extension JoinableRequest where Self: SelectionRequest {
     /// ```swift
     /// let teamAlias = TableAlias<Team>()
     /// let request = Player.all()
-    ///     .annotated(with: teamAlias.color])
+    ///     .annotated(with: teamAlias.color)
     ///     .joining(required: Player.team.aliased(teamAlias))
     /// ```
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {

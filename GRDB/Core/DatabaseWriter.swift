@@ -348,10 +348,10 @@ public protocol DatabaseWriter: DatabaseReader {
     /// ```swift
     /// try writer.writeWithoutTransaction { db in
     ///     // Delete all players
-    ///     try Player.deleteAll()
+    ///     try Player.deleteAll(db)
     ///
     ///     // Count players concurrently
-    ///     writer.spawnConcurrentRead { db in
+    ///     writer.spawnConcurrentRead { dbResult in
     ///         do {
     ///             let db = try dbResult.get()
     ///             // Guaranteed to be zero
@@ -438,6 +438,7 @@ extension DatabaseWriter {
     ///         // Handle success
     ///     case let .failure(error):
     ///         // Handle error
+    ///     }
     /// }
     /// ```
     ///
@@ -855,7 +856,7 @@ extension Publisher where Failure == Error {
 public final class AnyDatabaseWriter {
     private let base: any DatabaseWriter
     
-    /// Creates a new database reader that wraps and forwards operations
+    /// Creates a new database writer that wraps and forwards operations
     /// to `base`.
     public init(_ base: any DatabaseWriter) {
         self.base = base

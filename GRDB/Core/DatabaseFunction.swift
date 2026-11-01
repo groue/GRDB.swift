@@ -215,7 +215,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
     ///     db.add(function: square)
     ///
     ///     // SELECT square(score) FROM player
-    ///     let squaredScores = let Player
+    ///     let squaredScores = try Player
     ///         .select({ square($0.score) }, as: Int.self)
     ///         .fetchAll(db)
     /// }

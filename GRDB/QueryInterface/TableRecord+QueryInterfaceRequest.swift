@@ -210,7 +210,7 @@ extension TableRecord {
     ///
     /// // SELECT id FROM player
     /// let request = Player.select(\.id, as: Int.self)
-    /// let scores = try request.fetchSet(db) // Set<Int>
+    /// let ids = try request.fetchSet(db) // Set<Int>
     ///
     /// // SELECT MAX(score) FROM player
     /// let request = Player.select({ max($0.score) }, as: Int.self)
@@ -486,10 +486,10 @@ extension TableRecord {
     /// struct Player: TableRecord { }
     /// struct Country: TableRecord { }
     ///
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = Player.filter(keys: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = Country.filter(keys: ["FR", "US"])
     /// ```
     ///
@@ -745,7 +745,7 @@ extension TableRecord {
     /// let bookAlias = TableAlias()
     /// let request = Book
     ///     .aliased(bookAlias)
-    ///     .joining(required: Book.author.filter(Column("deathDate") <= bookAlias[Column("publishDate")])
+    ///     .joining(required: Book.author.filter(Column("deathDate") <= bookAlias[Column("publishDate")]))
     /// ```
     ///
     /// See ``TableRequest/aliased(_:)-772vb`` for more information.
@@ -874,10 +874,10 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     var id: String
     /// }
     ///
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = Player.filter(ids: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = Country.filter(ids: ["FR", "US"])
     /// ```
     ///

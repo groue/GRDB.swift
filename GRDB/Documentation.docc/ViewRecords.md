@@ -236,7 +236,7 @@ extension Captain: Encodable, PersistableRecord { }
 ✅ We can directly insert captains:
 
 ```swift
-try dbQueue.write {
+try dbQueue.write { db in
     try Team(id: "green", name: "Green").insert(db)
     // Diane is the captain
     try Captain(id: "diane", name: "Diane", teamId: "green").insert(db)
@@ -282,7 +282,7 @@ try migrator.migrate(dbQueue)
 ✅ Let's update captains:
 
 ```swift
-try dbQueue.write {
+try dbQueue.write { db in
     try Team(id: "red", name: "Red").insert(db)
     try Team(id: "blue", name: "Blue").insert(db)
     try Captain(id: "alice", name: "Alice", teamId: "red").insert(db)
@@ -329,7 +329,7 @@ try migrator.migrate(dbQueue)
 ✅ Let's delete some captains:
 
 ```swift
-try dbQueue.write {
+try dbQueue.write { db in
     // Delete Alice
     try Captain.deleteOne(db, id: "alice")
     
@@ -338,7 +338,7 @@ try dbQueue.write {
     try bob.delete(db)
     
     // Delete all captains
-    try Captain.deleteAll()
+    try Captain.deleteAll(db)
 }
 ```
 

@@ -368,7 +368,7 @@ And we can fetch the data that feeds our application screen:
 
 ```swift
 
-let chatInfos: [ChatInfos] = try dbQueue.read { db in
+let chatInfos: [ChatInfo] = try dbQueue.read { db in
     try request.fetchAll(db)
 }
 ```
@@ -395,8 +395,8 @@ let chatInfos: [ChatInfos] = try dbQueue.read { db in
 > // JOIN far ON ...
 > let request = BaseRecord
 >     .with(cte1).with(cte2)
->     .joining(required: assoc1.                     // OK
->         .joining(required: assoc2.                 // OK
+>     .joining(required: assoc1                      // OK
+>         .joining(required: assoc2                  // OK
 >             .joining(required: assoc3)))           // OK
 >
 > // Compiler error

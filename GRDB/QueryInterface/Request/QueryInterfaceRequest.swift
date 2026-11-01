@@ -23,7 +23,7 @@
 /// ``Table`` instance. For example:
 ///
 /// ```swift
-/// struct Player: TableRecord, FetchableRecord, DecodableRecord {
+/// struct Player: TableRecord, FetchableRecord, Decodable {
 ///     enum Columns {
 ///         static let name = Column("name")
 ///         static let score = Column("score")
@@ -219,7 +219,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///
     /// // SELECT id FROM player
     /// let request = Player.all().select(\.id, as: Int.self)
-    /// let scores = try request.fetchSet(db) // Set<Int>
+    /// let ids = try request.fetchSet(db) // Set<Int>
     ///
     /// // SELECT MAX(score) FROM player
     /// let request = Player.all().select({ max($0.score) }, as: Int.self)
@@ -691,7 +691,7 @@ extension QueryInterfaceRequest {
     /// // Delete all players and return their names
     /// // DELETE FROM player RETURNING name
     /// let request = Player.all()
-    /// let statement = try request.deleteAndFetchStatement(db, selection: \.name)
+    /// let statement = try request.deleteAndFetchStatement(db, select: { [$0.name] })
     /// let deletedNames = try String.fetchSet(statement)
     /// ```
     ///
@@ -875,7 +875,7 @@ extension QueryInterfaceRequest {
     /// // Delete all players and return their names
     /// // DELETE FROM player RETURNING name
     /// let request = Player.all()
-    /// let statement = try request.deleteAndFetchStatement(db, selection: \.name)
+    /// let statement = try request.deleteAndFetchStatement(db, select: { [$0.name] })
     /// let deletedNames = try String.fetchSet(statement)
     /// ```
     ///
@@ -1184,7 +1184,7 @@ extension QueryInterfaceRequest {
     /// ```swift
     /// struct Player: TableRecord {
     ///     enum Columns {
-    ///         static let score = Column("score)
+    ///         static let score = Column("score")
     ///     }
     /// }
     ///
@@ -1192,7 +1192,7 @@ extension QueryInterfaceRequest {
     /// // UPDATE player SET score = score + 10 RETURNING score
     /// let request = Player.all()
     /// let statement = try request.updateAndFetchStatement(db) {
-    ///     $0.score += 10
+    ///     [$0.score += 10]
     /// } select: {
     ///     [$0.score]
     /// }
@@ -1207,7 +1207,7 @@ extension QueryInterfaceRequest {
     /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: A closure that returns an array of
     ///   column assignments (must not be empty).
-    /// - parameter selection: A closure that returns the returned columns
+    /// - parameter select: A closure that returns the returned columns
     ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
@@ -1238,7 +1238,7 @@ extension QueryInterfaceRequest {
     /// let request = Player.all()
     /// let statement = try request.updateAndFetchStatement(
     ///     db, [Column("score") += 10],
-    ///     select: [Column("score")])
+    ///     selection: [Column("score")])
     /// let updatedScores = try Int.fetchAll(statement)
     /// ```
     ///
@@ -1444,7 +1444,7 @@ extension QueryInterfaceRequest {
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
-    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10]) }
+    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10] }
     /// ```
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
@@ -1507,7 +1507,7 @@ extension QueryInterfaceRequest {
     /// ```swift
     /// struct Player: TableRecord {
     ///     enum Columns {
-    ///         static let score = Column("score)
+    ///         static let score = Column("score")
     ///     }
     /// }
     ///
@@ -1515,7 +1515,7 @@ extension QueryInterfaceRequest {
     /// // UPDATE player SET score = score + 10 RETURNING score
     /// let request = Player.all()
     /// let statement = try request.updateAndFetchStatement(db) {
-    ///     $0.score += 10
+    ///     [$0.score += 10]
     /// } select: {
     ///     [$0.score]
     /// }
@@ -1562,7 +1562,7 @@ extension QueryInterfaceRequest {
     /// let request = Player.all()
     /// let statement = try request.updateAndFetchStatement(
     ///     db, [Column("score") += 10],
-    ///     select: [Column("score")])
+    ///     selection: [Column("score")])
     /// let updatedScores = try Int.fetchAll(statement)
     /// ```
     ///
@@ -1773,7 +1773,7 @@ extension QueryInterfaceRequest {
     /// // Fetch all updated players
     /// // UPDATE player SET score = score + 10 RETURNING *
     /// let request = Player.all()
-    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10]) }
+    /// let updatedPlayers = try request.updateAndFetchSet(db) { [$0.score += 10] }
     /// ```
     ///
     /// - important: Make sure you check the documentation of the `RETURNING`
@@ -1913,7 +1913,7 @@ extension ColumnExpression {
     ///
     /// try dbQueue.write { db in
     ///     // UPDATE player SET score = 0
-    ///     try Player.updateAll(db) { $0.set(to: 0) }
+    ///     try Player.updateAll(db) { $0.score.set(to: 0) }
     /// }
     /// ```
     public func set(to value: (any SQLExpressible)?) -> ColumnAssignment {

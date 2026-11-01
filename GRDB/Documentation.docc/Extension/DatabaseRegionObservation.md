@@ -22,7 +22,7 @@ let observation = DatabaseRegionObservation(tracking: Player.all())
 Then start the observation from a ``DatabaseQueue`` or ``DatabasePool``:
 
 ```swift
-let cancellable = try observation.start(in: dbQueue) { error in
+let cancellable = observation.start(in: dbQueue) { error in
     // Handle error
 } onChange: { (db: Database) in
     print("Players were changed")

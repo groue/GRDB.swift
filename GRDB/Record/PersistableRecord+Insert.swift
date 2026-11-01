@@ -93,7 +93,7 @@ extension PersistableRecord {
     ///     let partialPlayer = PartialPlayer(name: "Alice")
     ///
     ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///     let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
+    ///     let player = try partialPlayer.insertAndFetch(db, as: Player.self)
     ///     print(player.id)    // The inserted id
     ///     print(player.name)  // The inserted name
     ///     print(player.score) // The default score
@@ -305,7 +305,7 @@ extension PersistableRecord {
     ///     let partialPlayer = PartialPlayer(name: "Alice")
     ///
     ///     // INSERT INTO player (name) VALUES ('Alice') RETURNING *
-    ///     let player = try partialPlayer.insertAndFetch(db, as: FullPlayer.self)
+    ///     let player = try partialPlayer.insertAndFetch(db, as: Player.self)
     ///     print(player.id)    // The inserted id
     ///     print(player.name)  // The inserted name
     ///     print(player.score) // The default score

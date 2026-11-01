@@ -31,8 +31,8 @@
 ///     }
 ///
 ///     // Define foreign keys
-///     static let authorForeignKey = ForeignKey([Columns.authorId]))
-///     static let translatorForeignKey = ForeignKey([Columns.translatorId]))
+///     static let authorForeignKey = ForeignKey([Columns.authorId])
+///     static let translatorForeignKey = ForeignKey([Columns.translatorId])
 ///
 ///     // Use foreign keys to define associations:
 ///     static let author = belongsTo(
@@ -51,8 +51,8 @@
 ///
 /// ```swift
 /// struct Book: TableRecord {
-///     static let authorForeignKey = ForeignKey(["authorId"], to: ["id"]))
-///     static let translatorForeignKey = ForeignKey(["translatorId"], to: ["id"]))
+///     static let authorForeignKey = ForeignKey(["authorId"], to: ["id"])
+///     static let translatorForeignKey = ForeignKey(["translatorId"], to: ["id"])
 /// }
 /// ```
 ///

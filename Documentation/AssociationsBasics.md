@@ -939,7 +939,7 @@ struct BookInfo: Decodable, FetchableRecord {
     var country: String
 }
 let bookInfos = try Book
-    .annotated(withRequired: Book.author.select(\.country)
+    .annotated(withRequired: Book.author.select(\.country))
     .asRequest(of: BookInfo.self)
     .fetchAll(db)
 ```
@@ -1844,7 +1844,7 @@ let request = Book.aliased(bookAlias)
 > **Note**: avoid reusing table aliases between several tables or requests, because you will get a fatal error:
 >
 > ```swift
-> // Fatal error: A TableAlias most not be used to refer to multiple tables
+> // Fatal error: A TableAlias must not be used to refer to multiple tables
 > let alias = TableAlias()
 > let books = Book.aliased(alias)...
 > let people = Person.aliased(alias)...
@@ -1931,7 +1931,7 @@ extension DerivableRequest<Book> {
         joining(required: Book.author.filter(country: country))
     }
     
-    /// Order books by author name and then book title
+    /// Order books by author name and then book year
     func orderedByAuthorNameAndYear() -> Self {
         let authorAlias = TableAlias<Author>()
         return self
@@ -2209,7 +2209,7 @@ let country = try row.decodeIfPresent(Country.self, forKey: "country")
 
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
 
-When you use the `include(all:)` method, you can decode an Array or a Set of records:
+When you use the `including(all:)` method, you can decode an Array or a Set of records:
 
 ```swift
 let request = Author.including(all: Author.books)
@@ -2252,7 +2252,7 @@ print(rows[0].debugDescription)
 
 Watch in the row debugging description:
 
-- the **association keys**: "person", "country", "coverImage" and "prizes" in our example
+- the **association keys**: "author", "country", "coverImage" and "prizes" in our example
 - associated rows that contain only null values ("coverImage", above).
 
 The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
@@ -2392,8 +2392,8 @@ The default name is built from the aggregating method, the **[association key](#
 
 | Method | Association Key | Aggregated Column | Aggregate name |
 | ------ | --------------- | ----------------- | -------------- |
-| `Author.books.isEmpty`.          | `books` | -        | `hasNoBook`        |
-| `Author.books.count`.            | `books` | -        | `bookCount`        |
+| `Author.books.isEmpty`           | `books` | -        | `hasNoBook`        |
+| `Author.books.count`             | `books` | -        | `bookCount`        |
 | `Author.books.min(\.year)`       | `books` | `year`   | `minBookYear`      |
 | `Author.books.max(\.year)`       | `books` | `year`   | `maxBookYear`      |
 | `Author.books.average(\.price)`  | `books` | `price`  | `averageBookPrice` |
@@ -2440,7 +2440,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var numberOfBooks: Int
     
     static func all() -> QueryInterfaceRequest<AuthorInfo> {
-        let numberOfBooks = Author.books.count.forKey(CodingKey.numberOfBooks)    // <--
+        let numberOfBooks = Author.books.count.forKey(CodingKeys.numberOfBooks)    // <--
         return Author
             .annotated(with: numberOfBooks)
             .asRequest(of: AuthorInfo.self)
@@ -2653,7 +2653,7 @@ Aggregates can be modified and combined with Swift operators:
     </details>
     
     ```swift
-    let workCount = Author.books.count + Author.paintings.count)
+    let workCount = Author.books.count + Author.paintings.count
     let request = Author.annotated(with: workCount.forKey("workCount"))
     ```
 
@@ -2707,7 +2707,7 @@ In the example below, we compute two aggregates from the same association `Autho
     ```sql
     SELECT author.*,
            MIN(book.year) AS minBookYear,
-           MAX(book.year) AS maxBookYea
+           MAX(book.year) AS maxBookYear
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
@@ -2732,7 +2732,7 @@ In the example below, we compute two aggregates from the same association `Autho
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
-In this other example, the `Author.books` and `Author.paintings` have the distinct `book` and `painting` keys. They don't interfere, and provide the expected results:
+In this other example, the `Author.books` and `Author.paintings` have the distinct `books` and `paintings` keys. They don't interfere, and provide the expected results:
 
 - Authors with their number of books and paintings:
 

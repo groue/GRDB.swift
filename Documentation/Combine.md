@@ -174,9 +174,8 @@ This method returns a publisher that completes after database updates have been 
 ```swift
 // DatabasePublishers.Write<Int>
 let newPlayerCount = dbQueue.writePublisher(
-    updates: { db in try Player(...).insert(db) }
+    updates: { db in try Player(...).insert(db) },
     thenRead: { db, _ in try Player.fetchCount(db) })
-}
 ```
 
 It publishes exactly the same values as [`writePublisher(receiveOn:updates:)`]:

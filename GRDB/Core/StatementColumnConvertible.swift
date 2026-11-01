@@ -22,7 +22,7 @@ import GRDBSQLite
 ///
 /// ```swift
 /// // Optimized
-/// let scores = Int.fetchAll(db, sql: "SELECT score FROM player")
+/// let scores = try Int.fetchAll(db, sql: "SELECT score FROM player")
 ///
 /// let rows = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 /// while let row = try rows.next() {
@@ -211,7 +211,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 ///     let names: FastDatabaseValueCursor<String> = try String.fetchCursor(db, sql: """
 ///         SELECT name FROM player
 ///         """)
-///     while let name = names.next() { // String
+///     while let name = try names.next() { // String
 ///         print(name)
 ///     }
 /// }
@@ -725,7 +725,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible & Hash
     ///         SELECT score FROM player WHERE lastName = \(lastName)
     ///         """
     ///
-    ///     let scores = try Int.fetchAll(db, request)
+    ///     let scores = try Int.fetchSet(db, request)
     /// }
     /// ```
     ///

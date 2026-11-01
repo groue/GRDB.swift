@@ -114,7 +114,7 @@ In case the database table would be empty, we need a default configuration:
 ```swift
 extension AppConfiguration {
     /// The default configuration
-    static let `default` = AppConfiguration(flag: nil)
+    static let `default` = AppConfiguration(storedFlag: nil)
 }
 ```
 
@@ -124,7 +124,7 @@ We make our record able to access the database:
 extension AppConfiguration: FetchableRecord, PersistableRecord {
 ```
 
-We have seen in the <doc:SingleRowTables#The-Single-Row-Table> section that by default, updates throw an error if the database table is empty. To avoid this error, we instruct GRDB to insert the missing default configuration before attempting to update (see ``MutablePersistableRecord/willSave(_:)-6jitc`` for more information):
+We have seen in the <doc:SingleRowTables#The-Single-Row-Table> section that by default, updates throw an error if the database table is empty. To avoid this error, we instruct GRDB to insert the missing default configuration before attempting to update (see ``MutablePersistableRecord/willUpdate(_:columns:)-3oko4`` for more information):
 
 ```swift
     // Customize the default PersistableRecord behavior

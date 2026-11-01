@@ -184,7 +184,7 @@ extension DatabaseValueConvertible {
 ///     let names: DatabaseValueCursor<String> = try String.fetchCursor(db, sql: """
 ///         SELECT name FROM player
 ///         """)
-///     while let name = names.next() { // String
+///     while let name = try names.next() { // String
 ///         print(name)
 ///     }
 /// }
@@ -237,7 +237,7 @@ extension DatabaseValueCursor: Sendable { }
 ///     let statement = try db.makeStatement(sql: "SELECT name FROM ...")
 ///     try String.fetchCursor(statement, arguments:...) // Cursor of String
 ///     try String.fetchAll(statement, arguments:...)    // [String]
-///     try String.fetchOne(statement, arguments:...)    // String
+///     try String.fetchOne(statement, arguments:...)    // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 extension DatabaseValueConvertible {

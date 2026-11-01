@@ -81,7 +81,7 @@ public protocol DatabaseSchemaSource: Sendable {
     /// // A schema source that specifies that all views are identified by
     /// // their "id" column:
     /// struct MySchemaSource: DatabaseSchemaSource {
-    ///     func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) {
+    ///     func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
     ///         ["id"]
     ///     }
     /// }
@@ -123,7 +123,7 @@ public protocol DatabaseSchemaSource: Sendable {
     /// // A well-behaved schema source defined by a library is public
     /// // and returns nil for unknown views.
     /// public struct MyLibrarySchemaSource: DatabaseSchemaSource {
-    ///     public func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) {
+    ///     public func columnsForPrimaryKey(_ db: Database, inView view: DatabaseObjectID) throws -> [String]? {
     ///         if view.name == "playerView" {
     ///             // This is a view managed by my library:
     ///             return ["id"]

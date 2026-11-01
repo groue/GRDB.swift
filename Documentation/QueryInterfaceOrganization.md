@@ -132,7 +132,9 @@ DatabaseRegionConvertible feeds [DatabaseRegionObservation], which tracks databa
 ```swift
 let request = Player.all()
 let observation = DatabaseRegionObservation(tracking: request)
-let observer = try observation.start(in: dbQueue) { (db: Database) in
+let cancellable = observation.start(in: dbQueue) { error in
+    // Handle error
+} onChange: { (db: Database) in
     print("Players were changed")
 }
 ```
@@ -319,10 +321,10 @@ let players: [Player] = try request.fetchAll(db)
 SQL("name = \("O'Brien")").sqlExpression
 
 // SQLOrdering
-SQL("name DESC)").sqlOrdering
+SQL("name DESC").sqlOrdering
 
 // SQLSelection
-SQL("score + bonus AS total)").sqlSelection
+SQL("score + bonus AS total").sqlSelection
 SQL("*").sqlSelection
 
 // SQLRequest

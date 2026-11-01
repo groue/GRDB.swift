@@ -191,7 +191,7 @@ public protocol FetchableRecord {
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
     ///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
-    ///         .custom { dbValue
+    ///         .custom { dbValue in
     ///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
     ///                 return nil
     ///             }
@@ -991,7 +991,7 @@ extension RecordCursor: Sendable { }
 /// ```swift
 /// struct Player: FetchableRecord, Decodable {
 ///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
-///         .custom { dbValue
+///         .custom { dbValue in
 ///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
 ///                 return nil
 ///             }

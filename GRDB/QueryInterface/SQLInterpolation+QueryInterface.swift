@@ -109,7 +109,7 @@ extension SQLInterpolation {
     
     /// Appends the ordering SQL.
     ///
-    ///     // SELECT name FROM player ORDER BY name DESC
+    ///     // SELECT * FROM player ORDER BY name DESC
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player ORDER BY \(Column("name").desc)
     ///         """
@@ -119,7 +119,7 @@ extension SQLInterpolation {
     
     /// Appends the ordering SQL.
     ///
-    ///     // SELECT name FROM player ORDER BY name DESC
+    ///     // SELECT * FROM player ORDER BY name DESC
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player ORDER BY \(Column("name").desc)
     ///         """
@@ -163,7 +163,7 @@ extension SQLInterpolation {
     /// Appends the name of the coding key.
     ///
     ///     // SELECT name FROM player
-    ///     let request: SQLRequest<String> = "
+    ///     let request: SQLRequest<String> = """
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     public mutating func appendInterpolation(_ key: some CodingKey) {
@@ -173,7 +173,7 @@ extension SQLInterpolation {
     /// Appends the name of the coding key.
     ///
     ///     // SELECT name FROM player
-    ///     let request: SQLRequest<String> = "
+    ///     let request: SQLRequest<String> = """
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     public mutating func appendInterpolation(_ key: some CodingKey
@@ -187,7 +187,7 @@ extension SQLInterpolation {
     /// Appends the name of the coding key.
     ///
     ///     // SELECT name FROM player
-    ///     let request: SQLRequest<String> = "
+    ///     let request: SQLRequest<String> = """
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     @_disfavoredOverload
@@ -201,9 +201,9 @@ extension SQLInterpolation {
     ///
     ///     let subquery = Player.select { max($0.score) }
     ///     // or
-    ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    ///     let subquery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     ///
-    ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
+    ///     // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE score = (\(subquery))
     ///         """
@@ -315,7 +315,7 @@ extension SQLInterpolation {
     ///
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player
-    ///         ORDER BY name COLLATING \(DatabaseCollation.localizedCaseInsensitiveCompare)
+    ///         ORDER BY name COLLATE \(DatabaseCollation.localizedCaseInsensitiveCompare)
     ///         """
     public mutating func appendInterpolation(_ collation: DatabaseCollation) {
         elements.append(.sql(collation.name))
@@ -325,7 +325,7 @@ extension SQLInterpolation {
     ///
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player
-    ///         ORDER BY email COLLATING \(.nocase)
+    ///         ORDER BY email COLLATE \(.nocase)
     ///         """
     public mutating func appendInterpolation(_ collation: Database.CollationName) {
         elements.append(.sql(collation.rawValue))

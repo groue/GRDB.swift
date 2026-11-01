@@ -33,7 +33,7 @@ Database access methods can return values:
 
 ```swift
 let playerCount = try dbQueue.read { db in
-    try Place.fetchCount(db)
+    try Player.fetchCount(db)
 }
 
 let newPlayerCount = try dbQueue.write { db -> Int in

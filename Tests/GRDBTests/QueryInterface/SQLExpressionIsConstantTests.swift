@@ -135,74 +135,74 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             let alias = TableAlias(tableName: "t")
             
             // Column
-            try XCTAssertEqual(Column("a").sqlExpression.identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(Column("a").sqlExpression.identifyingColumns(db, for: alias), [])
             
             // DatabaseValue
-            try XCTAssertEqual("foo".sqlExpression.identifyingColums(db, for: alias), [])
+            try XCTAssertEqual("foo".sqlExpression.identifyingColumns(db, for: alias), [])
             
             // SQLExpressionAssociativeBinary
-            try XCTAssertEqual((alias[Column("a")] == 1 || alias[Column("b")] == 2).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual((alias[Column("a")] == 1 && alias[Column("b")] == 2).identifyingColums(db, for: alias), ["a", "b"])
-            try XCTAssertEqual((alias[Column("a")] == 1 && TableAlias()[Column("b")] == 2).identifyingColums(db, for: alias), ["a"])
+            try XCTAssertEqual((alias[Column("a")] == 1 || alias[Column("b")] == 2).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual((alias[Column("a")] == 1 && alias[Column("b")] == 2).identifyingColumns(db, for: alias), ["a", "b"])
+            try XCTAssertEqual((alias[Column("a")] == 1 && TableAlias()[Column("b")] == 2).identifyingColumns(db, for: alias), ["a"])
             
             // SQLExpressionBetween
-            try XCTAssertEqual((1...3).contains(alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual((1...3).contains(alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionBinary
-            try XCTAssertEqual((alias[Column("a")] - 1).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual((alias[Column("a")] - 1).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionCollate
-            try XCTAssertEqual((alias[Column("a")] == 1).collating(.binary).identifyingColums(db, for: alias), ["a"])
+            try XCTAssertEqual((alias[Column("a")] == 1).collating(.binary).identifyingColumns(db, for: alias), ["a"])
             
             // SQLExpressionContains
-            try XCTAssertEqual([1, 2, 3].contains(alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual([1, 2, 3].contains(alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionCount
-            try XCTAssertEqual(count(alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(count(alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionCountDistinct
-            try XCTAssertEqual(count(distinct: alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(count(distinct: alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionEqual
-            try XCTAssertEqual((alias[Column("a")] == nil).identifyingColums(db, for: alias), ["a"])
-            try XCTAssertEqual((alias[Column("a")] == 1).identifyingColums(db, for: alias), ["a"])
-            try XCTAssertEqual((1 == alias[Column("a")]).identifyingColums(db, for: alias), ["a"])
-            try XCTAssertEqual((-alias[Column("a")] == 1).identifyingColums(db, for: alias), ["a"])
-            try XCTAssertEqual(((alias[Column("a")] * 2) == 1).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual(((alias[Column("a")] + 2) == 1).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual(((alias[Column("a")] - 2) == 1).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual((alias[SQLExpression.fastPrimaryKey] == 1).identifyingColums(db, for: alias), ["id"])
-            try XCTAssertEqual((alias[Column("a")] == alias[Column("b")]).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual((TableAlias()[Column("a")] == nil).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual((TableAlias()[Column("a")] == 1).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual((SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey]])! == 1).identifyingColums(db, for: alias), ["id"])
+            try XCTAssertEqual((alias[Column("a")] == nil).identifyingColumns(db, for: alias), ["a"])
+            try XCTAssertEqual((alias[Column("a")] == 1).identifyingColumns(db, for: alias), ["a"])
+            try XCTAssertEqual((1 == alias[Column("a")]).identifyingColumns(db, for: alias), ["a"])
+            try XCTAssertEqual((-alias[Column("a")] == 1).identifyingColumns(db, for: alias), ["a"])
+            try XCTAssertEqual(((alias[Column("a")] * 2) == 1).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual(((alias[Column("a")] + 2) == 1).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual(((alias[Column("a")] - 2) == 1).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual((alias[SQLExpression.fastPrimaryKey] == 1).identifyingColumns(db, for: alias), ["id"])
+            try XCTAssertEqual((alias[Column("a")] == alias[Column("b")]).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual((TableAlias()[Column("a")] == nil).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual((TableAlias()[Column("a")] == 1).identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual((SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey]])! == 1).identifyingColumns(db, for: alias), ["id"])
             
             // SQLExpressionFastPrimaryKey
-            try XCTAssertEqual(SQLExpression.fastPrimaryKey.identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(SQLExpression.fastPrimaryKey.identifyingColumns(db, for: alias), [])
             
             // SQLExpressionFunction
-            try XCTAssertEqual(length(alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(length(alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpression.isEmpty
-            try XCTAssertEqual(SQLExpression.isEmpty(alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(SQLExpression.isEmpty(alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionLiteral
             // SQLExpressionNot
-            try XCTAssertEqual((!alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual((!alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLExpressionQualifiedFastPrimaryKey
-            try XCTAssertEqual(alias[SQLExpression.fastPrimaryKey].identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(alias[SQLExpression.fastPrimaryKey].identifyingColumns(db, for: alias), [])
             
             // SQLExpression.tableMatch
             // SQLExpressionUnary
-            try XCTAssertEqual((-alias[Column("a")]).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual((-alias[Column("a")]).identifyingColumns(db, for: alias), [])
             
             // SQLQualifiedColumn
-            try XCTAssertEqual(alias[Column("a")].identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(alias[Column("a")].identifyingColumns(db, for: alias), [])
             
             // SQLExpression.rowValue
-            try XCTAssertEqual(SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey]])!.identifyingColums(db, for: alias), [])
-            try XCTAssertEqual(SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey] == 1])!.identifyingColums(db, for: alias), ["id"])
+            try XCTAssertEqual(SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey]])!.identifyingColumns(db, for: alias), [])
+            try XCTAssertEqual(SQLExpression.rowValue([alias[SQLExpression.fastPrimaryKey] == 1])!.identifyingColumns(db, for: alias), ["id"])
         }
     }
     

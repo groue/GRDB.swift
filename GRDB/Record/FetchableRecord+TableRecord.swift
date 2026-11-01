@@ -261,7 +261,7 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     /// ```swift
     /// try dbQueue.read { db in
     ///     let players = try Player.fetchAll(db, ids: [1, 2, 3])
-    ///     let players = try Country.fetchAll(db, ids: ["FR", "US"])
+    ///     let countries = try Country.fetchAll(db, ids: ["FR", "US"])
     /// }
     /// ```
     ///

@@ -74,7 +74,7 @@ extension AssociationToMany {
     /// ```swift
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var hasNoPlayer: Int
+    ///     var hasNoPlayer: Bool
     /// }
     ///
     /// try dbQueue.read { db in
@@ -206,13 +206,13 @@ extension AssociationToMany {
     /// ```
     ///
     /// When the input expression is a ``ColumnExpression``, the returned
-    /// association aggregate is named `"maximum[Key][Column]"`, where `key` is
+    /// association aggregate is named `"max[Key][Column]"`, where `key` is
     /// the association key. For example:
     ///
     /// ```swift
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var maximumPlayerScore: Double
+    ///     var maxPlayerScore: Double
     /// }
     ///
     /// try dbQueue.read { db in
@@ -258,13 +258,13 @@ extension AssociationToMany {
     /// ```
     ///
     /// When the input expression is a ``ColumnExpression``, the returned
-    /// association aggregate is named `"maximum[Key][Column]"`, where `key` is
+    /// association aggregate is named `"max[Key][Column]"`, where `key` is
     /// the association key. For example:
     ///
     /// ```swift
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var maximumPlayerScore: Double
+    ///     var maxPlayerScore: Double
     /// }
     ///
     /// try dbQueue.read { db in
@@ -303,13 +303,13 @@ extension AssociationToMany {
     /// ```
     ///
     /// When the input expression is a ``ColumnExpression``, the returned
-    /// association aggregate is named `"minimum[Key][Column]"`, where `key` is
+    /// association aggregate is named `"min[Key][Column]"`, where `key` is
     /// the association key. For example:
     ///
     /// ```swift
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var minimumPlayerScore: Double
+    ///     var minPlayerScore: Double
     /// }
     ///
     /// try dbQueue.read { db in
@@ -355,13 +355,13 @@ extension AssociationToMany {
     /// ```
     ///
     /// When the input expression is a ``ColumnExpression``, the returned
-    /// association aggregate is named `"minimum[Key][Column]"`, where `key` is
+    /// association aggregate is named `"min[Key][Column]"`, where `key` is
     /// the association key. For example:
     ///
     /// ```swift
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var minimumPlayerScore: Double
+    ///     var minPlayerScore: Double
     /// }
     ///
     /// try dbQueue.read { db in
@@ -688,11 +688,11 @@ extension AssociationAggregate: Refinable {
     ///
     /// struct TeamInfo: FetchableRecord, Decodable {
     ///     var team: Team
-    ///     var numberOfBooks: Int
+    ///     var numberOfPlayers: Int
     /// }
     ///
     /// try dbQueue.read { db in
-    ///     let playerCount = Team.players.count.forKey("numberOfBooks")
+    ///     let playerCount = Team.players.count.forKey("numberOfPlayers")
     ///
     ///     let infos: [TeamInfo] = try Team
     ///         .annotated(with: playerCount)

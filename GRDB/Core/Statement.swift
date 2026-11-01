@@ -93,7 +93,7 @@ public final class Statement {
     ///
     /// ```swift
     /// // Reads score, writes bonus
-    /// let statement = db.makeStatement(sql: """
+    /// let statement = try db.makeStatement(sql: """
     ///     UPDATE player SET bonus = 0 WHERE score = 0
     ///     """)
     ///
@@ -277,7 +277,7 @@ public final class Statement {
     ///
     /// ```swift
     /// // This statement expects two arguments
-    /// let statement = try db.makeUpdateArgument(sql: """
+    /// let statement = try db.makeStatement(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
     ///
@@ -309,23 +309,23 @@ public final class Statement {
         }
     }
     
-    /// Throws a ``DatabaseError`` of code `SQLITE_ERROR` if the provided
+    /// Throws a ``DatabaseError`` of code `SQLITE_MISUSE` if the provided
     /// arguments do not provide all values expected by the statement.
     ///
     /// For example:
     ///
     /// ```swift
     /// // This statement expects two arguments
-    /// let statement = try db.makeUpdateArgument(sql: """
+    /// let statement = try db.makeStatement(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
     ///
     /// // OK
-    /// statement.validateArguments([1, "Arthur"])
+    /// try statement.validateArguments([1, "Arthur"])
     ///
     /// // Throws
-    /// try statement.setArguments([1])
-    /// try statement.setArguments([1, "Arthur", Date()])
+    /// try statement.validateArguments([1])
+    /// try statement.validateArguments([1, "Arthur", Date()])
     /// ```
     ///
     /// See also ``setArguments(_:)``.
@@ -345,7 +345,7 @@ public final class Statement {
     ///
     /// ```swift
     /// // This statement expects two arguments
-    /// let statement = try db.makeUpdateArgument(sql: """
+    /// let statement = try db.makeStatement(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
     ///
@@ -388,7 +388,7 @@ public final class Statement {
     ///
     /// ```swift
     /// // This statement expects two arguments
-    /// let statement = try db.makeUpdateArgument(sql: """
+    /// let statement = try db.makeStatement(sql: """
     ///     INSERT INTO player (id, name) VALUES (?, ?)
     ///     """)
     ///
@@ -809,7 +809,7 @@ extension DatabaseCursor {
 /// ```swift
 /// try dbQueue.read { db in
 ///     let statement = try db.makeStatement(sql: "SELECT performSideEffect()")
-///     let cursor = statement.makeCursor()
+///     let cursor = try statement.makeCursor()
 ///     try cursor.next()
 /// }
 /// ```
@@ -1041,7 +1041,7 @@ public struct StatementArguments: Hashable {
     ///
     /// ```swift
     /// let values: [(any DatabaseValueConvertible)?] = ["foo", 1, nil]
-    /// db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    /// try db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
     /// ```
     public init(_ values: some Sequence<(any DatabaseValueConvertible)?>) {
         self.values = values.map { $0?.databaseValue ?? .null }
@@ -1054,7 +1054,7 @@ public struct StatementArguments: Hashable {
     ///
     /// ```swift
     /// let values: [String] = ["foo", "bar"]
-    /// db.execute(sql: "INSERT ... (?,?)", arguments: StatementArguments(values))
+    /// try db.execute(sql: "INSERT ... (?,?)", arguments: StatementArguments(values))
     /// ```
     public init(_ values: some Sequence<some DatabaseValueConvertible>) {
         self.values = values.map(\.databaseValue)
@@ -1089,7 +1089,7 @@ public struct StatementArguments: Hashable {
     ///
     /// ```swift
     /// let values: [String: (any DatabaseValueConvertible)?] = ["firstName": nil, "lastName": "Miller"]
-    /// db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
+    /// try db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     /// ```
     public init(_ dictionary: [String: (any DatabaseValueConvertible)?]) {
         namedValues = dictionary.mapValues { $0?.databaseValue ?? .null }
@@ -1391,7 +1391,7 @@ extension StatementArguments: ExpressibleByArrayLiteral {
     /// ```swift
     /// let arguments: StatementArguments = ["Arthur", 41]
     /// try db.execute(
-    ///     sql: "INSERT INTO player (name, score) VALUES (?, ?)"
+    ///     sql: "INSERT INTO player (name, score) VALUES (?, ?)",
     ///     arguments: arguments)
     /// ```
     public init(arrayLiteral elements: (any DatabaseValueConvertible)?...) {
@@ -1407,7 +1407,7 @@ extension StatementArguments: ExpressibleByDictionaryLiteral {
     /// ```swift
     /// let arguments: StatementArguments = ["name": "Arthur", "score": 41]
     /// try db.execute(
-    ///     sql: "INSERT INTO player (name, score) VALUES (:name, :score)"
+    ///     sql: "INSERT INTO player (name, score) VALUES (:name, :score)",
     ///     arguments: arguments)
     /// ```
     public init(dictionaryLiteral elements: (String, (any DatabaseValueConvertible)?)...) {

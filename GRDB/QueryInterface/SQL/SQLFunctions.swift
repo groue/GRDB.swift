@@ -367,7 +367,7 @@ public func total(
 /// total(Column("amount"), filter: Column("amount") > 0)
 /// ```
 ///
-/// See also ``total(_:)``.
+/// See also ``sum(_:)``.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
 @available(iOS 14, macOS 10.16, tvOS 14, *) // SQLite 3.30+

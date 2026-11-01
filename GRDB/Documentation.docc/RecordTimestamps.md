@@ -155,7 +155,7 @@ Again, we use ``Database/transactionDate``, so that all modified players get the
 When you fetch timestamped records from the database, it may be inconvenient to deal with optional dates, even though the database columns are guaranteed to be not null:
 
 ```swift
-let player = try dbQueue.read { db 
+let player = try dbQueue.read { db in
     try Player.find(db, key: 1)
 }
 player.creationDate     // optional 😕
@@ -210,7 +210,7 @@ Usage:
 
 ```swift
 // Fetch
-try dbQueue.read { db 
+try dbQueue.read { db in
     let persistedPlayer = try PersistedPlayer.find(db, id: 1)
     persistedPlayer.creationDate     // not optional
     persistedPlayer.modificationDate // not optional
@@ -383,7 +383,7 @@ extension TimestampedRecord {
     ///
     /// ```swift
     /// try dbQueue.write { db in
-    ///     var player = Player.find(db, id: 1)
+    ///     var player = try Player.find(db, id: 1)
     ///     let modified = try player.updateChangesWithTimestamp(db) {
     ///         $0.score = 1000
     ///     }

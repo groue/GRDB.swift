@@ -24,7 +24,7 @@ GRDB requirements have been bumped:
 - **Xcode 14.0+** (was Xcode 12.0+)
 - iOS 11.0+ (unchanged)
 - **macOS 10.13+** (was macOS 10.10+)
-- **tvOS 11.0+** (was tvOS 11.0+)
+- **tvOS 11.0+** (was tvOS 9.0+)
 - **watchOS 4.0+** (was watchOS 2.0+)
 - **SQLite 3.19.3+** (was SQLite 3.8.5+)
 
@@ -317,7 +317,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
 
 - The `Record.copy()` method was removed, without replacement.
 
-- The `DerivableRequest.limit(_:offset_:)` method was removed, without replacement.
+- The `DerivableRequest.limit(_:offset:)` method was removed, without replacement.
     
     You can still limit `QueryInterfaceRequest`, but associations can no longer be limited:
     

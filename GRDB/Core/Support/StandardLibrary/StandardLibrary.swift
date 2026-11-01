@@ -692,7 +692,7 @@ extension DatabaseFunction {
     ///
     /// ```swift
     /// let request = Player.select { $0.name.capitalized }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let capitalize =
         DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { dbValues in
@@ -713,7 +713,7 @@ extension DatabaseFunction {
     ///
     /// ```swift
     /// let request = Player.select { $0.name.lowercased }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let lowercase =
         DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -734,7 +734,7 @@ extension DatabaseFunction {
     ///
     /// ```swift
     /// let request = Player.select { $0.name.uppercased }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let uppercase =
         DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -755,7 +755,7 @@ extension DatabaseFunction {
     ///
     /// ```swift
     /// let request = Player.select { $0.name.localizedCapitalized }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let localizedCapitalize =
         DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
@@ -776,8 +776,8 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/localizedLowercased``:
     ///
     /// ```swift
-    /// let request = Player.select { $0.name.localizedLowercase }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let request = Player.select { $0.name.localizedLowercased }
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let localizedLowercase =
         DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -797,8 +797,8 @@ extension DatabaseFunction {
     /// ``SQLSpecificExpressible/localizedUppercased``:
     ///
     /// ```swift
-    /// let request = Player.select { $0.name.localizedUppercase }
-    /// let names = try String.fetchAll(dbQueue, request) // [String]
+    /// let request = Player.select { $0.name.localizedUppercased }
+    /// let names = try String.fetchAll(db, request) // [String]
     /// ```
     public static let localizedUppercase =
         DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
@@ -842,7 +842,7 @@ extension DatabaseCollation {
     ///
     /// ```swift
     /// let collationName = DatabaseCollation.unicodeCompare.name
-    /// dbQueue.execute(sql: """
+    /// try db.execute(sql: """
     ///     CREATE TABLE player (
     ///       name TEXT COLLATE \(collationName)
     ///     )
@@ -871,7 +871,7 @@ extension DatabaseCollation {
     ///
     /// ```swift
     /// let collationName = DatabaseCollation.caseInsensitiveCompare.name
-    /// dbQueue.execute(sql: """
+    /// try db.execute(sql: """
     ///     CREATE TABLE player (
     ///       name TEXT COLLATE \(collationName)
     ///     )
@@ -900,7 +900,7 @@ extension DatabaseCollation {
     ///
     /// ```swift
     /// let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
-    /// dbQueue.execute(sql: """
+    /// try db.execute(sql: """
     ///     CREATE TABLE player (
     ///       name TEXT COLLATE \(collationName)
     ///     )
@@ -929,7 +929,7 @@ extension DatabaseCollation {
     ///
     /// ```swift
     /// let collationName = DatabaseCollation.localizedCompare.name
-    /// dbQueue.execute(sql: """
+    /// try db.execute(sql: """
     ///     CREATE TABLE player (
     ///       name TEXT COLLATE \(collationName)
     ///     )
@@ -958,7 +958,7 @@ extension DatabaseCollation {
     ///
     /// ```swift
     /// let collationName = DatabaseCollation.localizedStandardCompare.name
-    /// dbQueue.execute(sql: """
+    /// try db.execute(sql: """
     ///     CREATE TABLE player (
     ///       name TEXT COLLATE \(collationName)
     ///     )

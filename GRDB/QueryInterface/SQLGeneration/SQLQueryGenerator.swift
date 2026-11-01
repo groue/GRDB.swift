@@ -189,8 +189,8 @@ struct SQLQueryGenerator: Refinable {
         // Do we filter on a unique key?
         let tableName = relation.source.tableName
         if try db.tableExists(tableName), // skip views
-           let identifyingColums = try filter?.identifyingColums(db, for: relation.source.alias),
-           try db.table(tableName, hasUniqueKey: identifyingColums)
+           let identifyingColumns = try filter?.identifyingColumns(db, for: relation.source.alias),
+           try db.table(tableName, hasUniqueKey: identifyingColumns)
         {
             // Filter by unique key: guaranteed single row!
             return true
@@ -557,8 +557,8 @@ struct SQLQueryGenerator: Refinable {
 ///      LEFT JOIN person person1 ON person1.id = book.authorId
 ///      LEFT JOIN person person2 ON person2.id = book.translatorId
 ///      LEFT JOIN award ON award.bookId = book.id
-///      GROUP BY book.id
 ///      WHERE book.kind = 'novel'
+///      GROUP BY book.id
 ///
 /// `SQLQualifiedRelation` contains the following information:
 ///

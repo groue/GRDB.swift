@@ -59,7 +59,7 @@ extension DatabaseRegionObservation {
     /// ```swift
     /// let observation = DatabaseRegionObservation(tracking: Player.all())
     ///
-    /// let cancellable = try observation.start(in: dbQueue) { error in
+    /// let cancellable = observation.start(in: dbQueue) { error in
     ///     // handle error
     /// } onChange: { (db: Database) in
     ///     print("A modification of the player table has just been committed.")

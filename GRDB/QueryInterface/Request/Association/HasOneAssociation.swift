@@ -61,7 +61,7 @@
 /// ```swift
 /// struct Demographics: TableRecord { }
 /// struct Country: TableRecord {
-///     static let demographics = hasOne(Demographics.self, using: ForeignKey(...)
+///     static let demographics = hasOne(Demographics.self, using: ForeignKey(...))
 /// }
 /// ```
 public struct HasOneAssociation<Origin, Destination> {

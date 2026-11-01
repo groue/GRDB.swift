@@ -74,7 +74,7 @@ public struct FTS3 {
     /// // ["sqlite", "database"]
     /// try FTS3.tokenize("SQLite database")
     ///
-    /// // ["gustave", "doré"])
+    /// // ["gustave", "doré"]
     /// try FTS3.tokenize("Gustave Doré")
     /// ```
     ///
@@ -84,7 +84,7 @@ public struct FTS3 {
     /// // ["sqlite", "databas"]
     /// try FTS3.tokenize("SQLite database", withTokenizer: .porter)
     ///
-    /// // ["gustave", "dore"])
+    /// // ["gustave", "dore"]
     /// try FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61())
     /// ```
     ///
@@ -158,7 +158,7 @@ public final class FTS3TableDefinition {
     /// For example:
     ///
     /// ```swift
-    /// // CREATE VIRTUAL TABLE documents USING fts3(tokenize=porter)
+    /// // CREATE VIRTUAL TABLE document USING fts3(tokenize=porter)
     /// try db.create(virtualTable: "document", using: FTS3()) { t in
     ///     t.tokenizer = .porter
     /// }

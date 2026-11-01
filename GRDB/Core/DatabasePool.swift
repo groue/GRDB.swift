@@ -517,7 +517,7 @@ extension DatabasePool: DatabaseReader {
     /// ```swift
     /// try writer.asyncWriteWithoutTransaction { db in
     ///     // Delete all players
-    ///     try Player.deleteAll()
+    ///     try Player.deleteAll(db)
     ///
     ///     // Count players concurrently
     ///     writer.asyncConcurrentRead { dbResult in
@@ -906,7 +906,7 @@ extension DatabasePool {
     ///
     /// ```swift
     /// try dbPool.write { db in
-    ///     try Player.deleteAll()
+    ///     try Player.deleteAll(db)
     ///
     ///     // fatal error: makeSnapshot() must not be called from inside a transaction
     ///     let snapshot = try dbPool.makeSnapshot()
@@ -923,7 +923,7 @@ extension DatabasePool {
     ///     let snapshot = try dbPool.makeSnapshot() // OK
     ///
     ///     try db.inTransaction {
-    ///         try Player.deleteAll()
+    ///         try Player.deleteAll(db)
     ///         return .commit
     ///     }
     ///

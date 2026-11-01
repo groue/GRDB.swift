@@ -416,7 +416,7 @@ public struct DatabaseMigrator: Sendable {
     /// ```swift
     /// #if DEBUG
     /// // Speed up development by nuking the database when migrations change
-    /// if dbQueue.read(migrator.hasSchemaChanges) {
+    /// if try dbQueue.read(migrator.hasSchemaChanges) {
     ///     try dbQueue.erase()
     ///     // Perform other needed logic
     /// }

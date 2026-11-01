@@ -273,7 +273,7 @@ Do not miss [Swift Concurrency and GRDB], for more recommendations regarding non
 
 - The `PersistenceContainer` subscript no longer guarantees that the value returned is the same as what was previously set. It only guarantees that both values are encoded identically in the database.
 
-- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/GRDB.swiftdocumentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
+- The async sequence returned by [`ValueObservation.values`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/values(in:scheduling:bufferingpolicy:)) now iterates on the cooperative thread pool by default. Use .mainActor as the scheduler if you need the previous behavior.
 
 [Migrating to Swift 6]: https://www.swift.org/migration/documentation/migrationguide
 [Sharing a Database]: https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasesharing

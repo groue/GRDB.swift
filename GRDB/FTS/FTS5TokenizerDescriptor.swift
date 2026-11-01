@@ -34,7 +34,7 @@ public struct FTS5TokenizerDescriptor: Sendable {
     /// FTS5TokenizerDescriptor.unicode61().components
     ///
     /// // ["unicode61", "remove_diacritics", "0"]
-    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).components
+    /// FTS5TokenizerDescriptor.unicode61(diacritics: .keep).components
     /// ```
     public let components: [String]
     
@@ -47,7 +47,7 @@ public struct FTS5TokenizerDescriptor: Sendable {
     /// FTS5TokenizerDescriptor.unicode61().name
     ///
     /// // "unicode61"
-    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).name
+    /// FTS5TokenizerDescriptor.unicode61(diacritics: .keep).name
     /// ```
     var name: String { components[0] }
     
@@ -57,10 +57,10 @@ public struct FTS5TokenizerDescriptor: Sendable {
     ///
     /// ```swift
     /// // []
-    /// FTS5TokenizerDescriptor.unicode61().components
+    /// FTS5TokenizerDescriptor.unicode61().arguments
     ///
     /// // ["remove_diacritics", "0"]
-    /// FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).components
+    /// FTS5TokenizerDescriptor.unicode61(diacritics: .keep).arguments
     /// ```
     var arguments: [String] {
         Array(components.suffix(from: 1))

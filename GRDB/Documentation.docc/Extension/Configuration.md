@@ -35,7 +35,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 
 // Prints "SQL> SELECT COUNT(*) FROM player"
-let playerCount = dbQueue.read { db in
+let playerCount = try dbQueue.read { db in
     try Player.fetchCount(db)
 }
 ```

@@ -26,7 +26,7 @@
 /// }
 ///
 /// try dbQueue.write { db in
-///     var player = Player(id: nil, name:: "Arthur", score: 1000)
+///     var player = Player(id: nil, name: "Arthur", score: 1000)
 ///     try player.insert(db)
 ///     print(player.id) // Some id that is not nil
 /// }

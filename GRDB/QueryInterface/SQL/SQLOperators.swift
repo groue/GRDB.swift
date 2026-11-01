@@ -513,7 +513,7 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     /// ```swift
-    /// // email LIKE '%@example.com"
+    /// // email LIKE '%@example.com'
     /// Column("email").like("%@example.com")
     ///
     /// // title LIKE '%10\%%' ESCAPE '\'

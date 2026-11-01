@@ -35,7 +35,7 @@ extension ValueObservation {
     ///
     /// let sharedObservation = observation.shared(in: dbQueue)
     ///
-    /// let cancellable = try sharedObservation.start { error in
+    /// let cancellable = sharedObservation.start { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Fresh players: \(players)")
@@ -103,7 +103,7 @@ extension ValueObservation {
     ///     in: dbQueue,
     ///     scheduling: .immediate)
     ///
-    /// let cancellable = try sharedObservation.start { error in
+    /// let cancellable = sharedObservation.start { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Fresh players: \(players)")
@@ -144,7 +144,7 @@ extension ValueObservation {
 ///
 /// let sharedObservation = observation.shared(in: dbQueue)
 ///
-/// let cancellable = try sharedObservation.start { error in
+/// let cancellable = sharedObservation.start { error in
 ///     // handle error
 /// } onChange: { (players: [Player]) in
 ///     print("Fresh players: \(players)")
@@ -281,7 +281,7 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     ///     .tracking { db in try Player.fetchAll(db) }
     ///     .shared(in: dbQueue)
     ///
-    /// let cancellable = try sharedObservation.start { error in
+    /// let cancellable = sharedObservation.start { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("fresh players: \(players)")

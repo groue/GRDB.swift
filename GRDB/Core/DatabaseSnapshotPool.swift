@@ -25,7 +25,7 @@ import GRDBSQLite
 /// It creates a pool of up to ``Configuration/maximumReaderCount`` read-only
 /// SQLite connections. All read accesses are executed in **reader dispatch
 /// queues** (one per read-only SQLite connection). SQLite connections are
-/// closed when the `DatabasePool` is deallocated.
+/// closed when the `DatabaseSnapshotPool` is deallocated.
 ///
 /// An SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) is
 /// required for creating a `DatabaseSnapshotPool`.
@@ -57,7 +57,7 @@ import GRDBSQLite
 /// }
 ///
 /// // Start observing the 'player' table
-/// let cancellable = try observation.start(in: dbPool) { error in
+/// let cancellable = observation.start(in: dbPool) { error in
 ///     // Handle error
 /// } onChange: { (snapshot: DatabaseSnapshotPool) in
 ///     // Handle a fresh snapshot
@@ -105,12 +105,12 @@ public final class DatabaseSnapshotPool {
     /// let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
     /// let snapshot = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshotPool in
     ///     try db.inTransaction {
-    ///         try Player.deleteAll()
+    ///         try Player.deleteAll(db)
     ///         return .commit
     ///     }
     ///
     ///     // Create the snapshot after all players have been deleted.
-    ///     return DatabaseSnapshotPool(db)
+    ///     return try DatabaseSnapshotPool(db)
     /// }
     ///
     /// // Later... Maybe some players have been created.

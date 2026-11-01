@@ -372,7 +372,7 @@ public final class TableDefinition {
     /// // CREATE TABLE passport (
     /// //   issueDate DATE NOT NULL,
     /// //   citizenId INTEGER NOT NULL,
-    /// //   countryCode INTEGER NOT NULL,
+    /// //   countryCode TEXT NOT NULL,
     /// //   FOREIGN KEY (citizenId, countryCode)
     /// //     REFERENCES citizenship(citizenId, countryCode)
     /// //     ON DELETE CASCADE
@@ -450,7 +450,7 @@ public final class TableDefinition {
     /// // CREATE TABLE player (
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
     /// //   teamId INTEGER REFERENCES team(id),
-    /// //   countryCode TEXT NOT NULL REFERENCES country(code),
+    /// //   countryCode TEXT NOT NULL REFERENCES country(code)
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
@@ -478,7 +478,7 @@ public final class TableDefinition {
     ///
     /// // CREATE TABLE players (
     /// //   teamId INTEGER REFERENCES teams(id),
-    /// //   countryCode TEXT REFERENCES countries(code),
+    /// //   countryCode TEXT REFERENCES countries(code)
     /// // )
     /// try db.create(table: "players") { t in
     ///     t.belongsTo("team")
@@ -492,7 +492,7 @@ public final class TableDefinition {
     /// ```swift
     /// // CREATE TABLE player (
     /// //   id INTEGER PRIMARY KEY AUTOINCREMENT,
-    /// //   captainId INTEGER REFERENCES player(id),
+    /// //   captainId INTEGER REFERENCES player(id)
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.autoIncrementedPrimaryKey("id")
@@ -613,7 +613,7 @@ public final class TableDefinition {
     /// // CREATE TABLE player (
     /// //   personalPhone TEXT,
     /// //   workPhone TEXT,
-    /// //   CHECK personalPhone IS NOT NULL OR workPhone IS NOT NULL
+    /// //   CHECK (personalPhone IS NOT NULL OR workPhone IS NOT NULL)
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.column("personalPhone", .text)
@@ -652,7 +652,7 @@ public final class TableDefinition {
     /// // CREATE TABLE player (
     /// //   personalPhone TEXT,
     /// //   workPhone TEXT,
-    /// //   CHECK personalPhone IS NOT NULL OR workPhone IS NOT NULL
+    /// //   CHECK (personalPhone IS NOT NULL OR workPhone IS NOT NULL)
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.column("personalPhone", .text)
@@ -690,7 +690,7 @@ public final class TableDefinition {
     /// // CREATE TABLE player (
     /// //   personalPhone TEXT,
     /// //   workPhone TEXT,
-    /// //   CHECK personalPhone IS NOT NULL OR workPhone IS NOT NULL
+    /// //   CHECK (personalPhone IS NOT NULL OR workPhone IS NOT NULL)
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.column("personalPhone", .text)

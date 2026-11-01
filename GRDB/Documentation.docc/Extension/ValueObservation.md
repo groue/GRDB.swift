@@ -288,7 +288,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 >
 > // Optimized observation
 > let observation = ValueObservation
->     .tracking { db try Player.fetchAll(db) }
+>     .tracking { db in try Player.fetchAll(db) }
 >     .map { players in computeMyValue(players) }
 > ```
 >

@@ -12,14 +12,14 @@ import Dispatch
 /// <https://github.com/groue/GRDB.swift/issues/55>. To support this use case, a
 /// single dispatch queue can be temporarily shared by two or more connections.
 ///
-/// - SchedulingWatchdog.makeSerializedQueue(allowingDatabase:) creates a
-///   dispatch queue that allows one database.
+/// - SchedulingWatchdog.allowDatabase(_:onQueue:) makes a dispatch queue
+///   allow one database.
 ///
 ///   It does so by registering one instance of SchedulingWatchdog as a specific
 ///   of the dispatch queue, a SchedulingWatchdog that allows that database only.
 ///
 ///   Later on, the queue can be shared by several databases with the method
-///   inheritingAllowedDatabases(from:execute:). See SerializedDatabase.sync()
+///   inheritingAllowedDatabases(_:execute:). See SerializedDatabase.sync()
 ///   for an example.
 ///
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid

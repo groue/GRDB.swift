@@ -29,7 +29,7 @@ public struct ResultCode: RawRepresentable, Equatable {
     /// For example:
     ///
     /// ```swift
-    /// let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
+    /// let resultCode = ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY
     /// resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
     /// ```
     public var primaryResultCode: ResultCode {
@@ -288,7 +288,7 @@ public struct DatabaseError: Error {
     /// ```swift
     /// do {
     ///     ...
-    /// } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
+    /// } catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
     ///     // A constraint error
     /// }
     /// ```
@@ -298,7 +298,7 @@ public struct DatabaseError: Error {
     /// ```swift
     /// do {
     ///     ...
-    /// } catch DatabaseError.SQL_CONSTRAINT {
+    /// } catch DatabaseError.SQLITE_CONSTRAINT {
     ///     // A constraint error
     /// }
     /// ```
@@ -559,7 +559,7 @@ extension DatabaseError: CustomStringConvertible {
     /// For example:
     ///
     ///     SQLite error 19: NOT NULL constraint failed: player.score
-    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?`
     ///
     /// The format of the error description may change between GRDB releases,
     /// without notice: don't have your application rely on any specific format.
@@ -582,7 +582,7 @@ extension DatabaseError: CustomStringConvertible {
     /// For example:
     ///
     ///     SQLite error 19: NOT NULL constraint failed: player.score
-    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?`
     ///     with arguments [nil, "arthur@example.com"]
     ///
     /// The format of the error description may change between GRDB releases,

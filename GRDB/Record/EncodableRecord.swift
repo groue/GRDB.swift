@@ -205,7 +205,7 @@ public protocol EncodableRecord: GRDBSendableMetatype {
     /// For example:
     ///
     /// ```swift
-    /// struct Player: EncodableProtocol, Encodable {
+    /// struct Player: EncodableRecord, Encodable {
     ///     static let databaseColumnEncodingStrategy = DatabaseColumnEncodingStrategy.convertToSnakeCase
     ///
     ///     // Encoded in the 'player_id' column
@@ -470,7 +470,7 @@ extension Row {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static func databaseDataEncodingStrategy(for column: Column) -> DatabaseDataEncodingStrategy {
+///     static func databaseDataEncodingStrategy(for column: String) -> DatabaseDataEncodingStrategy {
 ///         .text
 ///     }
 ///
@@ -516,7 +516,7 @@ public enum DatabaseDataEncodingStrategy: Sendable {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {`
+///     static func databaseDateEncodingStrategy(for column: String) -> DatabaseDateEncodingStrategy {
 ///         .timeIntervalSince1970
 ///     }
 ///
@@ -601,7 +601,7 @@ public enum DatabaseDateEncodingStrategy: @unchecked Sendable {
 ///
 /// ```swift
 /// struct Player: EncodableRecord, Encodable {
-///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {`
+///     static func databaseUUIDEncodingStrategy(for column: String) -> DatabaseUUIDEncodingStrategy {
 ///         .uppercaseString
 ///     }
 ///
@@ -643,7 +643,7 @@ public enum DatabaseUUIDEncodingStrategy: Sendable {
 /// For example:
 ///
 /// ```swift
-/// struct Player: EncodableProtocol, Encodable {
+/// struct Player: EncodableRecord, Encodable {
 ///     static let databaseColumnEncodingStrategy = DatabaseColumnEncodingStrategy.convertToSnakeCase
 ///
 ///     // Encoded in the 'player_id' column

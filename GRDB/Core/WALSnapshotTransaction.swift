@@ -49,8 +49,8 @@ final class WALSnapshotTransaction: @unchecked Sendable {
     /// Usage:
     ///
     /// ```swift
-    /// let transaction = WALSnapshotTransaction(
-    ///     reader: reader,
+    /// let transaction = try WALSnapshotTransaction(
+    ///     onReader: reader,
     ///     release: { isInsideTransaction in
     ///         ...
     ///     })

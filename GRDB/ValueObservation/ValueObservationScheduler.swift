@@ -84,7 +84,7 @@ extension ValueObservationScheduler where Self == AsyncValueObservationScheduler
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(
+    /// let cancellable = observation.start(
     ///     in: dbQueue,
     ///     scheduling: .async(onQueue: .main),
     ///     onError: { error in ... },
@@ -133,7 +133,7 @@ extension ValueObservationScheduler where Self == ImmediateValueObservationSched
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(
+    /// let cancellable = observation.start(
     ///     in: dbQueue,
     ///     scheduling: .immediate,
     ///     onError: { error in ... },
@@ -162,7 +162,7 @@ extension ValueObservationMainActorScheduler where Self == ImmediateValueObserva
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(
+    /// let cancellable = observation.start(
     ///     in: dbQueue,
     ///     scheduling: .immediate,
     ///     onError: { error in ... },

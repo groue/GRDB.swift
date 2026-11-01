@@ -231,7 +231,7 @@ class StatementArgumentsSink {
     
     // fileprivate so that SQLGenerationContext.append(arguments:) is the only
     // available api.
-    /// Returns false for SQLGenerationContext.rawSQLContext
+    /// Returns false for StatementArgumentsSink.literalValues
     fileprivate func append(arguments: StatementArguments) -> Bool {
         if arguments.isEmpty {
             return true
@@ -255,7 +255,7 @@ extension [TableAliasBase] {
         //      let request = Book
         //          .including(required: Book.author.aliased(alias)...)
         //          .including(required: Book.author.aliased(alias)...)
-        GRDBPrecondition(count == Set(self).count, "A TableAlias most not be used to refer to multiple tables")
+        GRDBPrecondition(count == Set(self).count, "A TableAlias must not be used to refer to multiple tables")
         
         let groups = Dictionary(grouping: self) {
             $0.identityName.lowercased()

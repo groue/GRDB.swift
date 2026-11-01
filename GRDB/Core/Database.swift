@@ -871,7 +871,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// For example:
     ///
     /// ```swift
-    /// try dbQueue.write do { db in
+    /// try dbQueue.write { db in
     ///     // Write OK
     ///     try Player(...).insert(db)
     ///
@@ -1485,7 +1485,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// For example:
     ///
     /// ```swift
-    /// try dbQueue.writeWithoutTransaction do { db in
+    /// try dbQueue.writeWithoutTransaction { db in
     ///     try db.inTransaction {
     ///         try db.execute(sql: "INSERT ...")
     ///         return .commit
@@ -1604,7 +1604,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// For example:
     ///
     /// ```swift
-    /// try dbQueue.write do {
+    /// try dbQueue.write { db in
     ///     try db.inSavepoint {
     ///         try db.execute(sql: "INSERT ...")
     ///         return .commit
@@ -2013,7 +2013,8 @@ extension Database {
     /// To set the busy mode of a database, use Configuration:
     ///
     ///     // Wait 1 second before failing with SQLITE_BUSY
-    ///     let configuration = Configuration(busyMode: .timeout(1))
+    ///     var configuration = Configuration()
+    ///     configuration.busyMode = .timeout(1)
     ///     let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
     ///
     /// Relevant SQLite documentation:
@@ -2085,7 +2086,7 @@ extension Database {
     /// // CREATE TABLE player(
     /// //   id INTEGER PRIMARY KEY,
     /// //   name TEXT,
-    /// //   creationDate DATETIME,
+    /// //   creationDate DATETIME
     /// // )
     /// try db.create(table: "player") { t in
     ///     t.primaryKey("id", .integer)

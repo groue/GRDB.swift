@@ -50,7 +50,7 @@ enum ValueObservationTrackingMode {
     /// Use case:
     ///
     ///     // Tracked Region is always the full player table
-    ///     ValueObservation.trackingConstantRegion(Player.all()) { db in ... }
+    ///     ValueObservation.tracking(region: Player.all()) { db in ... }
     case constantRegion([any DatabaseRegionConvertible])
     
     /// The tracked region is constant and inferred from the fetched values.
@@ -58,7 +58,7 @@ enum ValueObservationTrackingMode {
     /// Use case:
     ///
     ///     // Tracked Region is always the full player table
-    ///     ValueObservation.trackingConstantRegion { db in Player.fetchAll(db) }
+    ///     ValueObservation.trackingConstantRegion { db in try Player.fetchAll(db) }
     case constantRegionRecordedFromSelection
     
     /// The tracked region is not constant, and inferred from the fetched values.
@@ -68,7 +68,7 @@ enum ValueObservationTrackingMode {
     ///     // Tracked Region is the one row of the table, and it changes on
     ///     // each fetch.
     ///     ValueObservation.tracking { db in
-    ///         try Player.fetchOne(db, id: Int.random(in: 1.1000))
+    ///         try Player.fetchOne(db, id: Int.random(in: 1...1000))
     ///     }
     case nonConstantRegionRecordedFromSelection
 }
@@ -102,7 +102,7 @@ extension ValueObservation: Refinable {
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(
+    /// let cancellable = observation.start(
     ///     in: dbQueue,
     ///     scheduling: .async(onQueue: .main))
     /// { error in
@@ -150,7 +150,7 @@ extension ValueObservation: Refinable {
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(in: dbQueue) { error in
+    /// let cancellable = observation.start(in: dbQueue) { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Fresh players: \(players)")
@@ -162,7 +162,7 @@ extension ValueObservation: Refinable {
     /// immediately when the observation starts:
     ///
     /// ```swift
-    /// let cancellable = try observation.start(in: dbQueue, scheduling: .immediate) { error in
+    /// let cancellable = observation.start(in: dbQueue, scheduling: .immediate) { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Fresh players: \(players)")
@@ -946,7 +946,7 @@ extension ValueObservation {
     ///     try Player.fetchAll(db)
     /// }
     ///
-    /// let cancellable = try observation.start(in: dbQueue) { error in
+    /// let cancellable = observation.start(in: dbQueue) { error in
     ///     // handle error
     /// } onChange: { (players: [Player]) in
     ///     print("Players have changed")

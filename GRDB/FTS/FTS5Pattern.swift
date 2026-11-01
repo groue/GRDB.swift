@@ -70,8 +70,8 @@ public struct FTS5Pattern: Sendable {
     /// For example:
     ///
     /// ```swift
-    /// FTS5Pattern(matchingAllTokensIn: "")        // nil
-    /// FTS5Pattern(matchingAllTokensIn: "foo bar") // foo* bar*
+    /// FTS5Pattern(matchingAllPrefixesIn: "")        // nil
+    /// FTS5Pattern(matchingAllPrefixesIn: "foo bar") // foo* bar*
     /// ```
     ///
     /// - parameter string: The string to turn into an FTS5 pattern.

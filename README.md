@@ -201,7 +201,7 @@ try dbQueue.write { db in
     player.score += 10
     try player.update(db)
     
-    try player.updateChanges { $0.score += 10 }
+    try player.updateChanges(db) { $0.score += 10 }
     
     // Delete a record
     try player.delete(db)
@@ -477,7 +477,6 @@ try dbQueue.write { db in
     try db.execute(
         sql: "UPDATE player SET score = :score WHERE id = :id",
         arguments: ["score": 1000, "id": 1])
-    }
 }
 ```
 
@@ -731,7 +730,7 @@ try dbQueue.read { db in
         .forEach { url in print(url) }
     
     // An efficient cursor of coordinates:
-    let locations = try Row.
+    let locations = try Row
         .fetchCursor(db, sql: "SELECT latitude, longitude FROM place")
         .map { row in
             CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
@@ -1298,7 +1297,7 @@ DatabaseDateComponents reads date components from all [date formats supported by
 DatabaseDateComponents can be stored and fetched from the database just like other [values](#values):
 
 ```swift
-let components = DateComponents()
+var components = DateComponents()
 components.year = 1973
 components.month = 9
 components.day = 18
@@ -1524,8 +1523,8 @@ try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
 **Use custom functions in the [query interface](#the-query-interface):**
 
 ```swift
-// SELECT reverseString("name") FROM player
-Player.select { reverseString($0.name) }
+// SELECT reverse("name") FROM player
+Player.select { reverse($0.name) }
 ```
 
 
@@ -1816,7 +1815,7 @@ To count records, call the `fetchCount` method:
 let playerCount: Int = try Player.fetchCount(db)
 
 let playerWithEmailCount: Int = try Player
-    .filter { $0.email == nil }
+    .filter { $0.email != nil }
     .fetchCount(db)
 ```
 
@@ -1872,7 +1871,7 @@ Details follow:
     
     try dbQueue.read { db in
         let places = try Place.order(\.title).fetchAll(db)
-        let paris = try Place.fetchOne(id: 1)
+        let paris = try Place.fetchOne(db, id: 1)
     }
     ```
 
@@ -1882,7 +1881,7 @@ Details follow:
     struct Place : PersistableRecord { ... }
     
     try dbQueue.write { db in
-        try Place.delete(db, id: 1)
+        try Place.deleteOne(db, id: 1)
         try Place(...).insert(db)
     }
     ```
@@ -2135,11 +2134,11 @@ try place.updateChanges(db) { $0.isFavorite = true }
 
 // INSERT or UPDATE
 try place.save(db)
-let savedPlace = place.saved(db) // non-mutating
+let savedPlace = try place.saved(db) // non-mutating
 
 // UPSERT
 try place.upsert(db)
-let insertedPlace = place.upsertAndFetch(db)
+let insertedPlace = try place.upsertAndFetch(db)
 
 // DELETE
 try place.delete(db)
@@ -2220,7 +2219,7 @@ For more information about batch updates, see [Update Requests](#update-requests
         
         If empty (the default), all uniqueness constraints are considered.
     
-    - `doUpdate`: a closure that returns columns assignments to perform in case of conflict. Depending on the `options` parameter, other columns are overwritten with the inserted values, or not.
+    - `doUpdate`: a closure that returns columns assignments to perform in case of conflict. Depending on the `updating` parameter, other columns are overwritten with the inserted values, or not.
         
         By default, all inserted columns but the primary key and the conflict target are overwritten.
     
@@ -2231,7 +2230,7 @@ For more information about batch updates, see [Update Requests](#update-requests
     //   word TEXT NOT NULL PRIMARY KEY,
     //   kind TEXT NOT NULL,
     //   isTainted BOOLEAN DEFAULT 0,
-    //   count INT DEFAULT 1))
+    //   count INT DEFAULT 1)
     struct Vocabulary: Encodable, PersistableRecord {
         var word: String
         var kind: String
@@ -2262,7 +2261,7 @@ For more information about batch updates, see [Update Requests](#update-requests
     //   text = excluded.text,
     //   date = MAX(date, excluded.date)
     // RETURNING *
-    let upserted = try message.upsertAndFetch(doUpdate: { excluded in
+    let upserted = try message.upsertAndFetch(db, doUpdate: { excluded in
         // keep the maximum date in case of conflict
         [Column("date").set(to: max(Column("date"), excluded["date"]))]
     })
@@ -2919,7 +2918,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 
 - [JSON Columns]: control the format of JSON columns.
 - [Column Names Coding Strategies]: control how coding keys are turned into column names
-- [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
+- [Data, Date, and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
 
@@ -2997,9 +2996,9 @@ try player.insert(db)
 > // How to detect failed `INSERT OR IGNORE`:
 > // INSERT OR IGNORE INTO player ... RETURNING *
 > do {
->     let insertedPlayer = try player.insertAndFetch(db) {
+>     let insertedPlayer = try player.insertAndFetch(db)
 >     // Successful insertion
-> catch RecordError.recordNotFound {
+> } catch RecordError.recordNotFound {
 >     // Failed insertion due to IGNORE policy
 > }
 > ```
@@ -3191,7 +3190,7 @@ extension Place: TableRecord {
         [
             Columns.id,
             Columns.title,
-            Columns.favorite,
+            Columns.isFavorite,
             Columns.latitude,
             Columns.longitude,
         ]
@@ -3385,7 +3384,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(\.name, as: String.self)
     ```
 
-- [`selectID()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectID()) is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
+- [`selectID()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/queryinterfacerequest/selectid()) is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
 
     ```swift
     // SELECT id FROM player
@@ -3520,7 +3519,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     SQLite considers NULL values to be smaller than any other values for sorting purposes. Hence, NULLs naturally appear at the beginning of an ascending ordering and at the end of a descending ordering. With a [custom SQLite build], this can be changed using `.ascNullsLast` and `.descNullsFirst`:
     
     ```swift
-    // SELECT * FROM player ORDER BY score ASC NULLS LAST
+    // SELECT * FROM player ORDER BY name ASC NULLS LAST
     Player.order(\.name.ascNullsLast)
     ```
     
@@ -3691,7 +3690,7 @@ struct Player : TableRecord {
 }
 
 // SELECT id, name FROM player
-let request = RestrictedPlayer.all()
+let request = Player.all()
 ```
 
 ```swift
@@ -3875,7 +3874,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     To check if a subquery would return rows, call the `exists` method:
     
     ```swift
-    // Teams that have at least one other player
+    // Teams that have at least one player
     //
     //  SELECT * FROM team
     //  WHERE EXISTS (SELECT * FROM player WHERE teamId = team.id)
@@ -3922,7 +3921,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Player.filter { $0.email.like("%@example.com") }
     
     // SELECT * FROM book WHERE (title LIKE '%10\%%' ESCAPE '\')
-    Player.filter { $0.email.like("%10\\%%", escape: "\\") }
+    Book.filter { $0.title.like("%10\\%%", escape: "\\") }
     ```
     
     > **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
@@ -4031,7 +4030,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
     
     ```swift
-    Player.select { $0.name.uppercased() }
+    Player.select { $0.name.uppercased }
     ```
     
     > **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
@@ -4040,7 +4039,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     > let name: String = ...
     >
     > // Not recommended
-    > Player.filter { $0.name.uppercased() == name.uppercased() }
+    > Player.filter { $0.name.uppercased == name.uppercased() }
     >
     > // Better
     > Player.filter { $0.name.collating(.caseInsensitiveCompare) == name }
@@ -4048,7 +4047,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
 
 - Custom SQL functions and aggregates
     
-    You can apply your own [custom SQL functions and aggregates](#custom-functions-):
+    You can apply your own [custom SQL functions and aggregates](#custom-sql-functions-and-aggregates):
     
     ```swift
     let myFunction = DatabaseFunction("myFunction", ...)
@@ -4087,7 +4086,7 @@ LIMIT ...    -- 9
     
     // SELECT IFNULL(name, 'O''Brien'), score FROM player
     let defaultName = "O'Brien"
-    let request = Player.select(sql: "IFNULL(name, ?), score", arguments: [suffix])
+    let request = Player.select(sql: "IFNULL(name, ?), score", arguments: [defaultName])
     ```
 
     The selection can be provided with [SQL Interpolation]:
@@ -4280,7 +4279,7 @@ You can also change the request so that it knows the type it has to fetch:
 ```swift
 try Player.find(db, id: 1)                   // Player
 try Player.fetchOne(db, id: 1)               // Player?
-try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
+try Country.fetchAll(db, ids: ["FR", "US"])  // [Country]
 ```
 
 All record types can use `find(_:key:)`, `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
@@ -4441,7 +4440,7 @@ When the table has no explicit primary key, GRDB uses the [hidden `rowid` column
 
 ```swift
 // DELETE FROM document WHERE rowid = 1
-try Document.deleteOne(db, id: 1)             // Document?
+try Document.deleteOne(db, key: 1)            // Bool
 ```
 
 
@@ -4546,7 +4545,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
             SQLRequest<Player>(
-                sql: "SELECT * FROM player WHERE color = ?"
+                sql: "SELECT * FROM player WHERE color = ?",
                 arguments: [color])
         }
     }
@@ -5039,7 +5038,7 @@ do {
 }
 ```
 
-If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
+If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/publicstatementarguments).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -5175,8 +5174,8 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     
     ```swift
     // fatal error: Database methods are not reentrant.
-    dbQueue.write { db in
-        dbQueue.write { db in
+    try dbQueue.write { db in
+        try dbQueue.write { db in
             ...
         }
     }
@@ -5216,12 +5215,12 @@ if let arguments = StatementArguments(arguments) {
     try statement.setArguments(arguments)
     
     var cursor = try Row.fetchCursor(statement)
-    while let row = try iterator.next() {
+    while let row = try cursor.next() {
         // Untrusted database content
         let dbValue: DatabaseValue = row[0]
         if dbValue.isNull {
             // Handle NULL
-        if let date = Date.fromDatabaseValue(dbValue) {
+        } else if let date = Date.fromDatabaseValue(dbValue) {
             // Handle valid date
         } else {
             // Handle invalid date
@@ -5317,7 +5316,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let players = try Player.fetchAll(db,
-    sql: "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
+    sql: "SELECT * FROM player ORDER BY name COLLATE \(collation.name)")
 let players = try Player.order { $0.name.collating(collation) }.fetchAll(db)
 ```
 
@@ -5325,7 +5324,7 @@ let players = try Player.order { $0.name.collating(collation) }.fetchAll(db)
 **You can also define your own collations**:
 
 ```swift
-let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
+let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> ComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
 
@@ -5513,7 +5512,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/publicstatementarguments).
 
 > **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
@@ -5550,7 +5549,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/configuration/publicstatementarguments).
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/publicstatementarguments).
 
 ### What Are Experimental Features?
 
@@ -5683,7 +5682,7 @@ struct BookInfo: Decodable, FetchableRecord {
 }
 
 let bookInfos: [BookInfo] = try dbQueue.read { db in
-    BookInfo.all().fetchAll(db)
+    try BookInfo.all().fetchAll(db)
 }
 ```
 

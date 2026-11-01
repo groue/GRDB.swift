@@ -160,9 +160,9 @@ extension Player: FetchableRecord, MutablePersistableRecord {
     }
 }
 
-try dbQueue.read { db in
+try dbQueue.write { db in
     // SELECT *, rowid FROM player WHERE rowid = 1
-    if let player = try Player.fetchOne(db, id: 1) {
+    if let player = try Player.fetchOne(db, key: 1) {
         // DELETE FROM player WHERE rowid = 1
         let deleted = try player.delete(db)
         print(deleted) // true

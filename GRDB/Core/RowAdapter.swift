@@ -32,7 +32,7 @@ import Foundation
 /// access player and team columns independently, with row ``Row/scopes``:
 ///
 /// ```swift
-/// let adapters = try splittingRowAdapters([
+/// let adapters = try splittingRowAdapters(columnCounts: [
 ///     db.columns(in: "player").count,
 ///     db.columns(in: "team").count,
 /// ])
@@ -60,7 +60,7 @@ import Foundation
 ///
 ///     // Team(id: 42, name: "Reds")
 ///     // nil if the LEFT JOIN has fetched NULL team columns
-///     if let team: Team? = row["team"]
+///     let team: Team? = row["team"]
 /// }
 /// ```
 ///
@@ -96,7 +96,7 @@ import Foundation
 ///         let request: SQLRequest<PlayerInfo> = """
 ///             SELECT
 ///                 \(columnsOf: Player.self), -- Instead of player.*
-///                 \(columnsOf: Team.self),   -- Instead of team.*
+///                 \(columnsOf: Team.self)    -- Instead of team.*
 ///             FROM player
 ///             LEFT JOIN team ON team.id = player.teamId
 ///             WHERE player.id = \(playerId)
@@ -159,7 +159,7 @@ public struct _LayoutedColumnMapping {
     /// that column.
     public let _layoutColumns: [(Int, String)]
     
-    /// A cache for layoutIndex(ofColumn:)
+    /// A cache for _layoutIndex(ofColumn:)
     let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: layoutColumnIndex]
     
     /// Creates a _LayoutedColumnMapping from an array of (baseIndex, mappedName)
@@ -176,7 +176,7 @@ public struct _LayoutedColumnMapping {
     /// Use it in your custom RowAdapter type:
     ///
     ///     struct FooBarAdapter : RowAdapter {
-    ///         func layoutAdapter(layout: _RowLayout) throws -> any _LayoutedRowAdapter {
+    ///         func _layoutedAdapter(from layout: some _RowLayout) throws -> any _LayoutedRowAdapter {
     ///             return _LayoutedColumnMapping(layoutColumns: [(1, "foo"), (2, "bar")])
     ///         }
     ///     }
@@ -583,15 +583,14 @@ public struct ScopeAdapter: RowAdapter {
     ///     let adapter = ScopeAdapter(base: baseAdapter, scopes: ["suffix": SuffixRowAdapter(fromIndex: 1)])
     ///     let row = try Row.fetchOne(db, sql: "SELECT 1, 2, 3", adapter: adapter)!
     ///     row                   // [1]
-    ///     row.scopes["initial"] // [2, 3]
+    ///     row.scopes["suffix"] // [2, 3]
     ///
     /// If the base adapter already defines scopes, the given scopes replace
     /// eventual existing scopes with the same name.
     ///
     /// This initializer is equivalent to `baseAdapter.addingScopes(scopes)`.
     ///
-    /// - parameter base: A dictionary that maps scope names to
-    ///   row adapters.
+    /// - parameter base: A row adapter.
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public init(base: some RowAdapter, scopes: [String: any RowAdapter]) {

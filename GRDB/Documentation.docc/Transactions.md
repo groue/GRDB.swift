@@ -131,7 +131,7 @@ If an error is thrown from the transaction block, the transaction is rolled back
 Full manual transaction management is also possible: 
 
 ```swift
-try dbQueue.writeWithoutTransaction { db
+try dbQueue.writeWithoutTransaction { db in
     try db.beginTransaction()
     ...
     try db.commit()

@@ -135,7 +135,7 @@ let player = try await writer.read { db in
 
 // ❌ Capture of 'player' with non-sendable type 'Player' in a `@Sendable` closure
 let player: Player
-try await writer.read { db in
+try await writer.write { db in
     try player.insert(db)
 }
 
@@ -205,7 +205,7 @@ GRDB connections provide two versions of `read` and `write`, one that is synchro
 try writer.write { ... }
 
 // Asynchronous database access
-await try writer.write { ... }
+try await writer.write { ... }
 ```
 
 Synchronous database accesses are handy. They avoid undesired delays, flashes of missing content in the user interface, or `async` functions. Many apps access the database synchronously, even from the main thread, because SQLite is very fast. Of course, it is still possible to run slow queries: in this case, asynchronous accesses should be preferred. They are guaranteed to never block the main thread.

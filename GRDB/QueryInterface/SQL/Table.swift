@@ -11,7 +11,7 @@
 /// let table = Table("player")
 /// try dbQueue.read { db in
 ///     // SELECT * FROM player WHERE score >= 1000
-///     let rows: [Row] = table.filter(Column("score") >= 1000).fetchAll(db)
+///     let rows: [Row] = try table.filter(Column("score") >= 1000).fetchAll(db)
 /// }
 /// ```
 ///
@@ -537,10 +537,10 @@ extension Table {
     /// let playerTable = Table("player")
     /// let countryTable = Table("country")
     ///
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = playerTable.filter(keys: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = countryTable.filter(keys: ["FR", "US"])
     /// ```
     ///
@@ -815,10 +815,10 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     /// let playerTable = Table<Player>("player")
     /// let countryTable = Table<Country>("country")
     ///
-    /// // SELECT * FROM player WHERE id = IN (1, 2, 3)
+    /// // SELECT * FROM player WHERE id IN (1, 2, 3)
     /// let request = playerTable.filter(ids: [1, 2, 3])
     ///
-    /// // SELECT * FROM country WHERE code = IN ('FR', 'US')
+    /// // SELECT * FROM country WHERE code IN ('FR', 'US')
     /// let request = countryTable.filter(ids: ["FR", "US"])
     /// ```
     ///
@@ -1481,7 +1481,7 @@ extension Table {
     /// Returns a request that joins each row of this request to its
     /// eventual associated row.
     ///
-    /// See the ``TableRecord`` method ``TableRecord/including(optional:)``
+    /// See the ``TableRecord`` method ``TableRecord/joining(optional:)``
     /// for more information.
     public func joining<A: Association>(optional association: A)
     -> QueryInterfaceRequest<RowDecoder>
@@ -1493,7 +1493,7 @@ extension Table {
     /// Returns a request that joins each row of this request to its
     /// associated row. Rows that do not have an associated row are discarded.
     ///
-    /// See the ``TableRecord`` method ``TableRecord/including(required:)``
+    /// See the ``TableRecord`` method ``TableRecord/joining(required:)``
     /// for more information.
     public func joining<A: Association>(required association: A)
     -> QueryInterfaceRequest<RowDecoder>
@@ -1649,9 +1649,9 @@ extension Table {
     /// let citizenshipTable = Table("citizenship")
     ///
     /// try dbQueue.read { db in
-    ///     let playerExists = playerTable.exists(db, key: ["id": 1])
-    ///     let playerExists = playerTable.exists(db, key: ["email": "arthur@example.com"])
-    ///     let citizenshipExists = citizenshipTable.exists(db, key: [
+    ///     let playerExists = try playerTable.exists(db, key: ["id": 1])
+    ///     let playerExists = try playerTable.exists(db, key: ["email": "arthur@example.com"])
+    ///     let citizenshipExists = try citizenshipTable.exists(db, key: [
     ///         "citizenId": 1,
     ///         "countryCode": "FR",
     ///     ])

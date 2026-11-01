@@ -51,13 +51,13 @@ public struct SQLExpression: Sendable {
     /// // JSON_ARRAY('[1, 2, 3]') → '["[1, 2, 3]"]'
     /// // JSON_ARRAY(JSON('[1, 2, 3]')) → [[1,2,3]]
     ///
-    /// // Compare an expression with preferredJSONInterpretation = .unspecified:
+    /// // Compare an expression with preferredJSONInterpretation = .deferredToSQLite:
     /// // JSON_ARRAY("info")
     /// Database.jsonArray([Column("info")])
     ///
     /// // ...with an expression with preferredJSONInterpretation = .jsonValue:
     /// // JSON_ARRAY(JSON("info"))
-    /// Database.jsonArray([Column("info").jsonValue])
+    /// Database.jsonArray([Column("info").asJSON])
     /// Database.jsonArray([JSONColumn("info")])
     /// ```
     var preferredJSONInterpretation = JSONInterpretation.deferredToSQLite
@@ -621,10 +621,10 @@ public struct SQLExpression: Sendable {
         ///
         /// ```swift
         /// // JSON_ARRAY(JSON('[1, 2, 3]')) → '[[1, 2, 3]]'
-        /// Database.jsonArray(["[1, 2, 3]"].jsonValue)
+        /// Database.jsonArray([Database.json("[1, 2, 3]")])
         ///
         /// // JSON_ARRAY(JSON("info"))
-        /// Database.jsonArray([Column("info").jsonValue])
+        /// Database.jsonArray([Column("info").asJSON])
         /// Database.jsonArray([JSONColumn("info")])
         /// ```
         case jsonValue
@@ -1192,7 +1192,7 @@ extension SQLExpression {
 extension SQLExpression {
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
-    ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
+    ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'"
     func quotedSQL(_ db: Database) throws -> String {
         let context = SQLGenerationContext(db, argumentsSink: .literalValues)
         return try sql(context)
@@ -1510,16 +1510,16 @@ extension SQLExpression {
     ///
     ///     // SELECT * FROM "player" WHERE "name" = 'Arthur' LIMIT 1
     ///     try Player.filter(Column("name") == "Arthur").fetchOne(db)
-    func identifyingColums(_ db: Database, for alias: TableAliasBase) throws -> Set<String> {
+    func identifyingColumns(_ db: Database, for alias: TableAliasBase) throws -> Set<String> {
         switch impl {
         case let .rowValue(expressions):
             assert(!expressions.isEmpty)
-            return try expressions.reduce(into: []) { try $0.formUnion($1.identifyingColums(db, for: alias)) }
+            return try expressions.reduce(into: []) { try $0.formUnion($1.identifyingColumns(db, for: alias)) }
             
         case let .associativeBinary(op, expressions):
             assert(expressions.count > 1)
             if op == .and {
-                return try expressions.reduce(into: []) { try $0.formUnion($1.identifyingColums(db, for: alias)) }
+                return try expressions.reduce(into: []) { try $0.formUnion($1.identifyingColumns(db, for: alias)) }
             } else if op == .or {
                 return []
             } else {
@@ -1548,7 +1548,7 @@ extension SQLExpression {
             }
             
         case let .collated(expression, _):
-            return try expression.identifyingColums(db, for: alias)
+            return try expression.identifyingColumns(db, for: alias)
             
         default:
             return []
@@ -1700,7 +1700,7 @@ extension SQLExpression {
     ///
     /// Some specific expressions can produce idiomatic SQL.
     ///
-    /// For example, the `like(_)` expression:
+    /// For example, the `like(_:escape:)` expression:
     ///
     /// - `column.like(pattern)` -> `column LIKE pattern`
     /// - `!(column.like(pattern))` -> `column NOT LIKE pattern`
@@ -1862,7 +1862,7 @@ extension SQLExpression {
     ///     1 + 2      -- true
     ///     score      -- false
     ///
-    /// This property supports `identifyingColums(_:for:)`
+    /// This property supports `identifyingColumns(_:for:)`
     var isConstantInRequest: Bool {
         switch impl {
         case .databaseValue:
@@ -2415,7 +2415,7 @@ extension SQLSpecificExpressible {
     ///
     /// // SELECT (score + bonus) AS totalScore FROM player
     /// let request = Player.select {
-    ///     ($0.score * $0.bonus).forKey("totalScore")
+    ///     ($0.score + $0.bonus).forKey("totalScore")
     /// }
     /// ```
     ///
@@ -2428,7 +2428,7 @@ extension SQLSpecificExpressible {
     /// // ORDER BY totalScore
     /// let request = Player
     ///     .select {
-    ///         ($0.score * $0.bonus).forKey("totalScore")
+    ///         ($0.score + $0.bonus).forKey("totalScore")
     ///     }
     ///     .order(Column("totalScore").detached)
     /// ```
@@ -2460,7 +2460,7 @@ extension SQLSpecificExpressible {
     /// }
     ///
     /// // SELECT * FROM player
-    /// // WHERE email = 'contact@example.com'  COLLATE NOCASE
+    /// // WHERE email = 'contact@example.com' COLLATE NOCASE
     /// Player.filter {
     ///     $0.email.collating(.nocase) == "contact@example.com"
     /// }
