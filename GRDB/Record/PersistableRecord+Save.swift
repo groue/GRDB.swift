@@ -98,7 +98,7 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
@@ -191,7 +191,7 @@ extension PersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.

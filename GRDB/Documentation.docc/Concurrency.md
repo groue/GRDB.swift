@@ -20,7 +20,7 @@ Open one single ``DatabaseQueue`` or ``DatabasePool`` per database file, for the
 
 - *Why does this rule exist?* - Since SQLite does not support parallel writes, each `DatabaseQueue` and `DatabasePool` makes sure application threads perform writes one by one, without overlap.
 
-- *Practical advice* - An app that uses a single database will connect only once. A document-based app will connect each time a document is opened, and disconnect when the document is closed. See the [demo apps] in order to see how to setup a UIKit or SwiftUI application for a single database.
+- *Practical advice* - An app that uses a single database will connect only once. A document-based app will connect each time a document is opened, and disconnect when the document is closed. See the [demo apps] in order to see how to set up a UIKit or SwiftUI application for a single database.
 
 - *What if you do not follow this rule?*
     
@@ -51,7 +51,7 @@ Alternatively, you can open an explicit transaction or savepoint: see <doc:Trans
 
 - *Practical advice* - Take the time to identify the invariants of your database. Some of them can be enforced in the database schema itself, such as "all books must have a non-empty title", or "all books must have an author" (see <doc:DatabaseSchema>). Some invariants can only be enforced by transactions, such as "all account credits must have a matching debit", or "all authors must have at least one book".
 
-- *What if you do not follow this rule?* - You will see broken database invariants, at runtime, or when your apps wakes up after a crash. These bugs corrupt user data, and are very difficult to fix.
+- *What if you do not follow this rule?* - You will see broken database invariants, at runtime, or when your app wakes up after a crash. These bugs corrupt user data, and are very difficult to fix.
 
 
 ## Synchronous and Asynchronous Database Accesses
@@ -101,7 +101,7 @@ try dbQueue.write { db in
     
     Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
     
-    The async database access methods honor task cancellation. Once an async Task is cancelled, reads and writes throw `CancellationError`, and any transaction is rollbacked.
+    The async database access methods honor task cancellation. Once an async Task is cancelled, reads and writes throw `CancellationError`, and any transaction is rolled back.
     
     See <doc:SwiftConcurrency> for more information about GRDB and Swift 6.
 
@@ -178,7 +178,7 @@ This enforces the immutability of the database during a read.
 
 #### Non-Reentrancy
 
-**Database accesses methods are not reentrant.**
+**Database access methods are not reentrant.**
 
 This reduces the opportunities for deadlocks, and fosters the clear transaction boundaries of <doc:Concurrency#Rule-2:-Mind-your-transactions>.
 
@@ -202,7 +202,7 @@ Some applications need to relax this safety net, in order to achieve specific SQ
     
     See ``DatabaseReader/unsafeReentrantRead(_:)``.
 
-> Important: By using one of the methods above, you become responsible of the thread-safety of your application. Please understand the consequences of lifting each concurrency guarantee.
+> Important: By using one of the methods above, you become responsible for the thread-safety of your application. Please understand the consequences of lifting each concurrency guarantee.
 
 Some concurrency guarantees can be restored at your convenience:
 
@@ -259,7 +259,7 @@ All you need is a little "concurrent thinking", based on those two basic facts:
     
     Does this mean you can't rely on anything? Of course not:
     
-    - If you intend to display some database value on screen, use ``ValueObservation``: it always eventually notifies the latest state of the database. Your application won't display stale values for a long time: after the database has been changed on disk, the fresh value if fetched, and soon notified on the main thread where the screen can be updated.
+    - If you intend to display some database value on screen, use ``ValueObservation``: it always eventually notifies the latest state of the database. Your application won't display stale values for a long time: after the database has been changed on disk, the fresh value is fetched, and soon notified on the main thread where the screen can be updated.
     
     - As said above, the moment of truth is the next write access!
 

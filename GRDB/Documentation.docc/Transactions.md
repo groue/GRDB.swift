@@ -126,7 +126,7 @@ try dbQueue.writeWithoutTransaction { db in
 }
 ```
 
-If an error is thrown from the transaction block, the transaction is rollbacked and the error is rethrown by the transaction method. If the transaction closure returns `.rollback` instead of `.commit`, the transaction is also rollbacked, but no error is thrown.
+If an error is thrown from the transaction block, the transaction is rolled back and the error is rethrown by the transaction method. If the transaction closure returns `.rollback` instead of `.commit`, the transaction is also rolled back, but no error is thrown.
 
 Full manual transaction management is also possible: 
 
@@ -142,7 +142,7 @@ try dbQueue.writeWithoutTransaction { db
 }
 ```
 
-Make sure all transactions opened from a database access are committed or rollbacked from that same database access, because it is a programmer error to leave an opened transaction:
+Make sure all transactions opened from a database access are committed or rolled back from that same database access, because it is a programmer error to leave an opened transaction:
 
 ```swift
 // fatal error: A transaction has been left
@@ -179,7 +179,7 @@ func myCriticalMethod(_ db: Database) throws {
 
 ## Savepoints
 
-**Statements grouped in a savepoint can be rollbacked without invalidating a whole transaction:**
+**Statements grouped in a savepoint can be rolled back without invalidating a whole transaction:**
 
 ```swift
 try dbQueue.write { db in
@@ -194,7 +194,7 @@ try dbQueue.write { db in
 }
 ```
 
-If an error is thrown from the savepoint block, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If the savepoint closure returns `.rollback` instead of `.commit`, the savepoint is also rollbacked, but no error is thrown.
+If an error is thrown from the savepoint block, the savepoint is rolled back and the error is rethrown by the `inSavepoint` method. If the savepoint closure returns `.rollback` instead of `.commit`, the savepoint is also rolled back, but no error is thrown.
 
 **Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
 
@@ -219,9 +219,9 @@ SQLite savepoints are more than nested transactions, though. For advanced uses, 
 
 SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred (the default), immediate, and exclusive.
 
-By default, GRDB opens DEFERRED transaction for reads, and IMMEDIATE transactions for writes.
+By default, GRDB opens DEFERRED transactions for reads, and IMMEDIATE transactions for writes.
 
-The transaction kind can be chosen for individual transaction:
+The transaction kind can be chosen for individual transactions:
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")

@@ -283,7 +283,7 @@ extension FTS5: VirtualTableModule {
     }
 }
 
-/// A `FTS5TableDefinition` lets you define the components of an FTS5
+/// An `FTS5TableDefinition` lets you define the components of an FTS5
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`
@@ -426,7 +426,7 @@ public final class FTS5TableDefinition {
     /// ```
     ///
     /// - parameter name: the column name.
-    /// - returns: A ``FTS5ColumnDefinition`` that allows you to refine the
+    /// - returns: An ``FTS5ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult
     public func column(_ name: String) -> FTS5ColumnDefinition {

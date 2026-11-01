@@ -40,7 +40,7 @@ try dbQueue.write { db in
 }
 ```
 
-SQL interpolation looks and feel just like regular [String interpolation]:
+SQL interpolation looks and feels just like regular [String interpolation]:
 
 ```swift
 let name = "World"
@@ -183,7 +183,7 @@ let request = Player.filter { date($0.createdAt) == "2020-01-23" }
 
 The [record protocols] extend your application types with database abilities.
 
-**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows.
+**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contains the column names. And with [FetchableRecord], you can decode raw database rows.
 
 SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names. Let's start from this record:
 
@@ -203,7 +203,7 @@ Let's extend Player with database methods.
     
     ```swift
     extension Player {
-        /// Deletes all player with no score
+        /// Deletes all players with no score
         static func deleteAllWithoutScore(_ db: Database) throws {
             try db.execute(literal: "DELETE FROM \(self) WHERE \(CodingKeys.score) IS NULL")
         }
@@ -252,7 +252,7 @@ Let's extend Player with database methods.
     }
     ```
     
-    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. It profits from SQL interpolation, and this is why this method simply returns an "SQL literal"".
+    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. It profits from SQL interpolation, and this is why this method simply returns an "SQL literal".
     
     The first "simple" version only embeds the `\(id)` [value].
     

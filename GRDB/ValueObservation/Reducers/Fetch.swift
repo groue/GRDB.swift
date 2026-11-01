@@ -1,5 +1,5 @@
 extension ValueReducers {
-    /// A `ValueReducer` that perform database fetches.
+    /// A `ValueReducer` that performs database fetches.
     public struct Fetch<Value: Sendable>: ValueReducer {
         public struct _Fetcher: _ValueReducerFetcher {
             let _fetch: @Sendable (Database) throws -> Value

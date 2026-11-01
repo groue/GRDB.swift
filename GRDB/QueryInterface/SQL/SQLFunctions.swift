@@ -587,7 +587,7 @@ public func julianDay(_ value: some SQLSpecificExpressible, _ modifiers: SQLDate
 /// dateTime(Column("date"), .day(1))
 /// ```
 ///
-/// Related SQLite documentation:<https://www.sqlite.org/lang_datefunc.html>
+/// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
 public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }

@@ -359,7 +359,7 @@ extension MutablePersistableRecord {
     ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -418,7 +418,7 @@ extension MutablePersistableRecord {
     ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -459,7 +459,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -493,7 +493,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: The result of the `fetch` function, or nil if the record 
     ///   has no change.
@@ -669,7 +669,7 @@ extension MutablePersistableRecord {
     ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -729,7 +729,7 @@ extension MutablePersistableRecord {
     ///   is used.
     /// - parameter columns: The columns to update.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -771,7 +771,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type,
@@ -806,7 +806,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - parameter modify: A closure that modifies the record.
     /// - returns: The result of the `fetch` function, or nil if the record
     ///   has no change.

@@ -112,7 +112,7 @@ public final class Statement {
     /// The effects on the database (reported by `sqlite3_set_authorizer`).
     private(set) var authorizerEventKinds: [DatabaseEventKind] = []
     
-    /// If true, the statement executes is a `PRAGMA QUERY_ONLY` statement.
+    /// If true, the statement is a `PRAGMA QUERY_ONLY` statement.
     private(set) var isQueryOnlyPragma = false
     
     /// A boolean value indicating if the prepared statement makes no direct
@@ -288,7 +288,7 @@ public final class Statement {
     /// print(statement.arguments)
     /// ```
     ///
-    /// If is a programmer error to set arguments that do not provide all
+    /// It is a programmer error to set arguments that do not provide all
     /// values expected by the statement:
     ///
     /// ```swift
@@ -547,7 +547,7 @@ public final class Statement {
     /// }
     /// ```
     ///
-    /// When arguments are set at the moment of execution, with an non-nil
+    /// When arguments are set at the moment of execution, with a non-nil
     /// `arguments` parameter, it is assumed that the statement won't be
     /// reused with the same arguments. When the number of arguments is
     /// small, execution is performed with temporary SQLite bindings that
@@ -567,7 +567,7 @@ public final class Statement {
     /// ```
     ///
     /// Both techniques have the same results, but when you care about
-    /// performances, monitor your application in order to make the
+    /// performance, monitor your application in order to make the
     /// best choice.
     ///
     /// - parameter arguments: Optional statement arguments.
@@ -616,7 +616,7 @@ public final class Statement {
     
     /// Calls the given closure after each successful call to `sqlite3_step()`.
     ///
-    /// This method is slighly faster than calling `step(_:)` repeatedly, due
+    /// This method is slightly faster than calling `step(_:)` repeatedly, due
     /// to the single `sqlite3_stmt_busy` check.
     @usableFromInline
     func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
@@ -925,7 +925,7 @@ func withBindings<T>(
 /// - `@AAAA` (e.g. `@name`): named argument
 /// - `$AAAA` (e.g. `$name`): named argument
 ///
-/// All forms are supported,  but GRDB does not allow to distinguish between
+/// All forms are supported,  but GRDB does not allow you to distinguish between
 /// the `:AAAA`, `@AAAA`, and `$AAAA` syntaxes. You are encouraged to write
 /// named arguments with a colon prefix: `:name`.
 ///
@@ -1188,7 +1188,7 @@ public struct StatementArguments: Hashable {
         return replacedValues
     }
     
-    /// Creates a new `StatementArguments` by extending the left-hand size
+    /// Creates a new `StatementArguments` by extending the left-hand side
     /// arguments with the right-hand side arguments.
     ///
     /// Positional arguments are concatenated:
@@ -1209,7 +1209,7 @@ public struct StatementArguments: Hashable {
     /// print(arguments)
     /// ```
     ///
-    /// If the arguments on the right-hand side has named parameters that are
+    /// If the arguments on the right-hand side have named parameters that are
     /// already defined on the left, a fatal error is raised:
     ///
     /// ```swift
@@ -1236,7 +1236,7 @@ public struct StatementArguments: Hashable {
         return lhs
     }
     
-    /// Creates a new `StatementArguments` by extending the left-hand size
+    /// Creates a new `StatementArguments` by extending the left-hand side
     /// arguments with the right-hand side arguments.
     ///
     /// Positional arguments are concatenated:
@@ -1257,7 +1257,7 @@ public struct StatementArguments: Hashable {
     /// print(arguments)
     /// ```
     ///
-    /// If a named arguments is defined in both arguments, the right-hand
+    /// If a named argument is defined in both arguments, the right-hand
     /// side wins:
     ///
     /// ```swift
@@ -1282,7 +1282,7 @@ public struct StatementArguments: Hashable {
         return lhs
     }
     
-    /// Extends the left-hand size arguments with the right-hand side arguments.
+    /// Extends the left-hand side arguments with the right-hand side arguments.
     ///
     /// Positional arguments are concatenated:
     ///
@@ -1304,7 +1304,7 @@ public struct StatementArguments: Hashable {
     /// print(arguments)
     /// ```
     ///
-    /// If the arguments on the right-hand side has named parameters that are
+    /// If the arguments on the right-hand side have named parameters that are
     /// already defined on the left, a fatal error is raised:
     ///
     /// ```swift

@@ -12,7 +12,7 @@ import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
-SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
+SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deallocated.
 
 **A `DatabasePool` can be used from any thread.** The ``DatabaseWriter/write(_:)-76inz`` and ``DatabaseReader/read(_:)-3806d`` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
 
@@ -42,7 +42,7 @@ let newPlayerCount = try dbPool.write { db -> Int in
 }
 ```
 
-The ``DatabaseWriter/write(_:)-76inz`` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
+The ``DatabaseWriter/write(_:)-76inz`` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rolled back, and the error is rethrown.
 
 When you don't need to modify the database, prefer the ``DatabaseReader/read(_:)-3806d`` method, because several threads can perform reads in parallel.
 

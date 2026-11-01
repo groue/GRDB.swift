@@ -139,7 +139,7 @@ extension FTS3: VirtualTableModule {
     public func database(_ db: Database, didCreate tableName: String, using definition: FTS3TableDefinition) { }
 }
 
-/// A `FTS3TableDefinition` lets you define the components of an FTS3
+/// An `FTS3TableDefinition` lets you define the components of an FTS3
 /// virtual table.
 ///
 /// You don't create instances of this class. Instead, you use the `Database`

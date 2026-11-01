@@ -21,9 +21,9 @@ extension Decimal: DatabaseValueConvertible {
             .databaseValue
     }
     
-    /// Creates an `Decimal` with the specified database value.
+    /// Creates a `Decimal` with the specified database value.
     ///
-    /// If the database value contains a integer or a double, returns a
+    /// If the database value contains an integer or a double, returns a
     /// `Decimal` initialized from this number.
     ///
     /// If the database value contains a string, parses the string with the

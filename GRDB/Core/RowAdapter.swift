@@ -16,7 +16,7 @@ import Foundation
 ///     """
 /// ```
 ///
-/// The resulting rows contains columns from both player and team tables:
+/// The resulting rows contain columns from both player and team tables:
 ///
 /// ```swift
 /// // [id: 1, name: "Arthur", teamId: 42, id: 42, name: "Reds"]
@@ -222,7 +222,7 @@ extension _LayoutedColumnMapping: _RowLayout {
 
 /// `_LayoutedRowAdapter` is a protocol that supports the `RowAdapter` protocol.
 ///
-/// GRBD ships with a ready-made type that adopts this protocol:
+/// GRDB ships with a ready-made type that adopts this protocol:
 /// `_LayoutedColumnMapping`.
 public protocol _LayoutedRowAdapter {
     /// A LayoutedColumnMapping that defines how to map a column name to a
@@ -255,7 +255,7 @@ extension Statement: _RowLayout {
     }
 }
 
-/// A type that helps two incompatible row interfaces working together.
+/// A type that helps two incompatible row interfaces work together.
 ///
 /// Row adapters present database rows in the way expected by the
 /// row consumers.
@@ -495,7 +495,7 @@ public struct RangeRowAdapter: RowAdapter, Sendable {
 /// `ScopeAdapter` is a row adapter that defines row scopes.
 ///
 /// `ScopeAdapter` does not change the columns and values of the fetched
-/// row. Instead, it defines *scopes* based on other adapter, which you
+/// row. Instead, it defines *scopes* based on other adapters, which you
 /// access through the ``Row/scopes`` property of the fetched rows.
 ///
 /// For example:
@@ -559,7 +559,7 @@ public struct ScopeAdapter: RowAdapter {
     /// The scope adapters
     let scopes: [String: any RowAdapter]
     
-    /// Creates an adapter that preserves row contents and add scoped rows.
+    /// Creates an adapter that preserves row contents and adds scoped rows.
     ///
     /// For example:
     ///
@@ -575,7 +575,7 @@ public struct ScopeAdapter: RowAdapter {
         self.init(base: SuffixRowAdapter(fromIndex: 0), scopes: scopes)
     }
     
-    /// Creates an adapter based on the base adapter, and add scoped rows.
+    /// Creates an adapter based on the base adapter, and adds scoped rows.
     ///
     /// For example:
     ///

@@ -35,7 +35,7 @@ extension TableRecord {
     /// }
     /// ```
     ///
-    /// The association can also help fetching associated records:
+    /// The association can also help fetch associated records:
     ///
     /// ```swift
     /// try dbQueue.read { db in
@@ -106,7 +106,7 @@ extension TableRecord {
     /// }
     /// ```
     ///
-    /// The association can also help fetching associated records:
+    /// The association can also help fetch associated records:
     ///
     /// ```swift
     /// try dbQueue.read { db in
@@ -182,7 +182,7 @@ extension TableRecord {
     /// }
     /// ```
     ///
-    /// The association can also help fetching associated records:
+    /// The association can also help fetch associated records:
     ///
     /// ```swift
     /// try dbQueue.read { db in
@@ -425,7 +425,7 @@ extension TableRecord {
     /// }
     /// ```
     ///
-    /// The association can also help fetching associated records:
+    /// The association can also help fetch associated records:
     ///
     /// ```swift
     /// try dbQueue.read { db in
@@ -511,7 +511,7 @@ extension TableRecord {
     /// }
     /// ```
     ///
-    /// The association can also help fetching associated records:
+    /// The association can also help fetch associated records:
     ///
     /// ```swift
     /// try dbQueue.read { db in

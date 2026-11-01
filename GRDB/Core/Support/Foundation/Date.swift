@@ -50,7 +50,7 @@ extension Date: DatabaseValueConvertible {
         storageDateFormatter.string(from: self).databaseValue
     }
     
-    /// Creates an `Date` with the specified database value.
+    /// Creates a `Date` with the specified database value.
     ///
     /// If the database value contains a number, that number is interpreted as a
     /// timeinterval since 00:00:00 UTC on 1 January 1970.

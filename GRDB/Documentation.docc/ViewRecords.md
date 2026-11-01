@@ -29,7 +29,7 @@ This article explains how to solve those errors:
 > important: GRDB is impacted by some SQLite limitations regarding INSTEAD OF triggers:
 >
 > - **Auto-incremented primary keys are not supported.** To be precise, SQLite won't expose the rowid of rows inserted via an INSTEAD OF trigger, so GRDB won't know the id of newly inserted rows. This has various nefarious consequences—see for example the important notice in the ``MutablePersistableRecord/didInsert(_:)`` callback. For more information, check this [SQLite forum thread](https://sqlite.org/forum/forumpost/707e7ed932).
-> - **INSTEAD OF triggers and the RETURNING clause do not play well together.** Those are SQLite bugs. All GRDB record methods with `andFetch` in their name may return unexpected or wrong results, depending on the SQLite version. For example, the SQLite version that ships with iOS 18 has bugs, and even more in iOS 17. If you intend to use the `RETURNING` clause, it is recommended that you write tests and run them in various target operation systems.
+> - **INSTEAD OF triggers and the RETURNING clause do not play well together.** Those are SQLite bugs. All GRDB record methods with `andFetch` in their name may return unexpected or wrong results, depending on the SQLite version. For example, the SQLite version that ships with iOS 18 has bugs, and even more in iOS 17. If you intend to use the `RETURNING` clause, it is recommended that you write tests and run them in various target operating systems.
 
 ## Preliminary Setup
 

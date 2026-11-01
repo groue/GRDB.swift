@@ -4,7 +4,7 @@ Recommendations for an ideal integration of the database schema with GRDB
 
 ## Overview
 
-Even though all schema are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
+Even though all schemas are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
 
 When those conventions are not applied, or not applicable, you will have to perform extra configurations.
 
@@ -139,7 +139,7 @@ try db.create(table: "player") { t in
     t.column("score", .integer).notNull()
 }
 
-// The record type for the 'player' table'
+// The record type for the 'player' table
 struct Player: Codable {
     // Uniquely identifies a player.
     var rowid: Int64?
@@ -214,7 +214,7 @@ struct Player: Identifiable {
 
 ## Unique keys should be supported by unique indexes
 
-Unique indexes makes sure SQLite prevents the insertion of conflicting rows:
+Unique indexes make sure SQLite prevents the insertion of conflicting rows:
 
 ```swift
 // RECOMMENDED

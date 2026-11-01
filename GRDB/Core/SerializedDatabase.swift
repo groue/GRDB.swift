@@ -235,7 +235,7 @@ final class SerializedDatabase {
         }
     }
     
-    /// Returns true if any only if the current dispatch queue is valid.
+    /// Returns true if and only if the current dispatch queue is valid.
     var onValidQueue: Bool {
         SchedulingWatchdog.current?.allows(db) ?? false
     }
@@ -248,7 +248,7 @@ final class SerializedDatabase {
         return try block(db)
     }
     
-    /// Asynchrously executes the block.
+    /// Asynchronously executes the block.
     func execute<T: Sendable>(
         _ block: @Sendable (Database) throws -> T
     ) async throws -> T {

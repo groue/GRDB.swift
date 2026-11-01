@@ -79,7 +79,7 @@ extension PersistableRecord {
     ///
     /// The conflict target are the columns of the uniqueness constraint
     /// (primary key or unique index) that triggers the upsert. If empty, all
-    /// uniqueness constraint are considered.
+    /// uniqueness constraints are considered.
     ///
     /// The strategy controls which columns are updated in case of
     /// uniqueness constraint violation: all columns unless specified (the
@@ -264,7 +264,7 @@ extension PersistableRecord {
     ///
     /// The conflict target are the columns of the uniqueness constraint
     /// (primary key or unique index) that triggers the upsert. If empty, all
-    /// uniqueness constraint are considered.
+    /// uniqueness constraints are considered.
     ///
     /// The strategy controls which columns are updated in case of
     /// uniqueness constraint violation: all columns unless specified (the

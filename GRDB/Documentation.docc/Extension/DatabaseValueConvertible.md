@@ -6,7 +6,7 @@ A type that can convert itself into and out of a database value.
 
 A `DatabaseValueConvertible` type supports conversion to and from database values (null, integers, doubles, strings, and blobs). `DatabaseValueConvertible` is adopted by `Bool`, `Int`, `String`, `Date`, etc.
 
-> Note: Types that converts to and from multiple columns in a database row must not conform to the `DatabaseValueConvertible` protocol. Those types are called **record types**, and should conform to record protocols instead. See <doc:QueryInterface>.
+> Note: Types that convert to and from multiple columns in a database row must not conform to the `DatabaseValueConvertible` protocol. Those types are called **record types**, and should conform to record protocols instead. See <doc:QueryInterface>.
 
 > Note: Standard collections `Array`, `Set`, and `Dictionary` do not conform to `DatabaseValueConvertible`. To store arrays, sets, or dictionaries in individual database values, wrap them as properties of `Codable` record types. They will automatically be stored as JSON objects and arrays. See <doc:QueryInterface>.
 

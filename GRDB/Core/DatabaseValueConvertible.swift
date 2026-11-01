@@ -227,7 +227,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
 @available(*, unavailable)
 extension DatabaseValueCursor: Sendable { }
 
-/// DatabaseValueConvertible comes with built-in methods that allow to fetch
+/// DatabaseValueConvertible comes with built-in methods that allow you to fetch
 /// cursors, arrays, or single values:
 ///
 ///     try String.fetchCursor(db, sql: "SELECT name FROM ...", arguments:...) // Cursor of String

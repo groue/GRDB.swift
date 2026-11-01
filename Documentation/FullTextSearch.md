@@ -148,7 +148,7 @@ try db.create(virtualTable: "document", using: FTS4()) { t in
 }
 ```
 
-The `content` option is involved in "contentless" and "external content" full-text tables. GRDB can help you defining full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
+The `content` option is involved in "contentless" and "external content" full-text tables. GRDB can help you define full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
 
 
 See [SQLite documentation](https://www.sqlite.org/fts3.html) for more information.
@@ -254,7 +254,7 @@ FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore
 
 **Not all search patterns are valid**: they must follow the [Full-Text Index Queries Grammar](https://www.sqlite.org/fts3.html#full_text_index_queries).
 
-The FTS3Pattern type helps you validating patterns, and building valid patterns from untrusted strings (such as strings typed by users):
+The FTS3Pattern type helps you validate patterns, and build valid patterns from untrusted strings (such as strings typed by users):
 
 ```swift
 struct FTS3Pattern {
@@ -377,7 +377,7 @@ try db.create(virtualTable: "document", using: FTS5()) { t in
 }
 ```
 
-The `content` and `contentRowID` options are involved in "contentless" and "external content" full-text tables. GRDB can help you defining full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
+The `content` and `contentRowID` options are involved in "contentless" and "external content" full-text tables. GRDB can help you define full-text tables that automatically synchronize with their content table. See [External Content Full-Text Tables](#external-content-full-text-tables).
 
 See [SQLite documentation](https://www.sqlite.org/fts5.html) for more information.
 
@@ -493,7 +493,7 @@ See the `FTS5_TOKEN_*` flags in https://www.sqlite.org/fts5.html#custom_tokenize
 
 **Not all search patterns are valid**: they must follow the [Full-Text Query Syntax](https://www.sqlite.org/fts5.html#full_text_query_syntax).
 
-The FTS5Pattern type helps you validating patterns, and building valid patterns from untrusted strings (such as strings typed by users):
+The FTS5Pattern type helps you validate patterns, and build valid patterns from untrusted strings (such as strings typed by users):
 
 ```swift
 extension Database {
@@ -583,7 +583,7 @@ let documents = try Document.fetchAll(db,
 let documents = try Document.matching(pattern).order(Column.rank).fetchAll(db)
 ```
 
-For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results)
+For more information about the ranking algorithm, as well as extra options, read [Sorting by Auxiliary Function Results](https://www.sqlite.org/fts5.html#sorting_by_auxiliary_function_results).
 
 GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Application Tips](https://www.sqlite.org/fts3.html#appendix_a) if you really need it.
 
@@ -623,11 +623,11 @@ See also [WWDC Companion](https://github.com/groue/WWDCCompanion), a sample app 
 
 ### Deleting Synchronized Full-Text Tables
 
-Synchronization of full-text tables with their content table happens by the mean of SQL triggers.
+Synchronization of full-text tables with their content table happens by means of SQL triggers.
 
 SQLite automatically deletes those triggers when the content (not full-text) table is dropped.
 
-However, those triggers remain after the full-text table has been dropped. Unless they are dropped too, they will prevent future insertion, updates, and deletions in the content table, and the creation of a new full-text table.
+However, those triggers remain after the full-text table has been dropped. Unless they are dropped too, they will prevent future insertions, updates, and deletions in the content table, and the creation of a new full-text table.
 
 To drop those triggers, use the `dropFTS4SynchronizationTriggers` or `dropFTS5SynchronizationTriggers` methods:
 

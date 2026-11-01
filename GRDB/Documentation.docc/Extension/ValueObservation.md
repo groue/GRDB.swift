@@ -129,7 +129,7 @@ let cancellable = observation
 // <- Here "Fresh value" has already been printed.
 ```
 
-The ``ValueObservationScheduler/async(onQueue:)`` scheduler asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial dispatch queue, because a concurrent one such as `DispachQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
+The ``ValueObservationScheduler/async(onQueue:)`` scheduler asynchronously schedules values and errors on the dispatch queue of your choice. Make sure you provide a serial dispatch queue, because a concurrent one such as `DispatchQueue.global(qos: .default)` would mess with the ordering of fresh value notifications:
 
 ```swift
 // Async scheduling notifies all values
@@ -172,7 +172,7 @@ As described above, the `scheduling` argument controls the execution of the chan
 
 - With the `.immediate` scheduling, the initial fetch is always performed synchronously, on the main actor, when the observation starts, so that the initial value can be notified immediately.
 
-- With the default `.async` scheduling, the initial fetch is always performed asynchronouly. It never blocks the main thread.
+- With the default `.async` scheduling, the initial fetch is always performed asynchronously. It never blocks the main thread.
 
 - By default, fresh values are fetched immediately after the database was changed. In particular, modifying the database on the main thread triggers a fetch on the main thread as well.
 
@@ -232,7 +232,7 @@ This ``tracking(region:_:fetch:)`` method lets you entirely separate the **obser
 - Changes to the database schema, changes to internal system tables such as `sqlite_master`.
 - Changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 
-To have observations notify a fresh values after such an undetected change was performed, applications can take explicit action. For example, cancel and restart observations. Alternatively, call the ``Database/notifyChanges(in:)`` `Database` method from a write transaction:
+To have observations notify fresh values after such an undetected change was performed, applications can take explicit action. For example, cancel and restart observations. Alternatively, call the ``Database/notifyChanges(in:)`` `Database` method from a write transaction:
     
 ```swift
 try dbQueue.write { db in
@@ -296,7 +296,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 > Tip: When the observation tracks a constant database region, create an optimized observation with the ``tracking(regions:fetch:)`` or ``trackingConstantRegion(_:)`` methods. Make sure you read the documentation of those methods, or you might write an observation that misses some database changes.
 
-**Truncating WAL checkpoints impact ValueObservation.** Such checkpoints are performed with ``Database/checkpoint(_:on:)`` or [`PRAGMA wal_checkpoint`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint). When an observation is started on a ``DatabasePool``, from a database that has a missing or empty [wal file](https://www.sqlite.org/tempfiles.html#write_ahead_log_wal_files), the observation will always notify two values when it starts, even if the database content is not changed. This is a consequence of the impossibility to create the [wal snapshot](https://www.sqlite.org/c3ref/snapshot_get.html) needed for detecting that no changes were performed during the observation startup. If your application performs truncating checkpoints, you will avoid this behavior if you recreate a non-empty wal file before starting observations. To do so, perform any kind of no-op transaction (such a creating and dropping a dummy table).
+**Truncating WAL checkpoints impact ValueObservation.** Such checkpoints are performed with ``Database/checkpoint(_:on:)`` or [`PRAGMA wal_checkpoint`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint). When an observation is started on a ``DatabasePool``, from a database that has a missing or empty [wal file](https://www.sqlite.org/tempfiles.html#write_ahead_log_wal_files), the observation will always notify two values when it starts, even if the database content is not changed. This is a consequence of the impossibility to create the [wal snapshot](https://www.sqlite.org/c3ref/snapshot_get.html) needed for detecting that no changes were performed during the observation startup. If your application performs truncating checkpoints, you will avoid this behavior if you recreate a non-empty wal file before starting observations. To do so, perform any kind of no-op transaction (such as creating and dropping a dummy table).
 
 
 ## Topics

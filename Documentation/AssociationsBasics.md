@@ -444,7 +444,7 @@ migrator.registerMigration("Employees") { db in
 }
 ```
 
-Note that the associations on both sides of the self-join use a customized **[association key](#the-structure-of-a-joined-request)**. This helps consuming this association. For example:
+Note that the associations on both sides of the self-join use a customized **[association key](#the-structure-of-a-joined-request)**. This helps consume this association. For example:
 
 ```swift
 struct EmployeeInfo: FetchableRecord, Decodable {
@@ -490,7 +490,7 @@ Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 If the database schema does not follow this convention, and has, for example, database tables which are named with underscores (`postal_address`), you can still use associations. But you need to help row consumption by naming your associations with a customized key:
 
 ```swift
-// Setup for table names that does not follow the expected convention
+// Setup for table names that do not follow the expected convention
 
 struct PostalAddress: TableRecord {
     // Customized table name
@@ -665,7 +665,7 @@ migrator.registerMigration("Countries") { db in
 1. The `country` table has a primary key.
 2. The `demographics.countryCode` column is used to link a demographic profile to the country it belongs to. This column is indexed in order to ease the selection of the demographics of a country. A foreign key is defined from `demographics.countryCode` column to `country.code`, so that SQLite guarantees that no profile refers to a missing country. The `onDelete: .cascade` option has SQLite automatically delete a profile when its country is deleted. See [Foreign Key Actions] for more information.
 3. Make the `demographics.countryCode` column not null if you want SQLite to guarantee that all profiles are linked to a country.
-4. Create a unique index on the `demographics.countryCode` column in order to guarantee the unicity of any country's profile.
+4. Create a unique index on the `demographics.countryCode` column in order to guarantee the uniqueness of any country's profile.
 
 The example above uses a string primary key for the "country" table. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
@@ -777,7 +777,7 @@ struct Book: TableRecord {
 Building Requests from Associations
 ===================================
 
-**Once you have defined associations, you can define fetch request that involve several record types.**
+**Once you have defined associations, you can define fetch requests that involve several record types.**
 
 Fetch requests do not visit the database until you fetch values from them. This will be covered in [Fetching Values from Associations]. But before you can fetch anything, you have to describe what you want to fetch. This is the topic of this chapter.
 
@@ -801,7 +801,7 @@ For example, given a `Book.author` **[BelongsTo]** association, you can build a 
 
 ```swift
 struct Book: TableRecord, EncodableRecord {
-    /// The association from a book to is author
+    /// The association from a book to its author
     static let author = belongsTo(Author.self)
     
     /// The request for the author of a book
@@ -1735,7 +1735,7 @@ Associations support more refinements:
 
 - [Common Table Expressions]
     
-    Association can use their own CTEs:
+    Associations can use their own CTEs:
     
     ```swift
     struct AuthorInfo: FetchableRecord, Decodable {
@@ -1811,7 +1811,7 @@ let request = Book
     .filter { $0.publishDate >= authorAlias[Author.Columns.deathDate] }
 ```
 
-Note that Swift 6.1 is required for the short syntac `alias.column`. From now on, we will only give examples in Swift 6.1.
+Note that Swift 6.1 is required for the short syntax `alias.column`. From now on, we will only give examples in Swift 6.1.
 
 **Table aliases** can also improve control over the ordering of request results. In the example below, we override the [default ordering](#sorting-associations) of associated records by sorting on author names first:
 
@@ -1990,7 +1990,7 @@ Each association included in the request can feed a property of the decoded reco
     let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
     ```
 
-- `including(required:)` feeds an non-optional property:
+- `including(required:)` feeds a non-optional property:
 
     ```swift
     let request = Book.including(required: Book.author)
@@ -2024,7 +2024,7 @@ Each association included in the request can feed a property of the decoded reco
 
 ## The Structure of a Joined Request
 
-**Joined request defines a tree of associated records identified by "association keys".**
+**A joined request defines a tree of associated records identified by "association keys".**
 
 Below, author and cover image are both associated to book, and country is associated to author:
 
@@ -2052,7 +2052,7 @@ struct BookInfo: FetchableRecord, Decodable {
 let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
-By default, **association keys** are the names of the database tables of associated records. Keys are automatically [singularized or pluralized](#convention-for-database-table-names), depending of the cardinality of the included association:
+By default, **association keys** are the names of the database tables of associated records. Keys are automatically [singularized or pluralized](#convention-for-database-table-names), depending on the cardinality of the included association:
 
 ```swift
 extension Author {
@@ -2108,7 +2108,7 @@ let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 
 We see that a hierarchical tree has been flattened in the `BookInfo` record.
 
-But sometimes your decoded records will have better reflect the hierarchical structure of the request:
+But sometimes your decoded records will better reflect the hierarchical structure of the request:
 
 
 ### Decoding a Hierarchical Decodable Record
@@ -2126,7 +2126,7 @@ let request = Book
 
 This requests for all books, with their cover images, and their authors and translators. Those people are themselves decorated with their respective nationalities.
 
-We plan to decode this request into is the following nested record:
+We plan to decode this request into the following nested record:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
@@ -2168,9 +2168,9 @@ let bookInfos = try BookInfo.all().fetchAll(db, request) // [BookInfo]
 
 ## Decoding a Joined Request with FetchableRecord
 
-When [Decodable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
+When [Decodable](#decoding-a-joined-request-with-a-decodable-record) records provide convenient decoding of joined rows, you may want a little more control over row decoding.
 
-The `init(row:)` initializer of the [FetchableRecord] protocol is what you look after:
+The `init(row:)` initializer of the [FetchableRecord] protocol is what you look for:
 
 ```swift
 let request = Book
@@ -2308,7 +2308,7 @@ let request = author.books.select { max($0.year) }
 let maxBookYear = try Int.fetchOne(db, request)  // Int?
 ```
 
-When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
+When you need to compute aggregates **from several records**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
 
 For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all, or some books:
 
@@ -2354,7 +2354,7 @@ for info in authorInfos {
 
 ### Annotating a Request with Aggregates
 
-The `annotated(with:)` method appends aggregated values to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
+The `annotated(with:)` method appends aggregated values to the selected columns of a request. You can append as many aggregate values as needed, from one or several associations.
 
 In order to access those values, you fetch records that have matching properties.
 
@@ -2697,7 +2697,7 @@ Aggregates can be modified and combined with Swift operators:
 
 When you compute multiple aggregates, make sure they use as many distinct **[association keys](#the-structure-of-a-joined-request)** as there are distinct populations of associated records.
 
-In the example below, we use compute two aggregates from the same association `Author.books`. Both aggregates are computed on the same population of associated records, and so we want them to share the same association key:
+In the example below, we compute two aggregates from the same association `Author.books`. Both aggregates are computed on the same population of associated records, and so we want them to share the same association key:
 
 - Authors with the publishing year of their first and last book:
 
@@ -2927,7 +2927,7 @@ See [Recommended Practices for Designing Record Types] for more information.
 
 ---
 
-This documentation owns a lot to the [Active Record Associations](http://guides.rubyonrails.org/association_basics.html) guide, which is an immensely well-written introduction to database relations. Many thanks to the Rails team and contributors.
+This documentation owes a lot to the [Active Record Associations](http://guides.rubyonrails.org/association_basics.html) guide, which is an immensely well-written introduction to database relations. Many thanks to the Rails team and contributors.
 
 ---
 

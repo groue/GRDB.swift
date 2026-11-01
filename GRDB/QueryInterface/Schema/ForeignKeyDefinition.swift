@@ -1,7 +1,7 @@
 /// Describes an association in the database schema.
 ///
 /// You get instances of `ForeignKeyDefinition` when you create a database
-/// tables. For example:
+/// table. For example:
 ///
 /// ```swift
 /// try db.create(table: "player") { t in

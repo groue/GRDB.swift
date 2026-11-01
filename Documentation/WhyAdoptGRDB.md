@@ -12,7 +12,7 @@ We'll start with a few [core principles](#core-principles), so that you see wher
 
 This is because a database row is not an easy type to deal with, and will never be, compared to a regular model. `player.name` looks and feels more natural than `playerRow["name"]`, doesn't it?
 
-The reputation of "active records" and ORMs has been tarnished by the recent focus on immutability, memory safety, and functional idioms that comes with languages like Swift and Rust. Features of 1st-generation records such as auto-updating, uniquing, lazy loading of relations, etc. are now considered ill-advised, if not plain harmful because of the multi-threading headaches they cause.
+The reputation of "active records" and ORMs has been tarnished by the recent focus on immutability, memory safety, and functional idioms that come with languages like Swift and Rust. Features of 1st-generation records such as auto-updating, uniquing, lazy loading of relations, etc. are now considered ill-advised, if not plain harmful because of the multi-threading headaches they cause.
 
 Yet recent ORMs such as Rust's [Diesel] have shown that it is possible to build record types that behave as plain and simple values. GRDB belongs to this family.
 
@@ -31,7 +31,7 @@ In the same vein, each application thread has its own version of a Realm databas
 Conversely, GRDB assumes that many apps want to use the database as a reliable and unambiguous storage.
 
 
-### Applications developers have specific needs.
+### Application developers have specific needs.
 
 GRDB puts all bets on SQLite, and focuses on front-end GUI applications.
 
@@ -115,7 +115,7 @@ let player = Player(name: "arthur", score: 1000)
 let players = try Player.fetchAll(db)
 ```
 
-**Fetched records behave just like an in-memory cache of the database content.** Your application is free to decide, on its own, how it should handle the lifetime of those cached values: by ignoring future database changes, or by observing database changes and react accordingly.
+**Fetched records behave just like an in-memory cache of the database content.** Your application is free to decide, on its own, how it should handle the lifetime of those cached values: by ignoring future database changes, or by observing database changes and reacting accordingly.
 
 In order to keep your views synchronized with the database content, you can use [ValueObservation]. It notifies fresh values after each database change, with convenient support for [Combine](Combine.md) and [RxSwift](https://github.com/RxSwiftCommunity/RxGRDB).
 
@@ -137,13 +137,13 @@ let cancellable = observation.publisher(in: dbQueue).sink(
     
 // RxGRDB
 let disposable = observation.rx.observe(in: dbQueue).subscribe(
-    onNext: { (players: [Player]) in print("Fresh playerss") },
+    onNext: { (players: [Player]) in print("Fresh players") },
     onError: { error in ... })
 ```
 
 No matter which observation technique you use, you have common guarantees:
 
-First, notifications only come from database changes safely saved on disk. This is part of the "database as the single source of truth" core principle. You won't get notifications from unsaved changes or changes that have an opportunity to be rollbacked.
+First, notifications only come from database changes safely saved on disk. This is part of the "database as the single source of truth" core principle. You won't get notifications from unsaved changes or changes that have an opportunity to be rolled back.
 
 Next, you choose the dispatch queue on which notifications happen (generally the main queue, by default, as in the examples above). GRDB makes sure notifications happen in the same order as database transactions.
 

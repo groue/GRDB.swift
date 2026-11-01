@@ -83,7 +83,7 @@ extension Database {
     ///   - stableOrder: A boolean value that controls the ordering of
     ///     rows fetched from views. If false (the default), rows are
     ///     printed in the order specified by the view (which may be
-    ///     undefined). It true, outputted rows are always printed in the
+    ///     undefined). If true, outputted rows are always printed in the
     ///     same stable order. The purpose of this stable order is to make
     ///     the output suitable for testing.
     ///   - stream: A stream for text output, which directs output to the

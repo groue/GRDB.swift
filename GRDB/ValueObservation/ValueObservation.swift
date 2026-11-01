@@ -158,7 +158,7 @@ extension ValueObservation: Refinable {
     /// ```
     ///
     /// By default, fresh values are dispatched asynchronously on the
-    /// main actor. Pass `.immediate` if the first value shoud be notified
+    /// main actor. Pass `.immediate` if the first value should be notified
     /// immediately when the observation starts:
     ///
     /// ```swift
@@ -274,7 +274,7 @@ extension ValueObservation: Refinable {
     /// // Observe player count: value: 1
     /// ```
     ///
-    /// - parameter prefix: A string —- which defaults to empty -— with which to
+    /// - parameter prefix: A string — which defaults to empty — with which to
     ///   prefix all log messages.
     /// - parameter stream: A stream for text output that receives messages, and
     ///   which directs output to the console by default. A custom stream can be
@@ -936,7 +936,7 @@ extension ValueObservation {
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
-    /// Creates a `ValueObservation` that notifies the fetched values whenever
+    /// Creates a `ValueObservation` that notifies the fetched value whenever
     /// it changes.
     ///
     /// For example:

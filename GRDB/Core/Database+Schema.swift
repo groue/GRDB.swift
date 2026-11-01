@@ -94,7 +94,7 @@ extension Database {
     /// Clears the database schema cache if the database schema has changed
     /// since this method was last called.
     func clearSchemaCacheIfNeeded() throws {
-        // `PRAGMA schema_version` fetches a 4-bytes integer (Int32), stored
+        // `PRAGMA schema_version` fetches a 4-byte integer (Int32), stored
         // at offset 40 of the database header:
         // <https://sqlite.org/pragma.html#pragma_schema_version>
         // <https://sqlite.org/fileformat2.html#database_header>
@@ -528,7 +528,7 @@ extension Database {
     /// Fetches a customized primary key for the database view identified
     /// by `view`.
     ///
-    /// Nil is returned in the view does not exist, or if `columns` is empty.
+    /// Nil is returned if the view does not exist, or if `columns` is empty.
     ///
     /// - precondition: If the view exists, columns must exist, must
     ///   identify a unique row, and must be not null.
@@ -948,7 +948,7 @@ extension Database {
     /// - parameter tableName: The name of the table to examine
     /// - parameter schemaName: The name of the schema to check
     /// - parameter introspector: An introspection function taking a
-    ///     `DatabaseObjectID` as the only parameter. It the result
+    ///     `DatabaseObjectID` as the only parameter. If the result
     ///     is nil, introspection fails and this method throws
     ///     `DatabaseError.noSuchTable`.
     private func introspect<T>(
@@ -987,7 +987,7 @@ extension Database {
     /// ```
     ///
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, if
-    /// the specified schema does not exist,or if no such table or view
+    /// the specified schema does not exist, or if no such table or view
     /// with this name exists in the main or temp schema, or in an attached
     /// database.
     public func columns(in tableName: String, in schemaName: String? = nil) throws -> [ColumnInfo] {
@@ -1135,7 +1135,7 @@ extension Database {
         return nil
     }
     
-    /// Returns the columns to check for NULL in order to check if the row exist.
+    /// Returns the columns to check for NULL in order to check if the row exists.
     ///
     /// The returned array is never empty.
     func existenceCheckColumns(in tableName: String) throws -> [String] {
@@ -1419,7 +1419,7 @@ public struct IndexInfo: Sendable{
 ///
 /// You get instances of `ForeignKeyViolation` from the `Database` methods
 /// ``Database/foreignKeyViolations()`` and
-/// ``Database/foreignKeyViolations(in:in:)`` methods.
+/// ``Database/foreignKeyViolations(in:in:)``.
 ///
 /// For example:
 ///
@@ -1464,7 +1464,7 @@ public struct ForeignKeyViolation: Sendable {
     
     /// The rowid of the row that contains the foreign key violation.
     ///
-    /// If it nil if the origin table is a `WITHOUT ROWID` table.
+    /// It is nil if the origin table is a `WITHOUT ROWID` table.
     public var originRowID: Int64?
     
     /// The name of the table that is referred to.
@@ -1714,7 +1714,7 @@ public struct PrimaryKeyInfo: Sendable {
     
     /// The name of the fastest primary key column.
     ///
-    /// Returns nil for WITHOUT ROWID tables with a multi-columns primary key
+    /// Returns nil for WITHOUT ROWID tables with a multi-column primary key
     var fastPrimaryKeyColumn: String? {
         if let rowIDColumn {
             // Prefer the user-provided name of the rowid
@@ -1828,7 +1828,7 @@ struct SchemaObject: Hashable, FetchableRecord {
 struct SchemaInfo: Equatable {
     let objects: Set<SchemaObject>
     
-    /// Returns whether there exists a object of given type with this name
+    /// Returns whether there exists an object of given type with this name
     /// (case-insensitive).
     func containsObjectNamed(_ name: String, ofType type: SchemaObjectType) -> Bool {
         let name = name.lowercased()

@@ -1,6 +1,6 @@
 import Dispatch
 
-/// A Pool maintains a set of elements that are built them on demand. A pool has
+/// A Pool maintains a set of elements that are built on demand. A pool has
 /// a maximum number of elements.
 ///
 ///     // A pool of 3 integers
@@ -181,7 +181,7 @@ final class Pool<T: Sendable>: Sendable {
     }
     
     /// Performs a block on each pool element, available or not.
-    /// The block is run is some arbitrary dispatch queue.
+    /// The block is run in some arbitrary dispatch queue.
     func forEach(_ body: (T) throws -> Void) rethrows {
         try contentLock.read { content in
             for item in content.items {

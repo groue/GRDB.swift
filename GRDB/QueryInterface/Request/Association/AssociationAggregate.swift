@@ -669,7 +669,7 @@ public struct AssociationAggregate<RowDecoder> {
     ///
     /// - We don't know yet if the aggregated expression will be used in the
     ///   SQL selection, or in the HAVING clause.
-    /// - It helps implementing aggregate operators such as `&&`, `+`, etc.
+    /// - It helps implement aggregate operators such as `&&`, `+`, etc.
     func prepare(_ request: inout some DerivableRequest<RowDecoder>) -> SQLExpression {
         preparation.prepare(&request)
     }
@@ -811,7 +811,7 @@ private class CombinePreparation<RowDecoder>: AssociationAggregatePreparation<Ro
     }
 }
 
-/// Combines the expression of two aggregates.
+/// Combines the expressions of two aggregates.
 private func combine<RowDecoder>(
     _ lhs: AssociationAggregate<RowDecoder>,
     _ rhs: AssociationAggregate<RowDecoder>,

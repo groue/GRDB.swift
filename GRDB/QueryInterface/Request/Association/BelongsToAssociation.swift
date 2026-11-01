@@ -1,4 +1,4 @@
-/// Thes `BelongsToAssociation` sets up a one-to-one connection from a record
+/// The `BelongsToAssociation` sets up a one-to-one connection from a record
 /// type to another record type, such as each instance of the declaring record
 /// "belongs to" an instance of the other record.
 ///

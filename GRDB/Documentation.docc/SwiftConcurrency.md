@@ -149,7 +149,7 @@ let observation = ValueObservation.tracking { db in
 
 The solution is to have the record type conform to `Sendable`.
 
-Since classes are difficult to make `Sendable`, the easiest way to is to replace classes with structs composed of `Sendable` properties:
+Since classes are difficult to make `Sendable`, the easiest way is to replace classes with structs composed of `Sendable` properties:
 
 ```swift
 // This struct is Sendable
@@ -172,7 +172,7 @@ You do not need to perform this refactoring right away: you can compile your app
 
 - **Question: I need a hierarchy of record classes because I use inheritance.**
     
-    It should be possible to refactor the class hiearchy with Swift protocols. See <doc:RecordTimestamps> for a practical example. Protocols make it possible to define records as structs.
+    It should be possible to refactor the class hierarchy with Swift protocols. See <doc:RecordTimestamps> for a practical example. Protocols make it possible to define records as structs.
 
 - **Question: I use the `@Observable` macro for my record types, and this macro requires a class.**
 
@@ -212,7 +212,7 @@ Synchronous database accesses are handy. They avoid undesired delays, flashes of
 
 Performing synchronous accesses from Swift Concurrency tasks is not incorrect.
 
-Some people recommend to avoid performing long blocking jobs on the cooperative thread pool, so you might want to follow this advice, and prefer to always `await` for the database in Swift tasks. In many occasions, the compiler will help you. For example, in the sample code below, the compiler requires the `await` keyword:
+Some people recommend avoiding long blocking jobs on the cooperative thread pool, so you might want to follow this advice, and prefer to always `await` for the database in Swift tasks. In many occasions, the compiler will help you. For example, in the sample code below, the compiler requires the `await` keyword:
 
 ```swift
 func fetchPlayers() async throws -> [Player] {

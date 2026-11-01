@@ -147,7 +147,7 @@ open class Record {
     /// This flag is purely informative, and does not prevent insertions and
     /// updates from performing their database queries.
     ///
-    /// A record is *edited* if has been changed since last database
+    /// A record is *edited* if it has been changed since last database
     /// synchronization (fetch, update, or insert). Comparison
     /// is performed between *values* (values stored in the ``encode(to:)``
     /// method, and values decoded from ``init(row:)``). Property setters do not
@@ -354,7 +354,7 @@ open class Record {
     /// ```
     ///
     /// - parameter db: A database connection.
-    /// - parameter save: A function that saves the recordsave: A function that saves the record. Its result is
+    /// - parameter save: A function that saves the record. Its result is
     ///   reserved for GRDB usage.
     open func aroundSave(_ db: Database, save: () throws -> PersistenceSuccess) throws {
         _ = try save()

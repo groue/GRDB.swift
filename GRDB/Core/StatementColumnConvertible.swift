@@ -103,7 +103,7 @@ public protocol StatementColumnConvertible {
     /// database values are handled
     /// in ``StatementColumnConvertible/fromStatement(_:atUncheckedIndex:)-2i8y6``.
     ///
-    /// For example, here is the how Int64 adopts StatementColumnConvertible:
+    /// For example, here is how Int64 adopts StatementColumnConvertible:
     ///
     /// ```swift
     /// extension Int64: StatementColumnConvertible {

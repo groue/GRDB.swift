@@ -8,7 +8,7 @@ Some applications want to record creation and modification dates of database rec
 
 > Note: Creation and modification dates can be automatically handled by [SQLite triggers](https://www.sqlite.org/lang_createtrigger.html). We'll explore a different technique, though.
 >
-> This is not an advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
+> This is not advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
 >
 > - A trigger does not suffer any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
 > - The current time, according to SQLite, is not guaranteed to be constant in a given transaction. This may create undesired timestamp variations. We'll see below how GRDB provides a date that is constant at any point during a transaction.

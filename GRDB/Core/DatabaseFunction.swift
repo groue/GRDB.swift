@@ -79,7 +79,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
     ///     - argumentCount: The number of arguments of the function. If
     ///       omitted, or nil, the function accepts any number of arguments.
     ///     - pure: Whether the function is "pure", which means that its results
-    ///       only depends on its inputs. When a function is pure, SQLite has
+    ///       only depend on its inputs. When a function is pure, SQLite has
     ///       the opportunity to perform additional optimizations. Default value
     ///       is false.
     ///     - function: A function that takes an array of ``DatabaseValue``
@@ -167,7 +167,7 @@ public final class DatabaseFunction: Identifiable, Sendable {
     ///     - argumentCount: The number of arguments of the aggregate. If
     ///       omitted, or nil, the aggregate accepts any number of arguments.
     ///     - pure: Whether the aggregate is "pure", which means that its
-    ///       results only depends on its inputs. When an aggregate is pure,
+    ///       results only depend on its inputs. When an aggregate is pure,
     ///       SQLite has the opportunity to perform additional optimizations.
     ///       Default value is false.
     ///     - aggregate: A type that implements the ``DatabaseAggregate``

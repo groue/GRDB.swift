@@ -93,7 +93,7 @@ public struct Configuration: Sendable {
     public var label: String?
     
     /// A boolean value indicating whether SQLite 3.29+ interprets
-    /// double-quoted strings as string literals when they does not match any
+    /// double-quoted strings as string literals when they do not match any
     /// valid identifier.
     ///
     /// The default and recommended value is false:
@@ -126,7 +126,7 @@ public struct Configuration: Sendable {
     ///
     /// Set this flag to true when you apply the technique described in
     /// <doc:DatabaseSharing#How-to-limit-the-0xDEAD10CC-exception>. See
-    /// ``Database/suspendNotification`` for more informations about
+    /// ``Database/suspendNotification`` for more information about
     /// suspended databases.
     public var observesSuspensionNotifications = false
     
@@ -236,7 +236,7 @@ public struct Configuration: Sendable {
     /// }
     /// ```
     ///
-    /// On newly created databases files, ``DatabasePool`` activates the WAL
+    /// On newly created database files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
     public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
@@ -259,7 +259,7 @@ public struct Configuration: Sendable {
     /// }
     /// ```
     ///
-    /// When true, one can leave opened transaction at the end of database
+    /// When true, one can leave an opened transaction at the end of a database
     /// access method:
     ///
     /// ```swift
@@ -323,7 +323,7 @@ public struct Configuration: Sendable {
     
     // MARK: - Concurrency
     
-    /// Defines the how `SQLITE_BUSY` errors are handled.
+    /// Defines how `SQLITE_BUSY` errors are handled.
     ///
     /// The default is ``Database/BusyMode/immediateError``.
     ///

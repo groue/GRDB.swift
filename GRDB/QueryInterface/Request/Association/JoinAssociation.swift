@@ -1,4 +1,4 @@
-/// The `JoinAssociation` joins common table expression to regular
+/// The `JoinAssociation` joins common table expressions to regular
 /// tables or other common table expressions.
 public struct JoinAssociation<Origin, Destination> {
     public var _sqlAssociation: _SQLAssociation

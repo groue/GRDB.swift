@@ -55,7 +55,7 @@
 ///
 /// ### Building Query Interface Requests
 ///
-/// `Table` provide convenience access to most ``DerivableRequest`` and
+/// `Table` provides convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods.
 ///
 /// - ``aliased(_:)-3135k``
@@ -1532,7 +1532,7 @@ extension Table {
 
 extension Table {
     /// Returns a request with the given association aggregates appended to
-    /// the table colums.
+    /// the table columns.
     ///
     /// See the ``TableRecord`` method ``TableRecord/annotated(with:)-4xoen``
     /// for more information.
@@ -1541,7 +1541,7 @@ extension Table {
     }
 
     /// Returns a request with the given association aggregates appended to
-    /// the table colums.
+    /// the table columns.
     ///
     /// See the ``TableRecord`` method ``TableRecord/annotated(with:)-8ce7u``
     /// for more information.
@@ -1925,7 +1925,7 @@ extension Table {
     ///
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution.
-    /// - parameter assignment: A closure that returns an assignments.
+    /// - parameter assignment: A closure that returns an assignment.
     /// - returns: The number of updated rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     @discardableResult

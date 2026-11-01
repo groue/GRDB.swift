@@ -8,11 +8,11 @@ extension NSString: DatabaseValueConvertible {
         (self as String).databaseValue
     }
     
-    /// Returns a `NSString` from the specified database value.
+    /// Returns an `NSString` from the specified database value.
     ///
     /// If the database value contains a string, returns it.
     ///
-    /// If the database value contains a data blob, parses this data as an
+    /// If the database value contains a data blob, parses this data as a
     /// UTF8 string.
     ///
     /// Otherwise, returns nil.

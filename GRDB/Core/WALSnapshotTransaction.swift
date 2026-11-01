@@ -1,5 +1,5 @@
 #if SQLITE_ENABLE_SNAPSHOT && !SQLITE_DISABLE_SNAPSHOT
-/// A long-live read-only WAL transaction.
+/// A long-lived read-only WAL transaction.
 ///
 /// `WALSnapshotTransaction` **takes ownership** of its reader
 /// `SerializedDatabase` (TODO: make it a move-only type eventually).
@@ -35,7 +35,7 @@ final class WALSnapshotTransaction: @unchecked Sendable {
     /// The state of the database at the beginning of the transaction.
     let walSnapshot: WALSnapshot
     
-    /// Creates a long-live WAL transaction on a read-only connection.
+    /// Creates a long-lived WAL transaction on a read-only connection.
     ///
     /// The `release` closure is always called. It is called when the
     /// `WALSnapshotTransaction` is deallocated, or if the initializer

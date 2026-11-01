@@ -113,7 +113,7 @@ let cancellable = publisher.sink(
 
 # Asynchronous Database Access
 
-GRDB provide publishers that perform asynchronous database accesses:
+GRDB provides publishers that perform asynchronous database accesses:
 
 - [`readPublisher(receiveOn:value:)`]
 - [`writePublisher(receiveOn:updates:)`]
@@ -123,7 +123,7 @@ GRDB provide publishers that perform asynchronous database accesses:
 
 #### `DatabaseReader.readPublisher(receiveOn:value:)`
 
-This methods returns a publisher that completes after database values have been asynchronously fetched.
+This method returns a publisher that completes after database values have been asynchronously fetched.
 
 ```swift
 // DatabasePublishers.Read<[Player]>
@@ -311,7 +311,7 @@ When you compose database publishers together with Combine operators such as `co
 
 This is because each database publisher is isolated from others: each one of them sees its own state of the database. Whenever some database change is interleaved between publisher operations, publishers will process or publish values that may not fit well together.
 
-In other words, whenever you need to perform some database access or observation that depends on some database invariant, make sure you define one and only one database publisher instead of combining several publishers. This is how you will prevent eventual concurrent database writes from messing with your app, and introduce bugs.
+In other words, whenever you need to perform some database access or observation that depends on some database invariant, make sure you define one and only one database publisher instead of combining several publishers. This is how you will prevent eventual concurrent database writes from messing with your app, and introducing bugs.
 
 To this end, remember that *all database publishers can perform several requests*.
 

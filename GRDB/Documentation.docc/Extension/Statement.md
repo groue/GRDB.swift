@@ -68,7 +68,7 @@ let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 
 > Note: A prepared statement that has failed with an error can not be recovered. Create a new instance, or use a cached statement as described below.
 
-> Tip: When you look after the best performance, take care about a difference between setting the arguments before execution, and setting the arguments at the moment of execution:
+> Tip: When you look for the best performance, take care about a difference between setting the arguments before execution, and setting the arguments at the moment of execution:
 >
 > ```swift
 > // First option
@@ -190,7 +190,7 @@ let statements = try Array(db.allStatements(sql: """
 - ``validateArguments(_:)``
 - ``StatementArguments``
 
-### Statement Informations
+### Statement Information
 
 - ``columnCount``
 - ``columnNames``

@@ -63,7 +63,7 @@ public struct TableOptions: OptionSet, Sendable {
 ///
 /// - ``uniqueKey(_:onConflict:)``
 ///
-/// ### Define Others Constraints
+/// ### Define Other Constraints
 ///
 /// - ``check(_:)-6u1za``
 /// - ``check(_:)-jpcg``

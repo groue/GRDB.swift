@@ -3,7 +3,7 @@
 /// - It provides a database connection during SQL generation, for any purpose
 ///   such as schema introspection.
 ///
-/// - It provides unique table aliases in order to disambiguates table names
+/// - It provides unique table aliases in order to disambiguate table names
 ///   and columns.
 ///
 /// - It gathers SQL arguments in order to prevent SQL injection.
@@ -46,7 +46,7 @@ final class SQLGenerationContext {
     /// - parameter db: A database connection.
     /// - parameter argumentsSink: An arguments sink.
     /// - parameter aliases: An array of table aliases to disambiguate.
-    /// - parameter ctes: An dictionary of available CTEs.
+    /// - parameter ctes: A dictionary of available CTEs.
     init(
         _ db: Database,
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
@@ -63,7 +63,7 @@ final class SQLGenerationContext {
     ///
     /// - parameter parent: A parent context.
     /// - parameter aliases: An array of table aliases to disambiguate.
-    /// - parameter ctes: An dictionary of available CTEs.
+    /// - parameter ctes: A dictionary of available CTEs.
     private init(
         parent: SQLGenerationContext,
         aliases: [TableAliasBase],

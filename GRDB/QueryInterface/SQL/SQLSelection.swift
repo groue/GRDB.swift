@@ -311,7 +311,7 @@ extension SQLSelection {
 extension [SQLSelection] {
     /// Returns the number of columns in the selection.
     ///
-    /// This method raises a fatal error if the selection contains a literal,
+    /// This method raises a fatal error if the selection contains a literal.
     ///
     /// See `SQLSelection.columnCount(_:)` for testability.
     func columnCount(_ context: SQLGenerationContext) throws -> Int {

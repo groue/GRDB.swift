@@ -65,7 +65,7 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// }
     /// ```
     ///
-    /// When implementing the accept method, there are a two rules
+    /// When implementing the accept method, there are two rules
     /// to observe:
     ///
     /// 1. Errors thrown by the tokenCallback function must not be caught.

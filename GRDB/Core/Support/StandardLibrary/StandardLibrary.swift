@@ -130,9 +130,9 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
         Int64(self).databaseValue
     }
     
-    /// Returns a `Int` from the specified database value.
+    /// Returns an `Int` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -169,9 +169,9 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
         Int64(self).databaseValue
     }
     
-    /// Returns a `Int8` from the specified database value.
+    /// Returns an `Int8` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -208,9 +208,9 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
         Int64(self).databaseValue
     }
     
-    /// Returns a `Int16` from the specified database value.
+    /// Returns an `Int16` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -247,9 +247,9 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
         Int64(self).databaseValue
     }
     
-    /// Returns a `Int32` from the specified database value.
+    /// Returns an `Int32` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -282,9 +282,9 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
         DatabaseValue(storage: .int64(self))
     }
     
-    /// Returns a `Int64` from the specified database value.
+    /// Returns an `Int64` from the specified database value.
     ///
-    /// If the database value contains a integer, returns this integer.
+    /// If the database value contains an integer, returns this integer.
     ///
     /// If the database value contains a double representable in this type after
     /// rounding toward zero, returns the conversion.
@@ -331,7 +331,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `UInt` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -370,7 +370,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `UInt8` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -409,7 +409,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `UInt16` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -448,7 +448,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `UInt32` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -487,7 +487,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `UInt64` from the specified database value.
     ///
-    /// If the database value contains a integer representable in this type,
+    /// If the database value contains an integer representable in this type,
     /// returns this integer.
     ///
     /// If the database value contains a double representable in this type after
@@ -522,7 +522,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `Double` from the specified database value.
     ///
-    /// If the database value contains a integer, returns the conversion.
+    /// If the database value contains an integer, returns the conversion.
     ///
     /// If the database value contains a double, returns this double.
     ///
@@ -562,7 +562,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a `Float` from the specified database value.
     ///
-    /// If the database value contains a integer, returns the conversion.
+    /// If the database value contains an integer, returns the conversion.
     ///
     /// If the database value contains a double, returns the conversion.
     ///
@@ -606,7 +606,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///
     /// If the database value contains a string, returns it.
     ///
-    /// If the database value contains a data blob, parses this data as an
+    /// If the database value contains a data blob, parses this data as a
     /// UTF8 string.
     ///
     /// Otherwise, returns nil.
@@ -652,7 +652,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
         }
     }
     
-    /// Runs body over the content of this string as an UTF8 string. This
+    /// Runs body over the content of this string as a UTF8 string. This
     /// method exists because it deals with the ASCII NUL (\0) characters,
     /// unlike C strings.
     ///
@@ -684,7 +684,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Foundation
     /// `String.capitalized` property.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's
@@ -705,7 +705,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Swift
     /// `String.lowercased()` method.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's
@@ -726,7 +726,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Swift
     /// `String.uppercased()` method.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's
@@ -747,7 +747,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Foundation
     /// `String.localizedCapitalized` property.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's
@@ -769,7 +769,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Foundation
     /// `String.localizedLowercase` property.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's
@@ -790,7 +790,7 @@ extension DatabaseFunction {
     /// An SQL function that calls the Foundation
     /// `String.localizedUppercase` property.
     ///
-    /// `NULL` is returned for non-strings values.
+    /// `NULL` is returned for non-string values.
     ///
     /// This function is automatically added by GRDB to your database
     /// connections. It is the function used by the query interface's

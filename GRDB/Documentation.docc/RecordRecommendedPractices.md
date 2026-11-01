@@ -51,7 +51,7 @@ Thanks to this database schema, the application will always process *consistent 
 
 > Tip: **A local SQLite database is not a JSON payload loaded from a remote server.**
 >
-> The JSON format and content can not be controlled, and an application must defend itself against wacky servers. But a local database is under your full control. It is trustable. A relational database such as SQLite guarantees the quality of users data, as long as enough energy is put in the proper definition of the database schema.
+> The JSON format and content can not be controlled, and an application must defend itself against wacky servers. But a local database is under your full control. It is trustable. A relational database such as SQLite guarantees the quality of users' data, as long as enough energy is put in the proper definition of the database schema.
 
 > Tip: **Plan early for future versions of your application**: use <doc:Migrations>.
 
@@ -138,7 +138,7 @@ let books = try dbQueue.read { db in
 >
 > There are exceptions to this rule.
 >
-> For example, the `id` column is never NULL in the database. And yet, `Author` as an optional `id` property. That is because we want to create instances of `Author` before they could be inserted in the database, and be assigned an auto-incremented id. If the `id` property was not optional, the `Author` type could not profit from auto-incremented ids!
+> For example, the `id` column is never NULL in the database. And yet, `Author` has an optional `id` property. That is because we want to create instances of `Author` before they could be inserted in the database, and be assigned an auto-incremented id. If the `id` property was not optional, the `Author` type could not profit from auto-incremented ids!
 >
 > Another exception to this rule is described in <doc:RecordTimestamps>, where the creation date of a record is never NULL in the database, but optional in the Swift type.
 
@@ -220,7 +220,7 @@ let novels = try dbQueue.read { db in
 
 #### Second Example: GPS Coordinates
 
-GPS coordinates can be stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
+GPS coordinates can be stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinates is a single `CLLocationCoordinate2D` struct.
 
 When this happens, keep column properties private, and provide sensible accessors instead:
 
@@ -408,7 +408,7 @@ let names: Set<String> = try Author.all()
 
 ## Associations
 
-[Associations] help navigating from authors to their books and vice versa. Because the `book` table has an `authorId` column, we say that each book **belongs to** its author, and each author **has many** books:
+[Associations] help navigate from authors to their books and vice versa. Because the `book` table has an `authorId` column, we say that each book **belongs to** its author, and each author **has many** books:
 
 ```swift
 extension Book {
@@ -517,7 +517,7 @@ let authorships: [Authorship] = try dbQueue.read { db in
 
 In the above sample codes, requests that fetch values from several tables are decoded into additional record types: `AuthorInfo`, `LiteraryCareer`, and `Authorship`.
 
-Those record type conform to both [`Decodable`] and ``FetchableRecord``, so that they can feed from database rows. They do not provide any persistence methods, though. **All database writes are performed from persistable record instances** (of type `Author` or `Book`).
+Those record types conform to both [`Decodable`] and ``FetchableRecord``, so that they can feed from database rows. They do not provide any persistence methods, though. **All database writes are performed from persistable record instances** (of type `Author` or `Book`).
 
 For more information about associations, see the [Associations] guide.
 

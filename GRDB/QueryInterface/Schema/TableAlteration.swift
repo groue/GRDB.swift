@@ -41,7 +41,7 @@ public final class TableAlteration {
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
-    /// - returns: An ColumnDefinition that allows you to refine the
+    /// - returns: A ColumnDefinition that allows you to refine the
     ///   column definition.
     @discardableResult
     public func add(column name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {

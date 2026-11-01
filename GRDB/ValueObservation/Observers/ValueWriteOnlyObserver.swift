@@ -295,7 +295,7 @@ extension ValueWriteOnlyObserver {
         }
     }
     
-    /// Fetches the initial value, and start observing the database.
+    /// Fetches the initial value, and starts observing the database.
     ///
     /// Returns nil if the observation was cancelled before database observation
     /// could start.

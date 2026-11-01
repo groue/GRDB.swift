@@ -25,7 +25,7 @@ extension Database {
         public static func file(_ path: String) -> Self { Self(rawValue: path) }
     }
     
-    /// Granularitly of SQLCipher log outputs.
+    /// Granularity of SQLCipher log outputs.
     ///
     /// Each log level is more verbose than the last. With ``debug`` and
     /// ``trace`` the logging system will generate a significant log volume.

@@ -3,7 +3,7 @@ final class DAO<Record: MutablePersistableRecord> {
     /// The database
     let db: Database
     
-    /// DAO keeps a copy the record's persistenceContainer, so that this
+    /// DAO keeps a copy of the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
     /// guaranteed to have at least one (key, value) pair.
     let persistenceContainer: PersistenceContainer

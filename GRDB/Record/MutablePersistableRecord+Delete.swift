@@ -46,7 +46,7 @@ extension MutablePersistableRecord {
 // MARK: - Internals
 
 extension MutablePersistableRecord {
-    /// Executes an `DELETE` statement, and DOES NOT run deletion callbacks.
+    /// Executes a `DELETE` statement, and DOES NOT run deletion callbacks.
     @usableFromInline
     func deleteWithoutCallbacks(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).deleteStatement() else {

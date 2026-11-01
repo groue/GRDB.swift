@@ -12,8 +12,8 @@ extension ValueObservation {
     /// ```
     ///
     /// The `transform` closure does not run on the main thread, and does not
-    /// block any database access This makes the `map` operator a tool that
-    /// helps reducing database contention
+    /// block any database access. This makes the `map` operator a tool that
+    /// helps reduce database contention
     /// (see <doc:ValueObservation#ValueObservation-Performance>).
     ///
     /// - parameter transform: A closure that takes one value as its parameter

@@ -69,7 +69,7 @@ extension NSNumber: DatabaseValueConvertible {
         }
     }
     
-    /// Returns a `NSNumber` from the specified database value.
+    /// Returns an `NSNumber` from the specified database value.
     ///
     /// If the database value is an integer or a double, returns an `NSNumber`
     /// initialized from this number.

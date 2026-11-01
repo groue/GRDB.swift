@@ -143,7 +143,7 @@ typealias ForeignKeyMapping = [(origin: String, destination: String)]
 typealias JoinMapping = [(left: String, right: String)]
 
 extension ForeignKeyMapping {
-    /// Orient the foreign key mapping for a SQL join.
+    /// Orient the foreign key mapping for an SQL join.
     ///
     /// - parameter originIsLeft: Whether the table at the origin of a
     ///   foreign key is on the left of a JOIN clause.

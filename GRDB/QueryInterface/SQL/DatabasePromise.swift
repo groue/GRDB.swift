@@ -10,7 +10,7 @@
 ///     let countryRequest = Country.filter(key: "FR")
 ///
 /// Both need a database connection in order to introspect the database schema,
-/// find the primary key of both table, and generate the correct SQL:
+/// find the primary key of both tables, and generate the correct SQL:
 ///
 ///     try dbQueue.read { db in
 ///         // SELECT * FROM player WHERE id = 1

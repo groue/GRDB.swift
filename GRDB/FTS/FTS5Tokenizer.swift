@@ -147,7 +147,7 @@ extension FTS5Tokenizer {
     /// - parameter tokenization: The reason why tokenization is requested:
     ///     - .document: Tokenize like a document being inserted into an FTS table.
     ///     - .query: Tokenize like the search pattern of the MATCH operator.
-    /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
+    /// - parameter tokenizer: An FTS5TokenizerDescriptor such as .ascii()
     private func tokenize(_ string: String, for tokenization: FTS5Tokenization)
     throws -> [(token: String, flags: FTS5TokenFlags)]
     {

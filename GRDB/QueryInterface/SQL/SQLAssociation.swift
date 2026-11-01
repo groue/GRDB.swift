@@ -11,7 +11,7 @@
 ///     // JOIN destination ON ...
 ///     Origin.including(required: association)
 ///
-/// For direct associations such as BelongTo or HasMany, the chain contains a
+/// For direct associations such as BelongsTo or HasMany, the chain contains a
 /// single element, the "destination", without intermediate step:
 ///
 ///     // "Origin" belongsTo "destination":
@@ -229,7 +229,7 @@ enum SQLAssociationKey: Refinable {
     ///     row.scopes["author"]  // singularized "authors" table name
     case inflected(String)
     
-    /// A key that is inflected in plural contexts, but stricly honors
+    /// A key that is inflected in plural contexts, but strictly honors
     /// user-provided name in singular contexts.
     ///
     /// For example:
@@ -243,7 +243,7 @@ enum SQLAssociationKey: Refinable {
     ///     row.scopes["demographics"]  // not singularized
     case fixedSingular(String)
     
-    /// A key that is inflected in singular contexts, but stricly honors
+    /// A key that is inflected in singular contexts, but strictly honors
     /// user-provided name in plural contexts.
     /// See .inflected and .fixedSingular for some context.
     case fixedPlural(String)

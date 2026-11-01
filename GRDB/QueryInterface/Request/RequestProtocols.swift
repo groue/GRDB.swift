@@ -44,7 +44,7 @@ public protocol SelectionRequest {
     ///
     /// The `selection` parameter is a closure that accepts a database
     /// connection and returns an array of result columns. It is evaluated when
-    /// the request has an access to the database, and can perform database
+    /// the request has access to the database, and can perform database
     /// requests in order to build its result.
     ///
     /// For example:
@@ -75,7 +75,7 @@ public protocol SelectionRequest {
     ///
     /// The `selection` parameter is a closure that accepts a database
     /// connection and returns an array of result columns. It is evaluated when
-    /// the request has an access to the database, and can perform database
+    /// the request has access to the database, and can perform database
     /// requests in order to build its result.
     ///
     /// For example:
@@ -362,7 +362,7 @@ public protocol FilteredRequest {
     ///
     /// The `predicate` parameter is a closure that accepts a database
     /// connection and returns a boolean SQL expression. It is evaluated when
-    /// the request has an access to the database, and can perform database
+    /// the request has access to the database, and can perform database
     /// requests in order to build its result.
     ///
     /// For example:
@@ -996,7 +996,7 @@ public protocol AggregatingRequest {
     ///
     /// The `expressions` parameter is a closure that accepts a database
     /// connection and returns an array of grouping SQL expressions. It is
-    /// evaluated when the request has an access to the database, and can
+    /// evaluated when the request has access to the database, and can
     /// perform database requests in order to build its result.
     ///
     /// For example:
@@ -1022,7 +1022,7 @@ public protocol AggregatingRequest {
     ///
     /// The `predicate` parameter is a closure that accepts a database
     /// connection and returns a boolean SQL expression. It is evaluated when
-    /// the request has an access to the database, and can perform database
+    /// the request has access to the database, and can perform database
     /// requests in order to build its result.
     ///
     /// For example:
@@ -1274,7 +1274,7 @@ public protocol OrderedRequest {
     ///
     /// The `orderings` parameter is a closure that accepts a database
     /// connection and returns an array of SQL ordering terms. It is evaluated
-    /// when the request has an access to the database, and can perform database
+    /// when the request has access to the database, and can perform database
     /// requests in order to build its result.
     ///
     /// For example:
@@ -1344,7 +1344,7 @@ public protocol OrderedRequest {
     
     /// Returns a request with a stable order.
     ///
-    /// The returned request lifts ordering ambiguities and always return
+    /// The returned request lifts ordering ambiguities and always returns
     /// its results in the same order.
     ///
     /// The purpose of this method is to make requests testable.

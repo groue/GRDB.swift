@@ -6,7 +6,7 @@
 //
 // It wraps an SQLQuery, and has an attached type.
 //
-// The attached RowDecoder type helps decoding raw database values:
+// The attached RowDecoder type helps decode raw database values:
 //
 //     try dbQueue.read { db in
 //         try playerRequest.fetchAll(db) // [Player]
@@ -600,7 +600,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
 // MARK: - Check Existence
 
 extension QueryInterfaceRequest {
-    /// Returns whether the requests does not match any row in the database.
+    /// Returns whether the request does not match any row in the database.
     ///
     /// For example:
     ///
@@ -1211,7 +1211,7 @@ extension QueryInterfaceRequest {
     ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    /// - precondition: The results of `select` and `assignments` results
+    /// - precondition: The results of `select` and `assignments`
     ///   are not empty.
     public func updateAndFetchStatement(
         _ db: Database,
@@ -1358,7 +1358,7 @@ extension QueryInterfaceRequest {
         return try RowDecoder.fetchCursor(statement)
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// Executes an `UPDATE RETURNING` statement and returns the array of
     /// updated records.
     ///
     /// For example:
@@ -1397,7 +1397,7 @@ extension QueryInterfaceRequest {
         try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// Executes an `UPDATE RETURNING` statement and returns the array of
     /// updated records.
     ///
     /// For example:
@@ -1429,7 +1429,7 @@ extension QueryInterfaceRequest {
         try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// Executes an `UPDATE RETURNING` statement and returns the set of
     /// updated records.
     ///
     /// For example:
@@ -1468,7 +1468,7 @@ extension QueryInterfaceRequest {
         try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// Executes an `UPDATE RETURNING` statement and returns the set of
     /// updated records.
     ///
     /// For example:
@@ -1534,7 +1534,7 @@ extension QueryInterfaceRequest {
     ///   (must not be empty).
     /// - returns: A prepared statement.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
-    /// - precondition: The results of `select` and `assignments` results
+    /// - precondition: The results of `select` and `assignments`
     ///   are not empty.
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func updateAndFetchStatement(
@@ -1685,7 +1685,7 @@ extension QueryInterfaceRequest {
         return try RowDecoder.fetchCursor(statement)
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// Executes an `UPDATE RETURNING` statement and returns the array of
     /// updated records.
     ///
     /// For example:
@@ -1725,7 +1725,7 @@ extension QueryInterfaceRequest {
         try updateAndFetchAll(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the array of
+    /// Executes an `UPDATE RETURNING` statement and returns the array of
     /// updated records.
     ///
     /// For example:
@@ -1758,7 +1758,7 @@ extension QueryInterfaceRequest {
         try Array(updateAndFetchCursor(db, onConflict: conflictResolution, assignments))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// Executes an `UPDATE RETURNING` statement and returns the set of
     /// updated records.
     ///
     /// For example:
@@ -1798,7 +1798,7 @@ extension QueryInterfaceRequest {
         try updateAndFetchSet(db, onConflict: conflictResolution, assignments(RowDecoder.databaseComponents))
     }
     
-    /// Execute an `UPDATE RETURNING` statement and returns the set of
+    /// Executes an `UPDATE RETURNING` statement and returns the set of
     /// updated records.
     ///
     /// For example:
@@ -2370,7 +2370,7 @@ throws -> DatabaseRegion
 
 extension [Row] {
     /// - precondition: Columns all exist in all rows. All rows have the same
-    ///   columnns, in the same order.
+    ///   columns, in the same order.
     fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
         guard let firstRow = first else {
             return [:]

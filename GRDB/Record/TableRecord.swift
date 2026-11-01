@@ -54,7 +54,7 @@ import Foundation
 ///
 /// ### Building Query Interface Requests
 ///
-/// `TableRecord` provide convenience access to most ``DerivableRequest`` and
+/// `TableRecord` provides convenience access to most ``DerivableRequest`` and
 /// ``QueryInterfaceRequest`` methods as static methods on the type itself.
 ///
 /// - ``aliased(_:)-sdcd``
@@ -918,7 +918,7 @@ public enum RecordError: Error {
     /// ``MutablePersistableRecord/update(_:onConflict:)``. In this case,
     /// the error means that the database was not changed.
     ///
-    /// It can also be thrown from methods that inserts or update with a
+    /// It can also be thrown from methods that insert or update with a
     /// `RETURNING` clause, and the `IGNORE` conflict policy. In this case,
     /// the error notifies that a conflict has prevented the change from
     /// being applied.

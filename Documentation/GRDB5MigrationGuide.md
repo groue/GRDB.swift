@@ -1,7 +1,7 @@
 Migrating From GRDB 4 to GRDB 5
 ===============================
 
-**This guide aims at helping you upgrading your applications from GRDB 4 to GRDB 5.**
+**This guide aims at helping you upgrade your applications from GRDB 4 to GRDB 5.**
 
 - [Preparing the Migration to GRDB 5](#preparing-the-migration-to-grdb-5)
 - [New requirements](#new-requirements)
@@ -65,7 +65,7 @@ let dbQueue = try DatabaseQueue(dbPath, configuration: config)
 
 [ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
 
-Those changes have the vanilla GRDB, its [Combine publishers], and [RxGRDB] offer a common API, and a common behavior. This greatly helps choosing or switching your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
+Those changes have the vanilla GRDB, its [Combine publishers], and [RxGRDB] offer a common API, and a common behavior. This greatly helps choose or switch your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
 
 In the end, this migration step might require some work. But it's for the benefit of all!
 
@@ -111,7 +111,7 @@ let observation = ValueObservation.tracking(someFetchFunction)
 let observation = ValueObservation.tracking { db in ... }
 ```
 
-Finally, ValueObservation used to let application define custom "reducers" based on a protocol name ValueReducer, which was removed in GRDB 5. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
+Finally, ValueObservation used to let application define custom "reducers" based on a protocol named ValueReducer, which was removed in GRDB 5. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
 <details>
     <summary>RxGRDB impact</summary>
@@ -319,7 +319,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     }
     ```
     
-    As is previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+    As in previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
 
 ## Combine Integration
@@ -344,7 +344,7 @@ let publisher = observation
 
 ## Other Changes
 
-1. The `Configuration.trace` property has been removed. You know use the `Database.trace(options:_:)` method instead:
+1. The `Configuration.trace` property has been removed. You now use the `Database.trace(options:_:)` method instead:
 
     ```swift
     // BEFORE: GRDB 4
@@ -360,7 +360,7 @@ let publisher = observation
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
     ```
 
-2. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
+2. [Batch updates] used to rely on the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
     
     ```swift
     // BEFORE: GRDB 4
@@ -372,7 +372,7 @@ let publisher = observation
     
     > :question: This change avoids conflicts with other libraries that define the same operator.
 
-3. [SQL Interpolation] does no longer wrap subqueries in parenthesis:
+3. [SQL Interpolation] does no longer wrap subqueries in parentheses:
     
     ```swift
     // BEFORE: GRDB 4
@@ -382,7 +382,7 @@ let publisher = observation
     // NEW: GRDB 5
     let maximumScore: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     let bestPlayers: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
-    //                                            extra parenthesis required: ^               ^
+    //                                            extra parentheses required: ^               ^
     ```
     
     > :question: This change makes it possible to concatenate subqueries with the UNION operator.

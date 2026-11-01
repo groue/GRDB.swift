@@ -11,7 +11,7 @@
 ///     |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
 ///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 ///
-/// It is dedicated to help ``TransactionObserver`` types detect impactful
+/// It is dedicated to helping ``TransactionObserver`` types detect impactful
 /// database changes.
 ///
 /// You get `DatabaseRegion` instances from a ``DatabaseRegionConvertible``

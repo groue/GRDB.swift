@@ -112,7 +112,7 @@ where Reducer: ValueReducer,
         /// Waiting for a fetched value.
         case fetching
         
-        /// Waiting for a fetched value, and for a subsequent  fetch after
+        /// Waiting for a fetched value, and for a subsequent fetch after
         /// that, because a change has been detected as we were fetching.
         case fetchingAndNeedsFetch
     }

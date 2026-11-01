@@ -983,7 +983,7 @@ extension RecordCursor: Sendable { }
 // MARK: - DatabaseDataDecodingStrategy
 
 /// `DatabaseDataDecodingStrategy` specifies how `FetchableRecord` types that
-/// also  adopt the standard `Decodable` protocol decode their
+/// also adopt the standard `Decodable` protocol decode their
 /// `Data` properties.
 ///
 /// For example:
@@ -1018,7 +1018,7 @@ public enum DatabaseDataDecodingStrategy: Sendable {
 // MARK: - DatabaseDateDecodingStrategy
 
 /// `DatabaseDateDecodingStrategy` specifies how `FetchableRecord` types that
-/// also  adopt the standard `Decodable` protocol decode their
+/// also adopt the standard `Decodable` protocol decode their
 /// `Date` properties.
 ///
 /// For example:
@@ -1074,7 +1074,7 @@ public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
     
     /// Decodes according to the user-provided function.
     ///
-    /// If the database value  does not contain a suitable value, the function
+    /// If the database value does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
     case custom(@Sendable (DatabaseValue) -> Date?)

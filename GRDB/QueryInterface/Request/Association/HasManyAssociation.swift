@@ -35,6 +35,7 @@
 /// ```
 ///
 /// 1. The author table has a primary key.
+/// 2. The `book.authorId` column is used to link a book to the author it
 ///    belongs to. This column is indexed in order to ease the selection of
 ///    an author's books. A foreign key is defined from `book.authorId`
 ///    column to `authors.id`, so that SQLite guarantees that no book refers

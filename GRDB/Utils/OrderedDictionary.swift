@@ -61,7 +61,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     }
     
     /// Updates the value stored in the dictionary for the given key, or
-    /// appnds a new key-value pair if the key does not exist.
+    /// appends a new key-value pair if the key does not exist.
     ///
     /// Use this method instead of key-based subscripting when you need to know
     /// whether the new value supplants the value of an existing key. If the

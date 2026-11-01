@@ -1,7 +1,7 @@
 /// Describes a database column.
 ///
 /// You get instances of `ColumnDefinition` when you create or alter a database
-/// tables. For example:
+/// table. For example:
 ///
 /// ```swift
 /// try db.create(table: "player") { t in

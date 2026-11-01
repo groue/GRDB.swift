@@ -141,7 +141,7 @@ public struct SQLExpression: Sendable {
         ///     <expression> NOT IN <collection>
         indirect case `in`(SQLExpression, SQLCollection, isNegated: Bool)
         
-        /// An unary operator.
+        /// A unary operator.
         ///
         ///     -<expression>
         indirect case unary(UnaryOperator, SQLExpression)
@@ -343,9 +343,9 @@ public struct SQLExpression: Sendable {
         
         /// If true, (a • b) • c is strictly equal to a • (b • c).
         ///
-        /// `AND`, `OR`, `||` (concat), `&`, `|` are stricly associative.
+        /// `AND`, `OR`, `||` (concat), `&`, `|` are strictly associative.
         ///
-        /// `+` and `*` are not stricly associative when applied to floating
+        /// `+` and `*` are not strictly associative when applied to floating
         /// point values.
         let isStrictlyAssociative: Bool
         
@@ -588,7 +588,7 @@ public struct SQLExpression: Sendable {
         /// The SQL operator
         let sql: String
         
-        /// Creates an unary operator.
+        /// Creates a unary operator.
         init(_ sql: String) {
             self.sql = sql
         }
@@ -820,7 +820,7 @@ extension SQLExpression {
         self.init(impl: .in(expression, collection, isNegated: isNegated))
     }
     
-    /// An unary operator.
+    /// A unary operator.
     ///
     ///     -<expression>
     static func unary(_ op: UnaryOperator, _ expression: SQLExpression) -> Self {
@@ -1271,7 +1271,7 @@ extension SQLExpression {
     /// - parameter context: An SQL generation context which accepts
     ///   statement arguments.
     /// - parameter wrappedInParenthesis: If true, the returned SQL should be
-    ///   wrapped inside parenthesis.
+    ///   wrapped inside parentheses.
     func sql(_ context: SQLGenerationContext, wrappedInParenthesis: Bool = false) throws -> String {
         switch impl {
         case let .column(name):
@@ -2078,7 +2078,7 @@ extension SQLExpression {
     ///
     /// A false value does not provide any information.
     ///
-    /// For examples:
+    /// For example:
     ///
     /// ```swift
     /// // isJSONValue is true:

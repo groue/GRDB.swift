@@ -46,7 +46,7 @@ final class StatementAuthorizer {
     /// savepoint statement.
     var transactionEffect: Statement.TransactionEffect?
     
-    /// If true, the statement executes is a `PRAGMA QUERY_ONLY` statement.
+    /// If true, the statement is a `PRAGMA QUERY_ONLY` statement.
     var isQueryOnlyPragma = false
     
     private var isDropStatement = false

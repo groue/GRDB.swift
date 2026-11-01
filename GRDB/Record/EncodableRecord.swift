@@ -84,7 +84,7 @@ public protocol EncodableRecord: GRDBSendableMetatype {
     /// For example:
     ///
     /// ```swift
-    /// // A key that holds a encoder's name
+    /// // A key that holds an encoder's name
     /// let encoderName = CodingUserInfoKey(rawValue: "encoderName")!
     ///
     /// struct Player: PersistableRecord, Encodable {
@@ -299,7 +299,7 @@ extension EncodableRecord {
     
     /// Returns a dictionary of values changed from the other record.
     ///
-    /// The keys of the dictionary are the column names for which record do not
+    /// The keys of the dictionary are the column names for which records do not
     /// share the same value. Values are the database values from the
     /// `other` record.
     ///
@@ -356,7 +356,7 @@ extension EncodableRecord {
 /// `PersistenceContainer` is the argument of the
 /// ``EncodableRecord/encode(to:)-k9pf`` method.
 public struct PersistenceContainer: Sendable {
-    // The ordering of the OrderedDictionary helps generating always the same
+    // The ordering of the OrderedDictionary helps always generate the same
     // SQL queries, and hit the statement cache.
     private var storage: OrderedDictionary<CaseInsensitiveIdentifier, DatabaseValue>
     
@@ -612,7 +612,7 @@ public enum DatabaseDateEncodingStrategy: @unchecked Sendable {
 public enum DatabaseUUIDEncodingStrategy: Sendable {
     /// The strategy that uses formatting from the UUID type.
     ///
-    /// It encodes UUIDs as 16-bytes data blobs.
+    /// It encodes UUIDs as 16-byte data blobs.
     case deferredToUUID
     
     /// Encodes UUIDs as uppercased strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"

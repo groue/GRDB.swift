@@ -65,7 +65,7 @@ import GRDBSQLite
 /// ```
 ///
 /// `DatabaseSnapshotPool` inherits its database access methods from the
-/// ``DatabaseReader`` protocols.
+/// ``DatabaseReader`` protocol.
 ///
 /// Related SQLite documentation:
 ///

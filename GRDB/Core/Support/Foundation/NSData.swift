@@ -8,7 +8,7 @@ extension NSData: DatabaseValueConvertible {
         (self as Data).databaseValue
     }
     
-    /// Returns a `NSData` from the specified database value.
+    /// Returns an `NSData` from the specified database value.
     ///
     /// If the database value contains a data blob, returns it.
     ///

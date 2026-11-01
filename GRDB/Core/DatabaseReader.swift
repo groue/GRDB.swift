@@ -74,7 +74,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// every future database access will throw a ``DatabaseError`` of
     /// code `SQLITE_MISUSE`.
     ///
-    /// Otherwise, there exists concurrent database accesses or living prepared
+    /// Otherwise, there exist concurrent database accesses or living prepared
     /// statements that prevent the database from closing, and this method
     /// throws a ``DatabaseError`` of code `SQLITE_BUSY`.
     /// See <https://www.sqlite.org/c3ref/close.html> for more information.

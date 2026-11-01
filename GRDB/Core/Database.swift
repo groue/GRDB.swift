@@ -908,7 +908,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// Reports the database region to ``ValueObservation``.
     ///
     /// Calling this method does not fetch any database values. It just
-    /// helps optimizing `ValueObservation`. See
+    /// helps optimize `ValueObservation`. See
     /// ``ValueObservation/trackingConstantRegion(_:)`` for more
     /// information, and some examples of usage.
     ///
@@ -1349,9 +1349,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// - When database access is cancelled, this method
     ///   throws `CancellationError`.
     ///
-    /// - When database is suspensed, and if the statement would lock the
+    /// - When database is suspended, and if the statement would lock the
     ///   database in a way that may trigger the 0xDEAD10CC exception, this
-    ///   method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    ///   method rolls back the current transaction and throws `SQLITE_ABORT`.
     ///
     /// See `cancel()`, `suspend()` and
     /// ``Configuration/observesSuspensionNotifications``.
@@ -1447,14 +1447,14 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Transactions & Savepoint
     
     /// Throws `SQLITE_ABORT` if called from a transaction-wrapping method and
-    /// transaction has been aborted (for example, by `sqlite3_interrupt`, or a
-    /// `ON CONFLICT ROLLBACK` clause.
+    /// transaction has been aborted (for example, by `sqlite3_interrupt`, or an
+    /// `ON CONFLICT ROLLBACK` clause).
     ///
     /// For example:
     ///
     ///     try db.inTransaction {
     ///         do {
-    ///             // Throws an error because the transaction was rollbacked.
+    ///             // Throws an error because the transaction was rolled back.
     ///             try ...
     ///         } catch {
     ///             // Catch the error and continue.
@@ -1493,9 +1493,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// }
     /// ```
     ///
-    /// If `operations` throws an error, the transaction is rollbacked and the
+    /// If `operations` throws an error, the transaction is rolled back and the
     /// error is rethrown. If it returns ``TransactionCompletion/rollback``, the
-    /// transaction is also rollbacked, but no error is thrown.
+    /// transaction is also rolled back, but no error is thrown.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
     ///
@@ -1612,9 +1612,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// }
     /// ```
     ///
-    /// If `operations` throws an error, the savepoint is rollbacked and the
+    /// If `operations` throws an error, the savepoint is rolled back and the
     /// error is rethrown. If it returns ``TransactionCompletion/rollback``, the
-    /// savepoint is also rollbacked, but no error is thrown.
+    /// savepoint is also rolled back, but no error is thrown.
     ///
     /// This method is reentrant: you can nest savepoints.
     ///
@@ -1738,7 +1738,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         assert(sqlite3_get_autocommit(sqliteConnection) == 0)
     }
     
-    /// Rollbacks a database transaction.
+    /// Rolls back a database transaction.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
     ///
@@ -1810,7 +1810,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Resets all prepared statements.
     ///
-    /// This method helps clearing the interrupted state, as a workaround
+    /// This method helps clear the interrupted state, as a workaround
     /// for https://sqlite.org/forum/forumpost/137c7662b3, discovered
     /// in https://github.com/groue/GRDB.swift/issues/1838.
     func resetAllPreparedStatements() {

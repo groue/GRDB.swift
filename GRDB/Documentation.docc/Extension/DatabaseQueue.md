@@ -42,7 +42,7 @@ let newPlayerCount = try dbQueue.write { db -> Int in
 }
 ```
 
-The ``DatabaseWriter/write(_:)-76inz`` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
+The ``DatabaseWriter/write(_:)-76inz`` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rolled back, and the error is rethrown.
 
 When you don't need to modify the database, prefer the ``DatabaseReader/read(_:)-3806d`` method: it prevents any modification to the database.
 

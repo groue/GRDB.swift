@@ -3,7 +3,7 @@
 #endif
 import Dispatch
 
-/// SchedulingWatchdog makes sure that databases connections are used on correct
+/// SchedulingWatchdog makes sure that database connections are used on correct
 /// dispatch queues, and warns the user with a fatal error whenever she misuses
 /// a database connection.
 ///

@@ -29,13 +29,13 @@ GRDB lets you define your own custom FTS5 tokenizers, and extend SQLite built-in
 
 **A Tokenizer splits text into tokens**. For example, a tokenizer can split "SQLite is a database engine" into the five tokens "SQLite", "is", "a", "database", and "engine".
 
-FTS5 use tokenizers to tokenize both indexed documents and search patterns. **A match between a document and a search pattern happens when both produce *identical* tokens.**
+FTS5 uses tokenizers to tokenize both indexed documents and search patterns. **A match between a document and a search pattern happens when both produce *identical* tokens.**
 
 All SQLite [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers) tokenize both "SQLite" and "sqlite" into the common lowercase token "sqlite". This is why they are case-insensitive. Generally speaking, different tokenizers achieve different matching by applying different transformations to the input text.
 
 - The [ascii](https://www.sqlite.org/fts5.html#ascii_tokenizer) tokenizer turns all ASCII characters to lowercase. "SQLite is a database engine" gives "sqlite", "is", "a", "database", and "engine". The query "SQLITE DATABASE" will match, because its tokens "sqlite" and "database" are found in the document.
 
-- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer remove diacritics from latin characters. Unlike the ascii tokenizer, it will match "Jérôme" with "Jerome", as both produce the same "jerome" token.
+- The [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer removes diacritics from latin characters. Unlike the ascii tokenizer, it will match "Jérôme" with "Jerome", as both produce the same "jerome" token.
 
 - The [porter](https://www.sqlite.org/fts5.html#porter_tokenizer) tokenizer turns English words into their root: "database engine" gives the "databas" and "engin" tokens. The query "database engines" will match, because it produces the same tokens.
 
@@ -43,7 +43,7 @@ However, built-in tokenizers don't match "first" with "1st", because they produc
 
 Nor do they match "Grossmann" with "Großmann", because they produce the different "grossmann" and "großmann" tokens.
 
-Custom tokenizers help dealing with these situations. We'll see how to match "Grossmann" and "Großmann" by tokenizing them into "grossmann" (see [latin script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match too (see [synonyms](#example-synonyms)).
+Custom tokenizers help deal with these situations. We'll see how to match "Grossmann" and "Großmann" by tokenizing them into "grossmann" (see [latin script](#example-latin-script)). We'll also see how to have "first" and "1st" emit *synonym tokens*, so that they can match too (see [synonyms](#example-synonyms)).
 
 
 ## The Tokenizer Protocols
@@ -54,7 +54,7 @@ GRDB lets you use and define FTS5 tokenizers through three protocols:
     
     - [FTS5CustomTokenizer](#fts5customtokenizer): the low-level protocol that lets custom tokenizers use the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
     
-        - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-processes the tokens produced by another FTS5Tokenizer.
+        - [FTS5WrapperTokenizer](#fts5wrappertokenizer): the high-level protocol for custom tokenizers that post-process the tokens produced by another FTS5Tokenizer.
 
 
 ## Using a Custom Tokenizer
@@ -161,7 +161,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 
 FTS5CustomTokenizer inherits from [FTS5Tokenizer](#fts5tokenizer), and performs tokenization with its `tokenize(context:tokenization:pText:nText:tokenCallback:)` method. This low-level method matches the `xTokenize` C function documented at https://www.sqlite.org/fts5.html#custom_tokenizers.
 
-This method arguments are:
+This method's arguments are:
 
 - `context`: An opaque pointer that is the first argument to the `tokenCallback` function
 - `tokenization`: The reason why FTS5 is requesting tokenization.
@@ -182,7 +182,7 @@ Since tokenization is hard, and pointers to byte buffers uneasy to deal with, yo
 
 **FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers. It provides a default implementation for the low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method, so that the adopting type does not have to deal with raw byte buffers of the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
 
-A FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
+An FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
 
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
@@ -240,7 +240,7 @@ The tokenization parameter tells the reason why tokens are produced, if FTS5 is 
 
 Finally, the tokenCallback is a function you call to output a custom token.
 
-There are a two rules to observe when implementing the accept method:
+There are two rules to observe when implementing the accept method:
 
 1. Errors thrown by the tokenCallback function must not be caught (they notify that FTS5 requires the tokenization process to stop immediately).
 2. The flags parameter should be given unmodified to the tokenCallback function along with the custom token, unless you union it with the `.colocated` flag when the tokenizer produces [synonyms](#example-synonyms).

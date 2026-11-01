@@ -21,13 +21,13 @@
 ///
 ///     // SELECT * FROM country ORDER BY code
 ///     //                       ~~~~~~~~~~~~~
-///     // primary key infered from the database schema
+///     // primary key inferred from the database schema
 ///     Country.orderByPrimaryKey()
 ///
 /// ## Children
 ///
 /// Relations have children. A child is a link to another relation, and
-/// provide support for joins and prefetched relations.
+/// provides support for joins and prefetched relations.
 ///
 /// Relations and their children constitute a tree of relations, which the user
 /// builds with associations:
@@ -184,7 +184,7 @@ struct SQLRelation: Sendable {
 }
 
 extension SQLRelation {
-    /// Convenience factory methods which selects all rows from a table.
+    /// Convenience factory methods which select all rows from a table.
     static func all(
         fromTable tableName: String,
         selection: @escaping @Sendable (Database) -> [SQLSelection] = { _ in [.allColumns] })
@@ -793,7 +793,7 @@ extension SQLRelation {
 ///     //                          ~~~~~~~~~~~~~~~~~~~~~~
 ///     Author.filter(...).including(all: Author.books)
 ///
-/// Conditions help fetching associated records:
+/// Conditions help fetch associated records:
 ///
 ///     // SELECT * FROM book WHERE author.id = 1
 ///     //                          ~~~~~~~~~~~~~
@@ -872,7 +872,7 @@ struct SQLForeignKeyCondition: Equatable {
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
     ///                     ~~~~ ~~~~
     ///
-    /// The origin table `book`is on the right of the JOIN operator for
+    /// The origin table `book` is on the right of the JOIN operator for
     /// the `HasMany` and `HasOne` associations:
     ///
     ///     -- Author.including(required: Author.books)
@@ -991,7 +991,7 @@ extension JoinMapping {
         }
     }
     
-    /// Resolves the condition into an SQL expression which involve both left
+    /// Resolves the condition into an SQL expression which involves both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)

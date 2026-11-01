@@ -16,7 +16,7 @@ We will also aim at providing a default value for a given configuration, even wh
 
 ## The Single-Row Table
 
-As always with SQLite, everything starts at the level of the database schema. When we put the database engine on our side, we have to write less code, and this helps shipping less bugs.
+As always with SQLite, everything starts at the level of the database schema. When we put the database engine on our side, we have to write less code, and this helps ship less bugs.
 
 We want to instruct SQLite that our table must never contain more than one row. We will never have to wonder what to do if we were unlucky enough to find two rows with conflicting values in this table.
 

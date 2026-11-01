@@ -1,7 +1,7 @@
 Migrating From GRDB 5 to GRDB 6
 ===============================
 
-**This guide aims at helping you upgrading your applications from GRDB 5 to GRDB 6.**
+**This guide aims at helping you upgrade your applications from GRDB 5 to GRDB 6.**
 
 - [Preparing the Migration to GRDB 6](#preparing-the-migration-to-grdb-6)
 - [New requirements](#new-requirements)
@@ -283,7 +283,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     // How to detect failed `INSERT OR IGNORE`:
     // INSERT OR IGNORE INTO player ... RETURNING *
     if let insertedPlayer = try player.insertAndFetch(db) {
-        // Succesful insertion
+        // Successful insertion
     } else {
         // Ignored failure
     }
@@ -371,7 +371,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     ```diff
     -db.afterNextTransactionCommit { db in
     +db.afterNextTransaction { db in
-         print("Succesful commit")
+         print("Successful commit")
      }
     ```
 

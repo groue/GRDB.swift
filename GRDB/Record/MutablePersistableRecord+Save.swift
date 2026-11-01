@@ -94,7 +94,7 @@ extension MutablePersistableRecord {
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
-    /// This method helps dealing with default column values and
+    /// This method helps deal with default column values and
     /// generated columns.
     ///
     /// For example:
@@ -182,7 +182,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
@@ -222,7 +222,7 @@ extension MutablePersistableRecord {
     /// database, this method performs an update. Otherwise, it performs
     /// an insert.
     ///
-    /// This method helps dealing with default column values and
+    /// This method helps deal with default column values and
     /// generated columns.
     ///
     /// For example:
@@ -312,7 +312,7 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter selection: The returned columns (must not be empty).
-    /// - parameter fetch: A function that executes it ``Statement`` argument.
+    /// - parameter fetch: A function that executes its ``Statement`` argument.
     /// - returns: The result of the `fetch` function.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.

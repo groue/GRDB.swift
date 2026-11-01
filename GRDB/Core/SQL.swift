@@ -300,7 +300,7 @@ extension SQL: SQLOrderingTerm {
     /// let request = Player.order(ordering)
     /// ```
     ///
-    /// An ordering term is only valid if it represent a single ordering terms.
+    /// An ordering term is only valid if it represents a single ordering term.
     ///
     /// ```swift
     /// // Valid

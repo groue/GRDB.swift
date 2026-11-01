@@ -392,7 +392,7 @@ extension DatabaseWriter {
     /// ```
     ///
     /// Database operations are wrapped in a transaction. If they throw an
-    /// error, the transaction is rollbacked and the error is rethrown.
+    /// error, the transaction is rolled back and the error is rethrown.
     ///
     /// Concurrent database accesses can not see partial database updates (even
     /// when performed by other processes).
@@ -442,7 +442,7 @@ extension DatabaseWriter {
     /// ```
     ///
     /// Database operations run by the `updates` closure are wrapped in
-    /// a transaction. If they throw an error, the transaction is rollbacked.
+    /// a transaction. If they throw an error, the transaction is rolled back.
     ///
     /// The `completion` closure has two arguments: a database connection, and
     /// the result of the transaction. This result is a failure if the
@@ -623,7 +623,7 @@ extension DatabaseWriter {
     /// ```
     ///
     /// Database operations are wrapped in a transaction. If they throw an
-    /// error, the transaction is rollbacked and the error is rethrown.
+    /// error, the transaction is rolled back and the error is rethrown.
     ///
     /// Concurrent database accesses can not see partial database updates (even
     /// when performed by other processes).
@@ -715,7 +715,7 @@ extension DatabaseWriter {
     /// ```
     ///
     /// Database operations are wrapped in a transaction. If they throw an
-    /// error, the transaction is rollbacked and the error completes
+    /// error, the transaction is rolled back and the error completes
     /// the publisher.
     ///
     /// Concurrent database accesses can not see partial database updates (even

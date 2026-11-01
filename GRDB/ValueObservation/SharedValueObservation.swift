@@ -238,7 +238,7 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
             stateMutex.withLock { $0.isCancelled = true }
         }
         
-        /// Returns whether a ValueObservation event event should be notified.
+        /// Returns whether a ValueObservation event should be notified.
         private func shouldNotifyValueObservationEvent() -> Bool {
             stateMutex.withLock { state in
                 if state.isCancelled { return false }

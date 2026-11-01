@@ -91,7 +91,7 @@ extension SQLCollection {
         }
     }
     
-    /// Returns an expression that check whether the collection contains
+    /// Returns an expression that checks whether the collection contains
     /// the expression.
     func contains(_ value: SQLExpression) -> SQLExpression {
         switch impl {

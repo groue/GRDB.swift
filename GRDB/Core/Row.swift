@@ -41,7 +41,7 @@ import Foundation
 ///
 /// - ``copy()``
 ///
-/// ### Row Informations
+/// ### Row Information
 ///
 /// - ``columnNames``
 /// - ``containsNonNullValue``
@@ -263,7 +263,7 @@ public final class Row {
         self.cachedCount = 0 // Unused because sqliteStatement is not nil: see `count`
     }
     
-    /// Creates a row that contain a copy of the current state of the
+    /// Creates a row that contains a copy of the current state of the
     /// SQLite statement. Further calls to sqlite3_step() do not modify the row.
     ///
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
@@ -327,7 +327,7 @@ extension Row {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
     }
     
-    /// Returns a boolean value indicating if the row contains one value this
+    /// Returns a boolean value indicating if the row contains one value that
     /// is not `NULL`.
     ///
     /// For example:
@@ -662,7 +662,7 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
     /// not be converted to Data, a fatal error is raised.
     ///
-    /// The returned data does not owns its bytes: it must not be used longer
+    /// The returned data does not own its bytes: it must not be used longer
     /// than the row's lifetime.
     @available(*, deprecated, message: "Use withUnsafeData(atIndex:_:) instead.")
     public func dataNoCopy(atIndex index: Int) -> Data? {
@@ -678,7 +678,7 @@ extension Row {
     /// nil. If the SQLite value can not be converted to Data, a fatal error
     /// is raised.
     ///
-    /// The returned data does not owns its bytes: it must not be used longer
+    /// The returned data does not own its bytes: it must not be used longer
     /// than the row's lifetime.
     @available(*, deprecated, message: "Use withUnsafeData(named:_:) instead.")
     public func dataNoCopy(named columnName: String) -> Data? {
@@ -697,7 +697,7 @@ extension Row {
     /// nil. If the SQLite value can not be converted to Data, a fatal error
     /// is raised.
     ///
-    /// The returned data does not owns its bytes: it must not be used longer
+    /// The returned data does not own its bytes: it must not be used longer
     /// than the row's lifetime.
     @available(*, deprecated, message: "Use withUnsafeData(at:_:) instead.")
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
@@ -1021,7 +1021,7 @@ extension Row {
         ScopesTreeView(scopes: scopes)
     }
     
-    /// The row, without any scope of prefetched rows.
+    /// The row, without any scope or prefetched rows.
     ///
     /// This property is useful when testing the content of rows fetched from
     /// joined requests.
@@ -2395,7 +2395,7 @@ extension Row: CustomDebugStringConvertible {
 
 extension Row: ExpressibleByDictionaryLiteral {
     /// Creates a row initialized with elements. Column order is preserved, and
-    /// duplicated columns names are allowed.
+    /// duplicated column names are allowed.
     ///
     ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
     ///     print(row)
@@ -2567,7 +2567,7 @@ extension Row {
         // (we preserve the ordering of associations in the request)
         fileprivate var prefetches: OrderedDictionary<String, Prefetch> = [:]
         
-        /// A boolean value indicating if there is no prefetched
+        /// A boolean value indicating if there are no prefetched
         /// associated rows.
         public var isEmpty: Bool {
             prefetches.isEmpty

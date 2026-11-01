@@ -1,6 +1,6 @@
 /// The `HasOneAssociation` indicates a one-to-one connection between two
 /// record types, such as each instance of the declaring record "has one"
-/// instances of the other record.
+/// instance of the other record.
 ///
 /// For example, if your application has one database table for countries, and
 /// another for their demographic profiles, you'd declare the association
@@ -49,9 +49,9 @@
 /// 3. Make the `demographics.countryCode` column not null if you want SQLite to
 ///    guarantee that all profiles are linked to a country.
 /// 4. Create a unique index on the `demographics.countryCode` column in order
-///    to guarantee the unicity of any country's demographics.
+///    to guarantee the uniqueness of any country's demographics.
 ///
-/// The example above uses a string primary for the country table. But generally
+/// The example above uses a string primary key for the country table. But generally
 /// speaking, all primary keys are supported.
 ///
 /// If the database schema does not define foreign keys between tables, you can

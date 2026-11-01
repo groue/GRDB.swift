@@ -357,10 +357,10 @@ extension DatabaseQueue: DatabaseWriter {
     /// The `updates` function runs in the writer dispatch queue, serialized
     /// with all database updates.
     /// 
-    /// If `updates` throws an error, the transaction is rollbacked and the
+    /// If `updates` throws an error, the transaction is rolled back and the
     /// error is rethrown. If it returns
     /// ``Database/TransactionCompletion/rollback``, the transaction is also
-    /// rollbacked, but no error is thrown.
+    /// rolled back, but no error is thrown.
     ///
     /// For example:
     ///

@@ -126,7 +126,7 @@ let request = Player
     .filter { $0.name == playerNameCTE.all() }
 ```
 
-> **Note**: the `with(_:)` method can be called as many times as a there are common table expressions in your request.
+> **Note**: the `with(_:)` method can be called as many times as there are common table expressions in your request.
 >
 > **Note**: the `with(_:)` method can be called at any time, as all request methods: `Player.with(...).filter(...).with(...)`.
 >

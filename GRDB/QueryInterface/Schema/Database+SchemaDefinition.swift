@@ -200,7 +200,7 @@ extension Database {
     /// >
     /// > The reason for this recommendation is that auto-incremented primary
     /// > keys forbid the reuse of ids. This prevents your app or
-    /// > <doc:DatabaseObservation> to think that a row was updated, when it was
+    /// > <doc:DatabaseObservation> from thinking that a row was updated, when it was
     /// > actually deleted and replaced. Depending on your application needs,
     /// > this may be acceptable. But usually it is not.
     ///

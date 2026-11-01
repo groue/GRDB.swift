@@ -466,7 +466,7 @@ struct SQLQueryGenerator: Refinable {
         case none
         /// Grouped by unique key: SELECT ... FROM player GROUP BY id
         case unique
-        /// Grouped by some non-unique columnns: SELECT ... FROM player GROUP BY teamId
+        /// Grouped by some non-unique columns: SELECT ... FROM player GROUP BY teamId
         case nonUnique
     }
     
@@ -518,7 +518,7 @@ struct SQLQueryGenerator: Refinable {
     ///         let book = try Book(row: row)
     ///     }
     ///
-    /// But as soon as the selection includes columns of a included relation,
+    /// But as soon as the selection includes columns of an included relation,
     /// we need an adapter:
     ///
     ///     // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorId
@@ -659,7 +659,7 @@ private struct SQLQualifiedRelation: Sendable {
     ///   SQLQueryGenerator (as opposed to the joined relations).
     /// - returns: An optional tuple made of a RowAdapter and the index past the
     ///   rightmost selected column of this relation. Nil is returned if this
-    ///   relations does not need any row adapter.
+    ///   relation does not need any row adapter.
     func rowAdapter(
         _ context: SQLGenerationContext,
         fromIndex startIndex: Int,

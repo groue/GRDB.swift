@@ -26,7 +26,7 @@ public struct SQLOrdering: Sendable {
         ///     ORDER BY score ASC
         case asc(SQLExpression)
         
-        /// An descending expression
+        /// A descending expression
         ///
         ///     ORDER BY score DESC
         case desc(SQLExpression)

@@ -5,7 +5,7 @@ import Foundation
 /// A publisher that delivers values to its downstream subscriber on a
 /// specific scheduler.
 ///
-/// Unlike Combine's Publishers.ReceiveOn, ReceiveValuesOn only re-schedule
+/// Unlike Combine's Publishers.ReceiveOn, ReceiveValuesOn only re-schedules
 /// values and completion. It does not re-schedule subscription.
 ///
 /// This scheduling guarantee is used by GRDB in order to be able

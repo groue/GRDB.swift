@@ -23,7 +23,7 @@ We'll address all of those challenges below.
 
 ## Use the WAL mode
 
-In order to access a shared database, use a ``DatabasePool``. It opens the database in the [WAL mode], which helps sharing a database because it allows multiple processes to access the database concurrently.
+In order to access a shared database, use a ``DatabasePool``. It opens the database in the [WAL mode], which helps share a database because it allows multiple processes to access the database concurrently.
 
 It is also possible to use a ``DatabaseQueue``, with the `.wal` ``Configuration/journalMode``.
 

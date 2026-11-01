@@ -16,7 +16,7 @@ import Foundation
 ///
 /// To get `DatabaseValue` instances, you can:
 ///
-/// - Fetch `DatabaseValue` from a ``Database`` instace:
+/// - Fetch `DatabaseValue` from a ``Database`` instance:
 ///
 ///     ```swift
 ///     try dbQueue.read { db in
@@ -121,7 +121,7 @@ public struct DatabaseValue: Hashable {
     
     // MARK: - Extracting Value
     
-    /// A boolean value indicating is the database value is `NULL`.
+    /// A boolean value indicating if the database value is `NULL`.
     public var isNull: Bool {
         switch storage {
         case .null:
@@ -270,7 +270,7 @@ extension DatabaseValue: Equatable {
     /// 1.databaseValue == 1.databaseValue     // true
     /// ```
     ///
-    /// When comparing integers and doubles, the result is true if and only
+    /// When comparing integers and doubles, the result is true if and only if
     /// values are equal, and if converting one type to the other does
     /// not lose information:
     ///

@@ -39,7 +39,7 @@ import Dispatch
 /// snapshot from within a write access, outside of any transaction.
 ///
 /// For example, compare the two snapshots below. The first one is guaranteed to
-/// see an empty table of players, because is is created after all players have
+/// see an empty table of players, because it is created after all players have
 /// been deleted, and from the serialized writer dispatch queue which prevents
 /// any concurrent write. The second is created without this concurrency
 /// protection, which means that some other threads may already have created
@@ -70,7 +70,7 @@ import Dispatch
 /// ```
 ///
 /// `DatabaseSnapshot` inherits its database access methods from the
-/// ``DatabaseReader`` protocols.
+/// ``DatabaseReader`` protocol.
 ///
 /// `DatabaseSnapshot` serializes database accesses and can't perform concurrent
 /// reads. For concurrent reads, see ``DatabaseSnapshotPool``.

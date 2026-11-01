@@ -72,7 +72,7 @@ extension Database {
     /// Registers closures to be executed after the next or current
     /// transaction completes.
     ///
-    /// This method helps synchronizing the database with other resources,
+    /// This method helps synchronize the database with other resources,
     /// such as files, or system services.
     ///
     /// In the example below, a `CLLocationManager` starts monitoring a
@@ -104,10 +104,10 @@ extension Database {
     /// ```
     ///
     /// The method above won't trigger the location manager if the transaction
-    /// is eventually rollbacked (explicitly, or because of an error).
+    /// is eventually rolled back (explicitly, or because of an error).
     ///
     /// The `onCommit` and `onRollback` closures are executed in the writer
-    /// dispatch queue, serialized will all database updates.
+    /// dispatch queue, serialized with all database updates.
     ///
     /// - precondition: Database connection is not read-only.
     /// - parameter onCommit: A closure executed on transaction commit.
@@ -189,7 +189,7 @@ extension Database {
 /// The observation process starts when the statement is *compiled*:
 /// sqlite3_set_authorizer tells that the statement performs insertion into the
 /// `document` table. Generally speaking, statements may have many effects, by
-/// the mean of foreign key actions and SQL triggers. SQLite takes care of
+/// means of foreign key actions and SQL triggers. SQLite takes care of
 /// exposing all those effects to sqlite3_set_authorizer.
 ///
 /// When the statement is *about to be executed*, the broker queries the
@@ -218,7 +218,7 @@ extension Database {
 /// This time, when the statement is *executed* and SQLite tells that a row has
 /// been inserted, the broker buffers the change event instead of immediately
 /// notifying the activated observers. That is because the savepoint can be
-/// rollbacked, and GRDB guarantees observers that they are only notified of
+/// rolled back, and GRDB guarantees observers that they are only notified of
 /// changes that have an opportunity to be committed.
 ///
 /// The savepoint is released:
@@ -239,7 +239,7 @@ extension Database {
 /// During the statement *execution*, SQLite tells the broker that the
 /// transaction is about to be committed through sqlite3_commit_hook. The broker
 /// invokes observer.databaseWillCommit(). If the observer throws an error, the
-/// broker asks SQLite to rollback the transaction. Otherwise, the broker lets
+/// broker asks SQLite to roll back the transaction. Otherwise, the broker lets
 /// the transaction complete.
 ///
 /// After the statement *has been executed*, the broker calls
@@ -742,10 +742,10 @@ class DatabaseObservationBroker {
         /// Transaction turns committed.
         case commit
         
-        /// Transaction turns rollbacked.
+        /// Transaction turns rolled back.
         case rollback
         
-        /// Transaction turns rollbacked because a transaction observer has
+        /// Transaction turns rolled back because a transaction observer has
         /// cancelled a commit by throwing an error.
         case cancelledCommit(Error)
     }
@@ -879,7 +879,7 @@ public protocol TransactionObserver: AnyObject {
     
     /// Called when a transaction is about to be committed.
     ///
-    /// The transaction observer has an opportunity to rollback pending changes
+    /// The transaction observer has an opportunity to roll back pending changes
     /// by throwing an error from this method.
     ///
     /// - precondition: This method must not access the observed writer
@@ -890,7 +890,7 @@ public protocol TransactionObserver: AnyObject {
     /// Called when a transaction has been committed on disk.
     func databaseDidCommit(_ db: Database)
     
-    /// Called when a transaction has been rollbacked.
+    /// Called when a transaction has been rolled back.
     func databaseDidRollback(_ db: Database)
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -1689,13 +1689,13 @@ enum DatabaseEventPredicate {
 /// - know if there are currently active savepoints (isEmpty)
 /// - buffer database events when a savepoint is active, in order to avoid
 ///   notifying transaction observers of database events that could be
-///   rollbacked.
+///   rolled back.
 class SavepointStack {
     /// The buffered events (see DatabaseObservationBroker.databaseDidChange(with:))
     var eventsBuffer: [(event: any DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
-    /// Indexes let us drop rollbacked events from the event buffer.
+    /// Indexes let us drop rolled-back events from the event buffer.
     private var savepoints: [(name: String, index: Int)] = []
     
     /// If true, there is no current save point.
