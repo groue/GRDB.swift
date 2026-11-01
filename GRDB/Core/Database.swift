@@ -494,8 +494,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             // https://www.sqlite.org/c3ref/close.html
             // > Calling sqlite3_close() or sqlite3_close_v2() with a NULL
             // > pointer argument is a harmless no-op.
+            //
+            // Read the error message before the connection is closed.
+            let message = sqliteConnection.map { String(cString: sqlite3_errmsg($0)) }
             _ = sqlite3_close(sqliteConnection) // ignore result code
-            throw DatabaseError(resultCode: code)
+            throw DatabaseError(resultCode: code, message: message)
         }
         guard let sqliteConnection else {
             throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?

@@ -405,4 +405,31 @@ class RowFromStatementTests : RowTestCase {
             ])
         }
     }
+    
+    func testRowsAfterSchemaChange() throws {
+        // SQLite recompiles statements after a schema change, and this can
+        // change the result columns.
+        try makeDatabaseQueue().inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE t(a);
+                INSERT INTO t VALUES (1);
+                """)
+            let statement = try db.makeStatement(sql: "SELECT * FROM t")
+            XCTAssertEqual(try Row.fetchAll(statement), [["a": 1]])
+            
+            try db.execute(sql: "ALTER TABLE t ADD COLUMN b DEFAULT 2")
+            
+            // The cursor is created before the statement is recompiled,
+            // on the first step.
+            let rows = try Row.fetchCursor(statement)
+            let row = try XCTUnwrap(rows.next())
+            XCTAssertEqual(row.count, 2)
+            XCTAssertEqual(Array(row.columnNames), ["a", "b"])
+            XCTAssertEqual(row["b"], 2)
+            XCTAssertEqual(row.copy(), ["a": 1, "b": 2])
+            XCTAssertNil(try rows.next())
+            
+            XCTAssertEqual(try Row.fetchAll(statement), [["a": 1, "b": 2]])
+        }
+    }
 }

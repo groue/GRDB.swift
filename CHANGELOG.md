@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 7.x Releases
 
+- `7.12.x` Releases - [7.12.0](#7120)
 - `7.11.x` Releases - [7.11.0](#7110) - [7.11.1](#7111)
 - `7.10.x` Releases - [7.10.0](#7100)
 - `7.9.x` Releases - [7.9.0](#790)
@@ -142,6 +143,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 7.12.0
+
+Released November 1, 2026
+
+- **New**: Add support for Strings that contain the NUL character by [@groue](https://github.com/groue) and [@nesevis](https://github.com/nesevis) in [#1885](https://github.com/groue/GRDB.swift/pull/1885)
+- **New**: Keep SQLite's error message when a database fails to open by [@builtbysharath](https://github.com/builtbysharath) in [#1889](https://github.com/groue/GRDB.swift/pull/1889)
+- **Fixed**: Fix doubled word in doc comment by [@latent-9](https://github.com/latent-9) in [#1876](https://github.com/groue/GRDB.swift/pull/1876)
+- **Fixed**: Fix an accidentally quadratic behavior in SQLite statement compilation by [@groue](https://github.com/groue) and [@guidedways](https://github.com/guidedways) in [#1881](https://github.com/groue/GRDB.swift/pull/1881)
+- **Fixed**: Work around an SQLite bug in WAL snapshot ordering by [@groue](https://github.com/groue) and [@vburojevic](https://github.com/vburojevic) in [#1884](https://github.com/groue/GRDB.swift/pull/1884)
+- **Fixed**: Fix upsert for WITHOUT ROWID tables with an INTEGER primary key by [@nesevis](https://github.com/nesevis) in [#1879](https://github.com/groue/GRDB.swift/pull/1879)
+- **Fixed**: Support for statement recompilation after the columns are modified in the database schema by [@groue](https://github.com/groue) in [#1893](https://github.com/groue/GRDB.swift/pull/1893)
+- **Fixed**: Fix SharedValueObservation deadlock, ordering, and cancellation by [@groue](https://github.com/groue) in [#1894](https://github.com/groue/GRDB.swift/pull/1894)
 
 ## 7.11.1
 

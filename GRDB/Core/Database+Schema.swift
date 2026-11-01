@@ -511,11 +511,12 @@ extension Database {
             // > DESC" clause, it does not become an alias for the rowid [...]
             //
             // FIXME: We ignore the exception, and consider all INTEGER primary
-            // keys as aliases for the rowid:
-            if pkColumn.type.uppercased() == "INTEGER" {
+            // keys of rowid tables as aliases for the rowid:
+            let tableHasRowID = try fetchTableHasRowID(table)
+            if pkColumn.type.uppercased() == "INTEGER" && tableHasRowID {
                 return .rowID(pkColumn)
             } else {
-                return try .regular([pkColumn], tableHasRowID: fetchTableHasRowID(table))
+                return .regular([pkColumn], tableHasRowID: tableHasRowID)
             }
             
         default:
@@ -1605,7 +1606,19 @@ extension ForeignKeyViolation: CustomStringConvertible {
 /// pk.columns     // ["citizenID", "countryIsoCode"]
 /// pk.rowIDColumn // nil
 /// pk.isRowID     // false
+///
+/// // CREATE TABLE passport (
+/// //   id INTEGER PRIMARY KEY,
+/// //   name TEXT
+/// // ) WITHOUT ROWID
+/// let pk = try db.primaryKey("passport")
+/// pk.columns     // ["id"]
+/// pk.rowIDColumn // nil
+/// pk.isRowID     // false
 /// ```
+///
+/// An `INTEGER PRIMARY KEY` is an alias for the rowid only in rowid
+/// tables. In a `WITHOUT ROWID` table, it is a regular primary key.
 public struct PrimaryKeyInfo: Sendable {
     private enum Impl {
         /// The hidden rowID.
@@ -1659,7 +1672,9 @@ public struct PrimaryKeyInfo: Sendable {
     }
     
     /// When not nil, the name of the column that contains the
-    /// `INTEGER PRIMARY KEY`.
+    /// `INTEGER PRIMARY KEY` of a rowid table.
+    ///
+    /// This is nil for `WITHOUT ROWID` tables, which have no rowid.
     public var rowIDColumn: String? {
         switch impl {
         case .hiddenRowID:

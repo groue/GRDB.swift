@@ -154,7 +154,20 @@ public final class Row {
     let sqliteStatement: SQLiteStatement?
     
     /// The number of columns in the row.
-    public let count: Int
+    @inlinable
+    public var count: Int {
+        // Rows that map an SQLite statement don't cache the number of
+        // columns, because SQLite may recompile the statement after a
+        // schema change, with a different number of columns.
+        if let sqliteStatement {
+            return Int(sqlite3_column_count(sqliteStatement))
+        }
+        return cachedCount
+    }
+    
+    /// The number of columns, when the row does not map an SQLite statement.
+    @usableFromInline
+    let cachedCount: Int
     
     /// A view on the prefetched associated rows.
     ///
@@ -238,7 +251,7 @@ public final class Row {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statement: statement)
-        self.count = Int(sqlite3_column_count(sqliteStatement))
+        self.cachedCount = 0 // Unused because sqliteStatement is not nil: see `count`
     }
     
     /// Creates a row that maps an SQLite statement. Further calls to
@@ -247,7 +260,7 @@ public final class Row {
         self.statement = nil
         self.sqliteStatement = sqliteStatement
         self.impl = SQLiteStatementRowImpl(sqliteStatement: sqliteStatement)
-        self.count = Int(sqlite3_column_count(sqliteStatement))
+        self.cachedCount = 0 // Unused because sqliteStatement is not nil: see `count`
     }
     
     /// Creates a row that contain a copy of the current state of the
@@ -269,7 +282,7 @@ public final class Row {
         self.statement = nil
         self.sqliteStatement = nil
         self.impl = impl
-        self.count = impl.count
+        self.cachedCount = impl.count
     }
 }
 
@@ -2785,19 +2798,10 @@ private struct StatementCopyRowImpl: RowImpl {
 private struct StatementRowImpl: RowImpl {
     let statement: Statement
     let sqliteStatement: SQLiteStatement
-    let lowercaseColumnIndexes: [String: Int]
     
     init(sqliteStatement: SQLiteStatement, statement: Statement) {
         self.statement = statement
         self.sqliteStatement = sqliteStatement
-        // Optimize row[columnName]
-        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement))
-            .map { String(cString: sqlite3_column_name(sqliteStatement, CInt($0))).lowercased() }
-        self.lowercaseColumnIndexes = Dictionary(
-            lowercaseColumnNames
-                .enumerated()
-                .map { ($0.element, $0.offset) },
-            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }
     
     var count: Int {
@@ -2844,6 +2848,7 @@ private struct StatementRowImpl: RowImpl {
     }
     
     func index(forColumn name: String) -> Int? {
+        let lowercaseColumnIndexes = statement.columnIndexes
         if let index = lowercaseColumnIndexes[name] {
             return index
         }

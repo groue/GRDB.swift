@@ -47,6 +47,33 @@ class SQLRequestTests: GRDBTestCase {
         }
     }
     
+    func testCachedSQLRequestAfterSchemaChange() throws {
+        // SQLite recompiles statements after a schema change, and this can
+        // change the result columns.
+        let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TABLE t(a);
+                INSERT INTO t VALUES (1);
+                """)
+        }
+        
+        let request = SQLRequest(sql: "SELECT * FROM t", cached: true)
+        try dbQueue.read { db in
+            XCTAssertEqual(try request.fetchAll(db), [["a": 1]])
+        }
+        
+        // Schema change performed by another connection
+        let otherQueue = try makeDatabaseQueue(filename: "test.sqlite")
+        try otherQueue.write { db in
+            try db.execute(sql: "ALTER TABLE t ADD COLUMN b DEFAULT 2")
+        }
+        
+        try dbQueue.inDatabase { db in
+            XCTAssertEqual(try request.fetchAll(db), [["a": 1, "b": 2]])
+        }
+    }
+    
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

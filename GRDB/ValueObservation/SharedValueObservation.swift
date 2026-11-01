@@ -169,17 +169,37 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     private let scheduler: any ValueObservationScheduler
     private let extent: SharedValueObservationExtent
     private let startObservation: ValueObservationStart<Element>
-    private let lock = NSRecursiveLock() // support synchronous observation events
+    // Clients are notified outside of the lock, so that a client can be
+    // cancelled from any thread during a notification without deadlock.
+    private let lock = NSLock()
     
     // protected by lock
     private var clients: [Client]
-    private var isObserving = false
-    private var cancellable: AnyDatabaseCancellable?
+    private var currentSubscription: ValueObservationSubscription? // nil when not observing
     private var lastResult: Result<Element, Error>?
     
+    /// A subscription to the upstream ValueObservation.
+    ///
+    /// Events and cancellables of a subscription that is no longer
+    /// the current one are ignored.
+    private final class ValueObservationSubscription: @unchecked Sendable {
+        // @unchecked Sendable because state is protected by
+        // the lock of SharedValueObservation.
+        var cancellable: AnyDatabaseCancellable?
+    }
+    
     private final class Client: Sendable {
-        let onError: @Sendable (Error) -> Void
-        let onChange: @Sendable (Element) -> Void
+        private let onError: @Sendable (Error) -> Void
+        private let onChange: @Sendable (Element) -> Void
+        private let stateMutex = Mutex(State())
+        
+        private struct State {
+            var isCancelled = false
+            /// True when a ValueObservation event was notified, and we must
+            /// not notify the last result of the shared observation as the
+            /// initial event.
+            var shouldDiscardInitialResult = false
+        }
         
         init(
             onError: @escaping @Sendable (Error) -> Void,
@@ -187,6 +207,54 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
         ) {
             self.onError = onError
             self.onChange = onChange
+        }
+        
+        /// Notifies the last result of the shared observation as the initial
+        /// value, unless a ValueObservation event was already notified.
+        func notifyInitial(_ result: Result<Element, Error>) {
+            guard shouldNotifyInitialResult() else { return }
+            switch result {
+            case let .failure(error):
+                onError(error)
+            case let .success(value):
+                onChange(value)
+            }
+        }
+        
+        /// Notifies a ValueObservation event.
+        func notifyChange(_ value: Element) {
+            guard shouldNotifyValueObservationEvent() else { return }
+            onChange(value)
+        }
+        
+        /// Notifies a ValueObservation event.
+        func notifyError(_ error: Error) {
+            guard shouldNotifyValueObservationEvent() else { return }
+            onError(error)
+        }
+        
+        /// After this method returns, no new notification starts.
+        func cancel() {
+            stateMutex.withLock { $0.isCancelled = true }
+        }
+        
+        /// Returns whether a ValueObservation event event should be notified.
+        private func shouldNotifyValueObservationEvent() -> Bool {
+            stateMutex.withLock { state in
+                if state.isCancelled { return false }
+                // After a ValueObservation event, we must ignore the
+                // initial result.
+                state.shouldDiscardInitialResult = true
+                return true
+            }
+        }
+        
+        /// Returns whether the initial result should be notified: the client
+        /// is not cancelled, and the initial result should not be discarded.
+        private func shouldNotifyInitialResult() -> Bool {
+            stateMutex.withLock { state in
+                !state.isCancelled && !state.shouldDiscardInitialResult
+            }
         }
     }
     
@@ -229,48 +297,64 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
         onChange: @escaping @Sendable (Element) -> Void)
     -> AnyDatabaseCancellable
     {
-        withLock {
+        let client = Client(onError: onError, onChange: onChange)
+        let (newSubscription, lastResult) = lock.withLock {
+            // State change
+            clients.append(client)
+            
             // Support for reentrancy: a shared immediate observation is
             // started from the first value notification of that same shared
             // immediate observation. Yeah, users are nasty.
-            // In this case, self.cancellable is still nil, because we are
-            // still waiting for the upstream ValueObservation to start.
-            // But we must not start another one.
-            let needsStart = !isObserving
+            // In this case, self.currentSubscription has no cancellable yet,
+            // because we are still waiting for the upstream ValueObservation
+            // to start. But we must not start another one.
+            if currentSubscription != nil {
+                return (ValueObservationSubscription?.none, self.lastResult)
+            }
+            let newSubscription = ValueObservationSubscription()
+            currentSubscription = newSubscription
+            return (newSubscription, nil)
+        }
+        
+        // Side effect
+        if let newSubscription {
+            // Self retains the subscription and its cancellable, so don't have
+            // the cancellable retain self or the subscription.
+            let cancellable = startObservation(
+                // onError
+                { [weak self, weak newSubscription] error in
+                    guard let newSubscription else { return }
+                    self?.handleError(error, from: newSubscription)
+                },
+                // onChange
+                { [weak self, weak newSubscription] element in
+                    guard let newSubscription else { return }
+                    self?.handleChange(element, from: newSubscription)
+                })
             
-            // State change
-            let client = Client(onError: onError, onChange: onChange)
-            clients.append(client)
-            isObserving = true
-            
-            // Side effect
-            if needsStart {
-                // Self retains the cancellable, so don't have the cancellable retain self.
-                cancellable = startObservation(
-                    // onError
-                    { [weak self] error in
-                        self?.handleError(error)
-                    },
-                    // onChange
-                    { [weak self] element in
-                        self?.handleChange(element)
-                    })
-            } else if let result = lastResult {
-                // Notify last result as an initial value
-                scheduler.scheduleInitial {
-                    switch result {
-                    case let .failure(error):
-                        onError(error)
-                    case let .success(value):
-                        onChange(value)
-                    }
+            // The upstream observation may have been stopped, and maybe
+            // replaced, while it was starting (for example, if the initial
+            // fetch fails). In this case, discard its cancellable.
+            let discardedCancellable: AnyDatabaseCancellable? = lock.withLock {
+                guard currentSubscription === newSubscription else {
+                    return cancellable
                 }
+                newSubscription.cancellable = cancellable
+                return nil
             }
-            
-            return AnyDatabaseCancellable {
-                // Retain shared observation (self) until client cancels
-                self.handleCancel(client)
+            discardedCancellable?.cancel()
+        } else if let lastResult {
+            // Notify last result as an initial value. A fresher result may
+            // have been scheduled before, and already notified to the
+            // client: in this case, the last result is not notified.
+            scheduler.scheduleInitial {
+                client.notifyInitial(lastResult)
             }
+        }
+        
+        return AnyDatabaseCancellable {
+            // Retain shared observation (self) until client cancels
+            self.handleCancel(client)
         }
     }
     
@@ -299,55 +383,76 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
     }
 #endif
     
-    private func handleError(_ error: Error) {
-        withLock {
-            let notifiedClients = clients
+    private func handleError(_ error: Error, from source: ValueObservationSubscription) {
+        let (notifiedClients, stoppedCancellable) = lock.withLock {
+            guard source === currentSubscription else {
+                return ([Client](), AnyDatabaseCancellable?.none)
+            }
             
             // State change
+            let notifiedClients = clients
+            var stoppedCancellable: AnyDatabaseCancellable?
             clients = []
             if extent == .whileObserved {
-                isObserving = false
-                cancellable = nil
-                lastResult = nil
+                stoppedCancellable = stopObservation()
             } else {
                 lastResult = .failure(error)
             }
             
-            // Side effect
-            for client in notifiedClients {
-                client.onError(error)
-            }
+            return (notifiedClients, stoppedCancellable)
+        }
+        
+        // Side effects
+        stoppedCancellable?.cancel()
+        for client in notifiedClients {
+            client.notifyError(error)
         }
     }
     
-    private func handleChange(_ value: Element) {
-        withLock {
+    private func handleChange(_ value: Element, from source: ValueObservationSubscription) {
+        let notifiedClients = lock.withLock {
+            guard source === currentSubscription else {
+                return [Client]()
+            }
+            
             // State change
             lastResult = .success(value)
-            
-            // Side effect
-            for client in clients {
-                client.onChange(value)
-            }
+            return clients
+        }
+        
+        // Side effect
+        for client in notifiedClients {
+            client.notifyChange(value)
         }
     }
     
     private func handleCancel(_ client: Client) {
-        withLock {
+        // Prevent the client from being notified, even if a notification
+        // is currently in progress.
+        client.cancel()
+        
+        let stoppedCancellable = lock.withLock {
             // State change
             clients.removeFirst(where: { $0 === client })
             if clients.isEmpty && extent == .whileObserved {
-                isObserving = false
-                cancellable = nil
-                lastResult = nil
+                return stopObservation()
             }
+            return nil
         }
+        
+        // Side effect
+        stoppedCancellable?.cancel()
     }
     
-    private func withLock<T>(_ execute: () throws -> T) rethrows -> T {
-        lock.lock()
-        defer { lock.unlock() }
-        return try execute()
+    /// Stops the current upstream observation, and returns its cancellable,
+    /// so that it can be cancelled outside of the lock.
+    ///
+    /// Must be called with the lock held.
+    private func stopObservation() -> AnyDatabaseCancellable? {
+        let stoppedCancellable = currentSubscription?.cancellable
+        currentSubscription = nil
+        lastResult = nil
+        return stoppedCancellable
     }
 }
 

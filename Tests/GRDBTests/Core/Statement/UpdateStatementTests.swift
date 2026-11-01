@@ -485,6 +485,7 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             try test(value: "Foo")
+            try test(value: "foo\u{0}bar") // https://sqlite.org/nulinstr.html
             try test(value: "")
             try test(value: "Hello".data(using: .utf8)!)
             try test(value: Data())
@@ -519,6 +520,7 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             try test(value: "Foo")
+            try test(value: "foo\u{0}bar") // https://sqlite.org/nulinstr.html
             try test(value: "")
             try test(value: "Hello".data(using: .utf8)!)
             try test(value: Data())
@@ -560,6 +562,7 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             try test(value: "Foo")
+            try test(value: "foo\u{0}bar") // https://sqlite.org/nulinstr.html
             try test(value: "")
             try test(value: "Hello".data(using: .utf8)!)
             try test(value: Data())
@@ -596,6 +599,7 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             try test(value: "Foo")
+            try test(value: "foo\u{0}bar") // https://sqlite.org/nulinstr.html
             try test(value: "")
             try test(value: "Hello".data(using: .utf8)!)
             try test(value: Data())

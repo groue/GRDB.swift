@@ -45,9 +45,8 @@ class Issue1838Tests: GRDBTestCase {
         }
         
         // Make sure the interrupted state created by the FTS5 bug is no longer active.
-        let documentCount = try dbQueue.read { db in
-            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents")!
+        try dbQueue.read { db in
+            try db.execute(sql: "SELECT COUNT(*) FROM documents")
         }
-        XCTAssertEqual(documentCount, 0)
     }
 }
