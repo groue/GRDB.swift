@@ -52,6 +52,21 @@ class DatabaseQueueTests: GRDBTestCase {
         }
     }
     
+    func testOpenErrorMessage() throws {
+        // Without URI filenames, this path is a file in a missing "file:"
+        // directory, and opening fails with SQLITE_CANTOPEN.
+        let path = "file:" + NSTemporaryDirectory() + "test.sqlite?mode=bogus"
+        do {
+            _ = try DatabaseQueue(path: path)
+            XCTFail("Expected error")
+        } catch DatabaseError.SQLITE_CANTOPEN {
+            throw XCTSkip("URI filenames are not enabled")
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+            XCTAssertEqual(error.message, "no such access mode: bogus")
+        }
+    }
+    
     func testAddRemoveFunction() throws {
         // Adding a function and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
