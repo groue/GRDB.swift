@@ -388,4 +388,26 @@ class SelectStatementTests : GRDBTestCase {
             XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
         }
     }
+    
+    func testColumnsAfterSchemaChange() throws {
+        // SQLite recompiles statements after a schema change, and this can
+        // change the result columns.
+        try makeDatabaseQueue().inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE t(a);
+                INSERT INTO t VALUES (1);
+                """)
+            let statement = try db.makeStatement(sql: "SELECT * FROM t")
+            XCTAssertEqual(statement.columnNames, ["a"])
+            XCTAssertEqual(statement.index(ofColumn: "a"), 0)
+            XCTAssertNil(statement.index(ofColumn: "b"))
+            
+            try db.execute(sql: "ALTER TABLE t ADD COLUMN b")
+            try statement.execute() // Recompile
+            XCTAssertEqual(statement.columnCount, 2)
+            XCTAssertEqual(statement.columnNames, ["a", "b"])
+            XCTAssertEqual(statement.index(ofColumn: "a"), 0)
+            XCTAssertEqual(statement.index(ofColumn: "b"), 1)
+        }
+    }
 }
