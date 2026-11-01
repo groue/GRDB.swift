@@ -29,6 +29,12 @@ private struct B : TableRecord {
     }
 }
 
+// Book1 -> Author
+private struct Book1 : TableRecord {
+    static let author = belongsTo(Author.self)
+}
+private struct Author : TableRecord { }
+
 /// Tests for table name conflicts, recursive associations,
 /// user-defined table aliases, and expressions that involve several tables.
 class AssociationTableAliasTestsSQLTests : GRDBTestCase {
@@ -369,6 +375,29 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
                     JOIN "b" "b1" ON "b1"."id" = "B"."bid1"
                     """)
             }
+        }
+    }
+    
+    func testUserInducedNameConflictWithDigitSuffixedTableName() throws {
+        // Book1.include(Author.aliased("book1"))
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "author") { t in
+                t.primaryKey("id", .integer)
+            }
+            try db.create(table: "book1") { t in
+                t.primaryKey("id", .integer)
+                t.belongsTo("author")
+            }
+            
+            let authorAlias = TableAlias(name: "book1")
+            let request = Book1.including(required: Book1.author.aliased(authorAlias))
+            try assertEqualSQL(db, request, """
+                SELECT "book2".*, "book1".* \
+                FROM "book1" "book2" \
+                JOIN "author" "book1" ON "book1"."id" = "book2"."authorId"
+                """)
         }
     }
     
