@@ -47,6 +47,25 @@ public final class Statement {
         case rollbackSavepoint(String)
     }
     
+    /// The column names and indexes of a statement, for a given compilation
+    /// of the statement.
+    private struct ColumnCache {
+        var reprepareCount: CInt
+        var columnNames: [String]
+        /// Indexes of the leftmost columns. Keys are lowercase.
+        var columnIndexes: [String: Int]
+        
+        init(sqliteStatement: SQLiteStatement, reprepareCount: CInt) {
+            self.reprepareCount = reprepareCount
+            self.columnNames = (0..<sqlite3_column_count(sqliteStatement)).map {
+                String(cString: sqlite3_column_name(sqliteStatement, $0))
+            }
+            self.columnIndexes = Dictionary(
+                columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+                uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
+        }
+    }
+    
     /// The raw SQLite statement, suitable for the SQLite C API.
     public let sqliteStatement: SQLiteStatement
     
@@ -59,11 +78,9 @@ public final class Statement {
     }
     
     /// The column names, ordered from left to right.
-    public lazy var columnNames: [String] = {
-        // swiftlint:disable:next redundant_self
-        let sqliteStatement = self.sqliteStatement
-        return (0..<CInt(columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
-    }()
+    public var columnNames: [String] {
+        columnCache.columnNames
+    }
     
     // The database region is reported by `sqlite3_set_authorizer`, and maybe
     // refined in `SQLQueryGenerator.makeStatement(_:)` when we have enough
@@ -114,12 +131,29 @@ public final class Statement {
     @usableFromInline
     unowned let database: Database
     
-    /// Cache for index(ofColumn:). Keys are lowercase.
-    private lazy var columnIndexes: [String: Int] = {
-        Dictionary(
-            columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
-            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
-    }()
+    /// Indexes of the leftmost columns. Keys are lowercase.
+    var columnIndexes: [String: Int] {
+        columnCache.columnIndexes
+    }
+    
+    /// Storage for `columnCache`.
+    private var _columnCache: ColumnCache?
+    
+    /// The column names and indexes.
+    ///
+    /// SQLite recompiles statements after schema changes (see
+    /// <https://www.sqlite.org/c3ref/prepare.html>), and this can change
+    /// the result columns (think `SELECT *` after a column was added).
+    /// So the cache is rebuilt whenever the statement is recompiled.
+    private var columnCache: ColumnCache {
+        let reprepareCount = sqlite3_stmt_status(sqliteStatement, SQLITE_STMTSTATUS_REPREPARE, 0)
+        if let _columnCache, _columnCache.reprepareCount == reprepareCount {
+            return _columnCache
+        }
+        let columnCache = ColumnCache(sqliteStatement: sqliteStatement, reprepareCount: reprepareCount)
+        _columnCache = columnCache
+        return columnCache
+    }
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
