@@ -23,7 +23,7 @@ public protocol _ValueReducer: GRDBSendableMetatype {
     /// on the state of the reducer.
     func _makeFetcher() -> Fetcher
     
-    /// Transforms a fetched value into an eventual observed value. Returns nil
+    /// Transforms a fetched value into an optional observed value. Returns nil
     /// when observer should not be notified.
     ///
     /// This method runs in some unspecified dispatch queue.

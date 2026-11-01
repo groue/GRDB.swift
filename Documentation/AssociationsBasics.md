@@ -228,7 +228,7 @@ Associations to [common table expressions] are specific enough and are documente
 
 ## BelongsTo
 
-The **BelongsTo** association sets up a one-to-one connection from a record type to another record type, such as each instance of the declaring record "belongs to" an instance of the other record.
+The **BelongsTo** association sets up a one-to-one connection from a record type to another record type, such that each instance of the declaring record "belongs to" an instance of the other record.
 
 For example, if your application includes authors and books, and each book is assigned its author, you'd declare the `Book.author` association as below:
 
@@ -252,7 +252,7 @@ See [Convention for the BelongsTo Association] for some sample code that defines
 
 ## HasMany
 
-The **HasMany** association indicates a one-to-many connection between two record types, such as each instance of the declaring record "has many" instances of the other record. You'll often find this association on the other side of a **BelongsTo** association.
+The **HasMany** association indicates a one-to-many connection between two record types, such that each instance of the declaring record "has many" instances of the other record. You'll often find this association on the other side of a **BelongsTo** association.
 
 For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the `Author.books` association as below:
 
@@ -946,7 +946,7 @@ let bookInfos = try Book
 
 ### `including(optional:)`
 
-For example, fetch books along with their eventual author:
+For example, fetch books along with their optional author:
 
 ```swift
 // SELECT book.*, author.* 
@@ -960,7 +960,7 @@ This method accepts any association. It has the base record fetched along with o
 **To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
-// Fetch all books along with their eventual author
+// Fetch all books along with their optional author
 struct BookInfo: Decodable, FetchableRecord {
     var book: Book      // The base record
     var author: Author? // The optional associated record
@@ -976,7 +976,7 @@ let bookInfos = try Book
 **When you only need a few columns of the associated record**, you can define a partial type with one property per selected column of the associated record:
 
 ```swift
-// Fetch all books along with the name and country of their eventual author
+// Fetch all books along with the name and country of their optional author
 struct BookInfo: Decodable, FetchableRecord {
     struct PartialAuthor: Decodable {
         var name: String
@@ -994,7 +994,7 @@ let bookInfos = try Book
 But if you'd rather avoid this extra partial type, prefer [`annotated(withOptional:)`]:
 
 ```swift
-// Fetch all books along with the country of their eventual author
+// Fetch all books along with the country of their optional author
 struct BookInfo: Decodable, FetchableRecord {
     var book: Book
     var country: String?
@@ -1133,7 +1133,7 @@ let bookInfos = try Book
 
 ### `annotated(withOptional:)`
 
-For example, fetch books along with the name and country of their eventual author:
+For example, fetch books along with the name and country of their optional author:
 
 ```swift
 // SELECT book.*, author.name, author.country
@@ -1147,7 +1147,7 @@ This method accepts any association. The base record is annotated with the selec
 **To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
-// Fetch all books along with the name of their eventual author
+// Fetch all books along with the name of their optional author
 struct BookInfo: Decodable, FetchableRecord {
     var book: Book       // The base record
     var name: String?    // A column of the optional associated record
@@ -1162,7 +1162,7 @@ let bookInfos = try Book
 If the name of a column of the associated record is also the name of a column of the base record, rename the associated column with the column `forKey(_:)` method, and accordingly rename the property of the decoded record type:
 
 ```swift
-// Fetch all books along with the name of their eventual author
+// Fetch all books along with the name of their optional author
 struct BookInfo: Decodable, FetchableRecord {
     var book: Book
     var authorName: String?
@@ -1216,7 +1216,7 @@ In the description of the [joining methods] above, we have seen that you need to
 
 In this chapter, we take the reversed perspective. We list various shapes of decoded record types. When you find the type you want, you'll know the joining method you need.
 
-> **Note**: If you don't find the type you want, chances are that you are fighting the framework, and should reconsider your position. Your escape hatch is the low-level apis described in [Decoding a Joined Request with FetchableRecord].
+> **Note**: If you don't find the type you want, chances are that you are fighting the framework, and should reconsider your position. Your escape hatch is the low-level APIs described in [Decoding a Joined Request with FetchableRecord].
 
 - [`including(required:)`]
 
@@ -1270,7 +1270,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     ```swift
     struct BookInfo: Decodable, FetchableRecord {
         var book: Book      // The base record
-        var author: Author? // The eventual associated record
+        var author: Author? // The optional associated record
     }
     
     let bookInfos = try Book
@@ -1286,7 +1286,7 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
             var country: String
         }
         var book: Book             // The base record
-        var author: PartialAuthor? // The eventual partial associated record
+        var author: PartialAuthor? // The optional partial associated record
     }
     
     let bookInfos = try Book
@@ -1300,8 +1300,8 @@ In this chapter, we take the reversed perspective. We list various shapes of dec
     ```swift
     struct BookInfo: Decodable, FetchableRecord {
         var book: Book          // The base record
-        var authorName: String? // A column of the eventual associated record
-        var country: String?    // A column of the eventual associated record
+        var authorName: String? // A column of the optional associated record
+        var country: String?    // A column of the optional associated record
     }
     
     let bookInfos = try Book
@@ -1381,7 +1381,7 @@ struct BookInfo: FetchableRecord, Decodable {
 let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
-The request above fetches all books, along with their author and eventual translator.
+The request above fetches all books, along with their author and optional translator.
 
 You can chain associations in order to jump from a record to another:
 
@@ -1762,7 +1762,7 @@ Associations support more refinements:
 
 In all examples we have seen so far, all associated records are joined, included, filtered, and sorted independently. We could not filter them on conditions that involve several records, for example.
 
-Let's say we look for posthumous books, published after their author has died. We need to compare a book publication date with an author eventual death date.
+Let's say we look for posthumous books, published after their author has died. We need to compare a book publication date with an author's possible death date.
 
 Let's first see a wrong way to do it:
 
@@ -2230,7 +2230,7 @@ let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
 ## Debugging Request Decoding
 
-When you have difficulties building a Decodable record that successfully decodes a joined request, we advise to temporarily decode raw database rows, and inspect them.
+When you have difficulties building a Decodable record that successfully decodes a joined request, we advise you to temporarily decode raw database rows, and inspect them.
 
 ```swift
 let request = Book
@@ -2843,7 +2843,7 @@ But in the following example, we use the same association `Author.books` twice, 
 
 ## DerivableRequest Protocol
 
-The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
+The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB APIs.
 
 For example, we may want to define `orderedByName()` and `filter(country:)` request methods that make our requests easier to read:
 
@@ -2905,7 +2905,7 @@ See [Recommended Practices for Designing Record Types] for more information.
             .filter { $0.publishDate >= authorAlias.deathDate })    
     ```
 
-- **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:
+- **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] association that share the same base association in the same request**:
 
     ```swift
     // NOT IMPLEMENTED

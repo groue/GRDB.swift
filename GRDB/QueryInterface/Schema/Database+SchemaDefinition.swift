@@ -98,7 +98,7 @@ extension Database {
     ///
     /// ### Add columns
     ///
-    /// Add columns with their name and eventual type (`text`, `integer`,
+    /// Add columns with their name and optional type (`text`, `integer`,
     /// `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime`
     /// and `any`) - see ``Database/ColumnType``:
     ///

@@ -117,7 +117,7 @@ try dbQueue.write { db in
 
 ## Specifying the primary key of a view
 
-SQLite views do not have any primary key, so GRDB cannot introspect the database schema and automatically find the eventual primary key.
+SQLite views do not have any primary key, so GRDB cannot introspect the database schema and automatically find the primary key, if any.
 
 To instruct GRDB about the primary key, define a **schema source**, a type that conforms to ``DatabaseSchemaSource``. In this sample code, the schema only contains the "captain" view, so our schema source does not need to be very complicated. Check the documentation of the protocol for more detailed instructions:
 

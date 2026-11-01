@@ -148,7 +148,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// If you provide a custom implementation of this method, you must call
     /// the `insert` parameter at some point in your implementation, and you
-    /// must rethrow its eventual error.
+    /// must rethrow any error.
     ///
     /// For example:
     ///
@@ -207,7 +207,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// If you provide a custom implementation of this method, you must call
     /// the `update` parameter at some point in your implementation, and you
-    /// must rethrow its eventual error.
+    /// must rethrow any error.
     ///
     /// For example:
     ///
@@ -246,7 +246,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// If you provide a custom implementation of this method, you must call
     /// the `save` parameter at some point in your implementation, and you
-    /// must rethrow its eventual error.
+    /// must rethrow any error.
     ///
     /// For example:
     ///
@@ -285,7 +285,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     ///
     /// If you provide a custom implementation of this method, you must call
     /// the `delete` parameter at some point in your implementation, and you
-    /// must rethrow its eventual error.
+    /// must rethrow any error.
     ///
     /// For example:
     ///
@@ -410,7 +410,7 @@ public struct InsertionSuccess {
     /// To learn about rowids, see <https://www.sqlite.org/lang_createtable.html#rowids_and_the_integer_primary_key>.
     public var rowID: Int64
     
-    /// The name of the eventual INTEGER PRIMARY KEY column.
+    /// The name of the INTEGER PRIMARY KEY column, if any.
     public var rowIDColumn: String?
     
     // Used by the Record class in order to manage its `hasDatabaseChanges` flag.

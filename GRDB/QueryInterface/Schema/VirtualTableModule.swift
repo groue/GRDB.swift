@@ -15,7 +15,7 @@
 ///
 /// ## Topics
 ///
-/// ### Configuration Virtual Table Creation
+/// ### Configuring Virtual Table Creation
 ///
 /// - ``VirtualTableConfiguration``
 public protocol VirtualTableModule {

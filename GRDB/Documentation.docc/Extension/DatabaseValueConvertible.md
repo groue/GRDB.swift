@@ -91,7 +91,7 @@ protocol DatabaseValueConvertible {
 import Tagged
 
 struct Player: Identifiable {
-    // Thanks to Tagged, Player.ID can not be mismatched with Team.ID or
+    // Thanks to Tagged, Player.ID can not be confused with Team.ID or
     // Award.ID, even though they all wrap strings.
     typealias ID = Tagged<Player, String>
     var id: ID

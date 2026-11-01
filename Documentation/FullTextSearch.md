@@ -301,7 +301,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
+FTS3Pattern instances are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -550,7 +550,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
+FTS5Pattern instances are regular [values](../README.md#values). You can use them as query [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -614,7 +614,7 @@ try db.create(virtualTable: "book_ft", using: FTS4()) { t in // or FTS5()
 }
 ```
 
-The eventual content already present in the regular table is indexed, and every insert, update or delete that happens in the regular table is automatically applied to the full-text index.
+Any content already present in the regular table is indexed, and every insert, update or delete that happens in the regular table is automatically applied to the full-text index.
 
 For more information, see the SQLite documentation about external content tables: [FTS4](https://www.sqlite.org/fts3.html#_external_content_fts4_tables_), [FTS5](https://sqlite.org/fts5.html#external_content_tables).
 
@@ -661,7 +661,7 @@ try db.dropFTS4SynchronizationTriggers(forTable: "book_ft")
 
 When you need to perform a full-text search, and the external content table contains all the data you need, you can simply query the full-text table.
 
-But if you need to load columns from the regular table, and in the same time perform a full-text search, then you will need to query both tables at the same time.
+But if you need to load columns from the regular table, and also perform a full-text search, then you will need to query both tables at the same time.
 
 That is because SQLite will throw an error when you try to perform a full-text search on a regular table:
 

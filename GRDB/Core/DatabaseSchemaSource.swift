@@ -109,7 +109,7 @@ public protocol DatabaseSchemaSource: Sendable {
     /// When you are developing a schema source for a library, some extra
     /// care is necessary whenever the database file is owned by the users
     /// of your library. Your users may define views for their own purposes,
-    /// and your library knows nothing about the eventual primary key of
+    /// and your library knows nothing about the possible primary key of
     /// those views.
     ///
     /// In this case, make your schema source `public`, and have this method

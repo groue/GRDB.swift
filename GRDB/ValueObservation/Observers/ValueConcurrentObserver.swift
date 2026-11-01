@@ -284,7 +284,7 @@ extension ValueConcurrentObserver {
     private func syncStart(from databaseAccess: DatabaseAccess) throws -> Reducer.Value {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
-        // without having to wait for an eventual long-running write
+        // without having to wait for a possible long-running write
         // transaction to complete.
         //
         // We perform the initial read from a long-lived WAL snapshot
@@ -341,7 +341,7 @@ extension ValueConcurrentObserver {
     private func asyncStart(from databaseAccess: DatabaseAccess) {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
-        // without having to wait for an eventual long-running write
+        // without having to wait for a possible long-running write
         // transaction to complete.
         //
         // We perform the initial read from a long-lived WAL snapshot
@@ -550,7 +550,7 @@ extension ValueConcurrentObserver {
     private func syncStartWithoutWALSnapshot(from databaseAccess: DatabaseAccess) throws -> Reducer.Value {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
-        // without having to wait for an eventual long-running write
+        // without having to wait for a possible long-running write
         // transaction to complete.
         let fetchedValue: Reducer.Fetcher.Value
         let initialRegion: DatabaseRegion
@@ -591,7 +591,7 @@ extension ValueConcurrentObserver {
     private func asyncStartWithoutWALSnapshot(from databaseAccess: DatabaseAccess) {
         // Start from a read access. The whole point of using a DatabasePool
         // for observing the database is to be able to fetch the initial value
-        // without having to wait for an eventual long-running write
+        // without having to wait for a possible long-running write
         // transaction to complete.
         databaseAccess.dbPool.asyncRead { dbResult in
             let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }

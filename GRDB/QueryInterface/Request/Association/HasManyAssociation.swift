@@ -1,5 +1,5 @@
 /// The `HasManyAssociation` indicates a one-to-many connection between two
-/// record types, such as each instance of the declaring record "has many"
+/// record types, such that each instance of the declaring record "has many"
 /// instances of the other record.
 ///
 /// For example, if your application includes authors and books, and each author

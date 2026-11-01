@@ -956,7 +956,7 @@ extension JoinMapping {
         //
         // Since a single NULL value satisfies the foreign key constraint
         // without requiring a matching matching parent row, below we'll ignore
-        // left rows (children) that attempt at matching on NULL.
+        // left rows (children) that attempt to match on NULL.
         if mappings.count == 1 {
             // Join on a single right column.
             // table.a IN (1, 2, 3, ...)

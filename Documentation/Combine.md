@@ -134,7 +134,7 @@ let players = dbQueue.readPublisher { db in
 
 Any attempt at modifying the database completes subscriptions with an error.
 
-When you use a [database queue] or a [database snapshot], the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
+When you use a [database queue] or a [database snapshot], the read has to wait for any concurrent database access performed by this queue or snapshot to complete.
 
 When you use a [database pool], reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured].
 
@@ -223,11 +223,11 @@ let publisher = observation.publisher(in: dbQueue)
 
 This publisher has the same behavior as ValueObservation:
 
-- It notifies an initial value before the eventual changes.
+- It notifies an initial value before subsequent changes.
 - It may coalesce subsequent changes into a single notification.
 - It may notify consecutive identical values. You can filter out the undesired duplicates with the `removeDuplicates()` Combine operator, but we suggest you have a look at the [removeDuplicates()](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/removeduplicates()) GRDB operator also.
 - It only completes when it is cancelled.
-- By default, it notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously.
+- By default, it notifies the initial value, as well as subsequent changes and errors, on the main thread, asynchronously.
     
     This can be configured with the `scheduling` argument. It does not accept a Combine scheduler, but a [ValueObservationScheduler](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservationscheduler).
     
@@ -310,7 +310,7 @@ When you compose database publishers together with Combine operators such as `co
 
 This is because each database publisher is isolated from others: each one of them sees its own state of the database. Whenever some database change is interleaved between publisher operations, publishers will process or publish values that may not fit well together.
 
-In other words, whenever you need to perform some database access or observation that depends on some database invariant, make sure you define one and only one database publisher instead of combining several publishers. This is how you will prevent eventual concurrent database writes from messing with your app, and introducing bugs.
+In other words, whenever you need to perform some database access or observation that depends on some database invariant, make sure you define one and only one database publisher instead of combining several publishers. This is how you will prevent concurrent database writes from messing with your app, and introducing bugs.
 
 To this end, remember that *all database publishers can perform several requests*.
 

@@ -477,7 +477,7 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM player WHERE \(literal: condition)"
     ```
 
-- Plain SQL strings and eventual arguments:
+- Plain SQL strings and optional arguments:
 
     ```swift
     // SELECT * FROM player

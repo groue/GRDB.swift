@@ -240,7 +240,7 @@ public final class TableDefinition {
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#tablecoldef>
     ///
     /// - parameter name: the column name.
-    /// - parameter type: the eventual column type.
+    /// - parameter type: the optional column type.
     /// - returns: A ``ColumnDefinition`` that allows you to refine the
     ///   column definition.
     @discardableResult

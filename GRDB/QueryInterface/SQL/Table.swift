@@ -1188,7 +1188,7 @@ extension Table {
     ///     - destination: The record type at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `Destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func belongsTo<Destination>(
@@ -1213,7 +1213,7 @@ extension Table {
     ///     - destination: The record type at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `Destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func hasMany<Destination>(
@@ -1238,7 +1238,7 @@ extension Table {
     ///     - destination: The record type at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `Destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func hasOne<Destination>(
@@ -1267,7 +1267,7 @@ extension Table {
     ///     - destination: The table at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `destination.tableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func belongsTo<Destination>(
@@ -1291,7 +1291,7 @@ extension Table {
     ///     - destination: The table at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `destination.tableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func hasMany<Destination>(
@@ -1315,7 +1315,7 @@ extension Table {
     ///     - destination: The table at the other side of the association.
     ///     - key: The association key. By default, it
     ///       is `destination.tableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide one when
+    ///     - foreignKey: An optional foreign key. You need to provide one when
     ///       no foreign key exists to the destination table, or several foreign
     ///       keys exist.
     public func hasOne<Destination>(
@@ -1416,7 +1416,7 @@ extension Table {
     ///     - pivot: An association from Self to the intermediate type.
     ///     - target: A target association from the intermediate type to the
     ///       destination type.
-    ///     - key: An eventual decoding key for the association. By default, it
+    ///     - key: An optional decoding key for the association. By default, it
     ///       is the same key as the target.
     public func hasOne<Pivot, Target>(
         _ destination: Target.RowDecoder.Type,
@@ -1454,7 +1454,7 @@ extension Table {
         all().including(all: association)
     }
 
-    /// Returns a request that fetches the eventual row associated with each
+    /// Returns a request that fetches the optional row associated with each
     /// row of this request.
     ///
     /// See the ``TableRecord`` method ``TableRecord/including(optional:)``
@@ -1479,7 +1479,7 @@ extension Table {
     }
 
     /// Returns a request that joins each row of this request to its
-    /// eventual associated row.
+    /// optional associated row.
     ///
     /// See the ``TableRecord`` method ``TableRecord/joining(optional:)``
     /// for more information.
@@ -1502,7 +1502,7 @@ extension Table {
         all().joining(required: association)
     }
 
-    /// Returns a request with the columns of the eventual associated row
+    /// Returns a request with the columns of the optional associated row
     /// appended to the table columns.
     ///
     /// See the ``TableRecord`` method ``TableRecord/annotated(withOptional:)``

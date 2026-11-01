@@ -356,7 +356,7 @@ class DatabaseObservationBroker {
         statementObservations = []
         SchedulingWatchdog.current!.databaseObservationBroker = nil
         
-        // Reset transactionCompletion before databaseDidRollback eventually
+        // Reset transactionCompletion before databaseDidRollback possibly
         // executes other statements.
         let transactionCompletion = self.transactionCompletion
         self.transactionCompletion = .none
@@ -433,7 +433,7 @@ class DatabaseObservationBroker {
         }
         
         // Reset transactionCompletion before databaseDidCommit or
-        // databaseDidRollback eventually execute other statements.
+        // databaseDidRollback possibly execute other statements.
         let transactionCompletion = self.transactionCompletion
         self.transactionCompletion = .none
         
@@ -733,7 +733,7 @@ class DatabaseObservationBroker {
         #endif
     }
     
-    /// The various SQLite transactions completions, as reported by the
+    /// The various SQLite transaction completions, as reported by the
     /// `sqlite3_commit_hook` and `sqlite3_rollback_hook` callbacks.
     fileprivate enum TransactionCompletion {
         /// Transaction state is unchanged.
@@ -851,7 +851,7 @@ public protocol TransactionObserver: AnyObject {
     /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
     /// and ``Database/notifyChanges(in:)`` for more information.
     ///
-    /// The exact nature of changes is unknown, but they comply to the
+    /// The exact nature of changes is unknown, but they comply with the
     /// ``observes(eventsOfKind:)`` test.
     func databaseDidChange()
     
@@ -884,7 +884,7 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// - precondition: This method must not access the observed writer
     ///   database connection.
-    /// - throws: The eventual error that rollbacks pending changes.
+    /// - throws: The error that rolls back pending changes.
     func databaseWillCommit() throws
     
     /// Called when a transaction has been committed on disk.
@@ -996,7 +996,7 @@ final class TransactionObservation {
     let extent: Database.TransactionObservationExtent
     
     /// A disabled observation is not interested in individual database changes.
-    /// It is still interested in transactions commits & rollbacks.
+    /// It is still interested in transaction commits & rollbacks.
     var isEnabled = true
     
     private weak var weakObserver: (any TransactionObserver)?
@@ -1052,8 +1052,8 @@ final class TransactionObservation {
             return nil
         case 1:
             // We'll execute a simple statement without any side effect.
-            // Eventual database events will thus all have the same kind. All
-            // detabase events can be notified to interested observations.
+            // All database events will thus have the same kind. All
+            // database events can be notified to interested observations.
             //
             // For example, if one observes all deletions in the table T, then
             // all individual deletions of DELETE FROM T are notified:
@@ -1068,7 +1068,7 @@ final class TransactionObservation {
                 trackingEvents: .all)
         default:
             // We'll execute a complex statement with side effects performed by
-            // an SQL trigger or a foreign key action. Eventual database events
+            // an SQL trigger or a foreign key action. Any database events
             // may not all have the same kind: we need to filter them before
             // notifying interested observations.
             //
@@ -1119,7 +1119,7 @@ final class TransactionObservation {
             if let observer = self.observer {
                 // Observer must not get any further notification.
                 // So we "forget" the observer before its `databaseDidCommit`
-                // implementation eventually triggers another database change.
+                // implementation possibly triggers another database change.
                 assert(weakObserver == nil, "expected observer to be stored in strongObserver")
                 strongObserver = nil
                 observer.databaseDidCommit(db)
@@ -1135,7 +1135,7 @@ final class TransactionObservation {
             if let observer = self.observer {
                 // Observer must not get any further notification.
                 // So we "forget" the observer before its `databaseDidRollback`
-                // implementation eventually triggers another database change.
+                // implementation possibly triggers another database change.
                 assert(weakObserver == nil, "expected observer to be stored in strongObserver")
                 strongObserver = nil
                 observer.databaseDidRollback(db)

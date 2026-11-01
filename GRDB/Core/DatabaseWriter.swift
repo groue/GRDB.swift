@@ -336,7 +336,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// any transaction. You'll get a fatal error otherwise.
     ///
     /// Database operations performed by the `value` closure are isolated in a
-    /// transaction: they do not see changes performed by eventual concurrent
+    /// transaction: they do not see changes performed by concurrent
     /// writes (even writes performed by other processes).
     ///
     /// They see the database in the state left by the last updates performed

@@ -1,5 +1,5 @@
 /// The `BelongsToAssociation` sets up a one-to-one connection from a record
-/// type to another record type, such as each instance of the declaring record
+/// type to another record type, such that each instance of the declaring record
 /// "belongs to" an instance of the other record.
 ///
 /// For example, if your application includes authors and books, and each book

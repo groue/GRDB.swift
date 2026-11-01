@@ -58,7 +58,7 @@ extension ValueObservationMainActorScheduler {
 
 // MARK: - AsyncValueObservationScheduler
 
-/// A scheduler that asynchronously notifies fresh value of a `DispatchQueue`.
+/// A scheduler that asynchronously notifies fresh values on a `DispatchQueue`.
 public struct AsyncValueObservationScheduler: ValueObservationScheduler {
     var queue: DispatchQueue
     
@@ -74,7 +74,7 @@ public struct AsyncValueObservationScheduler: ValueObservationScheduler {
 }
 
 extension ValueObservationScheduler where Self == AsyncValueObservationScheduler {
-    /// A scheduler that asynchronously notifies fresh value of the
+    /// A scheduler that asynchronously notifies fresh values on the
     /// given `DispatchQueue`.
     ///
     /// For example:

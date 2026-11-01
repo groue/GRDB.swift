@@ -1179,7 +1179,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
-    /// A suspended database makes everything to avoid acquiring a lock on the
+    /// A suspended database does everything to avoid acquiring a lock on the
     /// database. All database operations may throw a ``DatabaseError`` of code
     /// `SQLITE_INTERRUPT` or `SQLITE_ABORT`, except reads in WAL mode.
     ///
@@ -1431,7 +1431,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             throw CancellationError()
             
         case .abort:
-            // Attempt at releasing an eventual lock with ROLLBACk,
+            // Attempt to release a possible lock with ROLLBACK,
             // as explained in Database.suspend().
             try? rollback()
             

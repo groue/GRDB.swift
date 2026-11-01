@@ -224,7 +224,7 @@ do {
 
 Post ``Database/resumeNotification`` in order to resume suspended databases. You can safely post this notification when the app comes back to foreground.
 
-In applications that use the background modes supported by iOS, post `resumeNotification` method from each and every background mode callback that may use the database, and don't forget to post `suspendNotification` again before the app turns suspended.
+In applications that use the background modes supported by iOS, post `resumeNotification` from each and every background mode callback that may use the database, and don't forget to post `suspendNotification` again before the app turns suspended.
 
 ## How to perform cross-process database observation
 

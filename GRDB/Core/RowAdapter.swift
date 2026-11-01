@@ -65,7 +65,7 @@ import Foundation
 /// ```
 ///
 /// You can package this technique in a dedicated type, as in the next
-/// example. It enhances the previous sample codes with:
+/// example. It enhances the previous code samples with:
 ///
 /// - Support for record types that customize their fetched columns
 ///   with ``TableRecord/databaseSelection-7iphs``.
@@ -343,7 +343,7 @@ extension RowAdapter {
     /// Returns an adapter based on self, with added scopes.
     ///
     /// If self already defines scopes, the added scopes replace
-    /// eventual existing scopes with the same name.
+    /// any existing scopes with the same name.
     ///
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
@@ -586,7 +586,7 @@ public struct ScopeAdapter: RowAdapter {
     ///     row.scopes["suffix"] // [2, 3]
     ///
     /// If the base adapter already defines scopes, the given scopes replace
-    /// eventual existing scopes with the same name.
+    /// any existing scopes with the same name.
     ///
     /// This initializer is equivalent to `baseAdapter.addingScopes(scopes)`.
     ///

@@ -106,7 +106,7 @@ public final class Statement {
     /// is executed (reported by `sqlite3_set_authorizer`).
     private(set) var invalidatesDatabaseSchemaCache = false
     
-    /// The eventual effect of transactions, as reported by `sqlite3_set_authorizer`.
+    /// The optional effect of transactions, as reported by `sqlite3_set_authorizer`.
     private(set) var transactionEffect: TransactionEffect?
     
     /// The effects on the database (reported by `sqlite3_set_authorizer`).
@@ -925,7 +925,7 @@ func withBindings<T>(
 /// - `@AAAA` (e.g. `@name`): named argument
 /// - `$AAAA` (e.g. `$name`): named argument
 ///
-/// All forms are supported,  but GRDB does not allow you to distinguish between
+/// All forms are supported, but GRDB does not allow you to distinguish between
 /// the `:AAAA`, `@AAAA`, and `$AAAA` syntaxes. You are encouraged to write
 /// named arguments with a colon prefix: `:name`.
 ///

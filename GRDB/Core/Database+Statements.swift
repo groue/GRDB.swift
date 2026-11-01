@@ -143,7 +143,7 @@ extension Database {
     /// ```
     ///
     /// The returned statement may have already been used: it may or may not
-    /// contain values for its eventual arguments.
+    /// contain values for its arguments, if any.
     ///
     /// - parameter sql: An SQL string.
     /// - returns: A prepared statement.

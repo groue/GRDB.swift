@@ -17,7 +17,7 @@ let observer = MyObserver()
 dbQueue.add(transactionObserver: observer)
 ```
 
-By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See <doc:TransactionObserver#Observation-Extent> for more options.
+By default, the database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See <doc:TransactionObserver#Observation-Extent> for more options.
 
 ## Database Changes And Transactions
 
@@ -76,7 +76,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Eventual errors thrown from `databaseWillCommit` are exposed to the application code:
+Errors thrown from `databaseWillCommit` are exposed to the application code:
 
 ```swift
 do {
@@ -162,7 +162,7 @@ dbQueue.inDatabase { db in
 
 - The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deallocated. Meanwhile, the observer is notified of all changes and transactions.
 
-- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` callback is called. Hereafter the observer won't get any further notification.
+- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` callback is called. After that, the observer won't get any further notification.
 
 - `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
 

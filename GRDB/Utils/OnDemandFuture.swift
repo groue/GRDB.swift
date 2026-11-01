@@ -11,7 +11,7 @@ import Foundation
 /// that it starts producing its value on demand, **synchronously**, and that
 /// it produces its value on promise completion, **synchronously**.
 ///
-/// Both two extra scheduling guarantees are used by GRDB in order to be
+/// Both extra scheduling guarantees are used by GRDB in order to be
 /// able to spawn concurrent database reads right from the database writer
 /// queue, and fulfill GRDB preconditions.
 ///

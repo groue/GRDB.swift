@@ -142,7 +142,7 @@ try dbQueue.writeWithoutTransaction { db in
 }
 ```
 
-Make sure all transactions opened from a database access are committed or rolled back from that same database access, because it is a programmer error to leave an opened transaction:
+Make sure all transactions opened from a database access are committed or rolled back from that same database access, because it is a programmer error to leave an open transaction:
 
 ```swift
 // fatal error: A transaction has been left
@@ -155,7 +155,7 @@ try dbQueue.writeWithoutTransaction { db in
 
 In particular, since commits may throw an error, make sure you perform a rollback when a commit fails.
 
-This restriction can be left with the ``Configuration/allowsUnsafeTransactions`` configuration flag.
+This restriction can be lifted with the ``Configuration/allowsUnsafeTransactions`` configuration flag.
 
 It is possible to ask if a transaction is currently opened:
 
@@ -196,7 +196,7 @@ try dbQueue.write { db in
 
 If an error is thrown from the savepoint block, the savepoint is rolled back and the error is rethrown by the `inSavepoint` method. If the savepoint closure returns `.rollback` instead of `.commit`, the savepoint is also rolled back, but no error is thrown.
 
-**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
+**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if none was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
 
 ```swift
 try dbQueue.writeWithoutTransaction { db in

@@ -815,7 +815,7 @@ extension Row {
         try! decode(Record.self, forKey: scope)
     }
     
-    /// Returns the eventual record associated to the given key.
+    /// Returns the record associated to the given key, if any.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -842,7 +842,7 @@ extension Row {
     ///
     /// struct Country: TableRecord, FetchableRecord { }
     ///
-    /// // Fetch a book, with its eventual author, and the country of its author.
+    /// // Fetch a book, with its optional author, and the country of its author.
     /// let request = Book
     ///     .including(optional: Book.author
     ///         .including(optional: Author.country))
@@ -1393,7 +1393,7 @@ extension Row {
 // MARK: - Throwing Record Decoding Methods
 
 extension Row {
-    /// Returns the eventual record associated to the given key.
+    /// Returns the record associated to the given key, if any.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -1420,7 +1420,7 @@ extension Row {
     ///
     /// struct Country: TableRecord, FetchableRecord { }
     ///
-    /// // Fetch a book, with its eventual author, and the country of its author.
+    /// // Fetch a book, with its optional author, and the country of its author.
     /// let request = Book
     ///     .including(optional: Book.author
     ///         .including(optional: Author.country))

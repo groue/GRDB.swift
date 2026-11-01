@@ -278,7 +278,7 @@ extension DatabaseValue: Equatable {
     /// 1.databaseValue == 1.0.databaseValue   // true
     /// ```
     ///
-    /// For a comparison that distinguishes integer and doubles, compare
+    /// For a comparison that distinguishes integers and doubles, compare
     /// storages instead:
     ///
     /// ```swift
@@ -366,7 +366,7 @@ extension DatabaseValue: CustomStringConvertible {
 /// This comparison is not public because it does not handle text collations,
 /// and may be dangerous when put in user hands.
 ///
-/// So far, the only goal of this sorting method so far is aesthetic, and
+/// So far, the only goal of this sorting method is aesthetic, and
 /// easier testing.
 func < (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     switch (lhs.storage, rhs.storage) {

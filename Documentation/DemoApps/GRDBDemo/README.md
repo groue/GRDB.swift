@@ -9,7 +9,7 @@ GRDBDemo Application
 
 The topics covered in this demo are:
 
-- How to setup a database in an iOS app.
+- How to set up a database in an iOS app.
 - How to define a simple [Codable Record](../../../README.md#codable-records).
 - How to track database changes and animate a SwiftUI List with [ValueObservation](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation).
 - How to apply the recommendations of [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices).
@@ -23,13 +23,13 @@ The topics covered in this demo are:
 
 - [AppDatabase.swift](GRDBDemo/Database/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasemigrator) in order to setup the database schema, and provides methods that read and write.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databasemigrator) in order to set up the database schema, and provides methods that read and write.
     
     `AppDatabase` is [tested](GRDBDemoTests/AppDatabaseTests.swift).
 
 - [Persistence.swift](GRDBDemo/Database/Persistence.swift)
     
-    This file instantiates various `AppDatabase` for the various projects needs: one database on disk for the application, and in-memory databases for SwiftUI previews.
+    This file instantiates various `AppDatabase` for the various projects' needs: one database on disk for the application, and in-memory databases for SwiftUI previews.
 
 - [Player.swift](GRDBDemo/Database/Models/Player.swift)
     

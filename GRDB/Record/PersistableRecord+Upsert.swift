@@ -77,7 +77,7 @@ extension PersistableRecord {
     /// you can further control the upsert behavior. Make sure you check
     /// <https://www.sqlite.org/lang_UPSERT.html> for detailed information.
     ///
-    /// The conflict target are the columns of the uniqueness constraint
+    /// The conflict target consists of the columns of the uniqueness constraint
     /// (primary key or unique index) that triggers the upsert. If empty, all
     /// uniqueness constraints are considered.
     ///
@@ -262,7 +262,7 @@ extension PersistableRecord {
     /// you can further control the upsert behavior. Make sure you check
     /// <https://www.sqlite.org/lang_UPSERT.html> for detailed information.
     ///
-    /// The conflict target are the columns of the uniqueness constraint
+    /// The conflict target consists of the columns of the uniqueness constraint
     /// (primary key or unique index) that triggers the upsert. If empty, all
     /// uniqueness constraints are considered.
     ///

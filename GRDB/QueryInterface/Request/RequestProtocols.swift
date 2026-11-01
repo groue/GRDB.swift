@@ -1576,10 +1576,10 @@ extension JoinableRequest {
         _including(all: association._sqlAssociation)
     }
     
-    /// Returns a request that fetches the eventual record associated with each
+    /// Returns a request that fetches the optional record associated with each
     /// record of this request.
     ///
-    /// For example, we can fetch books along with their eventual author:
+    /// For example, we can fetch books along with their optional author:
     ///
     /// ```swift
     /// struct Author: TableRecord, FetchableRecord, Decodable { }
@@ -1628,7 +1628,7 @@ extension JoinableRequest {
     }
     
     /// Returns a request that joins each record of this request to its
-    /// eventual associated record.
+    /// optional associated record.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         _joining(optional: association._sqlAssociation)
     }
@@ -1661,7 +1661,7 @@ extension JoinableRequest {
 }
 
 extension JoinableRequest where Self: SelectionRequest {
-    /// Appends the columns of the eventual associated record to the
+    /// Appends the columns of the optional associated record to the
     /// selected columns.
     ///
     /// For example:

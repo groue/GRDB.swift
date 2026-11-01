@@ -24,7 +24,7 @@ Before upgrading, ensure you are using the [latest GRDB 6 release](https://githu
 
 GRDB 7 requires Xcode 16+ and a Swift 6 compiler.
 
-Depending on the language mode and level of concurrency checkings used by your application, you may see warnings or errors. See [Migrating to Swift 6] on swift.org for more information about Swift 6. See [Swift Concurrency and GRDB] for GRDB-focused advice.
+Depending on the language mode and level of concurrency checking used by your application, you may see warnings or errors. See [Migrating to Swift 6] on swift.org for more information about Swift 6. See [Swift Concurrency and GRDB] for GRDB-focused advice.
 
 ## New requirements
 
@@ -237,7 +237,7 @@ Subclassing the [Record] class is **discouraged** in GRDB 7. Present in GRDB 1.0
 
 It is not recommended to define any new type that subclasses `Record`.
 
-It is recommended to refactor `Record` subclasses into Swift structs, before you enable the strict concurrency checkings or the Swift 6 language mode. See [Migrating to Swift 6] for more information about Swift 6 language modes.
+It is recommended to refactor `Record` subclasses into Swift structs, before you enable the strict concurrency checking or the Swift 6 language mode. See [Migrating to Swift 6] for more information about Swift 6 language modes.
 
 For example:
 

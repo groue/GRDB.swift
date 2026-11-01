@@ -902,7 +902,7 @@ class DatabaseWriterTests : GRDBTestCase {
         func test(_ dbWriter: some DatabaseWriter) async throws {
             // Numbers that have the test fail more or less reliably
             // (on my machine) unless the #1838 patch is applied.
-            // When the test fails, we have a fatal error: A transaction has been left opened at the end of a database access.
+            // When the test fails, we have a fatal error: A transaction has been left open at the end of a database access.
             let repeatCount = 400
             let taskCount = 50
             for _ in 0..<repeatCount {

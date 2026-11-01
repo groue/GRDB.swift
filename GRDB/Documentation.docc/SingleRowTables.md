@@ -16,13 +16,13 @@ We will also aim at providing a default value for a given configuration, even wh
 
 ## The Single-Row Table
 
-As always with SQLite, everything starts at the level of the database schema. When we put the database engine on our side, we have to write less code, and this helps ship less bugs.
+As always with SQLite, everything starts at the level of the database schema. When we put the database engine on our side, we have to write less code, and this helps ship fewer bugs.
 
 We want to instruct SQLite that our table must never contain more than one row. We will never have to wonder what to do if we were unlucky enough to find two rows with conflicting values in this table.
 
 SQLite is not able to guarantee that the table is never empty, so we have to deal with two cases: either the table is empty, or it contains one row.
 
-Those two cases can create a nagging question for the application. By default, inserts fail when the row already exists, and updates fail when the table is empty. In order to avoid those errors, we will have the app deal with updates in the <doc:SingleRowTables#The-Single-Row-Record> section below. Right now, we instruct SQLite to just replace the eventual existing row in case of conflicting inserts.
+Those two cases can create a nagging question for the application. By default, inserts fail when the row already exists, and updates fail when the table is empty. In order to avoid those errors, we will have the app deal with updates in the <doc:SingleRowTables#The-Single-Row-Record> section below. Right now, we instruct SQLite to just replace any existing row in case of conflicting inserts.
 
 ```swift
 migrator.registerMigration("appConfiguration") { db in
@@ -48,7 +48,7 @@ Note how the database table is defined in a migration. That's because most apps 
 We have defined a `storedFlag` column that can be NULL. That may be surprising, because optional booleans are usually a bad idea! But we can deal with this NULL at runtime, and nullable columns have a few advantages:
 
 - NULL means that the application user had not made a choice yet. When `storedFlag` is NULL, the app can use a default value, such as `true`.
-- As application evolves, application will need to add new configuration columns. It is not always possible to provide a sensible default value for these new columns, at the moment the table is modified. On the other side, it is generally possible to deal with those NULL values at runtime.
+- As the application evolves, it will need to add new configuration columns. It is not always possible to provide a sensible default value for these new columns, at the moment the table is modified. On the other hand, it is generally possible to deal with those NULL values at runtime.
 
 Despite those arguments, some apps absolutely require a value. In this case, don't weaken the application logic and make sure the database can't store a NULL value:
 

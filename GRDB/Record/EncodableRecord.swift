@@ -303,7 +303,7 @@ extension EncodableRecord {
     /// share the same value. Values are the database values from the
     /// `other` record.
     ///
-    /// Note that the `other` record does not have to have the same type of the
+    /// Note that the `other` record does not have to have the same type as the
     /// receiver record. When the two records don't define the same set of
     /// columns in their <doc:/documentation/GRDB/EncodableRecord/encode(to:)-k9pf>
     /// method, only the columns defined by the receiver are considered.
@@ -321,7 +321,7 @@ extension EncodableRecord {
     /// returns a dictionary of changed values.
     ///
     /// The keys of the dictionary are the changed column names. Values are
-    /// the database values from the initial version record.
+    /// the database values from the initial version of the record.
     ///
     /// For example:
     ///
@@ -485,7 +485,7 @@ public enum DatabaseDataEncodingStrategy: Sendable {
     /// Encodes `Data` columns as SQL text. Data must contain valid UTF8 bytes.
     case text
     
-    /// Encodes `Data` column as the result of the user-provided function.
+    /// Encodes `Data` columns as the result of the user-provided function.
     case custom(@Sendable (Data) -> (any DatabaseValueConvertible)?)
     
     func encode(_ data: Data) throws -> DatabaseValue {

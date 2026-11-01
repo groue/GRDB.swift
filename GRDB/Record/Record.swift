@@ -420,7 +420,7 @@ open class Record {
     /// - returns: Whether the record had changes and was updated.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     ///   ``RecordError/recordNotFound(databaseTableName:key:)`` is thrown
-    ///   if the primary key does not match any row in the database and record
+    ///   if the primary key does not match any row in the database and the record
     ///   could not be updated.
     @discardableResult
     public final func updateChanges(_ db: Database) throws -> Bool {

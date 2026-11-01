@@ -4,7 +4,7 @@
 
 ## Overview
 
-`ValueObservation` tracks insertions, updates, and deletions that impact the tracked value, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+`ValueObservation` tracks insertions, updates, and deletions that impact the tracked value, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
 See <doc:GRDB/ValueObservation#Dealing-with-Undetected-Changes> below for the list of exceptions.
 
@@ -72,13 +72,13 @@ See <doc:GRDB/ValueObservation#Dealing-with-Undetected-Changes> below for the li
 
 ## ValueObservation Behavior
 
-`ValueObservation` notifies an initial value before the eventual changes.
+`ValueObservation` notifies an initial value before subsequent changes.
 
 `ValueObservation` only notifies changes committed to disk.
 
 By default, `ValueObservation` notifies a fresh value whenever any component of its fetched value is modified (any fetched column, row, etc.). This can be configured: see <doc:ValueObservation#Specifying-the-Tracked-Region>.
 
-By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main actor, asynchronously. This can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
+By default, `ValueObservation` notifies the initial value, as well as subsequent changes and errors, on the main actor, asynchronously. This can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
 
 By default, `ValueObservation` fetches a fresh value immediately after a change is committed in the database. In particular, modifying the database on the main thread triggers a fetch on the main thread as well. This behavior can be configured: see <doc:ValueObservation#ValueObservation-Scheduling>.
 
@@ -98,7 +98,7 @@ The database observation stops when the cancellable returned by the `start` meth
 
 ## ValueObservation Scheduling
 
-By default, `ValueObservation` notifies the initial value, as well as eventual changes and errors, on the main actor, asynchronously:
+By default, `ValueObservation` notifies the initial value, as well as subsequent changes and errors, on the main actor, asynchronously:
 
 ```swift
 // The default scheduling

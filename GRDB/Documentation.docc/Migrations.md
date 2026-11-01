@@ -76,7 +76,7 @@ try dbQueue.read { db in
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rolled back, subsequent migrations do not run, and the error is eventually thrown by ``DatabaseMigrator/migrate(_:)``.
 
-**Migrations run with deferred foreign key checks.** This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail). See <doc:Migrations#Foreign-Key-Checks> below for more information.
+**Migrations run with deferred foreign key checks.** This means that foreign key violations are only checked at the end of the migration (and they make the migration fail). See <doc:Migrations#Foreign-Key-Checks> below for more information.
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
@@ -234,7 +234,7 @@ When you register a migration with `.immediate` foreign key checks, the migratio
 migrator.registerMigration("Fast migration", foreignKeyChecks: .immediate) { db in ... }
 ```
 
-Such a migration is faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration> **must not** run with immediate foreign keys checks. You'll need to use the second mitigation technique:
+Such a migration is faster, and it still guarantees database integrity. But it must only execute schema alterations directly supported by SQLite. Migrations that recreate tables as described in <doc:Migrations#Defining-the-Database-Schema-from-a-Migration> **must not** run with immediate foreign key checks. You'll need to use the second mitigation technique:
 
 **Your second mitigation technique is to disable deferred foreign key checks.**
 

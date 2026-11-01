@@ -59,7 +59,7 @@ public final class DatabasePool {
         
         // Readers can't allow dangling transactions because there's no
         // guarantee that one can get the same reader later in order to close
-        // an opened transaction.
+        // an open transaction.
         readerConfiguration.allowsUnsafeTransactions = false
         
         readerPool = Pool(
@@ -178,7 +178,7 @@ extension DatabasePool {
             // documented.
             //
             // Without the barrier, connections would only close _eventually_ (after
-            // their eventual concurrent jobs have completed).
+            // their concurrent jobs have completed).
             readerPool?.barrier {
                 readerPool?.removeAll()
             }
@@ -505,8 +505,8 @@ extension DatabasePool: DatabaseReader {
     /// any transaction. You'll get a fatal error otherwise.
     ///
     /// The `value` function is guaranteed to see the database in the last
-    /// committed state at the moment this method is called. Eventual
-    /// concurrent database updates are not visible from the function.
+    /// committed state at the moment this method is called. Concurrent
+    /// database updates are not visible from the function.
     ///
     /// This method returns as soon as the isolation guarantee described above
     /// has been established.
@@ -646,7 +646,7 @@ extension DatabasePool: DatabaseReader {
     /// After this method is called, read-only database access methods will use
     /// new SQLite connections.
     ///
-    /// Eventual concurrent read-only accesses are not interrupted, and
+    /// Concurrent read-only accesses are not interrupted, and
     /// proceed until completion.
     ///
     /// - This method closes all read-only connections, even if the

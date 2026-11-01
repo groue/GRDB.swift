@@ -353,7 +353,7 @@ See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installa
 
 The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
 
-GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can reveal useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [How to link a Swift Package as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062) for more information.
+GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can prove useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [How to link a Swift Package as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062) for more information.
 
 > **Note**: Linux support is provided by contributors. It is not automatically tested, and not officially maintained. If you notice a build or runtime failure on Linux, please open a pull request with the necessary fix, thank you!
 
@@ -480,7 +480,7 @@ try dbQueue.write { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statement arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 You can also embed query arguments right into your SQL queries, with [`execute(literal:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(literal:)), as in the example below. See [SQL Interpolation] for more details.
 
@@ -800,7 +800,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -2175,7 +2175,7 @@ For more information about batch updates, see [Update Requests](#update-requests
 
 **All primary keys are supported**, including composite primary keys that span several columns, and the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html).
 
-**To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt at overriding the ready-made persistence methods.
+**To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt to override the ready-made persistence methods.
 
 ### Upsert
 
@@ -2219,7 +2219,7 @@ For more information about batch updates, see [Update Requests](#update-requests
         
         If empty (the default), all uniqueness constraints are considered.
     
-    - `doUpdate`: a closure that returns columns assignments to perform in case of conflict. Depending on the `updating` parameter, other columns are overwritten with the inserted values, or not.
+    - `doUpdate`: a closure that returns column assignments to perform in case of conflict. Depending on the `updating` parameter, other columns are overwritten with the inserted values, or not.
         
         By default, all inserted columns but the primary key and the conflict target are overwritten.
     
@@ -3530,7 +3530,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(\.score).order(\.name)
     ```
 
-- [`reversed()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
+- [`reversed()`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/orderedrequest/reversed()) reverses the orderings, if any.
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC, name DESC
@@ -3609,7 +3609,7 @@ You can refine requests by chaining those methods:
 Player.order(\.name).filter { $0.email != nil }
 ```
 
-The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, `matching`, and `having` methods extend the query:
+The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. Conversely, `filter`, `matching`, and `having` methods extend the query:
 
 ```swift
 Player                          // SELECT * FROM player
@@ -3623,7 +3623,7 @@ Player                          // SELECT * FROM player
 ```
 
 
-Raw SQL snippets are also accepted, with eventual [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
+Raw SQL snippets are also accepted, with optional [arguments](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/statementarguments):
 
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM player WHERE name = 'Arthur' GROUP BY date(creationDate)
@@ -4523,7 +4523,7 @@ try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
 ```
 
-**When the query interface can not generate the SQL you need**, you can still fallback to [raw SQL](#fetch-queries):
+**When the query interface can not generate the SQL you need**, you can still fall back to [raw SQL](#fetch-queries):
 
 ```swift
 // Custom SQL is always welcome
@@ -4580,7 +4580,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     try request.fetchAll(db)
     ```
 
-- The [`adapted(_:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/fetchrequest/adapted(_:)) method eases the consumption of complex rows with row adapters. See [`RowAdapter`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter) and [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:)) for a sample code that uses `adapted(_:)`.
+- The [`adapted(_:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/fetchrequest/adapted(_:)) method eases the consumption of complex rows with row adapters. See [`RowAdapter`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowadapter) and [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/splittingrowadapters(columncounts:)) for sample code that uses `adapted(_:)`.
 
 
 Encryption
@@ -5020,14 +5020,14 @@ do {
     // The extended error code: 787 (SQLITE_CONSTRAINT_FOREIGNKEY)
     error.extendedResultCode
     
-    // The eventual SQLite message: FOREIGN KEY constraint failed
+    // The optional SQLite message: FOREIGN KEY constraint failed
     error.message
     
-    // The eventual erroneous SQL query
+    // The optional erroneous SQL query
     // "INSERT INTO pet (masterId, name) VALUES (?, ?)"
     error.sql
     
-    // The eventual SQL arguments
+    // The optional SQL arguments
     // [1, "Bobby"]
     error.arguments
     
@@ -5040,7 +5040,7 @@ do {
 
 If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/configuration/publicstatementarguments).
 
-**SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
+**SQLite uses [result codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
 You can catch a DatabaseError and match on result codes:
 
@@ -5496,7 +5496,7 @@ try dbQueue.read { db in
 }
 ```
 
-Another option is to setup a tracing function that prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
+Another option is to set up a tracing function that prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
 
 ```swift
 // Prints all SQL statements
@@ -5637,7 +5637,7 @@ let books: [Book] = try dbQueue.read { db in
 }
 ```
 
-This request uses a TableAlias in order to be able to filter on the eventual associated author. We make sure, with `!authorAlias.exists`, that the associated author does not exist: the book has no author.
+This request uses a TableAlias in order to be able to filter on the optional associated author. We make sure, with `!authorAlias.exists`, that the associated author does not exist: the book has no author.
 
 See [How do I filter records and only keep those that are associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record) above for the opposite question.
 
@@ -5700,7 +5700,7 @@ By using `asRequest(of:)`, you enhance the type-safety of your request.
 
 ### Why is ValueObservation not publishing value changes?
 
-Sometimes it looks that a [ValueObservation] does not notify the changes you expect.
+Sometimes it looks like a [ValueObservation] does not notify the changes you expect.
 
 There may be four possible reasons for this:
 

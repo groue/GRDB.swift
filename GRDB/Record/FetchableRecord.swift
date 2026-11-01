@@ -1066,7 +1066,7 @@ public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
     /// midnight UTC on 1 January 1970
     case millisecondsSince1970
     
-    /// Decodes dates according to the ISO 8601 standards
+    /// Decodes dates according to the ISO 8601 standard
     case iso8601
     
     /// Decodes a String, according to the provided formatter

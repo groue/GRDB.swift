@@ -379,7 +379,7 @@ extension MutablePersistableRecord {
         fetch: (Statement) throws -> T)
     throws -> (PersistenceSuccess, T)
     {
-        // Attempt at updating if the record has a primary key
+        // Attempt to update if the record has a primary key
         if let key = try primaryKey(db) {
             let databaseTableName = type(of: self).databaseTableName
             do {

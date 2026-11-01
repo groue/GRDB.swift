@@ -4,7 +4,7 @@
 
 ## Overview
 
-`DatabaseRegionObservation` tracks insertions, updates, and deletions that impact the tracked region, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+`DatabaseRegionObservation` tracks insertions, updates, and deletions that impact the tracked region, whether performed with raw SQL, or <doc:QueryInterface>. This includes indirect changes triggered by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
 See <doc:GRDB/DatabaseRegionObservation#Dealing-with-Undetected-Changes> below for the list of exceptions.
 

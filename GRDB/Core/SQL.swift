@@ -63,7 +63,7 @@ public struct SQL: Sendable {
     ///         .filter(date(Column("createdAt")) == "2022-08-17")
     ///         .including(required: Player.team)
     enum Element {
-        /// A raw SQL literal with eventual arguments.
+        /// A raw SQL literal with optional arguments.
         case sql(String, StatementArguments = StatementArguments())
         
         /// A subquery.
@@ -144,7 +144,7 @@ public struct SQL: Sendable {
     }
     
     /// Creates an `SQL` literal from a plain SQL string, and
-    /// eventual arguments.
+    /// optional arguments.
     ///
     /// For example:
     ///
@@ -240,7 +240,7 @@ extension SQL {
         self += sqlLiteral
     }
     
-    /// Appends a plain SQL string to the receiver, and eventual arguments.
+    /// Appends a plain SQL string to the receiver, and optional arguments.
     ///
     /// For example:
     ///

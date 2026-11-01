@@ -273,7 +273,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     observation.start(in: dbQueue, scheduling: .async(onQueue: queue), onError: ..., onChange: ...)
     ```
     
-    The GRDB 4 `startImmediately` parameter is no longer supported: ValueObservation now always emits an initial value, without waiting for eventual changes. It is up to your application to ignore this initial value if it wants to.
+    The GRDB 4 `startImmediately` parameter is no longer supported: ValueObservation now always emits an initial value, without waiting for changes. It is up to your application to ignore this initial value if it wants to.
 
 
 ### Removed ValueObservation Methods

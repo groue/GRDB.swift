@@ -192,7 +192,7 @@ public struct SQLExpression: Sendable {
         
         /// An expression that picks the fastest available primary key.
         ///
-        /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
+        /// It crashes for WITHOUT ROWID tables with a multi-column primary key.
         /// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
         ///
         ///     id
@@ -1141,20 +1141,20 @@ extension SQLExpression {
     
     // MARK: Deferred
     
-    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
+    // TODO: replace with something that can work for WITHOUT ROWID tables with a multi-column primary key.
     /// An expression that picks the fastest available primary key.
     ///
-    /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
+    /// It crashes for WITHOUT ROWID tables with a multi-column primary key.
     ///
     ///     id
     ///     rowid
     ///     code
     static let fastPrimaryKey = SQLExpression(impl: .fastPrimaryKey)
     
-    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
+    // TODO: replace with something that can work for WITHOUT ROWID tables with a multi-column primary key.
     /// A qualified "fast primary key" (see `SQLExpression.fastPrimaryKey`).
     ///
-    /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
+    /// It crashes for WITHOUT ROWID tables with a multi-column primary key.
     ///
     ///     player.id
     ///     document.rowid
@@ -1464,7 +1464,7 @@ extension SQLExpression {
         case let .qualifiedFastPrimaryKey(alias):
             let primaryKey = try context.db.primaryKey(alias.tableName)
             guard let column = primaryKey.fastPrimaryKeyColumn else {
-                fatalError("Not implemented for WITHOUT ROWID table with a multi-columns primary key")
+                fatalError("Not implemented for WITHOUT ROWID tables with a multi-column primary key")
             }
             return try SQLExpression
                 .qualifiedColumn(column, alias)

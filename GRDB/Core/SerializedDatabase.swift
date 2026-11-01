@@ -293,10 +293,10 @@ final class SerializedDatabase {
         SchedulingWatchdog.preconditionValidQueue(db, message(), file: file, line: line)
     }
     
-    /// Fatal error if a transaction has been left opened.
+    /// Fatal error if a transaction has been left open.
     private func preconditionNoUnsafeTransactionLeft(
         _ db: Database,
-        _ message: @autoclosure() -> String = "A transaction has been left opened at the end of a database access",
+        _ message: @autoclosure() -> String = "A transaction has been left open at the end of a database access",
         file: StaticString = #file,
         line: UInt = #line)
     {

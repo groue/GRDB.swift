@@ -168,7 +168,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// ```
     ///
     /// Database operations are isolated in a transaction: they do not see
-    /// changes performed by eventual concurrent writes (even writes performed
+    /// changes performed by concurrent writes (even writes performed
     /// by other processes).
     ///
     /// The database connection is read-only: attempts to write throw a
@@ -200,7 +200,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// ```
     ///
     /// Database operations are isolated in a transaction: they do not see
-    /// changes performed by eventual concurrent writes (even writes performed
+    /// changes performed by concurrent writes (even writes performed
     /// by other processes).
     ///
     /// The database connection is read-only: attempts to write throw a
@@ -235,7 +235,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// ```
     ///
     /// Database operations are isolated in a transaction: they do not see
-    /// changes performed by eventual concurrent writes (even writes performed
+    /// changes performed by concurrent writes (even writes performed
     /// by other processes).
     ///
     /// The database connection is read-only: attempts to write throw a
@@ -517,7 +517,7 @@ extension DatabaseReader {
     /// ```
     ///
     /// Database operations are isolated in a transaction: they do not see
-    /// changes performed by eventual concurrent writes (even writes performed
+    /// changes performed by concurrent writes (even writes performed
     /// by other processes).
     ///
     /// The database connection is read-only: attempts to write throw a

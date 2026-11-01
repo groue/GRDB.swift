@@ -132,7 +132,7 @@ let request = Player
 >
 > **Note**: the `with(_:)` method replaces any previously embedded CTE that has the same table name. This allows you to embed the same CTE several times if you feel like it.
 >
-> **Note**: the `CommonTableExpression.all()` method builds a regular [query interface request] for the content of the CTE (like `SELECT * FROM <cte name>`, not to be mismatched with the request that was used to define the CTE). You can filter this request, sort it, etc, like all query interface requests:
+> **Note**: the `CommonTableExpression.all()` method builds a regular [query interface request] for the content of the CTE (like `SELECT * FROM <cte name>`, not to be confused with the request that was used to define the CTE). You can filter this request, sort it, etc, like all query interface requests:
 >
 > ```swift
 > cte.all().select(...).filter(...).group(...).order(...)

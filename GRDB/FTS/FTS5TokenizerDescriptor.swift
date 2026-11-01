@@ -138,7 +138,7 @@ public struct FTS5TokenizerDescriptor: Sendable {
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/fts5.html#porter_tokenizer>
     ///
-    /// - parameter base: An eventual wrapping tokenizer which replaces the
+    /// - parameter base: An optional wrapping tokenizer which replaces the
     ///   default unicode61() base tokenizer.
     public static func porter(wrapping base: FTS5TokenizerDescriptor? = nil) -> FTS5TokenizerDescriptor {
         if let base {

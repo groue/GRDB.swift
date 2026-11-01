@@ -35,7 +35,7 @@ for try await players in observation.values(in: writer) {
 
 `DatabaseQueue` serializes all database accesses, when `DatabasePool` allows parallel reads and writes. The common ``DatabaseWriter`` protocol provides the [SQLite isolation guarantees](https://www.sqlite.org/isolation.html) that abstract away the differences between the two connection types, without sacrificing data integrity. See the <doc:Concurrency> guide for more information.
 
-All safety guarantees of Swift 6 are enforced during database accesses. They are controlled by the language mode and level of concurrency checkings used by your application, as described in [Migrating to Swift 6] on swift.org. 
+All safety guarantees of Swift 6 are enforced during database accesses. They are controlled by the language mode and level of concurrency checking used by your application, as described in [Migrating to Swift 6] on swift.org. 
 
 The following sections describe, with more details, how GRDB interacts with Swift Concurrency.
 
@@ -83,7 +83,7 @@ This language feature is not enabled by default, because it can potentially [aff
 
 ### Non-Sendable Configuration of Record Types
 
-In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when a record type specifies which columns it fetches from the database, with the ``TableRecord/databaseSelection-7iphs`` static property:
+In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checking, the compiler emits an error or a warning when a record type specifies which columns it fetches from the database, with the ``TableRecord/databaseSelection-7iphs`` static property:
 
 ```swift
 extension Player: FetchableRecord, PersistableRecord {
@@ -114,7 +114,7 @@ extension Player: FetchableRecord, PersistableRecord {
 
 ### Non-Sendable Record Types
 
-In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checkings, the compiler emits an error or a warning when the application reads, writes, or observes a non-[`Sendable`](https://developer.apple.com/documentation/swift/sendable) type.
+In the Swift 6 language mode, and in the Swift 5 language mode with strict concurrency checking, the compiler emits an error or a warning when the application reads, writes, or observes a non-[`Sendable`](https://developer.apple.com/documentation/swift/sendable) type.
 
 By default, Swift classes are not Sendable. They are not thread-safe. With GRDB, record classes will typically trigger compiler diagnostics:
 
@@ -162,7 +162,7 @@ struct Player: Codable, Identifiable {
 extension Player: FetchableRecord, PersistableRecord { }
 ```
 
-You do not need to perform this refactoring right away: you can compile your application in the Swift 5 language mode, with minimal concurrency checkings. Take your time, and only when your application is ready, enable strict concurrency checkings or the Swift 6 language mode.
+You do not need to perform this refactoring right away: you can compile your application in the Swift 5 language mode, with minimal concurrency checking. Take your time, and only when your application is ready, enable strict concurrency checking or the Swift 6 language mode.
 
 #### FAQ: My application defines record classes, because…
 

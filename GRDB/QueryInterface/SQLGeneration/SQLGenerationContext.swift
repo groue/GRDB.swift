@@ -157,7 +157,7 @@ final class SQLGenerationContext {
     /// by `tableName`.
     ///
     /// - parameter tableName: The table name.
-    /// - parameter excludedColumns: The eventual set of excluded columns.
+    /// - parameter excludedColumns: The optional set of excluded columns.
     func columnCount(
         in tableName: String,
         excluding excludedColumns: Set<CaseInsensitiveIdentifier>

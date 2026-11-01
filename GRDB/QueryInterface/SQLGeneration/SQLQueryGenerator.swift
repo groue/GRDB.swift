@@ -542,7 +542,7 @@ struct SQLQueryGenerator: Refinable {
 /// expressions, etc, are qualified with table aliases.
 ///
 /// All those aliases let us disambiguate tables at the SQL level, and
-/// prefix columns names. For example, the following request...
+/// prefix column names. For example, the following request...
 ///
 ///      Book.filter(Column("kind") == Book.Kind.novel)
 ///          .including(optional: Book.author)

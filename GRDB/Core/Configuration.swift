@@ -155,7 +155,7 @@ public struct Configuration: Sendable {
     /// }
     /// ```
     ///
-    /// For debugging purpose, you can set this flag to true, and get more
+    /// For debugging purposes, you can set this flag to true, and get more
     /// precise database reports. It is your responsibility to prevent sensitive
     /// information from leaking in unexpected locations, so you should not set
     /// this flag in release builds (think about GDPR and other
@@ -253,13 +253,13 @@ public struct Configuration: Sendable {
     /// ```swift
     /// let dbQueue = try DatabaseQueue()
     ///
-    /// // fatal error: A transaction has been left opened at the end of a database access
+    /// // fatal error: A transaction has been left open at the end of a database access
     /// try dbQueue.inDatabase { db in
     ///     try db.beginTransaction()
     /// }
     /// ```
     ///
-    /// When true, one can leave an opened transaction at the end of a database
+    /// When true, one can leave an open transaction at the end of a database
     /// access method:
     ///
     /// ```swift

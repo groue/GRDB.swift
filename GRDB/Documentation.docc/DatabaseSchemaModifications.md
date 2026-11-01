@@ -41,7 +41,7 @@ try db.create(table: "player", options: [.temporary, .ifNotExists]) { t in ... }
 
 Reference: ``TableOptions``
 
-**Add regular columns** with their name and eventual type (`text`, `integer`, `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime`, `any`, and `jsonText`) - see [SQLite data types](https://www.sqlite.org/datatype3.html) and <doc:JSON>:
+**Add regular columns** with their name and optional type (`text`, `integer`, `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime`, `any`, and `jsonText`) - see [SQLite data types](https://www.sqlite.org/datatype3.html) and <doc:JSON>:
 
 ```swift
 // CREATE TABLE player (

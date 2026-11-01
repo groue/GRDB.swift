@@ -1520,7 +1520,7 @@ public struct ForeignKeyViolation: Sendable {
     /// The returned error has the extended code `SQLITE_CONSTRAINT_FOREIGNKEY`.
     public func databaseError(_ db: Database) -> DatabaseError {
         // Grab detailed information, if possible, for better error message.
-        // If detailed information is not available, fallback to plain description.
+        // If detailed information is not available, fall back to plain description.
         let message = (try? failureDescription(db)) ?? String(describing: self)
         return DatabaseError(
             resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
@@ -1737,7 +1737,7 @@ public struct PrimaryKeyInfo: Sendable {
             return columns[0]
         } else {
             // WITHOUT ROWID table or view customized with the schemaSource
-            // with a multi-columns primary key
+            // with a multi-column primary key
             return nil
         }
     }

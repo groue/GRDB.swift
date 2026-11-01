@@ -172,7 +172,7 @@ let books = try dbQueue.read { db in
 
 ### Record Types Hide Intimate Database Details
 
-In the previous sample codes, the `Book` and `Author` structs have one property per database column, and their types are natively supported by SQLite (`String`, `Int`, etc.)
+In the previous code samples, the `Book` and `Author` structs have one property per database column, and their types are natively supported by SQLite (`String`, `Int`, etc.)
 
 But it happens that raw database column names, or raw column types, are not a very good fit for the application.
 
@@ -515,7 +515,7 @@ let authorships: [Authorship] = try dbQueue.read { db in
 }
 ```
 
-In the above sample codes, requests that fetch values from several tables are decoded into additional record types: `AuthorInfo`, `LiteraryCareer`, and `Authorship`.
+In the above code samples, requests that fetch values from several tables are decoded into additional record types: `AuthorInfo`, `LiteraryCareer`, and `Authorship`.
 
 Those record types conform to both [`Decodable`] and ``FetchableRecord``, so that they can feed from database rows. They do not provide any persistence methods, though. **All database writes are performed from persistable record instances** (of type `Author` or `Book`).
 

@@ -343,7 +343,7 @@ extension Database {
     /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jvalid>
     ///
     /// - parameter value: The tested value.
-    /// - parameter options: See eventual second argument of the
+    /// - parameter options: See the optional second argument of the
     ///   `JSON_VALID` function. See <https://www.sqlite.org/json1.html#the_json_valid_function>.
     public static func jsonIsValid(
         _ value: some SQLExpressible,

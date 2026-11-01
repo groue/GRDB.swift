@@ -19,7 +19,7 @@ extension NSNumber: DatabaseValueConvertible {
     /// Otherwise, returns an INTEGER or REAL database value, according to the
     /// value stored in the `NSNumber`.
     public var databaseValue: DatabaseValue {
-        // Don't lose precision: store integers that fits in Int64 as Int64
+        // Don't lose precision: store integers that fit in Int64 as Int64
         if let decimal = self as? NSDecimalNumber,
            decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior),  // integer
            decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending,   // decimal <= Int64.max

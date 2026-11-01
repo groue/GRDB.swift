@@ -1,5 +1,5 @@
 /// The `HasOneAssociation` indicates a one-to-one connection between two
-/// record types, such as each instance of the declaring record "has one"
+/// record types, such that each instance of the declaring record "has one"
 /// instance of the other record.
 ///
 /// For example, if your application has one database table for countries, and
