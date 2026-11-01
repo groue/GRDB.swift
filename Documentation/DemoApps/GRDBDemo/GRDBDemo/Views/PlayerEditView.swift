@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PlayerEditionView: View {
+struct PlayerEditView: View {
     @Environment(\.isPresented) var isPresented
     @Environment(\.appDatabase) var appDatabase
     @State var form: PlayerForm
@@ -36,6 +36,6 @@ struct PlayerEditionView: View {
 
 #Preview {
     NavigationStack {
-        PlayerEditionView(player: .makeRandom())
+        PlayerEditView(player: .makeRandom())
     }
 }

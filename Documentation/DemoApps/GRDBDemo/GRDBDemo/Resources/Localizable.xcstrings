@@ -24,7 +24,7 @@
               "zero" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "No Player"
+                  "value" : "No Players"
                 }
               }
             }
@@ -52,7 +52,7 @@
               "zero" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "0 point"
+                  "value" : "0 points"
                 }
               }
             }

@@ -8,7 +8,7 @@ struct PlayerListView: View {
         List {
             ForEach(model.players, id: \.id) { player in
                 NavigationLink {
-                    PlayerEditionView(player: player)
+                    PlayerEditView(player: player)
                 } label: {
                     PlayerRow(player: player)
                 }

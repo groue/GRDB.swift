@@ -18,7 +18,7 @@ struct AppDatabase: Sendable {
     /// See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseconnections>
     private let dbWriter: any DatabaseWriter
     
-    /// Creates a `AppDatabase`, and makes sure the database schema
+    /// Creates an `AppDatabase`, and makes sure the database schema
     /// is ready.
     ///
     /// - important: Create the `DatabaseWriter` with a configuration
@@ -62,7 +62,7 @@ struct AppDatabase: Sendable {
 // MARK: - Database Configuration
 
 extension AppDatabase {
-    // Uncomment for enabling SQL logging
+    // Uncomment to enable SQL logging
     // private static let sqlLogger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SQL")
     
     /// Returns a database configuration suited for `AppDatabase`.
@@ -76,7 +76,7 @@ extension AppDatabase {
         //     db.add(function: ...)
         // }
         //
-        // Uncomment for enabling SQL logging if the `SQL_TRACE` environment variable is set.
+        // Uncomment to enable SQL logging if the `SQL_TRACE` environment variable is set.
         // See <https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/trace(options:_:)>
         // if ProcessInfo.processInfo.environment["SQL_TRACE"] != nil {
         //     config.prepareDatabase { db in
@@ -114,25 +114,25 @@ extension AppDatabase {
         }
     }
     
-    /// Delete the specified players
+    /// Deletes the specified players
     func deletePlayers(ids: [Int64]) throws {
         try dbWriter.write { db in
             _ = try Player.deleteAll(db, keys: ids)
         }
     }
     
-    /// Delete all players
+    /// Deletes all players
     func deleteAllPlayers() throws {
         try dbWriter.write { db in
             _ = try Player.deleteAll(db)
         }
     }
     
-    /// Refresh all players (by performing some random changes, for demo purpose).
+    /// Refreshes all players (by performing some random changes, for demo purposes).
     func refreshPlayers() async throws {
         try await dbWriter.write { db in
             if try Player.all().isEmpty(db) {
-                // When database is empty, insert new random players
+                // When the database is empty, insert new random players
                 try createRandomPlayers(db)
             } else {
                 // Insert a player
@@ -155,7 +155,7 @@ extension AppDatabase {
         }
     }
     
-    /// Create random players if the database is empty.
+    /// Creates random players if the database is empty.
     func createRandomPlayersIfEmpty() throws {
         try dbWriter.write { db in
             if try Player.all().isEmpty(db) {
@@ -175,11 +175,11 @@ extension AppDatabase {
 // MARK: - Database Access: Reads
 
 // This demo app does not provide any specific reading method, and instead
-// gives an unrestricted read-only access to the rest of the application.
+// gives unrestricted read-only access to the rest of the application.
 // In your app, you are free to choose another path, and define focused
 // reading methods.
 extension AppDatabase {
-    /// Provides a read-only access to the database.
+    /// Provides read-only access to the database.
     var reader: any GRDB.DatabaseReader {
         dbWriter
     }

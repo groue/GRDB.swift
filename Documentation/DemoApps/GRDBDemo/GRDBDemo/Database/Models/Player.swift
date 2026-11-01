@@ -9,7 +9,7 @@ struct Player: Equatable {
     /// The player id.
     ///
     /// Int64 is the recommended type for auto-incremented database ids.
-    /// Use nil for players that are not inserted yet in the database.
+    /// Use nil for players that are not inserted in the database yet.
     var id: Int64?
     var name: String
     var score: Int

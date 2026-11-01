@@ -65,7 +65,7 @@ import GRDB
     
     // MARK: - Actions
     
-    /// Delete players at specified indexes in `self.players`.
+    /// Delete players at the specified indexes in `self.players`.
     func deletePlayers(at offsets: IndexSet) throws {
         let playerIds = offsets.compactMap { players[$0].id }
         try appDatabase.deletePlayers(ids: playerIds)
@@ -76,12 +76,12 @@ import GRDB
         try appDatabase.deleteAllPlayers()
     }
     
-    /// Refresh all players (by performing some random changes, for demo purpose).
+    /// Refresh all players (by performing some random changes, for demo purposes).
     func refreshPlayers() async throws  {
         try await appDatabase.refreshPlayers()
     }
     
-    /// Perform 50 refreshes in parallel, for demo purpose.
+    /// Perform 50 refreshes in parallel, for demo purposes.
     func refreshPlayersManyTimes() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for _ in 0..<50 {

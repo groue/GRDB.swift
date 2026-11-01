@@ -77,7 +77,7 @@ private struct ContentView: View {
             .buttonStyle(.borderedProminent)
         }
         // Hide the title, but set a string anyway in order to avoid
-        // an odd relayout when player list becomes empty during
+        // an odd relayout when the player list becomes empty during
         // the tornado.
         .navigationTitle("")
     }

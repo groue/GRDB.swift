@@ -5,7 +5,7 @@ GRDBDemo Application
 
 **GRDBDemo demonstrates how GRDB can fuel a SwiftUI application.**
 
-> **Note**: This demo app is not a project template. Do not copy it as a starting point for your application. Instead, create a new project, choose a GRDB [installation method](../../../README.md#installation), and use the demo as an inspiration.
+> **Note**: This demo app is not a project template. Do not copy it as a starting point for your application. Instead, create a new project, choose a GRDB [installation method](../../../README.md#installation), and use the demo as inspiration.
 
 The topics covered in this demo are:
 
@@ -29,15 +29,15 @@ The topics covered in this demo are:
 
 - [Persistence.swift](GRDBDemo/Database/Persistence.swift)
     
-    This file instantiates various `AppDatabase` for the various projects' needs: one database on disk for the application, and in-memory databases for SwiftUI previews.
+    This file instantiates `AppDatabase` instances for the various needs of the project: one database on disk for the application, and in-memory databases for SwiftUI previews.
 
 - [Player.swift](GRDBDemo/Database/Models/Player.swift)
     
-    `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records).
+    `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all the advantages of [Codable Records](../../../README.md#codable-records).
 
 - [PlayerListModel.swift](GRDBDemo/Views/PlayerListModel.swift)
 
-    `PlayerListModel` is an `@Observable` object that observes the database, displays always fresh values on screen, and performs actions.
+    `PlayerListModel` is an `@Observable` object that observes the database, always displays fresh values on screen, and performs actions.
     
     `PlayerListModel` is [tested](GRDBDemoTests/PlayerListModelTests.swift).
 

@@ -26,7 +26,7 @@ extension AppDatabase {
             // Create the AppDatabase
             let appDatabase = try AppDatabase(dbPool)
             
-            // Populate the database if it is empty, for better demo purpose.
+            // Populate the database if it is empty, for a better demo.
             try appDatabase.createRandomPlayersIfEmpty()
             
             return appDatabase
