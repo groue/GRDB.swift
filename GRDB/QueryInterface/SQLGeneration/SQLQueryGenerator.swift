@@ -152,7 +152,7 @@ struct SQLQueryGenerator: Refinable {
     private func optimizedSelectedRegion(_ db: Database, _ selectedRegion: DatabaseRegion) throws -> DatabaseRegion {
         var optimizedRegion = selectedRegion
         
-        // Give up unless request feeds from a database table
+        // Give up unless request fetches from a database table
         let tableName = relation.source.tableName
         guard try db.tableExists(tableName) else { // skip views
             return optimizedRegion

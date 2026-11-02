@@ -31,7 +31,7 @@ Open one single ``DatabaseQueue`` or ``DatabasePool`` per database file, for the
 
 Database operations that are grouped in a transaction are guaranteed to be either fully saved on disk, or not at all. Read-only transactions guarantee a stable and immutable view of the database, and do not see changes performed by concurrent writes.
 
-In other words, transactions are the one and single tool that helps you enforce and rely on the invariants of your database (such as "all authors must have at least one book").
+In other words, transactions are the one and only tool that helps you enforce and rely on the invariants of your database (such as "all authors must have at least one book").
 
 **You are responsible**, in your Swift code, for delimiting transactions. You do so by grouping database accesses inside a pair of `{ db in ... }` brackets:
 
@@ -47,7 +47,7 @@ try dbQueue.read { db in
 
 Alternatively, you can open an explicit transaction or savepoint: see <doc:Transactions>.
 
-- *Why does this rule exist?* - Because GRDB and SQLite can not guess where to insert the transaction boundaries that protect the invariants of your database. This is your task. Transactions also avoid concurrency problems, as described in the <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> section below. 
+- *Why does this rule exist?* - Because GRDB and SQLite cannot guess where to insert the transaction boundaries that protect the invariants of your database. This is your task. Transactions also avoid concurrency problems, as described in the <doc:Concurrency#Safe-and-Unsafe-Database-Accesses> section below. 
 
 - *Practical advice* - Take the time to identify the invariants of your database. Some of them can be enforced in the database schema itself, such as "all books must have a non-empty title", or "all books must have an author" (see <doc:DatabaseSchema>). Some invariants can only be enforced by transactions, such as "all account credits must have a matching debit", or "all authors must have at least one book".
 
@@ -162,7 +162,7 @@ This guarantee prevents [`SQLITE_BUSY`] errors during concurrent writes.
 
 **All writes are wrapped in a transaction.**
 
-Concurrent reads can not see partial database updates (even reads performed by other processes).
+Concurrent reads cannot see partial database updates (even reads performed by other processes).
 
 #### Isolated Reads
 
@@ -228,7 +228,7 @@ Despite the common guarantees and rules shared by database queues and pools, tho
 
 ![DatabasePool Scheduling](DatabasePoolScheduling.png)
 
-See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next chapter below for a relief.
+See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next chapter below for some relief.
 
 ## Concurrent Thinking
 
@@ -265,7 +265,7 @@ All you need is a little "concurrent thinking", based on those two basic facts:
 
 ## Advanced DatabasePool
 
-``DatabasePool`` is very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
+``DatabasePool`` is highly concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
 
 When your application modifies the database, and then reads some value that depends on those modifications, you may want to avoid blocking concurrent writes longer than necessary - especially when the read is slow:
 
@@ -302,7 +302,7 @@ try dbPool.writeWithoutTransaction { db in
 }
 ```
 
-The ``DatabasePool/asyncConcurrentRead(_:)`` method blocks until it can guarantee its closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes the closure.
+The ``DatabasePool/asyncConcurrentRead(_:)`` method blocks until it can guarantee its closure argument isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes the closure.
 
 In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
 

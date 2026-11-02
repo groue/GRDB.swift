@@ -131,7 +131,7 @@ extension Database {
     /// > (those with a name that starts with "sqlite_" or "grdb_").
     /// >
     /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
-    /// > not recorded, starting SQLite 3.37+.
+    /// > not recorded, starting with SQLite 3.37.
     ///
     /// - Parameters:
     ///   - format: The output format.
@@ -167,7 +167,7 @@ extension Database {
     /// > (those with a name that starts with "sqlite_" or "grdb_").
     /// >
     /// > [Shadow tables](https://www.sqlite.org/vtab.html#xshadowname) are
-    /// > not recorded, starting SQLite 3.37+.
+    /// > not recorded, starting with SQLite 3.37.
     ///
     /// - Parameters:
     ///   - stream: A stream for text output, which directs output to the

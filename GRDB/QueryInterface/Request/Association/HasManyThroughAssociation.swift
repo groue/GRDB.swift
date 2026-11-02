@@ -3,7 +3,7 @@
 /// declaring record can be matched with zero or more instances of another
 /// record by proceeding through a third record.
 ///
-/// For example, consider the practice of passport delivery. One country
+/// For example, consider the practice of passport issuance. One country
 /// "has many" citizens "through" its passports:
 ///
 /// ```swift

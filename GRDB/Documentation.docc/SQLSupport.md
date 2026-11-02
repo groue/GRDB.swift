@@ -10,7 +10,7 @@ If SQL is not your cup of tea, jump to <doc:QueryInterface> 🙂
 
 ## SQL Support
 
-GRDB has a wide support for SQL.
+GRDB has wide support for SQL.
 
 Once connected with one of the <doc:DatabaseConnections>, you can execute raw SQL statements:
 

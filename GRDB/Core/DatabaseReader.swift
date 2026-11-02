@@ -79,7 +79,7 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// throws a ``DatabaseError`` of code `SQLITE_BUSY`.
     /// See <https://www.sqlite.org/c3ref/close.html> for more information.
     ///
-    /// After an error has been thrown, the database may still be opened, and
+    /// After an error has been thrown, the database may still be open, and
     /// you can keep on accessing it. It may also remain in a "zombie" state,
     /// in which case it will throw `SQLITE_MISUSE` for all future
     /// database accesses.
@@ -696,7 +696,7 @@ extension AnyDatabaseReader: DatabaseReader {
     }
 }
 
-/// A type that sees an unchanging database content.
+/// A type that sees unchanging database content.
 ///
 /// Do not declare new conformances to `DatabaseSnapshotReader`. Only the
 /// built-in conforming types are valid.

@@ -21,7 +21,7 @@ import Dispatch
 ///
 /// If there is no available element, the pool builds a new element, unless the
 /// maximum number of elements is reached. In this case, the get() method
-/// blocks the current thread, until an element eventually turns available again.
+/// blocks the current thread, until an element eventually becomes available again.
 ///
 ///     DispatchQueue.concurrentPerform(iterations: 6) { _ in
 ///         pool.get { n in
@@ -146,7 +146,7 @@ final class Pool<T: Sendable>: Sendable {
         }
     }
     
-    /// Performs a synchronous block with an element. The element turns
+    /// Performs a synchronous block with an element. The element becomes
     /// available after the block has executed.
     func get<U>(block: (T) throws -> U) throws -> U {
         let (element, completion) = try get()
@@ -154,7 +154,7 @@ final class Pool<T: Sendable>: Sendable {
         return try block(element)
     }
     
-    /// Performs an asynchronous block with an element. The element turns
+    /// Performs an asynchronous block with an element. The element becomes
     /// available after the block has executed.
     func get<U>(block: (T) async throws -> U) async throws -> U {
         let (element, completion) = try await get()

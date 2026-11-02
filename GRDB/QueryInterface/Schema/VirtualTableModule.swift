@@ -58,7 +58,7 @@ public protocol VirtualTableModule {
 // never able to be used by user-defined VirtualTableModule types, because
 // `ifNotExists` has never been public.
 public struct VirtualTableConfiguration {
-    /// If true, existing objects must not be replaced, or generate any error
+    /// If true, existing objects must neither be replaced nor generate any error
     /// (even if they do not match the objects that would be created otherwise.)
     var ifNotExists: Bool
     

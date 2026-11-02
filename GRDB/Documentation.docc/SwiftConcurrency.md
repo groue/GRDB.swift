@@ -33,7 +33,7 @@ for try await players in observation.values(in: writer) {
 }
 ```
 
-`DatabaseQueue` serializes all database accesses, when `DatabasePool` allows parallel reads and writes. The common ``DatabaseWriter`` protocol provides the [SQLite isolation guarantees](https://www.sqlite.org/isolation.html) that abstract away the differences between the two connection types, without sacrificing data integrity. See the <doc:Concurrency> guide for more information.
+`DatabaseQueue` serializes all database accesses, whereas `DatabasePool` allows parallel reads and writes. The common ``DatabaseWriter`` protocol provides the [SQLite isolation guarantees](https://www.sqlite.org/isolation.html) that abstract away the differences between the two connection types, without sacrificing data integrity. See the <doc:Concurrency> guide for more information.
 
 All safety guarantees of Swift 6 are enforced during database accesses. They are controlled by the language mode and level of concurrency checking used by your application, as described in [Migrating to Swift 6] on swift.org. 
 
@@ -168,7 +168,7 @@ You do not need to perform this refactoring right away: you can compile your app
 
 - **Question: My record types are subclasses of the built-in GRDB `Record` class.**
     
-    Consider refactoring them as structs. The ``Record`` class was present in GRDB 1.0, in 2017. It has served its purpose. It is not `Sendable`, and its use is actively discouraged since GRDB 7.
+    Consider refactoring them as structs. The ``Record`` class was present in GRDB 1.0, in 2017. It has served its purpose. It is not `Sendable`, and its use has been actively discouraged since GRDB 7.
 
 - **Question: I need a hierarchy of record classes because I use inheritance.**
     
@@ -186,7 +186,7 @@ You do not need to perform this refactoring right away: you can compile your app
 
 - **Question: Can I mark my record classes as `@unchecked Sendable`?**
 
-    Take care that all humans and machines who will read your code will think that the class is thread-safe, so make sure it really is. See the following questions.
+    Be aware that all humans and machines who will read your code will think that the class is thread-safe, so make sure it really is. See the following questions.
 
 - **Question: I can use locks to make my class safely Sendable.**
 
@@ -194,7 +194,7 @@ You do not need to perform this refactoring right away: you can compile your app
 
 - **Question: Can I make my record classes immutable?**
 
-    Yes. Classes that can not be modified, made of constant `let` properties, are Sendable. Those immutable classes will not make it easy to modify the database, though.
+    Yes. Classes that cannot be modified, made of constant `let` properties, are Sendable. Those immutable classes will not make it easy to modify the database, though.
 
 ### Choosing between Synchronous and Asynchronous Database Accesses
 
@@ -212,7 +212,7 @@ Synchronous database accesses are handy. They avoid undesired delays, flashes of
 
 Performing synchronous accesses from Swift Concurrency tasks is not incorrect.
 
-Some people recommend avoiding long blocking jobs on the cooperative thread pool, so you might want to follow this advice, and prefer to always `await` for the database in Swift tasks. In many occasions, the compiler will help you. For example, in the sample code below, the compiler requires the `await` keyword:
+Some people recommend avoiding long blocking jobs on the cooperative thread pool, so you might want to follow this advice, and prefer to always `await` for the database in Swift tasks. On many occasions, the compiler will help you. For example, in the sample code below, the compiler requires the `await` keyword:
 
 ```swift
 func fetchPlayers() async throws -> [Player] {

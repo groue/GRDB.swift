@@ -174,7 +174,7 @@ extension Database {
 ///         func databaseDidRollback(_ db: Database)
 ///     }
 ///
-/// First observer is added, and a transaction is started. At this point,
+/// First, an observer is added, and a transaction is started. At this point,
 /// there's not much to say:
 ///
 ///     let observer = MyObserver()
@@ -187,7 +187,7 @@ extension Database {
 ///         try db.execute(sql: "INSERT INTO document ...")
 ///
 /// The observation process starts when the statement is *compiled*:
-/// sqlite3_set_authorizer tells that the statement performs insertion into the
+/// sqlite3_set_authorizer reports that the statement performs insertion into the
 /// `document` table. Generally speaking, statements may have many effects, by
 /// means of foreign key actions and SQL triggers. SQLite takes care of
 /// exposing all those effects to sqlite3_set_authorizer.
@@ -196,7 +196,7 @@ extension Database {
 /// observer.observes(eventsOfKind:) method. If it returns true, the observer is
 /// *activated*.
 ///
-/// During the statement *execution*, SQLite tells that a row has been inserted
+/// During the statement *execution*, SQLite reports that a row has been inserted
 /// through sqlite3_update_hook: the broker calls the observer.databaseDidChange(with:)
 /// method, if and only if the observer has been activated at the previous step.
 ///
@@ -204,7 +204,7 @@ extension Database {
 ///
 ///         try db.execute(sql: "SAVEPOINT foo")
 ///
-/// Statement compilation has sqlite3_set_authorizer tell that this statement
+/// Statement compilation has sqlite3_set_authorizer report that this statement
 /// begins a "foo" savepoint.
 ///
 /// After the statement *has been executed*, the broker knows that the SQLite
@@ -215,7 +215,7 @@ extension Database {
 ///
 ///         try db.execute(sql: "INSERT INTO document ...")
 ///
-/// This time, when the statement is *executed* and SQLite tells that a row has
+/// This time, when the statement is *executed* and SQLite reports that a row has
 /// been inserted, the broker buffers the change event instead of immediately
 /// notifying the activated observers. That is because the savepoint can be
 /// rolled back, and GRDB guarantees observers that they are only notified of
@@ -225,12 +225,12 @@ extension Database {
 ///
 ///         try db.execute(sql: "RELEASE SAVEPOINT foo")
 ///
-/// Statement compilation has sqlite3_set_authorizer tell that this statement
+/// Statement compilation has sqlite3_set_authorizer report that this statement
 /// releases the "foo" savepoint.
 ///
 /// After the statement *has been executed*, the broker knows that the SQLite
 /// [savepoint stack](https://www.sqlite.org/lang_savepoint.html) is now empty,
-/// and notifies the buffered changes to activated observers.
+/// and notifies activated observers of the buffered changes.
 ///
 /// Finally the transaction is committed:
 ///
@@ -329,7 +329,7 @@ class DatabaseObservationBroker {
     func statementWillExecute(_ statement: Statement) {
         if !database.isReadOnly && !transactionObservations.isEmpty {
             // As statement executes, it may trigger database changes that will
-            // be notified to transaction observers. As a consequence, observers
+            // be reported to transaction observers. As a consequence, observers
             // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
             //
             // This method takes no argument, and requires access to the "current
@@ -739,13 +739,13 @@ class DatabaseObservationBroker {
         /// Transaction state is unchanged.
         case none
         
-        /// Transaction turns committed.
+        /// Transaction is committed.
         case commit
         
-        /// Transaction turns rolled back.
+        /// Transaction is rolled back.
         case rollback
         
-        /// Transaction turns rolled back because a transaction observer has
+        /// Transaction is rolled back because a transaction observer has
         /// cancelled a commit by throwing an error.
         case cancelledCommit(Error)
     }
@@ -753,7 +753,7 @@ class DatabaseObservationBroker {
 
 // MARK: - DatabaseEventObservationStrategy
 
-/// Controls which database changes are notified to a `TransactionObserver`.
+/// Controls which database changes are reported to a `TransactionObserver`.
 public struct DatabaseEventObservationStrategy: Sendable {
     /// A boolean value indicating whether a ``TransactionObserver`` focuses
     /// on database changes filtered by its
@@ -784,7 +784,7 @@ public struct DatabaseEventObservationStrategy: Sendable {
 
 public protocol TransactionObserver: AnyObject {
     
-    /// Controls which database changes should be notified to the observer.
+    /// Controls which database changes should be reported to the observer.
     ///
     /// The default value is ``DatabaseEventObservationStrategy/default``,
     /// which only detects changes performed by `DELETE`, `INSERT` and
@@ -1053,7 +1053,7 @@ final class TransactionObservation {
         case 1:
             // We'll execute a simple statement without any side effect.
             // All database events will thus have the same kind. All
-            // database events can be notified to interested observations.
+            // database events can be reported to interested observations.
             //
             // For example, if one observes all deletions in the table T, then
             // all individual deletions of DELETE FROM T are notified:

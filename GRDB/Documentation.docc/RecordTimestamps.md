@@ -10,7 +10,7 @@ Some applications want to record creation and modification dates of database rec
 >
 > This is not advice against triggers, and you won't feel hindered in any way if you prefer to use triggers. Still, consider:
 >
-> - A trigger does not suffer any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
+> - A trigger does not allow any exception, when some applications eventually want to fine-tune timestamps, or to perform migrations without touching timestamps.
 > - The current time, according to SQLite, is not guaranteed to be constant in a given transaction. This may create undesired timestamp variations. We'll see below how GRDB provides a date that is constant at any point during a transaction.
 > - The current time, according to SQLite, can't be controlled in tests and previews.
 
@@ -132,11 +132,11 @@ try dbQueue.write { db in
 
 Again, we use ``Database/transactionDate``, so that all modified players get the same timestamp within a given write transaction.
 
-> Note: The insertion case could profit from automatic initialization of the creation date with the ``MutablePersistableRecord/willInsert(_:)-1xfwo`` persistence callback, but the modification date is not handled with ``MutablePersistableRecord/willUpdate(_:columns:)-3oko4``. Instead, the above sample code explicitly modifies the modification date.
+> Note: The insertion case could benefit from automatic initialization of the creation date with the ``MutablePersistableRecord/willInsert(_:)-1xfwo`` persistence callback, but the modification date is not handled with ``MutablePersistableRecord/willUpdate(_:columns:)-3oko4``. Instead, the above sample code explicitly modifies the modification date.
 >
 > This may look like an inconvenience, but there are several reasons for this:
 >
-> 1. The persistence methods that update are not mutating methods. `willUpdate` can not modify the modification date.
+> 1. The persistence methods that update are not mutating methods. `willUpdate` cannot modify the modification date.
 >
 > 2. Automatic changes to the modification date from the general `update` method create problems.
 >
@@ -144,7 +144,7 @@ Again, we use ``Database/transactionDate``, so that all modified players get the
 >
 >     This need is well acknowledged by existing database libraries: to disable automatic timestamp updates, [ActiveRecord](https://stackoverflow.com/questions/861448/is-there-a-way-to-avoid-automatically-updating-rails-timestamp-fields) uses globals (not thread-safe in a Swift application), [Django ORM](https://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add) does not make it easy, and [Fluent](https://github.com/vapor/fluent-kit/issues/355) simply does not allow it.
 >
->     None of those solutions or lack thereof are seducing.
+>     None of those solutions or lack thereof are appealing.
 >
 > 3. Not all applications need one modification timestamp. For example, some need one timestamp per property, or per group of properties.
 >

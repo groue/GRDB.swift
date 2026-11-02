@@ -372,7 +372,7 @@ GRDB can be installed as a framework, or a static library.
 
 Due to an [issue](https://github.com/CocoaPods/CocoaPods/issues/11839) in CocoaPods, it is currently not possible to deploy new versions of GRDB to CocoaPods. The last version available on CocoaPods is 6.24.1. To install later versions of GRDB using CocoaPods, use one of the following workarounds:
 
-- Depend on the `GRDB7` branch. This is more or less equivalent to what `pod 'GRDB.swift', '~> 7.0'` would normally do, if CocoaPods would accept new GRDB versions to be published:
+- Depend on the `GRDB7` branch. This is more or less equivalent to what `pod 'GRDB.swift', '~> 7.0'` would normally do, if CocoaPods allowed new GRDB versions to be published:
 
     ```ruby
     # Can't use semantic versioning due to https://github.com/CocoaPods/CocoaPods/issues/11839
@@ -457,7 +457,7 @@ Advanced topics:
 
 ## Executing Updates
 
-Once granted with a [database connection], the [`execute(sql:arguments:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(sql:arguments:)) method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once you have a [database connection], the [`execute(sql:arguments:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(sql:arguments:)) method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -480,7 +480,7 @@ try dbQueue.write { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:score` in the SQL query are the **statement arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statement arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for detailed documentation of SQLite arguments.
 
 You can also embed query arguments right into your SQL queries, with [`execute(literal:)`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/database/execute(literal:)), as in the example below. See [SQL Interpolation] for more details.
 
@@ -650,7 +650,7 @@ try dbQueue.read { db in
 }
 ```
 
-Unlike arrays and sets, cursors returned by `fetchCursor()` load their results step after step:
+Unlike arrays and sets, cursors returned by `fetchCursor()` load their results step by step:
 
 ```swift
 try dbQueue.read { db in
@@ -662,7 +662,7 @@ try dbQueue.read { db in
 }
 ```
 
-- **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in. Particularly, don't extract a cursor out of a database access method:
+- **Cursors cannot be used on just any thread**: you must consume a cursor on the dispatch queue it was created in. In particular, don't extract a cursor out of a database access method:
     
     ```swift
     // Wrong
@@ -686,7 +686,7 @@ try dbQueue.read { db in
 
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays and sets contain copies of database values, and may take a lot of memory when there are many fetched results.
 
-- **Cursors are granted with direct access to SQLite,** unlike arrays and sets that have to take the time to copy database values. If you look for extra performance, you may prefer cursors.
+- **Cursors have direct access to SQLite,** unlike arrays and sets that have to take the time to copy database values. If you look for extra performance, you may prefer cursors.
 
 - **Cursors can feed Swift collections.**
     
@@ -737,7 +737,7 @@ try dbQueue.read { db in
         }
     ```
 
-- **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time.
+- **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, whereas reading SQLite results may fail at any time.
 
 - **Cursors require a little care**:
     
@@ -800,7 +800,7 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported argument types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
@@ -895,7 +895,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
     row["missing"] as String  // fatal error: no such column: missing
     ```
     
-    You can explicitly check for a column presence with the `hasColumn` method.
+    You can explicitly check for the presence of a column with the `hasColumn` method.
 
 - **Invalid conversions throw a fatal error.**
     
@@ -1265,8 +1265,8 @@ Some applications may prefer another date format:
 
 **You should think twice before choosing a different date format:**
 
-- ISO-8601 is about *exchange and communication*, when SQLite is about *storage and data manipulation*. Sharing the same representation in your database and in JSON files only provides a superficial convenience, and should be the least of your priorities. Don't store dates as ISO-8601 without understanding what you lose. For example, ISO-8601 time zones forbid database-level date comparison. 
-- Sub-millisecond precision and exact `Date` roundtrip are not as obvious needs as it seems at first sight. Dates generally don't precisely roundtrip as soon as they leave your application anyway, because the other systems your app communicates with use their own date representation (the Android version of your app, the server your application is talking to, etc.) On top of that, `Date` comparison is at least as hard and nasty as [floating point comparison](https://www.google.com/search?q=floating+point+comparison+is+hard).
+- ISO-8601 is about *exchange and communication*, whereas SQLite is about *storage and data manipulation*. Sharing the same representation in your database and in JSON files only provides a superficial convenience, and should be the least of your priorities. Don't store dates as ISO-8601 without understanding what you lose. For example, ISO-8601 time zones forbid database-level date comparison. 
+- Sub-millisecond precision and exact `Date` roundtrip are not as obvious needs as they seem at first sight. Dates generally don't precisely roundtrip as soon as they leave your application anyway, because the other systems your app communicates with use their own date representation (the Android version of your app, the server your application is talking to, etc.) On top of that, `Date` comparison is at least as hard and nasty as [floating point comparison](https://www.google.com/search?q=floating+point+comparison+is+hard).
 
 The customization of date format is explicit. For example:
 
@@ -1344,7 +1344,7 @@ Here is how GRDB supports the various data types supported by SQLite:
     let number = try Decimal.fetchOne(db, sql: "SELECT '-100'")         // Decimal
     ```
 
-- `NSNumber` and `NSDecimalNumber` send 64-bit signed integers and doubles in the database:
+- `NSNumber` and `NSDecimalNumber` send 64-bit signed integers and doubles to the database:
 
     ```swift
     // INSERT INTO transfer VALUES (10)
@@ -1367,7 +1367,7 @@ Here is how GRDB supports the various data types supported by SQLite:
     > - Send `Decimal` instead (those store decimal strings in the database).
     > - Send integers instead (for example, store amounts of cents instead of amounts of Euros).
 
-- `Decimal` sends decimal strings in the database:
+- `Decimal` sends decimal strings to the database:
 
     ```swift
     // INSERT INTO transfer VALUES ('10')
@@ -1689,7 +1689,7 @@ extension Player: FetchableRecord, PersistableRecord {
 
 See more [examples of record definitions](#examples-of-record-definitions) below.
 
-> Note: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming.
+> Note: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a culture shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming.
 >
 > Tip: The [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/recordrecommendedpractices) guide provides general guidance.
 >
@@ -2805,7 +2805,7 @@ let player = try Player.fetchOne(db, ...)
 
 ### Tip: Derive Columns from Coding Keys
 
-Codable types are granted with a [CodingKeys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) enum. You can use them to safely define database columns:
+Codable types come with a [CodingKeys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) enum. You can use them to safely define database columns:
 
 ```swift
 struct Player: Codable {
@@ -3259,7 +3259,7 @@ try dbQueue.write { db in
 
 You need to open a [database connection] before you can query the database.
 
-Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
+Please bear in mind that the query interface cannot generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
 try dbQueue.write { db in
@@ -3328,7 +3328,7 @@ let request = Player.all()
 let players = try request.fetchAll(db) // [Player]
 ```
 
-When you can not use a record type, use `Table`:
+When you cannot use a record type, use `Table`:
 
 ```swift
 // The request for all rows from the player table:
@@ -4033,7 +4033,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Player.select { $0.name.uppercased }
     ```
     
-    > **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
+    > **Note**: When *comparing* strings, you should use a [collation](#string-comparison):
     >
     > ```swift
     > let name: String = ...
@@ -4060,7 +4060,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
 
 You will sometimes want to extend your query interface requests with SQL snippets. This can happen because GRDB does not provide a Swift interface for some SQL function or operator, or because you want to use an SQLite construct that GRDB does not support.
 
-Support for extensibility is large, but not unlimited. All the SQL queries built by the query interface request have the shape below. _If you need something else, you'll have to use [raw SQL requests](#sqlite-api)._
+Support for extensibility is broad, but not unlimited. All the SQL queries built by the query interface request have the shape below. _If you need something else, you'll have to use [raw SQL requests](#sqlite-api)._
 
 ```sql
 WITH ...     -- 1
@@ -4132,9 +4132,9 @@ LIMIT ...    -- 9
     
     See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
     
-3. `FROM ...`: only one table is supported here. You can not customize this SQL part.
+3. `FROM ...`: only one table is supported here. You cannot customize this SQL part.
 
-4. `JOIN ...`: joins are fully controlled by [Associations]. You can not customize this SQL part.
+4. `JOIN ...`: joins are fully controlled by [Associations]. You cannot customize this SQL part.
 
 5. `WHERE ...`
     
@@ -4195,12 +4195,12 @@ LIMIT ...    -- 9
         .reversed()
     ```
     
-9. `LIMIT ...`: use the `limit(_:offset:)` method. You can not customize this SQL part.
+9. `LIMIT ...`: use the `limit(_:offset:)` method. You cannot customize this SQL part.
 
 
 ## Fetching from Requests
 
-Once you have a request, you can fetch the records at the origin of the request:
+Once you have a request, you can fetch the records the request is based on:
 
 ```swift
 // Some request based on `Player`
@@ -4523,7 +4523,7 @@ try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
 ```
 
-**When the query interface can not generate the SQL you need**, you can still fall back to [raw SQL](#fetch-queries):
+**When the query interface cannot generate the SQL you need**, you can still fall back to [raw SQL](#fetch-queries):
 
 ```swift
 // Custom SQL is always welcome
@@ -4697,11 +4697,11 @@ try dbPool.barrierWriteWithoutTransaction { db in
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
-Instead, create a new encrypted database, at a distinct location, and export the content of the existing database. This can both encrypt a clear-text database, or change the passphrase of an encrypted database.
+Instead, create a new encrypted database, at a distinct location, and export the content of the existing database. This can both encrypt a clear-text database, and change the passphrase of an encrypted database.
 
 The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher.
 
-With GRDB, it gives:
+With GRDB, it looks like this:
 
 ```swift
 // The existing database
@@ -4771,7 +4771,7 @@ Some demanding users will want to go further, and manage the lifetime of the raw
 
 #### Managing the lifetime of the passphrase bytes
 
-GRDB offers convenience methods for providing the database passphrases as Swift strings: `usePassphrase(_:)` and `changePassphrase(_:)`. Those methods don't keep the passphrase String in memory longer than necessary. But they are as secure as the standard String type: the lifetime of actual passphrase bytes in memory is not under control.
+GRDB offers convenience methods for providing the database passphrases as Swift strings: `usePassphrase(_:)` and `changePassphrase(_:)`. Those methods don't keep the passphrase String in memory longer than necessary. But they are only as secure as the standard String type: the lifetime of actual passphrase bytes in memory is not under control.
 
 When you want to precisely manage the passphrase bytes, talk directly to SQLCipher, using its raw C functions.
 
@@ -5008,7 +5008,7 @@ Considering that a local database is not some JSON loaded from a remote server, 
 
 📖 [`DatabaseError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/databaseerror)
 
-**DatabaseError** are thrown on SQLite errors:
+**DatabaseError** instances are thrown on SQLite errors:
 
 ```swift
 do {
@@ -5107,7 +5107,7 @@ do {
 
 📖 [`RowDecodingError`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/rowdecodingerror)
 
-**RowDecodingError** is thrown when the application can not decode a value from a database row. For example:
+**RowDecodingError** is thrown when the application cannot decode a value from a database row. For example:
 
 ```swift
 let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
@@ -5117,7 +5117,7 @@ let name = try row.decode(String.self, forColumn: "name")
 
 ### Fatal Errors
 
-**Fatal errors notify that the program, or the database, has to be changed.**
+**Fatal errors signal that the program, or the database, has to be changed.**
 
 They uncover programmer errors, false assumptions, and prevent misuses. Here are a few examples:
 
@@ -5203,7 +5203,7 @@ while let row = try rows.next() {
 
 It has two opportunities to throw fatal errors:
 
-- **Untrusted arguments**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values), or may miss keys required by the statement.
+- **Untrusted arguments**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values), or may lack keys required by the statement.
 - **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
 
 In such a situation, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
@@ -5282,7 +5282,7 @@ Player.select { $0.name.uppercased }
 
 ### String Comparison
 
-SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
+SQLite compares strings on many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
 
 The comparison result comes from a *collating function*, or *collation*. SQLite comes with three built-in collations that do not support Unicode: [binary, nocase, and rtrim](https://www.sqlite.org/datatype3.html#collation).
 
@@ -5460,12 +5460,12 @@ Open a read-only connection to your resource:
 // Get the path to the database resource.
 if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite") {
     // If the resource exists, open a read-only connection.
-    // Writes are disallowed because resources can not be modified. 
+    // Writes are disallowed because resources cannot be modified. 
     var config = Configuration()
     config.readonly = true
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 } else {
-    // The database resource can not be found.
+    // The database resource cannot be found.
     // Fix your setup, or report the problem to the user. 
 }
 ```
@@ -5743,7 +5743,7 @@ For example:
 - `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
 - `player(*),team(*)`: Both the full `player` and `team` tables
 
-If you happen to use the `ValueObservation.trackingConstantRegion(_:)` method and see a mismatch between the tracked region and your expectation, then change the definition of your observation by using `tracking(_:)`. You should witness that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
+If you happen to use the `ValueObservation.trackingConstantRegion(_:)` method and see a mismatch between the tracked region and your expectation, then change the definition of your observation by using `tracking(_:)`. You should see that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
 
 If after all those steps (thank you!), your observation is still failing you, please [open an issue](https://github.com/groue/GRDB.swift/issues/new) and provide a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)!
 
@@ -5828,7 +5828,7 @@ When this is the case, there are two possible explanations:
     
     To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
 
-2. Maybe the application is using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this deviation from the SQL standard, and this is why you are seeing this error. 
+2. Maybe the application is using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to warn about this deviation from the SQL standard, and this is why you are seeing this error. 
     
     For example: this is not standard SQL: `UPDATE player SET name = "Arthur"`.
     
@@ -5921,7 +5921,7 @@ Sample Code
 - [Pierlis](http://pierlis.com), where we write great software.
 - [@alextrob](https://github.com/alextrob), [@alexwlchan](https://github.com/alexwlchan), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@felixscheinost](https://github.com/felixscheinost), [@fpillet](https://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@guidedways](https://github.com/guidedways), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@holsety](https://github.com/holsety), [@jroselightricks](https://github.com/jroselightricks), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@layoutSubviews](https://github.com/layoutSubviews), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@mattgallagher](https://github.com/mattgallagher), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@pp5x](https://github.com/pp5x), [@professordeng](https://github.com/professordeng), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@sberrevoets](https://github.com/sberrevoets), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@tternes](https://github.com/tternes), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), [@ZevEisenberg](https://github.com/ZevEisenberg), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
-- [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
+- [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellence.
 
 ---
 

@@ -11,14 +11,14 @@ import SQLCipher
 import GRDBSQLite
 #endif
 
-/// A database connection that allows concurrent accesses to an unchanging
+/// A database connection that allows concurrent accesses to unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
 /// ## Overview
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 ///
-/// A `DatabaseSnapshotPool` never sees any database modification during all its
+/// A `DatabaseSnapshotPool` never sees any database modification during its whole
 /// lifetime. All database accesses performed from a snapshot always see the
 /// same identical database content.
 ///

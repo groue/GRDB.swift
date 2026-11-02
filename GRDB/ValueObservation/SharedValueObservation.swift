@@ -21,7 +21,7 @@ public enum SharedValueObservationExtent: Sendable {
 }
 
 extension ValueObservation {
-    /// Returns a shared value observation that spares database resources by
+    /// Returns a shared value observation that saves database resources by
     /// sharing a single underlying ``ValueObservation`` subscription.
     ///
     /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
@@ -129,7 +129,7 @@ extension ValueObservation {
     }
 }
 
-/// A shared value observation spares database resources by sharing a single
+/// A shared value observation saves database resources by sharing a single
 /// underlying ``ValueObservation`` subscription.
 ///
 /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
@@ -345,7 +345,7 @@ public final class SharedValueObservation<Element: Sendable>: @unchecked Sendabl
             discardedCancellable?.cancel()
         } else if let lastResult {
             // Notify last result as an initial value. A fresher result may
-            // have been scheduled before, and already notified to the
+            // have been scheduled before, and already delivered to the
             // client: in this case, the last result is not notified.
             scheduler.scheduleInitial {
                 client.notifyInitial(lastResult)

@@ -109,7 +109,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         echo "Finished syncing"
         ```
 
-        Modify the top of `GRDBCustomSQLite-INSTALL.sh` file so that it contains correct paths.
+        Modify the top of the `GRDBCustomSQLite-INSTALL.sh` file so that it contains correct paths.
 
 5. Embed the `GRDBCustom.xcodeproj` project in your own project.
 

@@ -24,7 +24,7 @@ extension String {
     /// SQL statements with `String.trimmedSQLStatement`.
     private static let sqlStatementSeparators = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
     
-    /// Returns a string trimmed from SQL statement separators.
+    /// Returns a string trimmed of SQL statement separators.
     ///
     /// For example:
     ///
@@ -476,7 +476,7 @@ public final class Statement {
     }
     
     /// Convenience method that resets, sets arguments if needed, and checks
-    /// arguments validity.
+    /// argument validity.
     ///
     /// - parameter newArguments: if not nil, this method sets arguments.
     func prepareExecution(withArguments newArguments: StatementArguments? = nil) throws {
@@ -551,7 +551,7 @@ public final class Statement {
     /// `arguments` parameter, it is assumed that the statement won't be
     /// reused with the same arguments. When the number of arguments is
     /// small, execution is performed with temporary SQLite bindings that
-    /// avoid copying strings and blobs arguments.
+    /// avoid copying string and blob arguments.
     ///
     /// For more information, see [`SQLITE_STATIC` and `SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html).
     /// Compare:
@@ -931,7 +931,7 @@ func withBindings<T>(
 ///
 /// ## Positional Arguments
 ///
-/// To fill question marks placeholders, feed `StatementArguments` with an array:
+/// To fill question mark placeholders, feed `StatementArguments` with an array:
 ///
 /// ```swift
 /// try db.execute(
@@ -983,7 +983,7 @@ func withBindings<T>(
 /// arguments += ["name": "Barbara"]
 /// ```
 ///
-/// On the other side, `&+` and ``StatementArguments/append(contentsOf:)``
+/// On the other hand, `&+` and ``StatementArguments/append(contentsOf:)``
 /// allow overriding named arguments:
 ///
 /// ```swift
@@ -1008,7 +1008,7 @@ func withBindings<T>(
 /// print(row)
 /// ```
 ///
-/// Mixed arguments exist as a support for requests like the following:
+/// Mixed arguments exist to support requests like the following:
 ///
 /// ```swift
 /// let players = try Player

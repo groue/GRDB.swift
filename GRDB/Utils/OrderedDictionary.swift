@@ -1,4 +1,4 @@
-/// A dictionary with guaranteed keys ordering.
+/// A dictionary with guaranteed key ordering.
 ///
 ///     var dict = OrderedDictionary<String, Int>()
 ///     dict.append(1, forKey: "foo")

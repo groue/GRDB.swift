@@ -230,7 +230,7 @@ enum SQLAssociationKey: Refinable {
     case inflected(String)
     
     /// A key that is inflected in plural contexts, but strictly honors
-    /// user-provided name in singular contexts.
+    /// the user-provided name in singular contexts.
     ///
     /// For example:
     ///
@@ -244,7 +244,7 @@ enum SQLAssociationKey: Refinable {
     case fixedSingular(String)
     
     /// A key that is inflected in singular contexts, but strictly honors
-    /// user-provided name in plural contexts.
+    /// the user-provided name in plural contexts.
     /// See .inflected and .fixedSingular for some context.
     case fixedPlural(String)
     

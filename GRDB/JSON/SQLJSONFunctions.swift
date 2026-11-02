@@ -172,7 +172,7 @@ extension Database {
     /// Database.jsonReplace(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jins>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrepl>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -196,7 +196,7 @@ extension Database {
     /// Database.jsonSet(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jins>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jset>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -437,7 +437,7 @@ extension Database {
     /// }
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgroupobject>
     public static func jsonGroupObject(
         key: some SQLExpressible,
         value: some SQLExpressible,
@@ -475,7 +475,7 @@ extension Database {
     /// Database.jsonb(#" { "a": [ "test" ] } "#)
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jmini>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jminib>
     public static func jsonb(_ value: some SQLExpressible) -> SQLExpression {
         .function("JSONB", [value.sqlExpression])
     }
@@ -489,7 +489,7 @@ extension Database {
     /// Database.jsonbArray(1...4)
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarrayb>
     public static func jsonbArray(
         _ values: some Collection<some SQLExpressible>
     ) -> SQLExpression {
@@ -505,7 +505,7 @@ extension Database {
     /// Database.jsonbArray([1, 2, "3", 4])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jarrayb>
     public static func jsonbArray(
         _ values: some Collection<any SQLExpressible>
     ) -> SQLExpression {
@@ -521,7 +521,7 @@ extension Database {
     /// Database.jsonbExtract(#"{"a":123}"#, atPath: "$.a")
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jex>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jexb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -539,7 +539,7 @@ extension Database {
     /// Database.jsonbExtract(#"{"a":2,"c":[4,5]}"#, atPaths: ["$.c", "$.a"])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jex>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jexb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -584,7 +584,7 @@ extension Database {
     /// Database.jsonbReplace(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jinsb>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jreplb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -608,7 +608,7 @@ extension Database {
     /// Database.jsonbSet(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jinsb>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jsetb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -645,7 +645,7 @@ extension Database {
     /// ])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jobj>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jobjb>
     public static func jsonbObject(
         _ elements: some Collection<(key: String, value: any SQLExpressible)>
     ) -> SQLExpression {
@@ -663,7 +663,7 @@ extension Database {
     /// Database.jsonbPatch(#"{"a":1,"b":2}"#, #"{"c":3,"d":4}"#)
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jpatch>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jpatchb>
     public static func jsonbPatch(
         _ value: some SQLExpressible,
         with patch: some SQLExpressible)
@@ -681,7 +681,7 @@ extension Database {
     /// Database.jsonbRemove("[0,1,2,3,4]", atPath: "$[2]")
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrm>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrmb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -699,7 +699,7 @@ extension Database {
     /// Database.jsonbRemove("[0,1,2,3,4]", atPaths: ["$[2]", "$[0]"])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrm>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrmb>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -733,7 +733,7 @@ extension Database {
     /// Player.select { Database.jsonbGroupArray($0.name, orderBy: $0.name) }
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparrayb>
     public static func jsonbGroupArray(
         _ value: some SQLExpressible,
         orderBy ordering: (any SQLOrderingTerm)? = nil,
@@ -775,7 +775,7 @@ extension Database {
     /// }
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgroupobjectb>
     public static func jsonbGroupObject(
         key: some SQLExpressible,
         value: some SQLExpressible,
@@ -956,7 +956,7 @@ extension Database {
     /// Database.jsonReplace(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jins>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jrepl>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -981,7 +981,7 @@ extension Database {
     /// Database.jsonSet(#"{"a":2,"c":4}"#, ["$.a": 99])
     /// ```
     /// 
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jins>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jset>
     ///
     /// - Parameters:
     ///   - value: A JSON value.
@@ -1216,7 +1216,7 @@ extension Database {
     /// }
     /// ```
     ///
-    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgrouparray>
+    /// Related SQLite documentation: <https://www.sqlite.org/json1.html#jgroupobject>
     @available(iOS 16, tvOS 17, watchOS 9, *) // SQLite 3.38+ with exceptions for macOS
     public static func jsonGroupObject(
         key: some SQLExpressible,

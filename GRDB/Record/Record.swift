@@ -169,8 +169,8 @@ open class Record {
     /// A dictionary of changes that have not been saved.
     ///
     /// The keys of the dictionary are column names, and values are the old
-    /// values that have been changed since last fetching or saving of
-    /// the record.
+    /// values that have been changed since the record was last fetched
+    /// or saved.
     ///
     /// Unless the record has actually been fetched or saved, the old values
     /// are nil.

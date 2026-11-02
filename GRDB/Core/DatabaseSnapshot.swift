@@ -1,11 +1,11 @@
 import Dispatch
 
-/// A database connection that serializes accesses to an unchanging
+/// A database connection that serializes accesses to unchanging
 /// database content, as it existed at the moment the snapshot was created.
 ///
 /// ## Overview
 ///
-/// A `DatabaseSnapshot` never sees any database modification during all its
+/// A `DatabaseSnapshot` never sees any database modification during its whole
 /// lifetime. All database accesses performed from a snapshot always see the
 /// same identical database content.
 ///

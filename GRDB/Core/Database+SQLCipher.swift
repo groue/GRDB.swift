@@ -87,7 +87,7 @@ extension Database {
         get throws { try String.fetchOne(self, sql: "PRAGMA cipher_provider_version") }
     }
     
-    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
+    /// Sets the passphrase used to encrypt and decrypt an SQLCipher database.
     ///
     /// Call this method from `Configuration.prepareDatabase`,
     /// as in the example below:
@@ -106,7 +106,7 @@ extension Database {
         try usePassphrase(data)
     }
     
-    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
+    /// Sets the passphrase used to encrypt and decrypt an SQLCipher database.
     ///
     /// Call this method from `Configuration.prepareDatabase`,
     /// as in the example below:
@@ -181,7 +181,7 @@ extension Database {
     
     /// Instructs SQLCipher to log internal debugging and operational information.
     ///
-    /// The supplied `logLevel` determines the granularity of the logs output.
+    /// The supplied `logLevel` determines the granularity of the log output.
     ///
     /// See <https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_log>
     /// - Parameter logLevel: The granularity to use for the logging system - defaults to `DEBUG`.

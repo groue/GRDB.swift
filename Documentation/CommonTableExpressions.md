@@ -128,7 +128,7 @@ let request = Player
 
 > **Note**: the `with(_:)` method can be called as many times as there are common table expressions in your request.
 >
-> **Note**: the `with(_:)` method can be called at any time, as all request methods: `Player.with(...).filter(...).with(...)`.
+> **Note**: the `with(_:)` method can be called at any time, like all request methods: `Player.with(...).filter(...).with(...)`.
 >
 > **Note**: the `with(_:)` method replaces any previously embedded CTE that has the same table name. This allows you to embed the same CTE several times if you feel like it.
 >
@@ -270,7 +270,7 @@ LeftRecord
 
 ### CTE Association Example: a Chat App
 
-As an example, let's build the classical main screen of a chat application: a list of all latest messages from all conversations.
+As an example, let's build the classic main screen of a chat application: a list of all latest messages from all conversations.
 
 The database schema of the chat app contains a `chat` and a `message` table. The application defines the following records:
 

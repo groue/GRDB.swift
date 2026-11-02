@@ -154,7 +154,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
      }
     ```
     
-    If you subclass the `Record` class, you have to call `super` at some point of your implementation:
+    If you subclass the `Record` class, you have to call `super` at some point in your implementation:
     
     ```diff
      class Player: Record {
@@ -242,7 +242,7 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     try link.upsert(db) // Calls the willSave callback
     ```
     
-    If you subclass the `Record` class, you have to call `super` at some point of your implementation:
+    If you subclass the `Record` class, you have to call `super` at some point in your implementation:
     
     ```swift
     // GRDB 6

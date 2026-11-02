@@ -49,7 +49,7 @@
 /// }
 /// ```
 ///
-/// > Tip: When you can not create a `JSONColumn`, you'll get the same
+/// > Tip: When you cannot create a `JSONColumn`, you'll get the same
 /// > convenient access to JSON subcomponents
 /// > with ``SQLSpecificExpressible/asJSON``.
 /// >

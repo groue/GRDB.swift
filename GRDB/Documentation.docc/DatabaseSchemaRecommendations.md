@@ -6,7 +6,7 @@ Recommendations for an ideal integration of the database schema with GRDB
 
 Even though all schemas are supported, some features of the library and of the Swift language are easier to use when the schema follows a few conventions described below.
 
-When those conventions are not applied, or not applicable, you will have to perform extra configurations.
+When those conventions are not applied, or not applicable, you will have to perform extra configuration.
 
 For recommendations specific to JSON columns, see <doc:JSON>.
 
@@ -235,10 +235,10 @@ try db.create(
 
 > Tip: SQLite does not support deferred unique indexes, and this creates undesired churn when you need to temporarily break them. This may happen, for example, when you want to reorder player positions in our above example.
 >
-> There exist several workarounds; one of them involves dropping and recreating the unique index after the temporary violations have been fixed. If you plan to use this technique, take care that only actual indexes can be dropped. Unique constraints created inside the table body can not:
+> There exist several workarounds; one of them involves dropping and recreating the unique index after the temporary violations have been fixed. If you plan to use this technique, be aware that only actual indexes can be dropped. Unique constraints created inside the table body cannot:
 >
 > ```swift
-> // Unique constraint on player(name) can not be dropped.
+> // Unique constraint on player(name) cannot be dropped.
 > try db.create(table: "player") { t in
 >     t.column("name", .text).unique()
 > }
@@ -252,7 +252,7 @@ try db.create(
 >
 > If you want to turn an undroppable constraint into a droppable index, you'll need to recreate the database table. See <doc:Migrations> for the detailed procedure.
 
-☝️ **If a table misses unique indexes**, some record methods such as ``FetchableRecord/fetchOne(_:key:)-92b9m`` and ``TableRecord/deleteOne(_:key:)-5pdh5`` will raise a fatal error:
+☝️ **If a table lacks unique indexes**, some record methods such as ``FetchableRecord/fetchOne(_:key:)-92b9m`` and ``TableRecord/deleteOne(_:key:)-5pdh5`` will raise a fatal error:
 
 ```swift
 try dbQueue.write { db in

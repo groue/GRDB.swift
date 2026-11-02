@@ -78,7 +78,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
     
     For a full feature list, read the SQLite documentation. Some missing features can be achieved with extra application code.
     
-- **The speed versus disk space constraints.** Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. FTS4 only supports content compression.
+- **The speed versus disk space constraints.** Roughly speaking, FTS4 and FTS5 are faster than FTS3, but use more space. Only FTS4 supports content compression.
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
@@ -592,7 +592,7 @@ GRDB does not provide any ranking for FTS3 and FTS4. See SQLite's [Search Applic
 
 **An external content table does not store the indexed text.** Instead, it indexes the text stored in another table.
 
-This is very handy when you want to index a table that can not be declared as a full-text table (because it contains non-textual values, for example). You just have to define an external content full-text table that refers to the regular table.
+This is very handy when you want to index a table that cannot be declared as a full-text table (because it contains non-textual values, for example). You just have to define an external content full-text table that refers to the regular table.
 
 The two tables must be kept up-to-date, so that the full-text index matches the content of the regular table. This synchronization happens automatically if you use the `synchronize(withTable:)` method in your full-text table definition:
 

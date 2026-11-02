@@ -73,7 +73,7 @@ public struct FTS5Tokenization: OptionSet, Sendable {
 /// - ``FTS5TokenCallback``
 public protocol FTS5Tokenizer: AnyObject {
     /// Tokenizes the text described by `pText` and `nText`, and
-    /// notifies found tokens to the `tokenCallback` function.
+    /// passes found tokens to the `tokenCallback` function.
     ///
     /// It matches the `xTokenize` function documented at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     ///

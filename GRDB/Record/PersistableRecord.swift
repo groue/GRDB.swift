@@ -10,7 +10,7 @@
 /// ready-made for `Encodable` types.
 ///
 /// You configure the database table where records are persisted with the
-/// ``TableRecord`` inherited protocol.
+/// inherited ``TableRecord`` protocol.
 ///
 /// ## Topics
 ///

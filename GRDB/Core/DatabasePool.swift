@@ -149,7 +149,7 @@ extension DatabasePool {
     
     // MARK: - Memory management
     
-    /// Frees as much memory as possible, by disposing non-essential memory.
+    /// Frees as much memory as possible, by disposing of non-essential memory.
     ///
     /// This method is synchronous, and blocks the current thread until all
     /// database accesses are completed.
@@ -185,7 +185,7 @@ extension DatabasePool {
         }
     }
     
-    /// Eventually frees as much memory as possible, by disposing
+    /// Eventually frees as much memory as possible, by disposing of
     /// non-essential memory.
     ///
     /// This method eventually closes all read-only connections, unless the
@@ -898,11 +898,11 @@ extension DatabasePool {
     
     // MARK: - Snapshots
     
-    /// Creates a database snapshot that serializes accesses to an unchanging
+    /// Creates a database snapshot that serializes accesses to unchanging
     /// database content, as it exists at the moment the snapshot is created.
     ///
     /// It is a programmer error to create a snapshot from the writer dispatch
-    /// queue when a transaction is opened:
+    /// queue when a transaction is open:
     ///
     /// ```swift
     /// try dbPool.write { db in
@@ -951,7 +951,7 @@ extension DatabasePool {
     }
     
 #if SQLITE_ENABLE_SNAPSHOT && !SQLITE_DISABLE_SNAPSHOT
-    /// Creates a database snapshot that allows concurrent accesses to an
+    /// Creates a database snapshot that allows concurrent accesses to
     /// unchanging database content, as it exists at the moment the snapshot
     /// is created.
     ///

@@ -160,9 +160,9 @@ You can still specify a transaction kind explicitly when necessary. See [Transac
 
 ## ValueObservation and the Main Actor
 
-In GRDB 7, `ValueObservation` fosters the main actor, because it is frequently used to automatically update database values on screen.
+In GRDB 7, `ValueObservation` favors the main actor, because it is frequently used to automatically update database values on screen.
 
-By default, its [`start`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be started on the main actor, and its notification callbacks run on the main actor as well.
+By default, its [`start`](https://swiftpackageindex.com/groue/GRDB.swift/documentation/grdb/valueobservation/start(in:scheduling:onerror:onchange:)) method must be called on the main actor, and its notification callbacks run on the main actor as well.
     
 It is not necessary to call `MainActor.assumeIsolated` in `ValueObservation` callbacks:
 

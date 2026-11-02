@@ -394,7 +394,7 @@ extension DatabaseWriter {
     /// Database operations are wrapped in a transaction. If they throw an
     /// error, the transaction is rolled back and the error is rethrown.
     ///
-    /// Concurrent database accesses can not see partial database updates (even
+    /// Concurrent database accesses cannot see partial database updates (even
     /// when performed by other processes).
     ///
     /// Database operations run in the writer dispatch queue, serialized
@@ -449,7 +449,7 @@ extension DatabaseWriter {
     /// the result of the transaction. This result is a failure if the
     /// transaction could not be committed or if `updates` has thrown an error.
     ///
-    /// Concurrent database accesses can not see partial database updates
+    /// Concurrent database accesses cannot see partial database updates
     /// performed by `updates` (even when performed by other processes).
     ///
     /// Database operations run in the writer dispatch queue, serialized
@@ -626,7 +626,7 @@ extension DatabaseWriter {
     /// Database operations are wrapped in a transaction. If they throw an
     /// error, the transaction is rolled back and the error is rethrown.
     ///
-    /// Concurrent database accesses can not see partial database updates (even
+    /// Concurrent database accesses cannot see partial database updates (even
     /// when performed by other processes).
     ///
     /// Database operations run in the writer dispatch queue, serialized
@@ -719,7 +719,7 @@ extension DatabaseWriter {
     /// error, the transaction is rolled back and the error completes
     /// the publisher.
     ///
-    /// Concurrent database accesses can not see partial database updates (even
+    /// Concurrent database accesses cannot see partial database updates (even
     /// when performed by other processes).
     ///
     /// Database operations are asynchronously dispatched in the writer dispatch
@@ -777,7 +777,7 @@ extension DatabaseWriter {
     /// The difference is that the last fetches are performed in the `thenRead`
     /// closure. This closure accepts two arguments: a read-only database
     /// connection, and the result of the `updates` function. This allows you to
-    /// pass information from a function to the other (it is ignored in the
+    /// pass information from one function to the other (it is ignored in the
     /// sample code above).
     ///
     /// When you use a ``DatabasePool``, this method applies a scheduling

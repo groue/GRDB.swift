@@ -245,7 +245,7 @@ public struct Configuration: Sendable {
     // MARK: - Transactions
     
     /// A boolean value indicating whether it is valid to leave a transaction
-    /// opened at the end of a database access method.
+    /// open at the end of a database access method.
     ///
     /// The default value is false: not completing a transaction is a
     /// programmer error:
@@ -277,7 +277,7 @@ public struct Configuration: Sendable {
     /// ```
     ///
     /// This configuration flag has no effect on ``DatabasePool`` reader
-    /// connections: those never allow leaving a transaction opened at the end
+    /// connections: those never allow leaving a transaction open at the end
     /// of a read access.
     public var allowsUnsafeTransactions = false
     
@@ -336,7 +336,7 @@ public struct Configuration: Sendable {
     
     /// The maximum number of concurrent reader connections.
     ///
-    /// This configuration has effect on ``DatabasePool`` and
+    /// This configuration has an effect on ``DatabasePool`` and
     /// ``DatabaseSnapshotPool`` only. The default value is 5.
     ///
     /// You can query this value at runtime in order to get the actual capacity
@@ -416,7 +416,7 @@ public struct Configuration: Sendable {
     /// default value is false.
     ///
     /// When the flag is false, a `DatabasePool` closes read-only
-    /// connections when requested to dispose non-essential memory with
+    /// connections when requested to dispose of non-essential memory with
     /// ``DatabasePool/releaseMemory()``. When true, those connections are
     /// kept open.
     ///

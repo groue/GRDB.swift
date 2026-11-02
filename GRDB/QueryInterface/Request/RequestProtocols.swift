@@ -471,7 +471,7 @@ extension FilteredRequest where Self: TypedRequest, Self.RowDecoder: TableRecord
 
 // MARK: - TableRequest
 
-/// A request that feeds from a database table
+/// A request that fetches from a database table
 ///
 /// ## Topics
 ///
@@ -1344,7 +1344,7 @@ public protocol OrderedRequest {
     
     /// Returns a request with a stable order.
     ///
-    /// The returned request lifts ordering ambiguities and always returns
+    /// The returned request resolves ordering ambiguities and always returns
     /// its results in the same order.
     ///
     /// The purpose of this method is to make requests testable.

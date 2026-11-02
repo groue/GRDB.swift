@@ -1,4 +1,4 @@
-/// Describe the progress of a database backup.
+/// Describes the progress of a database backup.
 ///
 /// Related SQLite documentation: <https://www.sqlite.org/c3ref/backup_finish.html>
 public struct DatabaseBackupProgress: Sendable {

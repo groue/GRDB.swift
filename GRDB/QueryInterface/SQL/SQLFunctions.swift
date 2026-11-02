@@ -82,8 +82,8 @@ public func cast(_ expression: some SQLSpecificExpressible, as storageClass: Dat
 ///
 /// Unlike the SQL function, `coalesce` accepts any number of arguments.
 /// When `values` is empty, the result is `NULL`. When `values` contains a
-/// single value, the result is this value. `COALESCE` is used from
-/// two values upwards.
+/// single value, the result is this value. `COALESCE` is used for
+/// two or more values.
 public func coalesce(_ values: some Collection<any SQLSpecificExpressible>) -> SQLExpression {
     // SQLite COALESCE wants at least two arguments.
     // There is no reason to apply the same limitation.

@@ -4,7 +4,7 @@
 /// ``DatabaseReader/dumpContent(format:to:)`` and
 /// ``Database/dumpSQL(_:format:to:)``.
 ///
-/// Most built-in formats are inspired from the
+/// Most built-in formats are inspired by the
 /// [output formats of the SQLite command line tool](https://sqlite.org/cli.html#changing_output_formats).
 ///
 /// ## Topics

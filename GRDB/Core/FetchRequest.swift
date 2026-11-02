@@ -97,7 +97,7 @@ public protocol FetchRequest<RowDecoder>: SQLSubqueryable, DatabaseRegionConvert
 }
 
 extension FetchRequest {
-    /// Returns the database region that the request feeds from.
+    /// Returns the database region that the request looks into.
     ///
     /// - parameter db: A database connection.
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {

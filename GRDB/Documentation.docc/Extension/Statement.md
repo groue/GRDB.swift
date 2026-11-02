@@ -66,9 +66,9 @@ try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
 let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-> Note: A prepared statement that has failed with an error can not be recovered. Create a new instance, or use a cached statement as described below.
+> Note: A prepared statement that has failed with an error cannot be recovered. Create a new instance, or use a cached statement as described below.
 
-> Tip: When you look for the best performance, take care about a difference between setting the arguments before execution, and setting the arguments at the moment of execution:
+> Tip: When you look for the best performance, be aware of a difference between setting the arguments before execution, and setting the arguments at the moment of execution:
 >
 > ```swift
 > // First option
@@ -81,8 +81,8 @@ let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 >
 > Both perform exactly the same action, and most applications should not care about the difference. Yet:
 >
-> - ``setArguments(_:)`` performs a copy of string and blob arguments. It uses the low-level [`SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html) option, and fits well the reuse of a given statement with the same arguments.
-> - ``execute(arguments:)`` avoids a temporary allocation for string and blob arguments if the number of arguments is small. Instead of `SQLITE_TRANSIENT`, it uses the low-level [`SQLITE_STATIC`](https://www.sqlite.org/c3ref/c_static.html) option. This fits well the reuse of a given statement with various arguments.
+> - ``setArguments(_:)`` performs a copy of string and blob arguments. It uses the low-level [`SQLITE_TRANSIENT`](https://www.sqlite.org/c3ref/c_static.html) option, and is well suited to the reuse of a given statement with the same arguments.
+> - ``execute(arguments:)`` avoids a temporary allocation for string and blob arguments if the number of arguments is small. Instead of `SQLITE_TRANSIENT`, it uses the low-level [`SQLITE_STATIC`](https://www.sqlite.org/c3ref/c_static.html) option. This is well suited to the reuse of a given statement with various arguments.
 >
 > Don't make a blind choice, and monitor your app performance if it really matters!
 

@@ -43,7 +43,7 @@
 /// }
 /// ```
 ///
-/// Take care that **a good migration is a migration that is never
+/// Keep in mind that **a good migration is a migration that is never
 /// modified once it has shipped**: check
 /// <doc:Migrations#Good-Practices-for-Defining-Migrations>.
 ///
@@ -72,7 +72,7 @@ public protocol DatabaseSchemaSource: Sendable {
     ///   each individual row in the view.
     /// - No column contains NULL values.
     ///
-    /// It is a programmer error with undefined consequences to miss
+    /// It is a programmer error with undefined consequences to violate
     /// those requirements.
     ///
     /// For example:
@@ -91,7 +91,7 @@ public protocol DatabaseSchemaSource: Sendable {
     /// config.schemaSource = MySchemaSource()
     /// let dbQueue = try DatabaseQueue(path: "/path/to/db.sqlite", configuration: config)
     ///
-    /// // A record type that feeds from a view.
+    /// // A record type that is decoded from a view.
     /// struct Player: Decodable, Identifiable, FetchableRecord {
     ///     static let databaseTableName = "playerView"
     ///     var id: String

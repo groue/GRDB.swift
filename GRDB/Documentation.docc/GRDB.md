@@ -28,7 +28,7 @@ Use this library to save your application’s permanent data into SQLite databas
     
 - **Leverage your SQLite skills**
 
-    Not all developers need advanced SQLite features. But when you do, GRDB is as sharp as you want it to be. Come with your SQL and SQLite skills, or learn new ones as you go!
+    Not all developers need advanced SQLite features. But when you do, GRDB is as sharp as you want it to be. Bring your SQL and SQLite skills, or learn new ones as you go!
 
 ## Usage
 

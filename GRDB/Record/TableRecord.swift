@@ -920,7 +920,7 @@ public enum RecordError: Error {
     ///
     /// It can also be thrown from methods that insert or update with a
     /// `RETURNING` clause, and the `IGNORE` conflict policy. In this case,
-    /// the error notifies that a conflict has prevented the change from
+    /// the error indicates that a conflict has prevented the change from
     /// being applied.
     ///
     /// - parameters:
@@ -964,7 +964,7 @@ extension TableRecord {
 }
 
 extension TableRecord where Self: EncodableRecord {
-    /// Returns an error that tells that the record does not exist in
+    /// Returns an error indicating that the record does not exist in
     /// the database.
     ///
     /// - returns: ``RecordError/recordNotFound(databaseTableName:key:)``, or

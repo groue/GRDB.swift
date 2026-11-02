@@ -627,7 +627,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// If the row does not contain any column with that name, or if the SQLite
-    /// value is `NULL`, the data is nil. If the SQLite value can not be
+    /// value is `NULL`, the data is nil. If the SQLite value cannot be
     /// converted to `Data`, an error is thrown.
     ///
     /// - warning: The `Data` argument to the body must not be stored or used
@@ -645,7 +645,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// If the row does not contain any column with that name, or if the SQLite
-    /// value is `NULL`, the data is nil. If the SQLite value can not be
+    /// value is `NULL`, the data is nil. If the SQLite value cannot be
     /// converted to `Data`, an error is thrown.
     ///
     /// - warning: The `Data` argument to the body must not be stored or used
@@ -675,7 +675,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. If the SQLite value can not be converted to Data, a fatal error
+    /// nil. If the SQLite value cannot be converted to Data, a fatal error
     /// is raised.
     ///
     /// The returned data does not own its bytes: it must not be used longer
@@ -694,7 +694,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. If the SQLite value can not be converted to Data, a fatal error
+    /// nil. If the SQLite value cannot be converted to Data, a fatal error
     /// is raised.
     ///
     /// The returned data does not own its bytes: it must not be used longer
@@ -769,7 +769,7 @@ extension Row {
     
     // MARK: - Extracting Records
     
-    /// Returns the record associated to the given key.
+    /// Returns the record associated with the given key.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -815,7 +815,7 @@ extension Row {
         try! decode(Record.self, forKey: scope)
     }
     
-    /// Returns the record associated to the given key, if any.
+    /// Returns the record associated with the given key, if any.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -861,7 +861,7 @@ extension Row {
         try! decodeIfPresent(Record.self, forKey: scope)
     }
     
-    /// Returns a collection of prefetched records associated to the given
+    /// Returns a collection of prefetched records associated with the given
     /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
@@ -895,7 +895,7 @@ extension Row {
         try! decode(Records.self, forKey: key)
     }
     
-    /// Returns the set of prefetched records associated to the given
+    /// Returns the set of prefetched records associated with the given
     /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
@@ -931,7 +931,7 @@ extension Row {
     
     /// A view on the scopes defined by row adapters.
     ///
-    /// The returned object provides an access to all available scopes in
+    /// The returned object provides access to all available scopes in
     /// the row.
     ///
     /// Row scopes can be defined manually, with ``ScopeAdapter``.
@@ -978,7 +978,7 @@ extension Row {
     
     /// A view on the scopes tree defined by row adapters.
     ///
-    /// The returned object provides an access to all available scopes in
+    /// The returned object provides access to all available scopes in
     /// the row, recursively. For any given scope identifier, a breadth-first
     /// search is performed.
     ///
@@ -1393,7 +1393,7 @@ extension Row {
 // MARK: - Throwing Record Decoding Methods
 
 extension Row {
-    /// Returns the record associated to the given key, if any.
+    /// Returns the record associated with the given key, if any.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -1448,7 +1448,7 @@ extension Row {
         return try Record(row: scopedRow)
     }
     
-    /// Returns the record associated to the given key.
+    /// Returns the record associated with the given key.
     ///
     /// The key is a row scope that was either defined manually, with
     /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
@@ -1531,7 +1531,7 @@ extension Row {
 // MARK: - Throwing Record RangeReplaceableCollection and Set Methods
 
 extension Row {
-    /// Returns a collection of prefetched records associated to the given
+    /// Returns a collection of prefetched records associated with the given
     /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
@@ -1597,7 +1597,7 @@ extension Row {
         return collection
     }
     
-    /// Returns the set of prefetched records associated to the given
+    /// Returns the set of prefetched records associated with the given
     /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``

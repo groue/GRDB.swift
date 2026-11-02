@@ -51,8 +51,8 @@ extension Database {
     /// try statement.execute(arguments: ["Barbara"])
     /// ```
     ///
-    /// In the provided literal, no argument must be set, or all arguments must
-    /// be set. An error is raised otherwise. For example:
+    /// In the provided literal, either no argument is set, or all arguments
+    /// are set. An error is raised otherwise. For example:
     ///
     /// ```swift
     /// // OK
@@ -166,8 +166,8 @@ extension Database {
     /// try statement.execute(arguments: ["Barbara"])
     /// ```
     ///
-    /// In the provided literal, no argument must be set, or all arguments must
-    /// be set. An error is raised otherwise. For example:
+    /// In the provided literal, either no argument is set, or all arguments
+    /// are set. An error is raised otherwise. For example:
     ///
     /// ```swift
     /// // OK
@@ -267,8 +267,8 @@ extension Database {
     /// }
     /// ```
     ///
-    /// In the provided literal, no argument must be set, or all arguments must
-    /// be set. The returned cursor will throw an error otherwise. For example:
+    /// In the provided literal, either no argument is set, or all arguments
+    /// are set. The returned cursor will throw an error otherwise. For example:
     ///
     /// ```swift
     /// // OK
@@ -472,7 +472,7 @@ extension Database {
     /// Always throws an error
     @usableFromInline
     func statementDidFail(_ statement: Statement, withResultCode resultCode: CInt) throws -> Never {
-        // Failed statements can not be reused, because `sqlite3_reset` won't
+        // Failed statements cannot be reused, because `sqlite3_reset` won't
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html
         //

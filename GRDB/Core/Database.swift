@@ -399,7 +399,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     var autocommitState = AutocommitState.on
     
     /// The date of the current transaction, wrapped in a result that is an
-    /// error if there was an error grabbing this date when the transaction has
+    /// error if there was an error grabbing this date when the transaction
     /// started.
     ///
     /// Invariant: `transactionDateResult` is nil iff connection is not
@@ -1499,7 +1499,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
     ///
-    /// - warning: This method is not reentrant: you can not nest transactions.
+    /// - warning: This method is not reentrant: you cannot nest transactions.
     ///   Use ``inSavepoint(_:)`` instead.
     ///
     /// - parameters:
@@ -1726,11 +1726,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         // SQLite throws an error for non-deferred transactions when read-only.
         // We prefer immediate transactions for writes, so that write
-        // transactions can not overlap. This reduces the opportunity for
+        // transactions cannot overlap. This reduces the opportunity for
         // SQLITE_BUSY, which is immediately thrown whenever a transaction
         // is upgraded after an initial read and a concurrent processes
         // has acquired the write lock beforehand. This SQLITE_BUSY error
-        // can not be avoided with a busy timeout.
+        // cannot be avoided with a busy timeout.
         //
         // See <https://github.com/groue/GRDB.swift/issues/1483>.
         let kind = kind ?? (isReadOnly ? .deferred : .immediate)

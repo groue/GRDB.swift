@@ -78,7 +78,7 @@ try dbQueue.read { db in
 
 **Migrations run with deferred foreign key checks.** This means that foreign key violations are only checked at the end of the migration (and they make the migration fail). See <doc:Migrations#Foreign-Key-Checks> below for more information.
 
-**The memory of applied migrations is stored in the database itself** (in a reserved table).
+**The record of applied migrations is stored in the database itself** (in a reserved table).
 
 ## Defining the Database Schema from a Migration
 
@@ -110,7 +110,7 @@ migrator.registerMigration("Guilds", foreignKeyChecks: .immediate) { db in
 }
 ```
 
-Note: migrations that run with `.immediate` foreign key checks can not be used to recreate database tables, as described below. When needed, define two migrations instead of one.
+Note: migrations that run with `.immediate` foreign key checks cannot be used to recreate database tables, as described below. When needed, define two migrations instead of one.
 
 #### How to Recreate a Database Table 
 

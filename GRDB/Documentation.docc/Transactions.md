@@ -6,7 +6,7 @@ Precise transaction handling.
 
 **A transaction is a fundamental tool of SQLite** that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections. It is at the core of GRDB <doc:Concurrency> guarantees.
 
-To profit from database transactions, all you have to do is group related database statements in a single database access method such as ``DatabaseWriter/write(_:)-76inz`` or ``DatabaseReader/read(_:)-3806d``:
+To benefit from database transactions, all you have to do is group related database statements in a single database access method such as ``DatabaseWriter/write(_:)-76inz`` or ``DatabaseReader/read(_:)-3806d``:
 
 ```swift
 // BEGIN TRANSACTION
@@ -157,7 +157,7 @@ In particular, since commits may throw an error, make sure you perform a rollbac
 
 This restriction can be lifted with the ``Configuration/allowsUnsafeTransactions`` configuration flag.
 
-It is possible to ask if a transaction is currently opened:
+It is possible to ask if a transaction is currently open:
 
 ```swift
 func myCriticalMethod(_ db: Database) throws {
@@ -212,7 +212,7 @@ try dbQueue.writeWithoutTransaction { db in
 }
 ```
 
-SQLite savepoints are more than nested transactions, though. For advanced uses, use [SQLite savepoint documentation](https://www.sqlite.org/lang_savepoint.html).
+SQLite savepoints are more than nested transactions, though. For advanced uses, see the [SQLite savepoint documentation](https://www.sqlite.org/lang_savepoint.html).
 
 
 ## Transaction Kinds

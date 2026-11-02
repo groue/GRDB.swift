@@ -19,8 +19,8 @@ public protocol _ValueReducer: GRDBSendableMetatype {
     associatedtype Value: Sendable
     
     /// Returns a value that fetches database values upon changes in an
-    /// observed database region. The returned value method must not depend
-    /// on the state of the reducer.
+    /// observed database region. The `fetch` method of the returned value
+    /// must not depend on the state of the reducer.
     func _makeFetcher() -> Fetcher
     
     /// Transforms a fetched value into an optional observed value. Returns nil

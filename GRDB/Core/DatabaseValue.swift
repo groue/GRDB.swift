@@ -261,7 +261,7 @@ extension DatabaseValue.Storage: Equatable {
 }
 
 extension DatabaseValue: Equatable {
-    /// Returns whether two ``DatabaseValue`` are equal.
+    /// Returns whether two ``DatabaseValue`` instances are equal.
     ///
     /// For example:
     ///

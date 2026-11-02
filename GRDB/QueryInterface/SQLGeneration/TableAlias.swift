@@ -351,7 +351,7 @@ extension TableAlias {
     /// A boolean SQL expression indicating whether this alias refers to some
     /// rows, or not.
     ///
-    /// In the example below, we only fetch books that are not associated to
+    /// In the example below, we only fetch books that are not associated with
     /// any author:
     ///
     /// ```swift

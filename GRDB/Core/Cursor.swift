@@ -41,7 +41,7 @@ extension RangeReplaceableCollection {
     
     /// Adds the elements of a cursor to the end of this collection.
     ///
-    /// In case of error, an unspecified amount of elements have been added to
+    /// In case of error, an unspecified number of elements have been added to
     /// the collection.
     ///
     /// - parameter newElements: The elements to append to the collection.
@@ -279,7 +279,7 @@ extension Sequence {
 ///
 /// - Cursor types are classes, and have a lifetime.
 /// - Cursor iteration may throw errors.
-/// - A cursor can not be repeated.
+/// - A cursor cannot be repeated.
 ///
 /// The protocol comes with default implementations for many operations similar
 /// to those defined by Swift's Sequence protocol: `contains`, `dropFirst`,

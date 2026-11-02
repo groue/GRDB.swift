@@ -64,13 +64,13 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     
     /// Returns the `JSONDecoder` that decodes the value.
     ///
-    /// This method is dedicated to ``DatabaseValueConvertible`` types that 
+    /// This method is intended for ``DatabaseValueConvertible`` types that 
     /// also conform to the standard `Decodable` protocol.
     static func databaseJSONDecoder() -> JSONDecoder
     
     /// Returns the `JSONEncoder` that encodes the value.
     ///
-    /// This method is dedicated to ``DatabaseValueConvertible`` types that
+    /// This method is intended for ``DatabaseValueConvertible`` types that
     /// also conform to the standard `Encodable` protocol.
     static func databaseJSONEncoder() -> JSONEncoder
 }

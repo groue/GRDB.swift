@@ -531,7 +531,7 @@ extension Database {
     /// Nil is returned if the view does not exist, or if `columns` is empty.
     ///
     /// - precondition: If the view exists, columns must exist, must
-    ///   identify a unique row, and must be not null.
+    ///   identify a unique row, and must not be null.
     func fetchPrimitivePrimaryKey(
         forView view: DatabaseObjectID,
         columns: [String]
@@ -1028,7 +1028,7 @@ extension Database {
     /// Fetches the columns in the database table identified by `table`, or
     /// returns nil if the database schema does not contain that table.
     ///
-    /// This method relies entirely on SQLite schema introspection. Starting
+    /// This method relies entirely on SQLite schema introspection. Starting with
     /// SQLite 3.26.0, it returns all columns, including
     /// [generated columns](https://www.sqlite.org/gencol.html) and
     /// [hidden columns](https://www.sqlite.org/vtab.html#hiddencol).
@@ -1098,7 +1098,7 @@ extension Database {
     /// the case of input columns.
     ///
     /// This method accepts both tables and views. For views, the primary
-    /// key returned by the schemaSource is considered as a unique key.
+    /// key returned by the schemaSource is considered a unique key.
     func columnsForUniqueKey(
         _ columns: some Collection<String>,
         in tableName: String
@@ -1332,7 +1332,7 @@ public struct ColumnInfo: FetchableRecord, Sendable {
     /// When nil, the column has no default value.
     ///
     /// When not nil, it contains an SQL string that defines an expression. That
-    /// expression may be a literal, as `1`, or `'foo'`. It may also contain a
+    /// expression may be a literal, such as `1`, or `'foo'`. It may also contain a
     /// non-constant expression such as `CURRENT_TIMESTAMP`.
     ///
     /// Related SQLite documentation: <https://www.sqlite.org/lang_createtable.html#the_default_clause>.

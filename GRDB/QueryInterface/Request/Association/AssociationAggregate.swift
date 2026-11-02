@@ -706,7 +706,7 @@ extension AssociationAggregate: Refinable {
         }
     }
     
-    /// Returns an aggregate that is selected in a column named like the given
+    /// Returns an aggregate that is selected in a column named after the given
     /// coding key.
     ///
     /// See ``forKey(_:)-1rvux``.

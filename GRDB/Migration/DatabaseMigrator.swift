@@ -262,12 +262,12 @@ public struct DatabaseMigrator: Sendable {
     /// }
     /// ```
     ///
-    /// In the above sample code, the merged migration is named like the
+    /// In the above sample code, the merged migration is named after the
     /// last one of the merged set. You can also give it a brand new name,
     /// as in the alternative below. Notice the different logic in the
     /// migration code.
     ///
-    /// **In all cases avoid naming the merged migration like the first
+    /// **In all cases avoid naming the merged migration after the first
     /// elements in the merged set** (`v1` or `v2` in our example).
     ///
     /// ```swift

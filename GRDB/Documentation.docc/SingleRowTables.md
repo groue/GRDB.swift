@@ -95,7 +95,7 @@ extension AppConfiguration {
 }
 ```
 
-This ceremony is not needed when the column can not be null:
+This ceremony is not needed when the column cannot be null:
 
 ```swift
 // The simplified setup for non-nullable columns
@@ -109,7 +109,7 @@ struct AppConfiguration: Codable {
 }
 ```
 
-In case the database table would be empty, we need a default configuration:
+In case the database table is empty, we need a default configuration:
 
 ```swift
 extension AppConfiguration {

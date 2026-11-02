@@ -905,7 +905,7 @@ extension SQLExpression {
             //      sqlite> SELECT ('a' COLLATE NOCASE) IN ('A');
             //      1
             //
-            // Conclusion: "x IN (y,z, ...) COLLATE nocase" can not match the
+            // Conclusion: "x IN (y,z, ...) COLLATE nocase" cannot match the
             // user intent. We could fatal error. Or warn. Or just make it work:
             //
             // Prefer: (expression COLLATE collation) IN (...)
@@ -2191,7 +2191,7 @@ extension SQLExpressible where Self == Column {
 /// For example, ``Column`` is a type that only exists to help you build
 /// requests, and it adopts `SQLSpecificExpressible`.
 ///
-/// On the other side, `Int` adopts ``SQLExpressible``.
+/// On the other hand, `Int` adopts ``SQLExpressible``.
 ///
 /// ## Topics
 ///

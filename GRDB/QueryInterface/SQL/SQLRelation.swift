@@ -41,7 +41,7 @@
 ///
 /// - `.oneOptional`:
 ///
-///     Such children are left joined. They may, or not, be included in
+///     Such children are left joined. They may or may not be included in
 ///     the selection.
 ///
 ///         // SELECT book.*
@@ -56,7 +56,7 @@
 ///
 /// - `.oneRequired`:
 ///
-///     Such children are inner joined. They may, or not, be included in
+///     Such children are inner joined. They may or may not be included in
 ///     the selection.
 ///
 ///         // SELECT book.*
@@ -85,9 +85,9 @@
 ///     below, the country relation has a `.bridge` child to passports, and the
 ///     passport relation has an `.all` child to citizens.
 ///
-///         // SELECT * FROM countries;
-///         // SELECT citizens.* FROM citizens
-///         // JOIN passport ON passport.citizenId = citizens.id
+///         // SELECT * FROM country;
+///         // SELECT citizen.* FROM citizen
+///         // JOIN passport ON passport.citizenId = citizen.id
 ///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...);
 ///         Country.including(all: Country.citizens)
 struct SQLRelation: Sendable {
@@ -388,7 +388,7 @@ extension SQLRelation {
     ///     // JOIN destination ON destination.id = origin.destinationId
     ///     let request = Origin.including(required: Origin.destination)
     ///
-    /// At low-level, this gives:
+    /// At a low level, this gives:
     ///
     ///     let sqlAssociation = Origin.destination._sqlAssociation
     ///     let origin = Origin.all().query.relation
@@ -439,7 +439,7 @@ extension SQLRelation {
         // We want the child for the "captain" in the following request to be
         // registered under the singular "player" key, and not the plural
         // "players" key, so that it does not conflict with the other child
-        // named "players" (we can not have two distinct children with the
+        // named "players" (we cannot have two distinct children with the
         // same key):
         //
         //     struct Team: TableRecord {

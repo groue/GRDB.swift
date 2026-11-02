@@ -29,7 +29,7 @@ let cancellable = observation.start(in: dbQueue) { error in
 }
 ```
 
-Enjoy the changes notifications:
+Enjoy the change notifications:
 
 ```swift
 try dbQueue.write { db in

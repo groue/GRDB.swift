@@ -11,7 +11,7 @@ public struct ValueObservation<Reducer: ValueReducer>: Sendable {
     /// when it fetches fresh values.
     ///
     /// The `requiresWriteAccess` property is false by default. When true, a
-    /// `ValueObservation` has a write access to the database, and its fetches
+    /// `ValueObservation` has write access to the database, and its fetches
     /// are automatically wrapped in a savepoint:
     ///
     /// ```swift
@@ -695,7 +695,7 @@ extension ValueObservation {
     /// ```
     ///
     /// **Observations that do not track a constant database region must not
-    /// use this method, because some changes may not be notified to
+    /// use this method, because some changes may not be reported to
     /// the application.**
     ///
     /// For example, the observations below do not track a constant region.

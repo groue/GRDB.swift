@@ -14,7 +14,7 @@ A `DatabaseValueConvertible` type supports conversion to and from database value
 
 To conform to `DatabaseValueConvertible`, implement the two requirements ``fromDatabaseValue(_:)-21zzv`` and ``databaseValue-1ob9k``. Do not customize the ``fromMissingColumn()-7iamp`` requirement. If your type `MyValue` conforms, then the conformance of the optional type `MyValue?` is automatic.
 
-The implementation of `fromDatabaseValue` must return nil if the type can not be decoded from the raw database value. This nil value will have GRDB throw a decoding error accordingly.
+The implementation of `fromDatabaseValue` must return nil if the type cannot be decoded from the raw database value. This nil value will have GRDB throw a decoding error accordingly.
 
 For example:
 
@@ -59,7 +59,7 @@ extension Grape: DatabaseValueConvertible { }
 
 ### Built-in Codable support
 
-`DatabaseValueConvertible` is also ready-made for `Codable` types, which are automatically coded and decoded from JSON arrays and objects:
+`DatabaseValueConvertible` is also ready-made for `Codable` types, which are automatically encoded and decoded from JSON arrays and objects:
 
 ```swift
 struct Color: Codable {
@@ -91,7 +91,7 @@ protocol DatabaseValueConvertible {
 import Tagged
 
 struct Player: Identifiable {
-    // Thanks to Tagged, Player.ID can not be confused with Team.ID or
+    // Thanks to Tagged, Player.ID cannot be confused with Team.ID or
     // Award.ID, even though they all wrap strings.
     typealias ID = Tagged<Player, String>
     var id: ID

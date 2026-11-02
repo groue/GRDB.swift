@@ -141,7 +141,7 @@ Since several processes may open the database at the same time, protect the crea
 
 Read-only connections will fail unless two extra files ending in `-shm` and `-wal` are present next to the database file ([source](https://www.sqlite.org/walformat.html#operations_that_require_locks_and_which_locks_those_operations_use)). Those files are regular companions of databases in the [WAL mode]. But they are deleted, under regular operations, when database connections are closed. Precisely speaking, they *may* be deleted: it depends on the SQLite and the operating system versions ([source](https://github.com/groue/GRDB.swift/issues/739#issuecomment-604363998)). And when they are deleted, read-only connections fail.
 
-The solution is to enable the "persistent WAL mode", as shown in the sample code above, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. This mode makes sure the `-shm` and `-wal` files are never deleted, and guarantees a database access to read-only connections.
+The solution is to enable the "persistent WAL mode", as shown in the sample code above, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. This mode makes sure the `-shm` and `-wal` files are never deleted, and guarantees database access to read-only connections.
 
 
 ## How to limit the SQLITE_BUSY error
@@ -224,7 +224,7 @@ do {
 
 Post ``Database/resumeNotification`` in order to resume suspended databases. You can safely post this notification when the app comes back to foreground.
 
-In applications that use the background modes supported by iOS, post `resumeNotification` from each and every background mode callback that may use the database, and don't forget to post `suspendNotification` again before the app turns suspended.
+In applications that use the background modes supported by iOS, post `resumeNotification` from each and every background mode callback that may use the database, and don't forget to post `suspendNotification` again before the app is suspended.
 
 ## How to perform cross-process database observation
 

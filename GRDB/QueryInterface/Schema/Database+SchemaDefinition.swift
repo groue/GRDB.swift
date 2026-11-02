@@ -53,7 +53,7 @@ extension Database {
     ///
     /// ### Reference documentation
     ///
-    /// SQLite has many reference documents about table creation. They are a
+    /// SQLite has many reference documents about table creation. They are
     /// great learning material:
     ///
     /// - [CREATE TABLE](https://www.sqlite.org/lang_createtable.html)

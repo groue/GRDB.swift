@@ -63,9 +63,9 @@ let dbQueue = try DatabaseQueue(dbPath, configuration: config)
 
 ## ValueObservation
 
-[ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
+[ValueObservation] is the database observation tool that tracks changes in database values. It has changed quite a bit in GRDB 5.
 
-Those changes have the vanilla GRDB, its [Combine publishers], and [RxGRDB] offer a common API, and a common behavior. This greatly helps choose or switch your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
+Those changes make the vanilla GRDB, its [Combine publishers], and [RxGRDB] offer a common API, and a common behavior. This greatly helps choose or switch your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
 
 In the end, this migration step might require some work. But it's for the benefit of all!
 
@@ -111,7 +111,7 @@ let observation = ValueObservation.tracking(someFetchFunction)
 let observation = ValueObservation.tracking { db in ... }
 ```
 
-Finally, ValueObservation used to let application define custom "reducers" based on a protocol named ValueReducer, which was removed in GRDB 5. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
+Finally, ValueObservation used to let applications define custom "reducers" based on a protocol named ValueReducer, which was removed in GRDB 5. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
 <details>
     <summary>RxGRDB impact</summary>
@@ -181,13 +181,13 @@ let cancellable = observation.start(
 
 **The behavior of ValueObservation has changed**.
 
-The changes can quite impact your application. We'll describe them below, as well as the strategies to restore the previous behavior when needed.
+The changes can have quite an impact on your application. We'll describe them below, as well as the strategies to restore the previous behavior when needed.
 
 1. ValueObservation used to notify its initial value *immediately* when the observation starts. Now, it notifies fresh values on the main thread, *asynchronously*, by default.
     
     This means that the parts of your application that rely on this immediate value to, say, set up their user interface, have to be modified. Otherwise, they may suffer from a brief flash of missing data, during the short amount of time between the beginning of the observation, and the asynchronous delivery of the initial value.
     
-    To be granted with an immediate, synchronous, delivery of the initial value, insert a `scheduling: .immediate` argument in the `start` method:
+    To get an immediate, synchronous, delivery of the initial value, insert a `scheduling: .immediate` argument in the `start` method:
     
     ```swift
     let observation = ValueObservation.tracking(Player.fetchAll)
@@ -319,7 +319,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     }
     ```
     
-    As in previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+    As in previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation instances. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
 
 ## Combine Integration
@@ -372,7 +372,7 @@ let publisher = observation
     
     > :question: This change avoids conflicts with other libraries that define the same operator.
 
-3. [SQL Interpolation] does no longer wrap subqueries in parentheses:
+3. [SQL Interpolation] no longer wraps subqueries in parentheses:
     
     ```swift
     // BEFORE: GRDB 4
@@ -387,7 +387,7 @@ let publisher = observation
     
     > :question: This change makes it possible to concatenate subqueries with the UNION operator.
 
-4. In order to extract raw SQL string from an [SQL literal], you now need a database connection:
+4. In order to extract the raw SQL string from an [SQL literal], you now need a database connection:
 
     ```swift
     // BEFORE: GRDB 4
@@ -404,7 +404,7 @@ let publisher = observation
     print(arguments)       // prints ["O'Brien", 42]
     ```
 
-5. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
+5. In order to extract the raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
 
     ```swift
     // BEFORE: GRDB 4
@@ -460,7 +460,7 @@ let publisher = observation
     import GRDB
     ```
 
-10. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
+10. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You no longer need to import the underlying SQLite library:
     
     ```swift
     // BEFORE: GRDB 4

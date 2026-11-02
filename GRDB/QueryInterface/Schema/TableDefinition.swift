@@ -12,7 +12,7 @@ public struct TableOptions: OptionSet, Sendable {
     
     /// Creates a [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) table.
     ///
-    /// Such tables can not be tracked with <doc:DatabaseObservation> tools.
+    /// Such tables cannot be tracked with <doc:DatabaseObservation> tools.
     public static let withoutRowID = TableOptions(rawValue: 1 << 2)
     
 #if GRDBCUSTOMSQLITE || SQLITE_HAS_CODEC
@@ -289,7 +289,7 @@ public final class TableDefinition {
     /// }
     /// ```
     public func column(literal: SQL) {
-        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns can not be defined with raw SQL")
+        GRDBPrecondition(!inPrimaryKeyBody, "Primary key columns cannot be defined with raw SQL")
         columnComponents.append(.columnLiteral(literal))
     }
     

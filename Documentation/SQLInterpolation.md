@@ -84,7 +84,7 @@ try dbQueue.write { db in
 }
 ```
 
-**`SQL` is not a Swift String.** You can not use the `execute(literal:)` method with a String argument:
+**`SQL` is not a Swift String.** You cannot use the `execute(literal:)` method with a String argument:
 
 ```swift
 try dbQueue.write { db in
@@ -131,7 +131,7 @@ let query = SQL(
     arguments: [name, id])
 ```
 
-`SQL` can embed any [value], as we have seen above, but not only. Please keep on reading the next chapter, or jump directly to the [SQL Interpolation Reference].
+`SQL` can embed any [value], as we have seen above, and more. Please keep on reading the next chapter, or jump directly to the [SQL Interpolation Reference].
 
 
 ## SQL Interpolation and the Query Interface
@@ -357,7 +357,7 @@ Let's extend Player with database methods.
     }
     ```
     
-    This last request shows how to build an SQLRequest from an [SQL Literal]. You will need `SQL` when the request can not be written in a single stroke.
+    This last request shows how to build an SQLRequest from an [SQL Literal]. You will need `SQL` when the request cannot be written in a single stroke.
 
 
 

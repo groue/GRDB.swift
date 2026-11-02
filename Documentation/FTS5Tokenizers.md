@@ -175,14 +175,14 @@ This method's arguments are:
     - `iStart`: Byte offset of token within input text
     - `iEnd`: Byte offset of end of token within input text
 
-Since tokenization is hard, and pointers to byte buffers uneasy to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
+Since tokenization is hard, and pointers to byte buffers difficult to deal with, you may enjoy the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol.
 
 
 ## FTS5WrapperTokenizer
 
 **FTS5WrapperTokenizer** is the high-level protocol for your custom tokenizers. It provides a default implementation for the low-level `tokenize(context:tokenization:pText:nText:tokenCallback:)` method, so that the adopting type does not have to deal with raw byte buffers of the raw [FTS5 C API](https://www.sqlite.org/fts5.html#custom_tokenizers).
 
-An FTS5WrapperTokenizer lets the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
+An FTS5WrapperTokenizer leaves the hard tokenization job to another tokenizer, the "wrapped tokenizer", and post-processes the tokens produced by this wrapped tokenizer.
 
 ```swift
 protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
@@ -195,7 +195,7 @@ protocol FTS5WrapperTokenizer : FTS5CustomTokenizer {
 }
 ```
 
-As all custom tokenizers, wrapper tokenizers must have a name:
+Like all custom tokenizers, wrapper tokenizers must have a name:
 
 ```swift
 final class MyTokenizer : FTS5WrapperTokenizer {
@@ -236,7 +236,7 @@ final class MyTokenizer : FTS5WrapperTokenizer {
 
 The token argument is a token produced by the wrapped tokenizer, ready to be ignored, modified, or multiplied into several [synonyms](#example-synonyms).
 
-The tokenization parameter tells the reason why tokens are produced, if FTS5 is tokenizing a document, or a search pattern. Some tokenizers may produce different tokens depending on this parameter.
+The tokenization parameter tells the reason why tokens are produced: whether FTS5 is tokenizing a document, or a search pattern. Some tokenizers may produce different tokens depending on this parameter.
 
 Finally, the tokenCallback is a function you call to output a custom token.
 
@@ -300,9 +300,9 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 
 The topic of synonyms is documented at https://www.sqlite.org/fts5.html#synonym_support, which describes several methods. You should carefully read this documentation, and pick the method you prefer.
 
-In the example below, we'll pick method (3), and implement a tokenizer that adds multiple synonyms for a single term to the FTS index. Using this method, when tokenizing document text, the tokenizer provides multiple synonyms for each token. So that when a document such as "I won first place" is tokenized, entries are added to the FTS index for "i", "won", "first", "1st" and "place".
+In the example below, we'll pick method (3), and implement a tokenizer that adds multiple synonyms for a single term to the FTS index. Using this method, when tokenizing document text, the tokenizer provides multiple synonyms for each token. So when a document such as "I won first place" is tokenized, entries are added to the FTS index for "i", "won", "first", "1st" and "place".
 
-We'll also take care of the SQLite advice:
+We'll also follow the SQLite advice:
 
 > When using methods (2) or (3), it is important that the tokenizer only provide synonyms when tokenizing document text or query text, not both. Doing so will not cause any errors, but is inefficient.
 
@@ -350,11 +350,11 @@ Languages that use the [latin script](https://en.wikipedia.org/wiki/Latin_script
 
 Full-text search in such a corpus often needs input tolerance, so that "encyclopaedia" can match "Encyclopædia", "Grossmann", "Großmann", and "Jerome", "Jérôme".
 
-German has something specific in that both "Mueller" and "Muller" should match "Müller", when "Bauer" should not match "Baur" (only "ü" accepts both "u" and "ue"). A pull request that adds a chapter about German will be welcome.
+German has something specific in that both "Mueller" and "Muller" should match "Müller", while "Bauer" should not match "Baur" (only "ü" accepts both "u" and "ue"). A pull request that adds a chapter about German will be welcome.
 
 A custom FTS5 tokenizer lets you provide fuzzy latin matching: after "Grossmann", "Großmann", and "GROSSMANN" have all been turned into "grossmann", they will all match together.
 
-We'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer (the one that knows how to split text on spaces and punctuations), and transform its tokens into their bare lowercase ascii form.
+We'll wrap the built-in [unicode61](https://www.sqlite.org/fts5.html#unicode61_tokenizer) tokenizer (the one that knows how to split text on spaces and punctuation), and transform its tokens into their bare lowercase ascii form.
 
 The tokenizer wrapping is provided by the [FTS5WrapperTokenizer](#fts5wrappertokenizer) protocol. The string transformation is provided by the [String.applyingTransform](https://developer.apple.com/reference/swift/string/1643133-applyingtransform) method:
 
