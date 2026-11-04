@@ -77,6 +77,7 @@ final class SchedulingWatchdog: @unchecked Sendable {
         allowedDatabases.contains { $0 === db }
     }
     
+    /// When nil, no database is allowed in the current execution context.
     static var current: SchedulingWatchdog? {
         DispatchQueue.getSpecific(key: watchDogKey)
     }
