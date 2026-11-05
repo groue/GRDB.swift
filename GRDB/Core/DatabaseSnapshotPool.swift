@@ -376,6 +376,10 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
     private var currentReader: SerializedDatabase? {
+        if SchedulingWatchdog.current == nil {
+            return nil
+        }
+        
         guard let readerPool else {
             return nil
         }
