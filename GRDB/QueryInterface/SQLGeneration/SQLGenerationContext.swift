@@ -271,6 +271,11 @@ extension [TableAliasBase] {
                     group.countElements(where: \.hasUserName) < 2,
                     "ambiguous alias: \(group[0].identityName)")
                 ambiguousGroups.append(group)
+                if group.contains(where: \.hasUserName) {
+                    // The user name is used verbatim: reserve it, so that
+                    // no name generated below collides with it.
+                    uniqueLowercaseNames.insert(lowercaseName)
+                }
             } else {
                 uniqueLowercaseNames.insert(lowercaseName)
             }
