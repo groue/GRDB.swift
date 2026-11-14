@@ -303,19 +303,12 @@ extension DatabaseSnapshotPool: DatabaseSnapshotReader {
             throw DatabaseError.connectionIsClosed()
         }
         
-        let (reader, releaseReader) = try await readerPool.get()
-        var readerCompletion: PoolCompletion?
-        defer {
-            // readerCompletion might be null in cancelled database accesses
-            releaseReader(readerCompletion ?? .reuse)
+        return try await readerPool.get { reader, release in
+            try await reader.execute { db in
+                defer { release(poolCompletion(db)) }
+                return try value(db)
+            }
         }
-        let (result, completion) = try await reader.execute { db in
-            let result = Result { try value(db) }
-            let completion = poolCompletion(db)
-            return (result, completion)
-        }
-        readerCompletion = completion
-        return try result.get()
     }
     
     public func asyncRead(
