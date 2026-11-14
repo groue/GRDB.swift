@@ -358,7 +358,7 @@ extension DatabasePool: DatabaseReader {
             throw DatabaseError.connectionIsClosed()
         }
         
-        return try await readerPool.get { reader in
+        return try await readerPool.get { reader, release in
             try await reader.execute { db in
                defer {
                    // Commit or rollback, but make sure we leave the read-only transaction
@@ -369,6 +369,7 @@ extension DatabasePool: DatabaseReader {
                        try? db.rollback()
                    }
                    assert(!db.isInsideTransaction)
+                   release(.reuse)
                }
                // The block isolation comes from the DEFERRED transaction.
                try db.beginTransaction(.deferred)
@@ -438,8 +439,9 @@ extension DatabasePool: DatabaseReader {
             throw DatabaseError.connectionIsClosed()
         }
         
-        return try await readerPool.get { reader in
+        return try await readerPool.get { reader, release in
             try await reader.execute { db in
+                defer { release(.reuse) }
                 try db.clearSchemaCacheIfNeeded()
                 return try value(db)
             }

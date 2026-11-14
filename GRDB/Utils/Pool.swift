@@ -162,6 +162,30 @@ final class Pool<T: Sendable>: Sendable {
         return try await block(element)
     }
     
+    /// Performs an asynchronous block with an element and a function that
+    /// releases it. The element becomes available as soon as the block calls
+    /// this function, or after the block has executed if it did not.
+    ///
+    /// This allows the block to release the element from where it is used,
+    /// without waiting for the calling task to resume.
+    func get<U>(
+        block: (T, _ release: @escaping @Sendable (PoolCompletion) -> Void) async throws -> U
+    ) async throws -> U {
+        let (element, completion) = try await get()
+        let isReleased = Mutex(false)
+        let release: @Sendable (PoolCompletion) -> Void = { poolCompletion in
+            let wasReleased = isReleased.withLock { isReleased in
+                defer { isReleased = true }
+                return isReleased
+            }
+            if !wasReleased {
+                completion(poolCompletion)
+            }
+        }
+        defer { release(.reuse) }
+        return try await block(element, release)
+    }
+    
     private func release(_ item: Item, completion: PoolCompletion) {
         contentLock.withLock { content in
             switch completion {
