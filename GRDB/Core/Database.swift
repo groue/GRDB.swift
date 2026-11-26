@@ -838,7 +838,18 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     func beginReadOnly() throws {
         if configuration.readonly { return }
         if readOnlyDepth == 0 {
-            try internalCachedStatement(sql: "PRAGMA query_only = 1").execute()
+            // We MUST ignore interruptions when we enter the read-only mode.
+            // An interruption could make the PRAGMA throw after it has
+            // enabled `query_only`. `readOnlyDepth` would not be increased,
+            // `endReadOnly()` would not run, and the user could not write
+            // with this database connection again.
+            //
+            // It's OK to ignore interruption, since interruption is
+            // concurrent and we can pretend it occurred before or after
+            // the PRAGMA.
+            try ignoringInterruption {
+                try internalCachedStatement(sql: "PRAGMA query_only = 1").execute()
+            }
         }
         readOnlyDepth += 1
     }
