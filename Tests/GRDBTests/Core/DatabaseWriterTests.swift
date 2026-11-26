@@ -933,4 +933,39 @@ class DatabaseWriterTests : GRDBTestCase {
         try await test(makeDatabasePool())
         try await test(AnyDatabaseWriter(makeDatabaseQueue()))
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/1899
+    func test_cancellation_does_not_leave_connection_read_only() async throws {
+        func test(_ dbWriter: some DatabaseWriter) async throws {
+            try await dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY)")
+            }
+            
+            // Numbers that have the test fail more or less reliably
+            // (on my machine) unless the #1899 patch is applied.
+            for _ in 0..<2000 {
+                let task = Task.detached {
+                    try await dbWriter.read { db in
+                        try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+                    }
+                }
+                // For the test to fail, we need to be lucky, here:
+                // Cancellation must occur during the execution of the
+                // PRAGMA that enters the read-only mode.
+                var sum = 0
+                for index in 0..<Int.random(in: 0..<20_000) { sum &+= index }
+                task.cancel()
+                // Ignore expected CancellationError
+                _ = await task.result
+                
+                // Throws SQLITE_READONLY if the cancelled read has left
+                // the connection in the read-only mode.
+                try await dbWriter.write { db in
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+            }
+        }
+        try await test(makeDatabaseQueue())
+        try await test(AnyDatabaseWriter(makeDatabaseQueue()))
+    }
 }
